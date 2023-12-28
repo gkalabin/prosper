@@ -28,8 +28,8 @@ export const useCurrencyContext = () => {
   return useContext(CurrencyContext);
 };
 
-export class Amount {
-  private readonly amountCents: number;
+export class AmountWithCurrency {
+  private readonly amount: Amount;
   private readonly currency: Currency;
 
   private static formatters = {
@@ -41,7 +41,7 @@ export class Amount {
   };
 
   public constructor(init: { amountCents: number; currency: Currency }) {
-    this.amountCents = init.amountCents;
+    this.amount = new Amount({amountCents: init.amountCents});
     this.currency = init.currency;
   }
 
@@ -50,41 +50,37 @@ export class Amount {
   }
 
   public cents() {
-    return this.amountCents;
+    return this.amount.cents();
   }
 
   public dollar() {
-    return this.amountCents / 100;
+    return this.amount.dollar();
   }
 
-  public wholeDollar() {
-    return Math.round(this.dollar());
-  }
-
-  public add(a: Amount): Amount {
-    this.assertSameCurrency(a);
-    return new Amount({
-      amountCents: this.amountCents + a.amountCents,
+  public add(other: AmountWithCurrency): AmountWithCurrency {
+    this.assertSameCurrency(other);
+    return new AmountWithCurrency({
+      amountCents: this.amount.add(other.amount).cents(),
       currency: this.currency,
     });
   }
 
-  public subtract(a: Amount): Amount {
-    this.assertSameCurrency(a);
-    return new Amount({
-      amountCents: this.amountCents - a.amountCents,
+  public subtract(other: AmountWithCurrency): AmountWithCurrency {
+    this.assertSameCurrency(other);
+    return new AmountWithCurrency({
+      amountCents: this.amount.subtract(other.amount).cents(),
       currency: this.currency,
     });
   }
 
-  public equals(a: Amount) {
-    this.assertSameCurrency(a);
-    return this.amountCents == a.amountCents;
+  public equals(other: AmountWithCurrency) {
+    this.assertSameCurrency(other);
+    return this.amount.equals(other.amount);
   }
 
-  public lessThan(a: Amount) {
-    this.assertSameCurrency(a);
-    return this.amountCents < a.amountCents;
+  public lessThan(other: AmountWithCurrency) {
+    this.assertSameCurrency(other);
+    return this.amount.lessThan(other.amount);
   }
 
   public format(): string {
@@ -92,7 +88,7 @@ export class Amount {
     if (this.currency.isStock()) {
       return `${this.dollar()} ${this.currency.name}`;
     }
-    const formatter = Amount.formatters[this.currency.name];
+    const formatter = AmountWithCurrency.formatters[this.currency.name];
     if (!formatter) {
       throw new Error(`Unknown formatter for currency ${this.currency.name}`);
     }
@@ -103,12 +99,48 @@ export class Amount {
     return this.format();
   }
 
-  private assertSameCurrency(a: Amount) {
+  private assertSameCurrency(a: AmountWithCurrency) {
     if (a.currency.id != this.currency.id) {
       throw new Error(
         `Impossible to add ${a.currency.name} and ${this.currency.name}`
       );
     }
+  }
+}
+
+export class Amount {
+  private readonly amountCents: number;
+
+  public constructor(init: { amountCents: number }) {
+    this.amountCents = init.amountCents;
+  }
+
+  public cents() {
+    return this.amountCents;
+  }
+
+  public dollar() {
+    return this.amountCents / 100;
+  }
+
+  public add(a: Amount): Amount {
+    return new Amount({
+      amountCents: this.amountCents + a.amountCents,
+    });
+  }
+
+  public subtract(a: Amount): Amount {
+    return new Amount({
+      amountCents: this.amountCents - a.amountCents,
+    });
+  }
+
+  public equals(a: Amount) {
+    return this.amountCents == a.amountCents;
+  }
+
+  public lessThan(a: Amount) {
+    return this.amountCents < a.amountCents;
   }
 }
 
@@ -121,7 +153,7 @@ export class StockAndCurrencyExchange {
     this.stockQuotes = sq;
   }
 
-  exchange(a: Amount, target: Currency, when: Date): Amount {
+  exchange(a: AmountWithCurrency, target: Currency, when: Date): AmountWithCurrency {
     let from = a;
     if (a.getCurrency().isStock()) {
       from = this.stockQuotes.exchange(from, when);
@@ -171,7 +203,7 @@ export class ExchangeRates {
     }
   }
 
-  exchange(a: Amount, target: Currency, when: Date): Amount {
+  exchange(a: AmountWithCurrency, target: Currency, when: Date): AmountWithCurrency {
     if (a.getCurrency().id == target.id) {
       return a;
     }
@@ -181,7 +213,7 @@ export class ExchangeRates {
       );
     }
     const rateNanos = this.findRate(a.getCurrency(), target, when);
-    return new Amount({
+    return new AmountWithCurrency({
       amountCents: (a.cents() * rateNanos) / NANOS_MULTIPLIER,
       currency: target,
     });
@@ -227,13 +259,13 @@ export class StockQuotes {
     }
   }
 
-  exchange(a: Amount, when: Date): Amount {
+  exchange(a: AmountWithCurrency, when: Date): AmountWithCurrency {
     const c = a.getCurrency();
     if (!c.isStock()) {
       throw new Error(`Currency ${c.name} is not stock`);
     }
     const value = this.findQuote(c.name, when);
-    return new Amount({
+    return new AmountWithCurrency({
       amountCents: (a.cents() * value) / 100,
       currency: this.currencyByStock[c.name],
     });

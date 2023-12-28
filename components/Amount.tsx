@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { Amount as AmountModel } from "lib/ClientSideModel";
+import { AmountWithCurrency as AmountModel } from "lib/ClientSideModel";
 
 export const Amount = (props: {
   amount: AmountModel;

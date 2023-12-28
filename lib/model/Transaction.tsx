@@ -1,5 +1,5 @@
 import { startOfMonth } from "date-fns";
-import { Amount, StockAndCurrencyExchange } from "lib/ClientSideModel";
+import { AmountWithCurrency, StockAndCurrencyExchange } from "lib/ClientSideModel";
 import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
 import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
@@ -137,8 +137,7 @@ export class Transaction {
   }
 
   amount() {
-    // TODO: cache value in constructor
-    return new Amount({
+    return new AmountWithCurrency({
       amountCents: this.amountCents,
       currency: this.currency(),
     });
@@ -175,14 +174,14 @@ export class Transaction {
     if (!extension) {
       throw new Error("no extension found");
     }
-    return new Amount({
+    return new AmountWithCurrency({
       amountCents: extension.ownShareAmountCents,
       currency: this.currency(),
     });
   }
 
   amountReceived() {
-    return new Amount({
+    return new AmountWithCurrency({
       amountCents: this.transfer.receivedAmountCents,
       currency: this.transfer.accountTo.currency,
     });

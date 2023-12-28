@@ -3,7 +3,7 @@ import Layout from "components/Layout";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import {
-  Amount,
+  AmountWithCurrency,
   CurrencyContextProvider,
   modelFromDatabaseData,
   StockAndCurrencyExchange,
@@ -25,14 +25,14 @@ export function MoneyInMoneyOut(props: {
 }) {
   const displayCurrency = useDisplayCurrency();
   const [includeTransfersInDelta, setIncludeTransfersInDelta] = useState(false);
-  const zero = new Amount({ amountCents: 0, currency: displayCurrency });
+  const zero = new AmountWithCurrency({ amountCents: 0, currency: displayCurrency });
 
   const transactions = props.transactions.filter(
     (t) => !t.isThirdPartyExpense()
   );
-  const moneyOut: { [firstOfMonthEpoch: number]: Amount } = {};
-  const moneyIn: { [firstOfMonthEpoch: number]: Amount } = {};
-  const delta: { [firstOfMonthEpoch: number]: Amount } = {};
+  const moneyOut: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
+  const moneyIn: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
+  const delta: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
   const monthsIndex: { [firstOfMonthEpoch: number]: boolean } = {};
   for (const t of transactions) {
     const ts = t.monthEpoch();
@@ -97,13 +97,13 @@ export function MoneyInMoneyOut(props: {
       {
         type: "column",
         name: "Money In",
-        data: months.map((m) => moneyIn[m].wholeDollar()),
+        data: months.map((m) => Math.round(moneyIn[m].dollar())),
         color: "green",
       },
       {
         type: "column",
         name: "Money Out",
-        data: months.map((m) => moneyOut[m].wholeDollar()),
+        data: months.map((m) => Math.round(moneyOut[m].dollar())),
         color: "red",
       },
     ],
@@ -120,7 +120,7 @@ export function MoneyInMoneyOut(props: {
       {
         type: "column",
         name: "Delta",
-        data: months.map((m) => delta[m].wholeDollar()),
+        data: months.map((m) => Math.round(delta[m].dollar())),
       },
     ],
   };

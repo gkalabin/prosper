@@ -1,6 +1,6 @@
 import { Bank as DBBank, BankAccount as DBBankAccount } from "@prisma/client";
 import {
-  Amount,
+  AmountWithCurrency,
   StockAndCurrencyExchange,
 } from "lib/ClientSideModel";
 import {
@@ -26,11 +26,11 @@ export class Bank {
     this.exchange = exchange;
   }
 
-  balance(targetCurrency: Currency): Amount {
+  balance(targetCurrency: Currency): AmountWithCurrency {
     if (!this.exchange) {
       throw new Error("No exchange rates set");
     }
-    let bankBalance = new Amount({
+    let bankBalance = new AmountWithCurrency({
       amountCents: 0,
       currency: targetCurrency,
     });
@@ -81,13 +81,13 @@ export class BankAccount {
     return this.dbValue.liquid;
   }
 
-  balance(): Amount {
+  balance(): AmountWithCurrency {
     let balance = this.initialBalanceCents;
     this.transactions.forEach((t) => {
       const amount = t.amountSignedCents(this);
       balance += amount;
     });
-    return new Amount({
+    return new AmountWithCurrency({
       amountCents: balance,
       currency: this.currency,
     });
