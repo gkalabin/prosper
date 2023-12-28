@@ -4,7 +4,7 @@ import { getUserId } from "lib/user";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Banks Configuration - Prosper",
+  title: "Banks Config - Prosper",
 };
 
 async function getData(userId: number) {
@@ -22,7 +22,6 @@ async function getData(userId: number) {
   const dbTrueLayerTokens = await db.trueLayerTokenFindMany(whereBankId);
   const dbNordigenTokens = await db.nordigenTokenFindMany(whereBankId);
   const dbStarlingTokens = await db.starlingTokenFindMany(whereBankId);
-
   return {
     dbBanks,
     dbBankAccounts,
@@ -37,15 +36,13 @@ export default async function Page() {
   const userId = await getUserId();
   const data = await getData(userId);
   return (
-    <>
-      <BanksPage
-        dbBanks={data.dbBanks}
-        dbBankAccounts={data.dbBankAccounts}
-        dbStocks={data.dbStocks}
-        dbTrueLayerTokens={data.dbTrueLayerTokens}
-        dbNordigenTokens={data.dbNordigenTokens}
-        dbStarlingTokens={data.dbStarlingTokens}
-      />
-    </>
+    <BanksPage
+      dbBanks={data.dbBanks}
+      dbBankAccounts={data.dbBankAccounts}
+      dbStocks={data.dbStocks}
+      dbTrueLayerTokens={data.dbTrueLayerTokens}
+      dbNordigenTokens={data.dbNordigenTokens}
+      dbStarlingTokens={data.dbStarlingTokens}
+    />
   );
 }

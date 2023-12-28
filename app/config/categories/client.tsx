@@ -1,15 +1,11 @@
+"use client";
 import { ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { Category as DBCategory } from "@prisma/client";
 import classNames from "classnames";
 import { AddOrEditCategoryForm } from "components/config/AddOrEditCategoryForm";
-import { ConfigPageLayout } from "components/ConfigPageLayout";
 import { ButtonLink, ButtonPagePrimary } from "components/ui/buttons";
-import { DB } from "lib/db";
 import { Category, categoryModelFromDB } from "lib/model/Category";
 import { updateState } from "lib/stateHelpers";
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "pages/api/auth/[...nextauth]";
 import { useState } from "react";
 
 const CategoriesList = (props: {
@@ -54,7 +50,7 @@ const EditableCategoryListItem = ({
           "my-2 rounded-md border p-3 shadow",
           // https://stackoverflow.com/questions/69687530/dynamically-build-classnames-in-tailwindcss:
           // make following classNames available for JIT: ml-4 ml-8 ml-12 ml-16 ml-20 ml-24 ml-28 ml-32 ml-36 ml-40
-          "ml-" + category.depth() * 4
+          "ml-" + category.depth() * 4,
         )}
       >
         <div className="flex items-center justify-between">
@@ -73,7 +69,7 @@ const EditableCategoryListItem = ({
                 category.isRoot() && "text-xl font-medium",
                 category.depth() == 1 && "text-lg",
                 category.depth() > 1 && "text-base font-light",
-                "ml-2 align-middle"
+                "ml-2 align-middle",
               )}
             >
               {showEditForm && "Editing "}
@@ -107,27 +103,11 @@ const EditableCategoryListItem = ({
   );
 };
 
-export const getServerSideProps: GetServerSideProps<{
-  data?: {
-    dbCategories: DBCategory[];
-  };
-}> = async (context) => {
-  const session = await getServerSession(context.req, context.res, authOptions);
-  if (!session) {
-    return { props: {} };
-  }
-  const userId = +session.user.id;
-  const db = new DB({ userId });
-  const dbCategories = await db.categoryFindMany();
-  const props = { session, data: { dbCategories } };
-  return {
-    props: JSON.parse(JSON.stringify(props)),
-  };
-};
-
-const CategoriesPage = ({
-  data: { dbCategories: initialDbCategories },
-}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+export function CategoriesConfigPage({
+  dbCategories: initialDbCategories,
+}: {
+  dbCategories: DBCategory[];
+}) {
   const [dbCategories, setDbCategories] = useState(initialDbCategories);
   const [showAddForm, setShowAddForm] = useState(false);
   const allCategoriesFlat = categoryModelFromDB(dbCategories);
@@ -135,7 +115,7 @@ const CategoriesPage = ({
 
   const addOrUpdateState = updateState(setDbCategories);
   return (
-    <ConfigPageLayout>
+    <>
       <CategoriesList
         categories={rootCategories}
         allCategories={allCategoriesFlat}
@@ -165,8 +145,6 @@ const CategoriesPage = ({
           </>
         )}
       </div>
-    </ConfigPageLayout>
+    </>
   );
-};
-
-export default CategoriesPage;
+}
