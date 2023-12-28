@@ -1,6 +1,6 @@
-import { fillUnitData } from "../fillUnitData";
+import { fillUnitData } from "app/api/config/bank-account/fillUnitData";
 import { DB } from "lib/db";
-import { CreateBankAccountRequest } from "lib/model/forms/BankAccountFormValues";
+import { UpdateBankAccountRequest } from "lib/model/forms/BankAccountFormValues";
 import prisma from "lib/prisma";
 import { getUserId } from "lib/user";
 import { intParam } from "lib/util/searchParams";
@@ -15,7 +15,7 @@ export async function PUT(
     return new Response(`accountId must be an integer`, { status: 400 });
   }
   const { name, displayOrder, unit, isArchived, isJoint, initialBalance } =
-    (await request.json()) as CreateBankAccountRequest;
+    (await request.json()) as UpdateBankAccountRequest;
   const userId = await getUserId();
   // Verify user has access.
   const db = new DB({ userId });

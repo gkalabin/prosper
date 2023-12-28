@@ -24,3 +24,7 @@ export type BankAccountFormValues = {
 export type CreateBankAccountRequest = BankAccountFormValues & {
   bankId: number;
 };
+
+export type UpdateBankAccountRequest = BankAccountFormValues & {
+  bankId: number;
+};
