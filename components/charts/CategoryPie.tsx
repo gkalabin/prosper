@@ -2,8 +2,8 @@ import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
   StockAndCurrencyExchange,
-  useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
+import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { defaultPieChartOptions } from "lib/charts";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { BankAccount } from "lib/model/BankAccount";

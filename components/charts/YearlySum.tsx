@@ -4,8 +4,8 @@ import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
   StockAndCurrencyExchange,
-  useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
+import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { defaultYearlyMoneyChart } from "lib/charts";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { BankAccount } from "lib/model/BankAccount";

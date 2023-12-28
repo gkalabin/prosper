@@ -22,8 +22,8 @@ import { ButtonLink } from "components/ui/buttons";
 import { format, isSameYear } from "date-fns";
 import {
   AllDatabaseDataContextProvider,
-  useAllDatabaseDataContext,
-} from "lib/ClientSideModel";
+  useAllDatabaseDataContext
+} from "lib/context/AllDatabaseDataContext";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { transactionIsDescendant } from "lib/model/Category";

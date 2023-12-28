@@ -5,7 +5,7 @@ import { AddTransactionForm } from "components/txform/AddTransactionForm";
 import { ButtonLink } from "components/ui/buttons";
 import { format } from "date-fns";
 import { AmountWithUnit } from "lib/AmountWithUnit";
-import { useAllDatabaseDataContext } from "lib/ClientSideModel";
+import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { fullAccountName } from "lib/model/BankAccount";
 import {
   Transaction,

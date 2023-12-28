@@ -1,6 +1,6 @@
 import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
 import ReactEcharts from "echarts-for-react";
-import { useAllDatabaseDataContext } from "lib/ClientSideModel";
+import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { Expense, Transaction } from "lib/model/transaction/Transaction";
 import { amountOwnShare } from "lib/model/transaction/amounts";

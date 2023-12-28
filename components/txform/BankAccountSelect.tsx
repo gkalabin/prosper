@@ -1,9 +1,9 @@
 import { LabelledInputProps } from "components/forms/Input";
 import { SelectNumber } from "components/txform/Select";
 import {
-  useAllDatabaseDataContext,
   useDisplayBankAccounts,
 } from "lib/ClientSideModel";
+import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { fullAccountName } from "lib/model/BankAccount";
 
 export const BankAccountSelect = (

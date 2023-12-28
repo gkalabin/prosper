@@ -1,7 +1,7 @@
 "use client";
 import { ButtonLink } from "components/ui/buttons";
 import { format } from "date-fns";
-import { useAllDatabaseDataContext } from "lib/ClientSideModel";
+import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { fullAccountName } from "lib/model/BankAccount";
 import {

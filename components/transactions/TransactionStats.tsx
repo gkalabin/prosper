@@ -12,7 +12,7 @@ import { YearlyAllParties, YearlyOwnShare } from "components/charts/YearlySum";
 import { ButtonFormSecondary } from "components/ui/buttons";
 import { differenceInMonths, startOfMonth } from "date-fns";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { useAllDatabaseDataContext } from "lib/ClientSideModel";
+import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { Income } from "lib/model/transaction/Income";
 import {

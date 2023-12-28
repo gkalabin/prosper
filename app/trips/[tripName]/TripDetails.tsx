@@ -17,8 +17,8 @@ import { AnchorLink } from "components/ui/anchors";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
   AllDatabaseDataContextProvider,
-  useAllDatabaseDataContext,
-} from "lib/ClientSideModel";
+  useAllDatabaseDataContext
+} from "lib/context/AllDatabaseDataContext";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { Trip, tripModelFromDB } from "lib/model/Trip";

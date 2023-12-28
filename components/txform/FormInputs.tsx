@@ -14,7 +14,7 @@ import { FormPersonalExpense } from "components/txform/FormPersonalExpense";
 import { FormTransfer } from "components/txform/FormTransfer";
 import { differenceInMonths, isBefore } from "date-fns";
 import { useFormikContext } from "formik";
-import { useAllDatabaseDataContext } from "lib/ClientSideModel";
+import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { shortRelativeDate } from "lib/TimeHelpers";
 import { uniqMostFrequent } from "lib/collections";
 import { Currency } from "lib/model/Currency";

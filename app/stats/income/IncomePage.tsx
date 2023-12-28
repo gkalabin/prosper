@@ -15,8 +15,8 @@ import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
   AllDatabaseDataContextProvider,
-  useAllDatabaseDataContext,
-} from "lib/ClientSideModel";
+  useAllDatabaseDataContext
+} from "lib/context/AllDatabaseDataContext";
 import { defaultMonthlyMoneyChart, legend } from "lib/charts";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";

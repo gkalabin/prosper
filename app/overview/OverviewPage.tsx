@@ -10,7 +10,7 @@ import { AmountWithUnit } from "lib/AmountWithUnit";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
-} from "lib/ClientSideModel";
+} from "lib/context/AllDatabaseDataContext";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import {

@@ -9,6 +9,7 @@ import {
 import { addDays, closestTo, isBefore, startOfDay } from "date-fns";
 import { Amount } from "lib/Amount";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
+import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { DisplaySettings } from "lib/displaySettings";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import {
@@ -21,10 +22,11 @@ import { Category, categoryModelFromDB } from "lib/model/Category";
 import { Currency, NANOS_MULTIPLIER } from "lib/model/Currency";
 import { Stock, stockModelFromDB } from "lib/model/Stock";
 import { Tag, tagModelFromDB } from "lib/model/Tag";
-import { Transaction, transactionModelFromDB } from "lib/model/transaction/Transaction";
 import { Trip, tripModelFromDB } from "lib/model/Trip";
-import { Setter } from "lib/stateHelpers";
-import { createContext, useContext, useState } from "react";
+import {
+  Transaction,
+  transactionModelFromDB,
+} from "lib/model/transaction/Transaction";
 
 export class StockAndCurrencyExchange {
   private readonly exchangeRates: ExchangeRates;
@@ -38,7 +40,7 @@ export class StockAndCurrencyExchange {
   exchangeCurrency(
     a: AmountWithCurrency,
     target: Currency,
-    when: Date | number
+    when: Date | number,
   ): AmountWithCurrency | undefined {
     return this.exchangeRates.exchange(a, target, when);
   }
@@ -47,7 +49,7 @@ export class StockAndCurrencyExchange {
     a: Amount,
     stock: Stock,
     target: Currency,
-    when: Date | number
+    when: Date | number,
   ): AmountWithCurrency | undefined {
     const exchangeCurrencyAmount = this.stockQuotes.exchange(a, stock, when);
     if (!exchangeCurrencyAmount) {
@@ -75,7 +77,7 @@ const backfillMissingDates = (timeseries: Timeseries) => {
       const prevValue = timeseries.get(prev);
       if (!prevValue) {
         throw new Error(
-          `Prev value cannot be null, failed to backfill ${timeseries} on ${today}`
+          `Prev value cannot be null, failed to backfill ${timeseries} on ${today}`,
         );
       }
       timeseries.set(x.getTime(), prevValue);
@@ -111,7 +113,7 @@ export class ExchangeRates {
   exchange(
     a: AmountWithCurrency,
     target: Currency,
-    when: Date | number
+    when: Date | number,
   ): AmountWithCurrency | undefined {
     if (a.getCurrency().code() == target.code()) {
       return a;
@@ -132,7 +134,7 @@ export class ExchangeRates {
   private findRate(
     from: Currency,
     to: Currency,
-    when: Date | number
+    when: Date | number,
   ): number | undefined {
     const ratesFrom = this.ratesByCurrencyCode.get(from.code());
     if (!ratesFrom) {
@@ -153,7 +155,7 @@ export class ExchangeRates {
       return undefined;
     }
     console.warn(
-      `Approximating ${from.code()}→${to.code()} rate for ${when} with ${closestTimestamp}`
+      `Approximating ${from.code()}→${to.code()} rate for ${when} with ${closestTimestamp}`,
     );
     return ratesHistory.get(closestTimestamp.getTime());
   }
@@ -181,7 +183,7 @@ export class StockQuotes {
   exchange(
     a: Amount,
     stock: Stock,
-    when: Date | number
+    when: Date | number,
   ): AmountWithCurrency | undefined {
     const currency = Currency.mustFindByCode(stock.currencyCode);
     if (a.isZero()) {
@@ -192,7 +194,9 @@ export class StockQuotes {
       return undefined;
     }
     return new AmountWithCurrency({
-      amountCents: Math.round(a.dollar() * pricePerShareCents * stock.multiplier),
+      amountCents: Math.round(
+        a.dollar() * pricePerShareCents * stock.multiplier,
+      ),
       currency,
     });
   }
@@ -213,7 +217,7 @@ export class StockQuotes {
       return undefined;
     }
     console.warn(
-      `Approximating ${stock.ticker} quote for ${when} with ${closestTimestamp}`
+      `Approximating ${stock.ticker} quote for ${when} with ${closestTimestamp}`,
     );
     return quotesForStock.get(closestTimestamp.getTime());
   }
@@ -232,30 +236,6 @@ export type AllClientDataModel = {
   transactionPrototypes: TransactionPrototype[];
 };
 
-const AllDatabaseDataContext = createContext<
-  AllClientDataModel & {
-    setDbData: Setter<AllDatabaseData>;
-  }
->(
-  null as unknown as AllClientDataModel & {
-    setDbData: Setter<AllDatabaseData>;
-  }
-);
-export const AllDatabaseDataContextProvider = (props: {
-  dbData: AllDatabaseData;
-  children: JSX.Element | JSX.Element[];
-}) => {
-  const [dbDataState, setDbData] = useState(props.dbData);
-  const model = modelFromDatabaseData(dbDataState);
-  return (
-    <AllDatabaseDataContext.Provider value={{ ...model, setDbData }}>
-      {props.children}
-    </AllDatabaseDataContext.Provider>
-  );
-};
-export const useAllDatabaseDataContext = () => {
-  return useContext(AllDatabaseDataContext);
-};
 export const useDisplayBankAccounts = () => {
   const { bankAccounts } = useAllDatabaseDataContext();
   return bankAccounts.filter((x) => !x.archived);
@@ -271,7 +251,7 @@ function mustBank(bank: Bank | undefined, message: string): Bank {
 export const banksModelFromDatabaseData = (
   dbBanks: DBBank[],
   dbBankAccounts: DBBankAccount[],
-  dbStocks: DBStock[]
+  dbStocks: DBStock[],
 ): [Bank[], BankAccount[], Stock[]] => {
   const stocks = dbStocks.map(stockModelFromDB);
   const banks = dbBanks
@@ -284,10 +264,10 @@ export const banksModelFromDatabaseData = (
     bankAccounts.map((ba) => {
       const bank = mustBank(
         bankById.get(ba.bankId),
-        `Bank ${ba.bankId} for account ${ba.id}`
+        `Bank ${ba.bankId} for account ${ba.id}`,
       );
       return [ba.id, bank];
-    })
+    }),
   );
   bankAccounts.sort((a, b) => {
     const bankA = mustBank(bankByBankAccountId.get(a.id), `Bank ${a.id}`);
@@ -301,7 +281,7 @@ export const banksModelFromDatabaseData = (
 };
 
 export const modelFromDatabaseData = (
-  dbData: AllDatabaseData
+  dbData: AllDatabaseData,
 ): AllClientDataModel => {
   const categories = categoryModelFromDB(dbData.dbCategories);
   const exchangeRates = new ExchangeRates(dbData.dbExchangeRates);
@@ -311,7 +291,7 @@ export const modelFromDatabaseData = (
   const [banks, bankAccounts, stocks] = banksModelFromDatabaseData(
     dbData.dbBanks,
     dbData.dbBankAccounts,
-    dbData.dbStocks
+    dbData.dbStocks,
   );
 
   const trips = dbData.dbTrips.map(tripModelFromDB);

@@ -7,7 +7,7 @@ import { Interval, format, isEqual, startOfMonth } from "date-fns";
 import { Fragment } from "react";
 
 import { subMonths } from "date-fns";
-import { useAllDatabaseDataContext } from "lib/ClientSideModel";
+import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 
 const now = new Date();
 export const LAST_6_MONTHS: Interval = {

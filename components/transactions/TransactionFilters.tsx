@@ -3,7 +3,7 @@ import { undoTailwindInputStyles } from "components/forms/Select";
 import { ButtonFormSecondary } from "components/ui/buttons";
 import { differenceInMilliseconds, startOfDay } from "date-fns";
 import { useFormikContext } from "formik";
-import { useAllDatabaseDataContext } from "lib/ClientSideModel";
+import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { fullAccountName } from "lib/model/BankAccount";
 import { transactionIsDescendant } from "lib/model/Category";
 import {

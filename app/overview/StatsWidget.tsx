@@ -1,6 +1,6 @@
 "use client";
 import { accountsSum } from "app/overview/modelHelpers";
-import { useAllDatabaseDataContext } from "lib/ClientSideModel";
+import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { accountUnit } from "lib/model/BankAccount";
 import { isCurrency } from "lib/model/Unit";

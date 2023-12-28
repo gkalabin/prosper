@@ -4,8 +4,8 @@ import { ButtonLink } from "components/ui/buttons";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
   StockAndCurrencyExchange,
-  useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
+import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { assertDefined } from "lib/assert";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { BankAccount } from "lib/model/BankAccount";
