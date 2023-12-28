@@ -16,7 +16,7 @@ export async function getOrCreateToken(db: DB, bankId: number) {
   if (!token || isBefore(token.refreshValidUntil, now)) {
     return createToken(db, bankId);
   }
-  return maybeRefreshToken(token);
+  return maybeRefreshToken(db, token);
 }
 
 function createToken(db: DB, bankId: number): Promise<NordigenToken> {
@@ -53,30 +53,45 @@ function createToken(db: DB, bankId: number): Promise<NordigenToken> {
 }
 
 export async function maybeRefreshToken(
+  db: DB,
   token: NordigenToken
 ): Promise<NordigenToken> {
   const now = new Date();
   if (isBefore(now, token.accessValidUntil)) {
     return token;
   }
-  return fetch(`https://ob.nordigen.com/api/v2/token/refresh/`, {
+  const fetched = await fetch(`https://ob.nordigen.com/api/v2/token/refresh/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refresh: token.refresh }),
-  })
-    .then((r) => r.json())
-    .then(({ access, access_expires }) => {
-      return prisma.nordigenToken.update({
-        data: {
-          access,
-          access_expires,
-          accessValidUntil: new Date(
-            now.getTime() + access_expires * 1000
-          ).toISOString(),
-        },
-        where: {
-          id: token.id,
-        },
-      });
+  });
+  if (fetched.status !== 200) {
+    const [bank] = await db.bankFindMany({
+      where: {
+        id: token.bankId,
+      },
     });
+    const bankName = bank?.name || "unknown bank";
+    const reason = fetched.statusText;
+    const text = await fetched.text();
+    console.warn(
+      `Failed to refresh token for bank ${token.bankId} ${bankName}: ${text}`
+    );
+    return Promise.reject(`Refresh token for ${bankName} failed: ${reason}`);
+  }
+  const json = await fetched.json();
+  const { access, access_expires } = json;
+  const updatedToken = await prisma.nordigenToken.update({
+    data: {
+      access,
+      access_expires,
+      accessValidUntil: new Date(
+        now.getTime() + access_expires * 1000
+      ).toISOString(),
+    },
+    where: {
+      id: token.id,
+    },
+  });
+  return updatedToken;
 }

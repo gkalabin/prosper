@@ -32,7 +32,7 @@ type Token = TrueLayerToken | NordigenToken | StarlingToken;
 class Provider<T = Token> {
   constructor(
     readonly fetchTokens: (db: DB) => Promise<T[]>,
-    readonly refreshToken: (token: T) => Promise<T>,
+    readonly refreshToken: (db: DB, token: T) => Promise<T>,
     readonly fetchBalance: (
       token: T,
       mapping: ExternalAccountMapping
@@ -73,7 +73,7 @@ const providers: Provider[] = [
   ),
   new Provider<StarlingToken>(
     async (db: DB) => await db.starlingTokenFindMany(),
-    async (t: StarlingToken) => t,
+    async (db: DB, t: StarlingToken) => t,
     starlingFetchBalance,
     starlingFetchTransactions,
     starlingFetchAccounts
@@ -109,24 +109,36 @@ async function genericFetch<D>(
   const fetches: Promise<D>[] = [];
   for (const provider of providers) {
     const dbTokens = await provider.fetchTokens(db);
-    const tokens = await Promise.all(dbTokens.map(provider.refreshToken));
-    const providerFetches = tokens.flatMap((token) =>
+    const tokens = await Promise.allSettled(
+      dbTokens.map((t) => provider.refreshToken(db, t))
+    );
+    const successfulTokens = tokens
+      .map((t) => {
+        if (t.status == "fulfilled") {
+          return t.value;
+        }
+        console.warn("Failed to refresh token: " + t.reason);
+        return null;
+      })
+      .filter((x) => !!x);
+    const providerFetches = successfulTokens.flatMap((token) =>
       mappingsForToken(token, internalBankAccounts, mappings).map((m) =>
         fn(provider, token, m)
       )
     );
     fetches.push(...providerFetches);
   }
-  const fetchesWithErrorHandling = fetches.map(async (f) => {
-    try {
-      return await f;
-    } catch (e) {
-      console.error(e);
-      return [];
-    }
-  });
-  const transactions = await Promise.all(fetchesWithErrorHandling);
-  return transactions.flat().filter((x) => !!x);
+  const settled = await Promise.allSettled(fetches);
+  const successfulFetches = settled
+    .map((x) => {
+      if (x.status == "fulfilled") {
+        return x.value;
+      }
+      console.warn("Failed to fetch: " + x.reason);
+      return null;
+    })
+    .filter((x) => !!x);
+  return successfulFetches;
 }
 
 function mappingsForToken(
@@ -150,7 +162,7 @@ export async function fetchAccounts(
     if (!token) {
       continue;
     }
-    const freshToken = await provider.refreshToken(token);
+    const freshToken = await provider.refreshToken(db, token);
     return await provider.fetchAccounts(freshToken, db, bankId);
   }
   console.warn("No accounts found", bankId);
