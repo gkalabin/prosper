@@ -1,5 +1,7 @@
 "use client";
+import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
 import { ExcludedCategoriesSelector } from "app/stats/ExcludedCategoriesSelector";
+import { ownShareSum } from "app/stats/modelHelpers";
 import {
   NotConfiguredYet,
   isFullyConfigured,
@@ -18,7 +20,6 @@ import {
 } from "components/transactions/SortableTransactionsList";
 import { ButtonLink } from "components/ui/buttons";
 import { format, isSameYear } from "date-fns";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -29,10 +30,10 @@ import { transactionIsDescendant } from "lib/model/Category";
 import { Income } from "lib/model/transaction/Income";
 import {
   Expense,
+  Transaction,
   isExpense,
   isIncome,
 } from "lib/model/transaction/Transaction";
-import { amountOwnShare } from "lib/model/transaction/amounts";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
 import { useState } from "react";
 
@@ -100,26 +101,34 @@ export function YearlyStats({ input }: { input: TransactionsStatsInput }) {
   const income = transactions.filter((t): t is Income => isIncome(t));
   const displayCurrency = useDisplayCurrency();
   const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
-  const zero = AmountWithCurrency.zero(displayCurrency);
-  const totalExpense = expenses
-    .map((t) =>
-      amountOwnShare(t, displayCurrency, bankAccounts, stocks, exchange),
-    )
-    .reduce((p, c) => c.add(p), zero);
-  const totalIncome = income
-    .map((t) =>
-      amountOwnShare(t, displayCurrency, bankAccounts, stocks, exchange),
-    )
-    .reduce((p, c) => c.add(p), zero);
+  const failedToExchange: Transaction[] = [];
+  const totalExpense = ownShareSum(
+    expenses,
+    failedToExchange,
+    displayCurrency,
+    bankAccounts,
+    stocks,
+    exchange,
+  );
+  const totalIncome = ownShareSum(
+    income,
+    failedToExchange,
+    displayCurrency,
+    bankAccounts,
+    stocks,
+    exchange,
+  );
   const expenseIncomeRatio = totalIncome.isZero()
     ? Infinity
     : totalExpense.dollar() / totalIncome.dollar();
-  const tripsTotal = expenses
-    .filter((t) => t.tripId)
-    .map((t) =>
-      amountOwnShare(t, displayCurrency, bankAccounts, stocks, exchange),
-    )
-    .reduce((p, c) => c.add(p), zero);
+  const totalTrips = ownShareSum(
+    expenses.filter((t) => t.tripId),
+    failedToExchange,
+    displayCurrency,
+    bankAccounts,
+    stocks,
+    exchange,
+  );
 
   return (
     <>
@@ -128,6 +137,8 @@ export function YearlyStats({ input }: { input: TransactionsStatsInput }) {
           <Navigation years={years} active={year} setActive={setYear} />
         </div>
         <div className="space-y-4">
+          <CurrencyExchangeFailed failedTransactions={failedToExchange} />
+
           <ul className="text-lg">
             <li>Spent: {totalExpense.round().format()}</li>
             <li>Received: {totalIncome.round().format()}</li>
@@ -135,7 +146,7 @@ export function YearlyStats({ input }: { input: TransactionsStatsInput }) {
               Delta: {totalIncome.subtract(totalExpense).round().format()}
             </li>
             <li>Spent/received: {Math.round(expenseIncomeRatio * 100)}%</li>
-            <li>Trips: {tripsTotal.round().format()}</li>
+            <li>Trips: {totalTrips.round().format()}</li>
           </ul>
 
           <div>

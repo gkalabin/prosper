@@ -1,5 +1,7 @@
 "use client";
+import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
 import { ExcludedCategoriesSelector } from "app/stats/ExcludedCategoriesSelector";
+import { ownShareSum } from "app/stats/modelHelpers";
 import {
   NotConfiguredYet,
   isFullyConfigured,
@@ -28,10 +30,10 @@ import { transactionIsDescendant } from "lib/model/Category";
 import { Income } from "lib/model/transaction/Income";
 import {
   Expense,
+  Transaction,
   isExpense,
   isIncome,
 } from "lib/model/transaction/Transaction";
-import { amountOwnShare } from "lib/model/transaction/amounts";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
 import { useState } from "react";
 
@@ -140,21 +142,26 @@ export function MonthlyStats({ input }: { input: TransactionsStatsInput }) {
   const income = transactions.filter((t): t is Income => isIncome(t));
   const displayCurrency = useDisplayCurrency();
   const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
-  const totalExpense = expenses
-    .map((t) =>
-      amountOwnShare(t, displayCurrency, bankAccounts, stocks, exchange),
-    )
-    .reduce((p, c) => c.add(p));
-  const totalIncome = income
-    .map((t) =>
-      amountOwnShare(t, displayCurrency, bankAccounts, stocks, exchange),
-    )
-    .reduce((p, c) => c.add(p));
-
+  const failedToExchange: Transaction[] = [];
+  const totalExpense = ownShareSum(
+    expenses,
+    failedToExchange,
+    displayCurrency,
+    bankAccounts,
+    stocks,
+    exchange,
+  );
+  const totalIncome = ownShareSum(
+    income,
+    failedToExchange,
+    displayCurrency,
+    bankAccounts,
+    stocks,
+    exchange,
+  );
   const expenseIncomeRatio = totalIncome.isZero()
     ? Infinity
     : totalExpense.dollar() / totalIncome.dollar();
-
   return (
     <>
       <div>
@@ -165,6 +172,9 @@ export function MonthlyStats({ input }: { input: TransactionsStatsInput }) {
             setActive={setMonth}
           />
         </div>
+
+        <CurrencyExchangeFailed failedTransactions={failedToExchange} />
+
         <div className="space-y-4">
           <ul className="text-lg">
             <li>Spent: {totalExpense.round().format()}</li>
