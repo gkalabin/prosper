@@ -5,15 +5,18 @@ export default function App({
   Component,
   pageProps: { session, ...pageProps },
 }) {
+  if (Component.noAuthenticationRequired) {
+    return (
+      <SessionProvider session={session}>
+        <Component {...pageProps} />
+      </SessionProvider>
+    );
+  }
   return (
     <SessionProvider session={session}>
-      {Component.noAuthenticationRequired ? (
+      <AuthOnly>
         <Component {...pageProps} />
-      ) : (
-        <AuthOnly>
-          <Component {...pageProps} />
-        </AuthOnly>
-      )}
+      </AuthOnly>
     </SessionProvider>
   );
 }

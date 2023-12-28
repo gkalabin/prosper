@@ -7,7 +7,7 @@ import {
 import { Select } from "components/forms/Select";
 import Layout from "components/Layout";
 import { ButtonFormPrimary } from "components/ui/buttons";
-import { banksModelFromDatabaseData } from "lib/ClientSideModel";
+import { banksModelFromDatabaseData, Currencies } from "lib/ClientSideModel";
 import { maybeRefreshToken } from "lib/openBankingToken";
 import prisma from "lib/prisma";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
@@ -98,11 +98,11 @@ export default function ConnectBanksPage({
   const [requestInFlight, setRequestInFlight] = useState(false);
   const [apiError, setApiError] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
-
+  const currencies = new Currencies(dbCurrencies);
   const [banks] = banksModelFromDatabaseData(
     dbBanks,
     dbBankAccounts,
-    dbCurrencies
+    currencies
   );
   const [dbOpenBankingAccounts, setDbOpenBankingAccounts] = useState(
     dbOpenBankingAccountsInitial
@@ -167,7 +167,9 @@ export default function ConnectBanksPage({
               value={mapping[oba.openBankingAccountId]}
               onChange={(e) =>
                 setMapping((old) =>
-                  Object.assign({}, old, { [oba.openBankingAccountId]: +e.target.value })
+                  Object.assign({}, old, {
+                    [oba.openBankingAccountId]: +e.target.value,
+                  })
                 )
               }
             >

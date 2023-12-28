@@ -1,21 +1,21 @@
 import { Currency as DBCurrency } from "@prisma/client";
 import Layout from "components/Layout";
-import { Currency, currencyModelFromDB } from "lib/model/Currency";
+import { Currencies, Currency } from "lib/ClientSideModel";
 import prisma from "lib/prisma";
 import { GetStaticProps, InferGetStaticPropsType } from "next";
 import React, { useState } from "react";
 
 type CurrenciesListProps = {
-  currencies: Currency[];
-  onUpdated: (updated: Currency) => void;
+  currencies: Currencies;
+  onUpdated: (updated: DBCurrency) => void;
 };
 const CurrenciesList: React.FC<CurrenciesListProps> = (props) => {
-  if (!props.currencies?.length) {
+  if (props.currencies.empty()) {
     return <div>No currencies found.</div>;
   }
   return (
     <div className="space-y-1 px-4">
-      {props.currencies.map((x) => (
+      {props.currencies.all().map((x) => (
         <div key={x.id}>
           <CurrencyName currency={x} onUpdated={props.onUpdated} />
         </div>
@@ -24,7 +24,7 @@ const CurrenciesList: React.FC<CurrenciesListProps> = (props) => {
   );
 };
 type AddCurrencyFormProps = {
-  onAdded: (added: Currency) => void;
+  onAdded: (added: DBCurrency) => void;
 };
 
 const AddCurrencyForm: React.FC<AddCurrencyFormProps> = (props) => {
@@ -97,7 +97,7 @@ const AddCurrencyForm: React.FC<AddCurrencyFormProps> = (props) => {
 
 type CurrencyNameProps = {
   currency: Currency;
-  onUpdated: (updated: Currency) => void;
+  onUpdated: (updated: DBCurrency) => void;
 };
 
 const CurrencyName: React.FC<CurrencyNameProps> = (props) => {
@@ -191,7 +191,7 @@ export default function CurrenciesPage(
   props: InferGetStaticPropsType<typeof getStaticProps>
 ) {
   const [dbCurrencies, setDbCurrencies] = useState(props.dbCurrencies);
-  const currencies = currencyModelFromDB(dbCurrencies);
+  const currencies = new Currencies(dbCurrencies);
 
   const addCurrency = (added: DBCurrency) => {
     setDbCurrencies((old) => [...old, added]);

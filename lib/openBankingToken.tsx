@@ -1,17 +1,11 @@
 import { OpenBankingToken } from "@prisma/client";
-import { NextApiRequest, NextApiResponse } from "next";
-import { unstable_getServerSession } from "next-auth/next";
-import { authOptions } from "pages/api/auth/[...nextauth]";
 import prisma from "./prisma";
 
-export async function maybeRefreshToken(
-  token: OpenBankingToken,
-) {
+export async function maybeRefreshToken(token: OpenBankingToken) {
   const now = new Date();
   if (token.tokenValidUntil > now) {
     return token;
   }
-  console.log("updating token ", token, " as it expired on ", token.tokenValidUntil);
   const response = await fetch(`https://auth.truelayer.com/connect/token`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -24,8 +18,6 @@ export async function maybeRefreshToken(
   });
 
   const tokenResponse = await response.json();
-  console.log("response is ", tokenResponse);
-
   return await prisma.openBankingToken.update({
     data: {
       accessToken: tokenResponse.access_token,
@@ -40,6 +32,6 @@ export async function maybeRefreshToken(
     },
     where: {
       id: token.id,
-    }
+    },
   });
 }

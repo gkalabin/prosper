@@ -4,7 +4,7 @@ import classNames from "classnames";
 import { BankAccountSelect } from "components/forms/BankAccountSelect";
 import {
   MoneyInputWithLabel,
-  TextInputWithLabel
+  TextInputWithLabel,
 } from "components/forms/Input";
 import { SelectNumber } from "components/forms/Select";
 import { ButtonFormPrimary, ButtonFormSecondary } from "components/ui/buttons";
@@ -13,11 +13,11 @@ import {
   AddTransactionFormValues,
   FormMode,
   formModeForTransaction,
-  formToDTO
+  formToDTO,
 } from "lib/AddTransactionDataModels";
+import { useCurrencyContext } from "lib/ClientSideModel";
 import { Bank, bankAccountsFlatList } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
-import { Currency } from "lib/model/Currency";
 import { Transaction } from "lib/model/Transaction";
 import { toDateTimeLocal } from "lib/TimeHelpers";
 import Link from "next/link";
@@ -26,7 +26,6 @@ import React, { useEffect, useState } from "react";
 type AddTransactionFormProps = {
   banks: Bank[];
   categories: Category[];
-  currencies: Currency[];
   transaction?: Transaction;
   onAdded: (added: DBTransaction) => void;
   onClose: () => void;
@@ -85,6 +84,7 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
   );
   const [isFamilyExpenseDirty, setFamilyExpenseDirty] = useState(false);
   const bankAccountsList = bankAccountsFlatList(props.banks);
+  const currencies = useCurrencyContext();
 
   if (!props.categories?.length || !bankAccountsList.length) {
     return (
@@ -153,7 +153,7 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
     categoryId: (props.transaction?.category ?? props.categories[0]).id,
     currencyId: (props.transaction?.isThirdPartyExpense()
       ? props.transaction?.currency()
-      : props.currencies[0]
+      : currencies.all()[0]
     ).id,
   };
 
@@ -354,7 +354,7 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
                   {[FormMode.EXTERNAL].includes(mode) && (
                     <div className="col-span-6">
                       <SelectNumber name="currencyId" label="Currency">
-                        {props.currencies.map((c) => (
+                        {currencies.all().map((c) => (
                           <option key={c.id} value={c.id}>
                             {c.name}
                           </option>

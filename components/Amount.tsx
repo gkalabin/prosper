@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { Currency } from "lib/model/Currency";
+import { Currency } from "lib/ClientSideModel";
 import { formatMoney } from "lib/Money";
 
 export const Amount = (props: {
@@ -10,24 +10,22 @@ export const Amount = (props: {
 }) => {
   if (props.sign < 0) {
     return (
-      <span className={classNames(
-        props.className,
-        "text-red-900"
-      )}>
+      <span className={classNames(props.className, "text-red-900")}>
         {formatMoney(-props.amountCents, props.currency)}
       </span>
     );
   }
   if (props.sign > 0) {
     return (
-      <span className={classNames(
-        props.className,
-        "text-green-900"
-      )}>
+      <span className={classNames(props.className, "text-green-900")}>
         {formatMoney(+props.amountCents, props.currency)}
       </span>
     );
   }
 
-  return <span className={props.className}>{formatMoney(props.amountCents, props.currency)}</span>;
+  return (
+    <span className={props.className}>
+      {formatMoney(props.amountCents, props.currency)}
+    </span>
+  );
 };

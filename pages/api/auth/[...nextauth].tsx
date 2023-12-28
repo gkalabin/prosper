@@ -14,7 +14,7 @@ export const authOptions = {
         login: { label: "Login", type: "text", placeholder: "login" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         if (
           credentials.login != process.env.LOGIN ||
           credentials.password != process.env.PASSWORD

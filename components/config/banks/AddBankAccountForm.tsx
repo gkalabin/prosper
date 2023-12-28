@@ -1,15 +1,13 @@
-import {
-  BankAccount as DBBankAccount
-} from "@prisma/client";
+import { BankAccount as DBBankAccount } from "@prisma/client";
+import { Currencies } from "lib/ClientSideModel";
 import { Bank } from "lib/model/BankAccount";
-import { Currency } from "lib/model/Currency";
 import Link from "next/link";
 import React, { useState } from "react";
 
 type AddBankAccountFormProps = {
   displayOrder: number;
   bank: Bank;
-  currencies: Currency[];
+  currencies: Currencies;
   onAdded: (added: DBBankAccount) => void;
 };
 
@@ -60,7 +58,7 @@ const AddBankAccountForm: React.FC<AddBankAccountFormProps> = (props) => {
     setRequestInFlight(false);
   };
 
-  if (!props.currencies?.length) {
+  if (!props.currencies.all().length) {
     return (
       <>
         To add a bank account, first{" "}
@@ -88,7 +86,7 @@ const AddBankAccountForm: React.FC<AddBankAccountFormProps> = (props) => {
         disabled={requestInFlight}
         value={currencyId}
       >
-        {props.currencies.map((x) => (
+        {props.currencies.all().map((x) => (
           <option key={x.id} value={x.id}>
             {x.name}
           </option>

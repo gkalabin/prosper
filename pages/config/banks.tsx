@@ -16,12 +16,8 @@ import {
   ButtonLink,
   TextLink as AnchorLink,
 } from "components/ui/buttons";
-import {
-  banksModelFromDatabaseData,
-  currencyModelFromDatabaseData,
-} from "lib/ClientSideModel";
+import { banksModelFromDatabaseData, Currencies } from "lib/ClientSideModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
-import { Currency } from "lib/model/Currency";
 import prisma from "lib/prisma";
 import { GetStaticProps, InferGetStaticPropsType } from "next";
 import React, { useState } from "react";
@@ -100,10 +96,10 @@ const BankName: React.FC<BankNameProps> = (props) => {
           <span>
             Connected on {props.openBankingToken.connectionCreatedAt}.
             <AnchorLink
-            className="ml-1"
-            href={`/config/open-banking/connection/${props.bank.id}`}
-            label="Edit connection"
-          />
+              className="ml-1"
+              href={`/config/open-banking/connection/${props.bank.id}`}
+              label="Edit connection"
+            />
           </span>
         )}
       </div>
@@ -142,7 +138,7 @@ const BankName: React.FC<BankNameProps> = (props) => {
 
 type BanksListProps = {
   banks: Bank[];
-  currencies: Currency[];
+  currencies: Currencies;
   openBankingTokens: DBOpenBankingToken[];
   openBankingAccounts: DBOpenBankingAccount[];
   onBankUpdated: (updated: DBBank) => void;
@@ -190,7 +186,7 @@ const BanksList: React.FC<BanksListProps> = (props) => {
 type AccountsListProps = {
   bank: Bank;
   accounts: BankAccount[];
-  currencies: Currency[];
+  currencies: Currencies;
   onBankAccountUpdated: (updated: DBBankAccount) => void;
 };
 const AccountsList: React.FC<AccountsListProps> = (props) => {
@@ -275,12 +271,12 @@ export default function BanksPage({
     );
   };
 
+  const currencies = new Currencies(dbCurrencies);
   const [banks] = banksModelFromDatabaseData(
     dbBanks,
     dbBankAccounts,
-    dbCurrencies
+    currencies
   );
-  const currencies = currencyModelFromDatabaseData(dbCurrencies);
 
   return (
     <Layout>

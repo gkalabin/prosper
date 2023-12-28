@@ -1,6 +1,6 @@
+import { Currencies, Currency } from "lib/ClientSideModel";
 import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
-import { Currency } from "lib/model/Currency";
 import { TransactionWithExtensions } from "lib/ServerSideDB";
 // import { assert } from "console";
 
@@ -48,7 +48,7 @@ export class Transaction {
     init: TransactionWithExtensions,
     categoryById: { [id: number]: Category },
     bankAccountById: { [id: number]: BankAccount },
-    currencyById: { [id: number]: Currency }
+    currencies: Currencies,
   ) {
     this.dbValue = init;
     this.id = init.id;
@@ -67,7 +67,7 @@ export class Transaction {
 
     if (init.thirdPartyExpense) {
       this.thirdPartyExpense = Object.assign({}, init.thirdPartyExpense, {
-        currency: currencyById[init.thirdPartyExpense.currencyId],
+        currency: currencies.findById(init.thirdPartyExpense.currencyId),
       });
     }
     if (init.transfer) {

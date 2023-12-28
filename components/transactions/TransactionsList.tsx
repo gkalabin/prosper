@@ -3,7 +3,6 @@ import { Amount } from "components/Amount";
 import { AddTransactionForm } from "components/transactions/AddTransactionForm";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
-import { Currency } from "lib/model/Currency";
 import { Transaction } from "lib/model/Transaction";
 import { descriptiveDateTime, shortRelativeDate } from "lib/TimeHelpers";
 import React, { useState } from "react";
@@ -78,7 +77,6 @@ const TransactionTimestamp = (props: { t: Transaction }) => {
 type TransactionsListItemProps = {
   banks: Bank[];
   categories: Category[];
-  currencies: Currency[];
   transaction: Transaction;
   onUpdated: (transaction: DBTransaction) => void;
   showBankAccountInStatusLine: boolean;
@@ -151,7 +149,6 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
             transaction={props.transaction}
             categories={props.categories}
             banks={props.banks}
-            currencies={props.currencies}
             onAdded={(updated) => {
               props.onUpdated(updated);
               setShowEditForm(false);
@@ -167,7 +164,6 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
 type TransactionsListProps = {
   banks: Bank[];
   categories: Category[];
-  currencies: Currency[];
   transactions: Transaction[];
   onTransactionUpdated: (transaction: DBTransaction) => void;
   displayLimit?: number;
@@ -192,7 +188,6 @@ export const TransactionsList: React.FC<TransactionsListProps> = (props) => {
               key={t.id}
               categories={props.categories}
               banks={props.banks}
-              currencies={props.currencies}
               transaction={t}
               onUpdated={props.onTransactionUpdated}
               showBankAccountInStatusLine={

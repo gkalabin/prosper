@@ -3,18 +3,21 @@ import { Amount } from "components/Amount";
 import Layout from "components/Layout";
 import { AddTransactionForm } from "components/transactions/AddTransactionForm";
 import { TransactionsList } from "components/transactions/TransactionsList";
-import { modelFromDatabaseData } from "lib/ClientSideModel";
-import { Bank, BankAccount, bankAccountBalance } from "lib/model/BankAccount";
+import {
+  Currencies,
+  CurrencyContextProvider,
+  modelFromDatabaseData,
+} from "lib/ClientSideModel";
+import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
-import { Currency } from "lib/model/Currency";
-import { AllDatabaseData, loadAllDatabaseData } from "lib/ServerSideDB";
+import { AllDatabaseData, allDbDataProps } from "lib/ServerSideDB";
 import { GetStaticProps, InferGetStaticPropsType } from "next";
 import React, { useState } from "react";
 
 type BankAccountListItemProps = {
   banks: Bank[];
   categories: Category[];
-  currencies: Currency[];
+  currencies: Currencies;
   account: BankAccount;
   onTransactionUpdated: (updated: DBTransaction) => void;
 };
@@ -28,7 +31,7 @@ const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
       >
         <span className="text-base font-normal">{props.account.name}</span>
         <Amount
-          amountCents={bankAccountBalance(props.account)}
+          amountCents={props.account.balance()}
           sign={0}
           currency={props.account.currency}
           className="ml-2 text-sm font-light"
@@ -39,7 +42,6 @@ const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
           <TransactionsList
             categories={props.categories}
             banks={props.banks}
-            currencies={props.currencies}
             transactions={props.account.transactions}
             onTransactionUpdated={props.onTransactionUpdated}
             showBankAccountInStatusLine={false}
@@ -53,7 +55,7 @@ const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
 type BankListItemProps = {
   banks: Bank[];
   categories: Category[];
-  currencies: Currency[];
+  currencies: Currencies;
   bank: Bank;
   onTransactionUpdated: (updated: DBTransaction) => void;
 };
@@ -82,7 +84,7 @@ const BankListItem: React.FC<BankListItemProps> = (props) => {
 
 type TransactionsListProps = {
   categories: Category[];
-  currencies: Currency[];
+  currencies: Currencies;
   banks: Bank[];
   onTransactionUpdated: (updated: DBTransaction) => void;
 };
@@ -108,23 +110,14 @@ const BanksList: React.FC<TransactionsListProps> = (props) => {
   );
 };
 
-export const getStaticProps: GetStaticProps<{
-  dbData?: AllDatabaseData;
-}> = async () => {
-  const allData = await loadAllDatabaseData();
-  return {
-    props: {
-      dbData: JSON.parse(JSON.stringify(allData)),
-    },
-  };
-};
+export const getStaticProps: GetStaticProps<AllDatabaseData> = allDbDataProps;
 
-export default function OverviewPage({
-  dbData,
-}: InferGetStaticPropsType<typeof getStaticProps>) {
+export default function OverviewPage(
+  dbData: InferGetStaticPropsType<typeof getStaticProps>
+) {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
   const [dbDataState, setDbData] = useState(dbData);
-  const model = modelFromDatabaseData(dbDataState);
+  const { categories, banks, currencies } = modelFromDatabaseData(dbDataState);
 
   const addTransaction = (added: DBTransaction) => {
     setDbData((old) => {
@@ -146,31 +139,32 @@ export default function OverviewPage({
 
   return (
     <Layout>
-      {!showAddTransactionForm && (
-        <div className="flex justify-end">
-          <button
-            className="mb-4 rounded-md bg-indigo-600 px-4 py-1.5 text-base font-medium leading-7 text-white shadow-sm hover:bg-indigo-700 hover:ring-indigo-700"
-            onClick={() => setShowAddTransactionForm(true)}
-          >
-            New Transaction
-          </button>
-        </div>
-      )}
-      {showAddTransactionForm && (
-        <AddTransactionForm
-          categories={model.categories}
-          banks={model.banks}
-          currencies={model.currencies}
-          onAdded={addTransaction}
-          onClose={() => setShowAddTransactionForm(false)}
+      <CurrencyContextProvider init={dbData.dbCurrencies}>
+        {!showAddTransactionForm && (
+          <div className="flex justify-end">
+            <button
+              className="mb-4 rounded-md bg-indigo-600 px-4 py-1.5 text-base font-medium leading-7 text-white shadow-sm hover:bg-indigo-700 hover:ring-indigo-700"
+              onClick={() => setShowAddTransactionForm(true)}
+            >
+              New Transaction
+            </button>
+          </div>
+        )}
+        {showAddTransactionForm && (
+          <AddTransactionForm
+            categories={categories}
+            banks={banks}
+            onAdded={addTransaction}
+            onClose={() => setShowAddTransactionForm(false)}
+          />
+        )}
+        <BanksList
+          banks={banks}
+          categories={categories}
+          currencies={currencies}
+          onTransactionUpdated={updateTransaction}
         />
-      )}
-      <BanksList
-        banks={model.banks}
-        categories={model.categories}
-        currencies={model.currencies}
-        onTransactionUpdated={updateTransaction}
-      />
+      </CurrencyContextProvider>
     </Layout>
   );
 }

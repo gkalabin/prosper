@@ -1,12 +1,12 @@
 import { BankAccount as DBBankAccount } from "@prisma/client";
+import { Currencies } from "lib/ClientSideModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
-import { Currency } from "lib/model/Currency";
 import React, { useState } from "react";
 
 type BankAccountListItemProps = {
   bank: Bank;
   account: BankAccount;
-  currencies: Currency[];
+  currencies: Currencies;
   onUpdated: (updated: DBBankAccount) => void;
 };
 
@@ -95,7 +95,7 @@ const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
         disabled={requestInFlight}
         value={currencyId}
       >
-        {props.currencies.map((x) => (
+        {props.currencies.all().map((x) => (
           <option key={x.id} value={x.id}>
             {x.name}
           </option>

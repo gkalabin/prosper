@@ -9,7 +9,7 @@ import {
   StockQuote,
   ThirdPartyExpense,
   Transaction,
-  Transfer
+  Transfer,
 } from "@prisma/client";
 import prisma from "lib/prisma";
 
@@ -48,5 +48,19 @@ export const loadAllDatabaseData = async () => {
     dbCategories: await prisma.category.findMany(),
     dbExchangeRates: await prisma.exchangeRate.findMany(),
     dbStockQuotes: await prisma.stockQuote.findMany(),
+  };
+};
+
+export const allDbDataProps = async () => {
+  const allData = await loadAllDatabaseData();
+  const dbExchangeRatesWithInt = JSON.parse(
+    JSON.stringify(
+      allData.dbExchangeRates,
+      (key, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
+    )
+  );
+  allData.dbExchangeRates = dbExchangeRatesWithInt;
+  return {
+    props: JSON.parse(JSON.stringify(allData)),
   };
 };
