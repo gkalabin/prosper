@@ -120,5 +120,5 @@ export function makeData(
   time: number[],
   timeseries: Map<number, AmountWithCurrency>
 ) {
-  return time.map((m) => timeseries.get(m).round().dollar());
+  return time.map((m) => timeseries.get(m)?.round()?.dollar() ?? 0);
 }
