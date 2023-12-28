@@ -23,11 +23,12 @@ import { Stock, stockModelFromDB } from "lib/model/Stock";
 import { Tag, tagModelFromDB } from "lib/model/Tag";
 import { Transaction, transactionModelFromDB } from "lib/model/Transaction";
 import { Trip, tripModelFromDB } from "lib/model/Trip";
+import { Setter } from "lib/stateHelpers";
 import { createContext, useContext, useState } from "react";
 
 export class StockAndCurrencyExchange {
-  private readonly exchangeRates?: ExchangeRates;
-  private readonly stockQuotes?: StockQuotes;
+  private readonly exchangeRates: ExchangeRates;
+  private readonly stockQuotes: StockQuotes;
 
   public constructor(er: ExchangeRates, sq: StockQuotes) {
     this.exchangeRates = er;
@@ -38,7 +39,7 @@ export class StockAndCurrencyExchange {
     a: AmountWithCurrency,
     target: Currency,
     when: Date | number
-  ): AmountWithCurrency {
+  ): AmountWithCurrency | undefined {
     return this.exchangeRates.exchange(a, target, when);
   }
 
@@ -47,49 +48,57 @@ export class StockAndCurrencyExchange {
     stock: Stock,
     target: Currency,
     when: Date | number
-  ): AmountWithCurrency {
+  ): AmountWithCurrency | undefined {
     const exchangeCurrencyAmount = this.stockQuotes.exchange(a, stock, when);
     return this.exchangeRates.exchange(exchangeCurrencyAmount, target, when);
   }
 }
 
-const backfillMissingDates = (ratesByDate: { [epoch: number]: number }) => {
+const backfillMissingDates = (timeseries: Timeseries) => {
   const dates = [];
-  for (const ts of Object.keys(ratesByDate)) {
-    dates.push(+ts);
+  for (const ts of timeseries.keys()) {
+    dates.push(ts);
   }
-  dates.push(new Date());
+  const today = new Date().getTime();
+  // Always add today's date to avoid missing quotes during the weekend.
+  // The exchange is closed during the weekend,
+  // so the latest available quote might be from 2 days ago.
+  dates.push(today);
   dates.sort();
   for (let i = 1; i < dates.length; i++) {
     const prev = dates[i - 1];
     const current = dates[i];
     for (let x = addDays(prev, 1); isBefore(x, current); x = addDays(x, 1)) {
-      ratesByDate[x.getTime()] = ratesByDate[prev];
+      const prevValue = timeseries.get(prev);
+      if (!prevValue) {
+        throw new Error(
+          `Prev value cannot be null, failed to backfill ${timeseries} on ${today}`
+        );
+      }
+      timeseries.set(x.getTime(), prevValue);
     }
   }
 };
 
 export class ExchangeRates {
-  private readonly rates: {
-    [currencyCodeFrom: number]: {
-      [currencyCodeTo: number]: {
-        [epoch: number]: number;
-      };
-    };
-  };
+  private readonly ratesByCurrencyCode: Map<string, Map<string, Timeseries>>;
 
   public constructor(init: DBExchangeRate[]) {
-    this.rates = {};
+    this.ratesByCurrencyCode = new Map();
     for (const r of init) {
       const { currencyCodeFrom: from, currencyCodeTo: to } = r;
-      this.rates[from] ??= {};
-      this.rates[from][to] ??= {};
+      const timeseries =
+        this.ratesByCurrencyCode.get(from)?.get(to) ?? new Map();
       const date = startOfDay(new Date(r.rateTimestamp));
-      this.rates[from][to][date.getTime()] = +r.rateNanos.toString();
+      timeseries.set(date.getTime(), +r.rateNanos.toString());
+      if (!this.ratesByCurrencyCode.has(from)) {
+        this.ratesByCurrencyCode.set(from, new Map());
+      }
+      this.ratesByCurrencyCode.get(from).set(to, timeseries);
     }
-    for (const from of Object.keys(this.rates)) {
-      for (const to of Object.keys(this.rates[from])) {
-        backfillMissingDates(this.rates[from][to]);
+    for (const from of this.ratesByCurrencyCode.values()) {
+      for (const rates of from.values()) {
+        backfillMissingDates(rates);
       }
     }
   }
@@ -98,7 +107,7 @@ export class ExchangeRates {
     a: AmountWithCurrency,
     target: Currency,
     when: Date | number
-  ): AmountWithCurrency {
+  ): AmountWithCurrency | undefined {
     if (a.getCurrency().code() == target.code()) {
       return a;
     }
@@ -106,45 +115,62 @@ export class ExchangeRates {
       return AmountWithCurrency.zero(target);
     }
     const rateNanos = this.findRate(a.getCurrency(), target, when);
+    if (!rateNanos) {
+      return undefined;
+    }
     return new AmountWithCurrency({
       amountCents: Math.round((a.cents() * rateNanos) / NANOS_MULTIPLIER),
       currency: target,
     });
   }
 
-  private findRate(from: Currency, to: Currency, when: Date | number) {
+  private findRate(
+    from: Currency,
+    to: Currency,
+    when: Date | number
+  ): number | undefined {
+    if (
+      !this.ratesByCurrencyCode.has(from.code()) ||
+      !this.ratesByCurrencyCode.get(from.code()).has(to.code())
+    ) {
+      return undefined;
+    }
+    const ratesHistory = this.ratesByCurrencyCode
+      .get(from.code())
+      .get(to.code());
     const whenDay = startOfDay(when);
-    const ratesHistory = this.rates[from.code()][to.code()];
-    const rate = ratesHistory[whenDay.getTime()];
+    const rate = ratesHistory.get(whenDay.getTime());
     if (rate) {
       return rate;
     }
-    const allTimestamps = Object.keys(ratesHistory).map((x) => +x);
+    const allTimestamps = [...ratesHistory.keys()];
     const closestTimestamp = closestTo(when, allTimestamps);
+    if (!closestTimestamp) {
+      return undefined;
+    }
     console.warn(
       `Approximating ${from.code()}→${to.code()} rate for ${when} with ${closestTimestamp}`
     );
-    return ratesHistory[closestTimestamp.getTime()];
+    return ratesHistory.get(closestTimestamp.getTime());
   }
 }
 
+type Timeseries = Map<number, number>;
+
 export class StockQuotes {
-  private readonly quotes: {
-    [stockId: number]: {
-      [epoch: number]: number;
-    };
-  };
+  private readonly quotesByStockId: Map<number, Timeseries>;
 
   public constructor(init: DBStockQuote[]) {
-    this.quotes = {};
+    this.quotesByStockId = new Map();
     for (const r of init) {
       const { stockId, value } = r;
-      const date = startOfDay(new Date(r.quoteTimestamp));
-      this.quotes[stockId] ??= {};
-      this.quotes[stockId][date.getTime()] = value;
+      const day = startOfDay(new Date(r.quoteTimestamp));
+      const timeseries = this.quotesByStockId.get(stockId) ?? new Map();
+      timeseries.set(day.getTime(), value);
+      this.quotesByStockId.set(stockId, timeseries);
     }
-    for (const stockName of Object.keys(this.quotes)) {
-      backfillMissingDates(this.quotes[stockName]);
+    for (const quotes of this.quotesByStockId.values()) {
+      backfillMissingDates(quotes);
     }
   }
 
@@ -162,17 +188,17 @@ export class StockQuotes {
 
   private findQuote(stock: Stock, when: Date | number): number {
     const whenDay = startOfDay(when);
-    const quotesForStock = this.quotes[stock.id];
-    const quote = quotesForStock[whenDay.getTime()];
+    const quotesForStock = this.quotesByStockId.get(stock.id);
+    const quote = quotesForStock.get(whenDay.getTime());
     if (quote) {
       return quote;
     }
-    const allTimestamps = Object.keys(quotesForStock).map((x) => +x);
+    const allTimestamps = [...quotesForStock.keys()];
     const closestTimestamp = closestTo(when, allTimestamps);
     console.warn(
       `Approximating ${stock.ticker} quote for ${when} with ${closestTimestamp}`
     );
-    return quotesForStock[closestTimestamp.getTime()];
+    return quotesForStock.get(closestTimestamp.getTime());
   }
 }
 
@@ -191,7 +217,7 @@ export type AllClientDataModel = {
 
 const AllDatabaseDataContext = createContext<
   AllClientDataModel & {
-    setDbData: (x: AllDatabaseData) => void;
+    setDbData: Setter<AllDatabaseData>;
   }
 >(null);
 export const AllDatabaseDataContextProvider = (props: {
