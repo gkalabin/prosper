@@ -43,7 +43,10 @@ const Header = () => {
               </div>
               <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
                 <div className="flex flex-shrink-0 items-center">
-                  <BanknotesIcon className="block h-8 w-auto text-green-200" />
+                  {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+                  <a href="/">
+                    <BanknotesIcon className="block h-8 w-auto text-green-200" />
+                  </a>
                 </div>
                 <div className="hidden sm:ml-6 sm:block">
                   <div className="flex space-x-4">
