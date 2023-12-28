@@ -37,7 +37,9 @@ type TransactionsListItemProps = {
   transaction: Transaction;
   onUpdated: (transaction: Transaction) => void;
 };
-export const TransactionsListItem: React.FC<TransactionsListItemProps> = (props) => {
+export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
+  props
+) => {
   const raw = JSON.stringify(props.transaction, null, 2);
   const [showRawDetails, setShowRawDetails] = useState(false);
   return (
