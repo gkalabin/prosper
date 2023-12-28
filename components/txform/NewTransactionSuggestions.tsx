@@ -71,7 +71,7 @@ export function fillMostCommonDescriptions(input: {
 }
 
 export const NewTransactionSuggestions = (props: {
-  activePrototype: TransactionPrototype;
+  activePrototype: TransactionPrototype | null;
   onItemClick: (t: TransactionPrototype) => void;
 }) => {
   const { transactions, isError, isLoading } = useOpenBankingTransactions();
@@ -98,7 +98,7 @@ export const NewTransactionSuggestions = (props: {
 
 const NonEmptyNewTransactionSuggestions = (props: {
   openBankingTransactions: WithdrawalOrDepositPrototype[];
-  activePrototype: TransactionPrototype;
+  activePrototype: TransactionPrototype | null;
   onItemClick: (t: TransactionPrototype) => void;
 }) => {
   const { transactions, banks, transactionPrototypes } =
@@ -128,10 +128,10 @@ const NonEmptyNewTransactionSuggestions = (props: {
     }
   });
   const accountsWithData = bankAccounts.filter(
-    (a) => protosByAccountId.get(a.id)?.length
+    (a) => protosByAccountId.get(a.id)?.length,
   );
   const [activeAccount, setActiveAccount] = useState(
-    !accountsWithData.length ? null : accountsWithData[0]
+    !accountsWithData.length ? null : accountsWithData[0],
   );
   const activeAccountProtos = protosByAccountId.get(activeAccount?.id);
   useEffect(() => {
@@ -182,7 +182,7 @@ function SuggestionsList(props: {
   const items = props.items.sort(
     (a, b) =>
       singleOperationProto(b, props.bankAccount).timestampEpoch -
-      singleOperationProto(a, props.bankAccount).timestampEpoch
+      singleOperationProto(a, props.bankAccount).timestampEpoch,
   );
   const [limit, setLimit] = useState(5);
   const displayItems = items.slice(0, limit);
@@ -239,7 +239,7 @@ function SuggestionsList(props: {
 function summary(
   t: Transaction,
   bankAccounts: BankAccount[],
-  banks: Bank[]
+  banks: Bank[],
 ): string {
   switch (t.kind) {
     case "PersonalExpense":
@@ -281,10 +281,10 @@ function SuggestionItem({
     proto.type != "transfer"
       ? p.externalId == proto.externalTransactionId
       : p.externalId == proto.withdrawal.externalTransactionId ||
-        p.externalId == proto.deposit.externalTransactionId
+        p.externalId == proto.deposit.externalTransactionId,
   );
   const usedTransaction = transactions.find(
-    (t) => t.id == usedProto?.internalTransactionId
+    (t) => t.id == usedProto?.internalTransactionId,
   );
   const handleClick = () => {
     if (isSubmitting) {
@@ -343,7 +343,7 @@ function SuggestionItem({
 
 function singleOperationProto(
   proto: TransactionPrototype,
-  bankAccount: BankAccount
+  bankAccount: BankAccount,
 ): WithdrawalOrDepositPrototype {
   if (proto.type != "transfer") {
     return proto;

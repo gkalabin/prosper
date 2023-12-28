@@ -41,8 +41,8 @@ export const FormPersonalExpense = ({
   transaction,
   prototype,
 }: {
-  transaction: Transaction;
-  prototype: TransactionPrototype;
+  transaction: Transaction | null;
+  prototype: TransactionPrototype | null;
 }) => {
   const { transactions, bankAccounts } = useAllDatabaseDataContext();
   const {

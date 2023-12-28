@@ -23,26 +23,25 @@ import {
   FormMode,
   TransactionFormValues,
 } from "lib/model/forms/TransactionFormValues";
-import { Income } from "lib/model/transaction/Income";
 import { PersonalExpense } from "lib/model/transaction/PersonalExpense";
-import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
 import {
   Transaction,
+  TransactionWithTrip,
   formatAmount,
+  isExpense,
   isIncome,
-  isPersonalExpense,
-  isThirdPartyExpense,
   otherPartyNameOrNull,
 } from "lib/model/transaction/Transaction";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
+import { notEmpty } from "lib/util/util";
 import { useEffect } from "react";
 import Select from "react-select";
 import Async from "react-select/async";
 import CreatableSelect from "react-select/creatable";
 
 export const FormInputs = (props: {
-  transaction: Transaction;
-  prototype: TransactionPrototype;
+  transaction: Transaction | null;
+  prototype: TransactionPrototype | null;
 }) => {
   const {
     values: { mode },
@@ -73,28 +72,28 @@ export const FormInputs = (props: {
   );
 };
 
+function hasTrip(value: Transaction): value is TransactionWithTrip {
+  return (value as TransactionWithTrip).tripId !== undefined;
+}
+
 export const Trips = () => {
   const { transactions, trips } = useAllDatabaseDataContext();
   const { isSubmitting } = useFormikContext<TransactionFormValues>();
-  const transactionsWithTrips = transactions.filter(
-    (x): x is PersonalExpense | ThirdPartyExpense | Income =>
-      x.kind !== "Transfer" && !!x.tripId,
-  );
-  const tripIds = [...new Set(transactionsWithTrips.map((x) => x.tripId))];
+  const transactionsWithTrips = transactions.filter(hasTrip);
   const tripLastUsageDate = new Map<number, number>();
   transactionsWithTrips.forEach((x) => {
-    const trip = x.tripId;
-    const existing = tripLastUsageDate.get(trip);
+    const existing = tripLastUsageDate.get(x.tripId);
     if (!existing || isBefore(existing, x.timestampEpoch)) {
-      tripLastUsageDate.set(trip, x.timestampEpoch);
+      tripLastUsageDate.set(x.tripId, x.timestampEpoch);
     }
   });
   const tripById = new Map<number, Trip>(trips.map((x) => [x.id, x]));
-  const tripNames = tripIds
-    .sort((t1, t2) =>
-      isBefore(tripLastUsageDate.get(t1), tripLastUsageDate.get(t2)) ? 1 : -1,
-    )
-    .map((x) => tripById.get(x).name);
+  const tripIdsByLastUsageDate = [...tripLastUsageDate.entries()]
+    .sort(([_k1, ts1], [_k2, ts2]) => ts2 - ts1)
+    .map(([tripId]) => tripId);
+  const tripNames = tripIdsByLastUsageDate.map(
+    (x) => tripById.get(x)?.name ?? "Unknown trip",
+  );
   return (
     <div className="col-span-6">
       <TextInputWithLabel
@@ -186,7 +185,7 @@ export function Vendor() {
   const vendors = uniqMostFrequent(
     transactionsForMode
       .map((x) => {
-        if (isPersonalExpense(x) || isThirdPartyExpense(x)) {
+        if (isExpense(x)) {
           return x.vendor;
         }
         if (isIncome(x)) {
@@ -194,7 +193,7 @@ export function Vendor() {
         }
         return null;
       })
-      .filter((x) => x),
+      .filter(notEmpty),
   );
   return (
     <div className="col-span-6">
@@ -249,7 +248,7 @@ export function Tags() {
     .flatMap((x) => x.tagsIds)
     .forEach((x) => tagFrequency.set(x, (tagFrequency.get(x) ?? 0) + 1));
   const tagsByFrequency = [...tags].sort(
-    (t1, t2) => tagFrequency.get(t2.id) - tagFrequency.get(t1.id),
+    (t1, t2) => (tagFrequency.get(t2.id) ?? 0) - (tagFrequency.get(t1.id) ?? 0),
   );
   const makeOption = (x: string) => ({ label: x, value: x });
   return (
@@ -351,12 +350,16 @@ export function Category() {
           };
         })}
         value={{
-          label: categories
-            .find((x) => x.id() == categoryId)
-            .nameWithAncestors(),
+          label:
+            categories.find((x) => x.id() == categoryId)?.nameWithAncestors() ??
+            "Unknown category",
           value: categoryId,
         }}
-        onChange={(newValue) => setFieldValue("categoryId", newValue.value)}
+        isClearable={false}
+        // TODO: find a way to not have undefined newValue
+        onChange={(newValue) =>
+          setFieldValue("categoryId", newValue?.value ?? 0)
+        }
         isDisabled={isSubmitting}
       />
     </div>
@@ -374,7 +377,7 @@ export function Payer() {
         }
         return null;
       })
-      .filter((x) => x),
+      .filter(notEmpty),
   );
   return (
     <>
@@ -402,7 +405,7 @@ export function Payer() {
 export function OtherPartyName() {
   const { transactions } = useAllDatabaseDataContext();
   const otherParties = uniqMostFrequent(
-    transactions.map((x) => otherPartyNameOrNull(x)).filter((x) => x),
+    transactions.map((x) => otherPartyNameOrNull(x)).filter(notEmpty),
   );
   return (
     <>

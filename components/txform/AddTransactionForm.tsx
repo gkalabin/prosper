@@ -246,7 +246,7 @@ function initialValuesEmpty(
   };
 }
 
-export function mostUsedAccountFrom(txs: Transaction[]): number {
+export function mostUsedAccountFrom(txs: Transaction[]): number | null {
   const accounts = txs
     .map((x) => {
       if (x.kind == "Transfer") {
@@ -262,7 +262,7 @@ export function mostUsedAccountFrom(txs: Transaction[]): number {
   return mostFrequent;
 }
 
-export function mostUsedAccountTo(txs: Transaction[]): number {
+export function mostUsedAccountTo(txs: Transaction[]): number | null {
   const accounts = txs
     .map((x) => {
       if (x.kind == "Transfer") {
@@ -278,7 +278,10 @@ export function mostUsedAccountTo(txs: Transaction[]): number {
   return mostFrequent;
 }
 
-export function mostUsedCategoryId(txs: Transaction[], vendor: string): number {
+export function mostUsedCategoryId(
+  txs: Transaction[],
+  vendor: string,
+): number | null {
   const categories = txs
     .filter((x) => {
       if (!vendor) {
@@ -298,12 +301,12 @@ export function mostUsedCategoryId(txs: Transaction[], vendor: string): number {
 }
 
 export const AddTransactionForm = (props: {
-  transaction?: Transaction;
+  transaction: Transaction | null;
   onAddedOrUpdated: (response: TransactionAPIResponse) => void;
   onClose: () => void;
 }) => {
   const [apiError, setApiError] = useState("");
-  const [prototype, setPrototype] = useState<TransactionPrototype>(null);
+  const [prototype, setPrototype] = useState<TransactionPrototype | null>(null);
   const creatingNewTransaction = !props.transaction;
   const initialMode = props.transaction
     ? formModeForTransaction(props.transaction)

@@ -33,8 +33,8 @@ import {
   accountsSum,
   transactionBelongsToAccount,
 } from "./modelHelpers";
-import { StatsWidget } from "./StatsWidget";
 import { OpenBankingConnectionExpirationWarning } from "./OpenBankingConnectionExpirationWarning";
+import { StatsWidget } from "./StatsWidget";
 
 const BankAccountListItem = ({ account }: { account: BankAccount }) => {
   const [showTransactionList, setShowTransactionList] = useState(false);
@@ -153,6 +153,7 @@ function NonEmptyPageContent() {
         )}
         {showAddTransactionForm && (
           <AddTransactionForm
+            transaction={null}
             onAddedOrUpdated={onTransactionChange(setDbData)}
             onClose={() => setShowAddTransactionForm(false)}
           />

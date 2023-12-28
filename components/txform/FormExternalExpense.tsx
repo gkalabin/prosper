@@ -31,8 +31,8 @@ const SUGGESTIONS_WINDOW_MONTHS = 6;
 export const FormExternalExpense = ({
   transaction,
 }: {
-  transaction: Transaction;
-  prototype: TransactionPrototype;
+  transaction: Transaction | null;
+  prototype: TransactionPrototype | null;
 }) => {
   const { transactions } = useAllDatabaseDataContext();
   const {

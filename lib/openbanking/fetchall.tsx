@@ -27,6 +27,7 @@ import {
   WithdrawalOrDepositPrototype,
   fromOpenBankingTransaction,
 } from "lib/txsuggestions/TransactionPrototype";
+import { notEmpty } from "lib/util/util";
 
 type Token = TrueLayerToken | NordigenToken | StarlingToken;
 
@@ -66,7 +67,11 @@ const providers: Provider<Token>[] = [
     nordigenRefreshToken,
     nordigenFetchBalance,
     nordigenFetchTransactions,
-    async (token: NordigenToken, db: DB, bankId: number): Promise<AccountDetails[]> => {
+    async (
+      token: NordigenToken,
+      db: DB,
+      bankId: number,
+    ): Promise<AccountDetails[]> => {
       const requisition = await db.nordigenRequisitionFindFirst({
         where: {
           bankId,
@@ -163,16 +168,6 @@ async function refreshTokens(
   const completedRefreshes = await Promise.allSettled(refreshes);
   logErrors(completedRefreshes);
   return allSuccessful(completedRefreshes);
-}
-
-function notEmpty<T>(value: T | null | undefined): value is T {
-  if (value === null || value === undefined) {
-    return false;
-  }
-  // This assignment makes compile-time check that the value is T.
-  const exhaustivenessCheck: T = value;
-  // This return should always be true, it is here only to prevent unused variable.
-  return !!exhaustivenessCheck;
 }
 
 function allSuccessful<T>(ps: PromiseSettledResult<Awaited<T>>[]): T[] {

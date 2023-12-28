@@ -86,3 +86,13 @@ export function capitalize(s: string): string {
   }
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
+
+export function notEmpty<T>(value: T | null | undefined): value is T {
+  if (value === null || value === undefined) {
+    return false;
+  }
+  // This assignment makes compile-time check that the value is T.
+  const exhaustivenessCheck: T = value;
+  // This return should always be true, it is here only to prevent unused variable.
+  return !!exhaustivenessCheck;
+}

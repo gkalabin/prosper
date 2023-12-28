@@ -26,6 +26,10 @@ export type Transaction =
 
 export type Expense = PersonalExpense | ThirdPartyExpense;
 
+export type TransactionWithTrip = (Expense | Income) & {
+  tripId: Required<number>;
+};
+
 export function transactionModelFromDB(
   init: TransactionWithTagIds,
 ): Transaction {
@@ -68,7 +72,7 @@ export function transactionUnit(
       const account = transactionBankAccount(t, bankAccounts);
       return accountUnit(account, stocks);
     case "ThirdPartyExpense":
-      return Currency.findByCode(t.currencyCode);
+      return Currency.mustFindByCode(t.currencyCode);
     default:
       const _exhaustiveCheck: never = t;
       throw new Error(`No unit for ${_exhaustiveCheck}`);

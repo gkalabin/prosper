@@ -17,7 +17,7 @@ import {
 
 export type TransactionAPIRequest = {
   form: TransactionFormValues;
-  usedPrototype: TransactionPrototype;
+  usedPrototype: TransactionPrototype | null;
 };
 
 export type TransactionAPIResponse = {
