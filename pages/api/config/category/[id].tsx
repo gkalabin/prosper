@@ -28,7 +28,7 @@ async function handle(
     data: { name, displayOrder },
     where: { id: categoryId },
   };
-  dbArgs.data.parentCategoryId = parentCategoryId || null;
+  dbArgs.data.parentCategoryId = +parentCategoryId || null;
   const result = await prisma.category.update(dbArgs);
   res.json(result);
 }
