@@ -1,7 +1,7 @@
 import BankAccount from "./BankAccount";
 
 type Bank = {
-  id: string;
+  id: number;
   name: string;
   displayOrder: number;
   accounts: BankAccount[];

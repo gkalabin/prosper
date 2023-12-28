@@ -5,7 +5,7 @@ import Layout from "../components/Layout";
 import Transaction from "../lib/model/Transaction";
 import Bank from "../lib/model/Bank";
 import { DbCategory, makeCategoryTree } from "../lib/model/Category";
-import { AddTransactionForm } from "../components/AddTransactionForm";
+import { AddTransactionForm } from "../components/add_transaction/AddTransactionForm";
 
 export const getStaticProps: GetStaticProps = async () => {
   const transactions = await prisma.transaction.findMany({
