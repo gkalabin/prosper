@@ -11,7 +11,6 @@ import {
   toDateTimeLocal,
 } from "components/txform/AddTransactionForm";
 import { BankAccountSelect } from "components/txform/BankAccountSelect";
-import { TransactionPrototype } from "components/txform/NewTransactionSuggestions";
 import { SelectNumber } from "components/txform/Select";
 import { ButtonLink } from "components/ui/buttons";
 import { differenceInMonths, isBefore } from "date-fns";
@@ -24,6 +23,7 @@ import { Transaction } from "lib/model/Transaction";
 import { Trip } from "lib/model/Trip";
 import { shortRelativeDate } from "lib/TimeHelpers";
 import { AddTransactionFormValues, FormMode } from "lib/transactionDbUtils";
+import { TransactionPrototype } from "lib/txsuggestions/TransactionSuggestion";
 import { useEffect, useState } from "react";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
@@ -38,6 +38,7 @@ export const FormInputs = (props: {
   const {
     values: { vendor, isShared, fromBankAccountId, mode, amount },
     setFieldValue,
+    resetForm,
   } = useFormikContext<AddTransactionFormValues>();
   const transactionsForMode = transactions.filter(
     (x) => formModeForTransaction(x) == mode
@@ -96,24 +97,29 @@ export const FormInputs = (props: {
   }, [setFieldValue, mostFrequentCategory, props.transaction]);
 
   useEffect(() => {
-    if (!props.prototype) {
+    const proto = props.prototype;
+    if (!proto) {
       return;
     }
-    setFieldValue("mode", props.prototype.mode);
-    if (props.prototype.mode == FormMode.TRANSFER) {
-      setFieldValue("description", props.prototype.vendor);
-    } else {
-      setFieldValue("vendor", props.prototype.vendor);
+    resetForm();
+    const singleOpProto = proto.type == "transfer" ? proto.deposit : proto;
+    setFieldValue("amount", singleOpProto.absoluteAmountCents / 100);
+    setFieldValue("timestamp", toDateTimeLocal(singleOpProto.timestampEpoch));
+    if (proto.type == "deposit") {
+      setFieldValue("mode", FormMode.INCOME);
+      setFieldValue("payer", proto.description);
+      setFieldValue("toBankAccountId", proto.internalAccountId);
+    } else if (proto.type == "withdrawal") {
+      setFieldValue("mode", FormMode.PERSONAL);
+      setFieldValue("vendor", proto.description);
+      setFieldValue("fromBankAccountId", proto.internalAccountId);
+    } else if (proto.type == "transfer") {
+      setFieldValue("mode", FormMode.TRANSFER);
+      setFieldValue("description", singleOpProto.description);
+      setFieldValue("fromBankAccountId", proto.withdrawal.internalAccountId);
+      setFieldValue("toBankAccountId", proto.withdrawal.internalAccountId);
     }
-    setFieldValue("amount", Math.abs(props.prototype.amount));
-    setFieldValue("timestamp", toDateTimeLocal(props.prototype.timestamp));
-    if (props.prototype.accountFromId) {
-      setFieldValue("fromBankAccountId", props.prototype.accountFromId);
-    }
-    if (props.prototype.accountToId) {
-      setFieldValue("toBankAccountId", props.prototype.accountToId);
-    }
-  }, [props.prototype, setFieldValue]);
+  }, [props.prototype, resetForm, setFieldValue]);
 
   useEffect(() => {
     if (props.transaction) {

@@ -31,10 +31,11 @@ model Transaction {
 
   openBankingPrototypes OpenBankingTransaction[]
 
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user                 User                   @relation(fields: [userId], references: [id])
+  userId               Int
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  TransactionPrototype TransactionPrototype[]
 }
 
 model PersonalExpense {
@@ -239,6 +240,7 @@ model User {
   OpenBankingAccount     OpenBankingAccount[]
   BankAccount            BankAccount[]
   DisplaySettings        DisplaySettings?
+  TransactionPrototype   TransactionPrototype[]
 }
 
 model ExchangeRate {
@@ -312,4 +314,17 @@ model OpenBankingTransaction {
   userId          Int
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+}
+
+model TransactionPrototype {
+  synteticId            Int         @id @default(autoincrement())
+  // not unique as multiple users can share the same bank and import the same transaction
+  externalId            String
+  externalDescription   String
+  internalTransaction   Transaction @relation(fields: [internalTransactionId], references: [id])
+  internalTransactionId Int
+  user                  User        @relation(fields: [userId], references: [id])
+  userId                Int
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
 }

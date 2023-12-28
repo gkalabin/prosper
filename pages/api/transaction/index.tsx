@@ -8,7 +8,7 @@ import {
   writeExtension,
   writeTags,
   writeTrip,
-  writeUsedOpenBankingTransactions,
+  writeUsedPrototypes,
 } from "lib/transactionDbUtils";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -17,8 +17,7 @@ async function handle(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { form, usedOpenBankingTransactions, suggestedVendor } =
-    req.body as TransactionAPIRequest;
+  const { form, usedPrototype } = req.body as TransactionAPIRequest;
   const result: TransactionAPIResponse = await prisma.$transaction(
     async (tx) => {
       const data = transactionDbInput(form, userId);
@@ -28,19 +27,17 @@ async function handle(
       const createdTransaction = await tx.transaction.create(
         Object.assign({ data }, includeExtensions)
       );
-      const { createdOpenBankingTransactions } =
-        await writeUsedOpenBankingTransactions({
-          usedOpenBankingTransactions,
-          suggestedVendor,
-          createdTransactionId: createdTransaction.id,
-          userId,
-          tx,
-        });
+      const { createdPrototypes } = await writeUsedPrototypes({
+        usedPrototype,
+        createdTransactionId: createdTransaction.id,
+        userId,
+        tx,
+      });
       return {
         transaction: createdTransaction,
         trip: createdTrip,
         tags: createdTags,
-        openBankingTransactions: createdOpenBankingTransactions,
+        prototypes: createdPrototypes,
       };
     }
   );

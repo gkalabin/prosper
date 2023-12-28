@@ -1,6 +1,6 @@
 import { format, formatDistance, isAfter, subDays } from "date-fns";
 
-export function shortRelativeDate(d: Date) {
+export function shortRelativeDate(d: Date | number) {
   const today = new Date();
   const fourDaysAgo = subDays(today, 4);
   if (isAfter(d, fourDaysAgo)) {

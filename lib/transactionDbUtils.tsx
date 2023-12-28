@@ -1,6 +1,14 @@
-import { OpenBankingTransaction, Prisma, Tag, Trip } from "@prisma/client";
+import {
+  TransactionPrototype as DBTransactionPrototype,
+  Prisma,
+  Tag,
+  Trip,
+} from "@prisma/client";
 import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
-import { IOBTransaction } from "lib/openbanking/interface";
+import {
+  TransactionPrototype,
+  WithdrawalOrDepositPrototype,
+} from "lib/txsuggestions/TransactionSuggestion";
 
 /** @deprecated */
 export enum FormMode {
@@ -32,15 +40,14 @@ export type AddTransactionFormValues = {
 
 export type TransactionAPIRequest = {
   form: AddTransactionFormValues;
-  usedOpenBankingTransactions: IOBTransaction[];
-  suggestedVendor: string;
+  usedPrototype: TransactionPrototype;
 };
 
 export type TransactionAPIResponse = {
   transaction: TransactionWithExtensions;
   trip: Trip;
   tags: Tag[];
-  openBankingTransactions: OpenBankingTransaction[];
+  prototypes: DBTransactionPrototype[];
 };
 
 export const includeExtensions = {
@@ -232,36 +239,37 @@ export async function writeTrip({
   return createdTrip;
 }
 
-export async function writeUsedOpenBankingTransactions({
-  usedOpenBankingTransactions,
-  suggestedVendor,
+export async function writeUsedPrototypes({
+  usedPrototype,
   createdTransactionId,
   userId,
   tx,
 }: {
-  usedOpenBankingTransactions: IOBTransaction[];
+  usedPrototype: TransactionPrototype;
   createdTransactionId: number;
   userId: number;
-  suggestedVendor: string;
   tx;
-}): Promise<{ createdOpenBankingTransactions: OpenBankingTransaction[] }> {
-  if (!usedOpenBankingTransactions?.length) {
-    return { createdOpenBankingTransactions: [] };
+}): Promise<{ createdPrototypes: DBTransactionPrototype[] }> {
+  if (!usedPrototype) {
+    return { createdPrototypes: [] };
   }
-  const created = await Promise.all(
-    usedOpenBankingTransactions.map((t) =>
-      tx.openBankingTransaction.create({
-        data: {
-          description: t.description,
-          transaction_id: t.transaction_id,
-          userId,
-          recordedAsId: createdTransactionId,
-          suggestedVendor,
-        },
-      })
-    )
-  );
-  return { createdOpenBankingTransactions: created };
+  const createSinglePrototype = (proto: WithdrawalOrDepositPrototype) =>
+    tx.transactionPrototype.create({
+      data: {
+        internalTransactionId: createdTransactionId,
+        externalId: proto.externalTransactionId,
+        externalDescription: proto.originalDescription,
+        userId,
+      },
+    });
+  if (usedPrototype.type == "transfer") {
+    const created = await Promise.all([
+      createSinglePrototype(usedPrototype.deposit),
+      createSinglePrototype(usedPrototype.withdrawal),
+    ]);
+    return { createdPrototypes: created };
+  }
+  return { createdPrototypes: [await createSinglePrototype(usedPrototype)] };
 }
 
 export function writeExtension({

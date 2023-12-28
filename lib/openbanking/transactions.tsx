@@ -1,10 +1,8 @@
 import { OpenBankingAccount, OpenBankingToken } from "@prisma/client";
 import { DB } from "lib/db";
-import {
-  IOBTransaction,
-  IOBTransactionsByAccountId,
-} from "lib/openbanking/interface";
+import { IOBTransaction } from "lib/openbanking/interface";
 import { maybeRefreshToken } from "lib/openbanking/token";
+import { WithdrawalOrDepositPrototype } from "lib/txsuggestions/TransactionSuggestion";
 
 const obSettledTxURL = (accountId: string) =>
   `https://api.truelayer.com/data/v1/accounts/${accountId}/transactions`;
@@ -13,7 +11,7 @@ const obPendingTxURL = (accountId: string) =>
 
 export async function fetchOpenBankingTransactions(
   db: DB
-): Promise<IOBTransactionsByAccountId> {
+): Promise<WithdrawalOrDepositPrototype[]> {
   const banks = await db.bankFindMany();
   const bankAccounts = await db.bankAccountFindMany({
     where: {
@@ -52,57 +50,51 @@ export async function fetchOpenBankingTransactions(
 
   const obDataParts = await Promise.all(
     dbTokens.map((x) =>
-      fetchTransactionsForSingleBank(x, accountsByToken[x.id] ?? []).catch((err) => {
-        console.error(`Error fetching transactions for bank ${x.bankId}:`, err);
-        return {};
-      })
+      fetchTransactionsForSingleBank(x, accountsByToken[x.id] ?? []).catch(
+        (err) => {
+          console.error(
+            `Error fetching transactions for bank ${x.bankId}:`,
+            err
+          );
+          return [] as WithdrawalOrDepositPrototype[];
+        }
+      )
     )
   );
-  return Object.assign({}, ...obDataParts);
+  return obDataParts.flat();
 }
 
 async function fetchTransactionsForSingleBank(
   tokenIn: OpenBankingToken,
   accounts: OpenBankingAccount[]
-): Promise<IOBTransactionsByAccountId> {
+): Promise<WithdrawalOrDepositPrototype[]> {
   if (!accounts.length) {
-    return;
+    return [];
   }
   const token = await maybeRefreshToken(tokenIn);
   const init = {
     method: "GET",
     headers: { Authorization: `Bearer ${token.accessToken}` },
   };
-  const transactionsByAccountId: IOBTransactionsByAccountId = {};
-  const fetches = [];
+  const fetches = [] as Promise<WithdrawalOrDepositPrototype[]>[];
   for (const account of accounts) {
-    transactionsByAccountId[account.bankAccountId] ??= [];
-    const out = transactionsByAccountId[account.bankAccountId];
+    const accountId = account.bankAccountId;
     fetches.push(
       fetch(obSettledTxURL(account.openBankingAccountId), init)
         .then((r) => r.json())
-        .then((x) => out.push(...postProcess({ settled: true, response: x })))
-    );
-    fetches.push(
+        .then((x) => postProcess({ response: x, accountId })),
       fetch(obPendingTxURL(account.openBankingAccountId), init)
         .then((r) => r.json())
-        .then((x) => out.push(...postProcess({ settled: false, response: x })))
+        .then((x) => postProcess({ response: x, accountId }))
     );
   }
-  await Promise.all(fetches);
-  const transactionsByAccountIdSorted = Object.fromEntries(
-    Object.entries(transactionsByAccountId).map(([accountId, transactions]) => {
-      transactions.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
-      return [accountId, transactions];
-    })
-  );
-  return transactionsByAccountIdSorted;
+  return Promise.all(fetches).then((x) => x.flat());
 }
 
 function postProcess(arg: {
-  settled: boolean;
+  accountId: number;
   response: { results: IOBTransaction[] };
-}) {
+}): WithdrawalOrDepositPrototype[] {
   const { results } = arg.response;
   if (results?.length === 0) {
     return [];
@@ -111,22 +103,27 @@ function postProcess(arg: {
     console.warn("True layer transactions error", arg.response);
     return [];
   }
+  results.forEach(logIfExtraFields);
   return results.map((t: IOBTransaction) => {
-    logIfExtraFields(t);
-    const copy = Object.assign(t, {
-      settled: arg.settled,
-      true_layer_transaction_id: t.transaction_id,
-    });
+    const proto = {
+      type: t.amount > 0 ? ("deposit" as const) : ("withdrawal" as const),
+      timestampEpoch: new Date(t.timestamp).getTime(),
+      description: t.description,
+      originalDescription: t.description,
+      externalTransactionId: t.transaction_id,
+      absoluteAmountCents: Math.abs(Math.round(t.amount * 100)),
+      internalAccountId: arg.accountId,
+    };
     // Reverse engineered attempt to keep the same transaction id before and after transaction settled.
     if (t.provider_transaction_id) {
-      copy.transaction_id = t.provider_transaction_id;
+      proto.externalTransactionId = t.provider_transaction_id;
     }
     // Starling reports the actual transaction time in a meta field.
     // Prefer it over the time when the transaction was settled.
     if (t.meta.transaction_time) {
-      copy.timestamp = t.meta.transaction_time;
+      proto.timestampEpoch = new Date(t.meta.transaction_time).getTime();
     }
-    return copy;
+    return proto;
   });
 }
 

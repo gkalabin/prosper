@@ -1,10 +1,11 @@
-import { OpenBankingTransaction as DBOpenBankingTransaction } from "@prisma/client";
+import { TransactionPrototype as DBTransactionPrototype } from "@prisma/client";
 import { Amount } from "lib/Amount";
+import { WithdrawalOrDepositPrototype } from "lib/txsuggestions/TransactionSuggestion";
 
 export type IOpenBankingData = {
   balances: IOBBalancesByAccountId;
-  transactions: IOBTransactionsByAccountId;
-  dbOpenBankingTransactions: DBOpenBankingTransaction[];
+  newPrototypes: WithdrawalOrDepositPrototype[];
+  usedPrototypes: DBTransactionPrototype[];
 };
 
 // OBTransaction represents an open banking transaction from True Layer API.
@@ -33,10 +34,6 @@ export interface IOBTransaction {
   transaction_category: string;
   transaction_classification: Array<string>;
   settled: boolean;
-}
-
-export interface IOBTransactionsByAccountId {
-  [bankAccountId: number]: IOBTransaction[];
 }
 
 export interface IOBBalancesByAccountId {

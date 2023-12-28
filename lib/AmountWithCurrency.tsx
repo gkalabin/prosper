@@ -26,8 +26,8 @@ export class AmountWithCurrency {
     return this.amount.dollar();
   }
 
-  isZero() {
-    return this.amount.cents() == 0;
+  public isZero() {
+    return this.amount.isZero();
   }
 
   public add(other: AmountWithCurrency): AmountWithCurrency {

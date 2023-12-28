@@ -30,10 +30,10 @@ export class DB {
   transactionFindFirst(args?: Prisma.TransactionFindFirstArgs) {
     return prisma.transaction.findFirst(this.whereUser(args));
   }
-  openBankingTransactionPrototypeFindMany(
-    args?: Prisma.OpenBankingTransactionFindManyArgs
+  transactionPrototypeFindMany(
+    args?: Prisma.TransactionPrototypeFindManyArgs
   ) {
-    return prisma.openBankingTransaction.findMany(this.whereUser(args));
+    return prisma.transactionPrototype.findMany(this.whereUser(args));
   }
   tripFindMany(args?: Prisma.TripFindManyArgs) {
     return prisma.trip.findMany(this.whereUser(args));

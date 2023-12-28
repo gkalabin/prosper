@@ -181,13 +181,14 @@ export class Transaction {
 
   vendor() {
     if (!this.hasVendor()) {
-      throw new Error("Transaction has no vendor");
+      throw new Error(`Transaction ${this.id} has no vendor`);
     }
     return this.vendorOrNull();
   }
 
   private otherPartyNameOrNull() {
     return (
+      // Treat empty other party as null because you cannot split transaction with empty other party.
       firstNonNull2(this.personalExpense, this.income)?.otherPartyName || null
     );
   }
@@ -198,13 +199,13 @@ export class Transaction {
 
   otherParty() {
     if (!this.hasOtherParty()) {
-      throw new Error("Transaction has no other party");
+      throw new Error(`Transaction ${this.id} has no other party`);
     }
     return this.otherPartyNameOrNull();
   }
 
   private payerOrNull() {
-    return firstNonNull2(this.thirdPartyExpense, this.income)?.payer || null;
+    return firstNonNull2(this.thirdPartyExpense, this.income)?.payer ?? null;
   }
 
   hasPayer() {
@@ -213,7 +214,7 @@ export class Transaction {
 
   payer() {
     if (!this.hasPayer()) {
-      throw new Error("Transaction has no payer");
+      throw new Error(`Transaction ${this.id} has no payer`);
     }
     return this.payerOrNull();
   }
@@ -302,16 +303,6 @@ export class Transaction {
     return transfer.receivedAmountCents;
   }
 
-  amountSign() {
-    if (this.personalExpense || this.thirdPartyExpense) {
-      return -1;
-    }
-    if (this.income) {
-      return 1;
-    }
-    return 0;
-  }
-
   type(): TransactionType {
     if (this.isPersonalExpense()) {
       return TransactionType.PERSONAL;
@@ -328,6 +319,32 @@ export class Transaction {
     throw new Error(
       `Unknown transaction type: ${JSON.stringify(this.dbValue)}`
     );
+  }
+
+  summary() {
+    switch (this.type()) {
+      case TransactionType.PERSONAL:
+        return `${this.vendor()} ${
+          this.hasOtherParty() ? "split with " + this.otherParty() : ""
+        }`;
+      case TransactionType.EXTERNAL:
+        return `${this.vendor()} paid by ${this.payer()}`;
+      case TransactionType.INCOME:
+        return `${this.payer()} ${
+          this.hasOtherParty() ? "split with " + this.otherParty() : ""
+        }`;
+      case TransactionType.TRANSFER:
+        if (this.accountFrom().bank.id == this.accountTo().bank.id) {
+          return `${this.accountFrom().bank.name} ${
+            this.accountFrom().name
+          } → ${this.accountTo().name}`;
+        }
+        return `${this.accountFrom().bank.name} ${this.accountFrom().name} → ${
+          this.accountTo().bank.name
+        } ${this.accountTo().name}`;
+      default:
+        throw new Error(`Unknown transaction type: ${this.type()}`);
+    }
   }
 
   matchesType(tt: TransactionType) {

@@ -1,0 +1,1 @@
+insert into TransactionPrototype (externalId, externalDescription, internalTransactionId, userId, createdAt, updatedAt) SELECT transaction_id, description, recordedAsId, userId, createdAt, updatedAt from OpenBankingTransaction;

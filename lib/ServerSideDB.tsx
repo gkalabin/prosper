@@ -81,12 +81,10 @@ const withExchangeData = async (
 };
 
 const fetchOpenBankingData = async (db: DB): Promise<IOpenBankingData> => {
-  const dbOpenBankingTransactions =
-    await db.openBankingTransactionPrototypeFindMany();
   return {
     balances: await fetchBalances(db),
-    transactions: await fetchOpenBankingTransactions(db),
-    dbOpenBankingTransactions,
+    newPrototypes: await fetchOpenBankingTransactions(db),
+    usedPrototypes: await db.transactionPrototypeFindMany(),
   };
 };
 

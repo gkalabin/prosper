@@ -1,9 +1,6 @@
 import { FormInputs } from "components/txform/FormInputs";
 import { FormTransactionTypeSelector } from "components/txform/FormTransactionTypeSelector";
-import {
-  NewTransactionSuggestions,
-  TransactionPrototype,
-} from "components/txform/NewTransactionSuggestions";
+import { NewTransactionSuggestions } from "components/txform/NewTransactionSuggestions";
 import {
   AddOrUpdateButtonText,
   FormikButtonFormPrimary,
@@ -23,9 +20,10 @@ import {
   TransactionAPIRequest,
   TransactionAPIResponse,
 } from "lib/transactionDbUtils";
+import { TransactionPrototype } from "lib/txsuggestions/TransactionSuggestion";
 import { useState } from "react";
 
-export function toDateTimeLocal(d: Date) {
+export function toDateTimeLocal(d: Date | number) {
   // 2022-12-19T18:05:59
   return format(d, "yyyy-MM-dd'T'HH:mm");
 }
@@ -197,14 +195,10 @@ export const AddTransactionForm = (props: {
   ) => {
     const body: TransactionAPIRequest = {
       form: values,
-      usedOpenBankingTransactions: [],
-      suggestedVendor: prototype?.vendor,
+      usedPrototype: null,
     };
     if (creatingNewTransaction) {
-      body.usedOpenBankingTransactions = [
-        prototype?.openBankingTransaction,
-        prototype?.openBankingTransaction2,
-      ].filter((x) => !!x);
+      body.usedPrototype = prototype;
     }
     await fetch(`/api/transaction/${props.transaction?.id ?? ""}`, {
       method: "POST",

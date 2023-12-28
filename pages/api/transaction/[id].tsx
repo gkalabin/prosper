@@ -52,7 +52,7 @@ async function handle(
         transaction: updatedTransaction,
         trip: createdTrip,
         tags: createdTags,
-        openBankingTransactions: [],
+        prototypes: [],
       };
     }
   );

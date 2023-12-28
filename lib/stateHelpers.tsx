@@ -7,12 +7,7 @@ export function onTransactionChange(
   setDbData: Setter<AllDatabaseData>,
   setObData?: Setter<IOpenBankingData>
 ) {
-  return ({
-    transaction,
-    trip,
-    tags,
-    openBankingTransactions,
-  }: TransactionAPIResponse) => {
+  return ({ transaction, trip, tags, prototypes }: TransactionAPIResponse) => {
     setDbData((old) => {
       let updatedTrips = [...old.dbTrips];
       if (trip) {
@@ -30,10 +25,7 @@ export function onTransactionChange(
       return;
     }
     setObData((old) => {
-      const updatedObTransactions = [
-        ...old.dbOpenBankingTransactions,
-        ...openBankingTransactions,
-      ];
+      const updatedObTransactions = [...old.usedPrototypes, ...prototypes];
       return { ...old, dbOpenBankingTransactions: updatedObTransactions };
     });
   };
