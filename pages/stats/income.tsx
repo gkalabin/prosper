@@ -1,8 +1,8 @@
 import { DurationSelector } from "components/DurationSelector";
 import { undoTailwindInputStyles } from "components/forms/Select";
 import {
-  isFullyConfigured,
-  NotConfiguredYet,
+    isFullyConfigured,
+    NotConfiguredYet
 } from "components/NotConfiguredYet";
 import { DebugTable } from "components/stats/DebugTable";
 import { StatsPageLayout } from "components/StatsPageLayout";
@@ -12,8 +12,8 @@ import { EChartsOption } from "echarts";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
-  AllDatabaseDataContextProvider,
-  useAllDatabaseDataContext,
+    AllDatabaseDataContextProvider,
+    useAllDatabaseDataContext
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { LAST_6_MONTHS } from "lib/Interval";
@@ -24,48 +24,39 @@ import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import Select from "react-select";
 
-export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
+export function IncomeCharts(props: { transactions: Transaction[] }) {
   const [showDebugTable, setShowDebugTable] = useState(false);
   const displayCurrency = useDisplayCurrency();
-  const { exchange } = useAllDatabaseDataContext();
+  const { exchange, categories } = useAllDatabaseDataContext();
   const zero = new AmountWithCurrency({
     amountCents: 0,
     currency: displayCurrency,
   });
 
-  const nonThirdPartyTransactions = props.transactions.filter(
-    (t) => !t.isThirdPartyExpense()
-  );
-  const moneyOut: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
+  const incomeTransactions = props.transactions.filter((t) => t.isIncome());
   const moneyIn: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
-  const delta: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
-  const cumulativeDelta: { [firstOfMonthEpoch: number]: AmountWithCurrency } =
-    {};
+  const byCategoryIdAndMonth = new Map<
+    number,
+    Map<number, AmountWithCurrency>
+  >();
   const monthsIndex: { [firstOfMonthEpoch: number]: boolean } = {};
-  for (const t of nonThirdPartyTransactions) {
+  for (const t of incomeTransactions) {
     const ts = startOfMonth(t.timestamp).getTime();
     monthsIndex[ts] = true;
     moneyIn[ts] ??= zero;
-    moneyOut[ts] ??= zero;
-    delta[ts] ??= zero;
-    if (t.isPersonalExpense()) {
-      const exchanged = exchange.exchange(
-        t.amount(),
-        displayCurrency,
-        t.timestamp
-      );
-      moneyOut[ts] = moneyOut[ts].add(exchanged);
-      delta[ts] = delta[ts].subtract(exchanged);
+    const exchanged = exchange.exchange(
+      t.amount(),
+      displayCurrency,
+      t.timestamp
+    );
+    moneyIn[ts] = moneyIn[ts].add(exchanged);
+    if (!byCategoryIdAndMonth.has(t.category.id)) {
+      byCategoryIdAndMonth.set(t.category.id, new Map());
     }
-    if (t.isIncome()) {
-      const exchanged = exchange.exchange(
-        t.amount(),
-        displayCurrency,
-        t.timestamp
-      );
-      moneyIn[ts] = moneyIn[ts].add(exchanged);
-      delta[ts] = delta[ts].add(exchanged);
-    }
+    const categorySeries = byCategoryIdAndMonth.get(t.category.id) ?? new Map();
+    const current = categorySeries.get(ts) ?? zero;
+    categorySeries.set(ts, exchanged.add(current));
+    byCategoryIdAndMonth.set(t.category.id, categorySeries);
   }
 
   const months = Object.keys(monthsIndex)
@@ -73,15 +64,10 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
     .sort();
   months.forEach((m) => {
     moneyIn[m] ??= zero;
-    moneyOut[m] ??= zero;
-    delta[m] ??= zero;
-    cumulativeDelta[m] ??= zero;
+    [...byCategoryIdAndMonth.values()].forEach((v) => {
+      v.set(m, v.get(m) ?? zero);
+    });
   });
-  let currentDeltaSum = zero;
-  for (const ts of Object.keys(monthsIndex).sort()) {
-    currentDeltaSum = currentDeltaSum.add(delta[ts] ?? zero);
-    cumulativeDelta[ts] = currentDeltaSum;
-  }
 
   const currencyFormatter = (value) =>
     displayCurrency.format(value, { maximumFractionDigits: 0 });
@@ -89,12 +75,7 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
     grid: {
       containLabel: true,
     },
-    tooltip: {
-      formatter: (params) => {
-        const { name, value } = params;
-        return `${name}: ${currencyFormatter(value)}`;
-      },
-    },
+    tooltip: {},
     xAxis: {
       data: months.map((x) => formatMonth(x)),
     },
@@ -107,10 +88,31 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
 
   return (
     <>
+      <div className="m-4">
+        {showDebugTable && (
+          <>
+            <ButtonLink onClick={() => setShowDebugTable(false)}>
+              Hide debug table
+            </ButtonLink>
+            <h2 className="my-2 text-2xl font-medium leading-5">
+              Income transactions
+            </h2>
+            <DebugTable transactions={incomeTransactions} />
+            <ButtonLink onClick={() => setShowDebugTable(false)}>
+              Hide debug table
+            </ButtonLink>
+          </>
+        )}
+        {!showDebugTable && (
+          <ButtonLink onClick={() => setShowDebugTable(true)}>
+            Show debug table
+          </ButtonLink>
+        )}
+      </div>
       <ReactEcharts
         option={Object.assign({}, defaultChartOptions, {
           title: {
-            text: "Money In vs Money Out",
+            text: "Total money in",
           },
           legend: {
             orient: "horizontal",
@@ -126,96 +128,41 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
                 color: "#15803d",
               },
             },
-            {
-              type: "bar",
-              name: "Money Out",
-              data: months.map((m) => Math.round(moneyOut[m].dollar())),
-              itemStyle: {
-                color: "#b91c1c",
-              },
-            },
           ],
         })}
       />
-
-      <div className="m-4">
-        {showDebugTable && (
-          <>
-            <ButtonLink onClick={() => setShowDebugTable(false)}>
-              Hide debug table
-            </ButtonLink>
-            <IncomeExpenseDebugTable transactions={nonThirdPartyTransactions} />
-            <ButtonLink onClick={() => setShowDebugTable(false)}>
-              Hide debug table
-            </ButtonLink>
-          </>
-        )}
-        {!showDebugTable && (
-          <ButtonLink onClick={() => setShowDebugTable(true)}>
-            Show debug table
-          </ButtonLink>
-        )}
-      </div>
-
       <ReactEcharts
         option={Object.assign({}, defaultChartOptions, {
           title: {
-            text: "Delta (difference between money in and money out)",
+            text: "By category",
           },
-          series: [
-            {
-              type: "bar",
-              name: "Delta",
-              data: months.map((m) => Math.round(delta[m].dollar())),
-            },
-          ],
-        })}
-      />
-
-      <ReactEcharts
-        option={Object.assign({}, defaultChartOptions, {
-          title: {
-            text: "Cumulative delta",
+          legend: {
+            orient: "horizontal",
+            bottom: 10,
+            top: "bottom",
           },
-          series: [
-            {
+          series: [...byCategoryIdAndMonth.entries()].map(
+            ([categoryId, series]) => ({
               type: "bar",
-              name: "Delta",
-              data: months.map((m) => Math.round(cumulativeDelta[m].dollar())),
-            },
-          ],
+              stack: "moneyIn",
+              name: categories.find((c) => c.id === categoryId).name,
+              data: months.map((m) => Math.round(series.get(m).dollar())),
+            })
+          ),
         })}
       />
     </>
   );
 }
 
-function IncomeExpenseDebugTable(props: { transactions: Transaction[] }) {
-  return (
-    <>
-      <h2 className="my-2 text-2xl font-medium leading-5">Income</h2>
-      <DebugTable
-        transactions={props.transactions.filter((x) => x.isIncome())}
-      />
-
-      <h2 className="my-2 text-2xl font-medium leading-5">Expense</h2>
-      <DebugTable
-        transactions={props.transactions.filter((x) => x.isPersonalExpense())}
-      />
-    </>
-  );
-}
-
-function InOutPageContent() {
+function PageContent() {
   const [duration, setDuration] = useState(LAST_6_MONTHS);
   const [excludeCategories, setExcludeCategories] = useState([]);
   const { transactions, categories } = useAllDatabaseDataContext();
-
   const categoryOptions = categories.map((a) => ({
     value: a.id,
     label: a.nameWithAncestors,
   }));
-
   const filteredTransactions = transactions.filter(
     (t) =>
       duration.includes(t.timestamp) &&
@@ -242,13 +189,13 @@ function InOutPageContent() {
           onChange={(x) => setExcludeCategories(x.map((x) => x.value))}
         />
       </div>
-      <MoneyInMoneyOut transactions={filteredTransactions} />
+      <IncomeCharts transactions={filteredTransactions} />
     </StatsPageLayout>
   );
 }
 
 export const getServerSideProps = allDbDataProps;
-export default function InOutPage(
+export default function MaybeEmptyPage(
   dbData: InferGetServerSidePropsType<typeof getServerSideProps>
 ) {
   if (!isFullyConfigured(dbData)) {
@@ -256,7 +203,7 @@ export default function InOutPage(
   }
   return (
     <AllDatabaseDataContextProvider dbData={dbData}>
-      <InOutPageContent />
+      <PageContent />
     </AllDatabaseDataContextProvider>
   );
 }
