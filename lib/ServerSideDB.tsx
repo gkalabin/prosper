@@ -37,49 +37,6 @@ const fetchAllDatabaseData = async (db: DB): Promise<AllDatabaseData> => {
   };
 };
 
-const withExchangeData = async (
-  data: Partial<AllDatabaseData>,
-  {
-    db,
-    fetchAll,
-  }: {
-    db: DB;
-    fetchAll: boolean;
-  }
-): Promise<Partial<AllDatabaseData>> => {
-  if (fetchAll) {
-    return {
-      ...data,
-      dbExchangeRates: await db.exchangeRateFindMany(),
-      dbStockQuotes: await db.stockQuoteFindMany(),
-    };
-  }
-  const dbCurrencies = data.dbCurrencies ?? (await db.currencyFindMany());
-  const dbExchangeRates = await db.exchangeRateFindMany({
-    orderBy: {
-      rateTimestamp: "desc",
-    },
-    where: {
-      currencyToId: 1,
-    },
-    distinct: ["currencyFromId"],
-    take: dbCurrencies.length - 1,
-  });
-  const dbStockQuotes = await db.stockQuoteFindMany({
-    orderBy: {
-      quoteTimestamp: "desc",
-    },
-    distinct: ["exchange", "ticker"],
-    take: dbCurrencies.filter((c) => c.name.includes(":")).length,
-  });
-  return {
-    ...data,
-    dbCurrencies,
-    dbExchangeRates: dbExchangeRates,
-    dbStockQuotes: dbStockQuotes,
-  };
-};
-
 const fetchOpenBankingData = async (db: DB): Promise<IOpenBankingData> => {
   return {
     balances: await fetchBalances(db),
