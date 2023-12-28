@@ -1,5 +1,5 @@
 import { Bank as DBBank } from "@prisma/client";
-import { FormikInput } from "components/forms/Input";
+import { InputWithLabel } from "components/forms/Input";
 import {
   AddOrUpdateButtonText,
   ButtonFormPrimary,
@@ -23,19 +23,15 @@ export const AddOrEditBankForm = ({
   const [apiError, setApiError] = useState("");
   const isCreate = !bank;
 
-  const handleSubmit = async ({ name }) => {
+  const handleSubmit = async (values) => {
     setApiError("");
     try {
-      const body = {
-        name,
-        displayOrder,
-      };
       const dbDbank = await fetch(
         `/api/config/bank/${isCreate ? "" : bank.id}`,
         {
           method: isCreate ? "POST" : "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
+          body: JSON.stringify({ ...values }),
         }
       );
       onAddedOrUpdated(await dbDbank.json());
@@ -60,15 +56,15 @@ export const AddOrEditBankForm = ({
       {({ isSubmitting, values }) => (
         <Form className="flex flex-col gap-4">
           <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Bank Name
-            </label>
-            <FormikInput name="name" autoFocus className="block w-full" />
+            <InputWithLabel name="name" label="Bank Name" autoFocus />
           </div>
-
+          <div>
+            <InputWithLabel
+              name="displayOrder"
+              label="Display order"
+              type="number"
+            />
+          </div>
           <div className="flex flex-row justify-end gap-2">
             <ButtonFormSecondary
               onClick={onCancelClick}

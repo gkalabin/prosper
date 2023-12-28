@@ -10,7 +10,7 @@ import { Form, Formik } from "formik";
 import { Category } from "lib/model/Category";
 import { useState } from "react";
 
-export const CategoryAddOrEditForm = ({
+export const AddOrEditCategoryForm = ({
   category,
   categories,
   onAddedOrUpdated,

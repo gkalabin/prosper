@@ -1,7 +1,7 @@
 import { ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { Category as DBCategory } from "@prisma/client";
 import classNames from "classnames";
-import { CategoryAddOrEditForm } from "components/config/categories/CategoryForm";
+import { AddOrEditCategoryForm } from "components/config/AddOrEditCategoryForm";
 import { ConfigPageLayout } from "components/ConfigPageLayout";
 import { ButtonLink, ButtonPagePrimary } from "components/ui/buttons";
 import { DB } from "lib/db";
@@ -85,7 +85,7 @@ const EditableCategoryListItem = ({
           )}
         </div>
         {showEditForm && (
-          <CategoryAddOrEditForm
+          <AddOrEditCategoryForm
             category={category}
             categories={allCategories}
             onAddedOrUpdated={(x) => {
@@ -153,7 +153,7 @@ const CategoriesPage = ({
               Add New Category
             </div>
             <div className="ml-4">
-              <CategoryAddOrEditForm
+              <AddOrEditCategoryForm
                 categories={allCategoriesFlat}
                 onAddedOrUpdated={(x) => {
                   setShowAddForm(false);

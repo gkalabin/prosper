@@ -4,9 +4,9 @@ import {
   Currency as DBCurrency,
   OpenBankingToken as DBOpenBankingToken,
 } from "@prisma/client";
-import { AddOrEditBankForm } from "components/config/banks/AddBankForm";
-import { AddOrEditBankAccountForm } from "components/config/banks/AddOrEditBankAccountForm";
 import { ConfigPageLayout } from "components/ConfigPageLayout";
+import { AddOrEditAccountForm } from "components/config/AddOrEditAccountForm";
+import { AddOrEditBankForm } from "components/config/AddOrEditBankForm";
 import {
   AnchorLink,
   ButtonLink,
@@ -27,7 +27,7 @@ const BanksList = (props: {
   currencies: Currencies;
   openBankingTokens: DBOpenBankingToken[];
   onBankUpdated: (updated: DBBank) => void;
-  onBankAccountAddedOrUpdated: (x: DBBankAccount) => void;
+  onAccountAddedOrUpdated: (x: DBBankAccount) => void;
 }) => {
   if (!props.banks) {
     return <div>No banks found.</div>;
@@ -43,7 +43,7 @@ const BanksList = (props: {
           )}
           currencies={props.currencies}
           onBankUpdated={props.onBankUpdated}
-          onBankAccountAddedOrUpdated={props.onBankAccountAddedOrUpdated}
+          onAccountAddedOrUpdated={props.onAccountAddedOrUpdated}
         />
       ))}
     </div>
@@ -54,7 +54,7 @@ function BanksListItem({
   bank,
   openBankingToken,
   onBankUpdated,
-  onBankAccountAddedOrUpdated,
+  onAccountAddedOrUpdated,
   currencies,
 }) {
   const [newAccountFormDisplayed, setNewAccountFormDisplayed] = useState(false);
@@ -63,32 +63,40 @@ function BanksListItem({
     <div>
       <div className="border-b bg-indigo-200 p-2 text-gray-900">
         <div className="flex items-center gap-3">
-          <h1 className="grow text-xl font-medium">{bank.name}</h1>
-          <ButtonLink onClick={() => setEditBankFormDisplayed(true)}>
-            Edit
-          </ButtonLink>
-          {openBankingToken && (
-            <AnchorLink
-              href={`/config/open-banking/connection/${bank.id}`}
-              label="OpenBanking"
-            />
+          <h1 className="grow text-xl font-medium">
+            {editBankFormDisplayed ? `Editing ${bank.name}` : bank.name}
+          </h1>
+          {!editBankFormDisplayed && (
+            <>
+              <ButtonLink onClick={() => setEditBankFormDisplayed(true)}>
+                Edit
+              </ButtonLink>
+              {openBankingToken && (
+                <AnchorLink
+                  href={`/config/open-banking/connection/${bank.id}`}
+                  label="OpenBanking"
+                />
+              )}
+              <AnchorLink
+                href={`/api/open-banking/connect?bankId=${bank.id}`}
+                label={openBankingToken ? "Reconnect" : "Connect"}
+              />
+            </>
           )}
-          <AnchorLink
-            href={`/api/open-banking/connect?bankId=${bank.id}`}
-            label={openBankingToken ? "Reconnect" : "Connect"}
-          />
         </div>
 
         {editBankFormDisplayed && (
-          <AddOrEditBankForm
-            bank={bank}
-            onAddedOrUpdated={(x) => {
-              onBankUpdated(x);
-              setEditBankFormDisplayed(false);
-            }}
-            onCancelClick={() => setEditBankFormDisplayed(false)}
-            displayOrder={0}
-          />
+          <div className="ml-2 mt-2">
+            <AddOrEditBankForm
+              bank={bank}
+              onAddedOrUpdated={(x) => {
+                onBankUpdated(x);
+                setEditBankFormDisplayed(false);
+              }}
+              onCancelClick={() => setEditBankFormDisplayed(false)}
+              displayOrder={0}
+            />
+          </div>
         )}
       </div>
 
@@ -97,7 +105,7 @@ function BanksListItem({
           bank={bank}
           accounts={bank.accounts}
           currencies={currencies}
-          onBankAccountAddedOrUpdated={onBankAccountAddedOrUpdated}
+          onAccountUpdated={onAccountAddedOrUpdated}
         />
         {!newAccountFormDisplayed && (
           <ButtonLink onClick={() => setNewAccountFormDisplayed(true)}>
@@ -105,12 +113,12 @@ function BanksListItem({
           </ButtonLink>
         )}
         {newAccountFormDisplayed && (
-          <AddOrEditBankAccountForm
+          <AddOrEditAccountForm
             bank={bank}
             currencies={currencies}
             onAddedOrUpdated={(x) => {
               setNewAccountFormDisplayed(false);
-              onBankAccountAddedOrUpdated(x);
+              onAccountAddedOrUpdated(x);
             }}
             onClose={() => setNewAccountFormDisplayed(false)}
           />
@@ -124,7 +132,7 @@ const AccountsList = (props: {
   bank: Bank;
   accounts: BankAccount[];
   currencies: Currencies;
-  onBankAccountAddedOrUpdated: (updated: DBBankAccount) => void;
+  onAccountUpdated: (updated: DBBankAccount) => void;
 }) => {
   if (!props.accounts) {
     return <div>No accounts.</div>;
@@ -137,7 +145,7 @@ const AccountsList = (props: {
           bank={props.bank}
           account={account}
           currencies={props.currencies}
-          onUpdated={props.onBankAccountAddedOrUpdated}
+          onUpdated={props.onAccountUpdated}
         />
       ))}
     </>
@@ -163,7 +171,7 @@ const AccountListItem = (props: {
       </div>
       {formDisplayed && (
         <div className="ml-2">
-          <AddOrEditBankAccountForm
+          <AddOrEditAccountForm
             bank={props.bank}
             bankAccount={props.account}
             currencies={props.currencies}
@@ -233,6 +241,7 @@ export default function BanksPage({
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [dbBanks, setDbBanks] = useState(dbBanksInitial);
   const [dbBankAccounts, setDbBankAccounts] = useState(dbBankAccountsInitial);
+  const onBankAddedOrUpdated = updateState(setDbBanks);
   const [formDisplayed, setFormDisplayed] = useState(false);
 
   const currencies = new Currencies(dbCurrencies);
@@ -249,7 +258,7 @@ export default function BanksPage({
         openBankingTokens={dbOpenBankingTokens}
         currencies={currencies}
         onBankUpdated={updateState(setDbBanks)}
-        onBankAccountAddedOrUpdated={updateState(setDbBankAccounts)}
+        onAccountAddedOrUpdated={updateState(setDbBankAccounts)}
       />
 
       {!formDisplayed && (
@@ -263,7 +272,10 @@ export default function BanksPage({
         <div className="mt-4 rounded-md border p-2">
           <AddOrEditBankForm
             displayOrder={banks.length * 100}
-            onAddedOrUpdated={updateState(setDbBanks)}
+            onAddedOrUpdated={(x) => {
+              onBankAddedOrUpdated(x);
+              setFormDisplayed(false);
+            }}
             onCancelClick={() => setFormDisplayed(false)}
           />
         </div>

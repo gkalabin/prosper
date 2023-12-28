@@ -12,7 +12,7 @@ import { Currencies } from "lib/model/Currency";
 import Link from "next/link";
 import { useState } from "react";
 
-export const AddOrEditBankAccountForm = ({
+export const AddOrEditAccountForm = ({
   bank,
   bankAccount,
   currencies,
