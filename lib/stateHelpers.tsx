@@ -24,9 +24,9 @@ export function onTransactionChange(
     if (!setObData) {
       return;
     }
-    setObData((old) => {
+    setObData((old): IOpenBankingData => {
       const updatedObTransactions = [...old.usedPrototypes, ...prototypes];
-      return { ...old, dbOpenBankingTransactions: updatedObTransactions };
+      return { ...old, usedPrototypes: updatedObTransactions };
     });
   };
 }

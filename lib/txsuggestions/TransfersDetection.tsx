@@ -4,7 +4,7 @@ import {
   TransferPrototype,
   WithdrawalOrDepositPrototype,
   WithdrawalPrototype,
-} from "lib/txsuggestions/TransactionSuggestion";
+} from "lib/txsuggestions/TransactionPrototype";
 
 const MAX_TRANSFER_WINDOW_HOURS = 2;
 

@@ -2,7 +2,7 @@ import { OpenBankingAccount, OpenBankingToken } from "@prisma/client";
 import { DB } from "lib/db";
 import { IOBTransaction } from "lib/openbanking/interface";
 import { maybeRefreshToken } from "lib/openbanking/token";
-import { WithdrawalOrDepositPrototype } from "lib/txsuggestions/TransactionSuggestion";
+import { WithdrawalOrDepositPrototype } from "lib/txsuggestions/TransactionPrototype";
 
 const obSettledTxURL = (accountId: string) =>
   `https://api.truelayer.com/data/v1/accounts/${accountId}/transactions`;

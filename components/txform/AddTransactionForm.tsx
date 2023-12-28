@@ -20,7 +20,7 @@ import {
   TransactionAPIRequest,
   TransactionAPIResponse,
 } from "lib/transactionDbUtils";
-import { TransactionPrototype } from "lib/txsuggestions/TransactionSuggestion";
+import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useState } from "react";
 
 export function toDateTimeLocal(d: Date | number) {

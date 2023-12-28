@@ -11,7 +11,7 @@ import { useOpenBankingDataContext } from "lib/openbanking/context";
 import {
   TransactionPrototype,
   WithdrawalOrDepositPrototype,
-} from "lib/txsuggestions/TransactionSuggestion";
+} from "lib/txsuggestions/TransactionPrototype";
 import { combineTransfers } from "lib/txsuggestions/TransfersDetection";
 import { useEffect, useState } from "react";
 

@@ -8,7 +8,7 @@ import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
 import {
   TransactionPrototype,
   WithdrawalOrDepositPrototype,
-} from "lib/txsuggestions/TransactionSuggestion";
+} from "lib/txsuggestions/TransactionPrototype";
 
 /** @deprecated */
 export enum FormMode {

@@ -1,6 +1,6 @@
 import { TransactionPrototype as DBTransactionPrototype } from "@prisma/client";
 import { Amount } from "lib/Amount";
-import { WithdrawalOrDepositPrototype } from "lib/txsuggestions/TransactionSuggestion";
+import { WithdrawalOrDepositPrototype } from "lib/txsuggestions/TransactionPrototype";
 
 export type IOpenBankingData = {
   balances: IOBBalancesByAccountId;

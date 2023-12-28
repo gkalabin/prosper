@@ -23,7 +23,7 @@ import { Transaction } from "lib/model/Transaction";
 import { Trip } from "lib/model/Trip";
 import { shortRelativeDate } from "lib/TimeHelpers";
 import { AddTransactionFormValues, FormMode } from "lib/transactionDbUtils";
-import { TransactionPrototype } from "lib/txsuggestions/TransactionSuggestion";
+import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect, useState } from "react";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
