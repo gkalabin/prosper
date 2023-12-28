@@ -10,12 +10,12 @@ import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category, categoryModelFromDB } from "lib/model/Category";
 import { Transaction } from "lib/model/Transaction";
 import { AllDatabaseData } from "lib/ServerSideDB";
-import { createContext, ReactNode, useContext } from "react";
+import { createContext, useContext } from "react";
 
 const CurrencyContext = createContext<Currencies>(null);
 export const CurrencyContextProvider = (props: {
   init: DBCurrency[];
-  children: ReactNode[];
+  children: JSX.Element | JSX.Element[];
 }) => {
   return (
     <CurrencyContext.Provider value={new Currencies(props.init)}>
