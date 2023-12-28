@@ -78,16 +78,12 @@ async function fetchTransactionsForSingleBank(
     fetches.push(
       fetch(obSettledTxURL(account.openBankingAccountId), init)
         .then((r) => r.json())
-        .then((x) =>
-          out.push(...postProcess({ settled: true, results: x.results }))
-        )
+        .then((x) => out.push(...postProcess({ settled: true, response: x })))
     );
     fetches.push(
       fetch(obPendingTxURL(account.openBankingAccountId), init)
         .then((r) => r.json())
-        .then((x) =>
-          out.push(...postProcess({ settled: false, results: x.results }))
-        )
+        .then((x) => out.push(...postProcess({ settled: false, response: x })))
     );
   }
   await Promise.all(fetches);
@@ -100,8 +96,19 @@ async function fetchTransactionsForSingleBank(
   return transactionsByAccountIdSorted;
 }
 
-function postProcess(arg: { settled: boolean; results: IOBTransaction[] }) {
-  return arg.results.map((t: IOBTransaction) => {
+function postProcess(arg: {
+  settled: boolean;
+  response: { results: IOBTransaction[] };
+}) {
+  const { results } = arg.response;
+  if (results?.length === 0) {
+    return [];
+  }
+  if (!results?.length) {
+    console.warn("True layer transactions error", arg.response);
+    return [];
+  }
+  return results.map((t: IOBTransaction) => {
     logIfExtraFields(t);
     const copy = Object.assign(t, {
       settled: arg.settled,
