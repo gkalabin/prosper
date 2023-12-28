@@ -30,7 +30,8 @@ const BankAccountListItem = (props: {
   const [showTransactionList, setShowTransactionList] = useState(false);
   let balanceText = <span>{props.account.balance().format()}</span>;
   const { balances } = useOpenBankingDataContext();
-  const obBalance = balances.find(
+  // TODO: make sure open banking data doesn't return nulls and handles API errors gracefully
+  const obBalance = balances?.find(
     (b) => b.internalAccountId === props.account.id
   );
   if (obBalance) {
