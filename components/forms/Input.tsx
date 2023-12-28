@@ -1,12 +1,15 @@
 import classNames from "classnames";
-import { InputProps } from "components/forms/InputProps";
-import { Field, FieldHookConfig, useField, useFormikContext } from "formik";
-import { ClassAttributes } from "react";
+import { Field, useField, useFormikContext } from "formik";
+import { ChangeEvent, FocusEvent } from "react";
+
+interface InputProps {
+  label: string;
+  name: string;
+}
 
 export const MoneyInputWithLabel = (
-  props: InputProps & FieldHookConfig<number>
+  props: InputProps & React.InputHTMLAttributes<HTMLInputElement>,
 ) => {
-  const inputAttributes = props as ClassAttributes<HTMLInputElement>;
   return (
     <>
       <label
@@ -15,28 +18,30 @@ export const MoneyInputWithLabel = (
       >
         {props.label}
       </label>
-      <FormikMoneyInput {...inputAttributes} className="block w-full" />
+      <FormikMoneyInput {...props} className="block w-full" />
     </>
   );
 };
 
 export const TextInputWithLabel = (
-  props: InputProps & FieldHookConfig<string>
+  props: InputProps & React.InputHTMLAttributes<HTMLInputElement>,
 ) => {
   return <InputWithLabelUntyped {...props} type="text" />;
 };
 
-export const InputWithLabel = (props: InputProps & FieldHookConfig<string>) => {
+export const InputWithLabel = (
+  props: InputProps & React.InputHTMLAttributes<HTMLInputElement>,
+) => {
   const { type, ...otherProps } = props;
   return <InputWithLabelUntyped {...otherProps} type={type ?? "text"} />;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const InputWithLabelUntyped = (props: InputProps & FieldHookConfig<any>) => {
+const InputWithLabelUntyped = (
+  props: InputProps & React.InputHTMLAttributes<HTMLInputElement>,
+) => {
   const { disabled, ...otherProps } = props;
   const [field] = useField(props);
   const label = props.label;
-  const inputAttributes = otherProps as ClassAttributes<HTMLInputElement>;
   const { isSubmitting } = useFormikContext();
   return (
     <>
@@ -49,7 +54,7 @@ const InputWithLabelUntyped = (props: InputProps & FieldHookConfig<any>) => {
       <FormikInput
         id={props.name}
         {...field}
-        {...inputAttributes}
+        {...otherProps}
         onFocus={(e) => e.target.select()}
         className="block w-full"
         disabled={isSubmitting || disabled}
@@ -66,14 +71,14 @@ export const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => {
       className={classNames(
         className,
         props.disabled ? "opacity-30" : "",
-        "rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+        "rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm",
       )}
     />
   );
 };
 
 export const FormikInput = (
-  props: React.InputHTMLAttributes<HTMLInputElement>
+  props: React.InputHTMLAttributes<HTMLInputElement>,
 ) => {
   const { className, type, id, name, disabled, ...otherProps } = props;
   const { isSubmitting } = useFormikContext();
@@ -84,18 +89,18 @@ export const FormikInput = (
       name={name}
       type={type ?? "text"}
       disabled={isSubmitting || disabled}
-      onFocus={(e) => e.target.select()}
+      onFocus={(e: FocusEvent<HTMLInputElement>) => e.target.select()}
       className={classNames(
         className,
         props.disabled ? "opacity-30" : "",
-        "rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+        "rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm",
       )}
     />
   );
 };
 
 export const FormikMoneyInput = (
-  props: React.InputHTMLAttributes<HTMLInputElement>
+  props: React.InputHTMLAttributes<HTMLInputElement> & { name: string },
 ) => {
   const { disabled, ...otherProps } = props;
   const { setFieldValue, isSubmitting } = useFormikContext();
@@ -107,7 +112,7 @@ export const FormikMoneyInput = (
       inputMode="decimal"
       onFocus={(e) => e.target.select()}
       disabled={isSubmitting || disabled}
-      onChange={(e) => {
+      onChange={(e: ChangeEvent<HTMLInputElement>) => {
         // When locale set to NL for the example, the decimal separator is a comma.
         // TODO: try using making AddTransactionFormValues a class with a method providing number value for the text.
         setFieldValue(props.name, e.target.value.replace(/,/g, "."));
