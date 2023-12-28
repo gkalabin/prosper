@@ -27,7 +27,7 @@ import { Form, Formik, FormikHelpers, useFormikContext } from "formik";
 import {
   AddTransactionFormValues,
   FormMode,
-} from "lib/AddTransactionDataModels";
+} from "lib/transactionCreation";
 import {
   useAllDatabaseDataContext,
   useCurrencyContext,

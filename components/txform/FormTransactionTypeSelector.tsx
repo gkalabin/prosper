@@ -1,5 +1,5 @@
 import classNames from "classnames";
-import { FormMode } from "lib/AddTransactionDataModels";
+import { FormMode } from "lib/transactionCreation";
 
 export const FormTransactionTypeSelector = (props: {
   disabled: boolean;
