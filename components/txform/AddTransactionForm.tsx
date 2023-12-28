@@ -237,7 +237,7 @@ export const AddTransactionForm = (props: {
           <div className="bg-white p-2 sm:p-6">
             {creatingNewTransaction && (
               <div className="mb-2">
-                <NewTransactionSuggestions onItemClick={setPrototype} />
+                <NewTransactionSuggestions activePrototype={prototype} onItemClick={setPrototype} />
               </div>
             )}
 

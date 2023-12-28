@@ -59,6 +59,7 @@ export function fillMostCommonDescriptions(input: {
 }
 
 export const NewTransactionSuggestions = (props: {
+  activePrototype: TransactionPrototype;
   onItemClick: (t: TransactionPrototype) => void;
 }) => {
   const { newPrototypes } = useOpenBankingDataContext();
@@ -69,6 +70,7 @@ export const NewTransactionSuggestions = (props: {
 };
 
 const NonEmptyNewTransactionSuggestions = (props: {
+  activePrototype: TransactionPrototype;
   onItemClick: (t: TransactionPrototype) => void;
 }) => {
   const { usedPrototypes, newPrototypes } = useOpenBankingDataContext();
@@ -136,6 +138,7 @@ const NonEmptyNewTransactionSuggestions = (props: {
       </div>
       <SuggestionsList
         items={activeAccountProtos}
+        activePrototype={props.activePrototype}
         onItemClick={props.onItemClick}
         bankAccount={activeAccount}
       />
@@ -146,6 +149,7 @@ const NonEmptyNewTransactionSuggestions = (props: {
 function SuggestionsList(props: {
   items: TransactionPrototype[];
   bankAccount: BankAccount;
+  activePrototype: TransactionPrototype;
   onItemClick: (t: TransactionPrototype) => void;
 }) {
   const items = props.items.sort(
@@ -154,11 +158,6 @@ function SuggestionsList(props: {
       singleOperationProto(a, props.bankAccount).timestampEpoch
   );
   const [limit, setLimit] = useState(5);
-  const [activeItem, setActiveItem] = useState(null as TransactionPrototype);
-  const onItemClick = (proto: TransactionPrototype) => {
-    setActiveItem(proto);
-    props.onItemClick(proto);
-  };
   const displayItems = items.slice(0, limit);
   return (
     <div className="divide-y divide-gray-200">
@@ -166,9 +165,9 @@ function SuggestionsList(props: {
         <SuggestionItem
           key={i}
           proto={proto}
-          isActive={proto == activeItem}
+          isActive={proto == props.activePrototype}
           bankAccount={props.bankAccount}
-          onClick={onItemClick}
+          onClick={props.onItemClick}
         />
       ))}
       <div className="p-2 text-sm">
