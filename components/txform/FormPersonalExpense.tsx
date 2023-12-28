@@ -73,14 +73,24 @@ export const FormPersonalExpense = ({
     }
   }, [isShared, setFieldValue, mostFrequentOtherParty, transaction]);
 
+  // First, try recent transactions matching vendor.
   let [mostFrequentCategory] = uniqMostFrequent(
     recentTransactionsForMode
       .filter((x) => !vendor || (x.hasVendor() && x.vendor() == vendor))
       .map((x) => x.category)
   );
+  // If no recent transactions match vendor, look for the same vendor across all transactions.
   if (!mostFrequentCategory) {
     [mostFrequentCategory] = uniqMostFrequent(
-      transactionsForMode.map((x) => x.category)
+      transactionsForMode
+        .filter((x) => !vendor || (x.hasVendor() && x.vendor() == vendor))
+        .map((x) => x.category)
+    );
+  }
+  // If this vendor is not known, just fallback to all recent transactions.
+  if (!mostFrequentCategory) {
+    [mostFrequentCategory] = uniqMostFrequent(
+      recentTransactionsForMode.map((x) => x.category)
     );
   }
   useEffect(() => {
