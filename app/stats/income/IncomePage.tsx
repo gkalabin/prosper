@@ -1,4 +1,5 @@
 "use client";
+import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
 import { ExcludedCategoriesSelector } from "app/stats/ExcludedCategoriesSelector";
 import { categoryNameById, dollarsRounded } from "app/stats/modelHelpers";
 import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
@@ -20,6 +21,7 @@ import { defaultMonthlyMoneyChart, legend } from "lib/charts";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { transactionIsDescendant } from "lib/model/Category";
+import { Transaction } from "lib/model/transaction/Transaction";
 import { amountOwnShare } from "lib/model/transaction/amounts";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
 import { useState } from "react";
@@ -35,6 +37,7 @@ export function IncomeCharts({ input }: { input: TransactionsStatsInput }) {
     number,
     Map<number, AmountWithCurrency>
   >();
+  const failedToExchange: Transaction[] = [];
   for (const t of input.income()) {
     const ts = startOfMonth(t.timestampEpoch).getTime();
     const exchanged = amountOwnShare(
@@ -44,14 +47,19 @@ export function IncomeCharts({ input }: { input: TransactionsStatsInput }) {
       stocks,
       exchange,
     );
+    if (!exchanged) {
+      failedToExchange.push(t);
+      continue;
+    }
     const categorySeries =
       byCategoryIdAndMonth.get(t.categoryId) ?? new Map(zeroes);
-    categorySeries.set(ts, exchanged.add(categorySeries.get(ts)));
+    categorySeries.set(ts, exchanged.add(categorySeries.get(ts) ?? zero));
     byCategoryIdAndMonth.set(t.categoryId, categorySeries);
   }
 
   return (
     <>
+      <CurrencyExchangeFailed failedTransactions={failedToExchange} />
       <MonthlyOwnShare
         title="Monthly income"
         transactions={input.income()}
