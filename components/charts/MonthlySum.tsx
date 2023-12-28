@@ -1,11 +1,11 @@
 import { Interval, eachMonthOfInterval } from "date-fns";
 import ReactEcharts from "echarts-for-react";
-import { defaultMoneyChartOptions, legend } from "lib/charts";
+import { defaultMoneyChartOptions } from "lib/charts";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { Transaction } from "lib/model/Transaction";
 import { MoneyTimeseries } from "lib/util/Timeseries";
 
-export function MonthlyNet({
+export function MonthlyOwnShare({
   transactions,
   duration,
   title,

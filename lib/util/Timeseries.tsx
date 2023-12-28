@@ -40,4 +40,8 @@ export class MoneyTimeseries extends Timeseries<AmountWithCurrency> {
   monthRoundDollars(dates: number[] | Date[]) {
     return dates.map((m: number | Date) => this.month(m).round().dollar());
   }
+
+  monthlyMap() {
+    return this.monthly();
+  }
 }

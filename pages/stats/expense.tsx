@@ -1,4 +1,5 @@
-import { MonthlyNet } from "components/charts/MonthlyAmount";
+import { MonthlyOwnShare } from "components/charts/MonthlySum";
+import { RunningAverageOwnShare } from "components/charts/RunningAverage";
 import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
 import { undoTailwindInputStyles } from "components/forms/Select";
 import {
@@ -9,8 +10,7 @@ import { StatsPageLayout } from "components/StatsPageLayout";
 import {
   eachMonthOfInterval,
   Interval,
-  isWithinInterval,
-  startOfMonth,
+  startOfMonth
 } from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
@@ -27,23 +27,18 @@ import { useDisplayCurrency } from "lib/displaySettings";
 import { Category } from "lib/model/Category";
 import { Transaction } from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
+import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
 import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import Select from "react-select";
 
-export function ExpenseCharts(props: {
-  transactions: Transaction[];
-  duration: Interval;
-}) {
+export function ExpenseCharts({ input }: { input: TransactionsStatsInput }) {
   const displayCurrency = useDisplayCurrency();
   const { categories } = useAllDatabaseDataContext();
   const zero = AmountWithCurrency.zero(displayCurrency);
-  const months = eachMonthOfInterval(props.duration).map((x) => x.getTime());
+  const months = input.months().map((x) => x.getTime());
   const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
 
-  const transactions = props.transactions.filter(
-    (t) => t.isPersonalExpense() || t.isThirdPartyExpense()
-  );
   const byRootCategoryIdAndMonth = new Map<
     number,
     Map<number, AmountWithCurrency>
@@ -52,7 +47,7 @@ export function ExpenseCharts(props: {
     number,
     Map<number, AmountWithCurrency>
   >();
-  for (const t of transactions) {
+  for (const t of input.expenses()) {
     const ts = startOfMonth(t.timestamp).getTime();
     const exchanged = t.amountOwnShare(displayCurrency);
     {
@@ -71,10 +66,16 @@ export function ExpenseCharts(props: {
 
   return (
     <>
-      <MonthlyNet
-        transactions={transactions}
-        duration={props.duration}
+      <MonthlyOwnShare
+        transactions={input.expenses()}
+        duration={input.interval()}
         title="Total"
+      />
+      <RunningAverageOwnShare
+        transactions={input.expensesAllTime()}
+        duration={input.interval()}
+        maxWindowLength={12}
+        title="Average over previous 12 months"
       />
       <ReactEcharts
         notMerge
@@ -117,8 +118,8 @@ export function ExpenseCharts(props: {
       />
 
       <ByCategoryCharts
-        transactions={props.transactions}
-        duration={props.duration}
+        transactions={input.expenses()}
+        duration={input.interval()}
       />
     </>
   );
@@ -218,11 +219,11 @@ function PageContent() {
   }));
   const filteredTransactions = transactions.filter(
     (t) =>
-      isWithinInterval(t.timestamp, duration) &&
       !excludeCategories.some(
         (cid) => t.category.id() == cid || t.category.childOf(cid)
       )
   );
+  const input = new TransactionsStatsInput(filteredTransactions, duration);
   return (
     <StatsPageLayout>
       <DurationSelector duration={duration} onChange={setDuration} />
@@ -245,7 +246,7 @@ function PageContent() {
           onChange={(x) => setExcludeCategories(x.map((x) => x.value))}
         />
       </div>
-      <ExpenseCharts transactions={filteredTransactions} duration={duration} />
+      <ExpenseCharts input={input} />
     </StatsPageLayout>
   );
 }

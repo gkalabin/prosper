@@ -10,8 +10,21 @@ export class AmountWithCurrency {
     this.currency = init.currency;
   }
 
-  public static add(x: AmountWithCurrency, y: AmountWithCurrency): AmountWithCurrency {
+  public static add(
+    x: AmountWithCurrency,
+    y: AmountWithCurrency
+  ): AmountWithCurrency {
     return x.add(y);
+  }
+
+  public static sum(
+    amounts: AmountWithCurrency[],
+    currency: Currency
+  ): AmountWithCurrency {
+    if (!amounts?.length) {
+      return AmountWithCurrency.zero(currency);
+    }
+    return amounts.reduce((p, c) => p.add(c));
   }
 
   public static zero(currency: Currency): AmountWithCurrency {

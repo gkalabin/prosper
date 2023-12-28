@@ -1,4 +1,4 @@
-import { MonthlyNet } from "components/charts/MonthlyAmount";
+import { MonthlyOwnShare } from "components/charts/MonthlySum";
 import { TransactionFrequencyChart } from "components/charts/TransactionFrequency";
 import { ButtonFormSecondary } from "components/ui/buttons";
 import {
@@ -190,7 +190,7 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
           ],
         }}
       />
-      <MonthlyNet
+      <MonthlyOwnShare
         transactions={expenses}
         duration={duration}
         title="Total spent (own share)"
