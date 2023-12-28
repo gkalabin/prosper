@@ -66,6 +66,7 @@ const TransactionsPage: React.FC<PageProps> = (props) => {
 
   const addTransaction = (added: DbTransaction) => {
     setDbTransactions((old) => [...old, added]);
+    setShowAddTransactionForm(false);
   };
   const updateTransaction = (updated: DbTransaction) => {
     setDbTransactions((old) =>
