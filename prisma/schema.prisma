@@ -123,11 +123,12 @@ model BankAccount {
 }
 
 model Bank {
-  id        Int           @id @default(autoincrement())
-  name      String
-  accounts  BankAccount[]
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
+  id           Int           @id @default(autoincrement())
+  name         String
+  displayOrder Int           @default(0)
+  accounts     BankAccount[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model Currency {
@@ -140,8 +141,15 @@ model Currency {
 }
 
 model Category {
-  id           Int           @id @default(autoincrement())
+  id           Int    @id @default(autoincrement())
   name         String
+  displayOrder Int    @default(0)
+
+  // Categories can have children and a parent
+  parentCategory   Category?  @relation("ParentCategory", fields: [parentCategoryId], references: [id])
+  parentCategoryId Int?
+  children         Category[] @relation("ParentCategory")
+
   transactions Transaction[]
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
@@ -162,8 +170,8 @@ model Trip {
   destination       String
   start             DateTime
   end               DateTime
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
   PersonalExpense   PersonalExpense[]
   ThirdPartyExpense ThirdPartyExpense[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
 }
