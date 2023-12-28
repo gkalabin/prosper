@@ -144,7 +144,6 @@ model Bank {
   name         String
   displayOrder Int                @default(0)
   accounts     BankAccount[]
-  tokens       OpenBankingToken[]
 
   user                User                 @relation(fields: [userId], references: [id])
   userId              Int
@@ -236,7 +235,6 @@ model User {
   ThirdPartyExpense      ThirdPartyExpense[]
   Income                 Income[]
   Transfer               Transfer[]
-  OpenBankingToken       OpenBankingToken[]
   BankAccount            BankAccount[]
   DisplaySettings        DisplaySettings?
   TransactionPrototype   TransactionPrototype[]
@@ -269,29 +267,6 @@ model StockQuote {
   value          Int
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-}
-
-model OpenBankingToken {
-  id     String @id @default(uuid())
-  bank   Bank   @relation(fields: [bankId], references: [id])
-  bankId Int    @unique
-
-  // fields from true layer api
-  accessToken  String @db.VarChar(4096)
-  expiresIn    Int
-  tokenType    String
-  refreshToken String
-  scope        String
-
-  // own set fields
-  tokenCreatedAt       DateTime
-  tokenValidUntil      DateTime
-  connectionCreatedAt  DateTime
-  connectionValidUntil DateTime
-  user                 User     @relation(fields: [userId], references: [id])
-  userId               Int
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
 }
 
 model TrueLayerToken {
