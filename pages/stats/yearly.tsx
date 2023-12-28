@@ -2,6 +2,10 @@ import {
   ChildCategoryOwnShareChart,
   TopLevelCategoryOwnShareChart,
 } from "components/charts/CategoryPie";
+import {
+  TopNVendorsMostSpent,
+  TopNVendorsMostTransactions,
+} from "components/charts/Vendor";
 import { undoTailwindInputStyles } from "components/forms/Select";
 import {
   isFullyConfigured,
@@ -39,7 +43,7 @@ function Navigation({
     <>
       <div className="space-x-2">
         {years.map((y) => (
-          <>
+          <span key={y.getTime()}>
             {(isSameYear(active, y) && (
               <span className="font-medium text-slate-700">
                 {format(y, "yyyy")}
@@ -49,10 +53,36 @@ function Navigation({
                 {format(y, "yyyy")}
               </ButtonLink>
             )}
-          </>
+          </span>
         ))}
       </div>
     </>
+  );
+}
+
+export function VendorStats({
+  input,
+  year,
+}: {
+  input: TransactionsStatsInput;
+  year: Date;
+}) {
+  const transactions = input
+    .transactionsAllTime()
+    .filter((t) => isSameYear(year, t.timestamp));
+  const expenses = transactions.filter(
+    (t) => t.isPersonalExpense() || t.isThirdPartyExpense()
+  );
+  return (
+    <div>
+      <h1 className="text-xl font-medium leading-7">Vendors</h1>
+      <TopNVendorsMostSpent transactions={expenses} title="Most spent" n={10} />
+      <TopNVendorsMostTransactions
+        transactions={expenses}
+        title="Most transactions"
+        n={10}
+      />
+    </div>
   );
 }
 
@@ -129,6 +159,10 @@ export function YearlyStats({ input }: { input: TransactionsStatsInput }) {
               transactions={income}
               initialSorting={SortingMode.AMOUNT_DESC}
             />
+          </div>
+
+          <div>
+            <VendorStats input={input} year={year} />
           </div>
         </div>
       </div>

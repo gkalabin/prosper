@@ -7,6 +7,10 @@ import {
   ChildCategoryOwnShareChart,
   TopLevelCategoryOwnShareChart,
 } from "components/charts/CategoryPie";
+import {
+  TopNVendorsMostSpent,
+  TopNVendorsMostTransactions,
+} from "components/charts/Vendor";
 import { undoTailwindInputStyles } from "components/forms/Select";
 import {
   SortableTransactionsList,
@@ -14,7 +18,6 @@ import {
 } from "components/transactions/SortableTransactionsList";
 import { ButtonLink } from "components/ui/buttons";
 import { addMonths, format, isSameMonth } from "date-fns";
-import ReactEcharts from "echarts-for-react";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -22,8 +25,6 @@ import {
 import { allDbDataProps } from "lib/ServerSideDB";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
-import { AppendMap, currencyAppendMap } from "lib/util/AppendingMap";
-import { topN } from "lib/util/util";
 import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import Select from "react-select";
@@ -218,65 +219,14 @@ export function VendorStats({
   const expenses = transactions.filter(
     (t) => t.isPersonalExpense() || t.isThirdPartyExpense()
   );
-  const displayCurrency = useDisplayCurrency();
-  const sum = currencyAppendMap<string>(displayCurrency);
-  const count = new AppendMap<string, number>((a, b) => a + b, 0);
-  for (const t of expenses) {
-    sum.append(t.vendor(), t.amountOwnShare(displayCurrency));
-    count.append(t.vendor(), 1);
-  }
-  const topSum = topN(sum, 10, (x) => `Other ${x} vendors`);
-
-  const vendorsByCount = Array.from(count.entries()).sort(
-    (a, b) => b[1] - a[1]
-  );
-
   return (
     <div>
       <h1 className="text-xl font-medium leading-7">Vendors</h1>
-      <ReactEcharts
-        notMerge
-        option={{
-          grid: {
-            containLabel: true,
-          },
-          tooltip: {},
-          xAxis: {
-            data: topSum.map(([vendor]) => vendor),
-          },
-          yAxis: {},
-          title: {
-            text: "Most paid",
-          },
-          series: [
-            {
-              type: "bar",
-              data: topSum.map(([_, sum]) => sum.round().dollar()),
-            },
-          ],
-        }}
-      />
-      <ReactEcharts
-        notMerge
-        option={{
-          grid: {
-            containLabel: true,
-          },
-          tooltip: {},
-          xAxis: {
-            data: vendorsByCount.map(([vendor]) => vendor),
-          },
-          yAxis: {},
-          title: {
-            text: "Most transactions",
-          },
-          series: [
-            {
-              type: "bar",
-              data: vendorsByCount.map(([_, sum]) => sum),
-            },
-          ],
-        }}
+      <TopNVendorsMostSpent transactions={expenses} title="Most spent" n={10} />
+      <TopNVendorsMostTransactions
+        transactions={expenses}
+        title="Most transactions"
+        n={10}
       />
     </div>
   );

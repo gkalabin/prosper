@@ -44,7 +44,7 @@ export function runningAverage(
   return averages;
 }
 
-export function topN<T>(
+export function topNAmount<T>(
   data: AppendMap<T, AmountWithCurrency>,
   n: number,
   otherFormatter: (otherPoints: number) => T
@@ -53,11 +53,29 @@ export function topN<T>(
   if (data.size <= n + 1) {
     return [...data.entries()];
   }
-  const sorted = [...data].sort((a, b) => b[1].cents() - a[1].cents());
+  const sorted = [...data].sort((a, b) => b[1].subtract(a[1]).cents());
   const topSum = sorted.slice(0, n);
   const sumOther = sorted
-    .slice(10)
+    .slice(n)
     .map(([_, sum]) => sum)
     .reduce((p, c) => p.add(c));
-  return topSum.concat([[otherFormatter(sorted.length - 10), sumOther]]);
+  return topSum.concat([[otherFormatter(sorted.length - n), sumOther]]);
+}
+
+export function topN<T>(
+  data: AppendMap<T, number>,
+  n: number,
+  otherFormatter: (otherPoints: number) => T
+): [T, number][] {
+  // Using n+1 here to avoid rolling up a single value into "other".
+  if (data.size <= n + 1) {
+    return [...data.entries()];
+  }
+  const sorted = [...data].sort((a, b) => b[1] - a[1]);
+  const topSum = sorted.slice(0, n);
+  const sumOther = sorted
+    .slice(n)
+    .map(([_, sum]) => sum)
+    .reduce((p, c) => p + c, 0);
+  return topSum.concat([[otherFormatter(sorted.length - n), sumOther]]);
 }
