@@ -8,20 +8,29 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "pages/api/auth/[...nextauth]";
 
 const fetchAllDatabaseData = async (db: DB): Promise<AllDatabaseData> => {
-  const dbTransactions = await db.transactionFindMany(includeExtensionsAndTags);
-  return {
-    dbTransactions,
-    dbBanks: await db.bankFindMany(),
-    dbTrips: await db.tripFindMany(),
-    dbTags: await db.tagFindMany(),
-    dbBankAccounts: await db.bankAccountFindMany(),
-    dbCurrencies: await db.currencyFindMany(),
-    dbCategories: await db.categoryFindMany(),
-    dbDisplaySettings: await db.getOrCreateDbDisplaySettings(),
-    dbExchangeRates: await db.exchangeRateFindMany(),
-    dbStockQuotes: await db.stockQuoteFindMany(),
-    dbTransactionPrototypes: await db.transactionPrototypeFindMany(),
-  };
+  const data = {} as AllDatabaseData;
+  await Promise.all(
+    [
+      async () =>
+        (data.dbTransactions = await db.transactionFindMany(
+          includeExtensionsAndTags
+        )),
+      async () => (data.dbBanks = await db.bankFindMany()),
+      async () => (data.dbTrips = await db.tripFindMany()),
+      async () => (data.dbTags = await db.tagFindMany()),
+      async () => (data.dbBankAccounts = await db.bankAccountFindMany()),
+      async () => (data.dbCurrencies = await db.currencyFindMany()),
+      async () => (data.dbCategories = await db.categoryFindMany()),
+      async () =>
+        (data.dbDisplaySettings = await db.getOrCreateDbDisplaySettings()),
+      async () => (data.dbExchangeRates = await db.exchangeRateFindMany()),
+      async () => (data.dbStockQuotes = await db.stockQuoteFindMany()),
+      async () =>
+        (data.dbTransactionPrototypes =
+          await db.transactionPrototypeFindMany()),
+    ].map((f) => f())
+  );
+  return data;
 };
 
 const jsonEncodingHacks = (key: string, value) => {
