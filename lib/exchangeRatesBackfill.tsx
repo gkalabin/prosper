@@ -35,11 +35,13 @@ export async function addLatestExchangeRates() {
     console.timeEnd(timingLabel);
     return;
   }
+  const backfillPromises: Promise<void>[] = [];
   for (const sell of currencies.all()) {
     for (const buy of currencies.all()) {
-      await backfill({ sell, buy });
+      backfillPromises.push(backfill({ sell, buy }));
     }
   }
+  await Promise.all(backfillPromises);
   console.timeEnd(timingLabel);
 }
 

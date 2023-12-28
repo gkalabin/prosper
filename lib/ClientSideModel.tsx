@@ -33,6 +33,7 @@ export class Amount {
   private readonly currency: Currency;
 
   private static formatters = {
+    // TODO: generalise
     EUR: new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }),
     RUB: new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB" }),
     GBP: new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }),
