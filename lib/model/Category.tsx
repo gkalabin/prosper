@@ -57,6 +57,13 @@ export class Category {
     return !this._parentCategoryId;
   }
 
+  root() {
+    if (this.isRoot()) {
+      return this;
+    }
+    return this._ancestors[0];
+  }
+
   depth() {
     return this._ancestors.length;
   }

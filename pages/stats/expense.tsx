@@ -37,6 +37,10 @@ export function ExpenseCharts(props: { transactions: Transaction[] }) {
     (t) => t.isPersonalExpense() || t.isThirdPartyExpense()
   );
   const moneyOut: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
+  const byRootCategoryIdAndMonth = new Map<
+    number,
+    Map<number, AmountWithCurrency>
+  >();
   const byCategoryIdAndMonth = new Map<
     number,
     Map<number, AmountWithCurrency>
@@ -52,10 +56,18 @@ export function ExpenseCharts(props: { transactions: Transaction[] }) {
       t.timestamp
     );
     moneyOut[ts] = moneyOut[ts].add(exchanged);
-    const categorySeries = byCategoryIdAndMonth.get(t.category.id()) ?? new Map();
-    const current = categorySeries.get(ts) ?? zero;
-    categorySeries.set(ts, exchanged.add(current));
-    byCategoryIdAndMonth.set(t.category.id(), categorySeries);
+    {
+      const cid = t.category.id();
+      const series = byCategoryIdAndMonth.get(cid) ?? new Map();
+      series.set(ts, exchanged.add(series.get(ts) ?? zero));
+      byCategoryIdAndMonth.set(cid, series);
+    }
+    {
+      const cid = t.category.root().id();
+      const series = byRootCategoryIdAndMonth.get(cid) ?? new Map();
+      series.set(ts, exchanged.add(series.get(ts) ?? zero));
+      byRootCategoryIdAndMonth.set(cid, series);
+    }
   }
 
   const months = Object.keys(monthsIndex)
@@ -64,6 +76,9 @@ export function ExpenseCharts(props: { transactions: Transaction[] }) {
   months.forEach((m) => {
     moneyOut[m] ??= zero;
     [...byCategoryIdAndMonth.values()].forEach((v) => {
+      v.set(m, v.get(m) ?? zero);
+    });
+    [...byRootCategoryIdAndMonth.values()].forEach((v) => {
       v.set(m, v.get(m) ?? zero);
     });
   });
@@ -133,13 +148,39 @@ export function ExpenseCharts(props: { transactions: Transaction[] }) {
       <ReactEcharts
         option={Object.assign({}, defaultChartOptions, {
           title: {
+            text: "By top level category",
+          },
+          legend: {
+            orient: "horizontal",
+            bottom: 10,
+            top: "bottom",
+          },
+          tooltip: {
+            trigger: "axis",
+            axisPointer: {
+              type: "shadow",
+            },
+          },
+          series: [...byRootCategoryIdAndMonth.entries()].map(
+            ([categoryId, series]) => ({
+              type: "bar",
+              stack: "moneyIn",
+              name: categories.find((c) => c.id() === categoryId).name(),
+              data: months.map((m) => Math.round(series.get(m).dollar())),
+            })
+          ),
+        })}
+      />
+      <ReactEcharts
+        option={Object.assign({}, defaultChartOptions, {
+          title: {
             text: "By category",
           },
           tooltip: {
-            trigger: 'axis',
+            trigger: "axis",
             axisPointer: {
-              type: 'shadow'
-            }
+              type: "shadow",
+            },
           },
           series: [...byCategoryIdAndMonth.entries()].map(
             ([categoryId, series]) => ({
