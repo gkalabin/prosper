@@ -3,6 +3,7 @@ import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { defaultPieChartOptions } from "lib/charts";
 import { useDisplayCurrency } from "lib/displaySettings";
+import { mustFindCategory } from "lib/model/Category";
 import {
   Expense,
   Income,
@@ -23,14 +24,14 @@ export function TopLevelCategoryOwnShareChart({
     useAllDatabaseDataContext();
   const data = currencyAppendMap<number>(displayCurrency);
   for (const t of transactions) {
-    const category = categories.find((c) => c.id() == t.categoryId);
+    const category = mustFindCategory(t.categoryId, categories);
     const cid = category.root().id();
     const amount = amountOwnShare(
       t,
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange
+      exchange,
     );
     data.append(cid, amount);
   }
@@ -49,14 +50,14 @@ export function TopLevelCategoryFullAmountChart({
     useAllDatabaseDataContext();
   const data = currencyAppendMap<number>(displayCurrency);
   for (const t of transactions) {
-    const category = categories.find((c) => c.id() == t.categoryId);
+    const category = mustFindCategory(t.categoryId, categories);
     const cid = category.root().id();
     const amount = amountAllParties(
       t,
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange
+      exchange,
     );
     data.append(cid, amount);
   }
@@ -75,14 +76,14 @@ export function ChildCategoryOwnShareChart({
     useAllDatabaseDataContext();
   const data = currencyAppendMap<number>(displayCurrency);
   for (const t of transactions) {
-    const category = categories.find((c) => c.id() == t.categoryId);
+    const category = mustFindCategory(t.categoryId, categories);
     const cid = category.id();
     const amount = amountOwnShare(
       t,
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange
+      exchange,
     );
     data.append(cid, amount);
   }
@@ -101,14 +102,14 @@ export function ChildCategoryFullAmountChart({
     useAllDatabaseDataContext();
   const data = currencyAppendMap<number>(displayCurrency);
   for (const t of transactions) {
-    const category = categories.find((c) => c.id() == t.categoryId);
+    const category = mustFindCategory(t.categoryId, categories);
     const cid = category.id();
     const amount = amountAllParties(
       t,
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange
+      exchange,
     );
     data.append(cid, amount);
   }
@@ -135,7 +136,7 @@ function ByCategoryChart({
           {
             type: "pie",
             data: [...data.entries()].map(([cid, amount]) => ({
-              name: categories.find((c) => c.id() == cid).nameWithAncestors(),
+              name: mustFindCategory(cid, categories).nameWithAncestors(),
               value: amount.dollar(),
             })),
           },

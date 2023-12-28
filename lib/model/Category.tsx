@@ -26,7 +26,7 @@ export class Category {
   constructor(init: DBCategory) {
     this._id = init.id;
     this._name = init.name;
-    this._parentCategoryId = init.parentCategoryId;
+    this._parentCategoryId = init.parentCategoryId ?? undefined;
     this._displayOrder = init.displayOrder;
     this._dbValue = init;
   }
@@ -91,17 +91,24 @@ export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
     categories.map((c) => [c.id(), c])
   );
   categories
-    .filter((c) => c.parentCategoryId())
     .forEach((c) => {
-      let parent = categoryById.get(c.parentCategoryId());
+      let parentId = c.parentCategoryId();
+      if (!parentId) {
+        return;
+      }
+      let parent = categoryById.get(parentId);
+      if (!parent) {
+        throw new Error(`Cannot find parent ${parentId} for category ${c.id()}`);
+      }
       c._setImmediateParent(parent);
       parent._immediateChildren.push(c);
       while (parent) {
         c._ancestors.unshift(parent);
-        if (!parent.parentCategoryId()) {
+        parentId = parent.parentCategoryId();
+        if (!parentId) {
           break;
         }
-        parent = categoryById.get(parent.parentCategoryId());
+        parent = categoryById.get(parentId);
       }
     });
 
@@ -140,4 +147,12 @@ export function transactionIsDescendant(
     throw new Error(`Category ${t.categoryId} not found`);
   }
   return transactionCategory.childOf(cid);
+}
+
+export function mustFindCategory(cid: number, categories: Category[]): Category {
+  const c = categories.find((c) => c.id() == cid);
+  if (!c) {
+    throw new Error(`Category ${cid} is not found`);
+  }
+  return c;
 }
