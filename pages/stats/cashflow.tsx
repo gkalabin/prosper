@@ -4,10 +4,8 @@ import {
   isFullyConfigured,
   NotConfiguredYet,
 } from "components/NotConfiguredYet";
-import { DebugTable } from "components/stats/DebugTable";
 import { StatsPageLayout } from "components/StatsPageLayout";
-import { ButtonLink } from "components/ui/buttons";
-import { startOfMonth } from "date-fns";
+import { addMonths, differenceInMilliseconds, startOfMonth } from "date-fns";
 import { EChartsOption } from "echarts";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
@@ -16,7 +14,7 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { LAST_6_MONTHS } from "lib/Interval";
+import { Interval, LAST_6_MONTHS } from "lib/Interval";
 import { Transaction } from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { formatMonth } from "lib/TimeHelpers";
@@ -24,64 +22,53 @@ import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import Select from "react-select";
 
-export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
-  const [showDebugTable, setShowDebugTable] = useState(false);
+export function CashflowCharts({
+  transactions,
+  duration,
+}: {
+  transactions: Transaction[];
+  duration: Interval;
+}) {
   const displayCurrency = useDisplayCurrency();
   const { exchange } = useAllDatabaseDataContext();
   const zero = new AmountWithCurrency({
     amountCents: 0,
     currency: displayCurrency,
   });
+  const months = [] as number[];
+  let currentMonth = startOfMonth(duration.start());
+  while (differenceInMilliseconds(duration.end(), currentMonth) >= 0) {
+    months.push(currentMonth.getTime());
+    currentMonth = addMonths(currentMonth, 1);
+  }
+  months.sort();
+  const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
 
-  const nonThirdPartyTransactions = props.transactions.filter(
-    (t) => !t.isThirdPartyExpense()
-  );
-  const moneyOut: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
-  const moneyIn: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
-  const delta: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
-  const cumulativeDelta: { [firstOfMonthEpoch: number]: AmountWithCurrency } =
-    {};
-  const monthsIndex: { [firstOfMonthEpoch: number]: boolean } = {};
-  for (const t of nonThirdPartyTransactions) {
-    const ts = startOfMonth(t.timestamp).getTime();
-    monthsIndex[ts] = true;
-    moneyIn[ts] ??= zero;
-    moneyOut[ts] ??= zero;
-    delta[ts] ??= zero;
-    if (t.isPersonalExpense()) {
+  const moneyOut = new Map<number, AmountWithCurrency>(zeroes);
+  transactions
+    .filter((t) => t.isPersonalExpense() || t.isThirdPartyExpense())
+    .forEach((t) => {
       const exchanged = exchange.exchange(
-        t.amount(),
+        t.amountOwnShare(),
         displayCurrency,
         t.timestamp
       );
-      moneyOut[ts] = moneyOut[ts].add(exchanged);
-      delta[ts] = delta[ts].subtract(exchanged);
-    }
-    if (t.isIncome()) {
+      const ts = startOfMonth(t.timestamp).getTime();
+      moneyOut.set(ts, moneyOut.get(ts).add(exchanged));
+    });
+
+  const moneyIn = new Map<number, AmountWithCurrency>(zeroes);
+  transactions
+    .filter((t) => t.isIncome())
+    .forEach((t) => {
       const exchanged = exchange.exchange(
-        t.amount(),
+        t.amountOwnShare(),
         displayCurrency,
         t.timestamp
       );
-      moneyIn[ts] = moneyIn[ts].add(exchanged);
-      delta[ts] = delta[ts].add(exchanged);
-    }
-  }
-
-  const months = Object.keys(monthsIndex)
-    .map((x) => +x)
-    .sort();
-  months.forEach((m) => {
-    moneyIn[m] ??= zero;
-    moneyOut[m] ??= zero;
-    delta[m] ??= zero;
-    cumulativeDelta[m] ??= zero;
-  });
-  let currentDeltaSum = zero;
-  for (const ts of Object.keys(monthsIndex).sort()) {
-    currentDeltaSum = currentDeltaSum.add(delta[ts] ?? zero);
-    cumulativeDelta[ts] = currentDeltaSum;
-  }
+      const ts = startOfMonth(t.timestamp).getTime();
+      moneyIn.set(ts, moneyIn.get(ts).add(exchanged));
+    });
 
   const currencyFormatter = (value) =>
     displayCurrency.format(value, { maximumFractionDigits: 0 });
@@ -89,12 +76,7 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
     grid: {
       containLabel: true,
     },
-    tooltip: {
-      formatter: (params) => {
-        const { name, value } = params;
-        return `${name}: ${currencyFormatter(value)}`;
-      },
-    },
+    tooltip: {},
     xAxis: {
       data: months.map((x) => formatMonth(x)),
     },
@@ -105,121 +87,100 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
     },
   };
 
+  const cashflow = new Map<number, AmountWithCurrency>(
+    months.map((m) => [m, moneyIn.get(m).subtract(moneyOut.get(m))])
+  );
+  let current = zero;
+  const cashflowCumulative = new Map<number, AmountWithCurrency>(zeroes);
+  for (const m of months) {
+    current = current.add(cashflow.get(m));
+    cashflowCumulative.set(m, current);
+  }
+
   return (
     <>
       <ReactEcharts
-        option={Object.assign({}, defaultChartOptions, {
+        notMerge
+        option={{
+          ...defaultChartOptions,
           title: {
-            text: "Money In vs Money Out",
+            text: "Cashflow",
           },
-          legend: {
-            orient: "horizontal",
-            bottom: 10,
-            top: "bottom",
+          series: [
+            {
+              type: "bar",
+              name: "Money in vs out",
+              data: months.map((m) => cashflow.get(m).dollar()),
+            },
+          ],
+        }}
+      />
+      <ReactEcharts
+        notMerge
+        option={{
+          ...defaultChartOptions,
+          title: {
+            text: "Cashflow (cumulative)",
+          },
+          series: [
+            {
+              type: "line",
+              name: "Money in vs out (cumulative)",
+              data: months.map((m) => cashflowCumulative.get(m).dollar()),
+            },
+          ],
+        }}
+      />
+      <ReactEcharts
+        notMerge
+        option={{
+          ...defaultChartOptions,
+          title: {
+            text: "Money out",
+          },
+          series: [
+            {
+              type: "bar",
+              name: "Money Out",
+              data: months.map((m) => moneyOut.get(m).dollar()),
+            },
+          ],
+        }}
+      />
+      <ReactEcharts
+        notMerge
+        option={{
+          ...defaultChartOptions,
+          title: {
+            text: "Money In",
           },
           series: [
             {
               type: "bar",
               name: "Money In",
-              data: months.map((m) => Math.round(moneyIn[m].dollar())),
-              itemStyle: {
-                color: "#15803d",
-              },
-            },
-            {
-              type: "bar",
-              name: "Money Out",
-              data: months.map((m) => Math.round(moneyOut[m].dollar())),
-              itemStyle: {
-                color: "#b91c1c",
-              },
+              data: months.map((m) => moneyIn.get(m).dollar()),
             },
           ],
-        })}
-      />
-
-      <div className="m-4">
-        {showDebugTable && (
-          <>
-            <ButtonLink onClick={() => setShowDebugTable(false)}>
-              Hide debug table
-            </ButtonLink>
-            <IncomeExpenseDebugTable transactions={nonThirdPartyTransactions} />
-            <ButtonLink onClick={() => setShowDebugTable(false)}>
-              Hide debug table
-            </ButtonLink>
-          </>
-        )}
-        {!showDebugTable && (
-          <ButtonLink onClick={() => setShowDebugTable(true)}>
-            Show debug table
-          </ButtonLink>
-        )}
-      </div>
-
-      <ReactEcharts
-        option={Object.assign({}, defaultChartOptions, {
-          title: {
-            text: "Delta (difference between money in and money out)",
-          },
-          series: [
-            {
-              type: "bar",
-              name: "Delta",
-              data: months.map((m) => Math.round(delta[m].dollar())),
-            },
-          ],
-        })}
-      />
-
-      <ReactEcharts
-        option={Object.assign({}, defaultChartOptions, {
-          title: {
-            text: "Cumulative delta",
-          },
-          series: [
-            {
-              type: "bar",
-              name: "Delta",
-              data: months.map((m) => Math.round(cumulativeDelta[m].dollar())),
-            },
-          ],
-        })}
+        }}
       />
     </>
   );
 }
 
-function IncomeExpenseDebugTable(props: { transactions: Transaction[] }) {
-  return (
-    <>
-      <h2 className="my-2 text-2xl font-medium leading-5">Income</h2>
-      <DebugTable
-        transactions={props.transactions.filter((x) => x.isIncome())}
-      />
-
-      <h2 className="my-2 text-2xl font-medium leading-5">Expense</h2>
-      <DebugTable
-        transactions={props.transactions.filter((x) => x.isPersonalExpense())}
-      />
-    </>
-  );
-}
-
-function InOutPageContent() {
+function PageContent() {
   const [duration, setDuration] = useState(LAST_6_MONTHS);
   const [excludeCategories, setExcludeCategories] = useState([]);
   const { transactions, categories } = useAllDatabaseDataContext();
-
   const categoryOptions = categories.map((a) => ({
     value: a.id(),
     label: a.nameWithAncestors(),
   }));
-
   const filteredTransactions = transactions.filter(
     (t) =>
       duration.includes(t.timestamp) &&
-      !excludeCategories.includes(t.category.id())
+      !excludeCategories.some(
+        (cid) => t.category.id() == cid || t.category.childOf(cid)
+      )
   );
   return (
     <StatsPageLayout>
@@ -232,6 +193,7 @@ function InOutPageContent() {
           Categories to exclude
         </label>
         <Select
+          instanceId="excludeCategories"
           styles={undoTailwindInputStyles()}
           options={categoryOptions}
           isMulti
@@ -242,13 +204,13 @@ function InOutPageContent() {
           onChange={(x) => setExcludeCategories(x.map((x) => x.value))}
         />
       </div>
-      <MoneyInMoneyOut transactions={filteredTransactions} />
+      <CashflowCharts transactions={filteredTransactions} duration={duration} />
     </StatsPageLayout>
   );
 }
 
 export const getServerSideProps = allDbDataProps;
-export default function InOutPage(
+export default function MaybeEmptyPage(
   dbData: InferGetServerSidePropsType<typeof getServerSideProps>
 ) {
   if (!isFullyConfigured(dbData)) {
@@ -256,7 +218,7 @@ export default function InOutPage(
   }
   return (
     <AllDatabaseDataContextProvider dbData={dbData}>
-      <InOutPageContent />
+      <PageContent />
     </AllDatabaseDataContextProvider>
   );
 }

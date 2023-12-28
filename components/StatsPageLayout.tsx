@@ -7,7 +7,7 @@ export const StatsPageLayout = (props: {
   <Layout
     subheader={[
       {
-        title: "Gross Cashflow",
+        title: "Cashflow",
         path: "/stats/cashflow",
       },
       {
@@ -17,6 +17,10 @@ export const StatsPageLayout = (props: {
       {
         title: "Expense",
         path: "/stats/expense",
+      },
+      {
+        title: "Gross Cashflow",
+        path: "/stats/cashflow-gross",
       },
     ]}
   >
