@@ -167,7 +167,9 @@ const BankConnections = ({
         >
           Starling (UK),
         </AnchorLink>{" "}
-        <AnchorLink href={`/api/open-banking/truelayer/connect?bankId=${bank.id}`}>
+        <AnchorLink
+          href={`/api/open-banking/truelayer/connect?bankId=${bank.id}`}
+        >
           TrueLayer (UK)
         </AnchorLink>{" "}
         or{" "}
@@ -325,25 +327,29 @@ export function BanksConfigPage({
         onAccountAddedOrUpdated={updateState(setDbBankAccounts)}
       />
 
-      {!formDisplayed && (
-        <div className="flex justify-end">
-          <ButtonPagePrimary onClick={() => setFormDisplayed(true)}>
-            Add New Bank
-          </ButtonPagePrimary>
-        </div>
-      )}
-      {formDisplayed && (
-        <div className="mt-4 rounded-md border p-2">
-          <AddOrEditBankForm
-            displayOrder={banks.length * 100}
-            onAddedOrUpdated={(x) => {
-              onBankAddedOrUpdated(x);
-              setFormDisplayed(false);
-            }}
-            onCancelClick={() => setFormDisplayed(false)}
-          />
-        </div>
-      )}
+      <>
+        {!formDisplayed && (
+          <div className="flex justify-end">
+            <ButtonPagePrimary onClick={() => setFormDisplayed(true)}>
+              Add New Bank
+            </ButtonPagePrimary>
+          </div>
+        )}
+      </>
+      <>
+        {formDisplayed && (
+          <div className="mt-4 rounded-md border p-2">
+            <AddOrEditBankForm
+              displayOrder={banks.length * 100}
+              onAddedOrUpdated={(x) => {
+                onBankAddedOrUpdated(x);
+                setFormDisplayed(false);
+              }}
+              onCancelClick={() => setFormDisplayed(false)}
+            />
+          </div>
+        )}
+      </>
     </DisplaySettingsContextProvider>
   );
 }
