@@ -207,15 +207,14 @@ function makePrototypes(input: {
       continue;
     }
     lookupList[provided] ??= {};
-    lookupList[provided][used] ??= 0;
-    lookupList[provided][used]++;
+    lookupList[provided][used] = (lookupList[provided][used] ?? 0) + 1;
   }
   const lookup = {};
-  for (const obDesc of Object.keys(lookupList)) {
-    const [dbDesc] = Object.entries(lookupList[obDesc]).sort(
+  for (const [obDesc, usedMappings] of Object.entries(lookupList)) {
+    const [mostUsedMapping] = Object.entries(usedMappings).sort(
       (a, b) => b[1] - a[1]
     )[0];
-    lookup[obDesc] = dbDesc;
+    lookup[obDesc] = mostUsedMapping;
   }
 
   const prototypes = [] as TransactionPrototype[];
