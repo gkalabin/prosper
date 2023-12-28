@@ -113,6 +113,9 @@ model BankAccount {
   // Joint accounts are owned by 2 people and personal value of such accounts is half of the balance.
   joint Boolean @default(false)
 
+  // TODO: move to a separate table
+  initialBalance Int @default(0)
+
   PersonalExpense   PersonalExpense[]
   outgoingTransfers Transfer[]        @relation("OutgoingTransfers")
   incomingTransfers Transfer[]        @relation("IncomingTransfers")
