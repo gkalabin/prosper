@@ -8,11 +8,11 @@ export default function App({
   return (
     <SessionProvider session={session}>
       {Component.noAuthenticationRequired ? (
+        <Component {...pageProps} />
+      ) : (
         <AuthOnly>
           <Component {...pageProps} />
         </AuthOnly>
-      ) : (
-        <Component {...pageProps} />
       )}
     </SessionProvider>
   );
