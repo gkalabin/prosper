@@ -1,6 +1,8 @@
+import { Amount } from "lib/ClientSideModel";
+
 export type IOpenBankingData = {
   openBankingData: {
-    balances: { [bankAccountId: string]: number };
+    balances: IOBBalancesByAccountId;
     transactions: IOBTransactionsByAccountId;
   };
 };
@@ -31,5 +33,9 @@ export interface IOBTransaction {
 }
 
 export interface IOBTransactionsByAccountId {
-  [bankAccountId: string]: IOBTransaction[];
+  [bankAccountId: number]: IOBTransaction[];
+}
+
+export interface IOBBalancesByAccountId {
+  [bankAccountId: number]: Amount;
 }

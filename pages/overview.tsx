@@ -16,7 +16,7 @@ import { useDisplayCurrency } from "lib/displaySettings";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
-import { IOpenBankingData } from "lib/openbanking/interface";
+import { IOBBalancesByAccountId, IOpenBankingData } from "lib/openbanking/interface";
 import { allDbDataPropsWithOb } from "lib/ServerSideDB";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import React, { createContext, useContext, useState } from "react";
@@ -94,9 +94,10 @@ const BankListItem: React.FC<BankListItemProps> = (props) => {
 type TransactionsListProps = {
   categories: Category[];
   banks: Bank[];
+  openBankingBalances: IOBBalancesByAccountId;
   onTransactionUpdated: (updated: DBTransaction) => void;
 };
-const BanksList: React.FC<TransactionsListProps> = (props) => {
+const BanksList = (props: TransactionsListProps) => {
   if (!props.banks?.length) {
     return <div>No banks.</div>;
   }
@@ -189,6 +190,7 @@ export default function OverviewPage(
             banks={banks}
             categories={categories}
             onTransactionUpdated={updateTransaction}
+            openBankingBalances={dbData.openBankingData.balances}
           />
         </ArchivedAccountsShownContext.Provider>
       </CurrencyContextProvider>
