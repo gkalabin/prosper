@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import prisma from "../lib/prisma";
 import { GetStaticProps } from "next";
 import Layout from "../components/Layout";
+import CreateCategoryForm from "../components/categories/CreateCategoryForm";
+import CategoryProps from "../components/categories/CategoryProps";
+import EditableCategoryListItem from "../components/categories/EditableCategoryListItem";
 
 type CategoryDbModel = {
   id: string;
@@ -18,223 +21,14 @@ export const getStaticProps: GetStaticProps = async () => {
   };
 };
 
-type CategoryProps = {
-  id: string;
-  name: string;
-  nameWithAncestors: string;
-  isRoot: boolean;
-  displayOrder: number;
-  parentCategoryId?: number;
-  children: CategoryProps[];
-};
 type CategoriesListProps = {
   categories: CategoryProps[];
   allCategories: CategoryProps[];
   onCategoryUpdated: Function;
   depth: number;
 };
-type EditableCategoryListItemProps = {
-  category: CategoryProps;
-  categories: CategoryProps[];
-  onCategoryUpdated: Function;
-  depth: number;
-};
-type CreateCategoryFormProps = {
-  onNewCategoryCreated: Function;
-  allCategories: CategoryProps[];
-};
 type PageProps = {
   dbCategories: CategoryDbModel[];
-};
-
-const CreateCategoryForm: React.FC<CreateCategoryFormProps> = (props) => {
-  const [name, setName] = useState("");
-  const [parentId, setParentId] = useState(0);
-  const [formDisplayed, setFormDisplayed] = useState(false);
-  const [requestInFlight, setRequestInFlight] = useState(false);
-  const [apiError, setApiError] = useState("");
-
-  const reset = () => {
-    setName("");
-    setParentId(0);
-    setApiError("");
-  };
-
-  const open = () => {
-    reset();
-    setFormDisplayed(true);
-  };
-
-  const close = () => {
-    reset();
-    setFormDisplayed(false);
-  };
-
-  const handleSubmit = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    setApiError("");
-    setRequestInFlight(true);
-    const parentCategoryId = parentId ? +parentId : null;
-    try {
-      const body = {
-        name,
-        parentCategoryId,
-        displayOrder: props.allCategories.length * 100,
-      };
-      const newCategory = await fetch("/api/category", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      close();
-      props.onNewCategoryCreated(await newCategory.json());
-    } catch (error) {
-      setApiError(`Failed to create new category: ${error}`);
-    }
-    setRequestInFlight(false);
-  };
-
-  if (!formDisplayed) {
-    return <button onClick={open}>New category</button>;
-  }
-  return (
-    <form onSubmit={handleSubmit}>
-      <h3>New Category</h3>
-      <input
-        autoFocus
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Name"
-        disabled={requestInFlight}
-        type="text"
-        value={name}
-      />
-      <select
-        onChange={(e) => setParentId(+e.target.value)}
-        disabled={requestInFlight}
-      >
-        <option value="">No parent</option>
-        {props.allCategories.map((category) => (
-          <option key={category.id} value={category.id}>
-            {category.nameWithAncestors}
-          </option>
-        ))}
-      </select>
-      <button onClick={close} disabled={requestInFlight}>
-        Cancel
-      </button>
-      <input
-        disabled={!name || requestInFlight}
-        type="submit"
-        value={requestInFlight ? "Creating…" : "Create"}
-      />
-      {apiError && <span>{apiError}</span>}
-    </form>
-  );
-};
-
-const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
-  props
-) => {
-  const [name, setName] = useState(props.category.name);
-  const [displayOrder, setDisplayOrder] = useState(props.category.displayOrder);
-  const [parentId, setParentId] = useState(props.category.parentCategoryId);
-  const [formDisplayed, setFormDisplayed] = useState(false);
-  const [apiError, setApiError] = useState("");
-  const [requestInFlight, setRequestInFlight] = useState(false);
-
-  const reset = () => {
-    setName(props.category.name);
-    setDisplayOrder(props.category.displayOrder);
-    setParentId(props.category.parentCategoryId);
-    setApiError("");
-  };
-
-  const open = () => {
-    reset();
-    setFormDisplayed(true);
-  };
-
-  const close = () => {
-    reset();
-    setFormDisplayed(false);
-  };
-
-  const handleSubmit = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    setApiError("");
-    setRequestInFlight(true);
-    const parentCategoryId = parentId ? +parentId : null;
-    try {
-      const body = {
-        name,
-        parentCategoryId,
-        displayOrder,
-      };
-      const response = await fetch(`/api/category/${props.category.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      close();
-      props.onCategoryUpdated(await response.json());
-    } catch (error) {
-      setApiError(`Failed to update: ${error}`);
-    }
-    setRequestInFlight(false);
-  };
-
-  if (!formDisplayed) {
-    let categoryName = <span>{props.category.name}</span>;
-    if (props.depth == 0) {
-      categoryName = <strong>{props.category.name}</strong>;
-    }
-    return (
-      <>
-        {categoryName}
-        <small>displayOrder {props.category.displayOrder}</small>
-        <button onClick={open}>Edit</button>
-      </>
-    );
-  }
-  return (
-    <form onSubmit={handleSubmit}>
-      <input
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Name"
-        type="text"
-        disabled={requestInFlight}
-        value={name}
-      />
-      <input
-        onChange={(e) => setDisplayOrder(+e.target.value)}
-        placeholder="Display order"
-        type="number"
-        disabled={requestInFlight}
-        value={displayOrder}
-      />
-      <select
-        onChange={(e) => setParentId(+e.target.value)}
-        value={props.category.parentCategoryId}
-        disabled={requestInFlight}
-      >
-        <option value="">No parent</option>
-        {props.categories.map((category) => (
-          <option key={category.id} value={category.id}>
-            {category.nameWithAncestors}
-          </option>
-        ))}
-      </select>
-      <button onClick={close} disabled={requestInFlight}>
-        Cancel
-      </button>
-      <input
-        disabled={!name || requestInFlight}
-        type="submit"
-        value={requestInFlight ? "Updating…" : "Update"}
-      />
-      {apiError && <span>{apiError}</span>}
-    </form>
-  );
 };
 
 const CategoriesList: React.FC<CategoriesListProps> = (props) => {
@@ -242,7 +36,7 @@ const CategoriesList: React.FC<CategoriesListProps> = (props) => {
     return <div>No categories found.</div>;
   }
   return (
-    <ul>
+    <ul className="space-y-1 px-4 list-disc list-inside">
       {props.categories.map((category) => (
         <li key={category.id}>
           <EditableCategoryListItem
@@ -311,16 +105,15 @@ const CategoriesPage: React.FC<PageProps> = (props) => {
   const rootCategories = uiCategories.filter((c) => c.isRoot);
   collectCategories(rootCategories, allCategoriesFlat);
 
-  const addNewCategory = (newCategory: CategoryDbModel) => {
-    console.debug("addNewCategory", newCategory);
-    setDbCategories((oldCategories) => [...oldCategories, newCategory]);
+  const addNewCategory = (added: CategoryDbModel) => {
+    console.debug("addNewCategory", added);
+    setDbCategories((old) => [...old, added]);
   };
   const updateCategory = (updated: CategoryDbModel) => {
-    console.debug("updateCategory", updateCategory);
-    const newCategories = dbCategories.map((c) =>
-      c.id == updated.id ? updated : c
+    console.debug("updateCategory", updated);
+    setDbCategories((old) =>
+      old.map((c) => (c.id == updated.id ? updated : c))
     );
-    setDbCategories(newCategories);
   };
 
   return (
