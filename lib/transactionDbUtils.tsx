@@ -2,6 +2,7 @@ import { OpenBankingTransaction, Prisma, Tag, Trip } from "@prisma/client";
 import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
 import { IOBTransaction } from "lib/openbanking/interface";
 
+/** @deprecated */
 export enum FormMode {
   PERSONAL,
   EXTERNAL,

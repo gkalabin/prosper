@@ -14,6 +14,7 @@ import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
+import { TransactionType } from "lib/model/TransactionType";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { onTransactionChange } from "lib/stateHelpers";
 import { InferGetServerSidePropsType } from "next";
@@ -51,6 +52,7 @@ function TransactionsPageLayout() {
 }
 
 type FiltersFormValues = {
+  transactionTypes: TransactionType[];
   vendor: string;
   timeFrom: string;
   timeTo: string;
@@ -62,6 +64,12 @@ type FiltersFormValues = {
   allTagsShouldMatch: boolean;
 };
 const initialFilters: FiltersFormValues = {
+  transactionTypes: [
+    TransactionType.PERSONAL,
+    TransactionType.EXTERNAL,
+    TransactionType.TRANSFER,
+    TransactionType.INCOME,
+  ],
   vendor: "",
   timeFrom: "",
   timeTo: "",
@@ -77,6 +85,7 @@ function FilteredTransactionsList() {
   const { transactions, setDbData } = useAllDatabaseDataContext();
   const {
     values: {
+      transactionTypes,
       vendor,
       accountIds,
       categoryIds,
@@ -90,6 +99,7 @@ function FilteredTransactionsList() {
   } = useFormikContext<FiltersFormValues>();
   const displayTransactions = transactions.filter(
     (t) =>
+      transactionTypes.some((tt) => t.matchesType(tt)) &&
       (vendor
         ? t.hasVendor() && t.vendor().toLocaleLowerCase().includes(vendor)
         : true) &&
@@ -129,7 +139,7 @@ function Filters() {
   const [showFilters, setShowFilters] = useState(false);
   const { banks, categories, trips, tags } = useAllDatabaseDataContext();
   const {
-    values: { accountIds, categoryIds, tripId, tagNames },
+    values: { transactionTypes, accountIds, categoryIds, tripId, tagNames },
     setFieldValue,
   } = useFormikContext<FiltersFormValues>();
   const bankAccountOptions = banks
@@ -163,6 +173,12 @@ function Filters() {
     label: t.name(),
   }));
 
+  const transactionTypeOptions = [
+    { value: TransactionType.PERSONAL, label: "Personal" },
+    { value: TransactionType.EXTERNAL, label: "External" },
+    { value: TransactionType.TRANSFER, label: "Transfer" },
+    { value: TransactionType.INCOME, label: "Income" },
+  ];
   return (
     <>
       {!showFilters && (
@@ -177,6 +193,31 @@ function Filters() {
         <div className="grid grid-cols-6 gap-6 bg-white p-2 shadow sm:rounded-md sm:p-6">
           <div className="col-span-6 text-xl font-medium leading-7">
             Filters
+          </div>
+          <div className="col-span-6">
+            <label
+              htmlFor="transactionTypes"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Transaction types
+            </label>
+            <Select
+              instanceId={"transactionTypes"}
+              styles={undoTailwindInputStyles()}
+              options={transactionTypeOptions}
+              isMulti
+              value={transactionTypes.map((tt) => ({
+                label: transactionTypeOptions.find(({ value }) => value == tt)
+                  .label,
+                value: tt,
+              }))}
+              onChange={(x) =>
+                setFieldValue(
+                  "transactionTypes",
+                  x.map((x) => x.value)
+                )
+              }
+            />
           </div>
           <div className="col-span-6">
             <label

@@ -5,6 +5,7 @@ import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currencies, Currency } from "lib/model/Currency";
 import { Tag } from "lib/model/Tag";
+import { TransactionType } from "lib/model/TransactionType";
 import { Trip } from "lib/model/Trip";
 
 export type PersonalExpense = {
@@ -186,7 +187,9 @@ export class Transaction {
   }
 
   private otherPartyNameOrNull() {
-    return firstNonNull2(this.personalExpense, this.income)?.otherPartyName || null;
+    return (
+      firstNonNull2(this.personalExpense, this.income)?.otherPartyName || null
+    );
   }
 
   hasOtherParty() {
@@ -307,6 +310,21 @@ export class Transaction {
       return 1;
     }
     return 0;
+  }
+
+  matchesType(tt: TransactionType) {
+    switch (tt) {
+      case TransactionType.PERSONAL:
+        return this.isPersonalExpense();
+      case TransactionType.EXTERNAL:
+        return this.isThirdPartyExpense();
+      case TransactionType.INCOME:
+        return this.isIncome();
+      case TransactionType.TRANSFER:
+        return this.isTransfer();
+      default:
+        throw new Error(`Unknown transaction type: ${tt}`);
+    }
   }
 
   private belongsToAccount(ba: BankAccount): boolean {
