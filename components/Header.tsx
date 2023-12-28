@@ -6,28 +6,12 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import classNames from "classnames";
+import { AnchorUnstyled } from "components/ui/buttons";
 import { signIn, signOut, useSession } from "next-auth/react";
-import Link, { LinkProps } from "next/link";
 import { useRouter } from "next/router";
-import React, { forwardRef, Fragment, HTMLProps } from "react";
+import { Fragment } from "react";
 
-// https://headlessui.com/react/menu#integrating-with-next-js
-const LinkWithForwarding = forwardRef<
-  HTMLAnchorElement,
-  LinkProps & HTMLProps<HTMLAnchorElement>
->((props, ref) => {
-  const { href, children, ...rest } = props;
-  return (
-    <Link href={href}>
-      <a ref={ref} {...rest}>
-        {children}
-      </a>
-    </Link>
-  );
-});
-LinkWithForwarding.displayName = "LinkWithForwarding";
-
-const Header: React.FC = () => {
+const Header = () => {
   const { data: session } = useSession();
   const router = useRouter();
   const isActive = ({ href }) => {
@@ -64,7 +48,7 @@ const Header: React.FC = () => {
                 <div className="hidden sm:ml-6 sm:block">
                   <div className="flex space-x-4">
                     {navigation.map((item) => (
-                      <LinkWithForwarding
+                      <AnchorUnstyled
                         href={item.href}
                         key={item.name}
                         className={classNames(
@@ -76,7 +60,7 @@ const Header: React.FC = () => {
                         aria-current={isActive(item) ? "page" : undefined}
                       >
                         {item.name}
-                      </LinkWithForwarding>
+                      </AnchorUnstyled>
                     ))}
                   </div>
                 </div>
@@ -102,7 +86,7 @@ const Header: React.FC = () => {
                     <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                       <Menu.Item>
                         {({ active }) => (
-                          <LinkWithForwarding
+                          <AnchorUnstyled
                             href="/settings"
                             className={classNames(
                               active ? "bg-gray-100" : "",
@@ -110,7 +94,7 @@ const Header: React.FC = () => {
                             )}
                           >
                             Settings
-                          </LinkWithForwarding>
+                          </AnchorUnstyled>
                         )}
                       </Menu.Item>
 
@@ -160,10 +144,9 @@ const Header: React.FC = () => {
           <Disclosure.Panel className="sm:hidden">
             <div className="space-y-1 px-2 pt-2 pb-3">
               {navigation.map((item) => (
-                <LinkWithForwarding href={item.href} key={item.name}>
+                <AnchorUnstyled href={item.href} key={item.name}>
                   <Disclosure.Button
                     key={item.name}
-                    as="a"
                     className={classNames(
                       isActive(item)
                         ? "bg-gray-900 text-white"
@@ -174,7 +157,7 @@ const Header: React.FC = () => {
                   >
                     {item.name}
                   </Disclosure.Button>
-                </LinkWithForwarding>
+                </AnchorUnstyled>
               ))}
             </div>
           </Disclosure.Panel>
