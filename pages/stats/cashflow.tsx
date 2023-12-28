@@ -340,8 +340,8 @@ function InOutPageContent() {
     <Layout
       subheader={[
         {
-          title: "Income/Expense",
-          path: "/stats/in-out",
+          title: "Cashflow",
+          path: "/stats/cashflow",
         },
         {
           title: "Month drilldown",
