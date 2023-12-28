@@ -2,39 +2,46 @@ import {
   Bank as DBBank,
   BankAccount as DBBankAccount,
   Currency as DBCurrency,
-  ExternalAccountMapping as DBExternalAccountMapping,
+  ExternalAccountMapping,
 } from "@prisma/client";
-import { ConfigPageLayout } from "components/ConfigPageLayout";
+import Layout from "components/Layout";
 import { Select } from "components/forms/Select";
 import { ButtonFormPrimary } from "components/ui/buttons";
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
 import { DB } from "lib/db";
 import { Currencies } from "lib/model/Currency";
+import { fetchAccounts } from "lib/openbanking/fetchall";
 import { AccountDetails } from "lib/openbanking/interface";
-import { fetchAccounts } from "lib/openbanking/truelayer/account";
-import { maybeRefreshToken } from "lib/openbanking/truelayer/token";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "pages/api/auth/[...nextauth]";
-import { AccountMappingRequest } from "pages/api/open-banking/account-mapping";
+import { AccountMappingRequest } from "pages/api/open-banking/mapping";
 import { useState } from "react";
 
 export const getServerSideProps: GetServerSideProps<{
-  data?: {
-    dbBank: DBBank;
-    dbBankAccounts: DBBankAccount[];
-    dbCurrencies: DBCurrency[];
-    dbMapping: DBExternalAccountMapping[];
-    obAccounts: AccountDetails[];
-  };
-}> = async ({ params, req, res }) => {
+  dbBank: DBBank;
+  dbBankAccounts: DBBankAccount[];
+  dbCurrencies: DBCurrency[];
+  dbMapping: ExternalAccountMapping[];
+  externalAccounts: AccountDetails[];
+}> = async ({ query, req, res }) => {
   const session = await getServerSession(req, res, authOptions);
   if (!session) {
-    return { props: {} };
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false,
+      },
+    };
   }
-  const bankId = parseInt(params.bankId as string, 10);
   const userId = +session.user.id;
   const db = new DB({ userId });
+  const bankId = parseInt(query.bankId as string, 10);
+  if (!bankId) {
+    return {
+      notFound: true,
+    };
+  }
   const [bank] = await db.bankFindMany({
     where: {
       id: bankId,
@@ -45,46 +52,41 @@ export const getServerSideProps: GetServerSideProps<{
       notFound: true,
     };
   }
-  const bankAccounts = await db.bankAccountFindMany({
-    where: { bankId },
-  });
-  const currencies = await db.currencyFindMany();
-  const dbMapping = await db.externalAccountMappingFindMany({
+  const externalAccounts = await fetchAccounts(db, bankId);
+  if (externalAccounts == null) {
+    return {
+      notFound: true,
+    };
+  }
+  const internalAccounts = await db.bankAccountFindMany({
     where: {
-      internalAccountId: {
-        in: bankAccounts.map((x) => x.id),
+      bankId,
+    },
+  });
+  const data = {
+    dbBank: bank,
+    dbBankAccounts: internalAccounts,
+    dbCurrencies: await db.currencyFindMany(),
+    dbMapping: await db.externalAccountMappingFindMany({
+      where: {
+        internalAccountId: {
+          in: internalAccounts.map((x) => x.id),
+        },
       },
-    },
-  });
-
-  const [dbToken] = await db.trueLayerTokenFindMany({
-    where: { bankId },
-  });
-  const token = await maybeRefreshToken(dbToken);
-  const obAccounts = await fetchAccounts(token);
+    }),
+    externalAccounts,
+  };
   return {
-    props: {
-      data: JSON.parse(
-        JSON.stringify({
-          dbBank: bank,
-          dbBankAccounts: bankAccounts,
-          dbCurrencies: currencies,
-          dbMapping,
-          obAccounts,
-        })
-      ),
-    },
+    props: JSON.parse(JSON.stringify(data)),
   };
 };
 
-export default function ConnectBanksPage({
-  data: {
-    dbBank,
-    dbBankAccounts,
-    dbCurrencies,
-    dbMapping: dbMappingInitial,
-    obAccounts,
-  },
+export default function Page({
+  dbBank,
+  dbBankAccounts,
+  dbMapping: dbMappingInitial,
+  dbCurrencies,
+  externalAccounts,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [requestInFlight, setRequestInFlight] = useState(false);
   const [apiError, setApiError] = useState("");
@@ -101,7 +103,7 @@ export default function ConnectBanksPage({
   );
   const [mapping, setMapping] = useState(
     Object.fromEntries(
-      obAccounts.map((a) => [
+      externalAccounts.map((a) => [
         a.externalAccountId,
         initialMapping[a.externalAccountId] ?? -1,
       ])
@@ -126,7 +128,7 @@ export default function ConnectBanksPage({
         bankId: dbBank.id,
         mapping: requestMapping,
       };
-      const response = await fetch("/api/open-banking/account-mapping", {
+      const response = await fetch("/api/open-banking/mapping", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
@@ -138,34 +140,30 @@ export default function ConnectBanksPage({
     }
     setRequestInFlight(false);
   };
-
   return (
-    <ConfigPageLayout>
+    <Layout>
       {statusMessage && <span className="text-green-500">{statusMessage}</span>}
-      {obAccounts.map((oba) => (
-        <>
-          <div key={oba.externalAccountId}>
-            TrueLayer account <i>{oba.name}</i> connected with
-            <Select
-              disabled={requestInFlight}
-              value={mapping[oba.externalAccountId]}
-              onChange={(e) =>
-                setMapping((old) =>
-                  Object.assign({}, old, {
-                    [oba.externalAccountId]: +e.target.value,
-                  })
-                )
-              }
-            >
-              <option value="0">None</option>
-              {bank.accounts.map((ba) => (
-                <option key={ba.id} value={ba.id}>
-                  {bank.name} {ba.name}
-                </option>
-              ))}
-            </Select>
-          </div>
-        </>
+      {externalAccounts.map((external) => (
+        <div key={external.externalAccountId}>
+          External account <i>{external.name}</i> connected with
+          <Select
+            disabled={requestInFlight}
+            value={mapping[external.externalAccountId]}
+            onChange={(e) =>
+              setMapping((old) => ({
+                ...old,
+                [external.externalAccountId]: +e.target.value,
+              }))
+            }
+          >
+            <option value="0">None</option>
+            {bank.accounts.map((ba) => (
+              <option key={ba.id} value={ba.id}>
+                {bank.name} {ba.name} ({ba.currency.name})
+              </option>
+            ))}
+          </Select>
+        </div>
       ))}
       {apiError && <span className="text-red-500">{apiError}</span>}
       <ButtonFormPrimary
@@ -175,6 +173,6 @@ export default function ConnectBanksPage({
       >
         {requestInFlight ? "Saving…" : "Save"}
       </ButtonFormPrimary>
-    </ConfigPageLayout>
+    </Layout>
   );
 }
