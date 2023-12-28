@@ -2,7 +2,7 @@ import Layout from "components/Layout";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 
 export function isFullyConfigured(dbData: AllDatabaseData) {
-  return dbData.dbCategories && dbData.dbBankAccounts;
+  return dbData.dbCategories?.length && dbData.dbBankAccounts?.length;
 }
 
 export const NotConfiguredYet = () => (
