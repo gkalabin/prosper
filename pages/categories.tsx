@@ -3,6 +3,12 @@ import prisma from "../lib/prisma";
 import { GetStaticProps } from "next";
 import Layout from "../components/Layout";
 
+type CategoryDbModel = {
+  id: string;
+  name: string;
+  parentCategoryId?: number;
+  displayOrder: number;
+};
 export const getStaticProps: GetStaticProps = async () => {
   const categories = await prisma.category.findMany({});
   console.debug("Categories from DB", categories);
@@ -12,12 +18,6 @@ export const getStaticProps: GetStaticProps = async () => {
   };
 };
 
-type CategoryDbModel = {
-  id: string;
-  name: string;
-  parentCategoryId?: number;
-  displayOrder: number;
-};
 type CategoryProps = {
   id: string;
   name: string;
@@ -47,35 +47,33 @@ type PageProps = {
   dbCategories: CategoryDbModel[];
 };
 
-const CreateCategoryFormComponent: React.FC<CreateCategoryFormProps> = (
-  props
-) => {
+const CreateCategoryForm: React.FC<CreateCategoryFormProps> = (props) => {
   const [name, setName] = useState("");
   const [parentId, setParentId] = useState(0);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [createInProgress, setCreateInProgress] = useState(false);
+  const [formDisplayed, setFormDisplayed] = useState(false);
+  const [requestInFlight, setRequestInFlight] = useState(false);
   const [apiError, setApiError] = useState("");
 
   const reset = () => {
     setName("");
-    setApiError("");
     setParentId(0);
+    setApiError("");
   };
 
   const open = () => {
     reset();
-    setShowCreateForm(true);
+    setFormDisplayed(true);
   };
 
   const close = () => {
     reset();
-    setShowCreateForm(false);
+    setFormDisplayed(false);
   };
 
-  const submitData = async (e: React.SyntheticEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setApiError("");
-    setCreateInProgress(true);
+    setRequestInFlight(true);
     const parentCategoryId = parentId ? +parentId : null;
     try {
       const body = {
@@ -93,45 +91,45 @@ const CreateCategoryFormComponent: React.FC<CreateCategoryFormProps> = (
     } catch (error) {
       setApiError(`Failed to create new category: ${error}`);
     }
-    setCreateInProgress(false);
+    setRequestInFlight(false);
   };
 
-  if (showCreateForm) {
-    return (
-      <form onSubmit={submitData}>
-        <h3>New Category</h3>
-        <input
-          autoFocus
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Name"
-          disabled={createInProgress}
-          type="text"
-          value={name}
-        />
-        <select
-          onChange={(e) => setParentId(+e.target.value)}
-          disabled={createInProgress}
-        >
-          <option value="">No parent</option>
-          {props.allCategories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.nameWithAncestors}
-            </option>
-          ))}
-        </select>
-        <button onClick={close} disabled={createInProgress}>
-          Cancel
-        </button>
-        <input
-          disabled={!name || createInProgress}
-          type="submit"
-          value={createInProgress ? "Creating…" : "Create"}
-        />
-        {apiError && <span>{apiError}</span>}
-      </form>
-    );
+  if (!formDisplayed) {
+    return <button onClick={open}>New category</button>;
   }
-  return <button onClick={open}>New category</button>;
+  return (
+    <form onSubmit={handleSubmit}>
+      <h3>New Category</h3>
+      <input
+        autoFocus
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Name"
+        disabled={requestInFlight}
+        type="text"
+        value={name}
+      />
+      <select
+        onChange={(e) => setParentId(+e.target.value)}
+        disabled={requestInFlight}
+      >
+        <option value="">No parent</option>
+        {props.allCategories.map((category) => (
+          <option key={category.id} value={category.id}>
+            {category.nameWithAncestors}
+          </option>
+        ))}
+      </select>
+      <button onClick={close} disabled={requestInFlight}>
+        Cancel
+      </button>
+      <input
+        disabled={!name || requestInFlight}
+        type="submit"
+        value={requestInFlight ? "Creating…" : "Create"}
+      />
+      {apiError && <span>{apiError}</span>}
+    </form>
+  );
 };
 
 const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
@@ -140,31 +138,31 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
   const [name, setName] = useState(props.category.name);
   const [displayOrder, setDisplayOrder] = useState(props.category.displayOrder);
   const [parentId, setParentId] = useState(props.category.parentCategoryId);
-  const [showForm, setShowForm] = useState(false);
-  const [updateError, setUpdateError] = useState("");
-  const [updateInProgress, setUpdateInProgress] = useState(false);
+  const [formDisplayed, setFormDisplayed] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const [requestInFlight, setRequestInFlight] = useState(false);
 
   const reset = () => {
     setName(props.category.name);
     setDisplayOrder(props.category.displayOrder);
     setParentId(props.category.parentCategoryId);
-    setUpdateError("");
+    setApiError("");
   };
 
   const open = () => {
     reset();
-    setShowForm(true);
+    setFormDisplayed(true);
   };
 
   const close = () => {
     reset();
-    setShowForm(false);
+    setFormDisplayed(false);
   };
 
-  const submitData = async (e: React.SyntheticEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    setUpdateError("");
-    setUpdateInProgress(true);
+    setApiError("");
+    setRequestInFlight(true);
     const parentCategoryId = parentId ? +parentId : null;
     try {
       const body = {
@@ -180,12 +178,12 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
       close();
       props.onCategoryUpdated(await response.json());
     } catch (error) {
-      setUpdateError(`Failed to update: ${error}`);
+      setApiError(`Failed to update: ${error}`);
     }
-    setUpdateInProgress(false);
+    setRequestInFlight(false);
   };
 
-  if (!showForm) {
+  if (!formDisplayed) {
     let categoryName = <span>{props.category.name}</span>;
     if (props.depth == 0) {
       categoryName = <strong>{props.category.name}</strong>;
@@ -199,25 +197,25 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
     );
   }
   return (
-    <form onSubmit={submitData}>
+    <form onSubmit={handleSubmit}>
       <input
         onChange={(e) => setName(e.target.value)}
         placeholder="Name"
         type="text"
-        disabled={updateInProgress}
+        disabled={requestInFlight}
         value={name}
       />
       <input
         onChange={(e) => setDisplayOrder(+e.target.value)}
         placeholder="Display order"
         type="number"
-        disabled={updateInProgress}
+        disabled={requestInFlight}
         value={displayOrder}
       />
       <select
         onChange={(e) => setParentId(+e.target.value)}
         value={props.category.parentCategoryId}
-        disabled={updateInProgress}
+        disabled={requestInFlight}
       >
         <option value="">No parent</option>
         {props.categories.map((category) => (
@@ -226,15 +224,15 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
           </option>
         ))}
       </select>
-      <button onClick={close} disabled={updateInProgress}>
+      <button onClick={close} disabled={requestInFlight}>
         Cancel
       </button>
       <input
-        disabled={!name || updateInProgress}
+        disabled={!name || requestInFlight}
         type="submit"
-        value={updateInProgress ? "Updating…" : "Update"}
+        value={requestInFlight ? "Updating…" : "Update"}
       />
-      {updateError && <span>{updateError}</span>}
+      {apiError && <span>{apiError}</span>}
     </form>
   );
 };
@@ -333,7 +331,7 @@ const CategoriesPage: React.FC<PageProps> = (props) => {
         onCategoryUpdated={updateCategory}
         depth={0}
       />
-      <CreateCategoryFormComponent
+      <CreateCategoryForm
         allCategories={allCategoriesFlat}
         onNewCategoryCreated={addNewCategory}
       />
