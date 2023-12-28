@@ -1,5 +1,6 @@
 import { Bank as DBBank, BankAccount as DBBankAccount } from "@prisma/client";
 import { Currency } from "./Currency";
+import { Transaction, transactionAbsoluteAmount } from "./Transaction";
 
 export type Bank = {
   id: number;
@@ -12,39 +13,19 @@ export type Bank = {
 export type BankAccount = {
   id: number;
   name: string;
+  initialBalanceCents: number;
   currency: Currency;
   displayOrder: number;
   bank: Bank;
+  transactions: Transaction[];
   dbValue: DBBankAccount;
 };
 
-export const bankAccountModelFromDB = (
-  dbBanks: DBBank[],
-  dbBankAccounts: DBBankAccount[],
-  currencies: Currency[]
-): { banks: Bank[]; bankAccounts: BankAccount[] } => {
-  const banks = dbBanks.map((b) =>
-    Object.assign({}, b, {
-      accounts: [],
-      dbValue: b,
-    })
-  );
-  const bankById = Object.fromEntries(banks.map((x) => [x.id, x]));
-  const currencyById = Object.fromEntries(currencies.map((x) => [x.id, x]));
-
-  const bankAccounts = dbBankAccounts.map((x) =>
-    Object.assign({}, x, {
-      bank: bankById[x.bankId],
-      currency: currencyById[x.currencyId],
-      dbValue: x,
-    })
-  );
-  bankAccounts.forEach((ba) => {
-    ba.bank.accounts.push(ba);
-  });
-
-  return {
-    banks,
-    bankAccounts,
-  };
+export const bankAccountBalance = (ba: BankAccount): number => {
+  let balance = ba.initialBalanceCents;
+  ba.transactions.forEach(t => {
+    const amount = transactionAbsoluteAmount(t, ba);
+    balance += amount;
+  })
+  return balance;
 };

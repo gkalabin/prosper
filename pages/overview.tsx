@@ -1,10 +1,16 @@
 import { Transaction as DBTransaction } from "@prisma/client";
 import { GetStaticProps } from "next";
 import React, { useState } from "react";
+import { Amount } from "../components/Amount";
 import Layout from "../components/Layout";
 import { AddTransactionForm } from "../components/transactions/AddTransactionForm";
+import { TransactionsList } from "../components/transactions/TransactionsList";
 import { modelFromDatabaseData } from "../lib/ClientSideModel";
-import { Bank, BankAccount } from "../lib/model/BankAccount";
+import {
+  Bank,
+  BankAccount,
+  bankAccountBalance,
+} from "../lib/model/BankAccount";
 import { AllDatabaseData, loadAllDatabaseData } from "../lib/ServerSideDB";
 
 export const getStaticProps: GetStaticProps = async () => {
@@ -18,9 +24,28 @@ type BankAccountListItemProps = {
   account: BankAccount;
 };
 const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
+  const [showTransactionList, setShowTransactionList] = useState(false);
   return (
-    <div className="py-2 pl-6 pr-2">
-      <span className="text-base font-normal">{props.account.name}</span>
+    <div className="flex flex-col py-2 pl-6 pr-2">
+      <div onClick={() => setShowTransactionList(!showTransactionList)}>
+        <span className="text-base font-normal">{props.account.name}</span>
+        <Amount
+          amountCents={bankAccountBalance(props.account)}
+          sign={0}
+          currency={props.account.currency}
+          className="ml-2 text-sm font-light"
+        />
+      </div>
+      {showTransactionList && (
+        <div className="mt-4">
+          <TransactionsList
+            transactions={props.account.transactions}
+            // TODO: implement
+            onTransactionUpdated={() => alert("TODO")}
+            showBankAccountInStatusLine={false}
+          />
+        </div>
+      )}
     </div>
   );
 };

@@ -114,7 +114,7 @@ model BankAccount {
   joint Boolean @default(false)
 
   // TODO: move to a separate table
-  initialBalance Int @default(0)
+  initialBalanceCents Int @default(0)
 
   PersonalExpense   PersonalExpense[]
   outgoingTransfers Transfer[]        @relation("OutgoingTransfers")

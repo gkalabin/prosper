@@ -1,38 +1,9 @@
 import { Transaction as DBTransaction } from "@prisma/client";
 import React, { useState } from "react";
-import { Transaction } from "../../lib/model/Transaction";
-import { currencyByTransaction, formatMoney } from "../../lib/Money";
-// import { isAfter, isSameDay, formatDate, parseISO, subDays } from 'date-fns';
-
-export const Amount = (props: { t: Transaction }) => {
-  const currency = currencyByTransaction(props.t);
-  if (props.t.personalExpense) {
-    return (
-      <span className="text-red-900">
-        {formatMoney(-props.t.amountCents, currency)}
-      </span>
-    );
-  }
-  if (props.t.thirdPartyExpense) {
-    return (
-      <span className="text-red-900">
-        {formatMoney(-props.t.amountCents, currency)}
-      </span>
-    );
-  }
-  if (props.t.transfer) {
-    return <span>{formatMoney(props.t.amountCents, currency)}</span>;
-  }
-  if (props.t.income) {
-    return (
-      <span className="text-green-900">
-        {formatMoney(+props.t.amountCents, currency)}
-      </span>
-    );
-  }
-  return <span>{formatMoney(props.t.amountCents, currency)}</span>;
-};
-
+import { BankAccount } from "../../lib/model/BankAccount";
+import { Transaction, transactionSign } from "../../lib/model/Transaction";
+import { currencyByTransaction } from "../../lib/Money";
+import { Amount } from "../Amount";
 export const TransactionHeading = (props: { t: Transaction }) => {
   if (props.t.personalExpense) {
     return <>{props.t.personalExpense.vendor}</>;
@@ -76,27 +47,34 @@ export const TransactionDescription = (props: { t: Transaction }) => {
   return <></>;
 };
 
-const TransactionStatusLine = (props: { t: Transaction }) => {
+const TransactionStatusLine = (props: {
+  t: Transaction;
+  showBankAccountInStatusLine: boolean;
+}) => {
   if (props.t.personalExpense) {
-    const from = props.t.personalExpense.account;
-    return (
-      <span className="rounded bg-gray-100 px-2 py-1">
-        {from.bank.name}: {from.name}
-      </span>
+    const maybeBankAccount = props.showBankAccountInStatusLine && (
+      <BankAccountLabel account={props.t.personalExpense.account} />
     );
+    return <>{maybeBankAccount}</>;
   }
   if (props.t.thirdPartyExpense) {
     return <>{props.t.thirdPartyExpense.payer}</>;
   }
   if (props.t.income) {
-    const to = props.t.income.account;
-    return (
-      <>
-        {to.bank.name}: {to.name}
-      </>
+    const maybeBankAccount = props.showBankAccountInStatusLine && (
+      <BankAccountLabel account={props.t.income.account} />
     );
+    return <>{maybeBankAccount}</>;
   }
   return <></>;
+};
+
+const BankAccountLabel = (props: { account: BankAccount }) => {
+  return (
+    <span className="rounded bg-gray-100 px-2 py-1">
+      {props.account.bank.name}: {props.account.name}
+    </span>
+  );
 };
 
 // function humanReadableDate(comparisonDate) {
@@ -159,6 +137,7 @@ const TransactionTimestamp = (props: { t: Transaction }) => {
 type TransactionsListItemProps = {
   transaction: Transaction;
   onUpdated: (transaction: DBTransaction) => void;
+  showBankAccountInStatusLine: boolean;
 };
 export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
   props
@@ -170,7 +149,11 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
     <li className="flex flex-col gap-2 p-2">
       <div className="flex min-h-[theme('spacing[16]')] gap-2">
         <div className="min-w-[theme('spacing[20]')] flex-none whitespace-nowrap text-right text-lg font-medium text-gray-900">
-          <Amount t={props.transaction} />
+          <Amount
+            amountCents={props.transaction.amountCents}
+            sign={transactionSign(props.transaction)}
+            currency={currencyByTransaction(props.transaction)}
+          />
         </div>
 
         <div className="flex grow flex-col gap-1">
@@ -182,7 +165,10 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
           </div>
 
           <div className="text-sm text-gray-500">
-            <TransactionStatusLine t={props.transaction} />
+            <TransactionStatusLine
+              t={props.transaction}
+              showBankAccountInStatusLine={props.showBankAccountInStatusLine}
+            />
           </div>
         </div>
 
@@ -213,9 +199,11 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
 type TransactionsListProps = {
   transactions: Transaction[];
   onTransactionUpdated: (transaction: DBTransaction) => void;
+  displayLimit?: number;
+  showBankAccountInStatusLine?: boolean;
 };
 export const TransactionsList: React.FC<TransactionsListProps> = (props) => {
-  const [displayLimit, setDisplayLimit] = useState(1000);
+  const [displayLimit, setDisplayLimit] = useState(props.displayLimit || 10);
 
   if (!props.transactions?.length) {
     return <div>No transactions.</div>;
@@ -233,6 +221,9 @@ export const TransactionsList: React.FC<TransactionsListProps> = (props) => {
               key={t.id}
               transaction={t}
               onUpdated={props.onTransactionUpdated}
+              showBankAccountInStatusLine={
+                props.showBankAccountInStatusLine ?? true
+              }
             />
           ))}
         </ul>

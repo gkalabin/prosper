@@ -1,16 +1,15 @@
+import { Currency as DBCurrency } from "@prisma/client";
 import { GetStaticProps } from "next";
 import React, { useState } from "react";
 import Layout from "../../components/Layout";
-import Currency from "../../lib/model/Currency";
+import { Currency, currencyModelFromDB } from "../../lib/model/Currency";
 import prisma from "../../lib/prisma";
 
 export const getStaticProps: GetStaticProps = async () => {
-  const currencies = await prisma.currency.findMany({});
-
   return {
     props: JSON.parse(
       JSON.stringify({
-        currencies,
+        dbCurrencies: await prisma.currency.findMany(),
       })
     ),
   };
@@ -159,7 +158,7 @@ const CurrencyName: React.FC<CurrencyNameProps> = (props) => {
     return (
       <div>
         <span className="text-lg">{props.currency.name}</span>
-        <button className="mx-4 px-4 bg-orange-200 rounded-sm" onClick={open}>
+        <button className="mx-4 rounded-sm bg-orange-200 px-4" onClick={open}>
           Edit
         </button>
       </div>
@@ -188,16 +187,19 @@ const CurrencyName: React.FC<CurrencyNameProps> = (props) => {
 };
 
 type PageProps = {
-  currencies: Currency[];
+  dbCurrencies: DBCurrency[];
 };
 const CurrenciesPage: React.FC<PageProps> = (props) => {
-  const [currencies, setCurrencies] = useState(props.currencies);
+  const [dbCurrencies, setDbCurrencies] = useState(props.dbCurrencies);
+  const currencies = currencyModelFromDB(dbCurrencies);
 
-  const addCurrency = (added: Currency) => {
-    setCurrencies((old) => [...old, added]);
+  const addCurrency = (added: DBCurrency) => {
+    setDbCurrencies((old) => [...old, added]);
   };
-  const updateCurrency = (updated: Currency) => {
-    setCurrencies((old) => old.map((x) => (x.id == updated.id ? updated : x)));
+  const updateCurrency = (updated: DBCurrency) => {
+    setDbCurrencies((old) =>
+      old.map((x) => (x.id == updated.id ? updated : x))
+    );
   };
 
   return (

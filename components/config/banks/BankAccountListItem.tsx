@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Bank, BankAccount } from "../../../lib/model/BankAccount";
-import Currency from "../../../lib/model/Currency";
+import { Currency } from "../../../lib/model/Currency";
 
 type BankAccountListItemProps = {
   bank: Bank;
@@ -66,7 +66,7 @@ const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
     return (
       <div>
         <span className="text-lg">{props.account.name}</span>;
-        <small className="text-xs py-4">
+        <small className="py-4 text-xs">
           displayOrder {props.account.displayOrder}
         </small>
         <button onClick={open}>Edit</button>
