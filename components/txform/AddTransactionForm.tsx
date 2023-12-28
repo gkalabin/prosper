@@ -258,20 +258,19 @@ export const AddTransactionForm = (props: {
             </div>
           )}
 
-            <div className="flex justify-end gap-2 bg-gray-50 px-4 py-3 sm:px-6">
-              <FormikButtonFormSecondary
-                className="self-start"
-                onClick={props.onClose}
-              >
-                Cancel
-              </FormikButtonFormSecondary>
-              <FormikButtonFormPrimary className="self-start" type="submit">
-                <AddOrUpdateButtonText add={creatingNewTransaction} />
-              </FormikButtonFormPrimary>
-            </div>
+          <div className="flex justify-end gap-2 bg-gray-50 px-4 py-3 sm:px-6">
+            <FormikButtonFormSecondary
+              className="self-start"
+              onClick={props.onClose}
+            >
+              Cancel
+            </FormikButtonFormSecondary>
+            <FormikButtonFormPrimary className="self-start" type="submit">
+              <AddOrUpdateButtonText add={creatingNewTransaction} />
+            </FormikButtonFormPrimary>
           </div>
-        </Form>
-      </Formik>
-    </div>
+        </div>
+      </Form>
+    </Formik>
   );
 };
