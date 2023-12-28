@@ -33,7 +33,7 @@ const BanksList = (props: {
     return <div>No banks found.</div>;
   }
   return (
-    <div>
+    <div className="space-y-4">
       {props.banks.map((bank) => (
         <BanksListItem
           key={bank.id}
@@ -60,29 +60,50 @@ function BanksListItem({
   const [newAccountFormDisplayed, setNewAccountFormDisplayed] = useState(false);
   const [editBankFormDisplayed, setEditBankFormDisplayed] = useState(false);
   return (
-    <div>
+    <div className="rounded-md border">
       <div className="border-b bg-indigo-200 p-2 text-gray-900">
-        <div className="flex items-center gap-3">
-          <h1 className="grow text-xl font-medium">
-            {editBankFormDisplayed ? `Editing ${bank.name}` : bank.name}
-          </h1>
-          {!editBankFormDisplayed && (
-            <>
+        <div>
+          <div className="flex items-center">
+            <h1 className="grow text-xl font-medium">
+              {editBankFormDisplayed ? `Editing ${bank.name}` : bank.name}
+            </h1>
+            {!editBankFormDisplayed && (
               <ButtonLink onClick={() => setEditBankFormDisplayed(true)}>
                 Edit
               </ButtonLink>
-              {openBankingToken && (
+            )}
+          </div>
+          <div className="text-sm text-gray-600">
+            {!editBankFormDisplayed && !openBankingToken && (
+              <div className="space-x-3">
+                {openBankingToken && (
+                  <AnchorLink
+                    href={`/config/open-banking/connection/${bank.id}`}
+                    label="OpenBanking"
+                  />
+                )}
                 <AnchorLink
-                  href={`/config/open-banking/connection/${bank.id}`}
-                  label="OpenBanking"
+                  href={`/api/open-banking/connect?bankId=${bank.id}`}
+                  label="Connect with TrueLayer Banking API"
                 />
-              )}
-              <AnchorLink
-                href={`/api/open-banking/connect?bankId=${bank.id}`}
-                label={openBankingToken ? "Reconnect" : "Connect"}
-              />
-            </>
-          )}
+              </div>
+            )}
+            {!editBankFormDisplayed && openBankingToken && (
+              <div className="space-x-3">
+                <span>Connected with TrueLayer Banking API</span>
+                {openBankingToken && (
+                  <AnchorLink
+                    href={`/config/open-banking/connection/${bank.id}`}
+                    label="Edit connection"
+                  />
+                )}
+                <AnchorLink
+                  href={`/api/open-banking/connect?bankId=${bank.id}`}
+                  label="Reconnect"
+                />
+              </div>
+            )}
+          </div>
         </div>
 
         {editBankFormDisplayed && (
