@@ -16,7 +16,7 @@ export type PersonalExpense = {
 };
 
 export type Income = {
-  vendor: string;
+  payer: string;
   ownShareAmountCents: number;
   account: BankAccount;
   otherPartyName: string;
