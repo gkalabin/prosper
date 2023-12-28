@@ -1,12 +1,12 @@
 import classNames from "classnames";
 import { MoneyInputWithLabel } from "components/forms/Input";
+import { undoTailwindInputStyles } from "components/forms/Select";
 import {
   formModeForTransaction,
   toDateTimeLocal,
 } from "components/txform/AddTransactionForm";
 import {
   AccountFrom,
-  Category,
   Description,
   IsShared,
   OtherPartyName,
@@ -21,10 +21,12 @@ import { differenceInMonths } from "date-fns";
 import { useFormikContext } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
+import { Category as CategoryModel } from "lib/model/Category";
 import { Transaction } from "lib/model/Transaction";
 import { AddTransactionFormValues, FormMode } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import Select from "react-select";
 
 const SUGGESTIONS_WINDOW_MONTHS = 6;
 
@@ -199,3 +201,94 @@ export const FormPersonalExpense = ({
     </>
   );
 };
+
+const MAX_MOST_FREQUENT = 5;
+export function Category() {
+  const {
+    isSubmitting,
+    setFieldValue,
+    values: { categoryId, vendor },
+  } = useFormikContext<AddTransactionFormValues>();
+  const { categories, transactions } = useAllDatabaseDataContext();
+  const mostFrequent = useMemo(
+    () => mostFrequentCategories(transactions, vendor),
+    [transactions, vendor]
+  );
+
+  const makeOption = (x: CategoryModel) => ({
+    label: x.nameWithAncestors(),
+    value: x.id(),
+  });
+
+  const options = [
+    {
+      label: "Most Frequently Used",
+      options: mostFrequent.slice(0, MAX_MOST_FREQUENT).map(makeOption),
+    },
+    {
+      label: "Children Categories",
+      options: categories.filter((x) => !x.children().length).map(makeOption),
+    },
+    {
+      label: "Parent Categories",
+      options: categories.filter((x) => !!x.children().length).map(makeOption),
+    },
+  ];
+  return (
+    <div className="col-span-6">
+      <label className="block text-sm font-medium text-gray-700">
+        Category
+      </label>
+      <Select
+        styles={undoTailwindInputStyles()}
+        options={options}
+        value={{
+          label: categories
+            .find((x) => x.id() == categoryId)
+            .nameWithAncestors(),
+          value: categoryId,
+        }}
+        onChange={(newValue) => setFieldValue("categoryId", newValue.value)}
+        isDisabled={isSubmitting}
+      />
+    </div>
+  );
+}
+
+function appendNew<T extends { id: () => number }>(
+  target: T[],
+  newItems: T[]
+): T[] {
+  const existing = new Set(target.map((x) => x.id()));
+  const newDistinct = newItems.filter((x) => !existing.has(x.id()));
+  return [...target, ...newDistinct];
+}
+
+function mostFrequentCategories(
+  allTransactions: Transaction[],
+  vendor: string
+) {
+  const expenses = allTransactions.filter(
+    (x) => x.isPersonalExpense() || x.isThirdPartyExpense()
+  );
+  const matching = expenses.filter((x) => !vendor || x.vendor() == vendor);
+  const now = new Date();
+  const matchingRecent = matching.filter(
+    (x) => differenceInMonths(now, x.timestamp) <= 3
+  );
+  // Start with categories for recent transactions matching vendor.
+  let result = uniqMostFrequent(matchingRecent.map((t) => t.category));
+  if (result.length >= MAX_MOST_FREQUENT) {
+    return result;
+  }
+  // Expand to all transactions matching vendor.
+  result = appendNew(result, uniqMostFrequent(matching.map((t) => t.category)));
+  if (result.length >= MAX_MOST_FREQUENT) {
+    return result;
+  }
+  // At this stage, just add all categories for recent transactions.
+  const recent = expenses.filter(
+    (x) => differenceInMonths(now, x.timestamp) <= 3
+  );
+  return appendNew(result, uniqMostFrequent(recent.map((t) => t.category)));
+}
