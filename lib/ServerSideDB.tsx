@@ -1,37 +1,10 @@
-import { DB } from "lib/db";
+import { DB, fetchAllDatabaseData } from "lib/db";
 import { addLatestExchangeRates } from "lib/exchangeRatesBackfill";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { addLatestStockQuotes } from "lib/stockQuotesBackfill";
-import { includeExtensionsAndTags } from "lib/transactionDbUtils";
 import { GetServerSideProps } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "pages/api/auth/[...nextauth]";
-
-const fetchAllDatabaseData = async (db: DB): Promise<AllDatabaseData> => {
-  const data = {} as AllDatabaseData;
-  await Promise.all(
-    [
-      async () =>
-        (data.dbTransactions = await db.transactionFindMany(
-          includeExtensionsAndTags
-        )),
-      async () => (data.dbBanks = await db.bankFindMany()),
-      async () => (data.dbTrips = await db.tripFindMany()),
-      async () => (data.dbTags = await db.tagFindMany()),
-      async () => (data.dbBankAccounts = await db.bankAccountFindMany()),
-      async () => (data.dbCategories = await db.categoryFindMany()),
-      async () =>
-        (data.dbDisplaySettings = await db.getOrCreateDbDisplaySettings()),
-      async () => (data.dbExchangeRates = await db.exchangeRateFindMany()),
-      async () => (data.dbStockQuotes = await db.stockQuoteFindMany()),
-      async () => (data.dbStocks = await db.stocksFindMany()),
-      async () =>
-        (data.dbTransactionPrototypes =
-          await db.transactionPrototypeFindMany()),
-    ].map((f) => f())
-  );
-  return data;
-};
 
 const jsonEncodingHacks = (key: string, value) => {
   if (typeof value === "bigint") {
@@ -44,7 +17,7 @@ const jsonEncodingHacks = (key: string, value) => {
 };
 
 export const allDbDataProps: GetServerSideProps<AllDatabaseData> = async (
-  context
+  context,
 ) => {
   const timingLabelSuffix = new Date().getTime();
   console.time("allDbDataProps:" + timingLabelSuffix);
@@ -63,7 +36,7 @@ export const allDbDataProps: GetServerSideProps<AllDatabaseData> = async (
   await Promise.all([addLatestExchangeRates(), addLatestStockQuotes()]).catch(
     (reason) => {
       console.warn("Failed to update rates", reason);
-    }
+    },
   );
   console.timeEnd("allDbDataProps:exchangeRates:" + timingLabelSuffix);
   console.time("allDbDataProps:fetchAllDatabaseData:" + timingLabelSuffix);

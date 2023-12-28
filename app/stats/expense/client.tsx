@@ -1,3 +1,4 @@
+"use client";
 import { MonthlyOwnShare } from "components/charts/MonthlySum";
 import { RunningAverageOwnShare } from "components/charts/RunningAverage";
 import { YearlyOwnShare } from "components/charts/YearlySum";
@@ -7,7 +8,6 @@ import {
   isFullyConfigured,
   NotConfiguredYet,
 } from "components/NotConfiguredYet";
-import { StatsPageLayout } from "components/StatsPageLayout";
 import {
   differenceInYears,
   eachMonthOfInterval,
@@ -26,6 +26,7 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
+import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { Category, transactionIsDescendant } from "lib/model/Category";
 import {
   amountOwnShare,
@@ -34,9 +35,7 @@ import {
   Transaction,
   transactionCategory,
 } from "lib/model/Transaction";
-import { allDbDataProps } from "lib/ServerSideDB";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
-import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import Select from "react-select";
 
@@ -63,7 +62,7 @@ export function ExpenseCharts({ input }: { input: TransactionsStatsInput }) {
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange
+      exchange,
     );
     {
       const cid = t.categoryId;
@@ -115,7 +114,7 @@ export function ExpenseCharts({ input }: { input: TransactionsStatsInput }) {
               stack: "moneyIn",
               name: categories.find((c) => c.id() === categoryId).name(),
               data: months.map((m) => Math.round(series.get(m).dollar())),
-            })
+            }),
           ),
         }}
       />
@@ -135,7 +134,7 @@ export function ExpenseCharts({ input }: { input: TransactionsStatsInput }) {
                 .find((c) => c.id() === categoryId)
                 .nameWithAncestors(),
               data: months.map((m) => Math.round(series.get(m).dollar())),
-            })
+            }),
           ),
         }}
       />
@@ -183,7 +182,7 @@ export function ExpenseByCategory(props: {
   const transactions = props.transactions
     .filter((t): t is Expense => isExpense(t))
     .filter((t) =>
-      transactionCategory(t, categories).childOf(props.category.id())
+      transactionCategory(t, categories).childOf(props.category.id()),
     );
   const zero = AmountWithCurrency.zero(displayCurrency);
   const months = eachMonthOfInterval(props.duration).map((x) => x.getTime());
@@ -198,7 +197,7 @@ export function ExpenseByCategory(props: {
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange
+      exchange,
     );
     const cid = t.categoryId;
     const series = byCategoryMonth.get(cid) ?? new Map(zeroes);
@@ -229,7 +228,7 @@ export function ExpenseByCategory(props: {
                 .find((c) => c.id() === categoryId)
                 .nameWithAncestors(),
               data: months.map((m) => Math.round(series.get(m).dollar())),
-            })
+            }),
           ),
         }}
       />
@@ -237,13 +236,13 @@ export function ExpenseByCategory(props: {
   );
 }
 
-function PageContent() {
+function NonEmptyPageContent() {
   const [duration, setDuration] = useState(LAST_6_MONTHS);
 
   const { transactions, categories, displaySettings } =
     useAllDatabaseDataContext();
   const [excludeCategories, setExcludeCategories] = useState(
-    displaySettings.excludeCategoryIdsInStats()
+    displaySettings.excludeCategoryIdsInStats(),
   );
   const categoryOptions = categories.map((a) => ({
     value: a.id(),
@@ -252,12 +251,12 @@ function PageContent() {
   const filteredTransactions = transactions.filter(
     (t) =>
       !excludeCategories.some((cid) =>
-        transactionIsDescendant(t, cid, categories)
-      )
+        transactionIsDescendant(t, cid, categories),
+      ),
   );
   const input = new TransactionsStatsInput(filteredTransactions, duration);
   return (
-    <StatsPageLayout>
+    <>
       <DurationSelector duration={duration} onChange={setDuration} />
       <div className="mb-4">
         <label
@@ -279,20 +278,17 @@ function PageContent() {
         />
       </div>
       <ExpenseCharts input={input} />
-    </StatsPageLayout>
+    </>
   );
 }
 
-export const getServerSideProps = allDbDataProps;
-export default function MaybeEmptyPage(
-  dbData: InferGetServerSidePropsType<typeof getServerSideProps>
-) {
+export function PageContent({ dbData }: { dbData: AllDatabaseData }) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }
   return (
     <AllDatabaseDataContextProvider dbData={dbData}>
-      <PageContent />
+      <NonEmptyPageContent />
     </AllDatabaseDataContextProvider>
   );
 }

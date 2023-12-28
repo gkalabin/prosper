@@ -1,6 +1,8 @@
 import { Prisma } from "@prisma/client";
+import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
+import { Currency } from "lib/model/Currency";
 import prisma from "lib/prisma";
-import {Currency} from "lib/model/Currency";
+import { includeExtensionsAndTags } from "lib/transactionDbUtils";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "pages/api/auth/[...nextauth]";
 
@@ -113,3 +115,30 @@ export class DB {
     return copy;
   }
 }
+
+
+export async function fetchAllDatabaseData(db: DB): Promise<AllDatabaseData> {
+  const data = {} as AllDatabaseData;
+  await Promise.all(
+    [
+      async () =>
+        (data.dbTransactions = await db.transactionFindMany(
+          includeExtensionsAndTags
+        )),
+      async () => (data.dbBanks = await db.bankFindMany()),
+      async () => (data.dbTrips = await db.tripFindMany()),
+      async () => (data.dbTags = await db.tagFindMany()),
+      async () => (data.dbBankAccounts = await db.bankAccountFindMany()),
+      async () => (data.dbCategories = await db.categoryFindMany()),
+      async () =>
+        (data.dbDisplaySettings = await db.getOrCreateDbDisplaySettings()),
+      async () => (data.dbExchangeRates = await db.exchangeRateFindMany()),
+      async () => (data.dbStockQuotes = await db.stockQuoteFindMany()),
+      async () => (data.dbStocks = await db.stocksFindMany()),
+      async () =>
+        (data.dbTransactionPrototypes =
+          await db.transactionPrototypeFindMany()),
+    ].map((f) => f())
+  );
+  return data;
+};
