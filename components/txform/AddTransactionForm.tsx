@@ -606,7 +606,7 @@ const FormInputs = (props: {
 }) => {
   const currencies = useCurrencyContext();
   const {
-    values: { amount, vendor, timestamp, isFamilyExpense },
+    values: { amount, vendor, timestamp, isFamilyExpense, fromBankAccountId },
     setFieldValue,
     handleChange,
     isSubmitting,
@@ -666,6 +666,13 @@ const FormInputs = (props: {
       setFieldValue("categoryId", suggestion.id);
     }
   }, [vendor, props.allTransactions, props.mode, setFieldValue]);
+
+  useEffect(() => {
+    if (props.mode == FormMode.PERSONAL) {
+      const account = props.banks.flatMap(b => b.accounts).find(a => a.id == fromBankAccountId)
+      setFieldValue("isFamilyExpense", account.isJoint());
+    }
+  }, [props.mode, setFieldValue, props.banks, fromBankAccountId]);
 
   const vendorFrequency: { [vendor: string]: number } = {};
   props.allTransactions
