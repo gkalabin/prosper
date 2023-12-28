@@ -7,7 +7,7 @@ import { descriptiveDateTime, shortRelativeDate } from "lib/TimeHelpers";
 import { useState } from "react";
 
 const transactionHeadingText = (t: Transaction) => {
-  if (t.vendor()) {
+  if (t.hasVendor()) {
     return t.vendor();
   }
   if (t.isTransfer()) {

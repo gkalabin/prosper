@@ -163,6 +163,7 @@ function logIfExtraFields(t: IOBTransaction) {
       counter_party_preferred_name,
       user_comments,
       transaction_time,
+      provider_reference,
       ...rest
     } = t.meta;
     if (Object.keys(rest).length) {

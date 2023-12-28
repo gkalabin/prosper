@@ -134,15 +134,22 @@ function initialValuesEmpty(
 function mostUsedAccountFrom(txs: Transaction[]): BankAccount {
   const accounts = txs
     .filter((x) => x.hasAccountFrom())
-    .map((x) => x.accountFrom())
+    .map((x) => x.accountFrom());
   return mostFrequent(accounts);
 }
 
 function mostUsedAccountTo(txs: Transaction[]): BankAccount {
   const accounts = txs
     .filter((x) => x.hasAccountTo())
-    .map((x) => x.accountTo())
+    .map((x) => x.accountTo());
   return mostFrequent(accounts);
+}
+
+function mostUsedCurrency(txs: Transaction[]): Currency {
+  const currencies = txs
+    .filter((x) => x.isThirdPartyExpense())
+    .map((x) => x.currency());
+  return mostFrequent(currencies);
 }
 
 function mostUsedCategory(
@@ -151,7 +158,7 @@ function mostUsedCategory(
 ): Category {
   const categories = txs
     .filter((x) => vendor ? x.hasVendor() && x.vendor() == vendor : true)
-    .map((x) => x.category)
+    .map((x) => x.category);
   return mostFrequent(categories);
 }
 
@@ -187,11 +194,10 @@ export const AddTransactionForm = (props: {
     ? formModeForTransaction(props.transaction)
     : FormMode.PERSONAL;
   const { transactions, currencies } = useAllDatabaseDataContext();
-  const transactionsForMode = transactions.filter((x) => formModeForTransaction(x) == initialMode);
-  const defaultAccountFrom = mostUsedAccountFrom(transactionsForMode);
-  const defaultAccountTo = mostUsedAccountTo(transactionsForMode);
-  const defaultCategory = mostUsedCategory(transactionsForMode, "");
-  const defaultCurrency = currencies.all()[0];
+  const defaultAccountFrom = mostUsedAccountFrom(transactions);
+  const defaultAccountTo = mostUsedAccountTo(transactions);
+  const defaultCategory = mostUsedCategory(transactions, "");
+  const defaultCurrency = mostUsedCurrency(transactions);
   const initialValuesForEmptyForm = initialValuesEmpty(
     initialMode,
     defaultAccountFrom,

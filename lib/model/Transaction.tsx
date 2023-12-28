@@ -128,12 +128,12 @@ export class Transaction {
     return this.isPersonalExpense() || this.isTransfer();
   }
 
-  hasAccountTo() {
-    return this.isIncome() || this.isTransfer();
-  }
-
   accountFrom() {
     return this.personalExpense?.account ?? this.transfer?.accountFrom;
+  }
+
+  hasAccountTo() {
+    return this.isIncome() || this.isTransfer();
   }
 
   accountTo() {

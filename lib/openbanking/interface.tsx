@@ -26,6 +26,7 @@ export interface IOBTransaction {
     counter_party_preferred_name: string;
     user_comments: string;
     transaction_time: string;
+    provider_reference: string;
   };
   timestamp: string;
   transaction_type: string;
