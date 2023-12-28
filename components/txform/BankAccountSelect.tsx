@@ -1,13 +1,16 @@
+import { LabelledInputProps } from "components/forms/Input";
 import { SelectNumber } from "components/txform/Select";
-import { FieldHookConfig } from "formik";
-import { useAllDatabaseDataContext, useDisplayBankAccounts } from "lib/ClientSideModel";
+import {
+  useAllDatabaseDataContext,
+  useDisplayBankAccounts,
+} from "lib/ClientSideModel";
 import { fullAccountName } from "lib/model/BankAccount";
 
 export const BankAccountSelect = (
-  props: FieldHookConfig<number> & { label: string }
+  props: React.InputHTMLAttributes<HTMLSelectElement> & LabelledInputProps,
 ) => {
   const accounts = useDisplayBankAccounts();
-  const {banks} = useAllDatabaseDataContext();
+  const { banks } = useAllDatabaseDataContext();
   return (
     <SelectNumber {...props}>
       {accounts.map((x) => (

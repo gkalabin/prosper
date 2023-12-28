@@ -17,6 +17,7 @@ import {
   thirdPartyExpenseModelFromDB,
 } from "lib/model/transaction/ThirdPartyExpense";
 import { Transfer, transferModelFromDB } from "lib/model/transaction/Transfer";
+import { notEmpty } from "lib/util/util";
 
 export type Transaction =
   | PersonalExpense
@@ -80,7 +81,14 @@ export function transactionUnit(
 }
 
 export function transactionTags(t: Transaction, allTags: Tag[]): Tag[] {
-  return t.tagsIds.map((tagId) => allTags.find((tag) => tag.id == tagId));
+  const findTag = (tagId: number) => {
+    const found = allTags.find((tag) => tag.id == tagId);
+    if (!found) {
+      console.error(`Cannot find tag ${tagId} for transaction ${t.id}`);
+    }
+    return found;
+  };
+  return t.tagsIds.map(findTag).filter(notEmpty);
 }
 
 export function transactionTrip(
