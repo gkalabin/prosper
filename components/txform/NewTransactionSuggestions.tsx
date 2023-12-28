@@ -1,4 +1,5 @@
 import { TransactionPrototype as DBTransactionPrototype } from "@prisma/client";
+import assert from "assert";
 import classNames from "classnames";
 import { ButtonLink } from "components/ui/buttons";
 import { format } from "date-fns";
@@ -159,13 +160,26 @@ function SuggestionsList(props: {
   );
   const [limit, setLimit] = useState(5);
   const displayItems = items.slice(0, limit);
+  const sameProto = (a: TransactionPrototype, b: TransactionPrototype) => {
+    if (a.type != b.type) {
+      return false;
+    }
+    if (a.type == "transfer") {
+      assert(b.type == "transfer");
+      return (
+        sameProto(a.deposit, b.deposit) && sameProto(a.withdrawal, b.withdrawal)
+      );
+    }
+    assert(b.type != "transfer");
+    return a.externalTransactionId == b.externalTransactionId;
+  };
   return (
     <div className="divide-y divide-gray-200">
       {displayItems.map((proto, i) => (
         <SuggestionItem
           key={i}
           proto={proto}
-          isActive={proto == props.activePrototype}
+          isActive={sameProto(proto, props.activePrototype)}
           bankAccount={props.bankAccount}
           onClick={props.onItemClick}
         />
