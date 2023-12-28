@@ -69,7 +69,8 @@ export const FormTransfer = ({
       prototype.type == "transfer"
         ? [prototype.withdrawal, prototype.deposit]
         : [prototype, prototype];
-    setFieldValue("amount", deposit.absoluteAmountCents / 100);
+    setFieldValue("amount", withdrawal.absoluteAmountCents / 100);
+    setFieldValue("amountReceived", deposit.absoluteAmountCents / 100);
     setFieldValue("timestamp", toDateTimeLocal(deposit.timestampEpoch));
     setFieldValue("description", deposit.description);
     setFieldValue("fromBankAccountId", withdrawal.internalAccountId);
@@ -83,7 +84,8 @@ export const FormTransfer = ({
     fromAccount,
     toAccount,
     showReceivedAmount,
-    transaction
+    transaction,
+    prototype
   );
   return (
     <>
@@ -110,7 +112,8 @@ function useReceivedAmountEffect(
   fromAccount: BankAccount,
   toAccount: BankAccount,
   showReceivedAmount: boolean,
-  transaction: Transaction
+  transaction: Transaction,
+  prototype: TransactionPrototype,
 ) {
   const { exchange } = useAllDatabaseDataContext();
   const {
@@ -118,6 +121,9 @@ function useReceivedAmountEffect(
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
   useEffect(() => {
+    if (prototype) {
+      return;
+    }
     if (!showReceivedAmount) {
       setFieldValue("receivedAmount", amount);
       return;
@@ -144,6 +150,7 @@ function useReceivedAmountEffect(
     fromAccount.currency,
     toAccount.currency,
     transaction,
+    prototype
   ]);
   return showReceivedAmount;
 }
