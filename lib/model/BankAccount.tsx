@@ -1,6 +1,6 @@
 import { Bank as DBBank, BankAccount as DBBankAccount } from "@prisma/client";
-import { Currency } from "./Currency";
-import { Transaction } from "./Transaction";
+import { Currency } from "lib/model/Currency";
+import { Transaction } from "lib/model/Transaction";
 
 export type Bank = {
   id: number;

@@ -7,9 +7,9 @@ import {
   PersonalExpense,
   ThirdPartyExpense,
   Transaction,
-  Transfer,
+  Transfer
 } from "@prisma/client";
-import prisma from "./prisma";
+import prisma from "lib/prisma";
 
 export interface TransactionWithExtensions extends Transaction {
   personalExpense?: PersonalExpense;

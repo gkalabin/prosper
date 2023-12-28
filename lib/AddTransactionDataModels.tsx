@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { fail } from "assert";
-import { Transaction } from "./model/Transaction";
+import { Transaction } from "lib/model/Transaction";
 
 export enum FormMode {
   PERSONAL,

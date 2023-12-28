@@ -1,22 +1,22 @@
 import { Transaction as DBTransaction } from "@prisma/client";
-import { withIronSessionSsr } from "iron-session/next";
-import { InferGetServerSidePropsType } from "next";
-import Router from "next/router";
-import React, { useState } from "react";
 import { Amount } from "components/Amount";
 import Layout from "components/Layout";
 import { AddTransactionForm } from "components/transactions/AddTransactionForm";
 import { TransactionsList } from "components/transactions/TransactionsList";
+import { withIronSessionSsr } from "iron-session/next";
 import { modelFromDatabaseData } from "lib/ClientSideModel";
 import {
   Bank,
   BankAccount,
-  bankAccountBalance,
+  bankAccountBalance
 } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
 import { AllDatabaseData, loadAllDatabaseData } from "lib/ServerSideDB";
 import { sessionOptions } from "lib/session";
+import { InferGetServerSidePropsType } from "next";
+import Router from "next/router";
+import React, { useState } from "react";
 import { User } from "./api/user";
 
 type BankAccountListItemProps = {

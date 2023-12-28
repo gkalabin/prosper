@@ -1,8 +1,8 @@
-import { Bank, BankAccount } from "./model/BankAccount";
-import { Category, categoryModelFromDB } from "./model/Category";
-import { Currency, currencyModelFromDB } from "./model/Currency";
-import { Transaction } from "./model/Transaction";
-import { AllDatabaseData } from "./ServerSideDB";
+import { Bank, BankAccount } from "lib/model/BankAccount";
+import { Category, categoryModelFromDB } from "lib/model/Category";
+import { Currency, currencyModelFromDB } from "lib/model/Currency";
+import { Transaction } from "lib/model/Transaction";
+import { AllDatabaseData } from "lib/ServerSideDB";
 
 export type AllDataModel = {
   transactions: Transaction[];

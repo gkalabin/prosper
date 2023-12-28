@@ -1,7 +1,7 @@
 import { withIronSessionApiRoute } from "iron-session/next/dist";
+import { sessionOptions } from "lib/session";
 import { NextApiRequest, NextApiResponse } from "next";
 import { User } from "pages/api/user";
-import { sessionOptions } from "./session";
 
 export declare type AuthentiatedApiHandler = (
   user: User,

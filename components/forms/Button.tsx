@@ -1,5 +1,5 @@
-import React, { ButtonHTMLAttributes } from "react";
-import { InputProps } from "./InputProps";
+import { InputProps } from "components/forms/InputProps";
+import { ButtonHTMLAttributes } from "react";
 
 export const Button = (
   props: InputProps & ButtonHTMLAttributes<HTMLButtonElement>

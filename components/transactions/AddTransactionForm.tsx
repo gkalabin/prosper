@@ -1,23 +1,23 @@
 import { Switch } from "@headlessui/react";
 import { Transaction as DBTransaction } from "@prisma/client";
 import classNames from "classnames";
+import { BankAccountSelect } from "components/forms/BankAccountSelect";
+import { MoneyInput, TextInput } from "components/forms/Input";
+import { SelectNumber } from "components/forms/Select";
 import { Form, Formik, FormikHelpers, useFormikContext } from "formik";
-import Link from "next/link";
-import React, { useEffect, useState } from "react";
 import {
   AddTransactionFormValues,
   FormMode,
   formModeForTransaction,
-  formToDTO,
+  formToDTO
 } from "lib/AddTransactionDataModels";
 import { Bank, bankAccountsFlatList } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
 import { Transaction } from "lib/model/Transaction";
 import { toDateTimeLocal } from "lib/TimeHelpers";
-import { BankAccountSelect } from "components/forms/BankAccountSelect";
-import { MoneyInput, TextInput } from "components/forms/Input";
-import { SelectNumber } from "components/forms/Select";
+import Link from "next/link";
+import React, { useEffect, useState } from "react";
 
 type AddTransactionFormProps = {
   banks: Bank[];

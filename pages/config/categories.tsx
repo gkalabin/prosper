@@ -1,11 +1,11 @@
 import { Category as DBCategory } from "@prisma/client";
-import { GetStaticProps } from "next";
-import React, { useState } from "react";
 import AddCategoryForm from "components/config/categories/AddCategoryForm";
 import EditableCategoryListItem from "components/config/categories/CategoryListItem";
 import Layout from "components/Layout";
 import { Category, categoryModelFromDB } from "lib/model/Category";
 import prisma from "lib/prisma";
+import { GetStaticProps } from "next";
+import React, { useState } from "react";
 
 export const getStaticProps: GetStaticProps = async () => {
   const categories = await prisma.category.findMany({});

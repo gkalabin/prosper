@@ -1,7 +1,7 @@
+import { InputProps } from "components/forms/InputProps";
+import { SelectNumber } from "components/forms/Select";
 import { FieldHookConfig } from "formik";
 import { Category } from "lib/model/Category";
-import { InputProps } from "./InputProps";
-import { SelectNumber } from "./Select";
 
 export const CategorySelect = (
   props: InputProps & FieldHookConfig<number> & { categories: Category[] }

@@ -1,7 +1,7 @@
+import { InputProps } from "components/forms/InputProps";
+import { SelectNumber } from "components/forms/Select";
 import { FieldHookConfig } from "formik";
 import { Bank } from "lib/model/BankAccount";
-import { InputProps } from "./InputProps";
-import { SelectNumber } from "./Select";
 
 export const BankAccountSelect = (
   props: InputProps & FieldHookConfig<number> & { banks: Bank[] }

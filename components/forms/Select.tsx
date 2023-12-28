@@ -1,6 +1,6 @@
+import { InputProps } from "components/forms/InputProps";
 import { FieldHookConfig, useField, useFormikContext } from "formik";
 import { ClassAttributes } from "react";
-import { InputProps } from "./InputProps";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SelectUntyped = (props: InputProps & FieldHookConfig<any>) => {

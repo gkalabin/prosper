@@ -1,7 +1,7 @@
-import { TransactionWithExtensions } from "ServerSideDB";
-import { BankAccount } from "./BankAccount";
-import { Category } from "./Category";
-import { Currency } from "./Currency";
+import { BankAccount } from "lib/model/BankAccount";
+import { Category } from "lib/model/Category";
+import { Currency } from "lib/model/Currency";
+import { TransactionWithExtensions } from "lib/ServerSideDB";
 // import { assert } from "console";
 
 export type PersonalExpense = {

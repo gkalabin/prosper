@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client";
-import type { NextApiRequest, NextApiResponse } from "next";
 import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
 import prisma from "lib/prisma";
-import { User } from "user";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { User } from "pages/api/user";
 
 export default authenticatedApiRoute(async function handle(
   user: User,

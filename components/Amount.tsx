@@ -1,6 +1,6 @@
+import classNames from "classnames";
 import { Currency } from "lib/model/Currency";
 import { formatMoney } from "lib/Money";
-import classNames from "classnames";
 
 export const Amount = (props: {
   amountCents: number;

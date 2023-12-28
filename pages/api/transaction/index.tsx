@@ -8,9 +8,9 @@ import {
   transactionDbInput,
   transferDbInput
 } from "lib/AddTransactionDataModels";
-import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "lib/prisma";
 import { TransactionWithExtensions } from "lib/ServerSideDB";
+import type { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handle(
   req: NextApiRequest,

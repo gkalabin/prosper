@@ -1,5 +1,3 @@
-import { GetStaticProps } from "next";
-import React, { useState } from "react";
 import AddBankAccountForm from "components/config/banks/AddBankAccountForm";
 import AddBankForm from "components/config/banks/AddBankForm";
 import BankAccountListItem from "components/config/banks/BankAccountListItem";
@@ -8,6 +6,8 @@ import Layout from "components/Layout";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Currency } from "lib/model/Currency";
 import prisma from "lib/prisma";
+import { GetStaticProps } from "next";
+import React, { useState } from "react";
 
 export const getStaticProps: GetStaticProps = async () => {
   const banks = await prisma.bank.findMany({

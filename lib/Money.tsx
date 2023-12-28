@@ -1,4 +1,4 @@
-import { Currency } from "./model/Currency";
+import { Currency } from "lib/model/Currency";
 
 const formatters = {
   EUR: new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }),

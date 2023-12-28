@@ -1,11 +1,11 @@
 import { Transaction as DBTransaction } from "@prisma/client";
-import { GetStaticProps } from "next";
-import React, { useState } from "react";
 import Layout from "components/Layout";
 import { AddTransactionForm } from "components/transactions/AddTransactionForm";
 import { TransactionsList } from "components/transactions/TransactionsList";
 import { modelFromDatabaseData } from "lib/ClientSideModel";
 import { AllDatabaseData, loadAllDatabaseData } from "lib/ServerSideDB";
+import { GetStaticProps } from "next";
+import React, { useState } from "react";
 
 export const getStaticProps: GetStaticProps = async () => {
   const allData = await loadAllDatabaseData();

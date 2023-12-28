@@ -1,12 +1,12 @@
 import { Transaction as DBTransaction } from "@prisma/client";
-import React, { useState } from "react";
+import { Amount } from "components/Amount";
+import { AddTransactionForm } from "components/transactions/AddTransactionForm";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
 import { Transaction } from "lib/model/Transaction";
 import { descriptiveDateTime, shortRelativeDate } from "lib/TimeHelpers";
-import { Amount } from "Amount";
-import { AddTransactionForm } from "./AddTransactionForm";
+import React, { useState } from "react";
 
 const transactionHeadingText = (t: Transaction) => {
   if (t.vendor()) {

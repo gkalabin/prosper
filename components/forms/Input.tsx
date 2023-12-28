@@ -1,6 +1,6 @@
-import React, { ClassAttributes } from "react";
-import { useField, FieldHookConfig } from "formik";
-import { InputProps } from "./InputProps";
+import { InputProps } from "components/forms/InputProps";
+import { FieldHookConfig, useField } from "formik";
+import { ClassAttributes } from "react";
 
 export const MoneyInput = (props: InputProps & FieldHookConfig<number>) => {
   return (
