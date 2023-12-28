@@ -8,6 +8,7 @@ import { TransactionsList } from "components/transactions/TransactionsList";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
 import { ButtonPagePrimary } from "components/ui/buttons";
 import {
+  Amount,
   CurrencyContextProvider,
   modelFromDatabaseData,
 } from "lib/ClientSideModel";
@@ -16,6 +17,7 @@ import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import {
+  IOBBalancesByAccountId,
   IOpenBankingData,
 } from "lib/openbanking/interface";
 import { allDbDataPropsWithOb } from "lib/ServerSideDB";
@@ -27,8 +29,38 @@ const BankAccountListItem = (props: {
   categories: Category[];
   account: BankAccount;
   onTransactionUpdated: (updated: DBTransaction) => void;
+  openBankingBalance?: Amount;
 }) => {
   const [showTransactionList, setShowTransactionList] = useState(false);
+
+  let balanceText = <span>{props.account.balance().format()}</span>;
+  if (props.openBankingBalance) {
+    const delta = props.account
+      .balance()
+      .getAmountWithoutCurrency()
+      .subtract(props.openBankingBalance);
+    if (delta.equals(Amount.ZERO)) {
+      balanceText = (
+        <span className="text-green-600">
+          {props.account.balance().format()}
+        </span>
+      );
+    } else {
+      console.log("account", props.account.balance())
+      console.log("ob", props.openBankingBalance)
+      console.log("delta", delta)
+      balanceText = (
+        <>
+          <span className="text-red-600">
+            {props.account.balance().format()}
+          </span>{" "}
+          {delta.format()}{" "}
+          {delta.lessThan(Amount.ZERO) ? "extra" : "unaccounted"}
+        </>
+      );
+    }
+  }
+
   return (
     <div className="flex flex-col py-2 pl-6 pr-2">
       <div
@@ -36,7 +68,9 @@ const BankAccountListItem = (props: {
         onClick={() => setShowTransactionList(!showTransactionList)}
       >
         <span className="text-base font-normal">{props.account.name}</span>
-        <span className="ml-2 text-sm font-light">{props.account.balance().format()}</span>
+        <span className="ml-2 text-sm font-light">
+          {balanceText}
+        </span>
       </div>
       {showTransactionList && (
         <div className="mt-4">
@@ -56,6 +90,7 @@ const BankAccountListItem = (props: {
 const BanksList = (props: {
   categories: Category[];
   banks: Bank[];
+  openBankingBalances: IOBBalancesByAccountId;
   onTransactionUpdated: (updated: DBTransaction) => void;
 }) => {
   const displayCurrency = useDisplayCurrency();
@@ -64,10 +99,12 @@ const BanksList = (props: {
     <div className="flex-1 rounded border border-gray-200">
       <div className="flex flex-col divide-y divide-gray-200">
         {props.banks.map((bank) => (
-          <>
+          <div key={bank.id}>
             <div className="border-b bg-indigo-200 p-2 text-xl font-medium text-gray-900">
               {bank.name}
-              <span className="ml-2">{bank.balance(displayCurrency).format()}</span>
+              <span className="ml-2">
+                {bank.balance(displayCurrency).format()}
+              </span>
             </div>
 
             <div className="divide-y divide-gray-200">
@@ -79,11 +116,12 @@ const BanksList = (props: {
                     account={account}
                     categories={props.categories}
                     banks={props.banks}
+                    openBankingBalance={props.openBankingBalances[account.id]}
                     onTransactionUpdated={props.onTransactionUpdated}
                   />
                 ))}
             </div>
-          </>
+          </div>
         ))}
       </div>
     </div>
@@ -162,6 +200,7 @@ export default function OverviewPage(
             banks={banks}
             categories={categories}
             onTransactionUpdated={updateTransaction}
+            openBankingBalances={dbData.openBankingData.balances}
           />
         </ArchivedAccountsShownContext.Provider>
       </CurrencyContextProvider>

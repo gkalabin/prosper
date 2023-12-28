@@ -41,12 +41,16 @@ export class AmountWithCurrency {
   };
 
   public constructor(init: { amountCents: number; currency: Currency }) {
-    this.amount = new Amount({amountCents: init.amountCents});
+    this.amount = new Amount({ amountCents: init.amountCents });
     this.currency = init.currency;
   }
 
   public getCurrency() {
     return this.currency;
+  }
+
+  public getAmountWithoutCurrency() {
+    return this.amount;
   }
 
   public cents() {
@@ -109,9 +113,14 @@ export class AmountWithCurrency {
 }
 
 export class Amount {
+  static readonly ZERO = new Amount({ amountCents: 0 });
+
   private readonly amountCents: number;
 
   public constructor(init: { amountCents: number }) {
+    if (!Number.isInteger(init.amountCents)) {
+      throw new Error(`Want integer, got ${init.amountCents}`);
+    }
     this.amountCents = init.amountCents;
   }
 
@@ -142,6 +151,10 @@ export class Amount {
   public lessThan(a: Amount) {
     return this.amountCents < a.amountCents;
   }
+
+  public format(): string {
+    return this.dollar().toFixed(2);
+  }
 }
 
 export class StockAndCurrencyExchange {
@@ -153,7 +166,11 @@ export class StockAndCurrencyExchange {
     this.stockQuotes = sq;
   }
 
-  exchange(a: AmountWithCurrency, target: Currency, when: Date): AmountWithCurrency {
+  exchange(
+    a: AmountWithCurrency,
+    target: Currency,
+    when: Date
+  ): AmountWithCurrency {
     let from = a;
     if (a.getCurrency().isStock()) {
       from = this.stockQuotes.exchange(from, when);
@@ -203,7 +220,11 @@ export class ExchangeRates {
     }
   }
 
-  exchange(a: AmountWithCurrency, target: Currency, when: Date): AmountWithCurrency {
+  exchange(
+    a: AmountWithCurrency,
+    target: Currency,
+    when: Date
+  ): AmountWithCurrency {
     if (a.getCurrency().id == target.id) {
       return a;
     }
@@ -214,7 +235,7 @@ export class ExchangeRates {
     }
     const rateNanos = this.findRate(a.getCurrency(), target, when);
     return new AmountWithCurrency({
-      amountCents: (a.cents() * rateNanos) / NANOS_MULTIPLIER,
+      amountCents: Math.round((a.cents() * rateNanos) / NANOS_MULTIPLIER),
       currency: target,
     });
   }
@@ -264,9 +285,9 @@ export class StockQuotes {
     if (!c.isStock()) {
       throw new Error(`Currency ${c.name} is not stock`);
     }
-    const value = this.findQuote(c.name, when);
+    const quoteCents = this.findQuote(c.name, when);
     return new AmountWithCurrency({
-      amountCents: (a.cents() * value) / 100,
+      amountCents: Math.round(a.dollar() * quoteCents),
       currency: this.currencyByStock[c.name],
     });
   }

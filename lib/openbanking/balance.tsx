@@ -75,9 +75,14 @@ async function fetchAccountBalancesForSingleBank(
             console.warn("No balance found", x);
             return;
           }
+          // fields are: available, current, overdraft
+          //   current - for some banks includes non settled amount
+          //   current - includes overdraft
+          //   overdraft - how much you can lend from the bank, can be missing
           const [{ available, overdraft }] = x.results;
+          const balanceDollars = available - (overdraft ?? 0);
           balanceByAccountId[account.bankAccountId] = new Amount({
-            amountCents: Math.round((available - overdraft) * 100),
+            amountCents: Math.round(balanceDollars * 100),
           });
         })
     );
