@@ -57,14 +57,27 @@ const CreateCategoryFormComponent: React.FC<CreateCategoryFormProps> = (
   const [parentId, setParentId] = useState(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [createInProgress, setCreateInProgress] = useState(false);
+  const [apiError, setApiError] = useState("");
 
-  const closeForm = () => {
+  const reset = () => {
     setName("");
+    setApiError("");
+    setParentId(null);
+  };
+
+  const open = () => {
+    reset();
+    setShowCreateForm(true);
+  };
+
+  const close = () => {
+    reset();
     setShowCreateForm(false);
   };
 
   const submitData = async (e: React.SyntheticEvent) => {
     e.preventDefault();
+    setApiError("");
     setCreateInProgress(true);
     const parentCategoryId = parentId ? +parentId : null;
     try {
@@ -78,10 +91,10 @@ const CreateCategoryFormComponent: React.FC<CreateCategoryFormProps> = (
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      closeForm();
+      close();
       props.onNewCategoryCreated(await newCategory.json());
     } catch (error) {
-      console.error(error);
+      setApiError(`Failed to create new category: ${error}`);
     }
     setCreateInProgress(false);
   };
@@ -94,10 +107,14 @@ const CreateCategoryFormComponent: React.FC<CreateCategoryFormProps> = (
           autoFocus
           onChange={(e) => setName(e.target.value)}
           placeholder="Name"
+          disabled={createInProgress}
           type="text"
           value={name}
         />
-        <select onChange={(e) => setParentId(e.target.value)}>
+        <select
+          onChange={(e) => setParentId(e.target.value)}
+          disabled={createInProgress}
+        >
           <option value="">No parent</option>
           {props.allCategories.map((category) => (
             <option key={category.id} value={category.id}>
@@ -105,16 +122,19 @@ const CreateCategoryFormComponent: React.FC<CreateCategoryFormProps> = (
             </option>
           ))}
         </select>
-        <button onClick={closeForm}>Cancel</button>
+        <button onClick={close} disabled={createInProgress}>
+          Cancel
+        </button>
         <input
           disabled={!name || createInProgress}
           type="submit"
           value={createInProgress ? "Creating…" : "Create"}
         />
+        {apiError && <span>{apiError}</span>}
       </form>
     );
   }
-  return <button onClick={(e) => setShowCreateForm(true)}>New category</button>;
+  return <button onClick={open}>New category</button>;
 };
 
 const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
