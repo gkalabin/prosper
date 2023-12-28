@@ -1,5 +1,4 @@
 import { Prisma } from "@prisma/client";
-import { fail } from "assert";
 import { Transaction } from "lib/model/Transaction";
 
 export enum FormMode {
@@ -9,37 +8,19 @@ export enum FormMode {
   INCOME,
 }
 
-export const formModeForTransaction = (t?: Transaction) => {
-  if (!t) {
-    return FormMode.PERSONAL;
-  }
-  if (t.isPersonalExpense()) {
-    return FormMode.PERSONAL;
-  }
-  if (t.isThirdPartyExpense()) {
-    return FormMode.EXTERNAL;
-  }
-  if (t.isTransfer()) {
-    return FormMode.TRANSFER;
-  }
-  if (t.isIncome()) {
-    return FormMode.INCOME;
-  }
-  fail(`Unknown transaction type for ${t}`);
-};
-
 export type AddTransactionFormValues = {
+  mode: FormMode;
   timestamp: string;
   description: string;
   amount: number;
-  ownShareAmount?: number;
+  ownShareAmount: number;
   categoryId: number;
   vendor: string;
-  fromBankAccountId?: number;
-  toBankAccountId?: number;
-  payer?: string;
-  currencyId?: number;
-  receivedAmount?: number;
+  fromBankAccountId: number;
+  toBankAccountId: number;
+  payer: string;
+  currencyId: number;
+  receivedAmount: number;
   isFamilyExpense: boolean;
   tripName: string;
 };
@@ -85,12 +66,11 @@ export type IncomeTransactionDTO = {
 };
 
 export const formToDTO = (
-  mode: FormMode,
   form: AddTransactionFormValues,
   transaction?: Transaction
 ): AddTransactionDTO => {
   const out: AddTransactionDTO = {
-    mode: mode,
+    mode: form.mode,
     transactionId: transaction?.id,
     timestamp: new Date(form.timestamp).getTime(),
     amountCents: Math.round(form.amount * 100),
@@ -99,7 +79,7 @@ export const formToDTO = (
   };
 
   const ownShareCents = Math.round(form.ownShareAmount * 100);
-  if (mode == FormMode.PERSONAL) {
+  if (form.mode == FormMode.PERSONAL) {
     out.personalTransaction = {
       vendor: form.vendor,
       ownShareAmountCents: ownShareCents,
@@ -107,7 +87,7 @@ export const formToDTO = (
       tripName: form.tripName || null,
     };
   }
-  if (mode == FormMode.EXTERNAL) {
+  if (form.mode == FormMode.EXTERNAL) {
     out.externalTransaction = {
       ownShareAmountCents: ownShareCents,
       vendor: form.vendor,
@@ -116,14 +96,14 @@ export const formToDTO = (
       tripName: form.tripName || null,
     };
   }
-  if (mode == FormMode.TRANSFER) {
+  if (form.mode == FormMode.TRANSFER) {
     out.transferTransaction = {
       receivedAmountCents: Math.round(form.receivedAmount * 100),
       fromBankAccountId: form.fromBankAccountId,
       toBankAccountId: form.toBankAccountId,
     };
   }
-  if (mode == FormMode.INCOME) {
+  if (form.mode == FormMode.INCOME) {
     out.incomeTransaction = {
       vendor: form.vendor,
       ownShareAmountCents: ownShareCents,

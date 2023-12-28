@@ -27,7 +27,6 @@ import { Form, Formik, FormikHelpers, useFormikContext } from "formik";
 import {
   AddTransactionFormValues,
   FormMode,
-  formModeForTransaction,
   formToDTO,
 } from "lib/AddTransactionDataModels";
 import {
@@ -67,12 +66,33 @@ export function toDateTimeLocal(d: Date) {
   return format(d, "yyyy-MM-dd'T'HH:mm");
 }
 
+const formModeForTransaction = (t: Transaction) => {
+  if (!t) {
+    throw new Error("No transaction provided");
+  }
+  if (t.isPersonalExpense()) {
+    return FormMode.PERSONAL;
+  }
+  if (t.isThirdPartyExpense()) {
+    return FormMode.EXTERNAL;
+  }
+  if (t.isTransfer()) {
+    return FormMode.TRANSFER;
+  }
+  if (t.isIncome()) {
+    return FormMode.INCOME;
+  }
+  throw new Error(`Unknown transaction type for ${t}`);
+};
+
 function initialValuesForTransaction(
   t: Transaction,
+  mode: FormMode,
   defaultAccountFrom: BankAccount,
   defaultAccountTo: BankAccount
 ): AddTransactionFormValues {
   const defaults: AddTransactionFormValues = {
+    mode,
     timestamp: toDateTimeLocal(t.timestamp),
     description: t.description,
     vendor: "",
@@ -85,6 +105,7 @@ function initialValuesForTransaction(
     currencyId: t.currency().id,
     isFamilyExpense: t.isFamilyExpense(),
     tripName: t.hasTrip() ? t.trip().name() : "",
+    payer: t.isThirdPartyExpense() ? t.thirdPartyExpense.payer : "",
   };
   if (t.hasVendor()) {
     defaults.vendor = t.vendor();
@@ -99,14 +120,15 @@ function initialValuesForTransaction(
 }
 
 function initialValuesEmpty(
+  mode: FormMode,
   defaultAccountFrom: BankAccount,
   defaultAccountTo: BankAccount,
   defaultCategory: Category,
   defaultCurrency: Currency
 ): AddTransactionFormValues {
-  const now = new Date();
   return {
-    timestamp: toDateTimeLocal(now),
+    mode,
+    timestamp: toDateTimeLocal(new Date()),
     vendor: "",
     description: "",
     amount: 0,
@@ -118,6 +140,7 @@ function initialValuesEmpty(
     currencyId: defaultCurrency.id,
     isFamilyExpense: false,
     tripName: "",
+    payer: "",
   };
 }
 
@@ -475,16 +498,25 @@ export const AddTransactionForm = (props: {
   onClose: () => void;
 }) => {
   const [apiError, setApiError] = useState("");
-  const [mode, setMode] = useState(formModeForTransaction(props.transaction));
   const [isAdvancedMode, setAdvancedMode] = useState(false);
   const [prototype, setPrototype] = useState<TransactionPrototype>(null);
   const currencies = useCurrencyContext();
   const creatingNewTransaction = !props.transaction;
-  const defaultAccountFrom = mostUsedAccountFrom(mode, props.allTransactions);
-  const defaultAccountTo = mostUsedAccountTo(mode, props.allTransactions);
+  const initialMode = props.transaction
+    ? formModeForTransaction(props.transaction)
+    : FormMode.PERSONAL;
+  const defaultAccountFrom = mostUsedAccountFrom(
+    initialMode,
+    props.allTransactions
+  );
+  const defaultAccountTo = mostUsedAccountTo(
+    initialMode,
+    props.allTransactions
+  );
   const defaultCategory = props.categories[0];
   const defaultCurrency = currencies.all()[0];
   const initialValuesForEmptyForm = initialValuesEmpty(
+    initialMode,
     defaultAccountFrom,
     defaultAccountTo,
     defaultCategory,
@@ -494,6 +526,7 @@ export const AddTransactionForm = (props: {
     ? initialValuesForEmptyForm
     : initialValuesForTransaction(
         props.transaction,
+        initialMode,
         defaultAccountFrom,
         defaultAccountTo
       );
@@ -502,7 +535,7 @@ export const AddTransactionForm = (props: {
     values: AddTransactionFormValues,
     { setSubmitting, resetForm }: FormikHelpers<AddTransactionFormValues>
   ) => {
-    const body = JSON.stringify(formToDTO(mode, values, props.transaction));
+    const body = JSON.stringify(formToDTO(values, props.transaction));
     await fetch("/api/transaction", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -525,7 +558,7 @@ export const AddTransactionForm = (props: {
   return (
     <div>
       <Formik initialValues={initialValues} onSubmit={submitNewTransaction}>
-        {({ isSubmitting }) => (
+        {({ isSubmitting, setFieldValue, values }) => (
           <Form>
             <div className="overflow-hidden shadow sm:rounded-md">
               <div className="bg-white p-2 sm:p-6">
@@ -541,21 +574,20 @@ export const AddTransactionForm = (props: {
                         return;
                       }
                       setPrototype(t);
-                      setMode(t.mode);
+                      setFieldValue("mode", t.mode);
                     }}
                   />
                 </div>
 
                 <FormTransactionTypeSelector
                   disabled={isSubmitting}
-                  mode={mode}
-                  setMode={(m) => setMode(m)}
+                  mode={values.mode}
+                  setMode={(m) => setFieldValue("mode", m)}
                 >
                   <FormInputs
                     transaction={props.transaction}
                     prototype={prototype}
                     isAdvancedMode={isAdvancedMode}
-                    mode={mode}
                   />
                 </FormTransactionTypeSelector>
               </div>
@@ -606,13 +638,19 @@ export const AddTransactionForm = (props: {
 const FormInputs = (props: {
   transaction: Transaction;
   isAdvancedMode: boolean;
-  mode: FormMode;
   prototype: TransactionPrototype;
 }) => {
   const { transactions, currencies, categories, banks, trips } =
     useAllDatabaseDataContext();
   const {
-    values: { amount, vendor, timestamp, isFamilyExpense, fromBankAccountId },
+    values: {
+      amount,
+      vendor,
+      timestamp,
+      isFamilyExpense,
+      fromBankAccountId,
+      mode,
+    },
     setFieldValue,
     handleChange,
     isSubmitting,
@@ -648,38 +686,29 @@ const FormInputs = (props: {
     }
     setFieldValue(
       "fromBankAccountId",
-      mostUsedAccountFrom(props.mode, transactions).id
+      mostUsedAccountFrom(mode, transactions).id
     );
-    setFieldValue(
-      "toBankAccountId",
-      mostUsedAccountTo(props.mode, transactions).id
-    );
-  }, [
-    transactions,
-    props.mode,
-    setFieldValue,
-    props.transaction,
-    props.prototype,
-  ]);
+    setFieldValue("toBankAccountId", mostUsedAccountTo(mode, transactions).id);
+  }, [transactions, mode, setFieldValue, props.transaction, props.prototype]);
 
   useEffect(() => {
-    const suggestion = mostUsedCategory(props.mode, transactions, vendor);
+    const suggestion = mostUsedCategory(mode, transactions, vendor);
     if (suggestion) {
       setFieldValue("categoryId", suggestion.id);
     }
-  }, [vendor, transactions, props.mode, setFieldValue]);
+  }, [vendor, transactions, mode, setFieldValue]);
 
   useEffect(() => {
-    if (props.mode == FormMode.PERSONAL) {
+    if (mode == FormMode.PERSONAL) {
       const account = banks
         .flatMap((b) => b.accounts)
         .find((a) => a.id == fromBankAccountId);
       setFieldValue("isFamilyExpense", account.isJoint());
     }
-  }, [props.mode, setFieldValue, banks, fromBankAccountId]);
+  }, [mode, setFieldValue, banks, fromBankAccountId]);
 
   const transactionsForMode = transactions.filter((x) => {
-    switch (props.mode) {
+    switch (mode) {
       case FormMode.PERSONAL:
         return x.isPersonalExpense();
       case FormMode.INCOME:
@@ -730,7 +759,7 @@ const FormInputs = (props: {
       </InputRow>
 
       <InputRow
-        mode={props.mode}
+        mode={mode}
         modes={
           props.isAdvancedMode
             ? [FormMode.PERSONAL, FormMode.EXTERNAL, FormMode.INCOME]
@@ -745,7 +774,7 @@ const FormInputs = (props: {
       </InputRow>
 
       <InputRow
-        mode={props.mode}
+        mode={mode}
         modes={[FormMode.PERSONAL, FormMode.EXTERNAL, FormMode.INCOME]}
       >
         <Switch.Group>
@@ -783,7 +812,7 @@ const FormInputs = (props: {
       </InputRow>
 
       <InputRow
-        mode={props.mode}
+        mode={mode}
         modes={props.isAdvancedMode ? [FormMode.TRANSFER] : []}
       >
         <MoneyInputWithLabel
@@ -794,7 +823,7 @@ const FormInputs = (props: {
       </InputRow>
 
       {/* TODO: verify that datetime-local is processed correctly with regards to timezones */}
-      <InputRow mode={props.mode}>
+      <InputRow mode={mode}>
         <label
           htmlFor="timestamp"
           className="block text-sm font-medium text-gray-700"
@@ -813,7 +842,7 @@ const FormInputs = (props: {
       </InputRow>
 
       <InputRow
-        mode={props.mode}
+        mode={mode}
         modes={[FormMode.PERSONAL, FormMode.EXTERNAL, FormMode.INCOME]}
       >
         <TextInputWithLabel
@@ -830,7 +859,7 @@ const FormInputs = (props: {
       </InputRow>
 
       <InputRow
-        mode={props.mode}
+        mode={mode}
         modes={
           props.isAdvancedMode
             ? [FormMode.PERSONAL, FormMode.EXTERNAL]
@@ -844,7 +873,7 @@ const FormInputs = (props: {
         />
       </InputRow>
 
-      <InputRow mode={props.mode}>
+      <InputRow mode={mode}>
         <SelectNumber
           name="categoryId"
           label="Category"
@@ -858,7 +887,7 @@ const FormInputs = (props: {
         </SelectNumber>
       </InputRow>
 
-      <InputRow mode={props.mode} modes={[FormMode.EXTERNAL]}>
+      <InputRow mode={mode} modes={[FormMode.EXTERNAL]}>
         <TextInputWithLabel
           name="payer"
           label="Payer"
@@ -866,10 +895,7 @@ const FormInputs = (props: {
         />
       </InputRow>
 
-      <InputRow
-        mode={props.mode}
-        modes={[FormMode.TRANSFER, FormMode.PERSONAL]}
-      >
+      <InputRow mode={mode} modes={[FormMode.TRANSFER, FormMode.PERSONAL]}>
         <BankAccountSelect
           name="fromBankAccountId"
           label="Account From"
@@ -878,7 +904,7 @@ const FormInputs = (props: {
         />
       </InputRow>
 
-      <InputRow mode={props.mode} modes={[FormMode.TRANSFER, FormMode.INCOME]}>
+      <InputRow mode={mode} modes={[FormMode.TRANSFER, FormMode.INCOME]}>
         <BankAccountSelect
           name="toBankAccountId"
           label="Account To"
@@ -887,7 +913,7 @@ const FormInputs = (props: {
         />
       </InputRow>
 
-      <InputRow mode={props.mode} modes={[FormMode.EXTERNAL]}>
+      <InputRow mode={mode} modes={[FormMode.EXTERNAL]}>
         <SelectNumber
           name="currencyId"
           label="Currency"
@@ -902,7 +928,7 @@ const FormInputs = (props: {
       </InputRow>
 
       <InputRow
-        mode={props.mode}
+        mode={mode}
         modes={
           props.isAdvancedMode ? [FormMode.PERSONAL, FormMode.EXTERNAL] : []
         }
