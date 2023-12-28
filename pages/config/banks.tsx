@@ -17,9 +17,9 @@ import {
   ButtonLink,
 } from "components/ui/buttons";
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
+import { DB } from "lib/db";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Currencies } from "lib/model/Currency";
-import prisma from "lib/prisma";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "pages/api/auth/[...nextauth]";
@@ -219,28 +219,25 @@ export const getServerSideProps: GetServerSideProps<{
   if (!session) {
     return { props: {} };
   }
-  const banks = await prisma.bank.findMany({
-    where: {
-      userId: +session.user.id,
-    },
-  });
-  const bankAccounts = await prisma.bankAccount.findMany({
+  const db = await DB.fromContext(context);
+  const banks = await db.bankFindMany();
+  const bankAccounts = await db.bankAccountFindMany({
     where: {
       bankId: {
         in: banks.map((x) => x.id),
       },
     },
   });
-  const currencies = await prisma.currency.findMany();
+  const currencies = await db.currencyFindMany();
 
-  const dbOpenBankingTokens = await prisma.openBankingToken.findMany({
+  const dbOpenBankingTokens = await db.openBankingTokenFindMany({
     where: {
       bankId: {
         in: banks.map((x) => x.id),
       },
     },
   });
-  const dbOpenBankingAccounts = await prisma.openBankingAccount.findMany({
+  const dbOpenBankingAccounts = await db.openBankingAccountFindMany({
     where: {
       bankAccountId: {
         in: bankAccounts.map((x) => x.id),

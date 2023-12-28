@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
+import { DB } from "lib/db";
 import prisma from "lib/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -8,13 +9,21 @@ async function handle(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // Parse input.
   const categoryId = parseInt(req.query.id as string);
   const { name, parentCategoryId, displayOrder } = req.body;
-  if (!hasAccess({ categoryId, userId })) {
+  // Verify user has access.
+  const db = new DB({ userId });
+  const found = await db.categoryFindMany({
+    where: {
+      id: categoryId,
+    },
+  });
+  if (!found?.length) {
     res.status(401).send(`Not authenticated`);
     return;
   }
-
+  // Perform update.
   const dbArgs: Prisma.CategoryUpdateArgs = {
     data: { name, displayOrder },
     where: { id: categoryId },
@@ -24,22 +33,6 @@ async function handle(
   }
   const result = await prisma.category.update(dbArgs);
   res.json(result);
-}
-
-async function hasAccess({
-  categoryId,
-  userId,
-}: {
-  categoryId: number;
-  userId: number;
-}): Promise<boolean> {
-  const found = await prisma.category.findFirst({
-    where: {
-      id: categoryId,
-      userId,
-    },
-  });
-  return !!found;
 }
 
 export default authenticatedApiRoute("PUT", handle);

@@ -1,20 +1,16 @@
+import { DB } from "lib/db";
 import { addLatestExchangeRates } from "lib/exchangeRatesBackfill";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { fetchBalances } from "lib/openbanking/balance";
+import { IOpenBankingData } from "lib/openbanking/interface";
 import { fetchOpenBankingTransactions } from "lib/openbanking/transactions";
-import prisma from "lib/prisma";
 import { addLatestStockQuotes } from "lib/stockQuotesBackfill";
 import { GetServerSideProps } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "pages/api/auth/[...nextauth]";
-import { IOpenBankingData } from "./openbanking/interface";
 
-const fetchAllDatabaseData = async ({
-  userId,
-}: {
-  userId: number;
-}): Promise<AllDatabaseData> => {
-  const dbTransactions = await prisma.transaction.findMany({
+const fetchAllDatabaseData = async (db: DB): Promise<AllDatabaseData> => {
+  const dbTransactions = await db.transactionFindMany({
     include: {
       personalExpense: true,
       thirdPartyExpense: true,
@@ -23,18 +19,15 @@ const fetchAllDatabaseData = async ({
     },
   });
 
-  const whereUserId = { where: { userId } };
   return {
     dbTransactions,
-    dbBanks: await prisma.bank.findMany(whereUserId),
-    dbBankAccounts: await prisma.bankAccount.findMany(whereUserId),
-    dbCurrencies: await prisma.currency.findMany(),
-    dbCategories: await prisma.category.findMany(whereUserId),
-    dbExchangeRates: await prisma.exchangeRate.findMany(),
-    dbStockQuotes: await prisma.stockQuote.findMany(),
-    dbTransactionPrototypes: await prisma.transactionPrototype.findMany(
-      whereUserId
-    ),
+    dbBanks: await db.bankFindMany(),
+    dbBankAccounts: await db.bankAccountFindMany(),
+    dbCurrencies: await db.currencyFindMany(),
+    dbCategories: await db.categoryFindMany(),
+    dbExchangeRates: await db.exchangeRateFindMany(),
+    dbStockQuotes: await db.stockQuoteFindMany(),
+    dbTransactionPrototypes: await db.transactionPrototypeFindMany(),
   };
 };
 
@@ -55,11 +48,10 @@ const jsonEncodingHacks = (key: string, value) => {
   return value;
 };
 
-export const allDbDataProps: GetServerSideProps<AllDatabaseData> = async ({
-  req,
-  res,
-}) => {
-  const session = await getServerSession(req, res, authOptions);
+export const allDbDataProps: GetServerSideProps<AllDatabaseData> = async (
+  context
+) => {
+  const session = await getServerSession(context.req, context.res, authOptions);
   if (!session) {
     return {
       redirect: {
@@ -73,15 +65,16 @@ export const allDbDataProps: GetServerSideProps<AllDatabaseData> = async ({
       console.warn("Failed to update rates", reason);
     }
   );
-  const dbData = await fetchAllDatabaseData({ userId: +session.user.id });
+  const db = await DB.fromContext(context);
+  const dbData = await fetchAllDatabaseData(db);
   const props = Object.assign(dbData, { session });
   return JSON.parse(JSON.stringify({ props }, jsonEncodingHacks));
 };
 
 export const allDbDataPropsWithOb: GetServerSideProps<
   AllDatabaseData & IOpenBankingData
-> = async ({ req, res }) => {
-  const session = await getServerSession(req, res, authOptions);
+> = async (context) => {
+  const session = await getServerSession(context.req, context.res, authOptions);
   if (!session) {
     return {
       redirect: {
@@ -90,7 +83,8 @@ export const allDbDataPropsWithOb: GetServerSideProps<
       },
     };
   }
-  const dbData = await fetchAllDatabaseData({ userId: +session.user.id });
+  const db = await DB.fromContext(context);
+  const dbData = await fetchAllDatabaseData(db);
   let obData: IOpenBankingData = {
     openBankingData: {
       balances: {},

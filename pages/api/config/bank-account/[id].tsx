@@ -1,4 +1,5 @@
 import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
+import { DB } from "lib/db";
 import prisma from "lib/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -7,12 +8,21 @@ async function handle(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
+  // Parse input.
   const accountId = parseInt(req.query.id as string);
   const { name, displayOrder, currencyId } = req.body;
-  if (!hasAccess({ accountId, userId })) {
+  // Verify user has access.
+  const db = new DB({ userId });
+  const found = await db.bankAccountFindMany({
+    where: {
+      id: accountId,
+    },
+  });
+  if (!found?.length) {
     res.status(401).send(`Not authenticated`);
     return;
   }
+  // Perform update.
   const result = await prisma.bankAccount.update({
     data: {
       name,
@@ -22,22 +32,6 @@ async function handle(
     where: { id: accountId },
   });
   res.json(result);
-}
-
-async function hasAccess({
-  accountId,
-  userId,
-}: {
-  accountId: number;
-  userId: number;
-}): Promise<boolean> {
-  const found = await prisma.bankAccount.findFirst({
-    where: {
-      id: accountId,
-      userId,
-    },
-  });
-  return !!found;
 }
 
 export default authenticatedApiRoute("PUT", handle);

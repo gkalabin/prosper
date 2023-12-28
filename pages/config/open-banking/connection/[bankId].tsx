@@ -52,21 +52,20 @@ export const getServerSideProps: GetServerSideProps<{
       notFound: true,
     };
   }
-  const bankAccounts = await prisma.bankAccount.findMany({
-    where: { bankId, userId },
+  const bankAccounts = await db.bankAccountFindMany({
+    where: { bankId },
   });
-  const currencies = await prisma.currency.findMany();
-  const dbOpenBankingAccounts = await prisma.openBankingAccount.findMany({
+  const currencies = await db.currencyFindMany();
+  const dbOpenBankingAccounts = await db.openBankingAccountFindMany({
     where: {
       bankAccountId: {
         in: bankAccounts.map((x) => x.id),
       },
-      userId,
     },
   });
 
-  const dbToken = await prisma.openBankingToken.findFirstOrThrow({
-    where: { bankId, userId },
+  const [dbToken] = await db.openBankingTokenFindMany({
+    where: { bankId },
   });
   const token = await maybeRefreshToken(dbToken);
   const obAccounts = await fetch(`https://api.truelayer.com/data/v1/accounts`, {

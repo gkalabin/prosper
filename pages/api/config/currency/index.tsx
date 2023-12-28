@@ -3,7 +3,7 @@ import prisma from "lib/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 async function handle(
-  userName: string,
+  userId: number,
   req: NextApiRequest,
   res: NextApiResponse
 ) {

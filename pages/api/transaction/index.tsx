@@ -12,6 +12,7 @@ import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
 import prisma from "lib/prisma";
 import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { DB } from "lib/db";
 
 const includeExtensions = {
   include: {
@@ -36,15 +37,12 @@ async function handle(
     await handleCreate(dto, res, userId);
     return;
   }
-  const existing = await prisma.transaction.findFirst(
+  const db = new DB({userId});
+  const existing = await db.transactionFindFirst(
     Object.assign(whereId(dto.transactionId), includeExtensions)
   );
   if (!existing) {
     res.status(404).send(`Transaction not found`);
-    return;
-  }
-  if (existing && existing.userId != userId) {
-    res.status(401).send(`Not authenticated`);
     return;
   }
   if (sameExtension(existing, dto)) {

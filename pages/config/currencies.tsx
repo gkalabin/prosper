@@ -1,8 +1,10 @@
 import { Currency as DBCurrency } from "@prisma/client";
 import Layout from "components/Layout";
+import { DB } from "lib/db";
 import { Currencies, Currency } from "lib/model/Currency";
-import prisma from "lib/prisma";
-import { GetStaticProps, InferGetStaticPropsType } from "next";
+import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "pages/api/auth/[...nextauth]";
 import React, { useState } from "react";
 
 type CurrenciesListProps = {
@@ -23,11 +25,8 @@ const CurrenciesList: React.FC<CurrenciesListProps> = (props) => {
     </div>
   );
 };
-type AddCurrencyFormProps = {
-  onAdded: (added: DBCurrency) => void;
-};
 
-const AddCurrencyForm: React.FC<AddCurrencyFormProps> = (props) => {
+const AddCurrencyForm = (props: { onAdded: (added: DBCurrency) => void }) => {
   const [name, setName] = useState("");
   const [formDisplayed, setFormDisplayed] = useState(false);
   const [requestInFlight, setRequestInFlight] = useState(false);
@@ -95,12 +94,10 @@ const AddCurrencyForm: React.FC<AddCurrencyFormProps> = (props) => {
   );
 };
 
-type CurrencyNameProps = {
+const CurrencyName = (props: {
   currency: Currency;
   onUpdated: (updated: DBCurrency) => void;
-};
-
-const CurrencyName: React.FC<CurrencyNameProps> = (props) => {
+}) => {
   const [name, setName] = useState(props.currency.name);
   const [formDisplayed, setFormDisplayed] = useState(false);
   const [apiError, setApiError] = useState("");
@@ -176,21 +173,31 @@ const CurrencyName: React.FC<CurrencyNameProps> = (props) => {
   );
 };
 
-export const getStaticProps: GetStaticProps<{
-  dbCurrencies: DBCurrency[];
-}> = async () => {
-  const c = await prisma.currency.findMany();
+export const getServerSideProps: GetServerSideProps<{
+  data?: {
+    dbCurrencies: DBCurrency[];
+  };
+}> = async (context) => {
+  const session = await getServerSession(context.req, context.res, authOptions);
+  if (!session) {
+    return { props: {} };
+  }
+  const userId = +session.user.id;
+  const db = new DB({ userId });
+  const c = await db.currencyFindMany();
   return {
     props: {
-      dbCurrencies: JSON.parse(JSON.stringify(c)),
+      data: {
+        dbCurrencies: JSON.parse(JSON.stringify(c)),
+      },
     },
   };
 };
 
 export default function CurrenciesPage(
-  props: InferGetStaticPropsType<typeof getStaticProps>
+  props: InferGetServerSidePropsType<typeof getServerSideProps>
 ) {
-  const [dbCurrencies, setDbCurrencies] = useState(props.dbCurrencies);
+  const [dbCurrencies, setDbCurrencies] = useState(props.data?.dbCurrencies);
   const currencies = new Currencies(dbCurrencies);
 
   const addCurrency = (added: DBCurrency) => {

@@ -1,4 +1,5 @@
 import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
+import { DB } from "lib/db";
 import prisma from "lib/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -19,7 +20,8 @@ async function handle(
   const input: AccountMappingRequest = req.body;
   const { bankId, mapping } = input;
   const idsToModify = mapping.filter((x) => !!x.id).map((x) => x.id);
-  if (!hasAccess({ obaIds: idsToModify, userId })) {
+  const db = new DB({ userId });
+  if (!(await hasAccess(db, idsToModify))) {
     res.status(401).send(`Not authenticated`);
     return;
   }
@@ -56,39 +58,26 @@ async function handle(
     });
   }
 
-  const dbAccounts = await prisma.bankAccount.findMany({
-    where: {
-      bankId,
-      userId,
-    },
-  });
-  const result = await prisma.openBankingAccount.findMany({
+  const dbAccounts = await db.bankAccountFindMany({ where: { bankId } });
+  const result = await db.openBankingAccountFindMany({
     where: {
       bankAccountId: {
         in: dbAccounts.map((x) => x.id),
       },
-      userId,
     },
   });
   res.json(result);
 }
 
-async function hasAccess({
-  obaIds,
-  userId,
-}: {
-  obaIds: string[];
-  userId: number;
-}): Promise<boolean> {
+async function hasAccess(db: DB, obaIds: string[]): Promise<boolean> {
   if (!obaIds.length) {
     return true;
   }
-  const found = await prisma.openBankingAccount.findMany({
+  const found = await db.openBankingAccountFindMany({
     where: {
       id: {
         in: obaIds,
       },
-      userId,
     },
   });
   return found.length == obaIds.length;
