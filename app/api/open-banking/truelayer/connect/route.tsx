@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { DB } from "lib/db";
 import prisma from "lib/prisma";
 import { getUserId } from "lib/user";
@@ -6,6 +7,7 @@ import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest): Promise<Response> {
+  const userId = await getUserId();
   const query = request.nextUrl.searchParams;
   const code = query.get("code");
   const redirectURI = `${process.env.HOST}/api/open-banking/truelayer/connect`;
@@ -21,6 +23,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   if (!bankId) {
     return new Response(`bankId must be an integer`, { status: 400 });
   }
+  let args: Prisma.TrueLayerTokenUncheckedCreateInput | null;
   try {
     const response = await fetch(`https://auth.truelayer.com/connect/token`, {
       method: "POST",
@@ -35,8 +38,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     });
     const tokenResponse = await response.json();
     const now = new Date();
-    const userId = await getUserId();
-    const args = {
+    args = {
       access: tokenResponse.access_token,
       accessValidUntil: new Date(
         now.getTime() + tokenResponse.expires_in * 1000,
@@ -49,20 +51,20 @@ export async function GET(request: NextRequest): Promise<Response> {
       userId,
       bankId,
     };
-    const db = new DB({ userId });
-    const [existing] = await db.trueLayerTokenFindMany({ where: { bankId } });
-    if (existing) {
-      await prisma.trueLayerToken.update({
-        data: args,
-        where: { bankId },
-      });
-      return redirect(`/overview`);
-    }
-    await prisma.trueLayerToken.create({
-      data: args,
-    });
-    return redirect(`/config/open-banking/mapping?bankId=${bankId}`);
   } catch (err) {
     return new Response(`Open banking api error: ${err}`, { status: 500 });
   }
+  const db = new DB({ userId });
+  const [existing] = await db.trueLayerTokenFindMany({ where: { bankId } });
+  if (existing) {
+    await prisma.trueLayerToken.update({
+      data: args,
+      where: { bankId },
+    });
+    return redirect(`/overview`);
+  }
+  await prisma.trueLayerToken.create({
+    data: args,
+  });
+  return redirect(`/config/open-banking/mapping?bankId=${bankId}`);
 }
