@@ -79,10 +79,9 @@ export const TransactionsListItem = (props: {
           </div>
         </div>
         <div
-          className={classNames(
-            "self-center pr-2 text-lg",
-            t.isIncome() && "text-green-900"
-          )}
+          className={classNames("self-center pr-2 text-lg", {
+            "text-green-900": t.isIncome(),
+          })}
         >
           {t.isIncome() ? "+" : ""}
           {t.amount().format()}
