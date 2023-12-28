@@ -70,7 +70,7 @@ export const FormTransfer = ({
         ? [prototype.withdrawal, prototype.deposit]
         : [prototype, prototype];
     setFieldValue("amount", withdrawal.absoluteAmountCents / 100);
-    setFieldValue("amountReceived", deposit.absoluteAmountCents / 100);
+    setFieldValue("receivedAmount", deposit.absoluteAmountCents / 100);
     setFieldValue("timestamp", toDateTimeLocal(deposit.timestampEpoch));
     setFieldValue("description", deposit.description);
     setFieldValue("fromBankAccountId", withdrawal.internalAccountId);
