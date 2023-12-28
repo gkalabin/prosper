@@ -1,15 +1,19 @@
-import { MonthlyOwnShare } from "components/charts/MonthlySum";
+import {
+  ChildCategoryFullAmountChart,
+  ChildCategoryOwnShareChart,
+} from "components/charts/CategoryPie";
+import {
+  MonthlyAllParties,
+  MonthlyOwnShare,
+} from "components/charts/MonthlySum";
 import { TransactionFrequencyChart } from "components/charts/TransactionFrequency";
+import { YearlyAllParties, YearlyOwnShare } from "components/charts/YearlySum";
 import { ButtonFormSecondary } from "components/ui/buttons";
 import {
   differenceInMonths,
-  eachMonthOfInterval,
   startOfMonth,
 } from "date-fns";
-import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { useAllDatabaseDataContext } from "lib/ClientSideModel";
-import { defaultMonthlyMoneyChart, defaultPieChartOptions } from "lib/charts";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { Transaction } from "lib/model/Transaction";
 import { AppendMap } from "lib/util/AppendingMap";
@@ -107,13 +111,17 @@ function Charts({ transactions }: { transactions: Transaction[] }) {
 
 function ExenseStats({ transactions }: { transactions: Transaction[] }) {
   const displayCurrency = useDisplayCurrency();
-  const { categories } = useAllDatabaseDataContext();
+  const expenses = transactions.filter(
+    (t) => t.isPersonalExpense() || t.isThirdPartyExpense()
+  );
+  if (!expenses.length) {
+    return <></>;
+  }
   const [first, last] = [
     transactions[0],
     transactions[transactions.length - 1],
   ];
   const duration = { start: first.timestamp, end: last.timestamp };
-  const months = eachMonthOfInterval(duration).map((x) => x.getTime());
   const zero = AmountWithCurrency.zero(displayCurrency);
   const grossPerMonth = new MoneyTimeseries(displayCurrency);
   const netPerMonth = new MoneyTimeseries(displayCurrency);
@@ -127,9 +135,6 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
   );
   const gross: AmountWithCurrency[] = [];
   const net: AmountWithCurrency[] = [];
-  const expenses = transactions.filter(
-    (t) => t.isPersonalExpense() || t.isThirdPartyExpense()
-  );
   for (const t of expenses) {
     const ts = startOfMonth(t.timestamp);
     const g = t.amountAllParties(displayCurrency);
@@ -175,62 +180,33 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
           </div>
         </div>
       </div>
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultMonthlyMoneyChart(displayCurrency, duration),
-          title: {
-            text: "Money spent (gross: all parties)",
-          },
-          series: [
-            {
-              type: "bar",
-              data: grossPerMonth.monthRoundDollars(months),
-            },
-          ],
-        }}
+      <YearlyAllParties
+        transactions={expenses}
+        title="Money spent gross (all parties)"
+        duration={duration}
+      />
+      <YearlyOwnShare
+        transactions={expenses}
+        title="Money spent net (own share)"
+        duration={duration}
+      />
+      <MonthlyAllParties
+        transactions={expenses}
+        title="Money spent gross (all parties)"
+        duration={duration}
       />
       <MonthlyOwnShare
         transactions={expenses}
+        title="Money spent net (own share)"
         duration={duration}
-        title="Total spent (own share)"
       />
-
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultPieChartOptions(),
-          title: {
-            text: "By category (gross)",
-          },
-          series: [
-            {
-              type: "pie",
-              data: [...grossPerCategory.entries()].map(([cid, amount]) => ({
-                name: categories.find((c) => c.id() == cid).nameWithAncestors(),
-                value: amount.dollar(),
-              })),
-            },
-          ],
-        }}
+      <ChildCategoryFullAmountChart
+        transactions={expenses}
+        title="Expenses by category gross (all parties)"
       />
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultPieChartOptions(),
-          title: {
-            text: "By category (net)",
-          },
-          series: [
-            {
-              type: "pie",
-              data: [...netPerCategory.entries()].map(([cid, amount]) => ({
-                name: categories.find((c) => c.id() == cid).nameWithAncestors(),
-                value: amount.dollar(),
-              })),
-            },
-          ],
-        }}
+      <ChildCategoryOwnShareChart
+        transactions={expenses}
+        title="Expenses by category net (own share)"
       />
     </div>
   );
@@ -238,13 +214,15 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
 
 function IncomeStats({ transactions }: { transactions: Transaction[] }) {
   const displayCurrency = useDisplayCurrency();
-  const { categories } = useAllDatabaseDataContext();
+  const incomeTransactions = transactions.filter((t) => t.isIncome());
+  if (!incomeTransactions.length) {
+    return <></>;
+  }
   const [first, last] = [
     transactions[0],
     transactions[transactions.length - 1],
   ];
   const duration = { start: first.timestamp, end: last.timestamp };
-  const months = eachMonthOfInterval(duration).map((x) => x.getTime());
   const zero = AmountWithCurrency.zero(displayCurrency);
   const grossPerMonth = new MoneyTimeseries(displayCurrency);
   const netPerMonth = new MoneyTimeseries(displayCurrency);
@@ -258,23 +236,20 @@ function IncomeStats({ transactions }: { transactions: Transaction[] }) {
   );
   const gross: AmountWithCurrency[] = [];
   const net: AmountWithCurrency[] = [];
-  for (const t of transactions) {
+  for (const t of incomeTransactions) {
     const ts = startOfMonth(t.timestamp);
-    if (t.isIncome()) {
-      const g = t.amountAllParties(displayCurrency);
-      const n = t.amountOwnShare(displayCurrency);
-      gross.push(g);
-      net.push(n);
-      netPerMonth.append(ts, n);
-      grossPerMonth.append(ts, g);
-      const cid = t.category.id();
-      grossPerCategory.append(cid, g);
-      netPerCategory.append(cid, n);
-    }
+    const g = t.amountAllParties(displayCurrency);
+    const n = t.amountOwnShare(displayCurrency);
+    gross.push(g);
+    net.push(n);
+    netPerMonth.append(ts, n);
+    grossPerMonth.append(ts, g);
+    const cid = t.category.id();
+    grossPerCategory.append(cid, g);
+    netPerCategory.append(cid, n);
   }
   const totalGross = gross.reduce((a, b) => a.add(b), zero);
   const totalNet = net.reduce((a, b) => a.add(b), zero);
-
   return (
     <div>
       <div className="ml-2 mb-2 text-sm text-slate-600">
@@ -305,72 +280,33 @@ function IncomeStats({ transactions }: { transactions: Transaction[] }) {
           </div>
         </div>
       </div>
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultMonthlyMoneyChart(displayCurrency, duration),
-          title: {
-            text: "Money received (gross: all parties)",
-          },
-          series: [
-            {
-              type: "bar",
-              data: grossPerMonth.monthRoundDollars(months),
-            },
-          ],
-        }}
+      <MonthlyAllParties
+        transactions={incomeTransactions}
+        title="Money received gross (all parties)"
+        duration={duration}
       />
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultMonthlyMoneyChart(displayCurrency, duration),
-          title: {
-            text: "Money received (net: own share)",
-          },
-          series: [
-            {
-              type: "bar",
-              data: grossPerMonth.monthRoundDollars(months),
-            },
-          ],
-        }}
+      <MonthlyOwnShare
+        transactions={incomeTransactions}
+        title="Money received net (own share)"
+        duration={duration}
       />
-
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultPieChartOptions(),
-          title: {
-            text: "Income by category (gross)",
-          },
-          series: [
-            {
-              type: "pie",
-              data: [...grossPerCategory.entries()].map(([cid, amount]) => ({
-                name: categories.find((c) => c.id() == cid).nameWithAncestors(),
-                value: amount.dollar(),
-              })),
-            },
-          ],
-        }}
+      <YearlyAllParties
+        transactions={incomeTransactions}
+        title="Money received gross (all parties)"
+        duration={duration}
       />
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultPieChartOptions(),
-          title: {
-            text: "Income by category (net)",
-          },
-          series: [
-            {
-              type: "pie",
-              data: [...netPerCategory.entries()].map(([cid, amount]) => ({
-                name: categories.find((c) => c.id() == cid).nameWithAncestors(),
-                value: amount.dollar(),
-              })),
-            },
-          ],
-        }}
+      <YearlyOwnShare
+        transactions={incomeTransactions}
+        title="Money received net (own share)"
+        duration={duration}
+      />
+      <ChildCategoryFullAmountChart
+        transactions={incomeTransactions}
+        title="Income by category gross (all parties)"
+      />
+      <ChildCategoryOwnShareChart
+        transactions={incomeTransactions}
+        title="Income by category net (own share)"
       />
     </div>
   );

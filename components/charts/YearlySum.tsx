@@ -40,3 +40,40 @@ export function YearlyOwnShare({
     />
   );
 }
+
+
+export function YearlyAllParties({
+  transactions,
+  duration,
+  title,
+}: {
+  transactions: Transaction[];
+  duration: Interval;
+  title: string;
+}) {
+  const displayCurrency = useDisplayCurrency();
+  const years = eachYearOfInterval(duration);
+  const data = new MoneyTimeseries(displayCurrency);
+  for (const t of transactions) {
+    const exchanged = t.amountAllParties(displayCurrency);
+    data.append(t.timestamp, exchanged);
+  }
+  return (
+    <ReactEcharts
+      notMerge
+      option={{
+        ...defaultYearlyMoneyChart(displayCurrency, duration),
+        title: {
+          text: title,
+        },
+        series: [
+          {
+            type: "bar",
+            name: title,
+            data: data.yearRoundDollars(years),
+          },
+        ],
+      }}
+    />
+  );
+}

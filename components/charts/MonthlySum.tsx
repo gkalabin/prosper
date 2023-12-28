@@ -40,3 +40,40 @@ export function MonthlyOwnShare({
     />
   );
 }
+
+
+export function MonthlyAllParties({
+  transactions,
+  duration,
+  title,
+}: {
+  transactions: Transaction[];
+  duration: Interval;
+  title: string;
+}) {
+  const displayCurrency = useDisplayCurrency();
+  const months = eachMonthOfInterval(duration);
+  const data = new MoneyTimeseries(displayCurrency);
+  for (const t of transactions) {
+    const exchanged = t.amountAllParties(displayCurrency);
+    data.append(t.timestamp, exchanged);
+  }
+  return (
+    <ReactEcharts
+      notMerge
+      option={{
+        ...defaultMonthlyMoneyChart(displayCurrency, duration),
+        title: {
+          text: title,
+        },
+        series: [
+          {
+            type: "bar",
+            name: title,
+            data: data.monthRoundDollars(months),
+          },
+        ],
+      }}
+    />
+  );
+}
