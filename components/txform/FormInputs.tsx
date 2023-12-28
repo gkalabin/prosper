@@ -25,6 +25,7 @@ import { AddTransactionFormValues, FormMode } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect } from "react";
 import Select from "react-select";
+import Async from "react-select/async";
 import CreatableSelect from "react-select/creatable";
 
 export const FormInputs = (props: {
@@ -270,24 +271,32 @@ export function ParentTransaction() {
   const parentTransaction = parentTransactionId
     ? transactions.find((t) => t.id == parentTransactionId)
     : null;
+  const makeOption = (t: Transaction) => ({
+    label: makeTransactionLabel(t),
+    value: t.id,
+  });
   return (
     <div className="col-span-6">
       <label className="block text-sm font-medium text-gray-700">
         Parent transaction
       </label>
-      <Select
+      <Async
         styles={undoTailwindInputStyles()}
         isClearable
-        options={transactions
+        loadOptions={async (input: string) => {
+          return transactions
+            .filter((t) => t.isPersonalExpense())
+            .filter((t) =>
+              t.vendor().toLowerCase().includes(input.toLowerCase())
+            )
+            .slice(0, 40)
+            .map(makeOption);
+        }}
+        defaultOptions={transactions
           .filter((t) => t.isPersonalExpense())
           .filter((t) => t.accountFrom().id == toBankAccountId)
           .filter((t) => differenceInMonths(new Date(), t.timestamp) < 3)
-          .map((x) => {
-            return {
-              label: makeTransactionLabel(x),
-              value: x.id,
-            };
-          })}
+          .map(makeOption)}
         value={{
           label: parentTransaction
             ? makeTransactionLabel(parentTransaction)
