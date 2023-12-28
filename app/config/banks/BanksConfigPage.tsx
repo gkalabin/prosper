@@ -8,6 +8,9 @@ import {
   Stock as DBStock,
   TrueLayerToken as DBTrueLayerToken,
 } from "@prisma/client";
+import { ConfigureOpenBankingConnectionLink } from "app/config/banks/ConfigureOpenBankingConnectionLink";
+import { DisconnectOpenBankingLink } from "app/config/banks/DisconnectOpenBankingLink";
+import { ReconnectOpenBankingLink } from "app/config/banks/ReconnectOpenBankingLink";
 import { AddOrEditAccountForm } from "components/config/AddOrEditAccountForm";
 import { AddOrEditBankForm } from "components/config/AddOrEditBankForm";
 import {
@@ -21,7 +24,6 @@ import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Stock } from "lib/model/Stock";
 import { updateState } from "lib/stateHelpers";
 import { useState } from "react";
-import { DisconnectOpenBankingLink } from "./DisconnectOpenBankingLink";
 
 const BanksList = (props: {
   banks: Bank[];
@@ -190,12 +192,8 @@ const TrueLayerActions = ({ bank }: { bank: Bank }) => {
   return (
     <div className="space-x-3">
       <span>Connected with TrueLayer</span>
-      <AnchorLink href={`/config/open-banking/mapping?bankId=${bank.id}`}>
-        Configure
-      </AnchorLink>
-      <AnchorLink href={`/api/open-banking/reconnect?bankId=${bank.id}`}>
-        Reconnect
-      </AnchorLink>
+      <ConfigureOpenBankingConnectionLink bank={bank} />
+      <ReconnectOpenBankingLink bank={bank} />
       <DisconnectOpenBankingLink bank={bank} />
     </div>
   );
@@ -205,12 +203,8 @@ const NordigenActions = ({ bank }: { bank: Bank }) => {
   return (
     <div className="space-x-3">
       <span>Connected with Nordigen</span>
-      <AnchorLink href={`/config/open-banking/mapping?bankId=${bank.id}`}>
-        Configure
-      </AnchorLink>
-      <AnchorLink href={`/api/open-banking/reconnect?bankId=${bank.id}`}>
-        Reconnect
-      </AnchorLink>
+      <ConfigureOpenBankingConnectionLink bank={bank} />
+      <ReconnectOpenBankingLink bank={bank} />
       <DisconnectOpenBankingLink bank={bank} />
     </div>
   );
@@ -220,9 +214,7 @@ const StarlingActions = ({ bank }: { bank: Bank }) => {
   return (
     <div className="space-x-3">
       <span>Connected with Starling</span>
-      <AnchorLink href={`/config/open-banking/mapping?bankId=${bank.id}`}>
-        Configure
-      </AnchorLink>
+      <ConfigureOpenBankingConnectionLink bank={bank} />
       <DisconnectOpenBankingLink bank={bank} />
     </div>
   );
