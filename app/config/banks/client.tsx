@@ -1,3 +1,4 @@
+"use client";
 import {
   Bank as DBBank,
   BankAccount as DBBankAccount,
@@ -6,7 +7,6 @@ import {
   Stock as DBStock,
   TrueLayerToken as DBTrueLayerToken,
 } from "@prisma/client";
-import { ConfigPageLayout } from "components/ConfigPageLayout";
 import { AddOrEditAccountForm } from "components/config/AddOrEditAccountForm";
 import { AddOrEditBankForm } from "components/config/AddOrEditBankForm";
 import {
@@ -15,13 +15,9 @@ import {
   ButtonPagePrimary,
 } from "components/ui/buttons";
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
-import { DB } from "lib/db";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Stock } from "lib/model/Stock";
 import { updateState } from "lib/stateHelpers";
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "pages/api/auth/[...nextauth]";
 import { useState } from "react";
 
 const BanksList = (props: {
@@ -46,7 +42,7 @@ const BanksList = (props: {
           bankAccounts={props.bankAccounts.filter((x) => x.bankId == bank.id)}
           stocks={props.stocks}
           trueLayerToken={props.trueLayerTokens.find(
-            (t) => t.bankId == bank.id
+            (t) => t.bankId == bank.id,
           )}
           nordigenToken={props.nordigenTokens.find((t) => t.bankId == bank.id)}
           starlingToken={props.starlingTokens.find((t) => t.bankId == bank.id)}
@@ -237,7 +233,7 @@ const AccountsList = (props: {
     return <div>No accounts.</div>;
   }
   const accountsForBank = props.accounts.filter(
-    (x) => x.bankId == props.bank.id
+    (x) => x.bankId == props.bank.id,
   );
   return (
     <>
@@ -292,74 +288,33 @@ const AccountListItem = (props: {
   );
 };
 
-export const getServerSideProps: GetServerSideProps<{
-  data?: {
-    dbBanks: DBBank[];
-    dbBankAccounts: DBBankAccount[];
-    dbStocks: DBStock[];
-    dbTrueLayerTokens: DBTrueLayerToken[];
-    dbNordigenTokens: DBNordigenToken[];
-    dbStarlingTokens: DBStarlingToken[];
-  };
-}> = async (context) => {
-  const session = await getServerSession(context.req, context.res, authOptions);
-  if (!session) {
-    return { props: {} };
-  }
-  const db = await DB.fromContext(context);
-  const dbStocks = await db.stocksFindMany();
-  const dbBanks = await db.bankFindMany();
-  const whereBankId = {
-    where: {
-      bankId: {
-        in: dbBanks.map((x) => x.id),
-      },
-    },
-  };
-  const dbBankAccounts = await db.bankAccountFindMany(whereBankId);
-  const dbTrueLayerTokens = await db.trueLayerTokenFindMany(whereBankId);
-  const dbNordigenTokens = await db.nordigenTokenFindMany(whereBankId);
-  const dbStarlingTokens = await db.starlingTokenFindMany(whereBankId);
-
-  const props = {
-    session,
-    data: {
-      dbBanks,
-      dbBankAccounts,
-      dbStocks,
-      dbTrueLayerTokens,
-      dbNordigenTokens,
-      dbStarlingTokens,
-    },
-  };
-  return {
-    props: JSON.parse(JSON.stringify(props)),
-  };
-};
-
-export default function BanksPage({
-  data: {
-    dbBanks: dbBanksInitial,
-    dbBankAccounts: dbBankAccountsInitial,
-    dbStocks,
-    dbTrueLayerTokens,
-    dbNordigenTokens,
-    dbStarlingTokens,
-  },
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export function BanksPage({
+  dbBanks: dbBanksInitial,
+  dbBankAccounts: dbBankAccountsInitial,
+  dbStocks,
+  dbTrueLayerTokens,
+  dbNordigenTokens,
+  dbStarlingTokens,
+}: {
+  dbBanks: DBBank[];
+  dbBankAccounts: DBBankAccount[];
+  dbStocks: DBStock[];
+  dbTrueLayerTokens: DBTrueLayerToken[];
+  dbNordigenTokens: DBNordigenToken[];
+  dbStarlingTokens: DBStarlingToken[];
+}) {
   const [dbBanks, setDbBanks] = useState(dbBanksInitial);
   const [dbBankAccounts, setDbBankAccounts] = useState(dbBankAccountsInitial);
   const onBankAddedOrUpdated = updateState(setDbBanks);
   const [formDisplayed, setFormDisplayed] = useState(false);
-
   const [banks, bankAccounts, stocks] = banksModelFromDatabaseData(
     dbBanks,
     dbBankAccounts,
-    dbStocks
+    dbStocks,
   );
 
   return (
-    <ConfigPageLayout>
+    <>
       <BanksList
         banks={banks}
         bankAccounts={bankAccounts}
@@ -390,6 +345,6 @@ export default function BanksPage({
           />
         </div>
       )}
-    </ConfigPageLayout>
+    </>
   );
 }
