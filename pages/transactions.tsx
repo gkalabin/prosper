@@ -1,77 +1,34 @@
+import { Transaction as DBTransaction } from "@prisma/client";
 import { GetStaticProps } from "next";
 import React, { useState } from "react";
 import Layout from "../components/Layout";
 import { AddTransactionForm } from "../components/transactions/AddTransactionForm";
 import { TransactionsList } from "../components/transactions/TransactionsList";
-import { makeTransactionInclude } from "../lib/db/transactionInclude";
-import { Bank } from "../lib/model/BankAccount";
-import { DbCategory, makeCategoryTree } from "../lib/model/Category";
-import Currency from "../lib/model/Currency";
-import {
-  DbTransaction,
-  makeTransactionsFromDBModel,
-  Transaction,
-} from "../lib/model/Transaction";
-import prisma from "../lib/prisma";
+import { modelFromDatabaseData } from "../lib/ClientSideModel";
+import { AllDatabaseData, loadAllDatabaseData } from "../lib/ServerSideDB";
 
 export const getStaticProps: GetStaticProps = async () => {
-  const transactions = await prisma.transaction.findMany({
-    include: makeTransactionInclude(),
-  });
-  const dbTransactions = transactions.map((t) =>
-    Object.assign({}, t, {
-      timestamp: t.timestamp.getTime(),
-    })
-  );
-  const categories = await prisma.category.findMany({});
-  const currencies = await prisma.currency.findMany({});
-  const banks = await prisma.bank.findMany({
-    include: {
-      accounts: {
-        include: {
-          bank: true,
-          currency: true,
-        },
-      },
-    },
-  });
-  const props = {
-    banks,
-    currencies,
-    dbCategories: categories,
-    dbTransactions,
-  };
-
+  const allData = await loadAllDatabaseData();
   return {
-    props: JSON.parse(JSON.stringify(props)),
+    props: JSON.parse(JSON.stringify(allData)),
   };
 };
 
-type PageProps = {
-  dbTransactions: DbTransaction[];
-  dbCategories: DbCategory[];
-  banks: Bank[];
-  currencies: Currency[];
-};
-const TransactionsPage: React.FC<PageProps> = (props) => {
+const TransactionsPage: React.FC<AllDatabaseData> = (props) => {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
-  const [dbTransactions, setDbTransactions] = useState(props.dbTransactions);
-  const categories = makeCategoryTree(props.dbCategories);
-  const transactions = makeTransactionsFromDBModel(
-    dbTransactions,
-    categories
-  ).sort((a: Transaction, b: Transaction) => {
-    return b.timestamp.getTime() - a.timestamp.getTime();
-  });
+  const [dbData, setDbData] = useState(props);
+  const model = modelFromDatabaseData(dbData);
 
-  const addTransaction = (added: DbTransaction) => {
-    setDbTransactions((old) => [...old, added]);
+  const addTransaction = (added: DBTransaction) => {
+    console.log(added);
+    // setDbData((old) => [...old, added]);
     setShowAddTransactionForm(false);
   };
-  const updateTransaction = (updated: DbTransaction) => {
-    setDbTransactions((old) =>
-      old.map((t) => (t.id == updated.id ? updated : t))
-    );
+  const updateTransaction = (updated: DBTransaction) => {
+    // setDbTransactions((old) =>
+    //   old.map((t) => (t.id == updated.id ? updated : t))
+    // );
+    console.log(updated);
   };
 
   return (
@@ -92,16 +49,16 @@ const TransactionsPage: React.FC<PageProps> = (props) => {
             <div className="">
               <AddTransactionForm
                 onAdded={addTransaction}
-                categories={categories}
-                banks={props.banks}
-                currencies={props.currencies}
+                categories={model.categories}
+                banks={model.banks}
+                currencies={model.currencies}
                 onClose={() => setShowAddTransactionForm(false)}
               />
             </div>
           )}
 
           <TransactionsList
-            transactions={transactions}
+            transactions={model.transactions}
             onTransactionUpdated={updateTransaction}
           />
         </div>

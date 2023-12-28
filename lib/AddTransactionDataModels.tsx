@@ -1,5 +1,4 @@
 import { Prisma } from "@prisma/client";
-import { makeTransactionInclude } from "./db/transactionInclude";
 
 export enum FormMode {
   PERSONAL,
@@ -120,7 +119,6 @@ export const dtoToDb = (
       },
     },
   };
-  dbArgs.include = makeTransactionInclude();
   if (dto.mode == FormMode.PERSONAL) {
     dbArgs.data.personalExpense = {
       create: {

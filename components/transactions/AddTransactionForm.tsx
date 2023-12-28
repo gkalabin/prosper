@@ -1,4 +1,5 @@
 import { Switch } from "@headlessui/react";
+import { Transaction as DBTransaction } from "@prisma/client";
 import classNames from "classnames";
 import { Form, Formik, FormikHelpers, useFormikContext } from "formik";
 import Link from "next/link";
@@ -9,9 +10,8 @@ import {
   formToDTO,
 } from "../../lib/AddTransactionDataModels";
 import { Bank } from "../../lib/model/BankAccount";
-import Category from "../../lib/model/Category";
-import Currency from "../../lib/model/Currency";
-import { DbTransaction } from "../../lib/model/Transaction";
+import { Category } from "../../lib/model/Category";
+import { Currency } from "../../lib/model/Currency";
 import { BankAccountSelect } from "../forms/BankAccountSelect";
 import { MoneyInput, TextInput } from "../forms/Input";
 import { SelectNumber } from "../forms/Select";
@@ -20,7 +20,7 @@ type AddTransactionFormProps = {
   banks: Bank[];
   categories: Category[];
   currencies: Currency[];
-  onAdded: (added: DbTransaction) => void;
+  onAdded: (added: DBTransaction) => void;
   onClose: () => void;
 };
 

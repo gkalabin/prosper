@@ -1,8 +1,9 @@
+import { Category as DBCategory } from "@prisma/client";
 import React, { useState } from "react";
-import Category from "../../../lib/model/Category";
+import { Category } from "../../../lib/model/Category";
 
 type AddCategoryFormProps = {
-  onAdded: (created: Category) => void;
+  onAdded: (created: DBCategory) => void;
   allCategories: Category[];
 };
 

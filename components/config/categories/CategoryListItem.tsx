@@ -1,10 +1,11 @@
+import { Category as DBCategory } from "@prisma/client";
 import React, { useState } from "react";
-import Category from "../../../lib/model/Category";
+import { Category } from "../../../lib/model/Category";
 
 type EditableCategoryListItemProps = {
   category: Category;
   categories: Category[];
-  onUpdated: (updated: Category) => void;
+  onUpdated: (updated: DBCategory) => void;
 };
 
 const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
@@ -12,7 +13,7 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
 ) => {
   const [name, setName] = useState(props.category.name);
   const [displayOrder, setDisplayOrder] = useState(props.category.displayOrder);
-  const [parentId, setParentId] = useState(props.category.parentCategoryId);
+  const [parentId, setParentId] = useState(props.category.parent?.id);
   const [formDisplayed, setFormDisplayed] = useState(false);
   const [apiError, setApiError] = useState("");
   const [requestInFlight, setRequestInFlight] = useState(false);
@@ -20,7 +21,7 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
   const reset = () => {
     setName(props.category.name);
     setDisplayOrder(props.category.displayOrder);
-    setParentId(props.category.parentCategoryId);
+    setParentId(props.category.parent?.id);
     setApiError("");
   };
 
@@ -96,7 +97,7 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
       />
       <select
         onChange={(e) => setParentId(+e.target.value)}
-        value={props.category.parentCategoryId}
+        value={props.category.parent?.id}
         disabled={requestInFlight}
       >
         <option value="">No parent</option>

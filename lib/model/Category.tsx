@@ -1,3 +1,5 @@
+import { Category as DBCategory } from "@prisma/client";
+
 export type Category = {
   id: number;
   name: string;
@@ -5,15 +7,9 @@ export type Category = {
   isRoot: boolean;
   depth: number;
   displayOrder: number;
-  parentCategoryId?: number;
+  parent?: Category;
   children: Category[];
-};
-
-export type DbCategory = {
-  id: number;
-  name: string;
-  parentCategoryId?: number;
-  displayOrder: number;
+  dbValue: DBCategory;
 };
 
 const inOrderTreeTraversal = (
@@ -31,13 +27,15 @@ const inOrderTreeTraversal = (
   });
 };
 
-export const makeCategoryTree = (dbCategories: DbCategory[]): Category[] => {
+export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
   const categories = dbCategories.map((c) =>
     Object.assign({}, c, {
       nameWithAncestors: c.name,
       isRoot: !c.parentCategoryId,
       depth: 0,
-      children: [] as Category[],
+      children: [],
+      parent: null,
+      dbValue: c,
     })
   );
   const categoryById = Object.fromEntries(categories.map((c) => [c.id, c]));
@@ -46,6 +44,7 @@ export const makeCategoryTree = (dbCategories: DbCategory[]): Category[] => {
       return;
     }
     let parent = categoryById[c.parentCategoryId];
+    c.parent = parent;
     parent.children.push(c);
     const ancestorNames = [c.name];
     while (parent) {
@@ -72,5 +71,3 @@ export const makeCategoryTree = (dbCategories: DbCategory[]): Category[] => {
   inOrderTreeTraversal(rootCategories, categoriesSorted, 0);
   return categoriesSorted;
 };
-
-export default Category;

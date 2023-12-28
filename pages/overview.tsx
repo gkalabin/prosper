@@ -1,34 +1,16 @@
+import { Transaction as DBTransaction } from "@prisma/client";
 import { GetStaticProps } from "next";
-import React from "react";
-import { Bank, BankAccount } from "../lib/model/BankAccount";
+import React, { useState } from "react";
 import Layout from "../components/Layout";
 import { AddTransactionForm } from "../components/transactions/AddTransactionForm";
-import { makeTransactionInclude } from "../lib/db/transactionInclude";
-import { DbCategory, makeCategoryTree } from "../lib/model/Category";
-import Currency from "../lib/model/Currency";
-import Transaction from "../lib/model/Transaction";
-import prisma from "../lib/prisma";
+import { modelFromDatabaseData } from "../lib/ClientSideModel";
+import { Bank, BankAccount } from "../lib/model/BankAccount";
+import { AllDatabaseData, loadAllDatabaseData } from "../lib/ServerSideDB";
 
 export const getStaticProps: GetStaticProps = async () => {
-  const transactions = await prisma.transaction.findMany({
-    include: makeTransactionInclude(),
-  });
-  const categories = await prisma.category.findMany({});
-  const currencies = await prisma.currency.findMany({});
-  const banks = await prisma.bank.findMany({
-    include: {
-      accounts: true,
-    },
-  });
-  const props = {
-    transactions,
-    banks,
-    currencies,
-    dbCategories: categories,
-  };
-
+  const allData = await loadAllDatabaseData();
   return {
-    props: JSON.parse(JSON.stringify(props)),
+    props: JSON.parse(JSON.stringify(allData)),
   };
 };
 
@@ -37,8 +19,8 @@ type BankAccountListItemProps = {
 };
 const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
   return (
-    <div>
-      <h6>{props.account.name}</h6>
+    <div className="py-2 pl-6 pr-2">
+      <span className="text-base font-normal">{props.account.name}</span>
     </div>
   );
 };
@@ -48,11 +30,16 @@ type BankListItemProps = {
 };
 const BankListItem: React.FC<BankListItemProps> = (props) => {
   return (
-    <div>
-      <h4>{props.bank.name}</h4>
-      {props.bank.accounts.map((a) => (
-        <BankAccountListItem key={a.id} account={a} />
-      ))}
+    <div className="">
+      <div className="border-b bg-green-100 p-2 text-xl font-medium text-gray-900">
+        {props.bank.name}
+      </div>
+
+      <div className="divide-y divide-gray-200">
+        {props.bank.accounts.map((a) => (
+          <BankAccountListItem key={a.id} account={a} />
+        ))}
+      </div>
     </div>
   );
 };
@@ -66,34 +53,54 @@ const BanksList: React.FC<TransactionsListProps> = (props) => {
   }
   return (
     <>
-      {props.banks.map((b) => (
-        <BankListItem key={b.id} bank={b} />
-      ))}
+      <div className="flex-1 rounded border border-gray-200">
+        <div className="flex flex-col divide-y divide-gray-200">
+          {props.banks.map((b) => (
+            <BankListItem key={b.id} bank={b} />
+          ))}
+        </div>
+      </div>
     </>
   );
 };
 
-type PageProps = {
-  transactions: Transaction[];
-  dbCategories: DbCategory[];
-  banks: Bank[];
-  currencies: Currency[];
-};
-const OverviewPage: React.FC<PageProps> = (props) => {
-  const addTransaction = (added: Transaction) => {
+const OverviewPage: React.FC<AllDatabaseData> = (props) => {
+  const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
+  const [dbData, setDbData] = useState(props);
+  const model = modelFromDatabaseData(dbData);
+  const addTransaction = (added: DBTransaction) => {
     // TODO
     console.log(added);
   };
 
   return (
     <Layout>
-      <AddTransactionForm
-        onAdded={addTransaction}
-        categories={makeCategoryTree(props.dbCategories)}
-        banks={props.banks}
-        currencies={props.currencies}
-      />
-      <BanksList banks={props.banks} />
+      <div className="flex justify-center">
+        <div className="sm:w-2/3">
+          {!showAddTransactionForm && (
+            <div className="flex justify-end">
+              <button
+                className="mb-4 rounded-md bg-indigo-600 px-4 py-1.5 text-base font-medium leading-7 text-white shadow-sm hover:bg-indigo-700 hover:ring-indigo-700"
+                onClick={() => setShowAddTransactionForm(true)}
+              >
+                New Transaction
+              </button>
+            </div>
+          )}
+          {showAddTransactionForm && (
+            <div className="">
+              <AddTransactionForm
+                onAdded={addTransaction}
+                categories={model.categories}
+                banks={model.banks}
+                currencies={model.currencies}
+                onClose={() => setShowAddTransactionForm(false)}
+              />
+            </div>
+          )}
+          <BanksList banks={model.banks} />
+        </div>
+      </div>
     </Layout>
   );
 };

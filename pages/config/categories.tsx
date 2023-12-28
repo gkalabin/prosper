@@ -1,17 +1,12 @@
+import { Category as DBCategory } from "@prisma/client";
 import { GetStaticProps } from "next";
 import React, { useState } from "react";
 import AddCategoryForm from "../../components/config/categories/AddCategoryForm";
 import EditableCategoryListItem from "../../components/config/categories/CategoryListItem";
 import Layout from "../../components/Layout";
-import Category, { makeCategoryTree } from "../../lib/model/Category";
+import { Category, categoryModelFromDB } from "../../lib/model/Category";
 import prisma from "../../lib/prisma";
 
-type CategoryDbModel = {
-  id: number;
-  name: string;
-  parentCategoryId?: number;
-  displayOrder: number;
-};
 export const getStaticProps: GetStaticProps = async () => {
   const categories = await prisma.category.findMany({});
   return {
@@ -22,7 +17,7 @@ export const getStaticProps: GetStaticProps = async () => {
 type CategoriesListProps = {
   categories: Category[];
   allCategories: Category[];
-  onCategoryUpdated: (updated: Category) => void;
+  onCategoryUpdated: (updated: DBCategory) => void;
 };
 
 const CategoriesList: React.FC<CategoriesListProps> = (props) => {
@@ -30,7 +25,7 @@ const CategoriesList: React.FC<CategoriesListProps> = (props) => {
     return <div>No categories found.</div>;
   }
   return (
-    <ul className="space-y-1 px-4 list-disc list-inside">
+    <ul className="list-inside list-disc space-y-1 px-4">
       {props.categories.map((category) => (
         <li key={category.id}>
           <EditableCategoryListItem
@@ -52,17 +47,17 @@ const CategoriesList: React.FC<CategoriesListProps> = (props) => {
 };
 
 type PageProps = {
-  dbCategories: CategoryDbModel[];
+  dbCategories: DBCategory[];
 };
 const CategoriesPage: React.FC<PageProps> = (props) => {
   const [dbCategories, setDbCategories] = useState(props.dbCategories);
-  const allCategoriesFlat = makeCategoryTree(dbCategories);
+  const allCategoriesFlat = categoryModelFromDB(dbCategories);
   const rootCategories = allCategoriesFlat.filter((c) => c.isRoot);
 
-  const addNewCategory = (added: CategoryDbModel) => {
+  const addNewCategory = (added: DBCategory) => {
     setDbCategories((old) => [...old, added]);
   };
-  const updateCategory = (updated: CategoryDbModel) => {
+  const updateCategory = (updated: DBCategory) => {
     setDbCategories((old) =>
       old.map((c) => (c.id == updated.id ? updated : c))
     );

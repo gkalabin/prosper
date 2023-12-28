@@ -1,6 +1,8 @@
+import { Transaction as DBTransaction } from "@prisma/client";
 import React, { useState } from "react";
-import { DbTransaction, Transaction } from "../../lib/model/Transaction";
+import { Transaction } from "../../lib/model/Transaction";
 import { currencyByTransaction, formatMoney } from "../../lib/Money";
+// import { isAfter, isSameDay, formatDate, parseISO, subDays } from 'date-fns';
 
 export const Amount = (props: { t: Transaction }) => {
   const currency = currencyByTransaction(props.t);
@@ -74,7 +76,7 @@ export const TransactionDescription = (props: { t: Transaction }) => {
   return <></>;
 };
 
-export const TransactionStatusLine = (props: { t: Transaction }) => {
+const TransactionStatusLine = (props: { t: Transaction }) => {
   if (props.t.personalExpense) {
     const from = props.t.personalExpense.account;
     return (
@@ -97,15 +99,72 @@ export const TransactionStatusLine = (props: { t: Transaction }) => {
   return <></>;
 };
 
+// function humanReadableDate(comparisonDate) {
+//     const today = new Date();
+//     const yesterday = subDays(today, 1);
+//     const aWeekAgo = subDays(today, 7);
+//     const twoWeeksAgo = subDays(today, 14);
+//     const threeWeeksAgo = subDays(today, 21);
+
+//     // Get the date in English locale to match English day of week keys
+//     const compare = parseISO(comparisonDate);
+
+//     let result = '';
+//     if (isSameDay(compare, today)) {
+//         result = intl.t('Updated.Today');
+//     } else if (isSameDay(compare, yesterday)) {
+//         result = intl.t('Updated.Yesterday');
+//     } else if (isAfter(compare, aWeekAgo)) {
+//         result = intl.t(`Updated.${formatDate(compare, 'EEEE')}`);
+//     } else if (isAfter(compare, twoWeeksAgo)) {
+//         result = intl.t('Updated.LastWeek');
+//     } else if (isAfter(compare, threeWeeksAgo)) {
+//         result = intl.t('Updated.TwoWeeksAgo');
+//     }
+
+//     return result;
+// }
+
+// Dec 27
+const shortDateFormat = Intl.DateTimeFormat("en", {
+  month: "short",
+  day: "numeric",
+});
+
+// Dec 27
+const longDateFormat = Intl.DateTimeFormat("en", {
+  hour: "numeric",
+  minute: "numeric",
+  hour12: false,
+  year: "2-digit",
+  month: "short",
+  day: "numeric",
+});
+const TransactionTimestamp = (props: { t: Transaction }) => {
+  const [showShort, setShowShort] = useState(true);
+  if (showShort) {
+    return (
+      <span onClick={() => setShowShort(false)}>
+        {shortDateFormat.format(props.t.timestamp)}
+      </span>
+    );
+  }
+  return (
+    <span onClick={() => setShowShort(true)}>
+      {longDateFormat.format(props.t.timestamp)}
+    </span>
+  );
+};
+
 type TransactionsListItemProps = {
   transaction: Transaction;
-  onUpdated: (transaction: DbTransaction) => void;
+  onUpdated: (transaction: DBTransaction) => void;
 };
 export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
   props
 ) => {
   const [showRawDetails, setShowRawDetails] = useState(false);
-  const raw = JSON.stringify(props.transaction, null, 2);
+  const raw = ""; //JSON.stringify(props.transaction.category, null, 2);
   return (
     // TODO: add date and category
     <li className="flex flex-col gap-2 p-2">
@@ -127,19 +186,21 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
           </div>
         </div>
 
-        <div>
-          <div className="flex h-full min-w-[theme('spacing[16]')] flex-col md:justify-end">
-            <div className="flex flex-col gap-1 md:flex-row">
-              <button className="font-medium text-indigo-600 hover:text-indigo-500">
-                Edit
-              </button>
-              <button
-                className="font-medium text-indigo-600 hover:text-indigo-500"
-                onClick={() => setShowRawDetails(!showRawDetails)}
-              >
-                Raw
-              </button>
-            </div>
+        <div className=" flex min-w-[theme('spacing[16]')] flex-col justify-between">
+          <div className="text-sm text-gray-500">
+            <TransactionTimestamp t={props.transaction} />
+          </div>
+
+          <div className="flex flex-col gap-1 md:flex-row">
+            <button className="font-medium text-indigo-600 hover:text-indigo-500">
+              Edit
+            </button>
+            <button
+              className="font-medium text-indigo-600 hover:text-indigo-500"
+              onClick={() => setShowRawDetails(!showRawDetails)}
+            >
+              Raw
+            </button>
           </div>
         </div>
       </div>
@@ -151,7 +212,7 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
 
 type TransactionsListProps = {
   transactions: Transaction[];
-  onTransactionUpdated: (transaction: DbTransaction) => void;
+  onTransactionUpdated: (transaction: DBTransaction) => void;
 };
 export const TransactionsList: React.FC<TransactionsListProps> = (props) => {
   const [displayLimit, setDisplayLimit] = useState(1000);
@@ -164,22 +225,27 @@ export const TransactionsList: React.FC<TransactionsListProps> = (props) => {
     .concat(props.transactions)
     .slice(0, displayLimit);
   return (
-    <div className="flex-1 rounded border border-gray-200">
-      <ul role="list" className="flex flex-col divide-y divide-gray-200">
-        {displayTransactions.map((t) => (
-          <TransactionsListItem
-            key={t.id}
-            transaction={t}
-            onUpdated={props.onTransactionUpdated}
-          />
-        ))}
-      </ul>
-      <button onClick={() => setDisplayLimit(displayLimit + 10)}>
-        Show 10 more
-      </button>
-      <button onClick={() => setDisplayLimit(displayLimit + 100)}>
-        Show 100 more
-      </button>
-    </div>
+    <>
+      <div className="flex-1 rounded border border-gray-200">
+        <ul role="list" className="flex flex-col divide-y divide-gray-200">
+          {displayTransactions.map((t) => (
+            <TransactionsListItem
+              key={t.id}
+              transaction={t}
+              onUpdated={props.onTransactionUpdated}
+            />
+          ))}
+        </ul>
+      </div>
+
+      <div>
+        <button onClick={() => setDisplayLimit(displayLimit + 10)}>
+          Show 10 more
+        </button>
+        <button onClick={() => setDisplayLimit(displayLimit + 100)}>
+          Show 100 more
+        </button>
+      </div>
+    </>
   );
 };
