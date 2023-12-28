@@ -1,5 +1,5 @@
+import { Stock as DBStock } from "@prisma/client";
 import { addDays, differenceInHours, format, isSameDay } from "date-fns";
-import { Stock, stockModelFromDB } from "lib/model/Stock";
 import prisma from "lib/prisma";
 import yahooFinance from "yahoo-finance2";
 import { HistoricalRowHistory } from "yahoo-finance2/dist/esm/src/modules/historical";
@@ -12,7 +12,7 @@ export async function fetchQuotes({
   stock,
 }: {
   startDate: Date;
-  stock: Stock;
+  stock: DBStock;
 }) {
   const r = await yahooFinance.historical(
     stock.ticker,
@@ -28,17 +28,22 @@ export async function fetchQuotes({
 }
 
 export async function addLatestStockQuotes() {
+  console.log("Starting stock quotes backfill");
   const timingLabel = "Stock quotes backfill " + new Date().getTime();
   console.time(timingLabel);
   const dbStocks = await prisma.stock.findMany();
-  const stocks = dbStocks.map(stockModelFromDB);
-  for (const stock of stocks) {
-    await backfill(stock);
-  }
+  await Promise.allSettled(dbStocks.map(async (s) => {
+    try {
+      await backfill(s);
+    } catch (err) {
+      console.error("Error backfilling %s", s.ticker, err);
+    }
+  }));
   console.timeEnd(timingLabel);
 }
 
-async function backfill(stock: Stock) {
+async function backfill(stock: DBStock) {
+  console.log("backfilling %s", stock.ticker)
   const now = new Date();
   const apiModelToDb = (x: HistoricalRowHistory) => {
     return {

@@ -37,7 +37,7 @@ export async function addLatestExchangeRates() {
       backfillPromises.push(backfill({ sell, buy }));
     }
   }
-  await Promise.all(backfillPromises);
+  await Promise.allSettled(backfillPromises);
   console.timeEnd(timingLabel);
 }
 
