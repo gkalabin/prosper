@@ -13,7 +13,7 @@ async function handle(
     data: { name, displayOrder, userId },
   };
   if (parentCategoryId) {
-    dbArgs.data.parentCategory = { connect: { id: parentCategoryId } };
+    dbArgs.data.parentCategoryId = parentCategoryId;
   }
   const result = await prisma.category.create(dbArgs);
   res.json(result);

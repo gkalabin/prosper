@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { useFormikContext } from "formik";
 import Link from "next/link";
 
 import React, { forwardRef } from "react";
@@ -122,4 +123,12 @@ export const ButtonFormSecondary = (
       {props.children}
     </button>
   );
+};
+
+export const AddOrUpdateButtonText = ({ add }: { add: boolean }) => {
+  const { isSubmitting } = useFormikContext();
+  if (add) {
+    return <>{isSubmitting ? "Adding…" : "Add"}</>;
+  }
+  return <>{isSubmitting ? "Updating…" : "Update"}</>;
 };

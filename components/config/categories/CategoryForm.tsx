@@ -1,7 +1,7 @@
 import { Category as DBCategory } from "@prisma/client";
 import { InputWithLabel, TextInputWithLabel } from "components/forms/Input";
 import { FormikSelect } from "components/forms/Select";
-import { ButtonFormPrimary, ButtonFormSecondary } from "components/ui/buttons";
+import { AddOrUpdateButtonText, ButtonFormPrimary, ButtonFormSecondary } from "components/ui/buttons";
 import { Form, Formik } from "formik";
 import { Category } from "lib/model/Category";
 import { useState } from "react";
@@ -18,9 +18,8 @@ export const CategoryAddOrEditForm = ({
   onClose: () => void;
 }) => {
   const [apiError, setApiError] = useState("");
-  const handleSubmit = async ({ parentId, name, displayOrder }) => {
+  const handleSubmit = async ({ parentCategoryId, name, displayOrder }) => {
     setApiError("");
-    const parentCategoryId = parentId ? +parentId : null;
     try {
       const body = {
         name,
@@ -44,7 +43,7 @@ export const CategoryAddOrEditForm = ({
   const initialValues = {
     name: category?.name() ?? "",
     displayOrder: category?.displayOrder() ?? categories.length * 100,
-    parentId: category?.parent()?.id() ?? 0,
+    parentCategoryId: category?.parent()?.id() ?? 0,
   };
   return (
     <Formik initialValues={initialValues} onSubmit={handleSubmit}>
@@ -60,7 +59,7 @@ export const CategoryAddOrEditForm = ({
               type="number"
             />
           </div>
-          <FormikSelect name="parentId">
+          <FormikSelect name="parentCategoryId">
             <option value="0">No parent</option>
             {categories.map((category) => (
               <option key={category.id()} value={category.id()}>
@@ -73,7 +72,7 @@ export const CategoryAddOrEditForm = ({
               Cancel
             </ButtonFormSecondary>
             <ButtonFormPrimary type="submit" disabled={!values.name}>
-              {isSubmitting ? "Updating…" : "Update"}
+              <AddOrUpdateButtonText add={!category}/>
             </ButtonFormPrimary>
           </div>
           {apiError && <span>{apiError}</span>}

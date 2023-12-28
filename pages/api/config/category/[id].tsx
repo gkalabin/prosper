@@ -28,9 +28,7 @@ async function handle(
     data: { name, displayOrder },
     where: { id: categoryId },
   };
-  if (parentCategoryId) {
-    dbArgs.data.parentCategory = { connect: { id: parentCategoryId } };
-  }
+  dbArgs.data.parentCategoryId = parentCategoryId || null;
   const result = await prisma.category.update(dbArgs);
   res.json(result);
 }

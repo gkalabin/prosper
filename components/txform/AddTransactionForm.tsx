@@ -4,7 +4,11 @@ import {
   NewTransactionSuggestions,
   TransactionPrototype,
 } from "components/txform/NewTransactionSuggestions";
-import { ButtonFormPrimary, ButtonFormSecondary } from "components/ui/buttons";
+import {
+  AddOrUpdateButtonText,
+  ButtonFormPrimary,
+  ButtonFormSecondary,
+} from "components/ui/buttons";
 import { format, startOfDay } from "date-fns";
 import { Form, Formik, FormikHelpers } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
@@ -279,13 +283,7 @@ export const AddTransactionForm = (props: {
                   disabled={isSubmitting}
                   type="submit"
                 >
-                  {creatingNewTransaction
-                    ? isSubmitting
-                      ? "Adding…"
-                      : "Add"
-                    : isSubmitting
-                    ? "Updating…"
-                    : "Update"}
+                  <AddOrUpdateButtonText add={creatingNewTransaction} />
                 </ButtonFormPrimary>
               </div>
             </div>
