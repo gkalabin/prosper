@@ -2,24 +2,13 @@ import { DB } from "lib/db";
 import { addLatestExchangeRates } from "lib/exchangeRatesBackfill";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { addLatestStockQuotes } from "lib/stockQuotesBackfill";
+import { includeExtensionsAndTags } from "lib/transactionDbUtils";
 import { GetServerSideProps } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "pages/api/auth/[...nextauth]";
 
 const fetchAllDatabaseData = async (db: DB): Promise<AllDatabaseData> => {
-  const dbTransactions = await db.transactionFindMany({
-    include: {
-      personalExpense: true,
-      thirdPartyExpense: true,
-      transfer: true,
-      income: true,
-      tags: {
-        select: {
-          id: true,
-        },
-      },
-    },
-  });
+  const dbTransactions = await db.transactionFindMany(includeExtensionsAndTags);
   return {
     dbTransactions,
     dbBanks: await db.bankFindMany(),

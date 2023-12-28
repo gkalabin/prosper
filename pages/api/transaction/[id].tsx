@@ -5,7 +5,7 @@ import prisma from "lib/prisma";
 import {
   AddTransactionFormValues,
   FormMode,
-  includeExtensions,
+  includeExtensionsAndTags,
   TransactionAPIRequest,
   TransactionAPIResponse,
   transactionDbInput,
@@ -24,7 +24,7 @@ async function handle(
   const { form } = req.body as TransactionAPIRequest;
   const db = new DB({ userId });
   const existing = await db.transactionFindFirst(
-    Object.assign({ where: { id: transactionId } }, includeExtensions)
+    Object.assign({ where: { id: transactionId } }, includeExtensionsAndTags)
   );
   if (!existing) {
     res.status(404).send(`Transaction not found`);
@@ -46,7 +46,7 @@ async function handle(
       const createdTrip = await writeTrip({ tx, data, form, userId });
       const { createdTags } = await writeTags({ tx, data, form, userId });
       const updatedTransaction = await tx.transaction.update({
-        ...includeExtensions,
+        ...includeExtensionsAndTags,
         data,
         where: { id: transactionId },
       });

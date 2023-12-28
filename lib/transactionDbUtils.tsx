@@ -4,7 +4,7 @@ import {
   Tag,
   Trip,
 } from "@prisma/client";
-import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
+import { TransactionWithExtensionsAndTagIds } from "lib/model/AllDatabaseDataModel";
 import {
   TransactionPrototype,
   WithdrawalOrDepositPrototype,
@@ -43,18 +43,23 @@ export type TransactionAPIRequest = {
 };
 
 export type TransactionAPIResponse = {
-  transaction: TransactionWithExtensions;
+  transaction: TransactionWithExtensionsAndTagIds;
   trip: Trip;
   tags: Tag[];
   prototypes: DBTransactionPrototype[];
 };
 
-export const includeExtensions = {
+export const includeExtensionsAndTags = {
   include: {
     personalExpense: true,
     thirdPartyExpense: true,
     transfer: true,
     income: true,
+    tags: {
+      select: {
+        id: true,
+      },
+    },
   },
 };
 
@@ -221,8 +226,8 @@ export async function writeTrip({
   const extension = data[config.extensionDbField];
   const extensionData = extension.update ?? extension.create;
   if (!form.tripName) {
-   extensionData.tripId = null; 
-   return null;
+    extensionData.tripId = null;
+    return null;
   }
   const tripNameAndUser = {
     name: form.tripName,

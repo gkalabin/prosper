@@ -1,7 +1,7 @@
 import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
 import prisma from "lib/prisma";
 import {
-  includeExtensions,
+  includeExtensionsAndTags,
   TransactionAPIRequest,
   TransactionAPIResponse,
   transactionDbInput,
@@ -25,7 +25,7 @@ async function handle(
       const createdTrip = await writeTrip({ tx, data, form, userId });
       const { createdTags } = await writeTags({ tx, data, form, userId });
       const createdTransaction = await tx.transaction.create(
-        Object.assign({ data }, includeExtensions)
+        Object.assign({ data }, includeExtensionsAndTags)
       );
       const { createdPrototypes } = await writeUsedPrototypes({
         usedPrototype,
