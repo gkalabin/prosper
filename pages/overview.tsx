@@ -46,16 +46,13 @@ const BankAccountListItem = (props: {
         </span>
       );
     } else {
-      console.log("account", props.account.balance())
-      console.log("ob", props.openBankingBalance)
-      console.log("delta", delta)
       balanceText = (
         <>
           <span className="text-red-600">
             {props.account.balance().format()}
           </span>{" "}
-          {delta.format()}{" "}
-          {delta.lessThan(Amount.ZERO) ? "extra" : "unaccounted"}
+          {delta.format()} unaccounted{" "}
+          {delta.lessThan(Amount.ZERO) ? "income" : "expense"}
         </>
       );
     }
@@ -68,9 +65,7 @@ const BankAccountListItem = (props: {
         onClick={() => setShowTransactionList(!showTransactionList)}
       >
         <span className="text-base font-normal">{props.account.name}</span>
-        <span className="ml-2 text-sm font-light">
-          {balanceText}
-        </span>
+        <span className="ml-2 text-sm font-light">{balanceText}</span>
       </div>
       {showTransactionList && (
         <div className="mt-4">
