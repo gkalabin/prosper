@@ -10,7 +10,6 @@ import {
   formModeForTransaction,
   mostUsedAccountFrom,
   mostUsedAccountTo,
-  mostUsedCategory,
   toDateTimeLocal,
 } from "components/txform/AddTransactionForm";
 import { BankAccountSelect } from "components/txform/BankAccountSelect";
@@ -31,6 +30,8 @@ import { useEffect, useState } from "react";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 
+const SUGGESTIONS_WINDOW_MONTHS = 6;
+
 export const FormInputs = (props: {
   transaction: Transaction;
   prototype: TransactionPrototype;
@@ -40,14 +41,12 @@ export const FormInputs = (props: {
     values: { amount, vendor, isShared, fromBankAccountId, mode },
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
-  const transactionsForMode = transactions.filter(
-    (x) => formModeForTransaction(x) == mode
-  );
-  const [mostFrequentOtherParty] = uniqMostFrequent(
-    transactionsForMode
-      .filter((x) => x.hasOtherParty())
-      .map((x) => x.otherParty())
-  );
+  const now = new Date();
+  const recentTransactionsForMode = transactions
+    .filter((x) => formModeForTransaction(x) == mode)
+    .filter(
+      (x) => differenceInMonths(now, x.timestamp) < SUGGESTIONS_WINDOW_MONTHS
+    );
 
   useEffect(() => {
     // If amount is $0.05, round half of it to the closest cent.
@@ -55,11 +54,39 @@ export const FormInputs = (props: {
     setFieldValue("ownShareAmount", isShared ? halfAmount : amount);
   }, [amount, isShared, setFieldValue]);
 
+  const [mostFrequentOtherParty] = uniqMostFrequent(
+    recentTransactionsForMode
+      .filter((x) => x.hasOtherParty())
+      .map((x) => x.otherParty())
+  );
   useEffect(() => {
     if (isShared && mostFrequentOtherParty) {
       setFieldValue("otherPartyName", mostFrequentOtherParty);
     }
+    if (!isShared) {
+      setFieldValue("otherPartyName", "");
+    }
   }, [isShared, setFieldValue, mostFrequentOtherParty]);
+
+  const [mostFrequentPayer] = uniqMostFrequent(
+    recentTransactionsForMode.filter((x) => x.hasPayer()).map((x) => x.payer())
+  );
+  useEffect(() => {
+    if (mostFrequentPayer) {
+      setFieldValue("payer", mostFrequentPayer);
+    }
+  }, [setFieldValue, mostFrequentPayer]);
+
+  const [mostFrequentCategory] = uniqMostFrequent(
+    recentTransactionsForMode
+      .filter((x) => !vendor || x.vendor() == vendor)
+      .map((x) => x.category)
+  );
+  useEffect(() => {
+    if (mostFrequentCategory) {
+      setFieldValue("categoryId", mostFrequentCategory.id());
+    }
+  }, [setFieldValue, mostFrequentCategory]);
 
   useEffect(() => {
     if (!props.prototype) {
@@ -95,13 +122,6 @@ export const FormInputs = (props: {
       setFieldValue("toBankAccountId", to.id);
     }
   }, [transactions, mode, setFieldValue, props.transaction, props.prototype]);
-
-  useEffect(() => {
-    const suggestion = mostUsedCategory(transactions, vendor);
-    if (suggestion) {
-      setFieldValue("categoryId", suggestion.id());
-    }
-  }, [vendor, transactions, mode, setFieldValue]);
 
   useEffect(() => {
     if (mode == FormMode.PERSONAL) {

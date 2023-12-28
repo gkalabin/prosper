@@ -185,26 +185,34 @@ export class Transaction {
     return this.vendorOrNull();
   }
 
+  private otherPartyNameOrNull() {
+    return firstNonNull2(this.personalExpense, this.income)?.otherPartyName || null;
+  }
+
   hasOtherParty() {
-    return this.isPersonalExpense() || this.isIncome();
+    return this.otherPartyNameOrNull() != null;
   }
 
   otherParty() {
     if (!this.hasOtherParty()) {
       throw new Error("Transaction has no other party");
     }
-    return this.personalExpense?.otherPartyName ?? this.income.otherPartyName;
+    return this.otherPartyNameOrNull();
+  }
+
+  private payerOrNull() {
+    return firstNonNull2(this.thirdPartyExpense, this.income)?.payer || null;
   }
 
   hasPayer() {
-    return this.isThirdPartyExpense() || this.isIncome();
+    return this.payerOrNull() != null;
   }
 
   payer() {
     if (!this.hasPayer()) {
       throw new Error("Transaction has no payer");
     }
-    return this.thirdPartyExpense?.payer ?? this.income.payer;
+    return this.payerOrNull();
   }
 
   private tripOrNull() {
