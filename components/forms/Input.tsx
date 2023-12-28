@@ -50,6 +50,7 @@ const InputWithLabelUntyped = (props: InputProps & FieldHookConfig<any>) => {
         id={props.name}
         {...field}
         {...inputAttributes}
+        onFocus={(e) => e.target.select()}
         className="block w-full"
         disabled={isSubmitting || disabled}
       />
@@ -74,13 +75,16 @@ export const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => {
 export const FormikInput = (
   props: React.InputHTMLAttributes<HTMLInputElement>
 ) => {
-  const { className, type, id, name, ...otherProps } = props;
+  const { className, type, id, name, disabled, ...otherProps } = props;
+  const { isSubmitting } = useFormikContext();
   return (
     <Field
       {...otherProps}
       id={id ?? name}
       name={name}
       type={type ?? "text"}
+      disabled={isSubmitting || disabled}
+      onFocus={(e) => e.target.select()}
       className={classNames(
         className,
         props.disabled ? "opacity-30" : "",
@@ -93,14 +97,16 @@ export const FormikInput = (
 export const FormikMoneyInput = (
   props: React.InputHTMLAttributes<HTMLInputElement>
 ) => {
-  const { setFieldValue } = useFormikContext();
+  const { disabled, ...otherProps } = props;
+  const { setFieldValue, isSubmitting } = useFormikContext();
   return (
     <FormikInput
-      {...props}
+      {...otherProps}
       type="text"
       step="0.01"
       inputMode="decimal"
       onFocus={(e) => e.target.select()}
+      disabled={isSubmitting || disabled}
       onChange={(e) => {
         // When locale set to NL for the example, the decimal separator is a comma.
         // TODO: try using making AddTransactionFormValues a class with a method providing number value for the text.

@@ -8,8 +8,6 @@ import {
 import { undoTailwindInputStyles } from "components/forms/Select";
 import {
   formModeForTransaction,
-  mostUsedAccountFrom,
-  mostUsedAccountTo,
   toDateTimeLocal,
 } from "components/txform/AddTransactionForm";
 import { BankAccountSelect } from "components/txform/BankAccountSelect";
@@ -112,22 +110,6 @@ export const FormInputs = (props: {
       setFieldValue("toBankAccountId", props.prototype.accountToId);
     }
   }, [props.prototype, setFieldValue]);
-
-  useEffect(() => {
-    if (props.transaction || props.prototype) {
-      // Is we are editing transaction, do not autofill from/to bank account, but stick to the one from transaction.
-      // If there is a prototype (suggestion from banking API), do not mess with bank account selector either.
-      return;
-    }
-    const from = mostUsedAccountFrom(transactions);
-    if (from) {
-      setFieldValue("fromBankAccountId", from.id);
-    }
-    const to = mostUsedAccountTo(transactions);
-    if (to) {
-      setFieldValue("toBankAccountId", to.id);
-    }
-  }, [transactions, mode, setFieldValue, props.transaction, props.prototype]);
 
   useEffect(() => {
     if (mode == FormMode.PERSONAL) {
@@ -466,7 +448,6 @@ function Timestamp() {
 function Vendor() {
   const {
     values: { mode },
-    isSubmitting,
   } = useFormikContext<AddTransactionFormValues>();
   const { transactions } = useAllDatabaseDataContext();
   const transactionsForMode = transactions.filter(
@@ -477,12 +458,7 @@ function Vendor() {
   );
   return (
     <div className="col-span-6">
-      <TextInputWithLabel
-        name="vendor"
-        label="Vendor"
-        list="vendors"
-        disabled={isSubmitting}
-      />
+      <TextInputWithLabel name="vendor" label="Vendor" list="vendors" />
       <datalist id="vendors">
         {vendors.map((v) => (
           <option key={v} value={v} />
@@ -664,7 +640,6 @@ function Payer() {
 }
 
 function OtherPartyName() {
-  const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
   const { transactions } = useAllDatabaseDataContext();
   const frequency = new Map<string, number>();
   transactions
@@ -686,7 +661,6 @@ function OtherPartyName() {
         name="otherPartyName"
         list="otherParties"
         className="block w-full"
-        disabled={isSubmitting}
       />
       <datalist id="otherParties">
         {values.map((v) => (

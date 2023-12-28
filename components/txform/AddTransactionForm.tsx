@@ -213,6 +213,9 @@ export const AddTransactionForm = (props: {
         const resetValues = { ...initialValuesForEmptyForm };
         resetValues.mode = values.mode;
         resetValues.timestamp = values.timestamp;
+        resetValues.fromBankAccountId = values.fromBankAccountId;
+        resetValues.toBankAccountId = values.toBankAccountId;
+        resetValues.isShared = values.isShared;
         resetForm({ values: resetValues });
         setPrototype(null);
         props.onAddedOrUpdated(await added.json());
