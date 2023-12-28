@@ -42,7 +42,7 @@ async function handle(
         Object.assign(
           {
             data: data,
-            where: { id: transactionId, userId },
+            where: { id: transactionId },
           },
           includeExtensions
         )
