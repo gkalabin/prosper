@@ -1,48 +1,35 @@
 import { Transaction as DBTransaction } from "@prisma/client";
-import { format, formatDistance, isAfter, subDays } from "date-fns";
 import React, { useState } from "react";
-import { BankAccount } from "../../lib/model/BankAccount";
-import { Transaction, transactionSign } from "../../lib/model/Transaction";
+import { Bank, BankAccount } from "../../lib/model/BankAccount";
+import { Category } from "../../lib/model/Category";
+import { Currency } from "../../lib/model/Currency";
+import { Transaction } from "../../lib/model/Transaction";
 import { currencyByTransaction } from "../../lib/Money";
+import { descriptiveDateTime, shortRelativeDate } from "../../lib/TimeHelpers";
 import { Amount } from "../Amount";
-export const TransactionHeading = (props: { t: Transaction }) => {
-  if (props.t.personalExpense) {
-    return <>{props.t.personalExpense.vendor}</>;
+import { AddTransactionForm } from "./AddTransactionForm";
+
+const transactionHeadingText = (t: Transaction) => {
+  if (t.vendor()) {
+    return t.vendor();
   }
-  if (props.t.thirdPartyExpense) {
-    return <>{props.t.thirdPartyExpense.vendor}</>;
-  }
-  if (props.t.transfer) {
-    const from = props.t.transfer.accountFrom;
-    const to = props.t.transfer.accountTo;
+  if (t.isTransfer()) {
+    const from = t.accountFrom();
+    const to = t.accountTo();
     if (from.bank.id == to.bank.id) {
-      return (
-        <>
-          {from.bank.name}: {from.name} → {to.name}
-        </>
-      );
+      return `${from.bank.name}: ${from.name} → ${to.name}`;
     }
-    return (
-      <>
-        {from.bank.name}: {from.name} → {to.bank.name}: {to.name}
-      </>
-    );
+    return `${from.bank.name}: ${from.name} → ${to.bank.name}: ${to.name}`;
   }
-  if (props.t.income) {
-    return <>{props.t.income.vendor || props.t.description}</>;
-  }
-  return <>{props.t.description}</>;
+  return t.description;
+};
+
+export const TransactionHeading = (props: { t: Transaction }) => {
+  return <>{transactionHeadingText(props.t)}</>;
 };
 
 export const TransactionDescription = (props: { t: Transaction }) => {
-  if (
-    props.t.personalExpense ||
-    props.t.thirdPartyExpense ||
-    props.t.transfer
-  ) {
-    return <>{props.t.description}</>;
-  }
-  if (props.t.income && props.t.income.vendor) {
+  if (transactionHeadingText(props.t) != props.t.description) {
     return <>{props.t.description}</>;
   }
   return <></>;
@@ -52,18 +39,18 @@ const TransactionStatusLine = (props: {
   t: Transaction;
   showBankAccountInStatusLine: boolean;
 }) => {
-  if (props.t.personalExpense) {
+  if (props.t.isPersonalExpense()) {
     const maybeBankAccount = props.showBankAccountInStatusLine && (
-      <BankAccountLabel account={props.t.personalExpense.account} />
+      <BankAccountLabel account={props.t.accountFrom()} />
     );
     return <>{maybeBankAccount}</>;
   }
-  if (props.t.thirdPartyExpense) {
+  if (props.t.isThirdPartyExpense()) {
     return <>{props.t.thirdPartyExpense.payer}</>;
   }
-  if (props.t.income) {
+  if (props.t.isIncome()) {
     const maybeBankAccount = props.showBankAccountInStatusLine && (
-      <BankAccountLabel account={props.t.income.account} />
+      <BankAccountLabel account={props.t.accountTo()} />
     );
     return <>{maybeBankAccount}</>;
   }
@@ -78,36 +65,21 @@ const BankAccountLabel = (props: { account: BankAccount }) => {
   );
 };
 
-function shortRelativeDate(d: Date) {
-  const today = new Date();
-  const fourDaysAgo = subDays(today, 4);
-  if (isAfter(d, fourDaysAgo)) {
-    // 2 days ago
-    return formatDistance(d, today, { includeSeconds: false, addSuffix: true });
-  }
-  // Nov 19
-  return format(d, "MMM dd");
-}
-
 const TransactionTimestamp = (props: { t: Transaction }) => {
   const [showShort, setShowShort] = useState(true);
-  // Mar 22, 21, 19:05 GMT+0
-  const longFormat = format(props.t.timestamp, "MMM dd, yy, H:mm O");
-  if (showShort) {
-    return (
-      <span onClick={() => setShowShort(false)} title={longFormat}>
-        {shortRelativeDate(props.t.timestamp)}
-      </span>
-    );
-  }
+  const longFormat = descriptiveDateTime(props.t.timestamp);
+  // TODO: show tooltip on click instead of changing the contents
   return (
-    <span onClick={() => setShowShort(true)}>
-      {longFormat}
+    <span onClick={() => setShowShort(!showShort)} title={longFormat}>
+      {(showShort && shortRelativeDate(props.t.timestamp)) || longFormat}
     </span>
   );
 };
 
 type TransactionsListItemProps = {
+  banks: Bank[];
+  categories: Category[];
+  currencies: Currency[];
   transaction: Transaction;
   onUpdated: (transaction: DBTransaction) => void;
   showBankAccountInStatusLine: boolean;
@@ -116,6 +88,7 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
   props
 ) => {
   const [showRawDetails, setShowRawDetails] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
   const raw = ""; //JSON.stringify(props.transaction.category, null, 2);
   return (
     // TODO: add date and category
@@ -124,7 +97,7 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
         <div className="min-w-[theme('spacing[20]')] flex-none whitespace-nowrap text-right text-lg font-medium text-gray-900">
           <Amount
             amountCents={props.transaction.amountCents}
-            sign={transactionSign(props.transaction)}
+            sign={props.transaction.amountSign()}
             currency={currencyByTransaction(props.transaction)}
           />
         </div>
@@ -151,7 +124,10 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
           </div>
 
           <div className="flex flex-col gap-1 md:flex-row">
-            <button className="font-medium text-indigo-600 hover:text-indigo-500">
+            <button
+              onClick={() => setShowEditForm(true)}
+              className="font-medium text-indigo-600 hover:text-indigo-500"
+            >
               Edit
             </button>
             <button
@@ -164,12 +140,31 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
         </div>
       </div>
 
-      <div>{showRawDetails && <pre className="text-xs">{raw}</pre>}</div>
+      {showRawDetails && (
+        <div>
+          <pre className="text-xs">{raw}</pre>
+        </div>
+      )}
+      {showEditForm && (
+        <div>
+          <AddTransactionForm
+            transaction={props.transaction}
+            categories={props.categories}
+            banks={props.banks}
+            currencies={props.currencies}
+            onAdded={props.onUpdated}
+            onClose={() => setShowEditForm(false)}
+          />
+        </div>
+      )}
     </li>
   );
 };
 
 type TransactionsListProps = {
+  banks: Bank[];
+  categories: Category[];
+  currencies: Currency[];
   transactions: Transaction[];
   onTransactionUpdated: (transaction: DBTransaction) => void;
   displayLimit?: number;
@@ -192,6 +187,9 @@ export const TransactionsList: React.FC<TransactionsListProps> = (props) => {
           {displayTransactions.map((t) => (
             <TransactionsListItem
               key={t.id}
+              categories={props.categories}
+              banks={props.banks}
+              currencies={props.currencies}
               transaction={t}
               onUpdated={props.onTransactionUpdated}
               showBankAccountInStatusLine={

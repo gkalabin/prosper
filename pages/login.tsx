@@ -29,6 +29,7 @@ export default function Login() {
   ) {
     setErrorMsg("");
     try {
+      // TODO: don't send password plain text
       const body = JSON.stringify(values);
       const response = await fetch("/api/login", {
         method: "POST",

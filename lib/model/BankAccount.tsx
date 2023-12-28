@@ -1,6 +1,6 @@
 import { Bank as DBBank, BankAccount as DBBankAccount } from "@prisma/client";
 import { Currency } from "./Currency";
-import { Transaction, transactionAbsoluteAmount } from "./Transaction";
+import { Transaction } from "./Transaction";
 
 export type Bank = {
   id: number;
@@ -24,7 +24,7 @@ export type BankAccount = {
 export const bankAccountBalance = (ba: BankAccount): number => {
   let balance = ba.initialBalanceCents;
   ba.transactions.forEach(t => {
-    const amount = transactionAbsoluteAmount(t, ba);
+    const amount = t.absoluteAmount(ba);
     balance += amount;
   })
   return balance;

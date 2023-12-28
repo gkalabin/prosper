@@ -13,11 +13,16 @@ import {
   BankAccount,
   bankAccountBalance,
 } from "../lib/model/BankAccount";
+import { Category } from "../lib/model/Category";
+import { Currency } from "../lib/model/Currency";
 import { AllDatabaseData, loadAllDatabaseData } from "../lib/ServerSideDB";
 import { sessionOptions } from "../lib/session";
 import { User } from "./api/user";
 
 type BankAccountListItemProps = {
+  banks: Bank[];
+  categories: Category[];
+  currencies: Currency[];
   account: BankAccount;
 };
 const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
@@ -36,6 +41,9 @@ const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
       {showTransactionList && (
         <div className="mt-4">
           <TransactionsList
+            categories={props.categories}
+            banks={props.banks}
+            currencies={props.currencies}
             transactions={props.account.transactions}
             // TODO: implement
             onTransactionUpdated={() => alert("TODO")}
@@ -48,6 +56,9 @@ const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
 };
 
 type BankListItemProps = {
+  banks: Bank[];
+  categories: Category[];
+  currencies: Currency[];
   bank: Bank;
 };
 const BankListItem: React.FC<BankListItemProps> = (props) => {
@@ -59,7 +70,13 @@ const BankListItem: React.FC<BankListItemProps> = (props) => {
 
       <div className="divide-y divide-gray-200">
         {props.bank.accounts.map((a) => (
-          <BankAccountListItem key={a.id} account={a} />
+          <BankAccountListItem
+            key={a.id}
+            account={a}
+            categories={props.categories}
+            banks={props.banks}
+            currencies={props.currencies}
+          />
         ))}
       </div>
     </div>
@@ -67,6 +84,8 @@ const BankListItem: React.FC<BankListItemProps> = (props) => {
 };
 
 type TransactionsListProps = {
+  categories: Category[];
+  currencies: Currency[];
   banks: Bank[];
 };
 const BanksList: React.FC<TransactionsListProps> = (props) => {
@@ -78,7 +97,13 @@ const BanksList: React.FC<TransactionsListProps> = (props) => {
       <div className="flex-1 rounded border border-gray-200">
         <div className="flex flex-col divide-y divide-gray-200">
           {props.banks.map((b) => (
-            <BankListItem key={b.id} bank={b} />
+            <BankListItem
+              key={b.id}
+              categories={props.categories}
+              banks={props.banks}
+              currencies={props.currencies}
+              bank={b}
+            />
           ))}
         </div>
       </div>
@@ -173,7 +198,11 @@ function OverviewPage({
               />
             </div>
           )}
-          <BanksList banks={model.banks} />
+          <BanksList
+            banks={model.banks}
+            categories={model.categories}
+            currencies={model.currencies}
+          />
         </div>
       </div>
     </Layout>

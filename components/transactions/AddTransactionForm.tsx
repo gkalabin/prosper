@@ -12,6 +12,8 @@ import {
 import { Bank } from "../../lib/model/BankAccount";
 import { Category } from "../../lib/model/Category";
 import { Currency } from "../../lib/model/Currency";
+import { Transaction } from "../../lib/model/Transaction";
+import { toDateTimeLocal } from "../../lib/TimeHelpers";
 import { BankAccountSelect } from "../forms/BankAccountSelect";
 import { MoneyInput, TextInput } from "../forms/Input";
 import { SelectNumber } from "../forms/Select";
@@ -20,6 +22,7 @@ type AddTransactionFormProps = {
   banks: Bank[];
   categories: Category[];
   currencies: Currency[];
+  transaction?: Transaction;
   onAdded: (added: DBTransaction) => void;
   onClose: () => void;
 };
@@ -82,12 +85,6 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
   };
 
   // TODO: verify that datetime-local is processed correctly with regards to timezones
-  const now = new Date();
-  const dateTimeLocalNow = new Date(
-    now.getTime() - now.getTimezoneOffset() * 60000
-  )
-    .toISOString()
-    .slice(0, -1);
 
   const submitNewTransaction = async (
     values: AddTransactionFormValues,
@@ -109,24 +106,24 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
     }
   };
 
+  const now = new Date();
+  const initialValues = {
+    timestamp: toDateTimeLocal(props.transaction?.timestamp ?? now),
+    vendor: props.transaction?.vendor() ?? "",
+    description: "",
+    amount: 0,
+    ownShareAmount: 0,
+    receivedAmount: 0,
+    // TODO: fix, use bank account
+    fromBankAccountId: props.banks[0].id,
+    toBankAccountId: props.banks[0].id,
+    categoryId: props.categories[0].id,
+    currencyId: props.currencies[0].id,
+  };
+
   return (
     <div>
-      <Formik
-        initialValues={{
-          timestamp: dateTimeLocalNow,
-          vendor: "",
-          description: "",
-          amount: 0,
-          ownShareAmount: 0,
-          receivedAmount: 0,
-          // TODO: fix, use bank account
-          fromBankAccountId: props.banks[0].id,
-          toBankAccountId: props.banks[0].id,
-          categoryId: props.categories[0].id,
-          currencyId: props.currencies[0].id,
-        }}
-        onSubmit={submitNewTransaction}
-      >
+      <Formik initialValues={initialValues} onSubmit={submitNewTransaction}>
         {({ values, handleChange, isSubmitting }) => (
           // TODO: disable form when submitting
           <Form>

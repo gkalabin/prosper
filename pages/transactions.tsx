@@ -64,6 +64,9 @@ const TransactionsPage: React.FC<AllDatabaseData> = (props) => {
           )}
 
           <TransactionsList
+            categories={model.categories}
+            banks={model.banks}
+            currencies={model.currencies}
             transactions={model.transactions}
             onTransactionUpdated={updateTransaction}
           />
