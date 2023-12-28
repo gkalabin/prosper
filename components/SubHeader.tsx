@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import classNames from "classnames";
 import { AnchorUnstyled } from "components/ui/buttons";
 import { usePathname } from "next/navigation";
@@ -14,12 +14,12 @@ const validate = (items: SubHeaderItem[]) => {
   if (!items || !items.length) {
     throw new Error(`Subheader has no items`);
   }
-  const titles = {};
+  const titles = new Set<string>();
   for (const i of items) {
-    if (titles[i.title]) {
+    if (titles.has(i.title)) {
       throw new Error(`Title ${i.title} present more than once`);
     }
-    titles[i.title] = 1;
+    titles.add(i.title);
     if (!i.onSelected && !i.path) {
       throw new Error(`Item ${i.title} doesn't have a callback or target path`);
     }
@@ -33,17 +33,19 @@ export const SubHeader = (props: { items: SubHeaderItem[] }) => {
   validate(props.items);
   const pathname = usePathname();
   const activeItem = props.items.find((i) => i.path == pathname);
-  const [active, setActive] = useState<SubHeaderItem|undefined>(activeItem);
+  const [active, setActive] = useState<SubHeaderItem | undefined>(activeItem);
   const handleClick = (item: SubHeaderItem) => {
     setActive(item);
-    item.onSelected();
+    if (item.onSelected) {
+      item.onSelected();
+    }
   };
 
   return (
     <nav className="bg-gray-600">
-      <div className="space-x-2 sm:space-x-4 mx-auto max-w-7xl px-2 py-1 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl space-x-2 px-2 py-1 sm:space-x-4 sm:px-6 lg:px-8">
         {props.items.map((item) => (
-          <div key={item.title} className="inline-block my-1">
+          <div key={item.title} className="my-1 inline-block">
             <Button item={item} active={active} onClick={handleClick} />
           </div>
         ))}
@@ -96,7 +98,7 @@ function ButtonContent({
         isActive
           ? "bg-gray-800 text-white"
           : "text-gray-300 hover:bg-gray-700 hover:text-white",
-        "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium"
+        "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium",
       )}
     >
       {text}
