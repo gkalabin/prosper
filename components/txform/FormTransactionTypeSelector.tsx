@@ -24,7 +24,7 @@ export const FormTransactionTypeSelector = (props: {
   setMode: (newMode: FormMode) => void;
 }) => {
   return (
-    <div className="grid grid-cols-6 gap-6">
+    <div className="grid grid-cols-6 gap-x-6 gap-y-3">
       <div className="col-span-6 flex justify-center">
         <div className="rounded-md shadow-sm">
           <Button

@@ -41,7 +41,9 @@ export const FormInputs = (props: {
   } = useFormikContext<AddTransactionFormValues>();
 
   useEffect(() => {
-    setFieldValue("ownShareAmount", isFamilyExpense ? amount / 2 : amount);
+    // If amount is $0.05, round half of it to the closest cent.
+    const halfAmount = Math.round(100 * (amount / 2)) / 100;
+    setFieldValue("ownShareAmount", isFamilyExpense ? halfAmount : amount);
   }, [amount, isFamilyExpense, setFieldValue]);
   useEffect(() => {
     setFieldValue("receivedAmount", amount);
@@ -429,8 +431,12 @@ function ParentTransaction() {
     : null;
   return (
     <div className="col-span-6">
+      <label className="block text-sm font-medium text-gray-700">
+        Parent transaction
+      </label>
       <Select
         styles={undoTailwindInputStyles()}
+        isClearable
         options={transactions
           .filter((t) => t.isPersonalExpense())
           .filter((t) => t.accountFrom().id == toBankAccountId)
@@ -448,7 +454,7 @@ function ParentTransaction() {
           value: parentTransactionId,
         }}
         onChange={(newValue) =>
-          setFieldValue("parentTransactionId", newValue.value)
+          setFieldValue("parentTransactionId", newValue?.value ?? 0)
         }
         isDisabled={isSubmitting}
       />
