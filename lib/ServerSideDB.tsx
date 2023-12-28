@@ -31,10 +31,10 @@ const fetchAllDatabaseData = async (db: DB): Promise<AllDatabaseData> => {
   };
 };
 
-const fetchOpenBankingData = async ({ userId }: { userId: number }) => {
+const fetchOpenBankingData = async (db: DB) => {
   return {
-    balances: await fetchBalances({ userId }),
-    transactions: await fetchOpenBankingTransactions({ userId }),
+    balances: await fetchBalances(db),
+    transactions: await fetchOpenBankingTransactions(db),
   };
 };
 
@@ -92,7 +92,7 @@ export const allDbDataPropsWithOb: GetServerSideProps<
     },
   };
   // TODO: fetch async with page load
-  await fetchOpenBankingData({ userId: +session.user.id })
+  await fetchOpenBankingData(db)
     .then((openBankingData) => (obData = { openBankingData }))
     .catch((err) => console.warn("open banking fail", err));
   const props = Object.assign({ session }, dbData, obData);
