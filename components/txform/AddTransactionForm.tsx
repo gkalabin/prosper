@@ -1,12 +1,19 @@
 import { Switch } from "@headlessui/react";
-import { Transaction as DBTransaction } from "@prisma/client";
+import {
+  Transaction as DBTransaction,
+  TransactionPrototype as DBTransactionPrototype,
+} from "@prisma/client";
 import { BankAccountSelect } from "components/forms/BankAccountSelect";
 import {
   MoneyInputWithLabel,
   TextInputWithLabel,
 } from "components/forms/Input";
 import { SelectNumber } from "components/forms/Select";
-import { ButtonFormPrimary, ButtonFormSecondary } from "components/ui/buttons";
+import {
+  ButtonFormPrimary,
+  ButtonFormSecondary,
+  ButtonLink,
+} from "components/ui/buttons";
 import { format } from "date-fns";
 import { Formik, FormikHelpers, useFormikContext } from "formik";
 import {
@@ -21,18 +28,8 @@ import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
 import { Transaction } from "lib/model/Transaction";
 import { IOBTransactionsByAccountId } from "lib/openbanking/interface";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { FormTransactionTypeSelector } from "./FormTransactionTypeSelector";
-
-export type AddTransactionFormProps = {
-  banks: Bank[];
-  categories: Category[];
-  transaction?: Transaction;
-  allTransactions: Transaction[];
-  obTransactions?: IOBTransactionsByAccountId;
-  onAdded: (added: DBTransaction) => void;
-  onClose: () => void;
-};
 
 export const InputRow = (props: {
   mode?: FormMode;
@@ -177,36 +174,99 @@ function mostFrequent<T extends { id: number }>(items: T[]): T {
   return itemById[mostFrequentId];
 }
 
-const NewTransactionSuggestions = ({
-  obTransactions,
-  banks,
-}: {
+const NewTransactionSuggestions = (props: {
   banks: Bank[];
-  obTransactions: IOBTransactionsByAccountId;
+  openBankingTransactions: IOBTransactionsByAccountId;
+  transactionPrototypes: DBTransactionPrototype[];
+  onItemClick: (t: TransactionPrototype) => void;
 }) => {
-  const accountsWithData = banks
+  const accountsWithData = props.banks
     .flatMap((x) => x.accounts)
-    .filter((x) => !!obTransactions[x.id]);
+    .filter((x) => !!props.openBankingTransactions[x.id])
+    .sort(
+      (a, b) =>
+        props.openBankingTransactions[b.id].length -
+        props.openBankingTransactions[a.id].length
+    );
+  const [activeAccount, setActiveAccount] = useState(
+    !accountsWithData.length ? null : accountsWithData[0]
+  );
+  const [expanded, setExpanded] = useState({} as { [id: string]: boolean });
+  const transactionsToDisplay =
+    props.openBankingTransactions[activeAccount?.id];
+  if (!accountsWithData.length) {
+    return <></>;
+  }
   return (
-    <>
-      {accountsWithData.map((account) => (
-        <h1 key={account.id}>
-          {account.bank.name}: {account.name}
-          {obTransactions[account.id].slice(0, 10).map((t) => (
-            <li key={t.transaction_id}>
-              {t.timestamp}: {t.description}
-            </li>
-          ))}
-        </h1>
-      ))}
-    </>
+    <div className="divide-y divide-gray-200 rounded border border-gray-200">
+      <div className="flex gap-2 p-2">
+        {accountsWithData.map((account) => (
+          <ButtonLink
+            key={account.id}
+            onClick={() => setActiveAccount(account)}
+            disabled={account.id == activeAccount.id}
+          >
+            {account.bank.name}: {account.name} (
+            {props.openBankingTransactions[account.id].length})
+          </ButtonLink>
+        ))}
+      </div>
+      <ul className="divide-y divide-gray-200">
+        {transactionsToDisplay.slice(0, 10).map((t) => (
+          <li key={t.transaction_id} className="p-2">
+            <div className="flex">
+              <div
+                className="grow cursor-pointer"
+                onClick={() => props.onItemClick(t)}
+              >
+                {t.amount} {t.description}
+              </div>
+              <div>
+                <ButtonLink
+                  onClick={() =>
+                    setExpanded((prev) =>
+                      Object.assign({}, prev, {
+                        [t.transaction_id]: !prev[t.transaction_id],
+                      })
+                    )
+                  }
+                >
+                  raw
+                </ButtonLink>
+              </div>
+            </div>
+            {expanded[t.transaction_id] && (
+              <pre className="text-xs">{JSON.stringify(t, null, 2)}</pre>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 };
 
-export const AddTransactionForm = (props: AddTransactionFormProps) => {
+type TransactionPrototype = {
+  vendor: string;
+  timestamp: Date;
+  accountFromId?: number;
+  accountToId?: number;
+  mode: FormMode;
+};
+
+export const AddTransactionForm = (props: {
+  banks: Bank[];
+  categories: Category[];
+  transaction?: Transaction;
+  allTransactions: Transaction[];
+  openBankingTransactions?: IOBTransactionsByAccountId;
+  transactionPrototypes?: DBTransactionPrototype[];
+  onAdded: (added: DBTransaction) => void;
+  onClose: () => void;
+}) => {
   const [apiError, setApiError] = useState("");
   const [mode, setMode] = useState(formModeForTransaction(props.transaction));
   const [isAdvancedMode, setAdvancedMode] = useState(false);
+  const [prototype, setPrototype] = useState<TransactionPrototype>(null);
   const currencies = useCurrencyContext();
 
   const submitNewTransaction = async (
@@ -253,10 +313,14 @@ export const AddTransactionForm = (props: AddTransactionFormProps) => {
         {({ isSubmitting }) => (
           <div className="overflow-hidden shadow sm:rounded-md">
             <div className="bg-white p-2 sm:p-6">
-              <NewTransactionSuggestions
-                obTransactions={props.obTransactions}
-                banks={props.banks}
-              />
+              <div className="mb-2">
+                <NewTransactionSuggestions
+                  openBankingTransactions={props.openBankingTransactions}
+                  transactionPrototypes={props.transactionPrototypes}
+                  banks={props.banks}
+                  onItemClick={(t) => setPrototype(t)}
+                />
+              </div>
 
               <FormTransactionTypeSelector
                 disabled={isSubmitting}
@@ -265,6 +329,7 @@ export const AddTransactionForm = (props: AddTransactionFormProps) => {
               >
                 <FormInputs
                   transaction={props.transaction}
+                  prototype={prototype}
                   allTransactions={props.allTransactions}
                   categories={props.categories}
                   isAdvancedMode={isAdvancedMode}
@@ -321,6 +386,7 @@ const FormInputs = (props: {
   isAdvancedMode: boolean;
   banks: Bank[];
   mode: FormMode;
+  prototype: TransactionPrototype;
 }) => {
   const currencies = useCurrencyContext();
   const {
