@@ -73,13 +73,21 @@ export async function deleteToken(
   // FIXME: error handling here is overly simplistic, it allows for the case
   // where the token is deleted from TrueLayer but not from the database.
   if (response.status !== 200) {
-    const text = await response.text();
-    console.warn(
-      `Failed to delete access token for bank id ${token.bankId}: ${text}`,
-    );
-    return Promise.reject(
-      `Failed to delete access token for bank id ${token.bankId}: ${text}`,
-    );
+    if (response.status === 401) {
+      // TrueLayer returns 401 if the token is already deleted, okay to continue.
+      console.warn(
+        `Got code ${
+          response.status
+        } from TrueLayer while deleting the token for bank ${
+          token.bankId
+        }: ${await response.text()}`,
+      );
+    } else {
+      const text = await response.text();
+      return Promise.reject(
+        `Failed to delete true layer token for bank id ${token.bankId} (code ${response.status}): ${text}`,
+      );
+    }
   }
   await db.trueLayerTokenDelete({ where: { bankId: token.bankId } });
 }
