@@ -7,6 +7,10 @@ export const ConfigPageLayout = (props: {
   <Layout
     subheader={[
       {
+        title: "Display settings",
+        path: "/config/display-settings",
+      },
+      {
         title: "Banks and Accounts",
         path: "/config/banks",
       },

@@ -3,6 +3,7 @@ import {
   BankAccount,
   Category,
   Currency,
+  DisplaySettings,
   ExchangeRate,
   Income,
   PersonalExpense,
@@ -38,4 +39,5 @@ export type AllDatabaseData = {
   dbCurrencies: Currency[];
   dbExchangeRates: ExchangeRate[];
   dbStockQuotes: StockQuote[];
+  dbDisplaySettings: DisplaySettings;
 };

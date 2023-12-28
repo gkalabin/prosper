@@ -33,6 +33,7 @@ const fetchAllDatabaseData = async (
     dbBankAccounts: await db.bankAccountFindMany(),
     dbCurrencies: await db.currencyFindMany(),
     dbCategories: await db.categoryFindMany(),
+    dbDisplaySettings: await db.getOrCreateDbDisplaySettings(),
   };
 };
 

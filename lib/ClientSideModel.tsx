@@ -6,6 +6,7 @@ import {
 } from "@prisma/client";
 import { addDays, closestTo, isBefore, startOfDay } from "date-fns";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
+import { DisplaySettings } from "lib/displaySettings";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category, categoryModelFromDB } from "lib/model/Category";
@@ -107,7 +108,9 @@ export class ExchangeRates {
     }
     const allTimestamps = Object.keys(ratesHistory).map((x) => +x);
     const closestTimestamp = closestTo(when, allTimestamps);
-    console.warn(`Approximating rate for ${when} with ${closestTimestamp}`);
+    console.warn(
+      `Approximating ${from.name}→${to.name} rate for ${when} with ${closestTimestamp}`
+    );
     return ratesHistory[closestTimestamp.getTime()];
   }
 }
@@ -175,6 +178,7 @@ export type AllClientDataModel = {
   trips: Trip[];
   tags: Tag[];
   exchange: StockAndCurrencyExchange;
+  displaySettings: DisplaySettings;
 };
 
 const AllDatabaseDataContext = createContext<
@@ -267,6 +271,11 @@ export const modelFromDatabaseData = (
   transactions.sort(compareTransactions);
   bankAccounts.forEach((ba) => ba.transactions.sort(compareTransactions));
 
+  const displaySettings = new DisplaySettings(
+    dbData.dbDisplaySettings,
+    currencies
+  );
+
   return {
     banks,
     bankAccounts,
@@ -276,6 +285,7 @@ export const modelFromDatabaseData = (
     tags,
     transactions,
     exchange,
+    displaySettings,
   };
 };
 

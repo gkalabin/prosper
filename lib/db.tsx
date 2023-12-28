@@ -70,6 +70,27 @@ export class DB {
     return prisma.exchangeRate.findMany(args);
   }
 
+  async getOrCreateDbDisplaySettings() {
+    const [existing] = await prisma.displaySettings.findMany(
+      this.whereUser({})
+    );
+    if (existing) {
+      return existing;
+    }
+    const currencies = await this.currencyFindMany();
+    if (!currencies.length) {
+      throw new Error("Cannot create display settings without currencies");
+    }
+    const created = await prisma.displaySettings.create({
+      data: {
+        displayCurrencyId: currencies[0].id,
+        excludeCategoryIdsInStats: "",
+        userId: this.userId,
+      },
+    });
+    return created;
+  }
+
   // TODO: add types
   private whereUser(args) {
     args ??= {};

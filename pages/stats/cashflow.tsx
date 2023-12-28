@@ -169,8 +169,8 @@ export function CashflowCharts({
 
 function PageContent() {
   const [duration, setDuration] = useState(LAST_6_MONTHS);
-  const [excludeCategories, setExcludeCategories] = useState([]);
-  const { transactions, categories } = useAllDatabaseDataContext();
+  const { transactions, categories, displaySettings } = useAllDatabaseDataContext();
+  const [excludeCategories, setExcludeCategories] = useState(displaySettings.excludeCategoryIdsInStats());
   const categoryOptions = categories.map((a) => ({
     value: a.id(),
     label: a.nameWithAncestors(),
