@@ -17,7 +17,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   if (!institutionId) {
     return new Response(`institutionId is missing`, { status: 400 });
   }
-  const redirectURI = `${process.env.HOST}/api/open-banking/nordigen/connected`;
+  const redirectURI = `${process.env.PUBLIC_APP_URL}/api/open-banking/nordigen/connected`;
   const userId = await getUserId();
   const db = new DB({ userId });
   const [bank] = await db.bankFindMany({ where: { id: bankId } });
