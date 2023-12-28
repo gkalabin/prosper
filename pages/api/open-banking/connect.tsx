@@ -36,26 +36,25 @@ async function handle(
   const tokenResponse = await response.json();
   console.log("response is ", tokenResponse);
   const now = new Date();
-  await prisma.openBankingToken.create({
-    data: {
-      accessToken: tokenResponse.access_token,
-      expiresIn: tokenResponse.expires_in,
-      tokenType: tokenResponse.token_type,
-      refreshToken: tokenResponse.refresh_token,
-      scope: tokenResponse.scope,
+  const args = {
+    accessToken: tokenResponse.access_token,
+    expiresIn: tokenResponse.expires_in,
+    tokenType: tokenResponse.token_type,
+    refreshToken: tokenResponse.refresh_token,
+    scope: tokenResponse.scope,
 
-      bankId: connectingBankId,
-      tokenCreatedAt: now,
-      tokenValidUntil: new Date(
-        now.getTime() + tokenResponse.expires_in * 1000
-      ),
-      connectionCreatedAt: now,
-      connectionValidUntil: new Date(
-        // 90 days in the future
-        now.getTime() + 90 * 24 * 60 * 60 * 1000
-      ),
-    },
-  });
+    bankId: connectingBankId,
+    tokenCreatedAt: now.toISOString(),
+    tokenValidUntil: new Date(
+      now.getTime() + tokenResponse.expires_in * 1000
+    ).toISOString(),
+    connectionCreatedAt: now.toISOString(),
+    connectionValidUntil: new Date(
+      // 90 days in the future
+      now.getTime() + 90 * 24 * 60 * 60 * 1000
+    ).toISOString(),
+  };
+  await prisma.openBankingToken.create({ data: args });
   res.redirect(`/config/open-banking/connection/${connectingBankId}`);
 }
 

@@ -25,10 +25,10 @@ export async function maybeRefreshToken(token: OpenBankingToken) {
       tokenType: tokenResponse.token_type,
       refreshToken: tokenResponse.refresh_token,
       scope: tokenResponse.scope,
-      tokenCreatedAt: now,
+      tokenCreatedAt: now.toISOString(),
       tokenValidUntil: new Date(
         now.getTime() + tokenResponse.expires_in * 1000
-      ),
+      ).toISOString(),
     },
     where: {
       id: token.id,
