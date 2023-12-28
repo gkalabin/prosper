@@ -3,9 +3,6 @@ import prisma from "../lib/prisma";
 import { GetStaticProps } from "next";
 import Layout from "../components/Layout";
 
-// TODO:
-//  - error handling
-
 export const getStaticProps: GetStaticProps = async () => {
   const categories = await prisma.category.findMany({});
   console.debug("Categories from DB", categories);
@@ -54,7 +51,7 @@ const CreateCategoryFormComponent: React.FC<CreateCategoryFormProps> = (
   props
 ) => {
   const [name, setName] = useState("");
-  const [parentId, setParentId] = useState(null);
+  const [parentId, setParentId] = useState(0);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [createInProgress, setCreateInProgress] = useState(false);
   const [apiError, setApiError] = useState("");
@@ -62,7 +59,7 @@ const CreateCategoryFormComponent: React.FC<CreateCategoryFormProps> = (
   const reset = () => {
     setName("");
     setApiError("");
-    setParentId(null);
+    setParentId(0);
   };
 
   const open = () => {
@@ -112,7 +109,7 @@ const CreateCategoryFormComponent: React.FC<CreateCategoryFormProps> = (
           value={name}
         />
         <select
-          onChange={(e) => setParentId(e.target.value)}
+          onChange={(e) => setParentId(+e.target.value)}
           disabled={createInProgress}
         >
           <option value="">No parent</option>
@@ -276,27 +273,31 @@ const CategoriesPage: React.FC<PageProps> = (props) => {
     Object.assign({}, c, {
       nameWithAncestors: c.name,
       isRoot: !c.parentCategoryId,
-      children: [],
+      children: [] as CategoryProps[],
     })
   );
   const categoryById = Object.fromEntries(uiCategories.map((c) => [c.id, c]));
-  uiCategories
-    .filter((c) => c.parentCategoryId)
-    .forEach((c) => {
-      let parent = categoryById[c.parentCategoryId];
-      parent.children.push(c);
-      let ancestorNames = [c.name];
-      while (parent) {
-        ancestorNames.push(parent.name);
-        parent = categoryById[parent.parentCategoryId];
+  uiCategories.forEach((c) => {
+    if (!c.parentCategoryId) {
+      return;
+    }
+    let parent = categoryById[c.parentCategoryId];
+    parent.children.push(c);
+    let ancestorNames = [c.name];
+    while (parent) {
+      ancestorNames.push(parent.name);
+      if (!parent.parentCategoryId) {
+        break;
       }
-      c.nameWithAncestors = ancestorNames.reverse().join(" > ");
-    });
+      parent = categoryById[parent.parentCategoryId];
+    }
+    c.nameWithAncestors = ancestorNames.reverse().join(" > ");
+  });
   uiCategories.sort((c1, c2) => c1.displayOrder - c2.displayOrder);
   uiCategories.forEach((c) =>
     c.children.sort((c1, c2) => c1.displayOrder - c2.displayOrder)
   );
-  let allCategoriesFlat = [];
+  let allCategoriesFlat = [] as CategoryProps[];
   const collectCategories = (
     subtree: CategoryProps[],
     output: CategoryProps[]
