@@ -1,6 +1,6 @@
 import { Transaction as DBTransaction } from "@prisma/client";
 import { Amount } from "components/Amount";
-import { AddTransactionForm } from "components/txform/FormTransactionTypeSelector";
+import { AddTransactionForm } from "components/txform/AddTransactionForm";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Transaction } from "lib/model/Transaction";
@@ -93,10 +93,8 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
       <div className="flex min-h-[theme('spacing[16]')] gap-2">
         <div className="min-w-[theme('spacing[20]')] flex-none whitespace-nowrap text-right text-lg font-medium text-gray-900">
           <Amount
-            amountCents={props.transaction.amountCents}
+            amount={props.transaction.amount()}
             sign={props.transaction.amountSign()}
-            // TODO: fix for transfers
-            currency={props.transaction.currency()}
           />
         </div>
 

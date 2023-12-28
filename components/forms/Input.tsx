@@ -41,7 +41,7 @@ const InputWithLabelUntyped = (props: InputProps & FieldHookConfig<any>) => {
         id={props.name}
         {...field}
         {...inputAttributes}
-        className="mt-1 block w-full "
+        className="block w-full"
       />
     </>
   );

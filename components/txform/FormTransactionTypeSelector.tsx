@@ -19,7 +19,7 @@ export const FormTransactionTypeSelector = (props: {
 
   return (
     <div className="grid grid-cols-6 gap-6">
-      <div className="col-span-6 mb-4 flex justify-center">
+      <div className="col-span-6 flex justify-center">
         <div className="rounded-md shadow-sm">
           <button
             type="button"

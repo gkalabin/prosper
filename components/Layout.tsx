@@ -10,8 +10,8 @@ const Layout = (props: {
     <Header />
     {props.subheader && <SubHeader items={props.subheader} />}
     <div className="flex justify-center">
-      <div className="sm:w-2/3">
-        <div className="px-8 py-4">{props.children}</div>
+      <div className="w-full sm:w-3/4 p-4">
+        {props.children}
       </div>
     </div>
   </div>

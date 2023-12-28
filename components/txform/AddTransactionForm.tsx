@@ -179,8 +179,8 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
         {({ values, handleChange, isSubmitting }) => (
           // TODO: disable form when submitting
           <Form>
-            <div className="mb-4 overflow-hidden shadow sm:rounded-md">
-              <div className="bg-white px-2 py-5 sm:p-6">
+            <div className="overflow-hidden shadow sm:rounded-md">
+              <div className="bg-white p-2 sm:p-6">
                 <FormTransactionTypeSelector
                   transaction={props.transaction}
                   disabled={isSubmitting}

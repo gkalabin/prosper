@@ -3,6 +3,7 @@ import { Amount } from "components/Amount";
 import Layout from "components/Layout";
 import { TransactionsList } from "components/transactions/TransactionsList";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
+import { ButtonPagePrimary } from "components/ui/buttons";
 import {
   Currencies,
   CurrencyContextProvider,
@@ -142,24 +143,24 @@ export default function OverviewPage(
   return (
     <Layout>
       <CurrencyContextProvider init={dbData.dbCurrencies}>
-        {!showAddTransactionForm && (
-          <div className="flex justify-end">
-            <button
-              className="mb-4 rounded-md bg-indigo-600 px-4 py-1.5 text-base font-medium leading-7 text-white shadow-sm hover:bg-indigo-700 hover:ring-indigo-700"
-              onClick={() => setShowAddTransactionForm(true)}
-            >
-              New Transaction
-            </button>
-          </div>
-        )}
-        {showAddTransactionForm && (
-          <AddTransactionForm
-            categories={categories}
-            banks={banks}
-            onAdded={addTransaction}
-            onClose={() => setShowAddTransactionForm(false)}
-          />
-        )}
+        <div className="mb-4">
+          {!showAddTransactionForm && (
+            <div className="flex justify-end">
+              <ButtonPagePrimary
+                onClick={() => setShowAddTransactionForm(true)}
+                label="New Transaction"
+              />
+            </div>
+          )}
+          {showAddTransactionForm && (
+            <AddTransactionForm
+              categories={categories}
+              banks={banks}
+              onAdded={addTransaction}
+              onClose={() => setShowAddTransactionForm(false)}
+            />
+          )}
+        </div>
         <BanksList
           banks={banks}
           categories={categories}
