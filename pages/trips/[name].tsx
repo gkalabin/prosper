@@ -3,8 +3,8 @@ import {
   isFullyConfigured,
   NotConfiguredYet,
 } from "components/NotConfiguredYet";
-import { TransactionsList } from "components/transactions/TransactionsList";
-import { AnchorLink, ButtonLink } from "components/ui/buttons";
+import { SortableTransactionsList } from "components/transactions/SortableTransactionsList";
+import { AnchorLink } from "components/ui/buttons";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { defaultPieChartOptions } from "lib/charts";
@@ -15,10 +15,8 @@ import {
 import { useDisplayCurrency } from "lib/displaySettings";
 import { Trip } from "lib/model/Trip";
 import { allDbDataProps } from "lib/ServerSideDB";
-import { onTransactionChange } from "lib/stateHelpers";
 import { InferGetServerSidePropsType } from "next";
 import { useRouter } from "next/router";
-import { useState } from "react";
 
 export const getServerSideProps = allDbDataProps;
 export default function Page(
@@ -57,36 +55,12 @@ enum SortingMode {
 }
 
 function TripDetails(props: { trip: Trip }) {
-  const {
-    transactions: allTransactions,
-    categories,
-    setDbData,
-  } = useAllDatabaseDataContext();
+  const { transactions: allTransactions, categories } =
+    useAllDatabaseDataContext();
   const currency = useDisplayCurrency();
-  const [sorting, setSorting] = useState(SortingMode.DATE_ASC);
   const transactions = allTransactions
     .filter((tx) => tx.hasTrip())
     .filter((tx) => tx.trip().id() == props.trip.id());
-  const displayTransactions = [...transactions].sort((a, b) => {
-    switch (sorting) {
-      case SortingMode.AMOUNT_ASC:
-        return (
-          a.amountAllParties(currency).dollar() -
-          b.amountAllParties(currency).dollar()
-        );
-      case SortingMode.AMOUNT_DESC:
-        return (
-          b.amountAllParties(currency).dollar() -
-          a.amountAllParties(currency).dollar()
-        );
-      case SortingMode.DATE_ASC:
-        return a.timestamp.getTime() - b.timestamp.getTime();
-      case SortingMode.DATE_DESC:
-        return b.timestamp.getTime() - a.timestamp.getTime();
-      default:
-        throw new Error("Unknown sorting mode: " + sorting);
-    }
-  });
 
   const fullAmount = transactions
     .map((t) => t.amountAllParties(currency))
@@ -160,43 +134,13 @@ function TripDetails(props: { trip: Trip }) {
       />
 
       <h2 className="mt-4 text-xl leading-7">
-        Transactions ({displayTransactions.length})
+        Transactions ({transactions.length})
       </h2>
 
-      <div className="mb-2 text-xs">
-        Sort by{" "}
-        <ButtonLink
-          onClick={() =>
-            setSorting(
-              sorting == SortingMode.DATE_ASC
-                ? SortingMode.DATE_DESC
-                : SortingMode.DATE_ASC
-            )
-          }
-        >
-          date
-        </ButtonLink>
-        ,{" "}
-        <ButtonLink
-          onClick={() =>
-            setSorting(
-              sorting == SortingMode.AMOUNT_DESC
-                ? SortingMode.AMOUNT_ASC
-                : SortingMode.AMOUNT_DESC
-            )
-          }
-        >
-          amount
-        </ButtonLink>
-      </div>
-
-      <div>
-        <TransactionsList
-          transactions={displayTransactions}
-          onTransactionUpdated={onTransactionChange(setDbData)}
-          displayLimit={10}
-        />
-      </div>
+      <SortableTransactionsList
+        transactions={transactions}
+        initialSorting={SortingMode.DATE_ASC}
+      />
     </div>
   );
 }
