@@ -14,6 +14,7 @@ import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
+import { Transaction } from "lib/model/Transaction";
 import { TransactionType } from "lib/model/TransactionType";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { onTransactionChange } from "lib/stateHelpers";
@@ -52,6 +53,7 @@ function TransactionsPageLayout() {
 }
 
 type FiltersFormValues = {
+  freeTextSearch: string;
   transactionTypes: TransactionType[];
   vendor: string;
   timeFrom: string;
@@ -64,6 +66,7 @@ type FiltersFormValues = {
   allTagsShouldMatch: boolean;
 };
 const initialFilters: FiltersFormValues = {
+  freeTextSearch: "",
   transactionTypes: [
     TransactionType.PERSONAL,
     TransactionType.EXTERNAL,
@@ -85,6 +88,7 @@ function FilteredTransactionsList() {
   const { transactions, setDbData } = useAllDatabaseDataContext();
   const {
     values: {
+      freeTextSearch,
       transactionTypes,
       vendor,
       accountIds,
@@ -97,36 +101,69 @@ function FilteredTransactionsList() {
       allTagsShouldMatch,
     },
   } = useFormikContext<FiltersFormValues>();
-  const displayTransactions = transactions.filter(
-    (t) =>
-      transactionTypes.some((tt) => t.matchesType(tt)) &&
-      (vendor
-        ? t.hasVendor() && t.vendor().toLocaleLowerCase().includes(vendor)
-        : true) &&
-      (accountIds?.length
-        ? (t.hasAccountFrom() && accountIds.includes(t.accountFrom().id)) ||
-          (t.hasAccountTo() && accountIds.includes(t.accountTo().id))
-        : true) &&
-      (categoryIds?.length
-        ? categoryIds.some(
-            (cid) =>
-              t.category.id() == cid ||
-              (includeChildrenCategories && t.category.childOf(cid))
-          )
-        : true) &&
-      (tripId ? t.hasTrip() && t.trip().id() == tripId : true) &&
-      (timeFrom
-        ? differenceInMilliseconds(t.timestamp, new Date(timeFrom)) >= 0
-        : true) &&
-      (timeTo
-        ? differenceInMilliseconds(new Date(timeTo), t.timestamp) >= 0
-        : true) &&
-      (tagNames?.length
-        ? allTagsShouldMatch
-          ? tagNames.every((tn) => t.hasTag(tn))
-          : tagNames.some((tn) => t.hasTag(tn))
-        : true)
-  );
+  const transactionMatchesFreeTextSearch = (t: Transaction) => {
+    if (!freeTextSearch) {
+      return true;
+    }
+    const lowerCaseSearch = freeTextSearch.toLocaleLowerCase();
+    if (
+      t.hasVendor() &&
+      t.vendor().toLocaleLowerCase().includes(lowerCaseSearch)
+    ) {
+      return true;
+    }
+    if (t.description.toLocaleLowerCase().includes(lowerCaseSearch)) {
+      return true;
+    }
+    if (
+      t.hasPayer() &&
+      t.payer().toLocaleLowerCase().includes(lowerCaseSearch)
+    ) {
+      return true;
+    }
+    if (t.hasOtherParty() && t.otherParty().includes(lowerCaseSearch)) {
+      return true;
+    }
+    if (
+      t.amount().dollar() == +freeTextSearch ||
+      (!t.isTransfer() && t.amountOwnShare().dollar() == +freeTextSearch)
+    ) {
+      return true;
+    }
+    return false;
+  };
+  const displayTransactions = transactions
+    .filter(transactionMatchesFreeTextSearch)
+    .filter(
+      (t) =>
+        transactionTypes.some((tt) => t.matchesType(tt)) &&
+        (vendor
+          ? t.hasVendor() && t.vendor().toLocaleLowerCase().includes(vendor.toLocaleLowerCase())
+          : true) &&
+        (accountIds?.length
+          ? (t.hasAccountFrom() && accountIds.includes(t.accountFrom().id)) ||
+            (t.hasAccountTo() && accountIds.includes(t.accountTo().id))
+          : true) &&
+        (categoryIds?.length
+          ? categoryIds.some(
+              (cid) =>
+                t.category.id() == cid ||
+                (includeChildrenCategories && t.category.childOf(cid))
+            )
+          : true) &&
+        (tripId ? t.hasTrip() && t.trip().id() == tripId : true) &&
+        (timeFrom
+          ? differenceInMilliseconds(t.timestamp, new Date(timeFrom)) >= 0
+          : true) &&
+        (timeTo
+          ? differenceInMilliseconds(new Date(timeTo), t.timestamp) >= 0
+          : true) &&
+        (tagNames?.length
+          ? allTagsShouldMatch
+            ? tagNames.every((tn) => t.hasTag(tn))
+            : tagNames.some((tn) => t.hasTag(tn))
+          : true)
+    );
   return (
     <TransactionsList
       transactions={displayTransactions}
@@ -363,6 +400,15 @@ function Filters() {
           </div>
         </div>
       )}
+      <div className="w-full">
+        <label
+          htmlFor="freeTextSearch"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Search for anything
+        </label>
+        <FormikInput name="freeTextSearch" className="block w-full" />
+      </div>
     </>
   );
 }
