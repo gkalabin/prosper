@@ -4,21 +4,17 @@ import { GetStaticProps } from "next";
 import Layout from "../components/Layout";
 import Transaction from "../lib/model/Transaction";
 import Bank from "../lib/model/Bank";
+import Currency from "../lib/model/Currency";
 import { DbCategory, makeCategoryTree } from "../lib/model/Category";
-import { AddTransactionForm } from "../components/add_transaction/AddTransactionForm";
+import { AddTransactionForm } from "../components/transactions/AddTransactionForm";
+import { makeTransactionInclude } from "../lib/db/transactionInclude";
 
 export const getStaticProps: GetStaticProps = async () => {
   const transactions = await prisma.transaction.findMany({
-    include: {
-      category: true,
-      personalExpense: {
-        include: {
-          account: true,
-        },
-      },
-    },
+    include: makeTransactionInclude(),
   });
   const categories = await prisma.category.findMany({});
+  const currencies = await prisma.currency.findMany({});
   const banks = await prisma.bank.findMany({
     include: {
       accounts: true,
@@ -27,6 +23,7 @@ export const getStaticProps: GetStaticProps = async () => {
   const props = {
     transactions,
     banks,
+    currencies,
     dbCategories: categories,
   };
 
@@ -40,7 +37,17 @@ type TransactionsListItemProps = {
   onUpdated: (transaction: Transaction) => void;
 };
 const TransactionsListItem: React.FC<TransactionsListItemProps> = (props) => {
-  return <div>{props.transaction.description}</div>;
+  const raw = JSON.stringify(props.transaction, null, 2);
+  const [showRawDetails, setShowRawDetails] = useState(false);
+  return (
+    <div>
+      {props.transaction.description}{" "}
+      <a onClick={() => setShowRawDetails((prev) => !prev)}>
+        {(showRawDetails && <>hide</>) || <>show</>} raw transaction
+      </a>
+      {showRawDetails && <pre>{raw}</pre>}
+    </div>
+  );
 };
 
 type TransactionsListProps = {
@@ -68,6 +75,7 @@ type PageProps = {
   transactions: Transaction[];
   dbCategories: DbCategory[];
   banks: Bank[];
+  currencies: Currency[];
 };
 const TransactionsPage: React.FC<PageProps> = (props) => {
   const [transactionsUnordered, setTransactionsUnordered] = useState(
@@ -90,6 +98,7 @@ const TransactionsPage: React.FC<PageProps> = (props) => {
         onAdded={addTransaction}
         categories={makeCategoryTree(props.dbCategories)}
         banks={props.banks}
+        currencies={props.currencies}
       />
       <TransactionsList
         transactions={transactions}

@@ -2,42 +2,24 @@ import React, { useState } from "react";
 import Bank from "../../lib/model/Bank";
 import Category from "../../lib/model/Category";
 import Transaction from "../../lib/model/Transaction";
-import AddTransactionInput from "../../lib/model/AddTransactionInput";
+import Currency from "../../lib/model/Currency";
+import {
+  AddTransactionFormValues,
+  FormMode,
+  formToDTO,
+} from "../../lib/AddTransactionDataModels";
 import { Formik, Form, FormikHelpers } from "formik";
 import { BankAccountSelect } from "../forms/BankAccountSelect";
 import { Button } from "../forms/Button";
 import { CategorySelect } from "../forms/CategorySelect";
 import { MoneyInput, TextInput } from "../forms/Input";
+import CurrencySelect from "../forms/CurrencySelect";
 
 type AddTransactionFormProps = {
   banks: Bank[];
   categories: Category[];
+  currencies: Currency[];
   onAdded: (added: Transaction) => void;
-};
-
-type AddTransactionFormValues = {
-  timestamp: Date;
-  description: string;
-  amount: number;
-  ownShareAmount?: number;
-  categoryId: number;
-  vendor: string;
-  fromBankAccountId?: number;
-  toBankAccountId?: number;
-};
-
-const formValuesToApiInput = (
-  mode: FormMode,
-  form: AddTransactionFormValues
-): AddTransactionInput => {
-  const out: AddTransactionInput = Object.assign({}, form, {
-    amountCents: Math.round(form.amount * 100),
-    ownShareAmountCents: Math.round(form.ownShareAmount * 100),
-  });
-  
-  if (mode == FormMode.PERSONAL) {
-  }
-  return out;
 };
 
 const PersonalTransactionForm: React.FC<AddTransactionFormProps> = (props) => {
@@ -67,6 +49,7 @@ export const ExternalTransactionForm: React.FC<AddTransactionFormProps> = (
 ) => {
   return (
     <>
+      <TextInput name="timestamp" type="datetime-local" />
       <TextInput name="vendor" />
       <TextInput name="description" />
       <TextInput name="payer" />
@@ -77,6 +60,11 @@ export const ExternalTransactionForm: React.FC<AddTransactionFormProps> = (
         label="Category"
         categories={props.categories}
       />
+      <CurrencySelect
+        name="currencyId"
+        label="Currency"
+        currencies={props.currencies}
+      />
     </>
   );
 };
@@ -84,13 +72,24 @@ export const ExternalTransactionForm: React.FC<AddTransactionFormProps> = (
 export const NewTransferForm: React.FC<AddTransactionFormProps> = (props) => {
   return (
     <>
+      <TextInput name="timestamp" type="datetime-local" />
       <TextInput name="description" />
-      <TextInput name="payer" />
       <MoneyInput name="amount" />
+      <MoneyInput name="receivedAmount" />
       <CategorySelect
         name="categoryId"
         label="Category"
         categories={props.categories}
+      />
+      <BankAccountSelect
+        name="fromBankAccountId"
+        label="From Bank Account"
+        banks={props.banks}
+      />
+      <BankAccountSelect
+        name="toBankAccountId"
+        label="To Bank Account"
+        banks={props.banks}
       />
     </>
   );
@@ -101,9 +100,16 @@ export const IncomeTransactionForm: React.FC<AddTransactionFormProps> = (
 ) => {
   return (
     <>
+      <TextInput name="timestamp" type="datetime-local" />
+      <TextInput name="vendor" />
       <TextInput name="description" />
-      <TextInput name="payer" />
       <MoneyInput name="amount" />
+      <MoneyInput name="ownShareAmount" />
+      <BankAccountSelect
+        name="toBankAccountId"
+        label="Bank Account"
+        banks={props.banks}
+      />
       <CategorySelect
         name="categoryId"
         label="Category"
@@ -112,13 +118,6 @@ export const IncomeTransactionForm: React.FC<AddTransactionFormProps> = (
     </>
   );
 };
-
-enum FormMode {
-  PERSONAL,
-  EXTERNAL,
-  TRANSFER,
-  INCOME,
-}
 
 export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
   props
@@ -155,15 +154,18 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
           description: "",
           amount: 0,
           ownShareAmount: 0,
+          receivedAmount: 0,
           fromBankAccountId: props.banks[0].id,
+          toBankAccountId: props.banks[0].id,
           categoryId: props.categories[0].id,
+          currencyId: props.currencies[0].id,
         }}
         onSubmit={async (
           values: AddTransactionFormValues,
           { setSubmitting }: FormikHelpers<AddTransactionFormValues>
         ) => {
           try {
-            const body = JSON.stringify(formValuesToApiInput(mode, values));
+            const body = JSON.stringify(formToDTO(mode, values));
             const added = await fetch("/api/transaction", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -207,10 +209,14 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
               />
             </div>
 
-            {mode == FormMode.PERSONAL && <PersonalTransactionForm {...props}  />}
-            {mode == FormMode.EXTERNAL && <ExternalTransactionForm {...props}  />}
-            {mode == FormMode.TRANSFER && <NewTransferForm {...props}  />}
-            {mode == FormMode.INCOME && <IncomeTransactionForm {...props}  />}
+            {mode == FormMode.PERSONAL && (
+              <PersonalTransactionForm {...props} />
+            )}
+            {mode == FormMode.EXTERNAL && (
+              <ExternalTransactionForm {...props} />
+            )}
+            {mode == FormMode.TRANSFER && <NewTransferForm {...props} />}
+            {mode == FormMode.INCOME && <IncomeTransactionForm {...props} />}
 
             <button onClick={close} disabled={isSubmitting}>
               Cancel
