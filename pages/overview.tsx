@@ -2,28 +2,24 @@ import { Transaction as DBTransaction } from "@prisma/client";
 import Layout from "components/Layout";
 import {
   isFullyConfigured,
-  NotConfiguredYet,
+  NotConfiguredYet
 } from "components/NotConfiguredYet";
 import { TransactionsList } from "components/transactions/TransactionsList";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
 import { ButtonPagePrimary } from "components/ui/buttons";
 import {
   AllDatabaseDataContextProvider,
-  Amount,
-  CurrencyContextProvider,
-  modelFromDatabaseData,
+  Amount, modelFromDatabaseData,
+  useAllDatabaseDataContext
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { Bank, BankAccount } from "lib/model/BankAccount";
-import { Category } from "lib/model/Category";
+import { BankAccount } from "lib/model/BankAccount";
 import { IOBBalancesByAccountId } from "lib/openbanking/interface";
 import { allDbDataPropsWithOb } from "lib/ServerSideDB";
 import { InferGetServerSidePropsType } from "next";
 import { createContext, useContext, useState } from "react";
 
 const BankAccountListItem = (props: {
-  banks: Bank[];
-  categories: Category[];
   account: BankAccount;
   onTransactionUpdated: (updated: DBTransaction) => void;
   openBankingBalance?: Amount;
@@ -67,8 +63,6 @@ const BankAccountListItem = (props: {
       {showTransactionList && (
         <div className="mt-4">
           <TransactionsList
-            categories={props.categories}
-            banks={props.banks}
             transactions={props.account.transactions}
             onTransactionUpdated={props.onTransactionUpdated}
             showBankAccountInStatusLine={false}
@@ -80,17 +74,16 @@ const BankAccountListItem = (props: {
 };
 
 const BanksList = (props: {
-  categories: Category[];
-  banks: Bank[];
   openBankingBalances: IOBBalancesByAccountId;
   onTransactionUpdated: (updated: DBTransaction) => void;
 }) => {
+  const { banks } = useAllDatabaseDataContext();
   const displayCurrency = useDisplayCurrency();
   const showArchivedAccounts = useContext(ArchivedAccountsShownContext);
   return (
     <div className="flex-1 rounded border border-gray-200">
       <div className="flex flex-col divide-y divide-gray-200">
-        {props.banks.map((bank) => (
+        {banks.map((bank) => (
           <div key={bank.id}>
             <div className="border-b bg-indigo-200 p-2 text-xl font-medium text-gray-900">
               {bank.name}
@@ -106,8 +99,6 @@ const BanksList = (props: {
                   <BankAccountListItem
                     key={account.id}
                     account={account}
-                    categories={props.categories}
-                    banks={props.banks}
                     openBankingBalance={props.openBankingBalances[account.id]}
                     onTransactionUpdated={props.onTransactionUpdated}
                   />
@@ -129,8 +120,6 @@ export default function OverviewPage(
 ) {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
   const [dbDataState, setDbData] = useState(dbData);
-  const model = modelFromDatabaseData(dbDataState);
-  const { categories, banks, transactions } = model;
   const [archivedShown, setShowArchived] = useState(false);
 
   const addTransaction = (added: DBTransaction) => {
@@ -156,45 +145,38 @@ export default function OverviewPage(
 
   return (
     <Layout>
-      <AllDatabaseDataContextProvider init={model}>
-        <CurrencyContextProvider init={dbData.dbCurrencies}>
-          <div className="mb-4">
-            {!showAddTransactionForm && (
-              <div className="flex justify-end">
-                <ButtonPagePrimary
-                  onClick={() => setShowAddTransactionForm(true)}
-                  label="New Transaction"
-                />
-              </div>
-            )}
-            {showAddTransactionForm && (
-              <AddTransactionForm
-                categories={categories}
-                banks={banks}
-                allTransactions={transactions}
-                onAdded={addTransaction}
-                openBankingTransactions={dbData.openBankingData.transactions}
-                transactionPrototypes={dbData.dbTransactionPrototypes}
-                onClose={() => setShowAddTransactionForm(false)}
+      <AllDatabaseDataContextProvider init={modelFromDatabaseData(dbDataState)}>
+        <div className="mb-4">
+          {!showAddTransactionForm && (
+            <div className="flex justify-end">
+              <ButtonPagePrimary
+                onClick={() => setShowAddTransactionForm(true)}
+                label="New Transaction"
               />
-            )}
-          </div>
-          <div className="flex justify-end">
-            <ButtonPagePrimary
-              className="mb-4"
-              onClick={() => setShowArchived(!archivedShown)}
-              label={archivedShown ? "Hide archived" : "Show archived"}
+            </div>
+          )}
+          {showAddTransactionForm && (
+            <AddTransactionForm
+              onAdded={addTransaction}
+              openBankingTransactions={dbData.openBankingData.transactions}
+              transactionPrototypes={dbData.dbTransactionPrototypes}
+              onClose={() => setShowAddTransactionForm(false)}
             />
-          </div>
-          <ArchivedAccountsShownContext.Provider value={archivedShown}>
-            <BanksList
-              banks={banks}
-              categories={categories}
-              onTransactionUpdated={updateTransaction}
-              openBankingBalances={dbData.openBankingData.balances}
-            />
-          </ArchivedAccountsShownContext.Provider>
-        </CurrencyContextProvider>
+          )}
+        </div>
+        <div className="flex justify-end">
+          <ButtonPagePrimary
+            className="mb-4"
+            onClick={() => setShowArchived(!archivedShown)}
+            label={archivedShown ? "Hide archived" : "Show archived"}
+          />
+        </div>
+        <ArchivedAccountsShownContext.Provider value={archivedShown}>
+          <BanksList
+            onTransactionUpdated={updateTransaction}
+            openBankingBalances={dbData.openBankingData.balances}
+          />
+        </ArchivedAccountsShownContext.Provider>
       </AllDatabaseDataContextProvider>
     </Layout>
   );

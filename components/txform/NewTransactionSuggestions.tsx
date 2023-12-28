@@ -6,7 +6,7 @@ import {
   isAfter,
   isBefore
 } from "date-fns";
-import { Bank } from "lib/model/BankAccount";
+import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { Transaction } from "lib/model/Transaction";
 import { IOBTransaction, IOBTransactionsByAccountId } from "lib/openbanking/interface";
 import { shortRelativeDate } from "lib/TimeHelpers";
@@ -26,12 +26,12 @@ export type TransactionPrototype = {
 };
 
 export function makePrototypes(input: {
-  allTransactions: Transaction[];
+  transactions: Transaction[];
   openBankingTransactions: IOBTransactionsByAccountId;
   transactionPrototypes: DBTransactionPrototype[];
 }) {
   const dbTxById = Object.fromEntries(
-    input.allTransactions.map((t) => [t.id, t])
+    input.transactions.map((t) => [t.id, t])
   );
   const lookupList: { [obDesc: string]: { [dbDesc: string]: number } } = {};
   for (const t of input.transactionPrototypes) {
@@ -124,17 +124,16 @@ export function makePrototypes(input: {
 }
 
 export const NewTransactionSuggestions = (props: {
-  banks: Bank[];
   openBankingTransactions: IOBTransactionsByAccountId;
   transactionPrototypes: DBTransactionPrototype[];
-  allTransactions: Transaction[];
   onItemClick: (t: TransactionPrototype) => void;
 }) => {
   const [hideBeforeLatest, setHideBeforeLatest] = useState(true);
   const [expanded, setExpanded] = useState({} as { [id: string]: boolean; });
   const [limit, setLimit] = useState({} as { [id: string]: number; });
+  const { transactions, banks } = useAllDatabaseDataContext();
   const prototypes = makePrototypes({
-    allTransactions: props.allTransactions,
+    transactions,
     openBankingTransactions: props.openBankingTransactions,
     transactionPrototypes: props.transactionPrototypes,
   });
@@ -151,7 +150,7 @@ export const NewTransactionSuggestions = (props: {
     append(p.accountToId);
   });
   const latestTxByAccountId = new Map<number, Date>();
-  props.allTransactions.forEach((t) => {
+  transactions.forEach((t) => {
     const updateIfNewer = (accountId: number) => {
       const latest = latestTxByAccountId.get(accountId);
       if (!latest || isBefore(latest, t.timestamp)) {
@@ -177,7 +176,7 @@ export const NewTransactionSuggestions = (props: {
       totalHidden += ps.length - filtered.length;
     }
   }
-  const accountsWithData = props.banks
+  const accountsWithData = banks
     .flatMap((x) => x.accounts)
     .filter((a) => protosByAccountId.get(a.id)?.length)
     .sort(

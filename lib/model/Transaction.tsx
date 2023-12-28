@@ -41,7 +41,7 @@ export class Transaction {
   readonly category: Category;
 
   private personalExpense?: PersonalExpense;
-  readonly thirdPartyExpense?: ThirdPartyExpense;
+  private readonly thirdPartyExpense?: ThirdPartyExpense;
   private income?: Income;
   private transfer?: Transfer;
 
@@ -157,6 +157,18 @@ export class Transaction {
       throw new Error("Treansaction has no vendor");
     }
     return this.vendorOrNull();
+  }
+
+
+  hasPayer() {
+    return this.isThirdPartyExpense();
+  }
+
+  payer() {
+    if (!this.hasPayer()) {
+      throw new Error("Treansaction has no payer");
+    }
+    return this.thirdPartyExpense.payer;
   }
 
   private tripOrNull() {

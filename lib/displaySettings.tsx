@@ -1,7 +1,6 @@
-import { useCurrencyContext } from "./ClientSideModel";
+import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 
 export const useDisplayCurrency = () => {
-  const c = useCurrencyContext();
-  const GBP = c.all().find((x) => x.name == "GBP");
-  return GBP;
+  const { currencies } = useAllDatabaseDataContext();
+  return currencies.findByName("GBP");
 };

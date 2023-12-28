@@ -4,15 +4,15 @@ import {
   TransactionPrototype as DBTransactionPrototype
 } from "@prisma/client";
 import classNames from "classnames";
-import { BankAccountSelect } from "components/forms/BankAccountSelect";
 import {
   Input,
   MoneyInputWithLabel,
   TextInputWithLabel
 } from "components/forms/Input";
-import { SelectNumber } from "components/forms/Select";
+import { BankAccountSelect } from "components/txform/BankAccountSelect";
 import { FormTransactionTypeSelector } from "components/txform/FormTransactionTypeSelector";
 import { NewTransactionSuggestions, TransactionPrototype } from "components/txform/NewTransactionSuggestions";
+import { SelectNumber } from "components/txform/Select";
 import {
   ButtonFormPrimary,
   ButtonFormSecondary
@@ -23,10 +23,9 @@ import {
 } from "date-fns";
 import { Form, Formik, FormikHelpers, useFormikContext } from "formik";
 import {
-  useAllDatabaseDataContext,
-  useCurrencyContext
+  useAllDatabaseDataContext
 } from "lib/ClientSideModel";
-import { Bank, BankAccount } from "lib/model/BankAccount";
+import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
 import { Transaction } from "lib/model/Transaction";
@@ -99,7 +98,7 @@ function initialValuesForTransaction(
     currencyId: t.currency().id,
     isFamilyExpense: t.isFamilyExpense(),
     tripName: t.hasTrip() ? t.trip().name() : "",
-    payer: t.isThirdPartyExpense() ? t.thirdPartyExpense.payer : "",
+    payer: t.hasPayer() ? t.payer() : "",
   };
   if (t.isPersonalExpense() || t.isThirdPartyExpense() || t.isIncome()) {
     defaults.ownShareAmount = t.amountOwnShare().dollar();
@@ -132,61 +131,28 @@ function initialValuesEmpty(
   };
 }
 
-function mostUsedAccountFrom(mode: FormMode, txs: Transaction[]): BankAccount {
+function mostUsedAccountFrom(txs: Transaction[]): BankAccount {
   const accounts = txs
-    .filter((x) => {
-      if (mode == FormMode.PERSONAL) {
-        return x.isPersonalExpense();
-      }
-      if (mode == FormMode.TRANSFER) {
-        return x.isTransfer();
-      }
-      return true;
-    })
+    .filter((x) => x.hasAccountFrom())
     .map((x) => x.accountFrom())
-    .filter((x) => !!x);
+  return mostFrequent(accounts);
+}
+
+function mostUsedAccountTo(txs: Transaction[]): BankAccount {
+  const accounts = txs
+    .filter((x) => x.hasAccountTo())
+    .map((x) => x.accountTo())
   return mostFrequent(accounts);
 }
 
 function mostUsedCategory(
-  mode: FormMode,
   txs: Transaction[],
   vendor: string
 ): Category {
   const categories = txs
-    .filter((x) => {
-      switch (mode) {
-        case FormMode.PERSONAL:
-          return x.isPersonalExpense();
-        case FormMode.INCOME:
-          return x.isIncome();
-        case FormMode.EXTERNAL:
-          return x.isThirdPartyExpense();
-        default:
-          return false;
-      }
-    })
-    .filter((x) => x.hasVendor())
-    .filter((x) => vendor == "" || x.vendor() == vendor)
+    .filter((x) => vendor ? x.hasVendor() && x.vendor() == vendor : true)
     .map((x) => x.category)
-    .filter((x) => !!x);
   return mostFrequent(categories);
-}
-
-function mostUsedAccountTo(mode: FormMode, txs: Transaction[]): BankAccount {
-  const accounts = txs
-    .filter((x) => {
-      if (mode == FormMode.INCOME) {
-        return x.isIncome();
-      }
-      if (mode == FormMode.TRANSFER) {
-        return x.isTransfer();
-      }
-      return true;
-    })
-    .map((x) => x.accountTo())
-    .filter((x) => !!x);
-  return mostFrequent(accounts);
 }
 
 function mostFrequent<T extends { id: number }>(items: T[]): T {
@@ -207,10 +173,7 @@ function mostFrequent<T extends { id: number }>(items: T[]): T {
 }
 
 export const AddTransactionForm = (props: {
-  banks: Bank[];
-  categories: Category[];
   transaction?: Transaction;
-  allTransactions: Transaction[];
   openBankingTransactions?: IOBTransactionsByAccountId;
   transactionPrototypes?: DBTransactionPrototype[];
   onAdded: (added: DBTransaction) => void;
@@ -219,20 +182,15 @@ export const AddTransactionForm = (props: {
   const [apiError, setApiError] = useState("");
   const [isAdvancedMode, setAdvancedMode] = useState(false);
   const [prototype, setPrototype] = useState<TransactionPrototype>(null);
-  const currencies = useCurrencyContext();
   const creatingNewTransaction = !props.transaction;
   const initialMode = props.transaction
     ? formModeForTransaction(props.transaction)
     : FormMode.PERSONAL;
-  const defaultAccountFrom = mostUsedAccountFrom(
-    initialMode,
-    props.allTransactions
-  );
-  const defaultAccountTo = mostUsedAccountTo(
-    initialMode,
-    props.allTransactions
-  );
-  const defaultCategory = props.categories[0];
+  const { transactions, currencies } = useAllDatabaseDataContext();
+  const transactionsForMode = transactions.filter((x) => formModeForTransaction(x) == initialMode);
+  const defaultAccountFrom = mostUsedAccountFrom(transactionsForMode);
+  const defaultAccountTo = mostUsedAccountTo(transactionsForMode);
+  const defaultCategory = mostUsedCategory(transactionsForMode, "");
   const defaultCurrency = currencies.all()[0];
   const initialValuesForEmptyForm = initialValuesEmpty(
     initialMode,
@@ -284,8 +242,6 @@ export const AddTransactionForm = (props: {
                   <NewTransactionSuggestions
                     openBankingTransactions={props.openBankingTransactions}
                     transactionPrototypes={props.transactionPrototypes}
-                    banks={props.banks}
-                    allTransactions={props.allTransactions}
                     onItemClick={(t) => {
                       if (isSubmitting) {
                         // The form is disabled while being submitted, so do not change it through suggestions either.
@@ -358,8 +314,7 @@ const FormInputs = (props: {
   isAdvancedMode: boolean;
   prototype: TransactionPrototype;
 }) => {
-  const { transactions, currencies, categories, banks, trips } =
-    useAllDatabaseDataContext();
+  const { transactions, currencies, categories, banks, trips } = useAllDatabaseDataContext();
   const {
     values: {
       amount,
@@ -402,15 +357,12 @@ const FormInputs = (props: {
       // If there is a prototype (suggestion from banking API), do not mess with bank account selector either.
       return;
     }
-    setFieldValue(
-      "fromBankAccountId",
-      mostUsedAccountFrom(mode, transactions).id
-    );
-    setFieldValue("toBankAccountId", mostUsedAccountTo(mode, transactions).id);
+    setFieldValue("fromBankAccountId", mostUsedAccountFrom(transactions).id);
+    setFieldValue("toBankAccountId", mostUsedAccountTo(transactions).id);
   }, [transactions, mode, setFieldValue, props.transaction, props.prototype]);
 
   useEffect(() => {
-    const suggestion = mostUsedCategory(mode, transactions, vendor);
+    const suggestion = mostUsedCategory(transactions, vendor);
     if (suggestion) {
       setFieldValue("categoryId", suggestion.id);
     }
@@ -425,20 +377,7 @@ const FormInputs = (props: {
     }
   }, [mode, setFieldValue, banks, fromBankAccountId]);
 
-  const transactionsForMode = transactions.filter((x) => {
-    switch (mode) {
-      case FormMode.PERSONAL:
-        return x.isPersonalExpense();
-      case FormMode.INCOME:
-        return x.isIncome();
-      case FormMode.EXTERNAL:
-        return x.isThirdPartyExpense();
-      case FormMode.TRANSFER:
-        return x.isTransfer();
-      default:
-        return false;
-    }
-  });
+  const transactionsForMode = transactions.filter((x) => formModeForTransaction(x) == mode);
   const vendorFrequency = new Map<string, number>();
   transactionsForMode
     .filter((x) => x.hasVendor())
@@ -616,7 +555,6 @@ const FormInputs = (props: {
         <BankAccountSelect
           name="fromBankAccountId"
           label="Account From"
-          banks={banks}
           disabled={isSubmitting}
         />
       </InputRow>
@@ -625,7 +563,6 @@ const FormInputs = (props: {
         <BankAccountSelect
           name="toBankAccountId"
           label="Account To"
-          banks={banks}
           disabled={isSubmitting}
         />
       </InputRow>

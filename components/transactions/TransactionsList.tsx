@@ -1,11 +1,10 @@
 import { Transaction as DBTransaction } from "@prisma/client";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
 import { AmountWithCurrency } from "lib/ClientSideModel";
-import { Bank, BankAccount } from "lib/model/BankAccount";
-import { Category } from "lib/model/Category";
+import { BankAccount } from "lib/model/BankAccount";
 import { Transaction } from "lib/model/Transaction";
 import { descriptiveDateTime, shortRelativeDate } from "lib/TimeHelpers";
-import React, { useState } from "react";
+import { useState } from "react";
 
 const transactionHeadingText = (t: Transaction) => {
   if (t.vendor()) {
@@ -44,7 +43,7 @@ const TransactionStatusLine = (props: {
     return <>{maybeBankAccount}</>;
   }
   if (props.t.isThirdPartyExpense()) {
-    return <>{props.t.thirdPartyExpense.payer}</>;
+    return <>{props.t.payer()}</>;
   }
   if (props.t.isIncome()) {
     const maybeBankAccount = props.showBankAccountInStatusLine && (
@@ -89,10 +88,7 @@ const TransactionAmount = (props: {
 };
 
 export const TransactionsListItem = (props: {
-  banks: Bank[];
-  categories: Category[];
   transaction: Transaction;
-  allTransactions: Transaction[];
   onUpdated: (transaction: DBTransaction) => void;
   showBankAccountInStatusLine: boolean;
 }) => {
@@ -157,9 +153,6 @@ export const TransactionsListItem = (props: {
         <div>
           <AddTransactionForm
             transaction={props.transaction}
-            categories={props.categories}
-            banks={props.banks}
-            allTransactions={props.allTransactions}
             onAdded={(updated) => {
               props.onUpdated(updated);
               setShowEditForm(false);
@@ -173,8 +166,6 @@ export const TransactionsListItem = (props: {
 };
 
 export const TransactionsList = (props: {
-  banks: Bank[];
-  categories: Category[];
   transactions: Transaction[];
   onTransactionUpdated: (transaction: DBTransaction) => void;
   displayLimit?: number;
@@ -196,10 +187,7 @@ export const TransactionsList = (props: {
           {displayTransactions.map((t) => (
             <TransactionsListItem
               key={t.id}
-              categories={props.categories}
-              banks={props.banks}
               transaction={t}
-              allTransactions={props.transactions}
               onUpdated={props.onTransactionUpdated}
               showBankAccountInStatusLine={
                 props.showBankAccountInStatusLine ?? true

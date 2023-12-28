@@ -1,12 +1,12 @@
-import { InputProps } from "components/forms/InputProps";
-import { SelectNumber } from "components/forms/Select";
+import { SelectNumber } from "components/txform/Select";
 import { FieldHookConfig } from "formik";
-import { Bank } from "lib/model/BankAccount";
+import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 
 export const BankAccountSelect = (
-  props: InputProps & FieldHookConfig<number> & { banks: Bank[] }
+  props: FieldHookConfig<number> & { label: string }
 ) => {
-  const accounts = props.banks
+  const { banks } = useAllDatabaseDataContext();
+  const accounts = banks
     .flatMap((x) => x.accounts)
     .filter((x) => !x.isArchived());
   return (

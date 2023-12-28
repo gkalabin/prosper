@@ -2,13 +2,12 @@ import { Transaction as DBTransaction } from "@prisma/client";
 import Layout from "components/Layout";
 import {
   isFullyConfigured,
-  NotConfiguredYet,
+  NotConfiguredYet
 } from "components/NotConfiguredYet";
 import { TransactionsList } from "components/transactions/TransactionsList";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
 import {
-  CurrencyContextProvider,
-  modelFromDatabaseData,
+  AllDatabaseDataContextProvider, modelFromDatabaseData
 } from "lib/ClientSideModel";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { InferGetServerSidePropsType } from "next";
@@ -21,8 +20,8 @@ export default function TransactionsPage(
 ) {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
   const [dbDataState, setDbData] = useState(dbData);
-  const { categories, banks, transactions } =
-    modelFromDatabaseData(dbDataState);
+  const model = modelFromDatabaseData(dbDataState);
+  const { transactions } = model;
   const personalTransactions = transactions.filter(
     (t) => !t.isThirdPartyExpense()
   );
@@ -76,7 +75,7 @@ export default function TransactionsPage(
         },
       ]}
     >
-      <CurrencyContextProvider init={dbData.dbCurrencies}>
+      <AllDatabaseDataContextProvider init={model}>
         {!showAddTransactionForm && (
           <div className="flex justify-end">
             <button
@@ -91,9 +90,6 @@ export default function TransactionsPage(
           <div className="">
             <AddTransactionForm
               onAdded={addTransaction}
-              categories={categories}
-              banks={banks}
-              allTransactions={transactions}
               transactionPrototypes={dbData.dbTransactionPrototypes}
               onClose={() => setShowAddTransactionForm(false)}
             />
@@ -101,12 +97,10 @@ export default function TransactionsPage(
         )}
 
         <TransactionsList
-          categories={categories}
-          banks={banks}
           transactions={displayTransactions}
           onTransactionUpdated={updateTransaction}
         />
-      </CurrencyContextProvider>
+      </AllDatabaseDataContextProvider>
     </Layout>
   );
 }

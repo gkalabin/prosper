@@ -1,7 +1,6 @@
 import {
   Bank as DBBank,
   BankAccount as DBBankAccount,
-  Currency as DBCurrency,
   ExchangeRate as DBExchangeRate,
   StockQuote as DBStockQuote,
 } from "@prisma/client";
@@ -14,21 +13,6 @@ import { Trip } from "lib/model/Trip";
 import { Tag } from "lib/model/Tag";
 import { createContext, useContext } from "react";
 import { Currencies, Currency, NANOS_MULTIPLIER } from "lib/model/Currency";
-
-const CurrencyContext = createContext<Currencies>(null);
-export const CurrencyContextProvider = (props: {
-  init: DBCurrency[];
-  children: JSX.Element | JSX.Element[];
-}) => {
-  return (
-    <CurrencyContext.Provider value={new Currencies(props.init)}>
-      {props.children}
-    </CurrencyContext.Provider>
-  );
-};
-export const useCurrencyContext = () => {
-  return useContext(CurrencyContext);
-};
 
 export class AmountWithCurrency {
   private readonly amount: Amount;

@@ -2,21 +2,20 @@ import {
   Bank as DBBank,
   BankAccount as DBBankAccount,
   Currency as DBCurrency,
-  OpenBankingAccount as DBOpenBankingAccount,
+  OpenBankingAccount as DBOpenBankingAccount
 } from "@prisma/client";
 import { Select } from "components/forms/Select";
 import Layout from "components/Layout";
 import { ButtonFormPrimary } from "components/ui/buttons";
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
+import { DB } from "lib/db";
 import { Currencies } from "lib/model/Currency";
 import { maybeRefreshToken } from "lib/openbanking/token";
-import prisma from "lib/prisma";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "pages/api/auth/[...nextauth]";
 import { AccountMappingRequest } from "pages/api/open-banking/account-mapping";
 import { useState } from "react";
-import { authOptions } from "pages/api/auth/[...nextauth]";
-import { getServerSession } from "next-auth/next";
-import { DB } from "lib/db";
 
 interface OpenBankingAccount {
   openBankingAccountId: string;

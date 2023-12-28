@@ -3,13 +3,11 @@ import Layout from "components/Layout";
 import { EChartOption } from "echarts";
 import ReactEcharts from "echarts-for-react";
 import {
+  AllDatabaseDataContextProvider,
   AmountWithCurrency,
-  CurrencyContextProvider,
-  modelFromDatabaseData,
-  StockAndCurrencyExchange,
+  modelFromDatabaseData, useAllDatabaseDataContext
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { Transaction } from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { formatMonth } from "lib/TimeHelpers";
 import { InferGetServerSidePropsType } from "next";
@@ -17,25 +15,23 @@ import { useState } from "react";
 
 export const getServerSideProps = allDbDataProps;
 
-export function MoneyInMoneyOut(props: {
-  transactions: Transaction[];
-  exchange: StockAndCurrencyExchange;
-}) {
+export function MoneyInMoneyOut() {
   const displayCurrency = useDisplayCurrency();
+  const { transactions, exchange } = useAllDatabaseDataContext();
   const [includeTransfersInDelta, setIncludeTransfersInDelta] = useState(false);
   const zero = new AmountWithCurrency({
     amountCents: 0,
     currency: displayCurrency,
   });
 
-  const transactions = props.transactions.filter(
+  const nonThirdPartyTransactions = transactions.filter(
     (t) => !t.isThirdPartyExpense()
   );
   const moneyOut: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
   const moneyIn: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
   const delta: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
   const monthsIndex: { [firstOfMonthEpoch: number]: boolean } = {};
-  for (const t of transactions) {
+  for (const t of nonThirdPartyTransactions) {
     const ts = t.monthEpoch();
     monthsIndex[ts] = true;
 
@@ -44,7 +40,7 @@ export function MoneyInMoneyOut(props: {
     delta[ts] ??= zero;
 
     if (t.isPersonalExpense()) {
-      const exchanged = props.exchange.exchange(
+      const exchanged = exchange.exchange(
         t.amount(),
         displayCurrency,
         t.timestamp
@@ -53,7 +49,7 @@ export function MoneyInMoneyOut(props: {
       delta[ts] = delta[ts].subtract(exchanged);
     }
     if (t.isIncome()) {
-      const exchanged = props.exchange.exchange(
+      const exchanged = exchange.exchange(
         t.amount(),
         displayCurrency,
         t.timestamp
@@ -62,12 +58,12 @@ export function MoneyInMoneyOut(props: {
       delta[ts] = delta[ts].add(exchanged);
     }
     if (includeTransfersInDelta && t.isTransfer()) {
-      const send = props.exchange.exchange(
+      const send = exchange.exchange(
         t.amount(),
         displayCurrency,
         t.timestamp
       );
-      const received = props.exchange.exchange(
+      const received = exchange.exchange(
         t.amountReceived(),
         displayCurrency,
         t.timestamp
@@ -146,14 +142,12 @@ export function MoneyInMoneyOut(props: {
                 onChange={() =>
                   setIncludeTransfersInDelta(!includeTransfersInDelta)
                 }
-                className={`${
-                  includeTransfersInDelta ? "bg-indigo-700" : "bg-gray-200"
-                } relative inline-flex h-6 w-11 items-center rounded-full`}
+                className={`${includeTransfersInDelta ? "bg-indigo-700" : "bg-gray-200"
+                  } relative inline-flex h-6 w-11 items-center rounded-full`}
               >
                 <span
-                  className={`${
-                    includeTransfersInDelta ? "translate-x-6" : "translate-x-1"
-                  } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                  className={`${includeTransfersInDelta ? "translate-x-6" : "translate-x-1"
+                    } inline-block h-4 w-4 transform rounded-full bg-white transition`}
                 />
               </Switch>
             </div>
@@ -178,8 +172,6 @@ export function MoneyInMoneyOut(props: {
 export default function TransactionsPage(
   dbData: InferGetServerSidePropsType<typeof getServerSideProps>
 ) {
-  const { transactions, exchange } = modelFromDatabaseData(dbData);
-
   return (
     <Layout
       subheader={[
@@ -193,9 +185,9 @@ export default function TransactionsPage(
         },
       ]}
     >
-      <CurrencyContextProvider init={dbData.dbCurrencies}>
-        <MoneyInMoneyOut transactions={transactions} exchange={exchange} />
-      </CurrencyContextProvider>
+      <AllDatabaseDataContextProvider init={modelFromDatabaseData(dbData)}>
+        <MoneyInMoneyOut />
+      </AllDatabaseDataContextProvider>
     </Layout>
   );
 }
