@@ -1,5 +1,8 @@
 import Category from "./Category";
+import Income from "./Income";
 import PersonalExpense from "./PersonalExpense";
+import ThirdPartyExpense from "./ThirdPartyExpense";
+import Transfer from "./Transfer";
 
 type Transaction = {
   id: number;
@@ -8,7 +11,10 @@ type Transaction = {
   amountCents: number;
   category: Category;
 
-  personalExpense: PersonalExpense;
+  personalExpense?: PersonalExpense;
+  thirdPartyExpense?: ThirdPartyExpense;
+  income?: Income;
+  transfer?: Transfer;
 };
 
 export default Transaction;

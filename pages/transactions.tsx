@@ -4,7 +4,7 @@ import Layout from "../components/Layout";
 import { AddTransactionForm } from "../components/transactions/AddTransactionForm";
 import { TransactionsList } from "../components/transactions/TransactionsList";
 import { makeTransactionInclude } from "../lib/db/transactionInclude";
-import Bank from "../lib/model/Bank";
+import { Bank } from "../lib/model/BankAccount";
 import { DbCategory, makeCategoryTree } from "../lib/model/Category";
 import Currency from "../lib/model/Currency";
 import Transaction from "../lib/model/Transaction";
@@ -18,7 +18,11 @@ export const getStaticProps: GetStaticProps = async () => {
   const currencies = await prisma.currency.findMany({});
   const banks = await prisma.bank.findMany({
     include: {
-      accounts: true,
+      accounts: {
+        include: {
+          bank: true,
+        },
+      },
     },
   });
   const props = {
@@ -33,26 +37,6 @@ export const getStaticProps: GetStaticProps = async () => {
   };
 };
 
-type TransactionsListItemProps = {
-  transaction: Transaction;
-  onUpdated: (transaction: Transaction) => void;
-};
-export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
-  props
-) => {
-  const raw = JSON.stringify(props.transaction, null, 2);
-  const [showRawDetails, setShowRawDetails] = useState(false);
-  return (
-    <div>
-      {props.transaction.description}{" "}
-      <a onClick={() => setShowRawDetails((prev) => !prev)}>
-        {(showRawDetails && <>hide</>) || <>show</>} raw transaction
-      </a>
-      {showRawDetails && <pre>{raw}</pre>}
-    </div>
-  );
-};
-
 type PageProps = {
   transactions: Transaction[];
   dbCategories: DbCategory[];
@@ -63,8 +47,7 @@ const TransactionsPage: React.FC<PageProps> = (props) => {
   const [transactionsUnordered, setTransactionsUnordered] = useState(
     props.transactions
   );
-  const [displayLimit, setDisplayLimit] = useState(10);
-  const transactions = [].concat(transactionsUnordered).slice(0, displayLimit);
+  const transactions = [].concat(transactionsUnordered);
 
   const addTransaction = (added: Transaction) => {
     setTransactionsUnordered((old) => [...old, added]);
@@ -87,7 +70,6 @@ const TransactionsPage: React.FC<PageProps> = (props) => {
         transactions={transactions}
         onTransactionUpdated={updateTransaction}
       />
-      <button onClick={() => setDisplayLimit(displayLimit + 10)}>Show 10 more</button>
     </Layout>
   );
 };

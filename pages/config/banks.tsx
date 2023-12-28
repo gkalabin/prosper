@@ -5,8 +5,7 @@ import AddBankForm from "../../components/config/banks/AddBankForm";
 import BankAccountListItem from "../../components/config/banks/BankAccountListItem";
 import BankName from "../../components/config/banks/BankName";
 import Layout from "../../components/Layout";
-import Bank from "../../lib/model/Bank";
-import BankAccount from "../../lib/model/BankAccount";
+import {Bank, BankAccount} from "../../lib/model/BankAccount";
 import Currency from "../../lib/model/Currency";
 import prisma from "../../lib/prisma";
 

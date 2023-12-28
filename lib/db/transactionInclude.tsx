@@ -1,11 +1,12 @@
 import { Prisma } from "@prisma/client";
+import { makeBankAccountInclude } from "./accountInclude";
 
-export const makeTransactionInclude = () => {
-  const select: Prisma.TransactionInclude = {
+export const makeTransactionInclude = (): Prisma.TransactionInclude => {
+  return {
     category: true,
     personalExpense: {
       include: {
-        account: true,
+        account: { include: makeBankAccountInclude() },
       },
     },
     thirdPartyExpense: {
@@ -15,15 +16,14 @@ export const makeTransactionInclude = () => {
     },
     transfer: {
       include: {
-        accountFrom: true,
-        accountTo: true,
+        accountFrom: { include: makeBankAccountInclude() },
+        accountTo: { include: makeBankAccountInclude() },
       },
     },
     income: {
       include: {
-        account: true,
+        account: { include: makeBankAccountInclude() },
       },
     },
   };
-  return select;
 };

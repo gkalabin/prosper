@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import Bank from "../../../lib/model/Bank";
-import BankAccount from "../../../lib/model/BankAccount";
+import { Bank, BankAccount } from "../../../lib/model/BankAccount";
 import Currency from "../../../lib/model/Currency";
 
 type BankAccountListItemProps = {

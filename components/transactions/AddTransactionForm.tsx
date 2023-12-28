@@ -1,20 +1,20 @@
+import { Form, Formik, FormikHelpers } from "formik";
+import Link from "next/link";
 import React, { useState } from "react";
-import Bank from "../../lib/model/Bank";
-import Category from "../../lib/model/Category";
-import Transaction from "../../lib/model/Transaction";
-import Currency from "../../lib/model/Currency";
 import {
   AddTransactionFormValues,
   FormMode,
-  formToDTO,
+  formToDTO
 } from "../../lib/AddTransactionDataModels";
-import { Formik, Form, FormikHelpers } from "formik";
+import { Bank } from "../../lib/model/BankAccount";
+import Category from "../../lib/model/Category";
+import Currency from "../../lib/model/Currency";
+import Transaction from "../../lib/model/Transaction";
 import { BankAccountSelect } from "../forms/BankAccountSelect";
 import { Button } from "../forms/Button";
 import { CategorySelect } from "../forms/CategorySelect";
-import { MoneyInput, TextInput } from "../forms/Input";
 import CurrencySelect from "../forms/CurrencySelect";
-import Link from "next/link";
+import { MoneyInput, TextInput } from "../forms/Input";
 
 type AddTransactionFormProps = {
   banks: Bank[];

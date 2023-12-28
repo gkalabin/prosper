@@ -1,10 +1,9 @@
 import { GetStaticProps } from "next";
 import React from "react";
+import { Bank, BankAccount } from "../lib/model/BankAccount";
 import Layout from "../components/Layout";
 import { AddTransactionForm } from "../components/transactions/AddTransactionForm";
 import { makeTransactionInclude } from "../lib/db/transactionInclude";
-import Bank from "../lib/model/Bank";
-import BankAccount from "../lib/model/BankAccount";
 import { DbCategory, makeCategoryTree } from "../lib/model/Category";
 import Currency from "../lib/model/Currency";
 import Transaction from "../lib/model/Transaction";
