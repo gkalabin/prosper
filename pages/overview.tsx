@@ -14,10 +14,9 @@ import {
 import { useDisplayCurrency } from "lib/displaySettings";
 import { BankAccount } from "lib/model/BankAccount";
 import {
-  OpenBankingDataContextProvider,
-  useOpenBankingDataContext,
+  useOpenBankingBalances,
 } from "lib/openbanking/context";
-import { allDbDataPropsWithOb } from "lib/ServerSideDB";
+import { allDbDataProps } from "lib/ServerSideDB";
 import { onTransactionChange } from "lib/stateHelpers";
 import { TransactionAPIResponse } from "lib/transactionDbUtils";
 import { InferGetServerSidePropsType } from "next";
@@ -29,8 +28,7 @@ const BankAccountListItem = (props: {
 }) => {
   const [showTransactionList, setShowTransactionList] = useState(false);
   let balanceText = <span>{props.account.balance().format()}</span>;
-  const { balances } = useOpenBankingDataContext();
-  // TODO: make sure open banking data doesn't return nulls and handles API errors gracefully
+  const { balances } = useOpenBankingBalances();
   const obBalance = balances?.find(
     (b) => b.internalAccountId === props.account.id
   );
@@ -120,7 +118,6 @@ function OverviewPageContent() {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
   const displayCurrency = useDisplayCurrency();
   const { banks, exchange, setDbData } = useAllDatabaseDataContext();
-  const { setObData } = useOpenBankingDataContext();
 
   const accounts = banks.flatMap((b) => b.accounts);
   const now = new Date();
@@ -140,6 +137,8 @@ function OverviewPageContent() {
         acc.add(exchange.exchange(account.balance(), displayCurrency, now)),
       zero
     );
+  const { isError: obBalancesError, isLoading: obBalancesLoading } =
+    useOpenBankingBalances();
   return (
     <Layout className="space-y-4">
       <div className="rounded border">
@@ -163,17 +162,27 @@ function OverviewPageContent() {
         )}
         {showAddTransactionForm && (
           <AddTransactionForm
-            onAddedOrUpdated={onTransactionChange(setDbData, setObData)}
+            onAddedOrUpdated={onTransactionChange(setDbData)}
             onClose={() => setShowAddTransactionForm(false)}
           />
         )}
       </div>
+      {obBalancesError && (
+        <div className="rounded border bg-red-100 p-2 text-lg font-medium text-gray-900">
+          Error loading Open Banking balances
+        </div>
+      )}
+      {obBalancesLoading && (
+        <div className="rounded border bg-yellow-50 p-2 text-base font-normal text-gray-900">
+          Loading Open Banking balances...
+        </div>
+      )}
       <BanksList onTransactionUpdated={onTransactionChange(setDbData)} />
     </Layout>
   );
 }
 
-export const getServerSideProps = allDbDataPropsWithOb;
+export const getServerSideProps = allDbDataProps;
 export default function OverviewPage(
   dbData: InferGetServerSidePropsType<typeof getServerSideProps>
 ) {
@@ -181,10 +190,8 @@ export default function OverviewPage(
     return <NotConfiguredYet />;
   }
   return (
-    <OpenBankingDataContextProvider data={dbData.openBankingData}>
-      <AllDatabaseDataContextProvider dbData={dbData}>
-        <OverviewPageContent />
-      </AllDatabaseDataContextProvider>
-    </OpenBankingDataContextProvider>
+    <AllDatabaseDataContextProvider dbData={dbData}>
+      <OverviewPageContent />
+    </AllDatabaseDataContextProvider>
   );
 }

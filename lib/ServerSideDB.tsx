@@ -1,8 +1,6 @@
 import { DB } from "lib/db";
 import { addLatestExchangeRates } from "lib/exchangeRatesBackfill";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
-import { fetchOpenBankingData } from "lib/openbanking/fetchall";
-import { IOpenBankingData } from "lib/openbanking/interface";
 import { addLatestStockQuotes } from "lib/stockQuotesBackfill";
 import { GetServerSideProps } from "next";
 import { getServerSession } from "next-auth/next";
@@ -33,6 +31,7 @@ const fetchAllDatabaseData = async (db: DB): Promise<AllDatabaseData> => {
     dbDisplaySettings: await db.getOrCreateDbDisplaySettings(),
     dbExchangeRates: await db.exchangeRateFindMany(),
     dbStockQuotes: await db.stockQuoteFindMany(),
+    dbTransactionPrototypes: await db.transactionPrototypeFindMany(),
   };
 };
 
@@ -66,29 +65,5 @@ export const allDbDataProps: GetServerSideProps<AllDatabaseData> = async (
   const db = await DB.fromContext(context);
   const dbData = await fetchAllDatabaseData(db);
   const props = Object.assign(dbData, { session });
-  return JSON.parse(JSON.stringify({ props }, jsonEncodingHacks));
-};
-
-export const allDbDataPropsWithOb: GetServerSideProps<
-  AllDatabaseData & { openBankingData: IOpenBankingData }
-> = async (context) => {
-  const session = await getServerSession(context.req, context.res, authOptions);
-  if (!session) {
-    return {
-      redirect: {
-        destination: "/api/auth/signin",
-        permanent: false,
-      },
-    };
-  }
-  const db = await DB.fromContext(context);
-  const dbData = await fetchAllDatabaseData(db);
-  const props = Object.assign({ session }, dbData, {
-    openBankingData: {} as IOpenBankingData,
-  });
-  // TODO: fetch async with page load
-  await fetchOpenBankingData(db)
-    .then((openBankingData) => (props.openBankingData = openBankingData))
-    .catch((err) => console.warn("Failed to fetch open banking data", err));
   return JSON.parse(JSON.stringify({ props }, jsonEncodingHacks));
 };

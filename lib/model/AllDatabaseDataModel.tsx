@@ -11,6 +11,7 @@ import {
   Tag,
   ThirdPartyExpense,
   Transaction,
+  TransactionPrototype,
   Transfer,
   Trip,
 } from "@prisma/client";
@@ -31,6 +32,7 @@ export interface TransactionWithExtensionsAndTagIds
 
 export type AllDatabaseData = {
   dbTransactions: TransactionWithExtensionsAndTagIds[];
+  dbTransactionPrototypes: TransactionPrototype[];
   dbCategories: Category[];
   dbBanks: Bank[];
   dbBankAccounts: BankAccount[];

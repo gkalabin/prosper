@@ -11,7 +11,7 @@ import {
 import { uniqMostFrequent } from "lib/collections";
 import { BankAccount } from "lib/model/BankAccount";
 import { Transaction } from "lib/model/Transaction";
-import { useOpenBankingDataContext } from "lib/openbanking/context";
+import { useOpenBankingTransactions } from "lib/openbanking/context";
 import {
   TransactionPrototype,
   WithdrawalOrDepositPrototype,
@@ -63,27 +63,41 @@ export const NewTransactionSuggestions = (props: {
   activePrototype: TransactionPrototype;
   onItemClick: (t: TransactionPrototype) => void;
 }) => {
-  const { newPrototypes } = useOpenBankingDataContext();
-  if (!newPrototypes?.length) {
+  const { transactions, isError, isLoading } = useOpenBankingTransactions();
+  if (isError) {
+    return (
+      <div className="text-red-900">
+        Error loading transactions from Open Banking
+      </div>
+    );
+  }
+  if (isLoading) {
+    return <div>Loading Open Banking transactions...</div>;
+  }
+  if (!transactions?.length) {
     return <></>;
   }
-  return <NonEmptyNewTransactionSuggestions {...props} />;
+  return (
+    <NonEmptyNewTransactionSuggestions
+      {...props}
+      openBankingTransactions={transactions}
+    />
+  );
 };
 
 const NonEmptyNewTransactionSuggestions = (props: {
+  openBankingTransactions: WithdrawalOrDepositPrototype[];
   activePrototype: TransactionPrototype;
   onItemClick: (t: TransactionPrototype) => void;
 }) => {
-  const { usedPrototypes, newPrototypes } = useOpenBankingDataContext();
-  const { transactions } = useAllDatabaseDataContext();
+  const { transactions, transactionPrototypes } = useAllDatabaseDataContext();
   const bankAccounts = useDisplayBankAccounts();
   const withdrawalsOrDeposits = fillMostCommonDescriptions({
     transactions,
-    newPrototypes,
-    usedPrototypes,
+    newPrototypes: props.openBankingTransactions,
+    usedPrototypes: transactionPrototypes,
   });
   const prototypes = combineTransfers(withdrawalsOrDeposits);
-
   const protosByAccountId = new Map<number, TransactionPrototype[]>();
   prototypes.forEach((p) => {
     const append = (accountId: number) => {
@@ -222,11 +236,10 @@ function SuggestionItem({
   onClick: (t: TransactionPrototype) => void;
 }) {
   const { isSubmitting } = useFormikContext();
-  const { usedPrototypes } = useOpenBankingDataContext();
-  const { transactions } = useAllDatabaseDataContext();
+  const { transactions, transactionPrototypes } = useAllDatabaseDataContext();
   const bankAccounts = useDisplayBankAccounts();
   const singleOpProto = singleOperationProto(proto, bankAccount);
-  const usedProto = usedPrototypes.find((p) =>
+  const usedProto = transactionPrototypes.find((p) =>
     proto.type != "transfer"
       ? p.externalId == proto.externalTransactionId
       : p.externalId == proto.withdrawal.externalTransactionId ||

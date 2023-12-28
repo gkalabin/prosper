@@ -3,6 +3,7 @@ import {
   BankAccount as DBBankAccount,
   ExchangeRate as DBExchangeRate,
   StockQuote as DBStockQuote,
+  TransactionPrototype,
 } from "@prisma/client";
 import { addDays, closestTo, isBefore, startOfDay } from "date-fns";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
@@ -178,6 +179,7 @@ export type AllClientDataModel = {
   tags: Tag[];
   exchange: StockAndCurrencyExchange;
   displaySettings: DisplaySettings;
+  transactionPrototypes: TransactionPrototype[];
 };
 
 const AllDatabaseDataContext = createContext<
@@ -219,12 +221,10 @@ export const banksModelFromDatabaseData = (
     (x) => new BankAccount(x, bankById, currencies)
   );
   bankAccounts.forEach((x) => x.bank.accounts.push(x));
-
   banks.sort((a, b) => a.displayOrder - b.displayOrder);
   banks.forEach((b) =>
     b.accounts.sort((a, b) => a.displayOrder - b.displayOrder)
   );
-
   return [banks, bankAccounts];
 };
 
@@ -288,6 +288,7 @@ export const modelFromDatabaseData = (
     transactions,
     exchange,
     displaySettings,
+    transactionPrototypes: dbData.dbTransactionPrototypes,
   };
 };
 

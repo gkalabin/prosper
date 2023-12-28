@@ -9,7 +9,6 @@ import { DB } from "lib/db";
 import {
   AccountBalance,
   AccountDetails,
-  IOpenBankingData,
   Transaction,
 } from "lib/openbanking/interface";
 import { fetchAccounts as nordigenFetchAccounts } from "lib/openbanking/nordigen/account";
@@ -24,16 +23,6 @@ import { fetchBalance as trueLayerFetchBalance } from "lib/openbanking/truelayer
 import { maybeRefreshToken as trueLayerMaybeRefreshToken } from "lib/openbanking/truelayer/token";
 import { fetchTransactions as trueLayerFetchTransactions } from "lib/openbanking/truelayer/transactions";
 import { WithdrawalOrDepositPrototype } from "lib/txsuggestions/TransactionPrototype";
-
-export const fetchOpenBankingData = async (
-  db: DB
-): Promise<IOpenBankingData> => {
-  return {
-    balances: await fetchBalances(db),
-    newPrototypes: await fetchTransactions(db),
-    usedPrototypes: await db.transactionPrototypeFindMany(),
-  };
-};
 
 // TODO: the next two functions are very similar, we should reduce logic duplication.
 export async function fetchBalances(db: DB): Promise<AccountBalance[]> {
