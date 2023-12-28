@@ -1,12 +1,16 @@
 import { Transaction as DBTransaction } from "@prisma/client";
 import { Amount } from "components/Amount";
 import Layout from "components/Layout";
+import {
+  isFullyConfigured,
+  NotConfiguredYet
+} from "components/NotConfiguredYet";
 import { TransactionsList } from "components/transactions/TransactionsList";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
 import { ButtonPagePrimary } from "components/ui/buttons";
 import {
   CurrencyContextProvider,
-  modelFromDatabaseData,
+  modelFromDatabaseData
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
@@ -142,6 +146,10 @@ export default function OverviewPage(
       return newDbData;
     });
   };
+
+  if (!isFullyConfigured(dbData)) {
+    return <NotConfiguredYet />;
+  }
 
   return (
     <Layout>

@@ -19,7 +19,6 @@ import { Bank } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Transaction } from "lib/model/Transaction";
 import { toDateTimeLocal } from "lib/TimeHelpers";
-import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { FormTransactionTypeSelector } from "./FormTransactionTypeSelector";
 
@@ -112,26 +111,6 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
   const bankAccountsList = props.banks.flatMap((b) => b.accounts);
   const currencies = useCurrencyContext();
 
-  if (!props.categories?.length || !bankAccountsList.length) {
-    return (
-      <div>
-        To create transactions, you need to have at least one:
-        <ul>
-          {!props.categories?.length && (
-            <li>
-              <Link href="/config/categories">category</Link>
-            </li>
-          )}
-          {!bankAccountsList.length && (
-            <li>
-              <Link href="/config/banks">bank with a bank account</Link>
-            </li>
-          )}
-        </ul>
-      </div>
-    );
-  }
-
   const submitNewTransaction = async (
     values: AddTransactionFormValues,
     { setSubmitting }: FormikHelpers<AddTransactionFormValues>
@@ -160,9 +139,13 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
     description: props.transaction?.description ?? "",
     amount: props.transaction?.amountDeprecated() ?? 0,
     ownShareAmount:
-      props.transaction?.amountOwnShare() ?? props.transaction?.amountDeprecated() ?? 0,
+      props.transaction?.amountOwnShare() ??
+      props.transaction?.amountDeprecated() ??
+      0,
     receivedAmount:
-      props.transaction?.amountReceivedDeprecated() ?? props.transaction?.amountDeprecated() ?? 0,
+      props.transaction?.amountReceivedDeprecated() ??
+      props.transaction?.amountDeprecated() ??
+      0,
     fromBankAccountId: (props.transaction?.accountFrom() ?? bankAccountsList[0])
       .id,
     toBankAccountId: (props.transaction?.accountTo() ?? bankAccountsList[0]).id,

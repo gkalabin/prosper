@@ -235,7 +235,7 @@ export class StockQuotes {
   }
 }
 
-export type AllDataModel = {
+export type AllClientDataModel = {
   transactions: Transaction[];
   categories: Category[];
   banks: Bank[];
@@ -269,7 +269,7 @@ export const banksModelFromDatabaseData = (
 
 export const modelFromDatabaseData = (
   dbData: AllDatabaseData
-): AllDataModel => {
+): AllClientDataModel => {
   const categories = categoryModelFromDB(dbData.dbCategories);
   const categoryById: {
     [id: number]: Category;
