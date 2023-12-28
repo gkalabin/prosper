@@ -204,7 +204,7 @@ export const TransactionsList: React.FC<TransactionsListProps> = (props) => {
             Show
             <button
               onClick={() => setDisplayLimit(displayLimit + 10)}
-              className=" ml-2 mr-1 text-indigo-600 hover:text-indigo-500"
+              className="ml-2 mr-1 text-indigo-600 hover:text-indigo-500"
             >
               10
             </button>

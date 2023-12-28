@@ -1,14 +1,19 @@
-import React, { useState } from "react";
+import { Bank as DBBank } from "@prisma/client";
+import { Input } from "components/forms/Input";
+import {
+  ButtonFormPrimary,
+  ButtonFormSecondary,
+  ButtonLink,
+} from "components/ui/buttons";
 import { Bank } from "lib/model/BankAccount";
+import React, { useState } from "react";
 
 type BankNameProps = {
   bank: Bank;
-  onUpdated: (bank: Bank) => void;
+  onUpdated: (bank: DBBank) => void;
 };
 
-const BankName: React.FC<BankNameProps> = (
-  props
-) => {
+const BankName: React.FC<BankNameProps> = (props) => {
   const [name, setName] = useState(props.bank.name);
   const [displayOrder, setDisplayOrder] = useState(props.bank.displayOrder);
   const [formDisplayed, setFormDisplayed] = useState(false);
@@ -45,8 +50,8 @@ const BankName: React.FC<BankNameProps> = (
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      close();
       props.onUpdated(await response.json());
+      close();
     } catch (error) {
       setApiError(`Failed to update: ${error}`);
     }
@@ -55,38 +60,45 @@ const BankName: React.FC<BankNameProps> = (
 
   if (!formDisplayed) {
     return (
-      <div>
-        <span className="text-lg">{props.bank.name}</span>;
-        <small className="text-xs py-4">displayOrder {props.bank.displayOrder}</small>
-        <button onClick={open}>Edit</button>
+      <div className="border-b bg-indigo-200 p-2 text-gray-900">
+        <h1 className="inline-block text-xl font-medium">{props.bank.name}</h1>
+        <small
+          className="px-1 text-xs text-gray-500"
+          title="Lower order items show first."
+        >
+          order {props.bank.displayOrder}
+        </small>
+        <ButtonLink className="text-sm" onClick={open} label="Edit" />
       </div>
     );
   }
   return (
-    <form onSubmit={handleSubmit}>
-      <input
+    <form onSubmit={handleSubmit} className="flex gap-1 p-2">
+      <Input
         onChange={(e) => setName(e.target.value)}
         placeholder="Name"
         type="text"
         disabled={requestInFlight}
         value={name}
       />
-      <input
+      <Input
         onChange={(e) => setDisplayOrder(+e.target.value)}
         placeholder="Display order"
         type="number"
         disabled={requestInFlight}
         value={displayOrder}
       />
-      <button onClick={close} disabled={requestInFlight}>
-        Cancel
-      </button>
-      <input
-        disabled={!name || requestInFlight}
-        type="submit"
-        value={requestInFlight ? "Updating…" : "Update"}
+      <ButtonFormSecondary
+        onClick={close}
+        disabled={requestInFlight}
+        label="Cancel"
       />
-      {apiError && <span>{apiError}</span>}
+      <ButtonFormPrimary
+        disabled={!name || requestInFlight}
+        label={requestInFlight ? "Updating…" : "Update"}
+      />
+
+      {apiError && <span className="text-red-500">{apiError}</span>}
     </form>
   );
 };

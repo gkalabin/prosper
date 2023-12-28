@@ -1,19 +1,30 @@
+import classNames from "classnames";
 import { InputProps } from "components/forms/InputProps";
 import { FieldHookConfig, useField } from "formik";
 import { ClassAttributes } from "react";
 
-export const MoneyInput = (props: InputProps & FieldHookConfig<number>) => {
+export const MoneyInputWithLabel = (
+  props: InputProps & FieldHookConfig<number>
+) => {
   return (
-    <InputUntyped {...props} type="number" step="0.01" inputMode="decimal" onFocus={(e) => e.target.select()} />
+    <InputWithLabelUntyped
+      {...props}
+      type="number"
+      step="0.01"
+      inputMode="decimal"
+      onFocus={(e) => e.target.select()}
+    />
   );
 };
 
-export const TextInput = (props: InputProps & FieldHookConfig<string>) => {
-  return <InputUntyped {...props} type="text" />;
+export const TextInputWithLabel = (
+  props: InputProps & FieldHookConfig<string>
+) => {
+  return <InputWithLabelUntyped {...props} type="text" />;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const InputUntyped = (props: InputProps & FieldHookConfig<any>) => {
+const InputWithLabelUntyped = (props: InputProps & FieldHookConfig<any>) => {
   const [field] = useField(props);
   const label =
     props.label || props.name.charAt(0).toUpperCase() + props.name.slice(1);
@@ -26,12 +37,25 @@ const InputUntyped = (props: InputProps & FieldHookConfig<any>) => {
       >
         {label}
       </label>
-      <input
+      <Input
         id={props.name}
         {...field}
         {...inputAttributes}
-        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        className="mt-1 block w-full "
       />
     </>
+  );
+};
+
+export const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => {
+  const { className, ...otherProps } = props;
+  return (
+    <input
+      {...otherProps}
+      className={classNames(
+        className,
+        "rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+      )}
+    />
   );
 };

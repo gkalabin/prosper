@@ -59,7 +59,7 @@ type BankListItemProps = {
 };
 const BankListItem: React.FC<BankListItemProps> = (props) => {
   return (
-    <div className="">
+    <div>
       <div className="border-b bg-indigo-200 p-2 text-xl font-medium text-gray-900">
         {props.bank.name}
       </div>
@@ -91,22 +91,20 @@ const BanksList: React.FC<TransactionsListProps> = (props) => {
     return <div>No banks.</div>;
   }
   return (
-    <>
-      <div className="flex-1 rounded border border-gray-200">
-        <div className="flex flex-col divide-y divide-gray-200">
-          {props.banks.map((b) => (
-            <BankListItem
-              key={b.id}
-              categories={props.categories}
-              banks={props.banks}
-              currencies={props.currencies}
-              bank={b}
-              onTransactionUpdated={props.onTransactionUpdated}
-            />
-          ))}
-        </div>
+    <div className="flex-1 rounded border border-gray-200">
+      <div className="flex flex-col divide-y divide-gray-200">
+        {props.banks.map((b) => (
+          <BankListItem
+            key={b.id}
+            categories={props.categories}
+            banks={props.banks}
+            currencies={props.currencies}
+            bank={b}
+            onTransactionUpdated={props.onTransactionUpdated}
+          />
+        ))}
       </div>
-    </>
+    </div>
   );
 };
 
@@ -148,37 +146,31 @@ export default function OverviewPage({
 
   return (
     <Layout>
-      <div className="flex justify-center">
-        <div className="sm:w-2/3">
-          {!showAddTransactionForm && (
-            <div className="flex justify-end">
-              <button
-                className="mb-4 rounded-md bg-indigo-600 px-4 py-1.5 text-base font-medium leading-7 text-white shadow-sm hover:bg-indigo-700 hover:ring-indigo-700"
-                onClick={() => setShowAddTransactionForm(true)}
-              >
-                New Transaction
-              </button>
-            </div>
-          )}
-          {showAddTransactionForm && (
-            <div className="">
-              <AddTransactionForm
-                categories={model.categories}
-                banks={model.banks}
-                currencies={model.currencies}
-                onAdded={addTransaction}
-                onClose={() => setShowAddTransactionForm(false)}
-              />
-            </div>
-          )}
-          <BanksList
-            banks={model.banks}
-            categories={model.categories}
-            currencies={model.currencies}
-            onTransactionUpdated={updateTransaction}
-          />
+      {!showAddTransactionForm && (
+        <div className="flex justify-end">
+          <button
+            className="mb-4 rounded-md bg-indigo-600 px-4 py-1.5 text-base font-medium leading-7 text-white shadow-sm hover:bg-indigo-700 hover:ring-indigo-700"
+            onClick={() => setShowAddTransactionForm(true)}
+          >
+            New Transaction
+          </button>
         </div>
-      </div>
+      )}
+      {showAddTransactionForm && (
+        <AddTransactionForm
+          categories={model.categories}
+          banks={model.banks}
+          currencies={model.currencies}
+          onAdded={addTransaction}
+          onClose={() => setShowAddTransactionForm(false)}
+        />
+      )}
+      <BanksList
+        banks={model.banks}
+        categories={model.categories}
+        currencies={model.currencies}
+        onTransactionUpdated={updateTransaction}
+      />
     </Layout>
   );
 }

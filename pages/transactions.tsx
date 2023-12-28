@@ -39,39 +39,35 @@ const TransactionsPage: React.FC<AllDatabaseData> = (props) => {
 
   return (
     <Layout>
-      <div className="flex justify-center">
-        <div className="sm:w-2/3">
-          {!showAddTransactionForm && (
-            <div className="flex justify-end">
-              <button
-                className="mb-4 rounded-md bg-indigo-600 px-4 py-1.5 text-base font-medium leading-7 text-white shadow-sm hover:bg-indigo-700 hover:ring-indigo-700"
-                onClick={() => setShowAddTransactionForm(true)}
-              >
-                New Transaction
-              </button>
-            </div>
-          )}
-          {showAddTransactionForm && (
-            <div className="">
-              <AddTransactionForm
-                onAdded={addTransaction}
-                categories={model.categories}
-                banks={model.banks}
-                currencies={model.currencies}
-                onClose={() => setShowAddTransactionForm(false)}
-              />
-            </div>
-          )}
-
-          <TransactionsList
+      {!showAddTransactionForm && (
+        <div className="flex justify-end">
+          <button
+            className="mb-4 rounded-md bg-indigo-600 px-4 py-1.5 text-base font-medium leading-7 text-white shadow-sm hover:bg-indigo-700 hover:ring-indigo-700"
+            onClick={() => setShowAddTransactionForm(true)}
+          >
+            New Transaction
+          </button>
+        </div>
+      )}
+      {showAddTransactionForm && (
+        <div className="">
+          <AddTransactionForm
+            onAdded={addTransaction}
             categories={model.categories}
             banks={model.banks}
             currencies={model.currencies}
-            transactions={model.transactions}
-            onTransactionUpdated={updateTransaction}
+            onClose={() => setShowAddTransactionForm(false)}
           />
         </div>
-      </div>
+      )}
+
+      <TransactionsList
+        categories={model.categories}
+        banks={model.banks}
+        currencies={model.currencies}
+        transactions={model.transactions}
+        onTransactionUpdated={updateTransaction}
+      />
     </Layout>
   );
 };

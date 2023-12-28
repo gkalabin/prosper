@@ -2,14 +2,18 @@ import { Switch } from "@headlessui/react";
 import { Transaction as DBTransaction } from "@prisma/client";
 import classNames from "classnames";
 import { BankAccountSelect } from "components/forms/BankAccountSelect";
-import { MoneyInput, TextInput } from "components/forms/Input";
+import {
+  MoneyInputWithLabel,
+  TextInputWithLabel
+} from "components/forms/Input";
 import { SelectNumber } from "components/forms/Select";
+import { ButtonFormPrimary, ButtonFormSecondary } from "components/ui/buttons";
 import { Form, Formik, FormikHelpers, useFormikContext } from "formik";
 import {
   AddTransactionFormValues,
   FormMode,
   formModeForTransaction,
-  formToDTO,
+  formToDTO
 } from "lib/AddTransactionDataModels";
 import { Bank, bankAccountsFlatList } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
@@ -52,7 +56,7 @@ const MyShareAmount = (props: {
     props.isFamilyExpense,
     setFieldValue,
   ]);
-  return <MoneyInput name={props.name} label="Own share amount" />;
+  return <MoneyInputWithLabel name={props.name} label="Own share amount" />;
 };
 
 const ReceivedAmount = (props: { name: string }) => {
@@ -68,7 +72,7 @@ const ReceivedAmount = (props: { name: string }) => {
     }
     setFieldValue(props.name, amount);
   }, [props.name, amount, dirty, setFieldValue]);
-  return <MoneyInput name={props.name} label="Received" />;
+  return <MoneyInputWithLabel name={props.name} label="Received" />;
 };
 
 export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
@@ -213,7 +217,7 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
 
                   {/* Inputs */}
                   <div className="col-span-6">
-                    <MoneyInput name="amount" label="Amount" />
+                    <MoneyInputWithLabel name="amount" label="Amount" />
                   </div>
 
                   {[
@@ -300,12 +304,15 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
                   ].includes(mode) && (
                     // To make 2 columns: <div className="col-span-6 sm:col-span-3">
                     <div className="col-span-6">
-                      <TextInput name="vendor" label="Vendor" />
+                      <TextInputWithLabel name="vendor" label="Vendor" />
                     </div>
                   )}
 
                   <div className="col-span-6">
-                    <TextInput name="description" label="Description" />
+                    <TextInputWithLabel
+                      name="description"
+                      label="Description"
+                    />
                   </div>
 
                   <div className="col-span-6">
@@ -320,7 +327,7 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
 
                   {[FormMode.EXTERNAL].includes(mode) && (
                     <div className="col-span-6">
-                      <TextInput name="payer" label="Payer" />
+                      <TextInputWithLabel name="payer" label="Payer" />
                     </div>
                   )}
 
@@ -358,33 +365,31 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
                 </div>
               </div>
 
-              <div className="flex bg-gray-50 px-4 py-3 text-right sm:px-6">
+              <div className="flex justify-end gap-2 bg-gray-50 px-4 py-3 sm:px-6">
                 {apiError && (
                   <div className="grow text-left text-red-700">{apiError}</div>
                 )}
 
-                <button
-                  type="button"
-                  className="mr-2 inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                <ButtonFormSecondary
+                  className="self-start"
                   onClick={props.onClose}
                   disabled={isSubmitting}
-                >
-                  Cancel
-                </button>
+                  label="Cancel"
+                />
 
-                <button
-                  type="submit"
+                <ButtonFormPrimary
+                  className="self-start"
                   disabled={isSubmitting}
-                  className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                  {creatingNewTransaction
-                    ? isSubmitting
-                      ? "Adding…"
-                      : "Add"
-                    : isSubmitting
-                    ? "Updating…"
-                    : "Update"}
-                </button>
+                  label={
+                    creatingNewTransaction
+                      ? isSubmitting
+                        ? "Adding…"
+                        : "Add"
+                      : isSubmitting
+                      ? "Updating…"
+                      : "Update"
+                  }
+                />
               </div>
             </div>
           </Form>

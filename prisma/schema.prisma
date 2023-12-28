@@ -190,3 +190,17 @@ model User {
   updatedAt DateTime @updatedAt
   // Bank      Bank[]
 }
+
+model OpenBankingToken {
+  id              String   @id @default(uuid())
+  access_token    String   @db.VarChar(4096)
+  expires_in      Int
+  token_type      String
+  refresh_token   String
+  scope           String
+  tokenCreatedAt  DateTime
+  tokenValidUntil DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  // Bank      Bank[]
+}
