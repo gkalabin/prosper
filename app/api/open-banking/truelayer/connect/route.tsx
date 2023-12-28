@@ -1,23 +1,29 @@
-import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
 import { DB } from "lib/db";
 import prisma from "lib/prisma";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { getUserId } from "lib/user";
+import { intParam } from "lib/util/searchParams";
+import { redirect } from "next/navigation";
+import { NextRequest } from "next/server";
 
-async function handle(
-  userId: number,
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const code = req.query.code as string;
-  const redirectURI = `${process.env.HOST}/api/open-banking/truelayer/connect`;
-
+export async function GET(request: NextRequest): Promise<Response> {
+  const query = request.nextUrl.searchParams;
+  const code = query.get("code");
   if (!code) {
-    const connectingBankId = parseInt(req.query.bankId as string, 10);
-    const authURL = `https://auth.truelayer.com/?response_type=code&client_id=${process.env.TRUE_LAYER_CLIENT_ID}&scope=accounts%20balance%20transactions%20offline_access&redirect_uri=${redirectURI}&state=${connectingBankId}`;
-    res.redirect(authURL);
-    return;
+    return new Response(`code is required`, { status: 400 });
   }
-  const bankId = parseInt(req.query.state as string, 10);
+  const redirectURI = `${process.env.HOST}/api/open-banking/truelayer/connect`;
+  if (!code) {
+    const connectingBankId = intParam(query.get("bankId"));
+    if (!connectingBankId) {
+      return new Response(`bankId must be an integer`, { status: 400 });
+    }
+    const authURL = `https://auth.truelayer.com/?response_type=code&client_id=${process.env.TRUE_LAYER_CLIENT_ID}&scope=accounts%20balance%20transactions%20offline_access&redirect_uri=${redirectURI}&state=${connectingBankId}`;
+    return redirect(authURL);
+  }
+  const bankId = intParam(query.get("state"));
+  if (!bankId) {
+    return new Response(`bankId must be an integer`, { status: 400 });
+  }
   try {
     const response = await fetch(`https://auth.truelayer.com/connect/token`, {
       method: "POST",
@@ -32,15 +38,16 @@ async function handle(
     });
     const tokenResponse = await response.json();
     const now = new Date();
+    const userId = await getUserId();
     const args = {
       access: tokenResponse.access_token,
       accessValidUntil: new Date(
-        now.getTime() + tokenResponse.expires_in * 1000
+        now.getTime() + tokenResponse.expires_in * 1000,
       ).toISOString(),
       refresh: tokenResponse.refresh_token,
       refreshValidUntil: new Date(
         // 90 days in the future
-        now.getTime() + 90 * 24 * 60 * 60 * 1000
+        now.getTime() + 90 * 24 * 60 * 60 * 1000,
       ).toISOString(),
       userId,
       bankId,
@@ -52,16 +59,13 @@ async function handle(
         data: args,
         where: { bankId },
       });
-      res.redirect(`/overview`);
-      return;
+      return redirect(`/overview`);
     }
     await prisma.trueLayerToken.create({
       data: args,
     });
-    res.redirect(`/config/open-banking/mapping?bankId=${bankId}`);
+    return redirect(`/config/open-banking/mapping?bankId=${bankId}`);
   } catch (err) {
-    res.status(500).send(`Open banking api error: ${err}`);
+    return new Response(`Open banking api error: ${err}`, { status: 500 });
   }
 }
-
-export default authenticatedApiRoute("GET", handle);
