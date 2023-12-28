@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import { useRouter } from "next/router";
 import { useState } from "react";
-import { AnchorLink, AnchorUnstyled } from "./ui/buttons";
+import { AnchorUnstyled } from "./ui/buttons";
 
 export type SubHeaderItem = {
   title: string;
@@ -32,9 +32,6 @@ const SubHeader = (props: { items: SubHeaderItem[] }) => {
   validate(props.items);
   const [active, setActive] = useState(props.items[0]);
   const router = useRouter();
-  const isActive = ({ href }) => {
-    return router.pathname == href;
-  };
   const handleClick = (item: SubHeaderItem) => {
     setActive(item);
     item.onSelected();
@@ -65,7 +62,7 @@ const SubHeader = (props: { items: SubHeaderItem[] }) => {
                   {item.path && (
                     <AnchorUnstyled
                       className={classNames(
-                        item.title == active.title
+                        item.path == router.pathname
                           ? "bg-gray-800 text-white"
                           : "text-gray-300 hover:bg-gray-700",
                         "rounded-md px-3 py-2 text-sm font-medium hover:text-white"
