@@ -97,6 +97,9 @@ export class ExchangeRates {
     if (a.getCurrency().code() == target.code()) {
       return a;
     }
+    if (a.isZero()) {
+      return AmountWithCurrency.zero(target);
+    }
     const rateNanos = this.findRate(a.getCurrency(), target, when);
     return new AmountWithCurrency({
       amountCents: Math.round((a.cents() * rateNanos) / NANOS_MULTIPLIER),
@@ -141,6 +144,9 @@ export class StockQuotes {
   }
 
   exchange(a: Amount, stock: Stock, when: Date): AmountWithCurrency {
+    if (a.isZero()) {
+      return AmountWithCurrency.zero(stock.currency());
+    }
     const pricePerShareCents = this.findQuote(stock, when);
     return new AmountWithCurrency({
       amountCents: Math.round(a.dollar() * pricePerShareCents),
