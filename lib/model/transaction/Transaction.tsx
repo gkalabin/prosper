@@ -10,16 +10,17 @@ import { Stock } from "lib/model/Stock";
 import { Tag } from "lib/model/Tag";
 import { Trip } from "lib/model/Trip";
 import { Unit, isCurrency, isStock } from "lib/model/Unit";
-import { Income } from "lib/model/transaction/Income";
-import { PersonalExpense } from "lib/model/transaction/PersonalExpense";
-import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
-import { Transfer } from "lib/model/transaction/Transfer";
+import { Income, incomeModelFromDB } from "lib/model/transaction/Income";
+import {
+  PersonalExpense,
+  personalExpenseModelFromDB,
+} from "lib/model/transaction/PersonalExpense";
+import {
+  ThirdPartyExpense,
+  thirdPartyExpenseModelFromDB,
+} from "lib/model/transaction/ThirdPartyExpense";
+import { Transfer, transferModelFromDB } from "lib/model/transaction/Transfer";
 import { outgoingBankAccount } from "./Transfer";
-
-export type TransactionCompanion = {
-  name: string;
-  amountCents: number;
-};
 
 export type Transaction =
   | PersonalExpense
@@ -33,94 +34,16 @@ export function transactionModelFromDB(
   init: TransactionWithExtensionsAndTagIds,
 ): Transaction {
   if (init.personalExpense) {
-    const companions = [];
-    if (init.personalExpense.ownShareAmountCents != init.amountCents) {
-      companions.push({
-        name: init.personalExpense.otherPartyName,
-        amountCents:
-          init.amountCents - init.personalExpense.ownShareAmountCents,
-      });
-    }
-    // TODO: fill for expenses.
-    const refundGroupTransactionIds: number[] = [];
-    return {
-      kind: "PersonalExpense",
-      id: init.id,
-      timestampEpoch: new Date(init.timestamp).getTime(),
-      vendor: init.personalExpense.vendor,
-      amountCents: init.amountCents,
-      companions,
-      note: init.description,
-      accountId: init.personalExpense.accountId,
-      categoryId: init.categoryId,
-      tagsIds: init.tags.map((t) => t.id),
-      tripId: init.personalExpense.tripId,
-      refundGroupTransactionIds: refundGroupTransactionIds,
-    };
+    return personalExpenseModelFromDB(init);
   }
   if (init.thirdPartyExpense) {
-    const companions = [
-      {
-        name: init.thirdPartyExpense.payer,
-        amountCents:
-          init.amountCents - init.thirdPartyExpense.ownShareAmountCents,
-      },
-    ];
-    return {
-      kind: "ThirdPartyExpense",
-      id: init.id,
-      timestampEpoch: new Date(init.timestamp).getTime(),
-      payer: init.thirdPartyExpense.payer,
-      vendor: init.thirdPartyExpense.vendor,
-      amountCents: init.amountCents,
-      currencyCode: init.thirdPartyExpense.currencyCode,
-      ownShareCents: init.thirdPartyExpense.ownShareAmountCents,
-      companions,
-      note: init.description,
-      categoryId: init.categoryId,
-      tagsIds: init.tags.map((t) => t.id),
-      tripId: init.thirdPartyExpense.tripId,
-    };
+    return thirdPartyExpenseModelFromDB(init);
   }
   if (init.transfer) {
-    return {
-      kind: "Transfer",
-      id: init.id,
-      timestampEpoch: new Date(init.timestamp).getTime(),
-      fromAccountId: init.transfer.accountFromId,
-      toAccountId: init.transfer.accountToId,
-      sentAmountCents: init.amountCents,
-      receivedAmountCents: init.transfer.receivedAmountCents,
-      note: init.description,
-      categoryId: init.categoryId,
-      tagsIds: init.tags.map((t) => t.id),
-    };
+    return transferModelFromDB(init);
   }
   if (init.income) {
-    const companions = [];
-    if (init.income.ownShareAmountCents != init.amountCents) {
-      companions.push({
-        name: init.income.otherPartyName,
-        amountCents: init.amountCents - init.income.ownShareAmountCents,
-      });
-    }
-    const refundGroupTransactionIds: number[] = [];
-    if (init.transactionToBeRepayedId) {
-      refundGroupTransactionIds.push(init.transactionToBeRepayedId);
-    }
-    return {
-      kind: "Income",
-      id: init.id,
-      timestampEpoch: new Date(init.timestamp).getTime(),
-      payer: init.income.payer,
-      amountCents: init.amountCents,
-      companions,
-      note: init.description,
-      accountId: init.income.accountId,
-      categoryId: init.categoryId,
-      tagsIds: init.tags.map((t) => t.id),
-      refundGroupTransactionIds,
-    };
+    return incomeModelFromDB(init);
   }
   throw new Error(`Unknown transaction type: ${JSON.stringify(init)}`);
 }

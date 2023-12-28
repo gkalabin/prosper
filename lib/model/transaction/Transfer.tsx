@@ -1,6 +1,8 @@
 import { AmountWithUnit } from "lib/AmountWithUnit";
 import { BankAccount, accountUnit } from "lib/model/BankAccount";
 import { Stock } from "../Stock";
+import { assertDefined } from "lib/assert";
+import { TransactionWithExtensionsAndTagIds } from "lib/model/AllDatabaseDataModel";
 
 export type Transfer = {
   kind: "Transfer";
@@ -14,6 +16,24 @@ export type Transfer = {
   categoryId: number;
   tagsIds: number[];
 };
+
+export function transferModelFromDB(
+  init: TransactionWithExtensionsAndTagIds,
+): Transfer {
+  assertDefined(init.transfer);
+  return {
+    kind: "Transfer",
+    id: init.id,
+    timestampEpoch: new Date(init.timestamp).getTime(),
+    fromAccountId: init.transfer.accountFromId,
+    toAccountId: init.transfer.accountToId,
+    sentAmountCents: init.amountCents,
+    receivedAmountCents: init.transfer.receivedAmountCents,
+    note: init.description,
+    categoryId: init.categoryId,
+    tagsIds: init.tags.map((t) => t.id),
+  };
+}
 
 export function outgoingBankAccount(
   t: Transfer,
