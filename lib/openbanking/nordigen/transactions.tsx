@@ -1,10 +1,10 @@
 import { ExternalAccountMapping, NordigenToken } from "@prisma/client";
-import { WithdrawalOrDepositPrototype } from "lib/txsuggestions/TransactionPrototype";
+import { Transaction } from "lib/openbanking/interface";
 
 export function fetchTransactions(
   token: NordigenToken,
   mapping: ExternalAccountMapping
-): Promise<WithdrawalOrDepositPrototype[]> {
+): Promise<Transaction[]> {
   const init = {
     method: "GET",
     headers: { Authorization: `Bearer ${token.access}` },
@@ -15,10 +15,7 @@ export function fetchTransactions(
     .then((x) => decode({ response: x, accountId: mapping.internalAccountId }));
 }
 
-function decode(arg: {
-  accountId: number;
-  response;
-}): WithdrawalOrDepositPrototype[] {
+function decode(arg: { accountId: number; response }): Transaction[] {
   const { transactions } = arg.response;
   if (!transactions) {
     console.warn("Nordigen transactions error", arg.response);
@@ -36,21 +33,17 @@ function decode(arg: {
       internalTransactionId,
       valueDateTime,
       creditorName,
-      remittanceInformationUnstructuredArray
+      remittanceInformationUnstructuredArray,
     } = t;
     const amountCents = Math.round(transactionAmount.amount * 100);
-    const proto = {
-      type: amountCents > 0 ? ("deposit" as const) : ("withdrawal" as const),
-      timestampEpoch: new Date(valueDateTime).getTime(),
-      description: creditorName,
-      originalDescription: creditorName,
+    const description =
+      creditorName ?? remittanceInformationUnstructuredArray?.[0] ?? "";
+    return {
+      timestamp: new Date(valueDateTime),
+      description: description,
       externalTransactionId: transactionId ?? internalTransactionId,
-      absoluteAmountCents: Math.abs(amountCents),
+      amountCents: amountCents,
       internalAccountId: arg.accountId,
     };
-    if (!proto.description) {
-      proto.description = remittanceInformationUnstructuredArray?.[0] ?? "";
-    }
-    return proto;
   });
 }

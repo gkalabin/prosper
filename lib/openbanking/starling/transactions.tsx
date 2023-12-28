@@ -1,12 +1,12 @@
 import { ExternalAccountMapping, StarlingToken } from "@prisma/client";
-import { WithdrawalOrDepositPrototype } from "lib/txsuggestions/TransactionPrototype";
+import { addMinutes, subMonths } from "date-fns";
+import { Transaction } from "lib/openbanking/interface";
 import { parseExternalAccountId } from "lib/openbanking/starling/account";
-import { addMinutes, subDays, subMonths } from "date-fns";
 
 export async function fetchTransactions(
   token: StarlingToken,
   mapping: ExternalAccountMapping
-): Promise<WithdrawalOrDepositPrototype[]> {
+): Promise<Transaction[]> {
   const init = {
     method: "GET",
     headers: { Authorization: `Bearer ${token.accessToken}` },
@@ -23,10 +23,7 @@ export async function fetchTransactions(
     .then((x) => decode({ response: x, accountId: mapping.internalAccountId }));
 }
 
-function decode(arg: {
-  accountId: number;
-  response;
-}): WithdrawalOrDepositPrototype[] {
+function decode(arg: { accountId: number; response }): Transaction[] {
   const { feedItems } = arg.response;
   if (feedItems?.length === 0) {
     return [];
@@ -44,15 +41,12 @@ function decode(arg: {
       counterPartyName,
     } = t;
     const amountCents = Math.round(amount.minorUnits);
-    const proto = {
-      type: direction == "OUT" ? ("withdrawal" as const) : ("deposit" as const),
-      timestampEpoch: new Date(transactionTime).getTime(),
+    return {
+      timestamp: new Date(transactionTime),
       description: counterPartyName,
-      originalDescription: counterPartyName,
       externalTransactionId: feedItemUid,
-      absoluteAmountCents: Math.abs(amountCents),
+      amountCents: amountCents * (direction == "OUT" ? -1 : 1),
       internalAccountId: arg.accountId,
     };
-    return proto;
   });
 }

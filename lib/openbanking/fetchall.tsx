@@ -10,6 +10,7 @@ import {
   AccountBalance,
   AccountDetails,
   IOpenBankingData,
+  Transaction,
 } from "lib/openbanking/interface";
 import { fetchAccounts as nordigenFetchAccounts } from "lib/openbanking/nordigen/account";
 import { fetchBalance as nordigenFetchBalance } from "lib/openbanking/nordigen/balance";
@@ -77,7 +78,7 @@ export async function fetchTransactions(
 ): Promise<WithdrawalOrDepositPrototype[]> {
   const internalBankAccounts = await db.bankAccountFindMany();
   const mappings = await db.externalAccountMappingFindMany();
-  const fetches: Promise<WithdrawalOrDepositPrototype[]>[] = [];
+  const fetches: Promise<Transaction[]>[] = [];
   {
     const dbTokens = await db.trueLayerTokenFindMany();
     const tokens = await Promise.all(dbTokens.map(trueLayerMaybeRefreshToken));
@@ -116,7 +117,21 @@ export async function fetchTransactions(
     }
   });
   const transactions = await Promise.all(fetchesWithErrorHandling);
-  return transactions.flat().filter((x) => !!x);
+  return transactions
+    .flat()
+    .filter((x) => !!x)
+    .map(
+      (t): WithdrawalOrDepositPrototype => ({
+        type:
+          t.amountCents > 0 ? ("deposit" as const) : ("withdrawal" as const),
+        timestampEpoch: new Date(t.timestamp).getTime(),
+        description: t.description,
+        originalDescription: t.description,
+        externalTransactionId: t.externalTransactionId,
+        absoluteAmountCents: Math.abs(t.amountCents),
+        internalAccountId: t.internalAccountId,
+      })
+    );
 }
 
 function mappingsForToken(

@@ -12,6 +12,14 @@ export interface AccountBalance {
   balanceCents: number;
 }
 
+export interface Transaction {
+  externalTransactionId: string;
+  timestamp: Date;
+  description: string;
+  amountCents: number;
+  internalAccountId: number;
+}
+
 export interface AccountDetails {
   externalAccountId: string;
   name: string;
