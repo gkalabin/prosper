@@ -6,15 +6,16 @@ import { Bank } from "lib/model/BankAccount";
 export const BankAccountSelect = (
   props: InputProps & FieldHookConfig<number> & { banks: Bank[] }
 ) => {
+  const accounts = props.banks
+    .flatMap((x) => x.accounts)
+    .filter((x) => !x.isArchived());
   return (
     <SelectNumber {...props}>
-      {props.banks.map((b) =>
-        b.accounts.map((ba) => (
-          <option key={ba.id} value={ba.id}>
-            {b.name} {ba.name}
-          </option>
-        ))
-      )}
+      {accounts.map((x) => (
+        <option key={x.id} value={x.id}>
+          {x.bank.name} {x.name}
+        </option>
+      ))}
     </SelectNumber>
   );
 };

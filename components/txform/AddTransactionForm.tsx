@@ -32,49 +32,6 @@ export type AddTransactionFormProps = {
   onClose: () => void;
 };
 
-export const MyShareAmount = (props: {
-  name: string;
-  isFamilyExpense: boolean;
-  isFamilyExpenseDirty: boolean;
-}) => {
-  const {
-    values: { amount },
-    setFieldValue,
-    dirty,
-  } = useFormikContext<AddTransactionFormValues>();
-
-  useEffect(() => {
-    if (!dirty && !props.isFamilyExpenseDirty) {
-      return;
-    }
-    setFieldValue(props.name, props.isFamilyExpense ? amount / 2 : amount);
-  }, [
-    props.name,
-    amount,
-    dirty,
-    props.isFamilyExpenseDirty,
-    props.isFamilyExpense,
-    setFieldValue,
-  ]);
-  return <MoneyInputWithLabel name={props.name} label="Own share amount" />;
-};
-
-export const ReceivedAmount = (props: { name: string }) => {
-  const {
-    values: { amount },
-    setFieldValue,
-    dirty,
-  } = useFormikContext<AddTransactionFormValues>();
-
-  useEffect(() => {
-    if (!dirty) {
-      return;
-    }
-    setFieldValue(props.name, amount);
-  }, [props.name, amount, dirty, setFieldValue]);
-  return <MoneyInputWithLabel name={props.name} label="Received" />;
-};
-
 export const InputRow = (props: {
   currentMode: FormMode;
   currentlyAdvanced: boolean;
@@ -110,19 +67,26 @@ function initialValuesForTransaction(
   defaultAccountFrom: BankAccount,
   defaultAccountTo: BankAccount
 ) {
-  return {
+  const defaults = {
     // 2022-12-19T18:05:59
     timestamp: toDateTimeLocal(t.timestamp),
     vendor: t.vendor(),
     description: t.description,
-    amount: t.amount().cents(),
-    ownShareAmount: (t.amountOwnShare() ?? t.amount()).cents(),
-    receivedAmount: (t.amountReceived() ?? t.amount()).cents(),
+    amount: t.amount().dollar(),
+    ownShareAmount: t.amount().dollar(),
+    receivedAmount: t.amount().dollar(),
     fromBankAccountId: (t.accountFrom() ?? defaultAccountFrom).id,
     toBankAccountId: (t.accountTo() ?? defaultAccountTo).id,
     categoryId: t.category.id,
     currencyId: t.currency().id,
   };
+  if (t.isTransfer()) {
+    defaults.receivedAmount = t.amountReceived().dollar();
+  }
+  if (t.isPersonalExpense() || t.isThirdPartyExpense() || t.isIncome()) {
+    defaults.ownShareAmount = t.amountOwnShare().dollar();
+  }
+  return defaults;
 }
 
 function initialValuesEmpty(
@@ -160,6 +124,30 @@ function mostUsedAccountFrom(mode: FormMode, txs: Transaction[]): BankAccount {
     .map((x) => x.accountFrom())
     .filter((x) => !!x);
   return mostFrequent(accounts);
+}
+
+function mostUsedCategory(
+  mode: FormMode,
+  txs: Transaction[],
+  vendor: string
+): Category {
+  const categories = txs
+    .filter((x) => {
+      switch (mode) {
+        case FormMode.PERSONAL:
+          return x.isPersonalExpense();
+        case FormMode.INCOME:
+          return x.isIncome();
+        case FormMode.EXTERNAL:
+          return x.isThirdPartyExpense();
+        default:
+          return false;
+      }
+    })
+    .filter((x) => vendor == "" || x.vendor() == vendor)
+    .map((x) => x.category)
+    .filter((x) => !!x);
+  return mostFrequent(categories);
 }
 
 function mostUsedAccountTo(mode: FormMode, txs: Transaction[]): BankAccount {
@@ -316,22 +304,61 @@ const FormInputs = (props: {
   );
   const [isFamilyExpenseDirty, setFamilyExpenseDirty] = useState(false);
   const currencies = useCurrencyContext();
-  const { values, touched, setFieldValue, handleChange } = useFormikContext();
+  const {
+    values: { amount, vendor, timestamp },
+    touched,
+    setFieldValue,
+    handleChange,
+    dirty,
+  } = useFormikContext<AddTransactionFormValues>();
 
   useEffect(() => {
-    if (!touched["fromBankAccountId"]) {
+    if (!dirty && !isFamilyExpenseDirty) {
+      return;
+    }
+    setFieldValue("ownShareAmount", isFamilyExpense ? amount / 2 : amount);
+  }, [amount, dirty, isFamilyExpenseDirty, isFamilyExpense, setFieldValue]);
+
+  useEffect(() => {
+    if (!dirty) {
+      return;
+    }
+    setFieldValue("receivedAmount", amount);
+  }, [amount, dirty, setFieldValue]);
+
+  useEffect(() => {
+    if (!props.transaction && !touched["fromBankAccountId"]) {
       setFieldValue(
         "fromBankAccountId",
         mostUsedAccountFrom(props.mode, props.allTransactions).id
       );
     }
-    if (!touched["toBankAccountId"]) {
+    if (!props.transaction && !touched["toBankAccountId"]) {
       setFieldValue(
         "toBankAccountId",
         mostUsedAccountTo(props.mode, props.allTransactions).id
       );
     }
-  }, [props.allTransactions, props.mode, setFieldValue, touched]);
+  }, [
+    props.allTransactions,
+    props.mode,
+    props.transaction,
+    setFieldValue,
+    touched,
+  ]);
+
+  useEffect(() => {
+    if (!touched["categoryId"]) {
+      const suggestion = mostUsedCategory(
+        props.mode,
+        props.allTransactions,
+        vendor
+      );
+      if (suggestion) {
+        setFieldValue("categoryId", suggestion.id);
+      }
+    }
+  }, [props.allTransactions, props.mode, setFieldValue, touched, vendor]);
 
   return (
     <>
@@ -347,11 +374,7 @@ const FormInputs = (props: {
         currentlyAdvanced={props.isAdvancedMode}
         advancedModes={[FormMode.PERSONAL, FormMode.EXTERNAL, FormMode.INCOME]}
       >
-        <MyShareAmount
-          name="ownShareAmount"
-          isFamilyExpense={isFamilyExpense}
-          isFamilyExpenseDirty={isFamilyExpenseDirty}
-        />
+        <MoneyInputWithLabel name="ownShareAmount" label="Own share amount" />
       </InputRow>
 
       <InputRow
@@ -395,7 +418,7 @@ const FormInputs = (props: {
         currentlyAdvanced={props.isAdvancedMode}
         advancedModes={[FormMode.TRANSFER]}
       >
-        <ReceivedAmount name="receivedAmount" />
+        <MoneyInputWithLabel name="receivedAmount" label="Received" />
       </InputRow>
 
       {/* TODO: verify that datetime-local is processed correctly with regards to timezones */}
@@ -414,7 +437,7 @@ const FormInputs = (props: {
           name="timestamp"
           id="timestamp"
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          value={values["timestamp"]}
+          value={timestamp}
           onChange={handleChange}
         />
       </InputRow>
