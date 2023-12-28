@@ -25,7 +25,7 @@ export async function fetchQuotes({
 }
 
 export async function addLatestStockQuotes() {
-  const timingLabel = "Stock quotes backfill";
+  const timingLabel = "Stock quotes backfill " + new Date().getTime();
   console.time(timingLabel);
   const currencies = new Currencies(await prisma.currency.findMany());
   if (currencies.empty()) {
@@ -58,9 +58,14 @@ async function backfill(stock: Currency, USD: Currency) {
       ticker: stock.ticker(),
       exchange: stock.exchange(),
     },
-    orderBy: {
-      quoteTimestamp: "desc",
-    },
+    orderBy: [
+      {
+        quoteTimestamp: "desc",
+      },
+      {
+        updatedAt: "desc",
+      },
+    ],
   });
 
   if (!latest) {

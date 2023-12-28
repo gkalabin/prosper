@@ -28,7 +28,7 @@ export async function fetchExchangeRates({
 }
 
 export async function addLatestExchangeRates() {
-  const timingLabel = "Exchange rate backfill";
+  const timingLabel = "Exchange rate backfill " + new Date().getTime();
   console.time(timingLabel);
   const currencies = new Currencies(await prisma.currency.findMany());
   if (currencies.empty()) {
@@ -63,9 +63,14 @@ async function backfill({ sell, buy }: { sell: Currency; buy: Currency }) {
       currencyFromId: sell.id,
       currencyToId: buy.id,
     },
-    orderBy: {
-      rateTimestamp: "desc",
-    },
+    orderBy: [
+      {
+        rateTimestamp: "desc",
+      },
+      {
+        updatedAt: "desc",
+      },
+    ],
   });
 
   if (!latest) {
