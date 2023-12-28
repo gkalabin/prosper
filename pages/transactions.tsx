@@ -101,7 +101,7 @@ function FilteredTransactionsList() {
       (categoryIds?.length
         ? includeChildrenCategories
           ? categoryIds.some((cid) => matchesWithAncestors(t.category, cid))
-          : categoryIds.includes(t.category.id)
+          : categoryIds.includes(t.category.id())
         : true) &&
       (tripId ? t.hasTrip() && t.trip().id() == tripId : true) &&
       (timeFrom
@@ -144,8 +144,8 @@ function Filters() {
   >(bankAccountOptions.map((x) => [x.value, x]));
 
   const categoryOptions = categories.map((a) => ({
-    value: a.id,
-    label: a.nameWithAncestors,
+    value: a.id(),
+    label: a.nameWithAncestors(),
   }));
   const categoryOptionByValue = new Map<
     number,

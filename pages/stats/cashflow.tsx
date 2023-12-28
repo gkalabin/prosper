@@ -212,14 +212,14 @@ function InOutPageContent() {
   const { transactions, categories } = useAllDatabaseDataContext();
 
   const categoryOptions = categories.map((a) => ({
-    value: a.id,
-    label: a.nameWithAncestors,
+    value: a.id(),
+    label: a.nameWithAncestors(),
   }));
 
   const filteredTransactions = transactions.filter(
     (t) =>
       duration.includes(t.timestamp) &&
-      !excludeCategories.includes(t.category.id)
+      !excludeCategories.includes(t.category.id())
   );
   return (
     <StatsPageLayout>

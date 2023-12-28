@@ -52,10 +52,10 @@ export function ExpenseCharts(props: { transactions: Transaction[] }) {
       t.timestamp
     );
     moneyOut[ts] = moneyOut[ts].add(exchanged);
-    const categorySeries = byCategoryIdAndMonth.get(t.category.id) ?? new Map();
+    const categorySeries = byCategoryIdAndMonth.get(t.category.id()) ?? new Map();
     const current = categorySeries.get(ts) ?? zero;
     categorySeries.set(ts, exchanged.add(current));
-    byCategoryIdAndMonth.set(t.category.id, categorySeries);
+    byCategoryIdAndMonth.set(t.category.id(), categorySeries);
   }
 
   const months = Object.keys(monthsIndex)
@@ -145,7 +145,7 @@ export function ExpenseCharts(props: { transactions: Transaction[] }) {
             ([categoryId, series]) => ({
               type: "bar",
               stack: "moneyIn",
-              name: categories.find((c) => c.id === categoryId).name,
+              name: categories.find((c) => c.id() === categoryId).name(),
               data: months.map((m) => Math.round(series.get(m).dollar())),
             })
           ),
@@ -160,13 +160,13 @@ function PageContent() {
   const [excludeCategories, setExcludeCategories] = useState([]);
   const { transactions, categories } = useAllDatabaseDataContext();
   const categoryOptions = categories.map((a) => ({
-    value: a.id,
-    label: a.nameWithAncestors,
+    value: a.id(),
+    label: a.nameWithAncestors(),
   }));
   const filteredTransactions = transactions.filter(
     (t) =>
       duration.includes(t.timestamp) &&
-      !excludeCategories.includes(t.category.id)
+      !excludeCategories.includes(t.category.id())
   );
   return (
     <StatsPageLayout>

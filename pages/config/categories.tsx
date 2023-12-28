@@ -23,7 +23,7 @@ const CategoriesList = (props: {
   return (
     <div>
       {props.categories.map((category) => (
-        <div key={category.id}>
+        <div key={category.id()}>
           <EditableCategoryListItem
             category={category}
             allCategories={props.allCategories}
@@ -46,13 +46,15 @@ const EditableCategoryListItem = ({
 }) => {
   const [showEditForm, setShowEditForm] = useState(false);
   const [showChildren, setShowChildren] = useState(true);
-  const hasChildren = category.children && category.children.length > 0;
+  const hasChildren = category.children().length > 0;
   return (
     <>
       <div
         className={classNames(
           "my-2 rounded-md border p-3 shadow",
-          "ml-" + category.depth * 4
+          // https://stackoverflow.com/questions/69687530/dynamically-build-classnames-in-tailwindcss:
+          // make following classNames available for JIT: ml-4 ml-8 ml-12 ml-16 ml-20 ml-24 ml-28 ml-32 ml-36 ml-40
+          "ml-" + category.depth() * 4
         )}
       >
         <div className="flex items-center justify-between">
@@ -68,14 +70,14 @@ const EditableCategoryListItem = ({
             )}
             <span
               className={classNames(
-                category.isRoot && "text-xl font-medium",
-                category.depth == 1 && "text-lg",
-                category.depth > 1 && "text-base font-light",
+                category.isRoot() && "text-xl font-medium",
+                category.depth() == 1 && "text-lg",
+                category.depth() > 1 && "text-base font-light",
                 "align-middle"
               )}
             >
               {showEditForm && "Editing "}
-              {category.name}
+              {category.name()}
             </span>
           </div>
           {!showEditForm && (
@@ -94,9 +96,9 @@ const EditableCategoryListItem = ({
           />
         )}
       </div>
-      {category.children && showChildren && (
+      {!!category.children().length && showChildren && (
         <CategoriesList
-          categories={category.children}
+          categories={category.children()}
           allCategories={allCategories}
           onCategoryUpdated={onCategoryUpdated}
         />
@@ -129,7 +131,7 @@ const CategoriesPage = ({
   const [dbCategories, setDbCategories] = useState(initialDbCategories);
   const [showAddForm, setShowAddForm] = useState(false);
   const allCategoriesFlat = categoryModelFromDB(dbCategories);
-  const rootCategories = allCategoriesFlat.filter((c) => c.isRoot);
+  const rootCategories = allCategoriesFlat.filter((c) => c.isRoot());
 
   const addOrUpdateState = updateState(setDbCategories);
   return (

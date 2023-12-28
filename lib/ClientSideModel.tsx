@@ -227,7 +227,7 @@ export const modelFromDatabaseData = (
   const categories = categoryModelFromDB(dbData.dbCategories);
   const categoryById: {
     [id: number]: Category;
-  } = Object.fromEntries(categories.map((c) => [c.id, c]));
+  } = Object.fromEntries(categories.map((c) => [c.id(), c]));
 
   const currencies = new Currencies(dbData.dbCurrencies);
   const exchangeRates = new ExchangeRates(dbData.dbExchangeRates);

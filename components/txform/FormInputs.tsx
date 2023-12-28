@@ -99,7 +99,7 @@ export const FormInputs = (props: {
   useEffect(() => {
     const suggestion = mostUsedCategory(transactions, vendor);
     if (suggestion) {
-      setFieldValue("categoryId", suggestion.id);
+      setFieldValue("categoryId", suggestion.id());
     }
   }, [vendor, transactions, mode, setFieldValue]);
 
@@ -594,8 +594,8 @@ function Category() {
     <div className="col-span-6">
       <SelectNumber name="categoryId" label="Category" disabled={isSubmitting}>
         {categories.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.nameWithAncestors}
+          <option key={c.id()} value={c.id()}>
+            {c.nameWithAncestors()}
           </option>
         ))}
       </SelectNumber>

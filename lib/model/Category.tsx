@@ -1,16 +1,77 @@
 import { Category as DBCategory } from "@prisma/client";
 
-export type Category = {
-  id: number;
-  name: string;
-  nameWithAncestors: string;
-  isRoot: boolean;
-  depth: number;
-  displayOrder: number;
-  parent?: Category;
-  children: Category[];
-  dbValue: DBCategory;
-};
+export class Category {
+  private readonly _id: number;
+  private readonly _name: string;
+  private readonly _displayOrder: number;
+  private readonly _parentCategoryId?: number;
+  private readonly _dbValue: DBCategory;
+
+  _ancestors: Category[] = [];
+  private _immediateParent?: Category;
+  _immediateChildren: Category[] = [];
+
+  constructor(init: DBCategory) {
+    this._id = init.id;
+    this._name = init.name;
+    this._parentCategoryId = init.parentCategoryId;
+    this._displayOrder = init.displayOrder;
+    this._dbValue = init;
+  }
+
+  _setImmediateParent(parent: Category) {
+    if (this._parentCategoryId != parent.id()) {
+      throw new Error(
+        `Category ${this._id} has parent ${
+          this._parentCategoryId
+        } but was set to ${parent.id()}`
+      );
+    }
+    this._immediateParent = parent;
+  }
+
+  id() {
+    return this._id;
+  }
+
+  parentCategoryId() {
+    return this._parentCategoryId;
+  }
+
+  displayOrder() {
+    return this._displayOrder;
+  }
+
+  name() {
+    return this._name;
+  }
+
+  nameWithAncestors() {
+    if (this.isRoot()) {
+      return this.name();
+    }
+    return [...this._ancestors, this].map((a) => a.name()).join(" > ");
+  }
+
+  isRoot() {
+    return !this._parentCategoryId;
+  }
+
+  depth() {
+    return this._ancestors.length;
+  }
+
+  parent() {
+    if (this.isRoot()) {
+      throw new Error(`Category ${this._id} is root`);
+    }
+    return this._immediateParent;
+  }
+
+  children() {
+    return this._immediateChildren;
+  }
+}
 
 const inOrderTreeTraversal = (
   subtree: Category[],
@@ -21,53 +82,43 @@ const inOrderTreeTraversal = (
     return;
   }
   subtree.forEach((c) => {
-    c.depth = depth;
     output.push(c);
-    inOrderTreeTraversal(c.children, output, depth + 1);
+    inOrderTreeTraversal(c.children(), output, depth + 1);
   });
 };
 
 export const matchesWithAncestors = (p: Category, idToMatch: number) => {
-  if (p.id == idToMatch) {
+  if (p.id() == idToMatch) {
     return true;
   }
-  if (!p.parent) {
+  if (p.isRoot()) {
     return false;
   }
-  return matchesWithAncestors(p.parent, idToMatch);
+  return matchesWithAncestors(p.parent(), idToMatch);
 };
 
 export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
-  const categories = dbCategories.map((c) => ({
-    ...c,
-    nameWithAncestors: c.name,
-    isRoot: !c.parentCategoryId,
-    depth: 0,
-    children: [],
-    parent: null,
-    dbValue: c,
-  }));
-  const categoryById = Object.fromEntries(categories.map((c) => [c.id, c]));
-  categories.forEach((c) => {
-    if (!c.parentCategoryId) {
-      return;
-    }
-    let parent = categoryById[c.parentCategoryId];
-    c.parent = parent;
-    parent.children.push(c);
-    const ancestorNames = [c.name];
-    while (parent) {
-      ancestorNames.push(parent.name);
-      if (!parent.parentCategoryId) {
-        break;
+  const categories = dbCategories.map((c) => new Category(c));
+  const categoryById = new Map<number, Category>(
+    categories.map((c) => [c.id(), c])
+  );
+  categories
+    .filter((c) => c.parentCategoryId())
+    .forEach((c) => {
+      let parent = categoryById.get(c.parentCategoryId());
+      c._setImmediateParent(parent);
+      parent._immediateChildren.push(c);
+      while (parent) {
+        c._ancestors.unshift(parent);
+        if (!parent.parentCategoryId()) {
+          break;
+        }
+        parent = categoryById.get(parent.parentCategoryId());
       }
-      parent = categoryById[parent.parentCategoryId];
-    }
-    c.nameWithAncestors = ancestorNames.reverse().join(" > ");
-  });
-  categories.sort((c1, c2) => c1.displayOrder - c2.displayOrder);
+    });
+  categories.sort((c1, c2) => c1.displayOrder() - c2.displayOrder());
   categories.forEach((c) =>
-    c.children.sort((c1, c2) => c1.displayOrder - c2.displayOrder)
+    c._immediateChildren.sort((c1, c2) => c1.displayOrder() - c2.displayOrder())
   );
 
   // Sort categories to get the list like:
@@ -76,7 +127,7 @@ export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
   //  - B
   //  - B > Sub B
   const categoriesSorted = [] as Category[];
-  const rootCategories = categories.filter((c) => c.isRoot);
+  const rootCategories = categories.filter((c) => c.isRoot());
   inOrderTreeTraversal(rootCategories, categoriesSorted, 0);
   return categoriesSorted;
 };

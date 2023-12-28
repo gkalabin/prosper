@@ -8,6 +8,7 @@ import { ButtonFormPrimary, ButtonFormSecondary } from "components/ui/buttons";
 import { format, startOfDay } from "date-fns";
 import { Form, Formik, FormikHelpers } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
+import { uniqMostFrequent } from "lib/collections";
 import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
@@ -63,7 +64,7 @@ function initialValuesForTransaction(
       : t.amount().dollar(),
     fromBankAccountId: (t.accountFrom() ?? defaultAccountFrom).id,
     toBankAccountId: (t.accountTo() ?? defaultAccountTo).id,
-    categoryId: t.category.id,
+    categoryId: t.category.id(),
     currencyId: t.currency().id,
     isShared: t.isShared(),
     tripName: t.hasTrip() ? t.trip().name() : "",
@@ -96,7 +97,7 @@ function initialValuesEmpty(
     receivedAmount: 0,
     fromBankAccountId: defaultAccountFrom.id,
     toBankAccountId: defaultAccountTo.id,
-    categoryId: defaultCategory.id,
+    categoryId: defaultCategory.id(),
     currencyId: defaultCurrency.id,
     isShared: false,
     tripName: "",
@@ -131,7 +132,8 @@ export function mostUsedCategory(txs: Transaction[], vendor: string): Category {
   const categories = txs
     .filter((x) => (vendor ? x.hasVendor() && x.vendor() == vendor : true))
     .map((x) => x.category);
-  return mostFrequent(categories);
+  const [mostFrequentCategory] = uniqMostFrequent(categories);
+  return mostFrequentCategory;
 }
 
 function mostFrequent<T extends { id: number }>(items: T[]): T {

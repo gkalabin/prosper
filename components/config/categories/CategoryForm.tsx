@@ -28,7 +28,7 @@ export const CategoryAddOrEditForm = ({
         displayOrder,
       };
       const response = await fetch(
-        `/api/config/category/${category?.id ?? ""}`,
+        `/api/config/category/${category?.id() ?? ""}`,
         {
           method: category ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },
@@ -42,9 +42,9 @@ export const CategoryAddOrEditForm = ({
   };
 
   const initialValues = {
-    name: category?.name ?? "",
-    displayOrder: category?.displayOrder ?? categories.length * 100,
-    parentId: category?.parent?.id ?? 0,
+    name: category?.name() ?? "",
+    displayOrder: category?.displayOrder() ?? categories.length * 100,
+    parentId: category?.parent()?.id() ?? 0,
   };
   return (
     <Formik initialValues={initialValues} onSubmit={handleSubmit}>
@@ -63,8 +63,8 @@ export const CategoryAddOrEditForm = ({
           <FormikSelect name="parentId">
             <option value="0">No parent</option>
             {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.nameWithAncestors}
+              <option key={category.id()} value={category.id()}>
+                {category.nameWithAncestors()}
               </option>
             ))}
           </FormikSelect>
