@@ -12,14 +12,14 @@ export class AmountWithCurrency {
 
   public static add(
     x: AmountWithCurrency,
-    y: AmountWithCurrency
+    y: AmountWithCurrency,
   ): AmountWithCurrency {
     return x.add(y);
   }
 
   public static sum(
     amounts: AmountWithCurrency[],
-    currency: Currency
+    currency: Currency,
   ): AmountWithCurrency {
     if (!amounts?.length) {
       return AmountWithCurrency.zero(currency);
@@ -86,7 +86,7 @@ export class AmountWithCurrency {
     return this.amount.cents() % 100 == 0;
   }
 
-  public add(other: AmountWithCurrency): AmountWithCurrency {
+  public add(other: AmountWithCurrency | undefined): AmountWithCurrency {
     if (!other) {
       return this;
     }
@@ -128,7 +128,7 @@ export class AmountWithCurrency {
   private assertSameCurrency(a: AmountWithCurrency) {
     if (a.currency.code() != this.currency.code()) {
       throw new Error(
-        `Impossible to add ${a.currency.code()} and ${this.currency.code()}`
+        `Impossible to add ${a.currency.code()} and ${this.currency.code()}`,
       );
     }
   }

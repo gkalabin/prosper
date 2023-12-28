@@ -1,5 +1,6 @@
 "use client";
 import { ExcludedCategoriesSelector } from "app/stats/ExcludedCategoriesSelector";
+import { categoryNameById, dollarsRounded } from "app/stats/modelHelpers";
 import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
 import {
   NotConfiguredYet,
@@ -111,8 +112,8 @@ export function ExpenseCharts({ input }: { input: TransactionsStatsInput }) {
             ([categoryId, series]) => ({
               type: "bar",
               stack: "moneyIn",
-              name: categories.find((c) => c.id() === categoryId).name(),
-              data: months.map((m) => Math.round(series.get(m).dollar())),
+              name: categoryNameById(categoryId, categories),
+              data: months.map((m) => dollarsRounded(series.get(m))),
             }),
           ),
         }}
@@ -129,10 +130,8 @@ export function ExpenseCharts({ input }: { input: TransactionsStatsInput }) {
             ([categoryId, series]) => ({
               type: "bar",
               stack: "moneyIn",
-              name: categories
-                .find((c) => c.id() === categoryId)
-                .nameWithAncestors(),
-              data: months.map((m) => Math.round(series.get(m).dollar())),
+              name: categoryNameById(categoryId, categories),
+              data: months.map((m) => dollarsRounded(series.get(m))),
             }),
           ),
         }}
@@ -223,10 +222,8 @@ export function ExpenseByCategory(props: {
             ([categoryId, series]) => ({
               type: "bar",
               stack: "moneyOut",
-              name: categories
-                .find((c) => c.id() === categoryId)
-                .nameWithAncestors(),
-              data: months.map((m) => Math.round(series.get(m).dollar())),
+              name: categoryNameById(categoryId, categories),
+              data: months.map((m) => dollarsRounded(series.get(m))),
             }),
           ),
         }}
