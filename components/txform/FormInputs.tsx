@@ -52,7 +52,11 @@ export const FormInputs = (props: {
     if (!props.prototype) {
       return;
     }
-    setFieldValue("vendor", props.prototype.vendor);
+    if (props.prototype.mode == FormMode.TRANSFER) {
+      setFieldValue("description", props.prototype.vendor);
+    } else {
+      setFieldValue("vendor", props.prototype.vendor);
+    }
     setFieldValue("amount", Math.abs(props.prototype.amount));
     setFieldValue("timestamp", toDateTimeLocal(props.prototype.timestamp));
     if (props.prototype.accountFromId) {
@@ -179,7 +183,7 @@ const IncomeForm = ({ isAdvancedMode }: { isAdvancedMode: boolean }) => {
       <IsFamilyExpense />
       <Timestamp />
       <Vendor />
-      {isAdvancedMode && <Description />}
+      <Description />
       {isAdvancedMode && <ParentTransaction />}
       <Tags />
       <Category />

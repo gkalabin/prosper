@@ -4,7 +4,7 @@ import {
   TransactionPrototype,
 } from "components/txform/NewTransactionSuggestions";
 import { ButtonFormPrimary, ButtonFormSecondary } from "components/ui/buttons";
-import { format } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import { Form, Formik, FormikHelpers } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { BankAccount } from "lib/model/BankAccount";
@@ -83,9 +83,10 @@ function initialValuesEmpty(
   defaultCategory: Category,
   defaultCurrency: Currency
 ): AddTransactionFormValues {
+  const today = startOfDay(new Date());
   return {
     mode,
-    timestamp: toDateTimeLocal(new Date()),
+    timestamp: toDateTimeLocal(today),
     vendor: "",
     description: "",
     amount: 0,
@@ -206,7 +207,10 @@ export const AddTransactionForm = (props: {
       .then(async (added) => {
         // stop submitting before callback to avoid updating state on an unmounted component
         setSubmitting(false);
-        resetForm({ values: initialValuesForEmptyForm });
+        const resetValues = {...initialValuesForEmptyForm};
+        resetValues.mode = values.mode;
+        resetValues.timestamp = values.timestamp;
+        resetForm({ values: resetValues });
         setPrototype(null);
         props.onAddedOrUpdated(await added.json());
       })
