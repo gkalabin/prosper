@@ -44,7 +44,7 @@ export type TransactionAPIRequest = {
 
 export type TransactionAPIResponse = {
   transaction: TransactionWithExtensionsAndTagIds;
-  trip: Trip;
+  trip: Trip|null;
   tags: Tag[];
   prototypes: DBTransactionPrototype[];
 };

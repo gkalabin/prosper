@@ -33,7 +33,7 @@ export async function POST(
     return new Response(`Not authenticated`, { status: 401 });
   }
   const result: TransactionAPIResponse = await prisma.$transaction(
-    async (tx) => {
+    async (tx: Prisma.TransactionClient) => {
       const sameExtension = isSameExtension(existing, form);
       if (!sameExtension) {
         await deleteExistingTransaction(tx, existing);

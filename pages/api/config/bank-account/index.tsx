@@ -75,7 +75,7 @@ export async function fillUnitData(
       exchange: quote.exchange,
       ticker: quote.symbol,
       currencyCode: currency.code(),
-      name: quote.longName ?? quote.shortName,
+      name: (quote.longName ?? quote.shortName) ?? quote.symbol,
     },
   });
   data.stockId = newStock.id;

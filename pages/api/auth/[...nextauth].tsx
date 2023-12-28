@@ -4,11 +4,11 @@ import NextAuth, { User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 export const authOptions = {
   events: {
-    async signIn(message) { console.log("[AUTH] signIn:", message)},
-    async signOut(message) { console.log("[AUTH] signOut:", message)},
-    async createUser(message) { console.log("[AUTH] createUser:", message)},
-    async updateUser(message) { console.log("[AUTH] updateUser:", message)},
-    async linkAccount(message) { console.log("[AUTH] linkAccount:", message)},
+    async signIn(message: string) { console.log("[AUTH] signIn:", message)},
+    async signOut(message: string) { console.log("[AUTH] signOut:", message)},
+    async createUser(message: string) { console.log("[AUTH] createUser:", message)},
+    async updateUser(message: string) { console.log("[AUTH] updateUser:", message)},
+    async linkAccount(message: string) { console.log("[AUTH] linkAccount:", message)},
   },
   callbacks: {
     jwt({ token, account, user }) {

@@ -1,9 +1,10 @@
 "use client";
+import { Bank as DBBank } from "@prisma/client";
 import { Input } from "components/forms/Input";
 import { ButtonFormPrimary } from "components/ui/buttons";
 import { useState } from "react";
 
-export function ConnectForm({ dbBank }) {
+export function ConnectForm({ dbBank }: { dbBank: DBBank }) {
   const [token, setToken] = useState("");
   return (
     <>
