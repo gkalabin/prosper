@@ -276,10 +276,7 @@ model TrueLayerToken {
 
   // fields from true layer api
   accessToken  String @db.VarChar(4096)
-  expiresIn    Int
-  tokenType    String
   refreshToken String
-  scope        String
 
   // own set fields
   tokenCreatedAt       DateTime

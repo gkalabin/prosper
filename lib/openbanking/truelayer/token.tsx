@@ -47,14 +47,11 @@ export async function maybeRefreshToken(
     return Promise.reject(`Refresh token for ${bankName} failed: ${reason}`);
   }
   const json = await fetched.json();
-  const { access_token, expires_in, token_type, refresh_token, scope } = json;
+  const { access_token, expires_in, refresh_token } = json;
   const newToken = await prisma.trueLayerToken.update({
     data: {
       accessToken: access_token,
-      expiresIn: expires_in,
-      tokenType: token_type,
       refreshToken: refresh_token,
-      scope: scope,
       tokenCreatedAt: now.toISOString(),
       tokenValidUntil: new Date(
         now.getTime() + expires_in * 1000
