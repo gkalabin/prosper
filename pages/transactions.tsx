@@ -59,7 +59,7 @@ function PageContent() {
         </ButtonPagePrimary>
       </div>
       {showFiltersForm && (
-        <TransactionFiltersForm onClose={() => setShowFiltersForm(true)} />
+        <TransactionFiltersForm onClose={() => setShowFiltersForm(false)} />
       )}
       <div className="w-full">
         <SearchForAnythingInput />
