@@ -214,16 +214,21 @@ const NonEmptyNewTransactionSuggestions = (props: {
   return (
     <div className="divide-y divide-gray-200 rounded border border-gray-200">
       <div>
-        <div className="flex gap-2 p-2">
+        <h1 className="-mb-1 ml-2 text-xl font-medium">Suggestions</h1>
+        <small className="ml-2 text-slate-600">
+          Use the suggestions below to pre-fill the form
+        </small>
+        <div className="space-x-2">
           {accountsWithData.map((account) => (
-            <ButtonLink
-              key={account.id}
-              onClick={() => setActiveAccount(account)}
-              disabled={account.id == activeAccount.id}
-            >
-              {account.bank.name}: {account.name} (
-              {protosByAccountId.get(account.id).length})
-            </ButtonLink>
+            <div key={account.id} className="ml-2 inline-block">
+              <ButtonLink
+                onClick={() => setActiveAccount(account)}
+                disabled={account.id == activeAccount.id}
+              >
+                {account.bank.name}: {account.name} (
+                {protosByAccountId.get(account.id).length})
+              </ButtonLink>
+            </div>
           ))}
         </div>
         <div className="px-2 pb-1 text-xs text-slate-600">
@@ -258,15 +263,16 @@ function SuggestionsList(props: {
   items: TransactionPrototype[];
   onItemClick: (t: TransactionPrototype) => void;
 }) {
-  const [limit, setLimit] = useState(10);
+  const [limit, setLimit] = useState(5);
   const [activeItem, setActiveItem] = useState(null as TransactionPrototype);
   const onItemClick = (proto: TransactionPrototype) => {
     setActiveItem(proto);
     props.onItemClick(proto);
   };
+  const displayItems = props.items.slice(0, limit);
   return (
     <ul className="divide-y divide-gray-200">
-      {props.items.slice(0, limit).map((proto) => (
+      {displayItems.map((proto) => (
         <SuggestionItem
           key={proto.openBankingTransactionId}
           proto={proto}
@@ -277,8 +283,20 @@ function SuggestionsList(props: {
           onClick={onItemClick}
         />
       ))}
-      <li className="p-2">
-        <ButtonLink onClick={() => setLimit(limit + 10)}>More</ButtonLink>
+      <li className="p-2 text-sm">
+        Showing {displayItems.length} out of {props.items.length} items.<br/>Display{" "}
+        <ButtonLink
+          onClick={() => setLimit(Math.min(limit + 5, props.items.length))}
+          disabled={limit >= props.items.length}
+        >
+          more
+        </ButtonLink>{" or "}
+        <ButtonLink
+          onClick={() => setLimit(limit - 5)}
+          disabled={displayItems.length <= 5}
+        >
+          less
+        </ButtonLink> entries.
       </li>
     </ul>
   );
