@@ -1,24 +1,22 @@
 import Layout from "components/Layout";
-import { useSession } from "next-auth/react";
+import { GetServerSideProps } from "next";
 
-export default function Index() {
-  const { data: session } = useSession();
+export const getServerSideProps: GetServerSideProps = async () => {
+  return {
+    redirect: {
+      destination: "/overview",
+      permanent: false,
+    },
+  };
+};
 
+const Index = () => {
+  // TODO: get rid of this component by switching to next 13 and using next/navigation (https://stackoverflow.com/a/58182678)
   return (
     <Layout>
-      <div className="mt-20 flex justify-center">
-        <div className="md:w-2/3">
-          <div>
-            <span className="text-6xl text-indigo-600">Spent</span>
-            <span className="text-normal text-indigo-400">
-              another spending tracker
-            </span>
-          </div>
-          {(session?.user?.name && <>Logged in as {session.user.name}</>) || (
-            <>Not logged in</>
-          )}
-        </div>
-      </div>
+      This should never happen. If you see this, something is wrong.
     </Layout>
   );
-}
+};
+
+export default Index;
