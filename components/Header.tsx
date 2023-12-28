@@ -1,3 +1,4 @@
+"use client";
 import { Disclosure, Menu, Transition } from "@headlessui/react";
 import {
   BanknotesIcon,
@@ -7,15 +8,23 @@ import {
 } from "@heroicons/react/24/outline";
 import classNames from "classnames";
 import { AnchorUnstyled } from "components/ui/buttons";
-import { signIn, signOut, useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { SessionProvider, signIn, signOut, useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { Fragment } from "react";
 
-const Header = () => {
+export default function Header() {
+  return (
+    <SessionProvider>
+      <HeaderImpl />
+    </SessionProvider>
+  );
+}
+
+function HeaderImpl() {
   const { data: session } = useSession();
-  const router = useRouter();
+  const pathname = usePathname();
   const isActive = ({ href }) => {
-    return router.pathname == href;
+    return href === pathname;
   };
 
   const navigation = [
@@ -59,7 +68,7 @@ const Header = () => {
                           isActive(item)
                             ? "bg-gray-900 text-white"
                             : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                          "rounded-md px-3 py-2 text-sm font-medium"
+                          "rounded-md px-3 py-2 text-sm font-medium",
                         )}
                         aria-current={isActive(item) ? "page" : undefined}
                       >
@@ -94,7 +103,7 @@ const Header = () => {
                             href="/config"
                             className={classNames(
                               active ? "bg-gray-100" : "",
-                              "block px-4 py-2 text-sm text-gray-700"
+                              "block px-4 py-2 text-sm text-gray-700",
                             )}
                           >
                             Config
@@ -109,7 +118,7 @@ const Header = () => {
                               onClick={() => signIn()}
                               className={classNames(
                                 active ? "bg-gray-100" : "",
-                                "block cursor-pointer px-4 py-2 text-sm text-gray-700"
+                                "block cursor-pointer px-4 py-2 text-sm text-gray-700",
                               )}
                             >
                               Sign In
@@ -129,7 +138,7 @@ const Header = () => {
                                 onClick={() => signOut()}
                                 className={classNames(
                                   active ? "bg-gray-100" : "",
-                                  "block cursor-pointer py-2 pl-6 pr-4 text-sm text-gray-700"
+                                  "block cursor-pointer py-2 pl-6 pr-4 text-sm text-gray-700",
                                 )}
                               >
                                 Sign Out
@@ -146,7 +155,7 @@ const Header = () => {
           </div>
 
           <Disclosure.Panel className="sm:hidden">
-            <div className="space-y-1 px-2 pt-2 pb-3">
+            <div className="space-y-1 px-2 pb-3 pt-2">
               {navigation.map((item) => (
                 <AnchorUnstyled href={item.href} key={item.name}>
                   <Disclosure.Button
@@ -155,7 +164,7 @@ const Header = () => {
                       isActive(item)
                         ? "bg-gray-900 text-white"
                         : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                      "block rounded-md px-3 py-2 text-base font-medium"
+                      "block rounded-md px-3 py-2 text-base font-medium",
                     )}
                     aria-current={isActive(item) ? "page" : undefined}
                   >
@@ -169,6 +178,4 @@ const Header = () => {
       )}
     </Disclosure>
   );
-};
-
-export default Header;
+}

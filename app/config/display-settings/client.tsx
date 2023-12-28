@@ -1,30 +1,29 @@
+"use client";
 import {
   Category as DBCategory,
   DisplaySettings as DBDisplaySettings,
 } from "@prisma/client";
-import { ConfigPageLayout } from "components/ConfigPageLayout";
 import { SelectNumber, undoTailwindInputStyles } from "components/forms/Select";
 import { FormikButtonFormPrimary } from "components/ui/buttons";
 import { Form, Formik } from "formik";
-import { DB } from "lib/db";
 import { DisplaySettings } from "lib/displaySettings";
-import { Category, categoryModelFromDB } from "lib/model/Category";
+import { categoryModelFromDB } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "pages/api/auth/[...nextauth]";
 import { useState } from "react";
 import Select from "react-select";
 
-function DispalySettings({
-  displaySettings,
-  categories,
-  onSettingsUpdated,
+export function DispalySettings({
+  dbDisplaySettings: initialDbDisplaySettings,
+  dbCategories,
 }: {
-  displaySettings?: DisplaySettings;
-  categories: Category[];
-  onSettingsUpdated: (updated: DBDisplaySettings) => void;
+  dbDisplaySettings?: DBDisplaySettings;
+  dbCategories: DBCategory[];
 }) {
+  const categories = categoryModelFromDB(dbCategories);
+  const [dbDisplaySettings, setDbDisplaySettings] = useState(
+    initialDbDisplaySettings,
+  );
+  const displaySettings = new DisplaySettings(dbDisplaySettings);
   const [apiError, setApiError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const handleSubmit = async (values) => {
@@ -39,7 +38,7 @@ function DispalySettings({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      onSettingsUpdated(await response.json());
+      setDbDisplaySettings(await response.json());
       setSuccessMessage("Successfully saved!");
     } catch (error) {
       console.log(error);
@@ -100,7 +99,7 @@ function DispalySettings({
               onChange={(x) =>
                 setFieldValue(
                   "excludeCategoryIdsInStats",
-                  x.map((x) => x.value)
+                  x.map((x) => x.value),
                 )
               }
             />
@@ -116,49 +115,3 @@ function DispalySettings({
     </Formik>
   );
 }
-
-export const getServerSideProps: GetServerSideProps<{
-  data?: {
-    dbDisplaySettings: DBDisplaySettings;
-    dbCategories: DBCategory[];
-  };
-}> = async (context) => {
-  const session = await getServerSession(context.req, context.res, authOptions);
-  if (!session) {
-    return { props: {} };
-  }
-  const userId = +session.user.id;
-  const db = new DB({ userId });
-  const dbDisplaySettings = await db.getOrCreateDbDisplaySettings();
-  const dbCategories = await db.categoryFindMany();
-  const props = {
-    session,
-    data: { dbDisplaySettings, dbCategories, userId },
-  };
-  return {
-    props: JSON.parse(JSON.stringify(props)),
-  };
-};
-
-const Page = ({
-  data: { dbDisplaySettings: initialDbDisplaySettings, dbCategories },
-}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
-  const [dbDisplaySettings, setDisplaySettings] = useState(
-    initialDbDisplaySettings
-  );
-  const categories = categoryModelFromDB(dbCategories);
-  const displaySettings = new DisplaySettings(dbDisplaySettings);
-
-  return (
-    <ConfigPageLayout>
-      <h1 className="mb-6 text-2xl leading-7">Display settings</h1>
-      <DispalySettings
-        displaySettings={displaySettings}
-        onSettingsUpdated={setDisplaySettings}
-        categories={categories}
-      />
-    </ConfigPageLayout>
-  );
-};
-
-export default Page;

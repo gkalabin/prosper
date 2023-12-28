@@ -1,6 +1,7 @@
+'use client';
 import classNames from "classnames";
 import { AnchorUnstyled } from "components/ui/buttons";
-import { useRouter } from "next/router";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 export type SubHeaderItem = {
@@ -30,8 +31,8 @@ const validate = (items: SubHeaderItem[]) => {
 
 export const SubHeader = (props: { items: SubHeaderItem[] }) => {
   validate(props.items);
-  const router = useRouter();
-  const activeItem = props.items.find((i) => i.path == router.pathname);
+  const pathname = usePathname();
+  const activeItem = props.items.find((i) => i.path == pathname);
   const [active, setActive] = useState(activeItem ?? props.items[0]);
   const handleClick = (item: SubHeaderItem) => {
     setActive(item);
