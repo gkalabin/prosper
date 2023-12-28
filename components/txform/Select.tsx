@@ -1,13 +1,13 @@
+import { LabelledInputProps } from "components/forms/Input";
 import { Select } from "components/forms/Select";
-import { FieldHookConfig, useField, useFormikContext } from "formik";
-import { ClassAttributes } from "react";
+import { useField, useFormikContext } from "formik";
+import { capitalize } from "lib/util/util";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const SelectWithLabelUntyped = (props: FieldHookConfig<any> & { label: string }) => {
+const SelectWithLabelUntyped = (
+  props: React.InputHTMLAttributes<HTMLSelectElement> & LabelledInputProps,
+) => {
   const [field] = useField(props);
-  const label =
-    props.label || props.name.charAt(0).toUpperCase() + props.name.slice(1);
-  const inputProps = props as ClassAttributes<HTMLSelectElement>;
+  const label = props.label || capitalize(props.name);
   return (
     <>
       <label
@@ -16,12 +16,14 @@ const SelectWithLabelUntyped = (props: FieldHookConfig<any> & { label: string })
       >
         {label}
       </label>
-      <Select {...field} {...inputProps} className="block w-full" />
+      <Select {...field} {...props} className="block w-full" />
     </>
   );
 };
 
-export const SelectNumber = (props: FieldHookConfig<number> & { label: string }) => {
+export const SelectNumber = (
+  props: React.InputHTMLAttributes<HTMLSelectElement> & LabelledInputProps,
+) => {
   const { setFieldValue } = useFormikContext();
   return (
     <SelectWithLabelUntyped

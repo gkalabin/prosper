@@ -2,13 +2,13 @@ import classNames from "classnames";
 import { Field, useField, useFormikContext } from "formik";
 import { ChangeEvent, FocusEvent } from "react";
 
-interface InputProps {
+export interface LabelledInputProps {
   label: string;
   name: string;
 }
 
 export const MoneyInputWithLabel = (
-  props: InputProps & React.InputHTMLAttributes<HTMLInputElement>,
+  props: LabelledInputProps & React.InputHTMLAttributes<HTMLInputElement>,
 ) => {
   return (
     <>
@@ -24,20 +24,20 @@ export const MoneyInputWithLabel = (
 };
 
 export const TextInputWithLabel = (
-  props: InputProps & React.InputHTMLAttributes<HTMLInputElement>,
+  props: LabelledInputProps & React.InputHTMLAttributes<HTMLInputElement>,
 ) => {
   return <InputWithLabelUntyped {...props} type="text" />;
 };
 
 export const InputWithLabel = (
-  props: InputProps & React.InputHTMLAttributes<HTMLInputElement>,
+  props: LabelledInputProps & React.InputHTMLAttributes<HTMLInputElement>,
 ) => {
   const { type, ...otherProps } = props;
   return <InputWithLabelUntyped {...otherProps} type={type ?? "text"} />;
 };
 
 const InputWithLabelUntyped = (
-  props: InputProps & React.InputHTMLAttributes<HTMLInputElement>,
+  props: LabelledInputProps & React.InputHTMLAttributes<HTMLInputElement>,
 ) => {
   const { disabled, ...otherProps } = props;
   const [field] = useField(props);
