@@ -31,9 +31,11 @@ export const TextInputWithLabel = (
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const InputWithLabelUntyped = (props: InputProps & FieldHookConfig<any>) => {
+  const { disabled, ...otherProps } = props;
   const [field] = useField(props);
   const label = props.label;
-  const inputAttributes = props as ClassAttributes<HTMLInputElement>;
+  const inputAttributes = otherProps as ClassAttributes<HTMLInputElement>;
+  const { isSubmitting } = useFormikContext();
   return (
     <>
       <label
@@ -47,6 +49,7 @@ const InputWithLabelUntyped = (props: InputProps & FieldHookConfig<any>) => {
         {...field}
         {...inputAttributes}
         className="block w-full"
+        disabled={isSubmitting || disabled}
       />
     </>
   );
@@ -60,7 +63,7 @@ export const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => {
       className={classNames(
         className,
         props.disabled ? "opacity-30" : "",
-        "rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        "rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
       )}
     />
   );
@@ -79,7 +82,7 @@ export const FormikInput = (
       className={classNames(
         className,
         props.disabled ? "opacity-30" : "",
-        "rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+        "rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
       )}
     />
   );
