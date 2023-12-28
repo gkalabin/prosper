@@ -10,7 +10,6 @@ import {
   Tag,
   ThirdPartyExpense,
   Transaction,
-  TransactionPrototype,
   Transfer,
   Trip,
 } from "@prisma/client";
@@ -32,5 +31,4 @@ export type AllDatabaseData = {
   dbCurrencies: Currency[];
   dbExchangeRates: ExchangeRate[];
   dbStockQuotes: StockQuote[];
-  dbTransactionPrototypes: TransactionPrototype[];
 };

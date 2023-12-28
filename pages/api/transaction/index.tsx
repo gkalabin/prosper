@@ -1,13 +1,14 @@
 import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
 import prisma from "lib/prisma";
 import {
-  AddTransactionFormValues,
   includeExtensions,
+  TransactionAPIRequest,
   TransactionAPIResponse,
   transactionDbInput,
   writeExtension,
   writeTags,
   writeTrip,
+  writeUsedOpenBankingTransactions,
 } from "lib/transactionCreation";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -16,7 +17,8 @@ async function handle(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const form = req.body as AddTransactionFormValues;
+  const { form, usedOpenBankingTransactions, suggestedVendor } =
+    req.body as TransactionAPIRequest;
   const result: TransactionAPIResponse = await prisma.$transaction(
     async (tx) => {
       const data = transactionDbInput(form, userId);
@@ -26,10 +28,19 @@ async function handle(
       const createdTransaction = await tx.transaction.create(
         Object.assign({ data }, includeExtensions)
       );
+      const createdOpenBankingTransactions =
+        await writeUsedOpenBankingTransactions({
+          usedOpenBankingTransactions,
+          suggestedVendor,
+          createdTransactionId: createdTransaction.id,
+          userId,
+          tx,
+        });
       return {
         transaction: createdTransaction,
         trip: createdTrip,
         tags: createdTags,
+        openBankingTransactions: createdOpenBankingTransactions,
       };
     }
   );

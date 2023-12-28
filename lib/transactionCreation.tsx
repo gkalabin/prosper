@@ -1,5 +1,6 @@
-import { Prisma, Tag, Trip } from "@prisma/client";
+import { OpenBankingTransaction, Prisma, Tag, Trip } from "@prisma/client";
 import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
+import { IOBTransaction } from "lib/openbanking/interface";
 
 export enum FormMode {
   PERSONAL,
@@ -25,6 +26,12 @@ export type AddTransactionFormValues = {
   tripName: string;
   tagNames: string[];
   parentTransactionId: number;
+};
+
+export type TransactionAPIRequest = {
+  form: AddTransactionFormValues;
+  usedOpenBankingTransactions: IOBTransaction[];
+  suggestedVendor: string;
 };
 
 export type TransactionAPIResponse = {
@@ -219,6 +226,38 @@ export async function writeTrip({
   const createdTrip = await tx.trip.create({ data: tripNameAndUser });
   extensionData.tripId = createdTrip.id;
   return { createdTrip };
+}
+
+export async function writeUsedOpenBankingTransactions({
+  usedOpenBankingTransactions,
+  suggestedVendor,
+  createdTransactionId,
+  userId,
+  tx,
+}: {
+  usedOpenBankingTransactions: IOBTransaction[];
+  createdTransactionId: number;
+  userId: number;
+  suggestedVendor: string;
+  tx;
+}): Promise<{ createdOpenBankingTransactions: OpenBankingTransaction[] }> {
+  if (!usedOpenBankingTransactions?.length) {
+    return { createdOpenBankingTransactions: [] };
+  }
+  const created = await Promise.all(
+    usedOpenBankingTransactions.map((t) =>
+      tx.openBankingTransaction.create({
+        data: {
+          description: t.description,
+          transaction_id: t.transaction_id,
+          userId,
+          recordedAsId: createdTransactionId,
+          suggestedVendor,
+        },
+      })
+    )
+  );
+  return { createdOpenBankingTransactions: created };
 }
 
 export function writeExtension({

@@ -6,6 +6,7 @@ import {
   AddTransactionFormValues,
   FormMode,
   includeExtensions,
+  TransactionAPIRequest,
   TransactionAPIResponse,
   transactionDbInput,
   writeExtension,
@@ -20,7 +21,7 @@ async function handle(
   res: NextApiResponse
 ) {
   const transactionId = parseInt(req.query.id as string);
-  const form = req.body as AddTransactionFormValues;
+  const { form } = req.body as TransactionAPIRequest;
   const db = new DB({ userId });
   const existing = await db.transactionFindFirst(
     Object.assign({ where: { id: transactionId } }, includeExtensions)

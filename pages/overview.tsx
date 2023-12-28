@@ -14,7 +14,10 @@ import {
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { BankAccount } from "lib/model/BankAccount";
-import { IOBBalancesByAccountId } from "lib/openbanking/interface";
+import {
+  OpenBankingDataContextProvider,
+  useOpenBankingDataContext,
+} from "lib/openbanking/context";
 import { allDbDataPropsWithOb } from "lib/ServerSideDB";
 import { onTransactionChange } from "lib/stateHelpers";
 import { TransactionAPIResponse } from "lib/transactionCreation";
@@ -24,16 +27,16 @@ import { useState } from "react";
 const BankAccountListItem = (props: {
   account: BankAccount;
   onTransactionUpdated: (response: TransactionAPIResponse) => void;
-  openBankingBalance?: Amount;
 }) => {
   const [showTransactionList, setShowTransactionList] = useState(false);
 
   let balanceText = <span>{props.account.balance().format()}</span>;
-  if (props.openBankingBalance) {
+  const { balances: openBankingBalances } = useOpenBankingDataContext();
+  if (openBankingBalances && openBankingBalances[props.account.id]) {
     const delta = props.account
       .balance()
       .getAmountWithoutCurrency()
-      .subtract(props.openBankingBalance);
+      .subtract(openBankingBalances[props.account.id]);
     if (delta.equals(Amount.ZERO)) {
       balanceText = (
         <span className="text-green-600">
@@ -76,7 +79,6 @@ const BankAccountListItem = (props: {
 };
 
 const BanksList = (props: {
-  openBankingBalances: IOBBalancesByAccountId;
   onTransactionUpdated: (response: TransactionAPIResponse) => void;
 }) => {
   const { banks } = useAllDatabaseDataContext();
@@ -100,7 +102,6 @@ const BanksList = (props: {
                   <BankAccountListItem
                     key={account.id}
                     account={account}
-                    openBankingBalance={props.openBankingBalances[account.id]}
                     onTransactionUpdated={props.onTransactionUpdated}
                   />
                 ))}
@@ -112,11 +113,7 @@ const BanksList = (props: {
   );
 };
 
-function OverviewPageContent({
-  dbData,
-}: {
-  dbData: InferGetServerSidePropsType<typeof getServerSideProps>;
-}) {
+function OverviewPageContent() {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
   const displayCurrency = useDisplayCurrency();
   const { banks, exchange, setDbData } = useAllDatabaseDataContext();
@@ -152,8 +149,6 @@ function OverviewPageContent({
         {showAddTransactionForm && (
           <AddTransactionForm
             onAddedOrUpdated={onTransactionChange(setDbData)}
-            openBankingTransactions={dbData.openBankingData.transactions}
-            transactionPrototypes={dbData.dbTransactionPrototypes}
             onClose={() => setShowAddTransactionForm(false)}
           />
         )}
@@ -163,10 +158,7 @@ function OverviewPageContent({
         <div>Total: {total.format()}</div>
         <div>Liquid: {totalLiquid.format()}</div>
       </div>
-      <BanksList
-        onTransactionUpdated={onTransactionChange(setDbData)}
-        openBankingBalances={dbData.openBankingData.balances}
-      />
+      <BanksList onTransactionUpdated={onTransactionChange(setDbData)} />
     </Layout>
   );
 }
@@ -179,8 +171,10 @@ export default function OverviewPage(
     return <NotConfiguredYet />;
   }
   return (
-    <AllDatabaseDataContextProvider dbData={dbData}>
-      <OverviewPageContent dbData={dbData} />
-    </AllDatabaseDataContextProvider>
+    <OpenBankingDataContextProvider data={dbData.openBankingData}>
+      <AllDatabaseDataContextProvider dbData={dbData}>
+        <OverviewPageContent />
+      </AllDatabaseDataContextProvider>
+    </OpenBankingDataContextProvider>
   );
 }

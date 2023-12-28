@@ -1,8 +1,7 @@
-import { TransactionPrototype as DBTransactionPrototype } from "@prisma/client";
 import { FormTransactionTypeSelector } from "components/txform/FormTransactionTypeSelector";
 import {
   NewTransactionSuggestions,
-  TransactionPrototype,
+  TransactionPrototype
 } from "components/txform/NewTransactionSuggestions";
 import { ButtonFormPrimary, ButtonFormSecondary } from "components/ui/buttons";
 import { format } from "date-fns";
@@ -12,11 +11,11 @@ import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
 import { Transaction } from "lib/model/Transaction";
-import { IOBTransactionsByAccountId } from "lib/openbanking/interface";
 import {
   AddTransactionFormValues,
   FormMode,
-  TransactionAPIResponse,
+  TransactionAPIRequest,
+  TransactionAPIResponse
 } from "lib/transactionCreation";
 import { useState } from "react";
 import { FormInputs } from "./FormInputs";
@@ -151,8 +150,6 @@ function mostFrequent<T extends { id: number }>(items: T[]): T {
 
 export const AddTransactionForm = (props: {
   transaction?: Transaction;
-  openBankingTransactions?: IOBTransactionsByAccountId;
-  transactionPrototypes?: DBTransactionPrototype[];
   onAddedOrUpdated: (response: TransactionAPIResponse) => void;
   onClose: () => void;
 }) => {
@@ -188,10 +185,22 @@ export const AddTransactionForm = (props: {
     values: AddTransactionFormValues,
     { setSubmitting, resetForm }: FormikHelpers<AddTransactionFormValues>
   ) => {
+    const body: TransactionAPIRequest = {
+      form: values,
+      usedOpenBankingTransactions: [],
+      suggestedVendor: prototype?.vendor,
+    };
+    const creatingNewTransaction = !props.transaction;
+    if (creatingNewTransaction) {
+      body.usedOpenBankingTransactions = [
+        prototype?.openBankingTransaction,
+        prototype?.openBankingTransaction2,
+      ].filter((x) => !!x);
+    }
     await fetch(`/api/transaction/${props.transaction?.id ?? ""}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(values),
+      body: JSON.stringify(body),
     })
       .then(async (added) => {
         // stop submitting before callback to avoid updating state on an unmounted component
@@ -216,8 +225,6 @@ export const AddTransactionForm = (props: {
               <div className="bg-white p-2 sm:p-6">
                 <div className="mb-2">
                   <NewTransactionSuggestions
-                    openBankingTransactions={props.openBankingTransactions}
-                    transactionPrototypes={props.transactionPrototypes}
                     onItemClick={(t) => {
                       if (isSubmitting) {
                         // The form is disabled while being submitted, so do not change it through suggestions either.
@@ -243,10 +250,10 @@ export const AddTransactionForm = (props: {
               </div>
 
               {apiError && (
-                  <div className="bg-gray-50 px-4 pt-3 sm:px-6 text-left text-red-700">
-                    <span className="font-bold">Error: </span> {apiError}
-                  </div>
-                )}
+                <div className="bg-gray-50 px-4 pt-3 text-left text-red-700 sm:px-6">
+                  <span className="font-bold">Error: </span> {apiError}
+                </div>
+              )}
 
               <div className="flex justify-end gap-2 bg-gray-50 px-4 py-3 sm:px-6">
                 <ButtonFormSecondary

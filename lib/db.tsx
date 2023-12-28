@@ -28,8 +28,8 @@ export class DB {
   transactionFindFirst(args?: Prisma.TransactionFindFirstArgs) {
     return prisma.transaction.findFirst(this.whereUser(args));
   }
-  transactionPrototypeFindMany(args?: Prisma.TransactionPrototypeFindManyArgs) {
-    return prisma.transactionPrototype.findMany(this.whereUser(args));
+  openBankingTransactionPrototypeFindMany(args?: Prisma.OpenBankingTransactionFindManyArgs) {
+    return prisma.openBankingTransaction.findMany(this.whereUser(args));
   }
   tripFindMany(args?: Prisma.TripFindManyArgs) {
     return prisma.trip.findMany(this.whereUser(args));

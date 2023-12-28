@@ -1,10 +1,10 @@
+import { OpenBankingTransaction as DBOpenBankingTransaction } from "@prisma/client";
 import { Amount } from "lib/Amount";
 
 export type IOpenBankingData = {
-  openBankingData: {
-    balances: IOBBalancesByAccountId;
-    transactions: IOBTransactionsByAccountId;
-  };
+  balances: IOBBalancesByAccountId;
+  transactions: IOBTransactionsByAccountId;
+  dbOpenBankingTransactions: DBOpenBankingTransaction[];
 };
 
 // OBTransaction represents an open banking transaction from True Layer API.

@@ -29,7 +29,7 @@ model Transaction {
   income            Income?
   transfer          Transfer?
 
-  prototype TransactionPrototype?
+  openBankingPrototypes OpenBankingTransaction[]
 
   user      User     @relation(fields: [userId], references: [id])
   userId    Int
@@ -209,24 +209,24 @@ model Trip {
 }
 
 model User {
-  id                   Int                    @id @default(autoincrement())
-  login                String
-  password             String
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime               @updatedAt
-  Bank                 Bank[]
-  Trip                 Trip[]
-  Tag                  Tag[]
-  Category             Category[]
-  Transaction          Transaction[]
-  PersonalExpense      PersonalExpense[]
-  ThirdPartyExpense    ThirdPartyExpense[]
-  Income               Income[]
-  Transfer             Transfer[]
-  TransactionPrototype TransactionPrototype[]
-  OpenBankingToken     OpenBankingToken[]
-  OpenBankingAccount   OpenBankingAccount[]
-  BankAccount          BankAccount[]
+  id                     Int                      @id @default(autoincrement())
+  login                  String
+  password               String
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  Bank                   Bank[]
+  Trip                   Trip[]
+  Tag                    Tag[]
+  Category               Category[]
+  Transaction            Transaction[]
+  PersonalExpense        PersonalExpense[]
+  ThirdPartyExpense      ThirdPartyExpense[]
+  Income                 Income[]
+  Transfer               Transfer[]
+  OpenBankingTransaction OpenBankingTransaction[]
+  OpenBankingToken       OpenBankingToken[]
+  OpenBankingAccount     OpenBankingAccount[]
+  BankAccount            BankAccount[]
 }
 
 model ExchangeRate {
@@ -287,13 +287,17 @@ model OpenBankingAccount {
   updatedAt            DateTime    @updatedAt
 }
 
-model TransactionPrototype {
-  transaction              Transaction @relation(fields: [transactionId], references: [id])
-  transactionId            Int         @unique
-  openBankingTransactionId String
-  openBankingDescription   String
-  user                     User        @relation(fields: [userId], references: [id])
-  userId                   Int
-  createdAt                DateTime    @default(now())
-  updatedAt                DateTime    @updatedAt
+model OpenBankingTransaction {
+  db_table_id     Int         @id @default(autoincrement())
+  // open banking fields
+  description     String
+  transaction_id  String
+  // own custom fields
+  transaction     Transaction @relation(fields: [recordedAsId], references: [id])
+  recordedAsId    Int
+  suggestedVendor String
+  user            User        @relation(fields: [userId], references: [id])
+  userId          Int
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 }

@@ -1,4 +1,4 @@
-import { TransactionPrototype as DBTransactionPrototype } from "@prisma/client";
+import { OpenBankingTransaction as DBOpenBankingTransaction } from "@prisma/client";
 import { ButtonLink } from "components/ui/buttons";
 import {
   differenceInHours,
@@ -8,6 +8,7 @@ import {
 } from "date-fns";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { Transaction } from "lib/model/Transaction";
+import { useOpenBankingDataContext } from "lib/openbanking/context";
 import {
   IOBTransaction,
   IOBTransactionsByAccountId,
@@ -29,15 +30,17 @@ export type TransactionPrototype = {
 };
 
 export function makePrototypes(input: {
-  transactions: Transaction[];
-  openBankingTransactions: IOBTransactionsByAccountId;
-  transactionPrototypes: DBTransactionPrototype[];
+  dbTransactions: Transaction[];
+  obTransactions: IOBTransactionsByAccountId;
+  usedObTransactions: DBOpenBankingTransaction[];
 }) {
-  const dbTxById = Object.fromEntries(input.transactions.map((t) => [t.id, t]));
+  const dbTxById = Object.fromEntries(
+    input.dbTransactions.map((t) => [t.id, t])
+  );
   const lookupList: { [obDesc: string]: { [dbDesc: string]: number } } = {};
-  for (const t of input.transactionPrototypes) {
-    const dbTx = dbTxById[t.transactionId];
-    const provided = t.openBankingDescription;
+  for (const t of input.usedObTransactions) {
+    const dbTx = dbTxById[t.recordedAsId];
+    const provided = t.description;
     const used = dbTx.hasVendor() ? dbTx.vendor() : dbTx.description;
     if (used == "" || used == provided) {
       continue;
@@ -54,8 +57,8 @@ export function makePrototypes(input: {
   }
 
   const prototypes = [] as TransactionPrototype[];
-  for (const accountId in input.openBankingTransactions) {
-    for (const t of input.openBankingTransactions[accountId]) {
+  for (const accountId in input.obTransactions) {
+    for (const t of input.obTransactions[accountId]) {
       if (t.amount == 0) {
         continue;
       }
@@ -112,7 +115,7 @@ export function makePrototypes(input: {
   }
 
   const usedInTransaction = Object.fromEntries(
-    input.transactionPrototypes.map((x) => [x.openBankingTransactionId, true])
+    input.usedObTransactions.map((x) => [x.transaction_id, true])
   );
   const unusedProtos = prototypes
     .filter((p) => !usedInTransfer[p.openBankingTransactionId])
@@ -125,29 +128,29 @@ export function makePrototypes(input: {
 }
 
 export const NewTransactionSuggestions = (props: {
-  openBankingTransactions: IOBTransactionsByAccountId;
-  transactionPrototypes: DBTransactionPrototype[];
   onItemClick: (t: TransactionPrototype) => void;
 }) => {
-  if (!props.openBankingTransactions || !props.transactionPrototypes) {
+  const { dbOpenBankingTransactions, transactions } =
+    useOpenBankingDataContext();
+  if (!transactions || !dbOpenBankingTransactions) {
     return <></>;
   }
   return <NonEmptyNewTransactionSuggestions {...props} />;
 };
 
 const NonEmptyNewTransactionSuggestions = (props: {
-  openBankingTransactions: IOBTransactionsByAccountId;
-  transactionPrototypes: DBTransactionPrototype[];
   onItemClick: (t: TransactionPrototype) => void;
 }) => {
+  const { dbOpenBankingTransactions, transactions: obTransactions } =
+    useOpenBankingDataContext();
   const [hideBeforeLatest, setHideBeforeLatest] = useState(true);
   const [expanded, setExpanded] = useState({} as { [id: string]: boolean });
   const [limit, setLimit] = useState({} as { [id: string]: number });
-  const { transactions, banks } = useAllDatabaseDataContext();
+  const { transactions: dbTransactions, banks } = useAllDatabaseDataContext();
   const prototypes = makePrototypes({
-    transactions,
-    openBankingTransactions: props.openBankingTransactions,
-    transactionPrototypes: props.transactionPrototypes,
+    dbTransactions,
+    obTransactions,
+    usedObTransactions: dbOpenBankingTransactions,
   });
   const protosByAccountId = new Map<number, TransactionPrototype[]>();
   prototypes.forEach((p) => {
@@ -162,7 +165,7 @@ const NonEmptyNewTransactionSuggestions = (props: {
     append(p.accountToId);
   });
   const latestTxByAccountId = new Map<number, Date>();
-  transactions.forEach((t) => {
+  dbTransactions.forEach((t) => {
     const updateIfNewer = (accountId: number) => {
       const latest = latestTxByAccountId.get(accountId);
       if (!latest || isBefore(latest, t.timestamp)) {

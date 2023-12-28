@@ -19,11 +19,10 @@ const fetchAllDatabaseData = async (db: DB): Promise<AllDatabaseData> => {
       tags: {
         select: {
           id: true,
-        }
+        },
       },
     },
   });
-
   return {
     dbTransactions,
     dbBanks: await db.bankFindMany(),
@@ -34,14 +33,16 @@ const fetchAllDatabaseData = async (db: DB): Promise<AllDatabaseData> => {
     dbCategories: await db.categoryFindMany(),
     dbExchangeRates: await db.exchangeRateFindMany(),
     dbStockQuotes: await db.stockQuoteFindMany(),
-    dbTransactionPrototypes: await db.transactionPrototypeFindMany(),
   };
 };
 
-const fetchOpenBankingData = async (db: DB) => {
+const fetchOpenBankingData = async (db: DB): Promise<IOpenBankingData> => {
+  const dbOpenBankingTransactions =
+    await db.openBankingTransactionPrototypeFindMany();
   return {
     balances: await fetchBalances(db),
     transactions: await fetchOpenBankingTransactions(db),
+    dbOpenBankingTransactions,
   };
 };
 
@@ -79,7 +80,7 @@ export const allDbDataProps: GetServerSideProps<AllDatabaseData> = async (
 };
 
 export const allDbDataPropsWithOb: GetServerSideProps<
-  AllDatabaseData & IOpenBankingData
+  AllDatabaseData & { openBankingData: IOpenBankingData }
 > = async (context) => {
   const session = await getServerSession(context.req, context.res, authOptions);
   if (!session) {
@@ -92,16 +93,12 @@ export const allDbDataPropsWithOb: GetServerSideProps<
   }
   const db = await DB.fromContext(context);
   const dbData = await fetchAllDatabaseData(db);
-  let obData: IOpenBankingData = {
-    openBankingData: {
-      balances: {},
-      transactions: {},
-    },
-  };
+  const props = Object.assign({ session }, dbData, {
+    openBankingData: {} as IOpenBankingData,
+  });
   // TODO: fetch async with page load
   await fetchOpenBankingData(db)
-    .then((openBankingData) => (obData = { openBankingData }))
-    .catch((err) => console.warn("open banking fail", err));
-  const props = Object.assign({ session }, dbData, obData);
+    .then((openBankingData) => (props.openBankingData = openBankingData))
+    .catch((err) => console.warn("Failed to fetch open banking data", err));
   return JSON.parse(JSON.stringify({ props }, jsonEncodingHacks));
 };

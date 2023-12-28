@@ -89,13 +89,6 @@ const BankName = (props: {
         <ButtonLink className="text-sm" onClick={open}>
           Edit
         </ButtonLink>
-        {!props.openBankingToken && (
-          <AnchorLink
-            className="ml-1 text-sm"
-            href={`/api/open-banking/connect?bankId=${props.bank.id}`}
-            label="Connect"
-          />
-        )}
         {props.openBankingToken && (
           <span>
             Connected on {props.openBankingToken.connectionCreatedAt}.
@@ -106,6 +99,11 @@ const BankName = (props: {
             />
           </span>
         )}
+        <AnchorLink
+          className="ml-1"
+          href={`/api/open-banking/connect?bankId=${props.bank.id}`}
+          label={props.openBankingToken ? "Reconnect" : "Connect"}
+        />
       </div>
     );
   }
