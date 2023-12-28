@@ -67,6 +67,18 @@ export class BankAccount {
     this.transactions = [];
   }
 
+  isArchived() {
+    return this.dbValue.archived;
+  }
+
+  isJoint() {
+    return this.dbValue.joint;
+  }
+
+  isLiquid() {
+    return this.dbValue.liquid;
+  }
+
   balance(): Amount {
     let balance = this.initialBalanceCents;
     this.transactions.forEach((t) => {

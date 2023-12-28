@@ -5,7 +5,6 @@ import { TransactionsList } from "components/transactions/TransactionsList";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
 import { ButtonPagePrimary } from "components/ui/buttons";
 import {
-  Currencies,
   CurrencyContextProvider,
   modelFromDatabaseData,
 } from "lib/ClientSideModel";
@@ -14,12 +13,11 @@ import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { AllDatabaseData, allDbDataProps } from "lib/ServerSideDB";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import React, { useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 
 type BankAccountListItemProps = {
   banks: Bank[];
   categories: Category[];
-  currencies: Currencies;
   account: BankAccount;
   onTransactionUpdated: (updated: DBTransaction) => void;
 };
@@ -55,12 +53,16 @@ const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
 type BankListItemProps = {
   banks: Bank[];
   categories: Category[];
-  currencies: Currencies;
   bank: Bank;
   onTransactionUpdated: (updated: DBTransaction) => void;
 };
 const BankListItem: React.FC<BankListItemProps> = (props) => {
   const displayCurrency = useDisplayCurrency();
+  const showArchivedAccounts = useContext(ArchivedAccountsShownContext);
+  let accounts = props.bank.accounts;
+  if (!showArchivedAccounts) {
+    accounts = accounts.filter((x) => !x.isArchived());
+  }
   return (
     <div>
       <div className="border-b bg-indigo-200 p-2 text-xl font-medium text-gray-900">
@@ -69,13 +71,12 @@ const BankListItem: React.FC<BankListItemProps> = (props) => {
       </div>
 
       <div className="divide-y divide-gray-200">
-        {props.bank.accounts.map((a) => (
+        {accounts.map((a) => (
           <BankAccountListItem
             key={a.id}
             account={a}
             categories={props.categories}
             banks={props.banks}
-            currencies={props.currencies}
             onTransactionUpdated={props.onTransactionUpdated}
           />
         ))}
@@ -86,7 +87,6 @@ const BankListItem: React.FC<BankListItemProps> = (props) => {
 
 type TransactionsListProps = {
   categories: Category[];
-  currencies: Currencies;
   banks: Bank[];
   onTransactionUpdated: (updated: DBTransaction) => void;
 };
@@ -102,7 +102,6 @@ const BanksList: React.FC<TransactionsListProps> = (props) => {
             key={b.id}
             categories={props.categories}
             banks={props.banks}
-            currencies={props.currencies}
             bank={b}
             onTransactionUpdated={props.onTransactionUpdated}
           />
@@ -112,6 +111,8 @@ const BanksList: React.FC<TransactionsListProps> = (props) => {
   );
 };
 
+const ArchivedAccountsShownContext = createContext<boolean>(false);
+
 export const getServerSideProps: GetServerSideProps<AllDatabaseData> =
   allDbDataProps;
 
@@ -120,7 +121,8 @@ export default function OverviewPage(
 ) {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
   const [dbDataState, setDbData] = useState(dbData);
-  const { categories, banks, currencies } = modelFromDatabaseData(dbDataState);
+  const { categories, banks } = modelFromDatabaseData(dbDataState);
+  const [archivedShown, setShowArchived] = useState(false);
 
   const addTransaction = (added: DBTransaction) => {
     setDbData((old) => {
@@ -161,12 +163,20 @@ export default function OverviewPage(
             />
           )}
         </div>
-        <BanksList
-          banks={banks}
-          categories={categories}
-          currencies={currencies}
-          onTransactionUpdated={updateTransaction}
-        />
+        <div className="flex justify-end">
+          <ButtonPagePrimary
+            className="mb-4"
+            onClick={() => setShowArchived(!archivedShown)}
+            label={archivedShown ? "Hide archived" : "Show archived"}
+          />
+        </div>
+        <ArchivedAccountsShownContext.Provider value={archivedShown}>
+          <BanksList
+            banks={banks}
+            categories={categories}
+            onTransactionUpdated={updateTransaction}
+          />
+        </ArchivedAccountsShownContext.Provider>
       </CurrencyContextProvider>
     </Layout>
   );
