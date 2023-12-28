@@ -7,7 +7,7 @@ import {
 import { DebugTable } from "components/stats/DebugTable";
 import { StatsPageLayout } from "components/StatsPageLayout";
 import { ButtonLink } from "components/ui/buttons";
-import { startOfMonth } from "date-fns";
+import { eachMonthOfInterval, startOfMonth } from "date-fns";
 import { EChartsOption } from "echarts";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
@@ -16,7 +16,8 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { LAST_6_MONTHS } from "lib/Interval";
+import { Interval, LAST_6_MONTHS } from "lib/Interval";
+import { Category } from "lib/model/Category";
 import { Transaction } from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { formatMonth } from "lib/TimeHelpers";
@@ -24,7 +25,10 @@ import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import Select from "react-select";
 
-export function ExpenseCharts(props: { transactions: Transaction[] }) {
+export function ExpenseCharts(props: {
+  transactions: Transaction[];
+  duration: Interval;
+}) {
   const [showDebugTable, setShowDebugTable] = useState(false);
   const displayCurrency = useDisplayCurrency();
   const { categories } = useAllDatabaseDataContext();
@@ -206,7 +210,7 @@ export function ExpenseCharts(props: { transactions: Transaction[] }) {
         option={{
           ...defaultChartOptions,
           title: {
-            text: "By category",
+            text: "By bottom level category",
           },
           tooltip: {
             trigger: "axis",
@@ -223,6 +227,157 @@ export function ExpenseCharts(props: { transactions: Transaction[] }) {
                 .find((c) => c.id() === categoryId)
                 .nameWithAncestors(),
               data: months.map((m) => Math.round(series.get(m).dollar())),
+            })
+          ),
+        }}
+      />
+
+      <ByCategoryCharts
+        transactions={props.transactions}
+        duration={props.duration}
+      />
+    </>
+  );
+}
+
+export function ByCategoryCharts(props: {
+  transactions: Transaction[];
+  duration: Interval;
+}) {
+  const { categories } = useAllDatabaseDataContext();
+  return (
+    <>
+      <h2 className="my-2 text-2xl font-medium leading-5">
+        Drilldown by top-level categories
+      </h2>
+      {categories
+        .filter((c) => c.isRoot())
+        .map((c) => (
+          <ExpenseByCategory
+            key={c.id()}
+            transactions={props.transactions}
+            category={c}
+            duration={props.duration}
+          />
+        ))}
+    </>
+  );
+}
+
+export function ExpenseByCategory(props: {
+  transactions: Transaction[];
+  category: Category;
+  duration: Interval;
+}) {
+  const displayCurrency = useDisplayCurrency();
+  const { categories } = useAllDatabaseDataContext();
+  const transactions = props.transactions
+    .filter((t) => t.isPersonalExpense() || t.isThirdPartyExpense())
+    .filter((t) => t.category.childOf(props.category.id()));
+  const zero = new AmountWithCurrency({
+    amountCents: 0,
+    currency: displayCurrency,
+  });
+
+  let totalSum = zero;
+  const byCategoryMonth = new Map<number, Map<number, AmountWithCurrency>>();
+  for (const t of transactions) {
+    const ts = startOfMonth(t.timestamp).getTime();
+    const current = t.amountOwnShare(displayCurrency);
+    const cid = t.category.id();
+    const series = byCategoryMonth.get(cid) ?? new Map();
+    series.set(ts, current.add(series.get(ts)));
+    byCategoryMonth.set(cid, series);
+    totalSum = totalSum.add(current);
+  }
+
+  if (totalSum.isZero()) {
+    return <></>;
+  }
+
+  const months = eachMonthOfInterval({
+    start: props.duration.start(),
+    end: props.duration.end(),
+  });
+  months.forEach((monthDate) => {
+    const m = monthDate.getTime();
+    [...byCategoryMonth.values()].forEach((v) => {
+      v.set(m, v.get(m) ?? zero);
+    });
+  });
+
+  const currencyFormatter = (value) =>
+    displayCurrency.format(value, { maximumFractionDigits: 0 });
+  const defaultChartOptions: EChartsOption = {
+    grid: {
+      containLabel: true,
+    },
+    tooltip: {},
+    xAxis: {
+      data: months.map((x) => formatMonth(x)),
+    },
+    yAxis: {
+      axisLabel: {
+        formatter: currencyFormatter,
+      },
+    },
+  };
+
+  const tooltipFormatterStackedBarChart = (params) => {
+    if (params.length === 0) {
+      return "No data";
+    }
+    const rows = params
+      .filter((p) => p.value !== 0)
+      .sort((a, b) => b.value - a.value)
+      .map((p) => {
+        return `
+        <div class="flex gap-2">
+          <div class="grow">
+            ${p.marker} ${p.seriesName}
+          </div>
+          <div class="font-medium">
+            ${currencyFormatter(p.value)}
+          </div>
+        </div>
+        `;
+      })
+      .join("\n");
+    const out = `
+      <div>
+        <span class="text-lg">
+          ${params[0].axisValueLabel}
+        </span>
+        ${rows}
+      </div>`;
+    return out;
+  };
+  return (
+    <>
+      <ReactEcharts
+        notMerge
+        option={{
+          ...defaultChartOptions,
+          title: {
+            text: props.category.nameWithAncestors(),
+          },
+          tooltip: {
+            trigger: "axis",
+            axisPointer: {
+              type: "shadow",
+            },
+            formatter: tooltipFormatterStackedBarChart,
+          },
+          series: [...byCategoryMonth.entries()].map(
+            ([categoryId, series]) => ({
+              type: "bar",
+              stack: "moneyOut",
+              name: categories
+                .find((c) => c.id() === categoryId)
+                .nameWithAncestors(),
+              data: months.map((m) =>
+                Math.round(series.get(m.getTime()).dollar())
+              ),
             })
           ),
         }}
@@ -271,7 +426,7 @@ function PageContent() {
           onChange={(x) => setExcludeCategories(x.map((x) => x.value))}
         />
       </div>
-      <ExpenseCharts transactions={filteredTransactions} />
+      <ExpenseCharts transactions={filteredTransactions} duration={duration} />
     </StatsPageLayout>
   );
 }
