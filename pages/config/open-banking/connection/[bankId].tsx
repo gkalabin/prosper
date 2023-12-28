@@ -2,10 +2,10 @@ import {
   Bank as DBBank,
   BankAccount as DBBankAccount,
   Currency as DBCurrency,
-  OpenBankingAccount as DBOpenBankingAccount
+  OpenBankingAccount as DBOpenBankingAccount,
 } from "@prisma/client";
+import { ConfigPageLayout } from "components/ConfigPageLayout";
 import { Select } from "components/forms/Select";
-import Layout from "components/Layout";
 import { ButtonFormPrimary } from "components/ui/buttons";
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
 import { DB } from "lib/db";
@@ -168,7 +168,7 @@ export default function ConnectBanksPage({
   };
 
   return (
-    <Layout>
+    <ConfigPageLayout>
       {statusMessage && <span className="text-green-500">{statusMessage}</span>}
       {obAccounts.map((oba) => (
         <>
@@ -204,6 +204,6 @@ export default function ConnectBanksPage({
       >
         {requestInFlight ? "Saving…" : "Save"}
       </ButtonFormPrimary>
-    </Layout>
+    </ConfigPageLayout>
   );
 }

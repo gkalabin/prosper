@@ -1,10 +1,10 @@
 import { Category as DBCategory } from "@prisma/client";
 import AddCategoryForm from "components/config/categories/AddCategoryForm";
 import EditableCategoryListItem from "components/config/categories/CategoryListItem";
-import Layout from "components/Layout";
-import { updateState } from "lib/stateHelpers";
+import { ConfigPageLayout } from "components/ConfigPageLayout";
 import { DB } from "lib/db";
 import { Category, categoryModelFromDB } from "lib/model/Category";
+import { updateState } from "lib/stateHelpers";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "pages/api/auth/[...nextauth]";
@@ -65,7 +65,7 @@ const CategoriesPage = ({
   const rootCategories = allCategoriesFlat.filter((c) => c.isRoot);
 
   return (
-    <Layout>
+    <ConfigPageLayout>
       <CategoriesList
         categories={rootCategories}
         allCategories={allCategoriesFlat}
@@ -75,7 +75,7 @@ const CategoriesPage = ({
         allCategories={allCategoriesFlat}
         onAdded={updateState(setDbCategories)}
       />
-    </Layout>
+    </ConfigPageLayout>
   );
 };
 

@@ -8,19 +8,19 @@ import {
 import AddBankAccountForm from "components/config/banks/AddBankAccountForm";
 import AddBankForm from "components/config/banks/AddBankForm";
 import BankAccountListItem from "components/config/banks/BankAccountListItem";
+import { ConfigPageLayout } from "components/ConfigPageLayout";
 import { Input } from "components/forms/Input";
-import Layout from "components/Layout";
 import {
   AnchorLink,
   ButtonFormPrimary,
   ButtonFormSecondary,
   ButtonLink,
 } from "components/ui/buttons";
-import { updateState } from "lib/stateHelpers";
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
 import { DB } from "lib/db";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Currencies } from "lib/model/Currency";
+import { updateState } from "lib/stateHelpers";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "pages/api/auth/[...nextauth]";
@@ -281,7 +281,7 @@ export default function BanksPage({
   );
 
   return (
-    <Layout>
+    <ConfigPageLayout>
       <BanksList
         banks={banks}
         openBankingTokens={dbOpenBankingTokens}
@@ -296,6 +296,6 @@ export default function BanksPage({
         displayOrder={banks.length * 100}
         onAdded={updateState(setDbBanks)}
       />
-    </Layout>
+    </ConfigPageLayout>
   );
 }

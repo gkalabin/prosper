@@ -1,18 +1,17 @@
 import { Currency as DBCurrency } from "@prisma/client";
-import Layout from "components/Layout";
-import { updateState } from "lib/stateHelpers";
+import { ConfigPageLayout } from "components/ConfigPageLayout";
 import { DB } from "lib/db";
 import { Currencies, Currency } from "lib/model/Currency";
+import { updateState } from "lib/stateHelpers";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "pages/api/auth/[...nextauth]";
 import React, { useState } from "react";
 
-type CurrenciesListProps = {
+const CurrenciesList = (props: {
   currencies: Currencies;
   onUpdated: (updated: DBCurrency) => void;
-};
-const CurrenciesList: React.FC<CurrenciesListProps> = (props) => {
+}) => {
   if (props.currencies.empty()) {
     return <div>No currencies found.</div>;
   }
@@ -202,12 +201,12 @@ export default function CurrenciesPage(
   const currencies = new Currencies(dbCurrencies);
 
   return (
-    <Layout>
+    <ConfigPageLayout>
       <CurrenciesList
         currencies={currencies}
         onUpdated={updateState(setDbCurrencies)}
       />
       <AddCurrencyForm onAdded={updateState(setDbCurrencies)} />
-    </Layout>
+    </ConfigPageLayout>
   );
 }
