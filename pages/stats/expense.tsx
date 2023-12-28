@@ -27,7 +27,7 @@ import Select from "react-select";
 export function ExpenseCharts(props: { transactions: Transaction[] }) {
   const [showDebugTable, setShowDebugTable] = useState(false);
   const displayCurrency = useDisplayCurrency();
-  const { exchange, categories } = useAllDatabaseDataContext();
+  const { categories } = useAllDatabaseDataContext();
   const zero = new AmountWithCurrency({
     amountCents: 0,
     currency: displayCurrency,
@@ -50,11 +50,7 @@ export function ExpenseCharts(props: { transactions: Transaction[] }) {
     const ts = startOfMonth(t.timestamp).getTime();
     monthsIndex[ts] = true;
     moneyOut[ts] ??= zero;
-    const exchanged = exchange.exchange(
-      t.amountOwnShare(),
-      displayCurrency,
-      t.timestamp
-    );
+    const exchanged = t.amountOwnShare(displayCurrency);
     moneyOut[ts] = moneyOut[ts].add(exchanged);
     {
       const cid = t.category.id();
@@ -237,8 +233,11 @@ export function ExpenseCharts(props: { transactions: Transaction[] }) {
 
 function PageContent() {
   const [duration, setDuration] = useState(LAST_6_MONTHS);
-  const { transactions, categories, displaySettings } = useAllDatabaseDataContext();
-  const [excludeCategories, setExcludeCategories] = useState(displaySettings.excludeCategoryIdsInStats());
+  const { transactions, categories, displaySettings } =
+    useAllDatabaseDataContext();
+  const [excludeCategories, setExcludeCategories] = useState(
+    displaySettings.excludeCategoryIdsInStats()
+  );
   const categoryOptions = categories.map((a) => ({
     value: a.id(),
     label: a.nameWithAncestors(),

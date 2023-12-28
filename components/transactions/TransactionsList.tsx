@@ -118,7 +118,7 @@ export const TransactionsListItem = (props: {
           {(t.isPersonalExpense() ||
             t.isThirdPartyExpense() ||
             t.isIncome()) && (
-            <div>Own share: {t.amountOwnShare().format()}</div>
+            <div>Own share: {t.amountOwnShare(t.currency()).format()}</div>
           )}
           {t.isTransfer() && <div>Sent: {t.amount().format()}</div>}
           {t.isTransfer() && <div>Received: {t.amountReceived().format()}</div>}
@@ -175,9 +175,7 @@ export const TransactionsList = (props: {
     return <div>No transactions.</div>;
   }
 
-  const displayTransactions = []
-    .concat(props.transactions)
-    .slice(0, displayLimit);
+  const displayTransactions = [...props.transactions].slice(0, displayLimit);
   return (
     <>
       <div className="flex-1 rounded border border-gray-200">
@@ -193,20 +191,29 @@ export const TransactionsList = (props: {
             />
           ))}
           <li className="bg-slate-50 p-2 text-center text-lg font-medium">
-            Show
-            <button
-              onClick={() => setDisplayLimit(displayLimit + 10)}
-              className="ml-2 mr-1 text-indigo-600 hover:text-indigo-500"
-            >
-              10
-            </button>
-            <button
-              onClick={() => setDisplayLimit(displayLimit + 100)}
-              className=" ml-1 mr-2 text-indigo-600 hover:text-indigo-500"
-            >
-              100
-            </button>
-            more
+            Displaying
+            {displayTransactions.length == props.transactions.length
+              ? ` all ${displayTransactions.length} `
+              : ` ${displayTransactions.length} of ${props.transactions.length} `}
+            transactions.
+            {displayTransactions.length < props.transactions.length && (
+              <p>
+                Show
+                <button
+                  onClick={() => setDisplayLimit(displayLimit + 10)}
+                  className="ml-2 mr-1 text-indigo-600 hover:text-indigo-500"
+                >
+                  10
+                </button>
+                <button
+                  onClick={() => setDisplayLimit(displayLimit + 100)}
+                  className=" ml-1 mr-2 text-indigo-600 hover:text-indigo-500"
+                >
+                  100
+                </button>
+                more
+              </p>
+            )}
           </li>
         </ul>
       </div>

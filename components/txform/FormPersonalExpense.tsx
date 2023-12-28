@@ -134,10 +134,11 @@ export const FormPersonalExpense = ({
     if (
       transaction &&
       !transaction.amount().isZero() &&
-      !transaction.amountOwnShare().isZero()
+      !transaction.amountOwnShare(transaction.currency()).isZero()
     ) {
       const transactionRatio =
-        transaction.amountOwnShare().cents() / transaction.amount().cents();
+        transaction.amountOwnShare(transaction.currency()).cents() /
+        transaction.amount().cents();
       newAmount = transactionRatio * amount;
     }
     // Round new amount to the closest cent.

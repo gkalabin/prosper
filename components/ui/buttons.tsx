@@ -55,9 +55,9 @@ export const AnchorPagePrimary = (
 };
 
 export const AnchorLink = (
-  props: React.AnchorHTMLAttributes<HTMLAnchorElement> & { label: string }
+  props: React.AnchorHTMLAttributes<HTMLAnchorElement>
 ) => {
-  const { label, className, ...rest } = props;
+  const { className, ...rest } = props;
   return (
     <AnchorUnstyled
       className={classNames(
@@ -66,7 +66,7 @@ export const AnchorLink = (
       )}
       {...rest}
     >
-      {label}
+      {props.children}
     </AnchorUnstyled>
   );
 };

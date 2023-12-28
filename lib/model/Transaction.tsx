@@ -261,7 +261,18 @@ export class Transaction {
     );
   }
 
-  amountOwnShare() {
+  amountAllParties(currency: Currency) {
+    const amount = new AmountWithCurrency({
+      amountCents: this.amountCents,
+      currency: this.currency(),
+    });
+    if (!currency || currency.id == this.currency().id) {
+      return amount;
+    }
+    return this.exchange.exchange(amount, currency, this.timestamp);
+  }
+
+  amountOwnShare(currency: Currency) {
     const extension = firstNonNull3(
       this.personalExpense,
       this.thirdPartyExpense,
@@ -270,10 +281,14 @@ export class Transaction {
     if (!extension) {
       throw new Error("no extension found");
     }
-    return new AmountWithCurrency({
+    const amount = new AmountWithCurrency({
       amountCents: extension.ownShareAmountCents,
       currency: this.currency(),
     });
+    if (!currency || currency.id == this.currency().id) {
+      return amount;
+    }
+    return this.exchange.exchange(amount, currency, this.timestamp);
   }
 
   amountReceived() {

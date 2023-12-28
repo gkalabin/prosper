@@ -79,13 +79,15 @@ function BanksListItem({
                 {openBankingToken && (
                   <AnchorLink
                     href={`/config/open-banking/connection/${bank.id}`}
-                    label="OpenBanking"
-                  />
+                  >
+                    OpenBanking
+                  </AnchorLink>
                 )}
                 <AnchorLink
                   href={`/api/open-banking/connect?bankId=${bank.id}`}
-                  label="Connect with TrueLayer Banking API"
-                />
+                >
+                  Connect with TrueLayer Banking API
+                </AnchorLink>
               </div>
             )}
             {!editBankFormDisplayed && openBankingToken && (
@@ -94,13 +96,15 @@ function BanksListItem({
                 {openBankingToken && (
                   <AnchorLink
                     href={`/config/open-banking/connection/${bank.id}`}
-                    label="Edit connection"
-                  />
+                  >
+                    Edit connection
+                  </AnchorLink>
                 )}
                 <AnchorLink
                   href={`/api/open-banking/connect?bankId=${bank.id}`}
-                  label="Reconnect"
-                />
+                >
+                  Reconnect
+                </AnchorLink>
               </div>
             )}
           </div>

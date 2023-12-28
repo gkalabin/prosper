@@ -31,6 +31,9 @@ export class AmountWithCurrency {
   }
 
   public add(other: AmountWithCurrency): AmountWithCurrency {
+    if (!other) {
+      return this;
+    }
     this.assertSameCurrency(other);
     return new AmountWithCurrency({
       amountCents: this.amount.add(other.amount).cents(),

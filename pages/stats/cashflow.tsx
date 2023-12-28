@@ -30,7 +30,6 @@ export function CashflowCharts({
   duration: Interval;
 }) {
   const displayCurrency = useDisplayCurrency();
-  const { exchange } = useAllDatabaseDataContext();
   const zero = new AmountWithCurrency({
     amountCents: 0,
     currency: displayCurrency,
@@ -48,11 +47,7 @@ export function CashflowCharts({
   transactions
     .filter((t) => t.isPersonalExpense() || t.isThirdPartyExpense())
     .forEach((t) => {
-      const exchanged = exchange.exchange(
-        t.amountOwnShare(),
-        displayCurrency,
-        t.timestamp
-      );
+      const exchanged = t.amountOwnShare(displayCurrency);
       const ts = startOfMonth(t.timestamp).getTime();
       moneyOut.set(ts, moneyOut.get(ts).add(exchanged));
     });
@@ -61,11 +56,7 @@ export function CashflowCharts({
   transactions
     .filter((t) => t.isIncome())
     .forEach((t) => {
-      const exchanged = exchange.exchange(
-        t.amountOwnShare(),
-        displayCurrency,
-        t.timestamp
-      );
+      const exchanged = t.amountOwnShare(displayCurrency);
       const ts = startOfMonth(t.timestamp).getTime();
       moneyIn.set(ts, moneyIn.get(ts).add(exchanged));
     });
@@ -169,8 +160,11 @@ export function CashflowCharts({
 
 function PageContent() {
   const [duration, setDuration] = useState(LAST_6_MONTHS);
-  const { transactions, categories, displaySettings } = useAllDatabaseDataContext();
-  const [excludeCategories, setExcludeCategories] = useState(displaySettings.excludeCategoryIdsInStats());
+  const { transactions, categories, displaySettings } =
+    useAllDatabaseDataContext();
+  const [excludeCategories, setExcludeCategories] = useState(
+    displaySettings.excludeCategoryIdsInStats()
+  );
   const categoryOptions = categories.map((a) => ({
     value: a.id(),
     label: a.nameWithAncestors(),

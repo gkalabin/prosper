@@ -126,7 +126,8 @@ function FilteredTransactionsList() {
     }
     if (
       t.amount().dollar() == +freeTextSearch ||
-      (!t.isTransfer() && t.amountOwnShare().dollar() == +freeTextSearch)
+      (!t.isTransfer() &&
+        t.amountOwnShare(t.currency()).dollar() == +freeTextSearch)
     ) {
       return true;
     }

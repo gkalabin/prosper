@@ -77,7 +77,7 @@ function initialValuesForTransaction(
     parentTransactionId: t.hasParentTransaction() ? t.parentTransactionId() : 0,
   };
   if (t.isPersonalExpense() || t.isThirdPartyExpense() || t.isIncome()) {
-    defaults.ownShareAmount = t.amountOwnShare().dollar();
+    defaults.ownShareAmount = t.amountOwnShare(t.currency()).dollar();
   }
   return defaults;
 }
