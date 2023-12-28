@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { DB } from "lib/db";
+import { UpdateCategoryRequest } from "lib/model/forms/CategoryFormValues";
 import prisma from "lib/prisma";
 import { getUserId } from "lib/user";
 import { intParam } from "lib/util/searchParams";
@@ -13,7 +14,8 @@ export async function PUT(
   if (!categoryId) {
     return new Response(`categoryId must be an integer`, { status: 400 });
   }
-  const { name, parentCategoryId, displayOrder } = await request.json();
+  const { name, parentCategoryId, displayOrder } =
+    (await request.json()) as UpdateCategoryRequest;
   const userId = await getUserId();
   // Verify user has access.
   const db = new DB({ userId });
@@ -30,7 +32,9 @@ export async function PUT(
     data: { name, displayOrder },
     where: { id: categoryId },
   };
-  dbArgs.data.parentCategoryId = +parentCategoryId || null;
+  if (parentCategoryId) {
+    dbArgs.data.parentCategoryId = +parentCategoryId;
+  }
   const result = await prisma.category.update(dbArgs);
   return NextResponse.json(result);
 }

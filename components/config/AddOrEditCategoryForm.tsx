@@ -3,11 +3,12 @@ import { InputWithLabel, TextInputWithLabel } from "components/forms/Input";
 import { FormikSelect } from "components/forms/Select";
 import {
   AddOrUpdateButtonText,
-  ButtonFormPrimary,
-  ButtonFormSecondary,
+  FormikButtonFormPrimary,
+  FormikButtonFormSecondary,
 } from "components/ui/buttons";
 import { Form, Formik } from "formik";
 import { Category } from "lib/model/Category";
+import { CategoryFormValues } from "lib/model/forms/CategoryFormValues";
 import { useState } from "react";
 
 export const AddOrEditCategoryForm = ({
@@ -22,17 +23,16 @@ export const AddOrEditCategoryForm = ({
   onClose: () => void;
 }) => {
   const [apiError, setApiError] = useState("");
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (values: CategoryFormValues) => {
     setApiError("");
     try {
-      const body = { ...values };
       const response = await fetch(
         `/api/config/category/${category?.id() ?? ""}`,
         {
           method: category ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        }
+          body: JSON.stringify(values),
+        },
       );
       onAddedOrUpdated(await response.json());
     } catch (error) {
@@ -40,14 +40,14 @@ export const AddOrEditCategoryForm = ({
     }
   };
 
-  const initialValues = {
+  const initialValues: CategoryFormValues = {
     name: category?.name() ?? "",
     displayOrder: category?.displayOrder() ?? categories.length * 100,
     parentCategoryId: category?.parent()?.id() ?? 0,
   };
   return (
     <Formik initialValues={initialValues} onSubmit={handleSubmit}>
-      {({ isSubmitting, values }) => (
+      {({ values }) => (
         <Form className="flex flex-col gap-4">
           <div>
             <TextInputWithLabel name="name" label="Category name" autoFocus />
@@ -68,12 +68,12 @@ export const AddOrEditCategoryForm = ({
             ))}
           </FormikSelect>
           <div className="flex justify-end gap-2">
-            <ButtonFormSecondary onClick={onClose} disabled={isSubmitting}>
+            <FormikButtonFormSecondary onClick={onClose}>
               Cancel
-            </ButtonFormSecondary>
-            <ButtonFormPrimary type="submit" disabled={!values.name}>
+            </FormikButtonFormSecondary>
+            <FormikButtonFormPrimary type="submit" disabled={!values.name}>
               <AddOrUpdateButtonText add={!category} />
-            </ButtonFormPrimary>
+            </FormikButtonFormPrimary>
           </div>
           {apiError && <span>{apiError}</span>}
         </Form>
