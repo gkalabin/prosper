@@ -15,7 +15,6 @@ export default async function handle(
       dbArgs.data.parentCategory = { connect: { id: parentCategoryId } };
     }
     const result = await prisma.category.create(dbArgs);
-    console.debug("CreateCategory", result);
     res.json(result);
   } else {
     throw new Error(

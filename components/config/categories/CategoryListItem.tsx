@@ -5,7 +5,6 @@ type EditableCategoryListItemProps = {
   category: Category;
   categories: Category[];
   onUpdated: (updated: Category) => void;
-  depth: number;
 };
 
 const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
@@ -46,11 +45,14 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
         parentCategoryId,
         displayOrder,
       };
-      const response = await fetch(`/api/config/category/${props.category.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
+      const response = await fetch(
+        `/api/config/category/${props.category.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
       close();
       props.onUpdated(await response.json());
     } catch (error) {
@@ -61,9 +63,9 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
 
   if (!formDisplayed) {
     let categoryNameClass = "text-base font-light";
-    if (props.depth == 0) {
+    if (props.category.depth == 0) {
       categoryNameClass = "text-xl font-medium";
-    } else if (props.depth == 1) {
+    } else if (props.category.depth == 1) {
       categoryNameClass = "text-lg";
     }
     return (

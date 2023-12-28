@@ -18,7 +18,6 @@ export const getStaticProps: GetStaticProps = async () => {
       },
     },
   });
-  console.debug(banks);
   const currencies = await prisma.currency.findMany({});
   const props = {
     banks,
@@ -126,10 +125,7 @@ const BanksPage: React.FC<PageProps> = (props) => {
         const updatedAccounts = b.accounts.map((a) =>
           a.id == updated.id ? updated : a
         );
-        const updatedBank = Object.assign({}, b, { accounts: updatedAccounts });
-        console.log(updatedAccounts);
-        console.log(updatedBank);
-        return updatedBank;
+        return Object.assign({}, b, { accounts: updatedAccounts });
       })
     );
   };

@@ -3,7 +3,7 @@ import prisma from "../../lib/prisma";
 import { GetStaticProps } from "next";
 import Layout from "../../components/Layout";
 import AddCategoryForm from "../../components/config/categories/AddCategoryForm";
-import Category from "../../lib/model/Category";
+import Category, { makeCategoryTree } from "../../lib/model/Category";
 import EditableCategoryListItem from "../../components/config/categories/CategoryListItem";
 
 type CategoryDbModel = {
@@ -23,7 +23,6 @@ type CategoriesListProps = {
   categories: Category[];
   allCategories: Category[];
   onCategoryUpdated: (updated: Category) => void;
-  depth: number;
 };
 
 const CategoriesList: React.FC<CategoriesListProps> = (props) => {
@@ -38,14 +37,12 @@ const CategoriesList: React.FC<CategoriesListProps> = (props) => {
             category={category}
             categories={props.allCategories}
             onUpdated={props.onCategoryUpdated}
-            depth={props.depth}
           />
           {category.children && (
             <CategoriesList
               categories={category.children}
               allCategories={props.allCategories}
               onCategoryUpdated={props.onCategoryUpdated}
-              depth={props.depth + 1}
             />
           )}
         </li>
@@ -59,46 +56,8 @@ type PageProps = {
 };
 const CategoriesPage: React.FC<PageProps> = (props) => {
   const [dbCategories, setDbCategories] = useState(props.dbCategories);
-  const uiCategories = dbCategories.map((c) =>
-    Object.assign({}, c, {
-      nameWithAncestors: c.name,
-      isRoot: !c.parentCategoryId,
-      children: [] as Category[],
-    })
-  );
-  const categoryById = Object.fromEntries(uiCategories.map((c) => [c.id, c]));
-  uiCategories.forEach((c) => {
-    if (!c.parentCategoryId) {
-      return;
-    }
-    let parent = categoryById[c.parentCategoryId];
-    parent.children.push(c);
-    const ancestorNames = [c.name];
-    while (parent) {
-      ancestorNames.push(parent.name);
-      if (!parent.parentCategoryId) {
-        break;
-      }
-      parent = categoryById[parent.parentCategoryId];
-    }
-    c.nameWithAncestors = ancestorNames.reverse().join(" > ");
-  });
-  uiCategories.sort((c1, c2) => c1.displayOrder - c2.displayOrder);
-  uiCategories.forEach((c) =>
-    c.children.sort((c1, c2) => c1.displayOrder - c2.displayOrder)
-  );
-  const allCategoriesFlat = [] as Category[];
-  const collectCategories = (subtree: Category[], output: Category[]) => {
-    if (subtree.length == 0) {
-      return;
-    }
-    subtree.forEach((c) => {
-      output.push(c);
-      collectCategories(c.children, output);
-    });
-  };
-  const rootCategories = uiCategories.filter((c) => c.isRoot);
-  collectCategories(rootCategories, allCategoriesFlat);
+  const allCategoriesFlat = makeCategoryTree(dbCategories);
+  const rootCategories = allCategoriesFlat.filter((c) => c.isRoot);
 
   const addNewCategory = (added: CategoryDbModel) => {
     setDbCategories((old) => [...old, added]);
@@ -115,7 +74,6 @@ const CategoriesPage: React.FC<PageProps> = (props) => {
         categories={rootCategories}
         allCategories={allCategoriesFlat}
         onCategoryUpdated={updateCategory}
-        depth={0}
       />
       <AddCategoryForm
         allCategories={allCategoriesFlat}
