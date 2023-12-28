@@ -21,6 +21,7 @@ import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Stock } from "lib/model/Stock";
 import { updateState } from "lib/stateHelpers";
 import { useState } from "react";
+import { DisconnectOpenBankingLink } from "./DisconnectOpenBankingLink";
 
 const BanksList = (props: {
   banks: Bank[];
@@ -195,6 +196,7 @@ const TrueLayerActions = ({ bank }: { bank: Bank }) => {
       <AnchorLink href={`/api/open-banking/reconnect?bankId=${bank.id}`}>
         Reconnect
       </AnchorLink>
+      <DisconnectOpenBankingLink bank={bank} />
     </div>
   );
 };
@@ -209,6 +211,7 @@ const NordigenActions = ({ bank }: { bank: Bank }) => {
       <AnchorLink href={`/api/open-banking/reconnect?bankId=${bank.id}`}>
         Reconnect
       </AnchorLink>
+      <DisconnectOpenBankingLink bank={bank} />
     </div>
   );
 };
@@ -220,7 +223,7 @@ const StarlingActions = ({ bank }: { bank: Bank }) => {
       <AnchorLink href={`/config/open-banking/mapping?bankId=${bank.id}`}>
         Configure
       </AnchorLink>
-      <AnchorLink href={`!!!TODO`}>Delete connection</AnchorLink>
+      <DisconnectOpenBankingLink bank={bank} />
     </div>
   );
 };

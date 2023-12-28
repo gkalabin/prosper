@@ -1,5 +1,6 @@
-import { NordigenToken } from "@prisma/client";
+import { NordigenRequisition, NordigenToken } from "@prisma/client";
 import { addSeconds, isBefore } from "date-fns";
+import { assert } from "lib/assert";
 import { DB } from "lib/db";
 import prisma from "lib/prisma";
 
@@ -49,7 +50,7 @@ async function createToken(db: DB, bankId: number): Promise<NordigenToken> {
 
 export async function refreshToken(
   db: DB,
-  token: NordigenToken
+  token: NordigenToken,
 ): Promise<NordigenToken> {
   const fetched = await fetch(`https://ob.nordigen.com/api/v2/token/refresh/`, {
     method: "POST",
@@ -66,7 +67,7 @@ export async function refreshToken(
     const reason = fetched.statusText;
     const text = await fetched.text();
     console.warn(
-      `Failed to refresh token for bank ${token.bankId} ${bankName}: ${text}`
+      `Failed to refresh token for bank ${token.bankId} ${bankName}: ${text}`,
     );
     return Promise.reject(`Refresh token for ${bankName} failed: ${reason}`);
   }
@@ -83,4 +84,40 @@ export async function refreshToken(
     },
   });
   return updatedToken;
+}
+
+export async function deleteToken(
+  db: DB,
+  token: NordigenToken,
+  requisition: NordigenRequisition,
+): Promise<void> {
+  assert(
+    token.bankId === requisition.bankId,
+    `bankId mismatch: token bank id is ${token.bankId}, requisition bank id is ${requisition.bankId}`,
+  );
+  const response = await fetch(
+    `https://ob.nordigen.com/api/v2/requisitions/${requisition.requisitionId}/`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token.access}` },
+    },
+  );
+  const responseText = await response.text();
+  // FIXME: error handling here is overly simplistic, it allows for the case
+  // where the token is deleted from TrueLayer but not from the database.
+  if (response.status !== 200) {
+    if (response.status === 404) {
+      console.warn(
+        `Requisition ${requisition.id} is not found in Nordigen API: ${responseText}`,
+      );
+      // Okay to proceed with deleting the token and requisition.
+    } else {
+      throw new Error(
+        `Failed to delete nordigen requisition ${requisition.id} (code ${response.status}): ${responseText}`,
+      );
+    }
+  }
+  console.info("Deleted nordigen requisition", requisition.id, responseText);
+  await db.nordigenTokenDelete({ where: { bankId: token.bankId } });
+  await db.nordigenRequisitionDelete({ where: { bankId: requisition.bankId } });
 }

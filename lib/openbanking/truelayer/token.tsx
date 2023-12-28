@@ -5,7 +5,7 @@ import prisma from "lib/prisma";
 
 export async function refreshToken(
   db: DB,
-  token: TrueLayerToken
+  token: TrueLayerToken,
 ): Promise<TrueLayerToken> {
   const now = new Date();
   const fetched = await fetch(`https://auth.truelayer.com/connect/token`, {
@@ -32,13 +32,13 @@ export async function refreshToken(
       console.warn(
         `Failed to refresh token for bank ${
           token.bankId
-        } ${bankName}: ${JSON.stringify(json, null, 2)}`
+        } ${bankName}: ${JSON.stringify(json, null, 2)}`,
       );
     } catch (e) {
       // ignore the error and show whatever status we got
       const text = await fetched.text();
       console.warn(
-        `Failed to refresh token for bank ${token.bankId} ${bankName}: ${text}`
+        `Failed to refresh token for bank ${token.bankId} ${bankName}: ${text}`,
       );
     }
     return Promise.reject(`Refresh token for ${bankName} failed: ${reason}`);
@@ -57,4 +57,29 @@ export async function refreshToken(
     },
   });
   return newToken;
+}
+
+export async function deleteToken(
+  db: DB,
+  token: TrueLayerToken,
+): Promise<void> {
+  const response = await fetch(`https://auth.truelayer.com/api/delete`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token.access}`,
+    },
+  });
+  // FIXME: error handling here is overly simplistic, it allows for the case
+  // where the token is deleted from TrueLayer but not from the database.
+  if (response.status !== 200) {
+    const text = await response.text();
+    console.warn(
+      `Failed to delete access token for bank id ${token.bankId}: ${text}`,
+    );
+    return Promise.reject(
+      `Failed to delete access token for bank id ${token.bankId}: ${text}`,
+    );
+  }
+  await db.trueLayerTokenDelete({ where: { bankId: token.bankId } });
 }

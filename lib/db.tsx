@@ -77,14 +77,26 @@ export class DB {
   trueLayerTokenFindMany(args?: Prisma.TrueLayerTokenFindManyArgs) {
     return prisma.trueLayerToken.findMany(this.whereUser(args ?? {}));
   }
+  trueLayerTokenDelete(args: Prisma.TrueLayerTokenDeleteArgs) {
+    return prisma.trueLayerToken.delete(this.whereUser(args));
+  }
   nordigenTokenFindMany(args?: Prisma.NordigenTokenFindFirstArgs) {
     return prisma.nordigenToken.findMany(this.whereUser(args ?? {}));
   }
-  nordigenRequisitionFindFirst(args?: Prisma.NordigenRequisitionFindFirstArgs) {
-    return prisma.nordigenRequisition.findFirst(this.whereUser(args ?? {}));
+  nordigenTokenDelete(args: Prisma.NordigenTokenDeleteArgs) {
+    return prisma.nordigenToken.delete(this.whereUser(args));
+  }
+  nordigenRequisitionFindFirst(args: Prisma.NordigenRequisitionFindFirstArgs) {
+    return prisma.nordigenRequisition.findFirst(this.whereUser(args));
+  }
+  nordigenRequisitionDelete(args: Prisma.NordigenRequisitionDeleteArgs) {
+    return prisma.nordigenRequisition.delete(this.whereUser(args));
   }
   starlingTokenFindMany(args?: Prisma.StarlingTokenFindFirstArgs) {
     return prisma.starlingToken.findMany(this.whereUser(args ?? {}));
+  }
+  starlingTokenDelete(args: Prisma.StarlingTokenDeleteArgs) {
+    return prisma.starlingToken.delete(this.whereUser(args));
   }
   externalAccountMappingFindMany(
     args?: Prisma.ExternalAccountMappingFindManyArgs,
