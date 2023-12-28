@@ -11,14 +11,6 @@ export class Category {
   private _immediateParent?: Category;
   _immediateChildren: Category[] = [];
 
-  constructor(init: DBCategory) {
-    this._id = init.id;
-    this._name = init.name;
-    this._parentCategoryId = init.parentCategoryId;
-    this._displayOrder = init.displayOrder;
-    this._dbValue = init;
-  }
-
   _setImmediateParent(parent: Category) {
     if (this._parentCategoryId != parent.id()) {
       throw new Error(
@@ -28,6 +20,14 @@ export class Category {
       );
     }
     this._immediateParent = parent;
+  }
+
+  constructor(init: DBCategory) {
+    this._id = init.id;
+    this._name = init.name;
+    this._parentCategoryId = init.parentCategoryId;
+    this._displayOrder = init.displayOrder;
+    this._dbValue = init;
   }
 
   id() {
@@ -71,31 +71,11 @@ export class Category {
   children() {
     return this._immediateChildren;
   }
+
+  childOf(categoryId: number) {
+    return this._ancestors.some((a) => a.id() == categoryId);
+  }
 }
-
-const inOrderTreeTraversal = (
-  subtree: Category[],
-  output: Category[],
-  depth: number
-) => {
-  if (subtree.length == 0) {
-    return;
-  }
-  subtree.forEach((c) => {
-    output.push(c);
-    inOrderTreeTraversal(c.children(), output, depth + 1);
-  });
-};
-
-export const matchesWithAncestors = (p: Category, idToMatch: number) => {
-  if (p.id() == idToMatch) {
-    return true;
-  }
-  if (p.isRoot()) {
-    return false;
-  }
-  return matchesWithAncestors(p.parent(), idToMatch);
-};
 
 export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
   const categories = dbCategories.map((c) => new Category(c));
@@ -116,18 +96,25 @@ export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
         parent = categoryById.get(parent.parentCategoryId());
       }
     });
+
+  // Sort categories by display order
   categories.sort((c1, c2) => c1.displayOrder() - c2.displayOrder());
   categories.forEach((c) =>
     c._immediateChildren.sort((c1, c2) => c1.displayOrder() - c2.displayOrder())
   );
-
   // Sort categories to get the list like:
   //  - A
   //  - A > Sub A
   //  - B
   //  - B > Sub B
-  const categoriesSorted = [] as Category[];
+  const categoriesSorted: Category[] = [];
   const rootCategories = categories.filter((c) => c.isRoot());
-  inOrderTreeTraversal(rootCategories, categoriesSorted, 0);
+  const inOrderTreeTraversal = (subtree: Category[]) => {
+    subtree.forEach((c) => {
+      categoriesSorted.push(c);
+      inOrderTreeTraversal(c.children());
+    });
+  };
+  inOrderTreeTraversal(rootCategories);
   return categoriesSorted;
 };

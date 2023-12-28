@@ -14,7 +14,6 @@ import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
-import { matchesWithAncestors } from "lib/model/Category";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { onTransactionChange } from "lib/stateHelpers";
 import { InferGetServerSidePropsType } from "next";
@@ -99,9 +98,11 @@ function FilteredTransactionsList() {
           (t.hasAccountTo() && accountIds.includes(t.accountTo().id))
         : true) &&
       (categoryIds?.length
-        ? includeChildrenCategories
-          ? categoryIds.some((cid) => matchesWithAncestors(t.category, cid))
-          : categoryIds.includes(t.category.id())
+        ? categoryIds.some(
+            (cid) =>
+              t.category.id() == cid ||
+              (includeChildrenCategories && t.category.childOf(cid))
+          )
         : true) &&
       (tripId ? t.hasTrip() && t.trip().id() == tripId : true) &&
       (timeFrom
