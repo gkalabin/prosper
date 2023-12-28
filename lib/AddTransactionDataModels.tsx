@@ -9,7 +9,7 @@ export enum FormMode {
 }
 
 export type AddTransactionFormValues = {
-  timestamp: Date;
+  timestamp: string;
   description: string;
   amount: number;
   ownShareAmount?: number;
@@ -65,7 +65,7 @@ export const formToDTO = (
 ): AddTransactionDTO => {
   const out: AddTransactionDTO = {
     mode: mode,
-    timestamp: form.timestamp,
+    timestamp: new Date(form.timestamp),
     amountCents: Math.round(form.amount * 100),
     description: form.description,
     categoryId: form.categoryId,

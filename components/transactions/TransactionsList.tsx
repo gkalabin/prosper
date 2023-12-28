@@ -61,7 +61,7 @@ export const TransactionHeading = (props: { t: Transaction }) => {
   return <>{props.t.description}</>;
 };
 
-export const TransactionDescroption = (props: { t: Transaction }) => {
+export const TransactionDescription = (props: { t: Transaction }) => {
   if (
     props.t.personalExpense ||
     props.t.thirdPartyExpense ||
@@ -71,6 +71,22 @@ export const TransactionDescroption = (props: { t: Transaction }) => {
   }
   if (props.t.income && props.t.income.vendor) {
     return <>{props.t.description}</>;
+  }
+  return <></>;
+};
+
+
+export const TransactionStatusLine = (props: { t: Transaction }) => {
+  if (props.t.personalExpense) {
+    const from = props.t.personalExpense.account;
+    return <span className="bg-gray-100 rounded px-2 py-1">{from.bank.name}: {from.name}</span>
+  }
+  if (props.t.thirdPartyExpense) {
+    return <>{props.t.thirdPartyExpense.payer}</>
+  }
+  if (props.t.income) {
+    const to = props.t.income.account;
+    return <>{to.bank.name}: {to.name}</>
   }
   return <></>;
 };
@@ -85,9 +101,9 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
   const [showRawDetails, setShowRawDetails] = useState(false);
   const raw = JSON.stringify(props.transaction, null, 2);
   return (
-    <li className="p-2 flex flex-col flex-1 gap-2">
+    <li className="p-2 flex flex-col gap-2">
       <div className="min-h-[theme('spacing[16]')] flex gap-2">
-        <div className="min-w-[theme('spacing[20]')] text-lg text-right font-medium text-gray-900 whitespace-nowrap">
+        <div className="min-w-[theme('spacing[20]')] flex-none text-lg text-right font-medium text-gray-900 whitespace-nowrap">
           <Amount t={props.transaction} />
         </div>
 
@@ -95,12 +111,12 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
           <div className="text-base font-medium text-gray-900">
             <TransactionHeading t={props.transaction} />
           </div>
-          <div className="text-sm text-gray-500">
-            <TransactionDescroption t={props.transaction} />
+          <div className="grow text-sm text-gray-500">
+            <TransactionDescription t={props.transaction} />
           </div>
 
           <div className="text-sm text-gray-500">
-            {props.transaction.personalExpense?.account.name}
+            <TransactionStatusLine t={props.transaction} />
           </div>
         </div>
 
@@ -121,9 +137,7 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
         </div>
       </div>
 
-      <div>
-        {showRawDetails && <pre className="text-xs">{raw}</pre>}
-      </div>
+      <div>{showRawDetails && <pre className="text-xs">{raw}</pre>}</div>
     </li>
   );
 };
@@ -144,23 +158,21 @@ export const TransactionsList: React.FC<TransactionsListProps> = (props) => {
     .slice(0, displayLimit);
   return (
     <div className="flex-1 border border-gray-200 rounded">
-      <div className="flow-root">
-        <ul role="list" className="divide-y divide-gray-200 flex flex-col">
-          {displayTransactions.map((t) => (
-            <TransactionsListItem
-              key={t.id}
-              transaction={t}
-              onUpdated={props.onTransactionUpdated}
-            />
-          ))}
-        </ul>
-        <button onClick={() => setDisplayLimit(displayLimit + 10)}>
-          Show 10 more
-        </button>
-        <button onClick={() => setDisplayLimit(displayLimit + 100)}>
-          Show 100 more
-        </button>
-      </div>
+      <ul role="list" className="divide-y divide-gray-200 flex flex-col">
+        {displayTransactions.map((t) => (
+          <TransactionsListItem
+            key={t.id}
+            transaction={t}
+            onUpdated={props.onTransactionUpdated}
+          />
+        ))}
+      </ul>
+      <button onClick={() => setDisplayLimit(displayLimit + 10)}>
+        Show 10 more
+      </button>
+      <button onClick={() => setDisplayLimit(displayLimit + 100)}>
+        Show 100 more
+      </button>
     </div>
   );
 };
