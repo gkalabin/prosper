@@ -6,7 +6,7 @@ import prisma from "lib/prisma";
 import { addLatestStockQuotes } from "lib/stockQuotesBackfill";
 import { IOpenBankingData } from "./openbanking/interface";
 
-const loadAllDatabaseData = async (): Promise<AllDatabaseData> => {
+const fetchAllDatabaseData = async (): Promise<AllDatabaseData> => {
   const dbTransactions = await prisma.transaction.findMany({
     include: {
       personalExpense: true,
@@ -25,6 +25,13 @@ const loadAllDatabaseData = async (): Promise<AllDatabaseData> => {
     dbExchangeRates: await prisma.exchangeRate.findMany(),
     dbStockQuotes: await prisma.stockQuote.findMany(),
     dbTransactionPrototypes: await prisma.transactionPrototype.findMany(),
+  };
+};
+
+const fetchOpenBankingData = async () => {
+  return {
+    balances: await fetchBalances(),
+    transactions: await fetchOpenBankingTransactions(),
   };
 };
 
@@ -48,7 +55,7 @@ export const allDbDataProps = async (): Promise<{ props: AllDatabaseData }> => {
       console.warn("Failed to update rates", reason);
     }
   );
-  const allData = await loadAllDatabaseData();
+  const allData = await fetchAllDatabaseData();
   const out = {
     props: allData,
   };
@@ -58,12 +65,22 @@ export const allDbDataProps = async (): Promise<{ props: AllDatabaseData }> => {
 export const allDbDataPropsWithOb = async (): Promise<{
   props: AllDatabaseData & IOpenBankingData;
 }> => {
-  const dbData = await allDbDataProps();
-  const props = Object.assign(dbData.props, {
-    openBankingData: {
-      balances: await fetchBalances(),
-      transactions: await fetchOpenBankingTransactions(),
-    },
-  });
+  let props = await fetchAllDatabaseData();
+  // TODO: fetch async with page load
+  await fetchOpenBankingData()
+    .then((obData) => {
+      props = Object.assign(props, {
+        openBankingData: obData,
+      });
+    })
+    .catch((err) => {
+      console.warn("Failed to fetch open banking transactions", err);
+      props = Object.assign(props, {
+        openBankingData: {
+          balances: {},
+          transactions: {},
+        },
+      } as IOpenBankingData);
+    });
   return JSON.parse(JSON.stringify({ props }, jsonEncodingHacks));
 };
