@@ -23,13 +23,11 @@ import prisma from "lib/prisma";
 import { GetStaticProps, InferGetStaticPropsType } from "next";
 import React, { useState } from "react";
 
-type BankNameProps = {
+const BankName = (props: {
   bank: Bank;
   openBankingToken?: DBOpenBankingToken;
   onUpdated: (bank: DBBank) => void;
-};
-
-const BankName: React.FC<BankNameProps> = (props) => {
+}) => {
   const [name, setName] = useState(props.bank.name);
   const [displayOrder, setDisplayOrder] = useState(props.bank.displayOrder);
   const [formDisplayed, setFormDisplayed] = useState(false);
@@ -85,7 +83,9 @@ const BankName: React.FC<BankNameProps> = (props) => {
           order {props.bank.displayOrder}
         </small>
 
-        <ButtonLink className="text-sm" onClick={open}>Edit</ButtonLink>
+        <ButtonLink className="text-sm" onClick={open}>
+          Edit
+        </ButtonLink>
         {!props.openBankingToken && (
           <AnchorLink
             className="ml-1 text-sm"
@@ -127,10 +127,9 @@ const BankName: React.FC<BankNameProps> = (props) => {
         disabled={requestInFlight}
         label="Cancel"
       />
-      <ButtonFormPrimary
-        disabled={!name || requestInFlight}
-        label={requestInFlight ? "Updating…" : "Update"}
-      />
+      <ButtonFormPrimary disabled={!name || requestInFlight} type="submit">
+        {requestInFlight ? "Updating…" : "Update"}
+      </ButtonFormPrimary>
 
       {apiError && <span className="text-red-500">{apiError}</span>}
     </form>

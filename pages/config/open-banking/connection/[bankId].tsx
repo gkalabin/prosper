@@ -190,8 +190,10 @@ export default function ConnectBanksPage({
       <ButtonFormPrimary
         onClick={handleSubmit}
         disabled={requestInFlight}
-        label={requestInFlight ? "Saving…" : "Save"}
-      />
+        type="submit"
+      >
+        {requestInFlight ? "Saving…" : "Save"}
+      </ButtonFormPrimary>
     </Layout>
   );
 }
