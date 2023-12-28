@@ -129,7 +129,11 @@ function useReceivedAmountEffect(
       return;
     }
     if (transaction && transaction.amount().dollar() == amount) {
-      setFieldValue("receivedAmount", transaction.amountReceived().dollar());
+      if (transaction.isTransfer()) {
+        setFieldValue("receivedAmount", transaction.amountReceived().dollar());
+      } else {
+        setFieldValue("receivedAmount", transaction.amount().dollar());
+      }
       return;
     }
     const now = new Date();
