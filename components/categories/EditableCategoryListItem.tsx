@@ -4,7 +4,7 @@ import CategoryProps from "./CategoryProps";
 type EditableCategoryListItemProps = {
   category: CategoryProps;
   categories: CategoryProps[];
-  onCategoryUpdated: Function;
+  onUpdated: Function;
   depth: number;
 };
 
@@ -52,7 +52,7 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
         body: JSON.stringify(body),
       });
       close();
-      props.onCategoryUpdated(await response.json());
+      props.onUpdated(await response.json());
     } catch (error) {
       setApiError(`Failed to update: ${error}`);
     }
@@ -69,7 +69,9 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
     return (
       <>
         <span className={categoryNameClass}>{props.category.name}</span>;
-        <small className="text-sm py-4">displayOrder {props.category.displayOrder}</small>
+        <small className="text-sm py-4">
+          displayOrder {props.category.displayOrder}
+        </small>
         <button onClick={open}>Edit</button>
       </>
     );

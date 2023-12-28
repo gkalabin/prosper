@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import CategoryProps from "./CategoryProps";
 
 type CreateCategoryFormProps = {
-  onNewCategoryCreated: Function;
+  onCreated: Function;
   allCategories: CategoryProps[];
 };
 
@@ -46,7 +46,7 @@ const CreateCategoryForm: React.FC<CreateCategoryFormProps> = (props) => {
         body: JSON.stringify(body),
       });
       close();
-      props.onNewCategoryCreated(await newCategory.json());
+      props.onCreated(await newCategory.json());
     } catch (error) {
       setApiError(`Failed to create new category: ${error}`);
     }
