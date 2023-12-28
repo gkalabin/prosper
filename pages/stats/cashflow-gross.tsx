@@ -4,7 +4,6 @@ import {
   isFullyConfigured,
   NotConfiguredYet,
 } from "components/NotConfiguredYet";
-import { DebugTable } from "components/stats/DebugTable";
 import { StatsPageLayout } from "components/StatsPageLayout";
 import { ButtonLink } from "components/ui/buttons";
 import { eachMonthOfInterval, isWithinInterval, startOfMonth } from "date-fns";
@@ -95,7 +94,6 @@ export function MoneyInMoneyOut(props: {
             <ButtonLink onClick={() => setShowDebugTable(false)}>
               Hide debug table
             </ButtonLink>
-            <IncomeExpenseDebugTable transactions={nonThirdPartyTransactions} />
             <ButtonLink onClick={() => setShowDebugTable(false)}>
               Hide debug table
             </ButtonLink>
@@ -140,22 +138,6 @@ export function MoneyInMoneyOut(props: {
             },
           ],
         }}
-      />
-    </>
-  );
-}
-
-function IncomeExpenseDebugTable(props: { transactions: Transaction[] }) {
-  return (
-    <>
-      <h2 className="my-2 text-2xl font-medium leading-5">Income</h2>
-      <DebugTable
-        transactions={props.transactions.filter((x) => x.isIncome())}
-      />
-
-      <h2 className="my-2 text-2xl font-medium leading-5">Expense</h2>
-      <DebugTable
-        transactions={props.transactions.filter((x) => x.isPersonalExpense())}
       />
     </>
   );

@@ -4,9 +4,7 @@ import {
   isFullyConfigured,
   NotConfiguredYet,
 } from "components/NotConfiguredYet";
-import { DebugTable } from "components/stats/DebugTable";
 import { StatsPageLayout } from "components/StatsPageLayout";
-import { ButtonLink } from "components/ui/buttons";
 import { eachMonthOfInterval, isWithinInterval, startOfMonth } from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
@@ -26,7 +24,6 @@ export function IncomeCharts(props: {
   transactions: Transaction[];
   duration: Interval;
 }) {
-  const [showDebugTable, setShowDebugTable] = useState(false);
   const displayCurrency = useDisplayCurrency();
   const { categories } = useAllDatabaseDataContext();
   const zero = AmountWithCurrency.zero(displayCurrency);
@@ -51,27 +48,6 @@ export function IncomeCharts(props: {
 
   return (
     <>
-      <div className="m-4">
-        {showDebugTable && (
-          <>
-            <ButtonLink onClick={() => setShowDebugTable(false)}>
-              Hide debug table
-            </ButtonLink>
-            <h2 className="my-2 text-2xl font-medium leading-5">
-              Income transactions
-            </h2>
-            <DebugTable transactions={incomeTransactions} />
-            <ButtonLink onClick={() => setShowDebugTable(false)}>
-              Hide debug table
-            </ButtonLink>
-          </>
-        )}
-        {!showDebugTable && (
-          <ButtonLink onClick={() => setShowDebugTable(true)}>
-            Show debug table
-          </ButtonLink>
-        )}
-      </div>
       <ReactEcharts
         notMerge
         option={{
