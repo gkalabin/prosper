@@ -42,6 +42,28 @@ export const AnchorPagePrimary = forwardRef<
 });
 AnchorPagePrimary.displayName = "AnchorPagePrimary";
 
+export const TextLink = forwardRef<
+  HTMLAnchorElement & { label: string },
+  LinkProps & HTMLProps<HTMLAnchorElement>
+>((props, ref) => {
+  const { label, href, className, ...rest } = props;
+  return (
+    <Link href={href}>
+      <a
+        ref={ref}
+        className={classNames(
+          className,
+          "font-medium text-indigo-600 hover:text-indigo-500"
+        )}
+        {...rest}
+      >
+        {label}
+      </a>
+    </Link>
+  );
+});
+TextLink.displayName = "TextLink";
+
 export const ButtonPagePrimary = (
   props: React.ButtonHTMLAttributes<HTMLButtonElement> & { label: string }
 ) => {

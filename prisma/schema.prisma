@@ -121,17 +121,20 @@ model BankAccount {
   incomingTransfers Transfer[]        @relation("IncomingTransfers")
   Income            Income[]
 
+  OpenBankingAccount OpenBankingAccount[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Bank {
-  id           Int           @id @default(autoincrement())
+  id           Int                @id @default(autoincrement())
   name         String
-  displayOrder Int           @default(0)
+  displayOrder Int                @default(0)
   accounts     BankAccount[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  tokens       OpenBankingToken[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
 
   // user   User @relation(fields: [userId], references: [id])
   // userId Int
@@ -192,15 +195,33 @@ model User {
 }
 
 model OpenBankingToken {
-  id              String   @id @default(uuid())
-  access_token    String   @db.VarChar(4096)
-  expires_in      Int
-  token_type      String
-  refresh_token   String
-  scope           String
-  tokenCreatedAt  DateTime
-  tokenValidUntil DateTime
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  // Bank      Bank[]
+  id     String @id @default(uuid())
+  bank   Bank   @relation(fields: [bankId], references: [id])
+  bankId Int    @unique
+
+  // fields from true layer api
+  accessToken  String @db.VarChar(4096)
+  expiresIn    Int
+  tokenType    String
+  refreshToken String
+  scope        String
+
+  // own set fields
+  tokenCreatedAt       DateTime
+  tokenValidUntil      DateTime
+  connectionCreatedAt  DateTime
+  connectionValidUntil DateTime
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+}
+
+model OpenBankingAccount {
+  id String @id @default(uuid())
+
+  bankAccount          BankAccount @relation(fields: [bankAccountId], references: [id])
+  bankAccountId        Int
+  openBankingAccountId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
