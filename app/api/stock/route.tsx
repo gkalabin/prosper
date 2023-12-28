@@ -9,6 +9,9 @@ export async function GET(request: NextRequest): Promise<Response> {
   await getUserId();
   const searchParams = request.nextUrl.searchParams;
   const q = searchParams.get("q");
+  if (!q) {
+    return new Response(`query 'q' cannot be empty`, { status: 400 });
+  }
   const found: SearchResult = await yahooFinance.search(q, { newsCount: 0 });
   const stocks: StockApiModel[] = found.quotes
     // Remove currencies as there is an internal list of currencies in the Currency class.
