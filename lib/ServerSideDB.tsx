@@ -35,10 +35,6 @@ const fetchOpenBankingData = async () => {
   };
 };
 
-Date.prototype.toJSON = function () {
-  return this.getTime();
-};
-
 const jsonEncodingHacks = (key: string, value) => {
   if (typeof value === "bigint") {
     if (value > Number.MAX_SAFE_INTEGER) {
