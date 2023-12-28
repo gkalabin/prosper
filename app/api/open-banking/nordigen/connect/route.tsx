@@ -1,25 +1,28 @@
-import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
 import { DB } from "lib/db";
 import { getOrCreateToken } from "lib/openbanking/nordigen/token";
 import prisma from "lib/prisma";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { getUserId } from "lib/user";
+import { intParam } from "lib/util/searchParams";
+import { redirect } from "next/navigation";
+import { NextRequest } from "next/server";
 import { v4 as uuidv4 } from "uuid";
 
-async function handle(
-  userId: number,
-  req: NextApiRequest,
-  res: NextApiResponse,
-  db: DB
-) {
-  const bankId = parseInt(req.query.bankId as string, 10);
-  const institutionId = req.query.institutionId as string;
+export async function GET(request: NextRequest): Promise<Response> {
+  const query = request.nextUrl.searchParams;
+  const bankId = intParam(query.get("bankId"));
+  if (!bankId) {
+    return new Response(`bankId must be an integer`, { status: 400 });
+  }
+  const institutionId = query.get("institutionId");
   if (!institutionId) {
-    return res.status(400).send("Missing institutionId");
+    return new Response(`institutionId is missing`, { status: 400 });
   }
   const redirectURI = `${process.env.HOST}/api/open-banking/nordigen/connected`;
+  const userId = await getUserId();
+  const db = new DB({ userId });
   const [bank] = await db.bankFindMany({ where: { id: bankId } });
   if (!bank) {
-    return res.status(404).json({ message: "Bank not found" });
+    return new Response(`Bank not found`, { status: 404 });
   }
   const reference = uuidv4();
   const token = await getOrCreateToken(db, bankId);
@@ -36,13 +39,12 @@ async function handle(
     }),
   });
   if (Math.round(response.status / 100) * 100 !== 200) {
-    return res
-      .status(500)
-      .send(
-        `Failed to create requisition (status ${
-          response.status
-        }): ${await response.text()}`
-      );
+    return new Response(
+      `Failed to create requisition (status ${
+        response.status
+      }): ${await response.text()}`,
+      { status: 500 },
+    );
   }
   const requisition = await response.json();
   const data = {
@@ -59,7 +61,5 @@ async function handle(
       bankId,
     },
   });
-  return res.redirect(requisition.link);
+  return redirect(requisition.link);
 }
-
-export default authenticatedApiRoute("GET", handle);
