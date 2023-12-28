@@ -128,6 +128,14 @@ export class Transaction {
     return this.income?.account ?? this.transfer?.accountTo;
   }
 
+  hasVendor() {
+    return !!firstNonNull(
+      this.personalExpense,
+      this.thirdPartyExpense,
+      this.income
+    );
+  }
+
   vendor() {
     return firstNonNull(
       this.personalExpense,

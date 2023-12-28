@@ -1,26 +1,26 @@
 import { Switch } from "@headlessui/react";
 import {
   Transaction as DBTransaction,
-  TransactionPrototype as DBTransactionPrototype,
+  TransactionPrototype as DBTransactionPrototype
 } from "@prisma/client";
 import { BankAccountSelect } from "components/forms/BankAccountSelect";
 import {
   MoneyInputWithLabel,
-  TextInputWithLabel,
+  TextInputWithLabel
 } from "components/forms/Input";
 import { SelectNumber } from "components/forms/Select";
 import {
   ButtonFormPrimary,
   ButtonFormSecondary,
-  ButtonLink,
+  ButtonLink
 } from "components/ui/buttons";
-import { format } from "date-fns";
+import { differenceInHours, format } from "date-fns";
 import { Formik, FormikHelpers, useFormikContext } from "formik";
 import {
   AddTransactionFormValues,
   FormMode,
   formModeForTransaction,
-  formToDTO,
+  formToDTO
 } from "lib/AddTransactionDataModels";
 import { useCurrencyContext } from "lib/ClientSideModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
@@ -174,12 +174,120 @@ function mostFrequent<T extends { id: number }>(items: T[]): T {
   return itemById[mostFrequentId];
 }
 
+type TransactionPrototype = {
+  amount: number;
+  vendor: string;
+  timestamp: Date;
+  accountFromId?: number;
+  accountToId?: number;
+  mode: FormMode;
+  openBankingTransactionId: string;
+};
+
+function makePrototypes(input: {
+  allTransactions: Transaction[];
+  openBankingTransactions: IOBTransactionsByAccountId;
+  transactionPrototypes: DBTransactionPrototype[];
+}) {
+  const dbTxById = Object.fromEntries(input.allTransactions.map((t) => [t.id, t]));
+
+  const lookupList: { [obDesc: string]: { [dbDesc: string]: number } } = {};
+  for (const t of input.transactionPrototypes) {
+    const dbTx = dbTxById[t.transactionId];
+    lookupList[t.openBankingDescription] ??= {};
+    if (dbTx.hasVendor()) {
+      lookupList[t.openBankingDescription][dbTx.vendor()] ??= 0;
+      lookupList[t.openBankingDescription][dbTx.vendor()]++;
+    } else {
+      lookupList[t.openBankingDescription][dbTx.description] ??= 0;
+      lookupList[t.openBankingDescription][dbTx.description]++;
+    }
+  }
+  console.log(JSON.stringify(lookupList, null, 2));
+
+  const lookup = {};
+  for (const obDesc of Object.keys(lookupList)) {
+    const [dbDesc, frequency] = Object.entries(lookupList[obDesc]).sort(
+      (a, b) => b[1] - a[1]
+    )[0];
+    console.log(`Using ${obDesc}->${dbDesc} with frequency ${frequency}`);
+    lookup[obDesc] = dbDesc;
+  }
+  console.log(JSON.stringify(lookup, null, 2));
+
+  const prototypes = [] as TransactionPrototype[];
+  for (const accountId in input.openBankingTransactions) {
+    for (const t of input.openBankingTransactions[accountId]) {
+      if (t.amount == 0) {
+        continue;
+      }
+      const proto: TransactionPrototype = {
+        amount: Math.abs(t.amount),
+        timestamp: new Date(t.timestamp),
+        vendor: lookup[t.description] ?? t.description,
+        mode: t.amount < 0 ? FormMode.PERSONAL : FormMode.INCOME,
+        accountFromId: t.amount < 0 ? +accountId : undefined,
+        accountToId: t.amount > 0 ? +accountId : undefined,
+        openBankingTransactionId: t.transaction_id,
+      };
+      prototypes.push(proto);
+    }
+  }
+
+  const transfers = [] as TransactionPrototype[];
+  const usedInTransfer = {};
+  for (const to of prototypes) {
+    if (to.amount < 0) {
+      continue;
+    }
+    for (const from of prototypes) {
+      if (Math.abs(from.amount - to.amount) >= 0.01) {
+        continue
+      }
+      if (Math.abs(differenceInHours(from.timestamp, to.timestamp)) > 3) {
+        continue
+      }
+      if (from.accountFromId == to.accountToId) {
+        continue
+      }
+      const transfer = {
+        amount: from.amount,
+        timestamp: from.timestamp,
+        vendor: from.vendor,
+        mode: FormMode.TRANSFER,
+        accountFromId: from.accountFromId,
+        accountToId: from.accountToId,
+        openBankingTransactionId: from.openBankingTransactionId,
+      }
+      transfers.push(transfer);
+      usedInTransfer[from.openBankingTransactionId] = true;
+      usedInTransfer[to.openBankingTransactionId] = true;
+    }
+  }
+
+  const usedInTransaction = Object.fromEntries(
+    input.transactionPrototypes.map((x) => [x.openBankingTransactionId, true])
+  );
+  const unusedProtos = prototypes
+    .filter(p => !usedInTransfer[p.openBankingTransactionId])
+    .filter(p => !usedInTransaction[p.openBankingTransactionId]);
+  const out = [...unusedProtos, ...transfers].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+
+  return out;
+}
+
 const NewTransactionSuggestions = (props: {
   banks: Bank[];
   openBankingTransactions: IOBTransactionsByAccountId;
   transactionPrototypes: DBTransactionPrototype[];
+  allTransactions: Transaction[];
   onItemClick: (t: TransactionPrototype) => void;
 }) => {
+  const prototypes = makePrototypes({
+    allTransactions: props.allTransactions,
+    openBankingTransactions: props.openBankingTransactions,
+    transactionPrototypes: props.transactionPrototypes,
+  })
   const accountsWithData = props.banks
     .flatMap((x) => x.accounts)
     .filter((x) => !!props.openBankingTransactions[x.id])
@@ -245,14 +353,6 @@ const NewTransactionSuggestions = (props: {
   );
 };
 
-type TransactionPrototype = {
-  vendor: string;
-  timestamp: Date;
-  accountFromId?: number;
-  accountToId?: number;
-  mode: FormMode;
-};
-
 export const AddTransactionForm = (props: {
   banks: Bank[];
   categories: Category[];
@@ -296,16 +396,16 @@ export const AddTransactionForm = (props: {
   const defaultCurrency = currencies.all()[0];
   const initialValues = !props.transaction
     ? initialValuesEmpty(
-        defaultAccountFrom,
-        defaultAccountTo,
-        defaultCategory,
-        defaultCurrency
-      )
+      defaultAccountFrom,
+      defaultAccountTo,
+      defaultCategory,
+      defaultCurrency
+    )
     : initialValuesForTransaction(
-        props.transaction,
-        defaultAccountFrom,
-        defaultAccountTo
-      );
+      props.transaction,
+      defaultAccountFrom,
+      defaultAccountTo
+    );
 
   return (
     <div>
@@ -318,6 +418,7 @@ export const AddTransactionForm = (props: {
                   openBankingTransactions={props.openBankingTransactions}
                   transactionPrototypes={props.transactionPrototypes}
                   banks={props.banks}
+                  allTransactions={props.allTransactions}
                   onItemClick={(t) => setPrototype(t)}
                 />
               </div>
@@ -367,8 +468,8 @@ export const AddTransactionForm = (props: {
                       ? "Adding…"
                       : "Add"
                     : isSubmitting
-                    ? "Updating…"
-                    : "Update"
+                      ? "Updating…"
+                      : "Update"
                 }
               />
             </div>
@@ -494,14 +595,12 @@ const FormInputs = (props: {
                 onChange={() => {
                   setFieldValue("isFamilyExpense", !isFamilyExpense);
                 }}
-                className={`${
-                  isFamilyExpense ? "bg-indigo-700" : "bg-gray-200"
-                } relative inline-flex h-6 w-11 items-center rounded-full`}
+                className={`${isFamilyExpense ? "bg-indigo-700" : "bg-gray-200"
+                  } relative inline-flex h-6 w-11 items-center rounded-full`}
               >
                 <span
-                  className={`${
-                    isFamilyExpense ? "translate-x-6" : "translate-x-1"
-                  } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                  className={`${isFamilyExpense ? "translate-x-6" : "translate-x-1"
+                    } inline-block h-4 w-4 transform rounded-full bg-white transition`}
                 />
               </Switch>
             </div>
