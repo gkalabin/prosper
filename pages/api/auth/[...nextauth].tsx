@@ -36,7 +36,7 @@ export const authOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const found = await prisma.user.findFirst({
+        const [found] = await prisma.user.findMany({
           where: {
             login: credentials.login,
           },
