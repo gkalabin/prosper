@@ -5,13 +5,10 @@ import {
 } from "components/NotConfiguredYet";
 import { TransactionsList } from "components/transactions/TransactionsList";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
-import { AnchorLink, ButtonPagePrimary } from "components/ui/buttons";
-import { differenceInDays } from "date-fns";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
+import { ButtonPagePrimary } from "components/ui/buttons";
 import { AmountWithUnit } from "lib/AmountWithUnit";
 import {
   AllDatabaseDataContextProvider,
-  StockAndCurrencyExchange,
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
@@ -22,70 +19,22 @@ import {
   Bank,
   BankAccount,
 } from "lib/model/BankAccount";
-import { Currency } from "lib/model/Currency";
-import { Stock } from "lib/model/Stock";
-import { Transaction } from "lib/model/transaction/Transaction";
 import { Income } from "lib/model/transaction/Income";
-import { Transfer } from "lib/model/transaction/Transfer";
 import { PersonalExpense } from "lib/model/transaction/PersonalExpense";
-import { isCurrency, isStock } from "lib/model/Unit";
+import { Transfer } from "lib/model/transaction/Transfer";
 import {
   useOpenBankingBalances,
-  useOpenBankingExpirations,
   useOpenBankingTransactions,
 } from "lib/openbanking/context";
 import { onTransactionChange } from "lib/stateHelpers";
 import { useState } from "react";
-
-function accountBalance(
-  account: BankAccount,
-  allTransactions: Transaction[],
-  stocks: Stock[],
-): AmountWithUnit {
-  let balance = account.initialBalanceCents;
-  allTransactions.forEach((t) => {
-    if (!transactionBelongsToAccount(t, account)) {
-      return;
-    }
-    switch (t.kind) {
-      case "PersonalExpense":
-        balance = balance - t.amountCents;
-        return;
-      case "Income":
-        balance = balance + t.amountCents;
-        return;
-      case "Transfer":
-        if (t.fromAccountId == account.id) {
-          balance = balance - t.sentAmountCents;
-        } else if (t.toAccountId == account.id) {
-          balance = balance + t.receivedAmountCents;
-        }
-        return;
-    }
-  });
-  return new AmountWithUnit({
-    amountCents: balance,
-    unit: accountUnit(account, stocks),
-  });
-}
-
-function transactionBelongsToAccount(
-  t: Transaction,
-  account: BankAccount,
-): boolean {
-  switch (t.kind) {
-    case "ThirdPartyExpense":
-      return false;
-    case "PersonalExpense":
-    case "Income":
-      return t.accountId == account.id;
-    case "Transfer":
-      return t.fromAccountId == account.id || t.toAccountId == account.id;
-    default:
-      const _exhaustiveCheck: never = t;
-      throw new Error(`Unknown transaction kind ${_exhaustiveCheck}`);
-  }
-}
+import {
+  accountBalance,
+  accountsSum,
+  transactionBelongsToAccount,
+} from "./modelHelpers";
+import { StatsWidget } from "./StatsWidget";
+import { OpenBankingConnectionExpirationWarning } from "./OpenBankingConnectionExpirationWarning";
 
 const BankAccountListItem = ({ account }: { account: BankAccount }) => {
   const [showTransactionList, setShowTransactionList] = useState(false);
@@ -141,7 +90,7 @@ const BankAccountListItem = ({ account }: { account: BankAccount }) => {
   );
 };
 
-const BanksList = ({ banks }: { banks: Bank[] }) => {
+export const BanksList = ({ banks }: { banks: Bank[] }) => {
   return (
     <div className="space-y-4">
       {banks.map((bank) => (
@@ -155,46 +104,22 @@ const BanksListItem = ({ bank }: { bank: Bank }) => {
   const displayCurrency = useDisplayCurrency();
   const { exchange, stocks, transactions, bankAccounts } =
     useAllDatabaseDataContext();
-  const { expirations } = useOpenBankingExpirations();
-  const expiration = expirations?.find((e) => e.bankId == bank.id)
-    ?.expirationEpoch;
-  const now = new Date();
-  const expiresInDays = differenceInDays(expiration, now);
-  const dayOrDays = Math.abs(expiresInDays) == 1 ? "day" : "days";
   const accounts = accountsForBank(bank, bankAccounts);
+  const bankTotal = accountsSum(
+    accounts,
+    displayCurrency,
+    exchange,
+    transactions,
+    stocks,
+  );
   return (
     <div className="rounded border">
       <div className="border-b bg-indigo-200 p-2">
         <div className="text-xl font-medium text-gray-900">
           {bank.name}
-          <span className="ml-2">
-            {accountsSum(
-              accounts,
-              displayCurrency,
-              exchange,
-              transactions,
-              stocks,
-            ).format()}
-          </span>
+          {bankTotal && <span className="ml-2">{bankTotal.format()}</span>}
         </div>
-        {expiration && expiresInDays < 7 && (
-          <div className="text-sm font-light text-gray-700">
-            OpenBanking connection{" "}
-            {(expiresInDays > 0 && (
-              <>
-                expires in {expiresInDays} {dayOrDays}
-              </>
-            )) || (
-              <>
-                has expired {-expiresInDays} {dayOrDays} ago
-              </>
-            )}
-            .{" "}
-            <AnchorLink href={`/api/open-banking/reconnect?bankId=${bank.id}`}>
-              Reconnect
-            </AnchorLink>
-          </div>
-        )}
+        <OpenBankingConnectionExpirationWarning bank={bank} />
       </div>
 
       <div className="divide-y divide-gray-200">
@@ -208,83 +133,16 @@ const BanksListItem = ({ bank }: { bank: Bank }) => {
   );
 };
 
-function accountsSum(
-  accounts: BankAccount[],
-  targetCurrency: Currency,
-  exchange: StockAndCurrencyExchange,
-  allTransactions: Transaction[],
-  stocks: Stock[],
-): AmountWithCurrency {
-  let sum = AmountWithCurrency.zero(targetCurrency);
-  const now = new Date();
-  accounts.forEach((x) => {
-    const b = accountBalance(x, allTransactions, stocks);
-    const unit = b.getUnit();
-    if (isCurrency(unit)) {
-      const delta = exchange.exchangeCurrency(
-        new AmountWithCurrency({
-          amountCents: b.cents(),
-          currency: unit,
-        }),
-        targetCurrency,
-        now,
-      );
-      sum = sum.add(delta);
-      return;
-    }
-    if (isStock(unit)) {
-      const sharesValue = exchange.exchangeStock(
-        b.getAmount(),
-        unit,
-        targetCurrency,
-        now,
-      );
-      const delta = exchange.exchangeCurrency(sharesValue, targetCurrency, now);
-      sum = sum.add(delta);
-      return;
-    }
-    throw new Error(`Unknown unit: ${unit} for ${x.id}`);
-  });
-  return sum;
-}
-
 function NonEmptyPageContent() {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
-  const displayCurrency = useDisplayCurrency();
-  const { banks, bankAccounts, transactions, exchange, stocks, setDbData } =
-    useAllDatabaseDataContext();
-
-  const total = accountsSum(
-    bankAccounts,
-    displayCurrency,
-    exchange,
-    transactions,
-    stocks,
-  );
-  const totalCash = accountsSum(
-    bankAccounts.filter((a) => isCurrency(accountUnit(a, stocks))),
-    displayCurrency,
-    exchange,
-    transactions,
-    stocks,
-  );
+  const { banks, setDbData } = useAllDatabaseDataContext();
   const { isError: obBalancesError, isLoading: obBalancesLoading } =
     useOpenBankingBalances();
   // Just trigger the loading of transactions, so they are cached for later.
   useOpenBankingTransactions();
   return (
     <div className="space-y-4">
-      <div className="rounded border">
-        <h2 className="bg-indigo-300 p-2 text-2xl font-medium text-gray-900">
-          Total {total.format()}
-        </h2>
-        <div className="grid grid-cols-2">
-          <span className="pl-3 text-lg font-medium">Cash</span>{" "}
-          {totalCash.format()}
-          <span className="pl-3 text-lg font-medium">Equity</span>{" "}
-          {total.subtract(totalCash).format()}
-        </div>
-      </div>
+      <StatsWidget />
       <div className="mb-4">
         {!showAddTransactionForm && (
           <div className="flex justify-end">
