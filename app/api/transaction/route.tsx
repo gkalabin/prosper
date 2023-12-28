@@ -1,23 +1,21 @@
-import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
 import prisma from "lib/prisma";
 import {
-  includeExtensionsAndTags,
   TransactionAPIRequest,
   TransactionAPIResponse,
+  includeExtensionsAndTags,
   transactionDbInput,
   writeExtension,
   writeTags,
   writeTrip,
   writeUsedPrototypes,
 } from "lib/transactionDbUtils";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { getUserId } from "lib/user";
+import { NextRequest, NextResponse } from "next/server";
 
-async function handle(
-  userId: number,
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const { form, usedPrototype } = req.body as TransactionAPIRequest;
+export async function POST(request: NextRequest): Promise<Response> {
+  const { form, usedPrototype } =
+    (await request.json()) as TransactionAPIRequest;
+  const userId = await getUserId();
   const result: TransactionAPIResponse = await prisma.$transaction(
     async (tx) => {
       const data = transactionDbInput(form, userId);
@@ -25,7 +23,7 @@ async function handle(
       const createdTrip = await writeTrip({ tx, data, form, userId });
       const { createdTags } = await writeTags({ tx, data, form, userId });
       const createdTransaction = await tx.transaction.create(
-        Object.assign({ data }, includeExtensionsAndTags)
+        Object.assign({ data }, includeExtensionsAndTags),
       );
       const { createdPrototypes } = await writeUsedPrototypes({
         usedPrototype,
@@ -39,9 +37,7 @@ async function handle(
         tags: createdTags,
         prototypes: createdPrototypes,
       };
-    }
+    },
   );
-  res.json(result);
+  return NextResponse.json(result);
 }
-
-export default authenticatedApiRoute("POST", handle);

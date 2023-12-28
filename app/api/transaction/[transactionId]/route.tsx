@@ -1,34 +1,37 @@
-import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
 import { DB } from "lib/db";
 import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
 import prisma from "lib/prisma";
 import {
   AddTransactionFormValues,
   FormMode,
-  includeExtensionsAndTags,
   TransactionAPIRequest,
   TransactionAPIResponse,
+  includeExtensionsAndTags,
   transactionDbInput,
   writeExtension,
   writeTags,
   writeTrip,
 } from "lib/transactionDbUtils";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { getUserId } from "lib/user";
+import { intParam } from "lib/util/searchParams";
+import { NextRequest, NextResponse } from "next/server";
 
-async function handle(
-  userId: number,
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const transactionId = parseInt(req.query.id as string);
-  const { form } = req.body as TransactionAPIRequest;
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { transactionId: string } },
+): Promise<Response> {
+  const transactionId = intParam(params.transactionId);
+  if (!transactionId) {
+    return new Response(`transactionId must be an integer`, { status: 400 });
+  }
+  const { form } = (await request.json()) as TransactionAPIRequest;
+  const userId = await getUserId();
   const db = new DB({ userId });
   const existing = await db.transactionFindFirst(
-    Object.assign({ where: { id: transactionId } }, includeExtensionsAndTags)
+    Object.assign({ where: { id: transactionId } }, includeExtensionsAndTags),
   );
   if (!existing) {
-    res.status(404).send(`Transaction not found`);
-    return;
+    return new Response(`Not authenticated`, { status: 401 });
   }
   const result: TransactionAPIResponse = await prisma.$transaction(
     async (tx) => {
@@ -56,15 +59,15 @@ async function handle(
         tags: createdTags,
         prototypes: [],
       };
-    }
+    },
   );
 
-  res.json(result);
+  return NextResponse.json(result);
 }
 
 async function deleteExistingTransaction(
   tx,
-  existing: TransactionWithExtensions
+  existing: TransactionWithExtensions,
 ) {
   const whereTransaction = {
     where: { transactionId: existing.id },
@@ -85,7 +88,7 @@ async function deleteExistingTransaction(
 
 function isSameExtension(
   oldData: TransactionWithExtensions,
-  form: AddTransactionFormValues
+  form: AddTransactionFormValues,
 ) {
   return (
     (oldData.personalExpense && form.mode == FormMode.PERSONAL) ||
@@ -94,5 +97,3 @@ function isSameExtension(
     (oldData.transfer && form.mode == FormMode.TRANSFER)
   );
 }
-
-export default authenticatedApiRoute("POST", handle);
