@@ -8,7 +8,7 @@ import {
 } from "components/NotConfiguredYet";
 import { TransactionsList } from "components/transactions/TransactionsList";
 import { ButtonFormSecondary, ButtonPagePrimary } from "components/ui/buttons";
-import { differenceInMilliseconds } from "date-fns";
+import { differenceInMilliseconds, startOfDay } from "date-fns";
 import { Formik, useFormikContext } from "formik";
 import {
   AllDatabaseDataContextProvider,
@@ -130,15 +130,24 @@ function FilteredTransactionsList() {
     ) {
       return true;
     }
+    if (new RegExp(`\\b${t.id}\\b`).test(freeTextSearch)) {
+      return true;
+    }
     return false;
   };
+  const sameDayOrBefore = (a: Date | string, b: Date | string) =>
+    differenceInMilliseconds(
+      startOfDay(new Date(a)),
+      startOfDay(new Date(b))
+    ) <= 0;
   const displayTransactions = transactions
     .filter(transactionMatchesFreeTextSearch)
     .filter(
       (t) =>
         transactionTypes.some((tt) => t.matchesType(tt)) &&
         (vendor
-          ? t.hasVendor() && t.vendor().toLocaleLowerCase().includes(vendor.toLocaleLowerCase())
+          ? t.hasVendor() &&
+            t.vendor().toLocaleLowerCase().includes(vendor.toLocaleLowerCase())
           : true) &&
         (accountIds?.length
           ? (t.hasAccountFrom() && accountIds.includes(t.accountFrom().id)) ||
@@ -152,12 +161,8 @@ function FilteredTransactionsList() {
             )
           : true) &&
         (tripId ? t.hasTrip() && t.trip().id() == tripId : true) &&
-        (timeFrom
-          ? differenceInMilliseconds(t.timestamp, new Date(timeFrom)) >= 0
-          : true) &&
-        (timeTo
-          ? differenceInMilliseconds(new Date(timeTo), t.timestamp) >= 0
-          : true) &&
+        (timeFrom ? sameDayOrBefore(timeFrom, t.timestamp) : true) &&
+        (timeTo ? sameDayOrBefore(t.timestamp, timeTo) : true) &&
         (tagNames?.length
           ? allTagsShouldMatch
             ? tagNames.every((tn) => t.hasTag(tn))
