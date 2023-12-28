@@ -5,45 +5,35 @@ import React, { useState } from "react";
 import {
   AddTransactionFormValues,
   FormMode,
-  formToDTO,
+  formToDTO
 } from "../../lib/AddTransactionDataModels";
 import { Bank } from "../../lib/model/BankAccount";
 import Category from "../../lib/model/Category";
 import Currency from "../../lib/model/Currency";
-import Transaction from "../../lib/model/Transaction";
-import { BankAccountSelect } from "../forms/BankAccountSelect";
-import { CategorySelect } from "../forms/CategorySelect";
-import CurrencySelect from "../forms/CurrencySelect";
-import { MoneyInput, TextInput } from "../forms/Input";
+import { DbTransaction } from "../../lib/model/Transaction";
 
 type AddTransactionFormProps = {
   banks: Bank[];
   categories: Category[];
   currencies: Currency[];
-  onAdded: (added: Transaction) => void;
+  onAdded: (added: DbTransaction) => void;
+  onClose: () => void;
 };
 
 export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
   props
 ) => {
-  const [formDisplayed, setFormDisplayed] = useState(false);
   const [apiError, setApiError] = useState("");
-  // TODO: use enum
   const [mode, setMode] = useState(FormMode.PERSONAL);
 
   const reset = () => {
-    setApiError("");
+    setApiError("test");
     // TODO: reset form
-  };
-
-  const open = () => {
-    reset();
-    setFormDisplayed(true);
   };
 
   const close = () => {
     reset();
-    setFormDisplayed(false);
+    props.onClose();
   };
 
   if (!props.categories?.length || !props.banks?.length) {
@@ -60,18 +50,6 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
             <Link href="/config/banks">bank</Link>
           </li>
         )}
-      </div>
-    );
-  }
-  if (!formDisplayed) {
-    return (
-      <div className="flex justify-end">
-        <button
-          className="mb-4 rounded-md bg-indigo-600 px-4 py-1.5 text-base font-medium leading-7 text-white shadow-sm hover:bg-indigo-700 hover:ring-indigo-700"
-          onClick={open}
-        >
-          New Transaction
-        </button>
       </div>
     );
   }
@@ -119,27 +97,28 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
               headers: { "Content-Type": "application/json" },
               body: body,
             });
+            setSubmitting(false);
             close();
             props.onAdded(await added.json());
           } catch (error) {
+            setSubmitting(false);
             console.log(error);
             setApiError(`Failed to add: ${error}`);
           }
-          setSubmitting(false);
         }}
       >
         {({ values, handleChange, isSubmitting }) => (
           // TODO: disable form when submitting
-          <Form className="mb-4 w-9/12 rounded bg-white px-8 pt-6 pb-8 shadow-md">
-            <div className="overflow-hidden shadow sm:rounded-md">
-              <div className="bg-white px-4 py-5 sm:p-6">
+          <Form>
+            <div className="mb-4 overflow-hidden shadow sm:rounded-md">
+              <div className="bg-white px-2 py-5 sm:p-6">
                 <div className="grid grid-cols-6 gap-6">
                   <div className="col-span-6 mb-4 flex justify-center">
                     <div className="rounded-md shadow-sm">
                       <button
                         type="button"
                         className={classNames(
-                          "rounded-l-lg border border-gray-200 bg-white py-2 px-4 text-sm font-medium hover:bg-gray-100 hover:text-indigo-700 focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white",
+                          "rounded-l-lg border border-gray-200 bg-white py-1 px-2 text-sm font-medium hover:bg-gray-100 hover:text-indigo-700 focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white",
                           modeSelectorTextColor(FormMode.PERSONAL)
                         )}
                         onClick={() => setMode(FormMode.PERSONAL)}
@@ -150,7 +129,7 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
                       <button
                         type="button"
                         className={classNames(
-                          "border-t border-b border-r border-gray-200 bg-white py-2 px-4 text-sm font-medium hover:bg-gray-100 hover:text-indigo-700 focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white",
+                          "border-t border-b border-r border-gray-200 bg-white py-1 px-2 text-sm font-medium hover:bg-gray-100 hover:text-indigo-700 focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white",
                           modeSelectorTextColor(FormMode.EXTERNAL)
                         )}
                         onClick={() => setMode(FormMode.EXTERNAL)}
@@ -161,7 +140,7 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
                       <button
                         type="button"
                         className={classNames(
-                          "border-t border-b border-r border-gray-200 bg-white py-2 px-4 text-sm font-medium hover:bg-gray-100 hover:text-indigo-700 focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white",
+                          "border-t border-b border-r border-gray-200 bg-white py-1 px-2 text-sm font-medium hover:bg-gray-100 hover:text-indigo-700 focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white",
                           modeSelectorTextColor(FormMode.TRANSFER)
                         )}
                         onClick={() => setMode(FormMode.TRANSFER)}
@@ -171,7 +150,7 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
                       </button>
                       <button
                         className={classNames(
-                          "rounded-r-md border border-gray-200 bg-white py-2 px-4 text-sm font-medium hover:bg-gray-100 hover:text-indigo-700 focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white",
+                          "rounded-r-md border border-gray-200 bg-white py-1 px-2 text-sm font-medium hover:bg-gray-100 hover:text-indigo-700 focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white",
                           modeSelectorTextColor(FormMode.INCOME)
                         )}
                         type="button"
@@ -184,7 +163,7 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
                   </div>
 
                   {/* Inputs */}
-                  <div className="col-span-6 sm:col-span-3">
+                  <div className="col-span-6">
                     <label
                       htmlFor="timestamp"
                       className="block text-sm font-medium text-gray-700"
@@ -201,24 +180,31 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
                     />
                   </div>
 
-                  <div className="col-span-6 sm:col-span-3">
-                    <label
-                      htmlFor="vendor"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Vendor
-                    </label>
-                    <input
-                      type="text"
-                      name="vendor"
-                      id="vendor"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                      value={values.vendor}
-                      onChange={handleChange}
-                    />
-                  </div>
+                  {[
+                    FormMode.PERSONAL,
+                    FormMode.EXTERNAL,
+                    FormMode.INCOME,
+                  ].includes(mode) && (
+                    // To make 2 columns: <div className="col-span-6 sm:col-span-3">
+                    <div className="col-span-6">
+                      <label
+                        htmlFor="vendor"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Vendor
+                      </label>
+                      <input
+                        type="text"
+                        name="vendor"
+                        id="vendor"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        value={values.vendor}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  )}
 
-                  <div className="col-span-6 sm:col-span-3">
+                  <div className="col-span-6">
                     <label
                       htmlFor="description"
                       className="block text-sm font-medium text-gray-700"
@@ -235,24 +221,26 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
                     />
                   </div>
 
-                  <div className="col-span-6 sm:col-span-3">
-                    <label
-                      htmlFor="payer"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Payer
-                    </label>
-                    <input
-                      type="text"
-                      name="payer"
-                      id="payer"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                      value={values.payer}
-                      onChange={handleChange}
-                    />
-                  </div>
+                  {[FormMode.EXTERNAL].includes(mode) && (
+                    <div className="col-span-6">
+                      <label
+                        htmlFor="payer"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Payer
+                      </label>
+                      <input
+                        type="text"
+                        name="payer"
+                        id="payer"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        value={values.payer}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  )}
 
-                  <div className="col-span-6 sm:col-span-3">
+                  <div className="col-span-6">
                     <label
                       htmlFor="amount"
                       className="block text-sm font-medium text-gray-700"
@@ -271,93 +259,105 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
                     />
                   </div>
 
-                  <div className="col-span-6 sm:col-span-3">
-                    <label
-                      htmlFor="ownShareAmount"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Own share amount
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      inputMode="decimal"
-                      name="ownShareAmount"
-                      id="ownShareAmount"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                      value={values.ownShareAmount}
-                      onChange={handleChange}
-                    />
-                  </div>
+                  {[
+                    FormMode.PERSONAL,
+                    FormMode.EXTERNAL,
+                    FormMode.INCOME,
+                  ].includes(mode) && (
+                    <div className="col-span-6">
+                      <label
+                        htmlFor="ownShareAmount"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Own share amount
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        inputMode="decimal"
+                        name="ownShareAmount"
+                        id="ownShareAmount"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        value={values.ownShareAmount}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  )}
 
-                  <div className="col-span-6 sm:col-span-3">
-                    <label
-                      htmlFor="receivedAmount"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Received
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      inputMode="decimal"
-                      name="receivedAmount"
-                      id="receivedAmount"
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                      value={values.receivedAmount}
-                      onChange={handleChange}
-                    />
-                  </div>
+                  {[FormMode.TRANSFER].includes(mode) && (
+                    <div className="col-span-6">
+                      <label
+                        htmlFor="receivedAmount"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Received
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        inputMode="decimal"
+                        name="receivedAmount"
+                        id="receivedAmount"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                        value={values.receivedAmount}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  )}
 
-                  <div className="col-span-6 sm:col-span-3">
-                    <label
-                      htmlFor="fromBankAccountId"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Account From
-                    </label>
-                    <select
-                      id="fromBankAccountId"
-                      name="fromBankAccountId"
-                      className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                      value={values.fromBankAccountId}
-                      onChange={handleChange}
-                    >
-                      {props.banks.map((b) =>
-                        b.accounts.map((ba) => (
-                          <option key={ba.id} value={ba.id}>
-                            {b.name} {ba.name}
-                          </option>
-                        ))
-                      )}
-                    </select>
-                  </div>
+                  {[FormMode.PERSONAL, FormMode.TRANSFER].includes(mode) && (
+                    <div className="col-span-6">
+                      <label
+                        htmlFor="fromBankAccountId"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Account From
+                      </label>
+                      <select
+                        id="fromBankAccountId"
+                        name="fromBankAccountId"
+                        className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                        value={values.fromBankAccountId}
+                        onChange={handleChange}
+                      >
+                        {props.banks.map((b) =>
+                          b.accounts.map((ba) => (
+                            <option key={ba.id} value={ba.id}>
+                              {b.name} {ba.name}
+                            </option>
+                          ))
+                        )}
+                      </select>
+                    </div>
+                  )}
 
-                  <div className="col-span-6 sm:col-span-3">
-                    <label
-                      htmlFor="toBankAccountId"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Account To
-                    </label>
-                    <select
-                      id="toBankAccountId"
-                      name="toBankAccountId"
-                      className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                      value={values.toBankAccountId}
-                      onChange={handleChange}
-                    >
-                      {props.banks.map((b) =>
-                        b.accounts.map((ba) => (
-                          <option key={ba.id} value={ba.id}>
-                            {b.name} {ba.name}
-                          </option>
-                        ))
-                      )}
-                    </select>
-                  </div>
+                  {[FormMode.TRANSFER, FormMode.INCOME].includes(mode) && (
+                    <div className="col-span-6">
+                      <label
+                        htmlFor="toBankAccountId"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Account To
+                      </label>
+                      <select
+                        id="toBankAccountId"
+                        name="toBankAccountId"
+                        className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                        value={values.toBankAccountId}
+                        onChange={handleChange}
+                      >
+                        {props.banks.map((b) =>
+                          b.accounts.map((ba) => (
+                            <option key={ba.id} value={ba.id}>
+                              {b.name} {ba.name}
+                            </option>
+                          ))
+                        )}
+                      </select>
+                    </div>
+                  )}
 
-                  <div className="col-span-6 sm:col-span-3">
+                  <div className="col-span-6">
                     <label
                       htmlFor="categoryId"
                       className="block text-sm font-medium text-gray-700"
@@ -379,30 +379,37 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
                     </select>
                   </div>
 
-                  <div className="col-span-6 sm:col-span-3">
-                    <label
-                      htmlFor="currencyId"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Currency
-                    </label>
-                    <select
-                      id="currencyId"
-                      name="currencyId"
-                      className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                      value={values.currencyId}
-                      onChange={handleChange}
-                    >
-                      {props.currencies.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {[FormMode.EXTERNAL].includes(mode) && (
+                    <div className="col-span-6">
+                      <label
+                        htmlFor="currencyId"
+                        className="block text-sm font-medium text-gray-700"
+                      >
+                        Currency
+                      </label>
+                      <select
+                        id="currencyId"
+                        name="currencyId"
+                        className="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                        value={values.currencyId}
+                        onChange={handleChange}
+                      >
+                        {props.currencies.map((c) => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
               </div>
-              <div className="bg-gray-50 px-4 py-3 text-right sm:px-6">
+
+              <div className="flex bg-gray-50 px-4 py-3 text-right sm:px-6">
+                {apiError && (
+                  <div className="grow text-left text-red-700">{apiError}</div>
+                )}
+
                 <button
                   type="button"
                   className="mr-2 inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
@@ -421,8 +428,6 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
                 </button>
               </div>
             </div>
-
-            {apiError && <span>{apiError}</span>}
           </Form>
         )}
       </Formik>

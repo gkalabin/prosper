@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import { BankAccount } from "../../lib/model/BankAccount";
-import Transaction from "../../lib/model/Transaction";
+import { DbTransaction, Transaction } from "../../lib/model/Transaction";
 import { currencyByTransaction, formatMoney } from "../../lib/Money";
 
 export const Amount = (props: { t: Transaction }) => {
@@ -75,25 +74,32 @@ export const TransactionDescription = (props: { t: Transaction }) => {
   return <></>;
 };
 
-
 export const TransactionStatusLine = (props: { t: Transaction }) => {
   if (props.t.personalExpense) {
     const from = props.t.personalExpense.account;
-    return <span className="bg-gray-100 rounded px-2 py-1">{from.bank.name}: {from.name}</span>
+    return (
+      <span className="rounded bg-gray-100 px-2 py-1">
+        {from.bank.name}: {from.name}
+      </span>
+    );
   }
   if (props.t.thirdPartyExpense) {
-    return <>{props.t.thirdPartyExpense.payer}</>
+    return <>{props.t.thirdPartyExpense.payer}</>;
   }
   if (props.t.income) {
     const to = props.t.income.account;
-    return <>{to.bank.name}: {to.name}</>
+    return (
+      <>
+        {to.bank.name}: {to.name}
+      </>
+    );
   }
   return <></>;
 };
 
 type TransactionsListItemProps = {
   transaction: Transaction;
-  onUpdated: (transaction: Transaction) => void;
+  onUpdated: (transaction: DbTransaction) => void;
 };
 export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
   props
@@ -101,13 +107,14 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
   const [showRawDetails, setShowRawDetails] = useState(false);
   const raw = JSON.stringify(props.transaction, null, 2);
   return (
-    <li className="p-2 flex flex-col gap-2">
-      <div className="min-h-[theme('spacing[16]')] flex gap-2">
-        <div className="min-w-[theme('spacing[20]')] flex-none text-lg text-right font-medium text-gray-900 whitespace-nowrap">
+    // TODO: add date and category
+    <li className="flex flex-col gap-2 p-2">
+      <div className="flex min-h-[theme('spacing[16]')] gap-2">
+        <div className="min-w-[theme('spacing[20]')] flex-none whitespace-nowrap text-right text-lg font-medium text-gray-900">
           <Amount t={props.transaction} />
         </div>
 
-        <div className="grow flex flex-col gap-1">
+        <div className="flex grow flex-col gap-1">
           <div className="text-base font-medium text-gray-900">
             <TransactionHeading t={props.transaction} />
           </div>
@@ -121,8 +128,8 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
         </div>
 
         <div>
-          <div className="h-full min-w-[theme('spacing[16]')] flex flex-col md:justify-end">
-            <div className="flex flex-col md:flex-row gap-1">
+          <div className="flex h-full min-w-[theme('spacing[16]')] flex-col md:justify-end">
+            <div className="flex flex-col gap-1 md:flex-row">
               <button className="font-medium text-indigo-600 hover:text-indigo-500">
                 Edit
               </button>
@@ -144,7 +151,7 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
 
 type TransactionsListProps = {
   transactions: Transaction[];
-  onTransactionUpdated: (transaction: Transaction) => void;
+  onTransactionUpdated: (transaction: DbTransaction) => void;
 };
 export const TransactionsList: React.FC<TransactionsListProps> = (props) => {
   const [displayLimit, setDisplayLimit] = useState(1000);
@@ -157,8 +164,8 @@ export const TransactionsList: React.FC<TransactionsListProps> = (props) => {
     .concat(props.transactions)
     .slice(0, displayLimit);
   return (
-    <div className="flex-1 border border-gray-200 rounded">
-      <ul role="list" className="divide-y divide-gray-200 flex flex-col">
+    <div className="flex-1 rounded border border-gray-200">
+      <ul role="list" className="flex flex-col divide-y divide-gray-200">
         {displayTransactions.map((t) => (
           <TransactionsListItem
             key={t.id}
