@@ -242,11 +242,13 @@ export const AddTransactionForm = (props: {
                 </FormTransactionTypeSelector>
               </div>
 
-              <div className="flex justify-end gap-2 bg-gray-50 px-4 py-3 sm:px-6">
-                {apiError && (
-                  <div className="grow text-left text-red-700">{apiError}</div>
+              {apiError && (
+                  <div className="bg-gray-50 px-4 pt-3 sm:px-6 text-left text-red-700">
+                    <span className="font-bold">Error: </span> {apiError}
+                  </div>
                 )}
 
+              <div className="flex justify-end gap-2 bg-gray-50 px-4 py-3 sm:px-6">
                 <ButtonFormSecondary
                   className="self-start"
                   onClick={() => setAdvancedMode(!isAdvancedMode)}
