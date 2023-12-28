@@ -75,34 +75,35 @@ export class Transaction {
 
     if (init.personalExpense) {
       const bankAccount = bankAccountById[init.personalExpense.accountId];
-      this.personalExpense = Object.assign({}, init.personalExpense, {
+      this.personalExpense = {
+        ...init.personalExpense,
         account: bankAccount,
         trip: tripById.get(init.personalExpense.tripId),
-      });
+      };
       bankAccount.transactions.push(this);
     }
 
     if (init.thirdPartyExpense) {
-      this.thirdPartyExpense = Object.assign({}, init.thirdPartyExpense, {
+      this.thirdPartyExpense = {
+        ...init.thirdPartyExpense,
         currency: currencies.findById(init.thirdPartyExpense.currencyId),
         trip: tripById.get(init.thirdPartyExpense.tripId),
-      });
+      };
     }
     if (init.transfer) {
       const accountFrom = bankAccountById[init.transfer.accountFromId];
       const accountTo = bankAccountById[init.transfer.accountToId];
-      this.transfer = Object.assign({}, init.transfer, {
+      this.transfer = {
+        ...init.transfer,
         accountFrom: accountFrom,
         accountTo: accountTo,
-      });
+      };
       accountFrom.transactions.push(this);
       accountTo.transactions.push(this);
     }
     if (init.income) {
       const bankAccount = bankAccountById[init.income.accountId];
-      this.income = Object.assign({}, init.income, {
-        account: bankAccount,
-      });
+      this.income = { ...init.income, account: bankAccount };
       bankAccount.transactions.push(this);
     }
   }
@@ -177,7 +178,7 @@ export class Transaction {
 
   vendor() {
     if (!this.hasVendor()) {
-      throw new Error("Treansaction has no vendor");
+      throw new Error("Transaction has no vendor");
     }
     return this.vendorOrNull();
   }
@@ -188,7 +189,7 @@ export class Transaction {
 
   payer() {
     if (!this.hasPayer()) {
-      throw new Error("Treansaction has no payer");
+      throw new Error("Transaction has no payer");
     }
     return this.thirdPartyExpense.payer;
   }
@@ -205,7 +206,7 @@ export class Transaction {
 
   trip() {
     if (!this.hasTrip()) {
-      throw new Error("Treansaction has no trip");
+      throw new Error("Transaction has no trip");
     }
     return this.tripOrNull();
   }
