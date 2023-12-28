@@ -1,8 +1,12 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../../../lib/prisma";
+import type { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handle(req, res) {
-  const categoryId = parseInt(req.query.id);
+export default async function handle(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const categoryId = parseInt(req.query.id as string);
   if (req.method === "PUT") {
     const { name, parentCategoryId, displayOrder } = req.body;
 
