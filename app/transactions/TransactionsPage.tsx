@@ -65,7 +65,7 @@ export function TransactionsPage({ dbData }: { dbData: AllDatabaseData }) {
   }
   return (
     <AllDatabaseDataContextProvider dbData={dbData}>
-      <Formik onSubmit={null} initialValues={initialTransactionFilters}>
+      <Formik onSubmit={() => {}} initialValues={initialTransactionFilters}>
         <NonEmptyPageContent />
       </Formik>
     </AllDatabaseDataContextProvider>
