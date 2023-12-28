@@ -190,7 +190,7 @@ export async function writeUsedPrototypes({
   userId,
   tx,
 }: {
-  usedPrototype: TransactionPrototype;
+  usedPrototype: TransactionPrototype | null;
   createdTransactionId: number;
   userId: number;
   tx: Prisma.TransactionClient;
