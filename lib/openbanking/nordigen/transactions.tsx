@@ -29,19 +29,28 @@ function decode(arg: {
     console.warn("Nordigen transactions error", arg.response);
     return [];
   }
-  const all = [...(booked ?? []), ...(pending ?? [])];
-  return all.map((t) => {
-    const amountCents = Math.round(t.transactionAmount.amount * 100);
+  return [...(booked ?? []), ...(pending ?? [])].map((t) => {
+    const {
+      transactionAmount,
+      transactionId,
+      internalTransactionId,
+      valueDateTime,
+      creditorName,
+      remittanceInformationUnstructuredArray
+    } = t;
+    const amountCents = Math.round(transactionAmount.amount * 100);
     const proto = {
       type: amountCents > 0 ? ("deposit" as const) : ("withdrawal" as const),
-      timestampEpoch: new Date(t.valueDateTime).getTime(),
-      description: t.creditorName,
-      originalDescription: t.creditorName,
-      externalTransactionId: t.transactionId,
+      timestampEpoch: new Date(valueDateTime).getTime(),
+      description: creditorName,
+      originalDescription: creditorName,
+      externalTransactionId: transactionId ?? internalTransactionId,
       absoluteAmountCents: Math.abs(amountCents),
       internalAccountId: arg.accountId,
     };
+    if (!proto.description) {
+      proto.description = remittanceInformationUnstructuredArray?.[0] ?? "";
+    }
     return proto;
   });
-  return [];
 }
