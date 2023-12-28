@@ -8,6 +8,7 @@ import {
   CurrencyContextProvider,
   modelFromDatabaseData,
 } from "lib/ClientSideModel";
+import { useDisplayCurrency } from "lib/displaySettings";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { AllDatabaseData, allDbDataProps } from "lib/ServerSideDB";
@@ -60,10 +61,16 @@ type BankListItemProps = {
   onTransactionUpdated: (updated: DBTransaction) => void;
 };
 const BankListItem: React.FC<BankListItemProps> = (props) => {
+  const displayCurrency = useDisplayCurrency();
   return (
     <div>
       <div className="border-b bg-indigo-200 p-2 text-xl font-medium text-gray-900">
         {props.bank.name}
+        <Amount
+          amountCents={props.bank.balance(displayCurrency)}
+          currency={displayCurrency}
+          className="ml-2"
+        />
       </div>
 
       <div className="divide-y divide-gray-200">

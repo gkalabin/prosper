@@ -4,7 +4,7 @@ import { formatMoney } from "lib/Money";
 
 export const Amount = (props: {
   amountCents: number;
-  sign: number;
+  sign?: number;
   currency: Currency;
   className?: string;
 }) => {

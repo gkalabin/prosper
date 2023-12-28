@@ -51,16 +51,23 @@ export const loadAllDatabaseData = async () => {
   };
 };
 
+Date.prototype.toJSON = function(){
+  return this.getTime();
+};
+
+const jsonEncodingHacks = (key: string, value: any) => {
+  if (typeof value === "bigint") {
+    if (value > Number.MAX_SAFE_INTEGER) {
+      throw new Error(`Number ${value} is too big to serialize as JSON`);
+    }
+    return value.toString();
+  }
+  return value;
+};
+
 export const allDbDataProps = async () => {
   const allData = await loadAllDatabaseData();
-  const dbExchangeRatesWithInt = JSON.parse(
-    JSON.stringify(
-      allData.dbExchangeRates,
-      (key, value) => (typeof value === "bigint" ? value.toString() : value) // return everything else unchanged
-    )
-  );
-  allData.dbExchangeRates = dbExchangeRatesWithInt;
   return {
-    props: JSON.parse(JSON.stringify(allData)),
+    props: JSON.parse(JSON.stringify(allData, jsonEncodingHacks)),
   };
 };

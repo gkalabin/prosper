@@ -2,7 +2,9 @@ import {
   Bank as DBBank,
   BankAccount as DBBankAccount,
   Currency as DBCurrency,
+  ExchangeRate as DBExchangeRate,
 } from "@prisma/client";
+import { startOfDay } from "date-fns";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category, categoryModelFromDB } from "lib/model/Category";
 import { Transaction } from "lib/model/Transaction";
@@ -57,6 +59,53 @@ export class Currencies {
   }
 }
 
+export class ExchangeRates {
+  private readonly rates: {
+    [currencyIdFrom: number]: {
+      [currencyIdTo: number]: {
+        [epoch: number]: number;
+      };
+    };
+  };
+
+  public constructor(init: DBExchangeRate[]) {
+    this.rates = {};
+    for (const r of init) {
+      const { currencyFromId: fromId, currencyToId: toId } = r;
+      const ts = new Date(r.rateTimestamp);
+      this.rates[fromId] ??= {};
+      this.rates[fromId][toId] ??= {};
+      this.rates[fromId][toId][ts.getTime()] = +r.rateNanos.toString();
+      const start = startOfDay(ts);
+      this.rates[fromId][toId][start.getTime()] = +r.rateNanos.toString();
+    }
+  }
+
+  exchange(from: Currency, to: Currency, when: Date, amount: number) {
+    if (from.id == to.id) {
+      return amount;
+    }
+    const rateNanos = this.findRate(from, to, when);
+    return (amount * rateNanos) / 1000000000;
+  }
+
+  private findRate(from: Currency, to: Currency, when: Date) {
+    if (from.name.indexOf(":") >= 0) {
+      console.warn("Not implemented yet");
+      return 0;
+    }
+    const whenDay = startOfDay(when);
+    const ratesHistory = this.rates[from.id][to.id];
+    const rate = ratesHistory[whenDay.getTime()];
+    if (rate) {
+      return rate;
+    }
+    throw new Error(
+      `failed to echange rate ${from.name} ${to.name} on ${when}: not found rate on ${whenDay}`
+    );
+  }
+}
+
 export type AllDataModel = {
   transactions: Transaction[];
   categories: Category[];
@@ -68,9 +117,10 @@ export type AllDataModel = {
 export const banksModelFromDatabaseData = (
   dbBanks: DBBank[],
   dbBankAccounts: DBBankAccount[],
-  currencies: Currencies
+  currencies: Currencies,
+  exchangeRates?: ExchangeRates
 ): [Bank[], BankAccount[]] => {
-  const banks = dbBanks.map((b) => new Bank(b));
+  const banks = dbBanks.map((b) => new Bank(b, exchangeRates));
   const bankById: {
     [id: number]: Bank;
   } = Object.fromEntries(banks.map((x) => [x.id, x]));
@@ -96,11 +146,13 @@ export const modelFromDatabaseData = (
   } = Object.fromEntries(categories.map((c) => [c.id, c]));
 
   const currencies = new Currencies(dbData.dbCurrencies);
+  const exchangeRates = new ExchangeRates(dbData.dbExchangeRates);
 
   const [banks, bankAccounts] = banksModelFromDatabaseData(
     dbData.dbBanks,
     dbData.dbBankAccounts,
-    currencies
+    currencies,
+    exchangeRates
   );
   const bankAccountById: {
     [id: number]: BankAccount;

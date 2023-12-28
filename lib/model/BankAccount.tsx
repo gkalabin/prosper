@@ -1,5 +1,5 @@
 import { Bank as DBBank, BankAccount as DBBankAccount } from "@prisma/client";
-import { Currencies, Currency } from "lib/ClientSideModel";
+import { Currencies, Currency, ExchangeRates } from "lib/ClientSideModel";
 import { Transaction } from "lib/model/Transaction";
 
 export const bankAccountsFlatList = (banks: Bank[]): BankAccount[] => {
@@ -12,15 +12,31 @@ export class Bank {
   readonly displayOrder: number;
   readonly accounts: BankAccount[];
   readonly dbValue: DBBank;
+  private readonly exchangeRates?: ExchangeRates;
 
-  public constructor(
-    init: DBBank,
-  ) {
+  public constructor(init: DBBank, er?: ExchangeRates) {
     this.dbValue = init;
     this.id = init.id;
     this.name = init.name;
     this.displayOrder = init.displayOrder;
-    this.accounts = []
+    this.accounts = [];
+    this.exchangeRates = er;
+  }
+
+  balance(currency: Currency) {
+    if (!this.exchangeRates) {
+      throw new Error("No exchange rates set");
+    }
+    let balance = 0;
+    this.accounts.forEach((x) => {
+      balance += this.exchangeRates.exchange(
+        x.currency,
+        currency,
+        new Date(),
+        x.balance()
+      );
+    });
+    return balance;
   }
 }
 
@@ -38,7 +54,7 @@ export class BankAccount {
   public constructor(
     init: DBBankAccount,
     bankById: { [id: number]: Bank },
-    currencies: Currencies,
+    currencies: Currencies
   ) {
     this.dbValue = init;
     this.id = init.id;
