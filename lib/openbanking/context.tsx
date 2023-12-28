@@ -9,7 +9,7 @@ export const useOpenBankingExpirations = () => {
     fetcher
   );
   return {
-    expirations: data?.expirtations,
+    expirations: data?.expirations,
     isLoading,
     isError: !!error,
   };

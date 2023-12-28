@@ -9,7 +9,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 export interface OpenBankingBalances {
   balances: AccountBalance[];
-  expirtations: ConnectionExpiration[];
+  expirations: ConnectionExpiration[];
 }
 
 async function handle(
@@ -20,7 +20,7 @@ async function handle(
   const db = new DB({ userId });
   const result: OpenBankingBalances = {
     balances: await fetchBalances(db),
-    expirtations: await getExpirations(db),
+    expirations: await getExpirations(db),
   };
   res.json(result);
 }
