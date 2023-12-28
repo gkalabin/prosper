@@ -1,4 +1,4 @@
-import Layout from "components/Layout";
+"use client";
 import {
   isFullyConfigured,
   NotConfiguredYet,
@@ -15,6 +15,7 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
+import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import {
   accountsForBank,
   accountUnit,
@@ -35,15 +36,13 @@ import {
   useOpenBankingExpirations,
   useOpenBankingTransactions,
 } from "lib/openbanking/context";
-import { allDbDataProps } from "lib/ServerSideDB";
 import { onTransactionChange } from "lib/stateHelpers";
-import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 
 function accountBalance(
   account: BankAccount,
   allTransactions: Transaction[],
-  stocks: Stock[]
+  stocks: Stock[],
 ): AmountWithUnit {
   let balance = account.initialBalanceCents;
   allTransactions.forEach((t) => {
@@ -74,7 +73,7 @@ function accountBalance(
 
 function transactionBelongsToAccount(
   t: Transaction,
-  account: BankAccount
+  account: BankAccount,
 ): boolean {
   switch (t.kind) {
     case "ThirdPartyExpense":
@@ -97,7 +96,7 @@ const BankAccountListItem = ({ account }: { account: BankAccount }) => {
   const unit = accountUnit(account, stocks);
   const accountTransactions = transactions.filter(
     (t): t is PersonalExpense | Transfer | Income =>
-      transactionBelongsToAccount(t, account)
+      transactionBelongsToAccount(t, account),
   );
   let balanceText = <span>{appBalance.format()}</span>;
   const { balances } = useOpenBankingBalances();
@@ -159,9 +158,8 @@ const BanksListItem = ({ bank }: { bank: Bank }) => {
   const { exchange, stocks, transactions, bankAccounts } =
     useAllDatabaseDataContext();
   const { expirations } = useOpenBankingExpirations();
-  const expiration = expirations?.find(
-    (e) => e.bankId == bank.id
-  )?.expirationEpoch;
+  const expiration = expirations?.find((e) => e.bankId == bank.id)
+    ?.expirationEpoch;
   const now = new Date();
   const expiresInDays = differenceInDays(expiration, now);
   const dayOrDays = Math.abs(expiresInDays) == 1 ? "day" : "days";
@@ -177,7 +175,7 @@ const BanksListItem = ({ bank }: { bank: Bank }) => {
               displayCurrency,
               exchange,
               transactions,
-              stocks
+              stocks,
             ).format()}
           </span>
         </div>
@@ -217,7 +215,7 @@ function accountsSum(
   targetCurrency: Currency,
   exchange: StockAndCurrencyExchange,
   allTransactions: Transaction[],
-  stocks: Stock[]
+  stocks: Stock[],
 ): AmountWithCurrency {
   let sum = AmountWithCurrency.zero(targetCurrency);
   const now = new Date();
@@ -231,7 +229,7 @@ function accountsSum(
           currency: unit,
         }),
         targetCurrency,
-        now
+        now,
       );
       sum = sum.add(delta);
       return;
@@ -241,7 +239,7 @@ function accountsSum(
         b.getAmount(),
         unit,
         targetCurrency,
-        now
+        now,
       );
       const delta = exchange.exchangeCurrency(sharesValue, targetCurrency, now);
       sum = sum.add(delta);
@@ -252,7 +250,7 @@ function accountsSum(
   return sum;
 }
 
-function OverviewPageContent() {
+function NonEmptyPageContent() {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
   const displayCurrency = useDisplayCurrency();
   const { banks, bankAccounts, transactions, exchange, stocks, setDbData } =
@@ -263,21 +261,21 @@ function OverviewPageContent() {
     displayCurrency,
     exchange,
     transactions,
-    stocks
+    stocks,
   );
   const totalLiquid = accountsSum(
     bankAccounts.filter((a) => a.liquid),
     displayCurrency,
     exchange,
     transactions,
-    stocks
+    stocks,
   );
   const { isError: obBalancesError, isLoading: obBalancesLoading } =
     useOpenBankingBalances();
   // Just trigger the loading of transactions, so they are cached for later.
   useOpenBankingTransactions();
   return (
-    <Layout className="space-y-4">
+    <div className="space-y-4">
       <div className="rounded border">
         <h2 className="bg-indigo-300 p-2 text-2xl font-medium text-gray-900">
           Total {total.format()}
@@ -315,20 +313,17 @@ function OverviewPageContent() {
         </div>
       )}
       <BanksList banks={banks} />
-    </Layout>
+    </div>
   );
 }
 
-export const getServerSideProps = allDbDataProps;
-export default function OverviewPage(
-  dbData: InferGetServerSidePropsType<typeof getServerSideProps>
-) {
+export function OverviewPage({ dbData }: { dbData: AllDatabaseData }) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }
   return (
     <AllDatabaseDataContextProvider dbData={dbData}>
-      <OverviewPageContent />
+      <NonEmptyPageContent />
     </AllDatabaseDataContextProvider>
   );
 }
