@@ -13,6 +13,7 @@ export interface IOBTransaction {
   currency: string;
   description: string;
   transaction_id: string;
+  true_layer_transaction_id: string;
   provider_transaction_id: string;
   normalised_provider_transaction_id: string;
   merchant_name: string;
@@ -24,6 +25,7 @@ export interface IOBTransaction {
     provider_merchant_name: string;
     counter_party_preferred_name: string;
     user_comments: string;
+    transaction_time: string;
   };
   timestamp: string;
   transaction_type: string;
