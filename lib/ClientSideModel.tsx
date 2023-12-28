@@ -378,11 +378,12 @@ export const modelFromDatabaseData = (
   const trips = dbData.dbTrips.map((x) => new Trip(x));
   const tripById = new Map<number, Trip>(trips.map(x => [x.id(), x]));
   const tags = dbData.dbTags.map((x) => new Tag(x));
+  const tagById = new Map<number, Tag>(tags.map(x => [x.id(), x]));
 
   const transactions: Transaction[] = dbData.dbTransactions
     .map(
       (t) =>
-        new Transaction(t, categoryById, bankAccountById, tripById, currencies, exchange)
+        new Transaction(t, categoryById, bankAccountById, tripById, tagById, currencies, exchange)
     )
     .filter((x) => x.valid());
 

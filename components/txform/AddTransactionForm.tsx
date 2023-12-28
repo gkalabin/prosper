@@ -193,7 +193,7 @@ export const AddTransactionForm = (props: {
   const initialMode = props.transaction
     ? formModeForTransaction(props.transaction)
     : FormMode.PERSONAL;
-  const { transactions, currencies } = useAllDatabaseDataContext();
+  const { transactions } = useAllDatabaseDataContext();
   const defaultAccountFrom = mostUsedAccountFrom(transactions);
   const defaultAccountTo = mostUsedAccountTo(transactions);
   const defaultCategory = mostUsedCategory(transactions, "");

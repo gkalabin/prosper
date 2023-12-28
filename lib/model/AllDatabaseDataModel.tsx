@@ -20,6 +20,7 @@ export interface TransactionWithExtensions extends Transaction {
   thirdPartyExpense?: ThirdPartyExpense;
   transfer?: Transfer;
   income?: Income;
+  tags: Tag[];
 }
 
 export type AllDatabaseData = {

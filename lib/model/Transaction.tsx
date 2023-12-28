@@ -1,9 +1,13 @@
 import { startOfMonth } from "date-fns";
-import { AmountWithCurrency, StockAndCurrencyExchange } from "lib/ClientSideModel";
+import {
+  AmountWithCurrency,
+  StockAndCurrencyExchange,
+} from "lib/ClientSideModel";
 import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
 import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currencies, Currency } from "lib/model/Currency";
+import { Tag } from "lib/model/Tag";
 import { Trip } from "lib/model/Trip";
 
 export type PersonalExpense = {
@@ -39,11 +43,12 @@ export class Transaction {
   readonly description: string;
   readonly amountCents: number;
   readonly category: Category;
+  private readonly _tags: Tag[];
 
-  private personalExpense?: PersonalExpense;
+  private readonly personalExpense?: PersonalExpense;
   private readonly thirdPartyExpense?: ThirdPartyExpense;
-  private income?: Income;
-  private transfer?: Transfer;
+  private readonly income?: Income;
+  private readonly transfer?: Transfer;
 
   private readonly exchange: StockAndCurrencyExchange;
 
@@ -54,6 +59,7 @@ export class Transaction {
     categoryById: { [id: number]: Category },
     bankAccountById: { [id: number]: BankAccount },
     tripById: Map<number, Trip>,
+    tagById: Map<number, Tag>,
     currencies: Currencies,
     exchange: StockAndCurrencyExchange
   ) {
@@ -64,6 +70,7 @@ export class Transaction {
     this.amountCents = init.amountCents;
     this.category = categoryById[init.categoryId];
     this.exchange = exchange;
+    this._tags = init.tags?.length ? init.tags.map(({id}) => tagById.get(id)) : [];
 
     if (init.personalExpense) {
       const bankAccount = bankAccountById[init.personalExpense.accountId];
@@ -112,6 +119,10 @@ export class Transaction {
     return !!this.transfer;
   }
 
+  tags() {
+    return this._tags;
+  }
+
   isFamilyExpense() {
     if (this.isIncome()) {
       return false;
@@ -141,11 +152,10 @@ export class Transaction {
   }
 
   private vendorOrNull() {
-    return firstNonNull3(
-      this.personalExpense,
-      this.thirdPartyExpense,
-      this.income
-    )?.vendor ?? null;
+    return (
+      firstNonNull3(this.personalExpense, this.thirdPartyExpense, this.income)
+        ?.vendor ?? null
+    );
   }
 
   hasVendor() {
@@ -159,7 +169,6 @@ export class Transaction {
     return this.vendorOrNull();
   }
 
-
   hasPayer() {
     return this.isThirdPartyExpense();
   }
@@ -172,10 +181,9 @@ export class Transaction {
   }
 
   private tripOrNull() {
-    return firstNonNull2(
-      this.personalExpense,
-      this.thirdPartyExpense
-    )?.trip ?? null;
+    return (
+      firstNonNull2(this.personalExpense, this.thirdPartyExpense)?.trip ?? null
+    );
   }
 
   hasTrip() {

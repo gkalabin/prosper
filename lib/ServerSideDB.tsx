@@ -16,6 +16,11 @@ const fetchAllDatabaseData = async (db: DB): Promise<AllDatabaseData> => {
       thirdPartyExpense: true,
       transfer: true,
       income: true,
+      tags: {
+        select: {
+          id: true,
+        }
+      },
     },
   });
 
