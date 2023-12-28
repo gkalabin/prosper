@@ -8,9 +8,7 @@ import { Bank, BankAccount, bankAccountBalance } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
 import { AllDatabaseData, loadAllDatabaseData } from "lib/ServerSideDB";
-import {
-  GetStaticProps, InferGetStaticPropsType
-} from "next";
+import { GetStaticProps, InferGetStaticPropsType } from "next";
 import React, { useState } from "react";
 
 type BankAccountListItemProps = {
@@ -18,12 +16,16 @@ type BankAccountListItemProps = {
   categories: Category[];
   currencies: Currency[];
   account: BankAccount;
+  onTransactionUpdated: (updated: DBTransaction) => void;
 };
 const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
   const [showTransactionList, setShowTransactionList] = useState(false);
   return (
     <div className="flex flex-col py-2 pl-6 pr-2">
-      <div onClick={() => setShowTransactionList(!showTransactionList)}>
+      <div
+        className="cursor-pointer"
+        onClick={() => setShowTransactionList(!showTransactionList)}
+      >
         <span className="text-base font-normal">{props.account.name}</span>
         <Amount
           amountCents={bankAccountBalance(props.account)}
@@ -39,8 +41,7 @@ const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
             banks={props.banks}
             currencies={props.currencies}
             transactions={props.account.transactions}
-            // TODO: implement
-            onTransactionUpdated={() => alert("TODO")}
+            onTransactionUpdated={props.onTransactionUpdated}
             showBankAccountInStatusLine={false}
           />
         </div>
@@ -54,6 +55,7 @@ type BankListItemProps = {
   categories: Category[];
   currencies: Currency[];
   bank: Bank;
+  onTransactionUpdated: (updated: DBTransaction) => void;
 };
 const BankListItem: React.FC<BankListItemProps> = (props) => {
   return (
@@ -70,6 +72,7 @@ const BankListItem: React.FC<BankListItemProps> = (props) => {
             categories={props.categories}
             banks={props.banks}
             currencies={props.currencies}
+            onTransactionUpdated={props.onTransactionUpdated}
           />
         ))}
       </div>
@@ -81,6 +84,7 @@ type TransactionsListProps = {
   categories: Category[];
   currencies: Currency[];
   banks: Bank[];
+  onTransactionUpdated: (updated: DBTransaction) => void;
 };
 const BanksList: React.FC<TransactionsListProps> = (props) => {
   if (!props.banks?.length) {
@@ -97,6 +101,7 @@ const BanksList: React.FC<TransactionsListProps> = (props) => {
               banks={props.banks}
               currencies={props.currencies}
               bank={b}
+              onTransactionUpdated={props.onTransactionUpdated}
             />
           ))}
         </div>
@@ -132,12 +137,12 @@ export default function OverviewPage({
     setShowAddTransactionForm(false);
   };
   const updateTransaction = (updated: DBTransaction) => {
-    setDbData((old) => {
-      const newDataCopy = Object.assign({}, old);
-      newDataCopy.dbTransactions = old.dbTransactions.map((t) =>
+    setDbData((oldDbData) => {
+      const newDbData = Object.assign({}, oldDbData);
+      newDbData.dbTransactions = oldDbData.dbTransactions.map((t) =>
         t.id == updated.id ? updated : t
       );
-      return newDataCopy;
+      return newDbData;
     });
   };
 
@@ -170,6 +175,7 @@ export default function OverviewPage({
             banks={model.banks}
             categories={model.categories}
             currencies={model.currencies}
+            onTransactionUpdated={updateTransaction}
           />
         </div>
       </div>

@@ -135,16 +135,16 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
   const initialValues = {
     timestamp: toDateTimeLocal(props.transaction?.timestamp ?? now),
     vendor: props.transaction?.vendor() ?? "",
-    description: props.transaction.description ?? "",
-    amount: props.transaction.amount(),
-    ownShareAmount: props.transaction.amountOwnShare() ?? 0,
-    receivedAmount: props.transaction.amountReceived() ?? 0,
-    fromBankAccountId: (props.transaction.accountFrom() ?? bankAccountsList[0])
+    description: props.transaction?.description ?? "",
+    amount: props.transaction?.amount() ?? 0,
+    ownShareAmount: props.transaction?.amountOwnShare() ?? 0,
+    receivedAmount: props.transaction?.amountReceived() ?? 0,
+    fromBankAccountId: (props.transaction?.accountFrom() ?? bankAccountsList[0])
       .id,
-    toBankAccountId: (props.transaction.accountTo() ?? bankAccountsList[0]).id,
-    categoryId: (props.transaction.category ?? props.categories[0]).id,
-    currencyId: (props.transaction.isThirdPartyExpense()
-      ? props.transaction.currency()
+    toBankAccountId: (props.transaction?.accountTo() ?? bankAccountsList[0]).id,
+    categoryId: (props.transaction?.category ?? props.categories[0]).id,
+    currencyId: (props.transaction?.isThirdPartyExpense()
+      ? props.transaction?.currency()
       : props.currencies[0]
     ).id,
   };

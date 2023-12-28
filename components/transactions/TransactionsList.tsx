@@ -152,7 +152,10 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
             categories={props.categories}
             banks={props.banks}
             currencies={props.currencies}
-            onAdded={props.onUpdated}
+            onAdded={(updated) => {
+              props.onUpdated(updated);
+              setShowEditForm(false);
+            }}
             onClose={() => setShowEditForm(false)}
           />
         </div>

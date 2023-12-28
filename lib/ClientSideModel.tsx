@@ -64,5 +64,11 @@ export const modelFromDatabaseData = (
 };
 
 function compareTransactions(a: Transaction, b: Transaction) {
-  return b.timestamp.getTime() - a.timestamp.getTime();
+  if (b.timestamp.getTime() != a.timestamp.getTime()) {
+    return b.timestamp.getTime() - a.timestamp.getTime();
+  }
+  if (b.id != a.id) {
+    return b.id - a.id;
+  }
+  return 0;
 }
