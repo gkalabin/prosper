@@ -10,6 +10,10 @@ export class AmountWithCurrency {
     this.currency = init.currency;
   }
 
+  public static add(x: AmountWithCurrency, y: AmountWithCurrency): AmountWithCurrency {
+    return x.add(y);
+  }
+
   public static zero(currency: Currency): AmountWithCurrency {
     return new AmountWithCurrency({
       amountCents: 0,

@@ -4,17 +4,18 @@ import {
   eachMonthOfInterval,
   startOfMonth,
 } from "date-fns";
-import { Transaction } from "lib/model/Transaction";
 import ReactEcharts from "echarts-for-react";
+import { AmountWithCurrency } from "lib/AmountWithCurrency";
+import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import {
   defaultCountChartOptions,
   defaultMoneyChartOptions,
   defaultPieChartOptions,
 } from "lib/charts";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { useAllDatabaseDataContext } from "lib/ClientSideModel";
-import { percentile } from "lib/util/percentiles";
+import { Transaction } from "lib/model/Transaction";
+import { AppendMap } from "lib/util/AppendingMap";
+import { MoneyTimeseries } from "lib/util/Timeseries";
 
 export function TransactionStats(props: {
   onClose: () => void;
@@ -133,31 +134,34 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
   const duration = { start: first.timestamp, end: last.timestamp };
   const months = eachMonthOfInterval(duration).map((x) => x.getTime());
   const zero = AmountWithCurrency.zero(displayCurrency);
-  const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
-  const grossPerMonth = new Map<number, AmountWithCurrency>(zeroes);
-  const netPerMonth = new Map<number, AmountWithCurrency>(zeroes);
-  const grossPerCategory = new Map<number, AmountWithCurrency>();
-  const netPerCategory = new Map<number, AmountWithCurrency>();
+  const grossPerMonth = new MoneyTimeseries(displayCurrency);
+  const netPerMonth = new MoneyTimeseries(displayCurrency);
+  const grossPerCategory = new AppendMap<number, AmountWithCurrency>(
+    AmountWithCurrency.add,
+    zero
+  );
+  const netPerCategory = new AppendMap<number, AmountWithCurrency>(
+    AmountWithCurrency.add,
+    zero
+  );
   const gross: AmountWithCurrency[] = [];
   const net: AmountWithCurrency[] = [];
   for (const t of transactions) {
-    const ts = startOfMonth(t.timestamp).getTime();
+    const ts = startOfMonth(t.timestamp);
     if (t.isPersonalExpense() || t.isThirdPartyExpense()) {
       const g = t.amountAllParties(displayCurrency);
       const n = t.amountOwnShare(displayCurrency);
       gross.push(g);
       net.push(n);
-      netPerMonth.set(ts, n.add(netPerMonth.get(ts)));
-      grossPerMonth.set(ts, g.add(grossPerMonth.get(ts)));
+      netPerMonth.append(ts, n);
+      grossPerMonth.append(ts, g);
       const cid = t.category.id();
-      grossPerCategory.set(cid, g.add(grossPerCategory.get(cid)));
-      netPerCategory.set(cid, n.add(netPerCategory.get(cid)));
+      grossPerCategory.append(cid, g);
+      netPerCategory.append(cid, n);
     }
   }
   const totalGross = gross.reduce((a, b) => a.add(b), zero);
   const totalNet = net.reduce((a, b) => a.add(b), zero);
-  const mapPercentile = (m: Map<number, AmountWithCurrency>, p: number) =>
-    percentile([...m.values()], p);
 
   return (
     <div>
@@ -173,19 +177,19 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
         <div>
           Monthly percentiles (gross):
           <div className="ml-1 text-xs">
-            {mapPercentile(grossPerMonth, 25).round().format()} (p25) /{" "}
-            {mapPercentile(grossPerMonth, 50).round().format()} (p50) /{" "}
-            {mapPercentile(grossPerMonth, 75).round().format()} (p75) /{" "}
-            {mapPercentile(grossPerMonth, 100).round().format()} (max)
+            {grossPerMonth.monthlyPercentile(25).round().format()} (p25) /{" "}
+            {grossPerMonth.monthlyPercentile(50).round().format()} (p50) /{" "}
+            {grossPerMonth.monthlyPercentile(75).round().format()} (p75) /{" "}
+            {grossPerMonth.monthlyPercentile(100).round().format()} (max)
           </div>
         </div>
         <div>
           Monthly percentiles (net):
           <div className="ml-1 text-xs">
-            {mapPercentile(netPerMonth, 25).round().format()} (p25) /{" "}
-            {mapPercentile(netPerMonth, 50).round().format()} (p50) /{" "}
-            {mapPercentile(netPerMonth, 75).round().format()} (p75) /{" "}
-            {mapPercentile(netPerMonth, 100).round().format()} (max)
+            {netPerMonth.monthlyPercentile(25).round().format()} (p25) /{" "}
+            {netPerMonth.monthlyPercentile(50).round().format()} (p50) /{" "}
+            {netPerMonth.monthlyPercentile(75).round().format()} (p75) /{" "}
+            {netPerMonth.monthlyPercentile(100).round().format()} (max)
           </div>
         </div>
       </div>
@@ -199,9 +203,7 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
           series: [
             {
               type: "bar",
-              data: months.map((m) =>
-                Math.round(grossPerMonth.get(m).dollar())
-              ),
+              data: grossPerMonth.monthRoundDollars(months),
             },
           ],
         }}
@@ -216,7 +218,7 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
           series: [
             {
               type: "bar",
-              data: months.map((m) => Math.round(netPerMonth.get(m).dollar())),
+              data: netPerMonth.monthRoundDollars(months),
             },
           ],
         }}
@@ -272,31 +274,34 @@ function IncomeStats({ transactions }: { transactions: Transaction[] }) {
   const duration = { start: first.timestamp, end: last.timestamp };
   const months = eachMonthOfInterval(duration).map((x) => x.getTime());
   const zero = AmountWithCurrency.zero(displayCurrency);
-  const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
-  const grossPerMonth = new Map<number, AmountWithCurrency>(zeroes);
-  const netPerMonth = new Map<number, AmountWithCurrency>(zeroes);
-  const grossPerCategory = new Map<number, AmountWithCurrency>();
-  const netPerCategory = new Map<number, AmountWithCurrency>();
+  const grossPerMonth = new MoneyTimeseries(displayCurrency);
+  const netPerMonth = new MoneyTimeseries(displayCurrency);
+  const grossPerCategory = new AppendMap<number, AmountWithCurrency>(
+    AmountWithCurrency.add,
+    zero
+  );
+  const netPerCategory = new AppendMap<number, AmountWithCurrency>(
+    AmountWithCurrency.add,
+    zero
+  );
   const gross: AmountWithCurrency[] = [];
   const net: AmountWithCurrency[] = [];
   for (const t of transactions) {
-    const ts = startOfMonth(t.timestamp).getTime();
+    const ts = startOfMonth(t.timestamp);
     if (t.isIncome()) {
       const g = t.amountAllParties(displayCurrency);
       const n = t.amountOwnShare(displayCurrency);
       gross.push(g);
       net.push(n);
-      netPerMonth.set(ts, n.add(netPerMonth.get(ts)));
-      grossPerMonth.set(ts, g.add(grossPerMonth.get(ts)));
+      netPerMonth.append(ts, n);
+      grossPerMonth.append(ts, g);
       const cid = t.category.id();
-      grossPerCategory.set(cid, g.add(grossPerCategory.get(cid)));
-      netPerCategory.set(cid, n.add(netPerCategory.get(cid)));
+      grossPerCategory.append(cid, g);
+      netPerCategory.append(cid, n);
     }
   }
   const totalGross = gross.reduce((a, b) => a.add(b), zero);
   const totalNet = net.reduce((a, b) => a.add(b), zero);
-  const mapPercentile = (m: Map<number, AmountWithCurrency>, p: number) =>
-    percentile([...m.values()], p);
 
   return (
     <div>
@@ -312,19 +317,19 @@ function IncomeStats({ transactions }: { transactions: Transaction[] }) {
         <div>
           Monthly percentiles (gross):
           <div className="ml-1 text-xs">
-            {mapPercentile(grossPerMonth, 25).round().format()} (p25) /{" "}
-            {mapPercentile(grossPerMonth, 50).round().format()} (p50) /{" "}
-            {mapPercentile(grossPerMonth, 75).round().format()} (p75) /{" "}
-            {mapPercentile(grossPerMonth, 100).round().format()} (max)
+            {grossPerMonth.monthlyPercentile(25).round().format()} (p25) /{" "}
+            {grossPerMonth.monthlyPercentile(50).round().format()} (p50) /{" "}
+            {grossPerMonth.monthlyPercentile(75).round().format()} (p75) /{" "}
+            {grossPerMonth.monthlyPercentile(100).round().format()} (max)
           </div>
         </div>
         <div>
           Monthly percentiles (net):
           <div className="ml-1 text-xs">
-            {mapPercentile(netPerMonth, 25).round().format()} (p25) /{" "}
-            {mapPercentile(netPerMonth, 50).round().format()} (p50) /{" "}
-            {mapPercentile(netPerMonth, 75).round().format()} (p75) /{" "}
-            {mapPercentile(netPerMonth, 100).round().format()} (max)
+            {netPerMonth.monthlyPercentile(25).round().format()} (p25) /{" "}
+            {netPerMonth.monthlyPercentile(50).round().format()} (p50) /{" "}
+            {netPerMonth.monthlyPercentile(75).round().format()} (p75) /{" "}
+            {netPerMonth.monthlyPercentile(100).round().format()} (max)
           </div>
         </div>
       </div>
@@ -338,9 +343,7 @@ function IncomeStats({ transactions }: { transactions: Transaction[] }) {
           series: [
             {
               type: "bar",
-              data: months.map((m) =>
-                Math.round(grossPerMonth.get(m).dollar())
-              ),
+              data: grossPerMonth.monthRoundDollars(months),
             },
           ],
         }}
@@ -355,7 +358,7 @@ function IncomeStats({ transactions }: { transactions: Transaction[] }) {
           series: [
             {
               type: "bar",
-              data: months.map((m) => Math.round(netPerMonth.get(m).dollar())),
+              data: grossPerMonth.monthRoundDollars(months),
             },
           ],
         }}
