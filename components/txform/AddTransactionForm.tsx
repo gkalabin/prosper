@@ -1,36 +1,30 @@
 import { Switch } from "@headlessui/react";
 import {
   Transaction as DBTransaction,
-  TransactionPrototype as DBTransactionPrototype,
+  TransactionPrototype as DBTransactionPrototype
 } from "@prisma/client";
 import classNames from "classnames";
 import { BankAccountSelect } from "components/forms/BankAccountSelect";
 import {
   Input,
   MoneyInputWithLabel,
-  TextInputWithLabel,
+  TextInputWithLabel
 } from "components/forms/Input";
 import { SelectNumber } from "components/forms/Select";
+import { FormTransactionTypeSelector } from "components/txform/FormTransactionTypeSelector";
+import { NewTransactionSuggestions, TransactionPrototype } from "components/txform/NewTransactionSuggestions";
 import {
   ButtonFormPrimary,
-  ButtonFormSecondary,
-  ButtonLink,
+  ButtonFormSecondary
 } from "components/ui/buttons";
 import {
-  differenceInHours,
-  differenceInMilliseconds,
   format,
-  isAfter,
-  isBefore,
+  isBefore
 } from "date-fns";
 import { Form, Formik, FormikHelpers, useFormikContext } from "formik";
 import {
-  AddTransactionFormValues,
-  FormMode,
-} from "lib/transactionCreation";
-import {
   useAllDatabaseDataContext,
-  useCurrencyContext,
+  useCurrencyContext
 } from "lib/ClientSideModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
@@ -38,12 +32,13 @@ import { Currency } from "lib/model/Currency";
 import { Transaction } from "lib/model/Transaction";
 import { Trip } from "lib/model/Trip";
 import {
-  IOBTransaction,
-  IOBTransactionsByAccountId,
+  IOBTransactionsByAccountId
 } from "lib/openbanking/interface";
-import { shortRelativeDate } from "lib/TimeHelpers";
+import {
+  AddTransactionFormValues,
+  FormMode
+} from "lib/transactionCreation";
 import { useEffect, useState } from "react";
-import { FormTransactionTypeSelector } from "./FormTransactionTypeSelector";
 
 export const InputRow = (props: {
   mode?: FormMode;
@@ -94,10 +89,10 @@ function initialValuesForTransaction(
     mode,
     timestamp: toDateTimeLocal(t.timestamp),
     description: t.description,
-    vendor: "",
+    vendor: t.hasVendor() ? t.vendor() : "",
     amount: t.amount().dollar(),
     ownShareAmount: t.amount().dollar(),
-    receivedAmount: t.amount().dollar(),
+    receivedAmount: t.isTransfer() ? t.amountReceived().dollar() : t.amount().dollar(),
     fromBankAccountId: (t.accountFrom() ?? defaultAccountFrom).id,
     toBankAccountId: (t.accountTo() ?? defaultAccountTo).id,
     categoryId: t.category.id,
@@ -106,12 +101,6 @@ function initialValuesForTransaction(
     tripName: t.hasTrip() ? t.trip().name() : "",
     payer: t.isThirdPartyExpense() ? t.thirdPartyExpense.payer : "",
   };
-  if (t.hasVendor()) {
-    defaults.vendor = t.vendor();
-  }
-  if (t.isTransfer()) {
-    defaults.receivedAmount = t.amountReceived().dollar();
-  }
   if (t.isPersonalExpense() || t.isThirdPartyExpense() || t.isIncome()) {
     defaults.ownShareAmount = t.amountOwnShare().dollar();
   }
@@ -217,275 +206,6 @@ function mostFrequent<T extends { id: number }>(items: T[]): T {
   return itemById[mostFrequentId];
 }
 
-type TransactionPrototype = {
-  amount: number;
-  vendor: string;
-  timestamp: Date;
-  accountFromId?: number;
-  accountToId?: number;
-  mode: FormMode;
-  openBankingTransactionId: string;
-  openBankingTransaction: IOBTransaction;
-  openBankingTransaction2?: IOBTransaction;
-};
-
-function makePrototypes(input: {
-  allTransactions: Transaction[];
-  openBankingTransactions: IOBTransactionsByAccountId;
-  transactionPrototypes: DBTransactionPrototype[];
-}) {
-  const dbTxById = Object.fromEntries(
-    input.allTransactions.map((t) => [t.id, t])
-  );
-  const lookupList: { [obDesc: string]: { [dbDesc: string]: number } } = {};
-  for (const t of input.transactionPrototypes) {
-    const dbTx = dbTxById[t.transactionId];
-    const provided = t.openBankingDescription;
-    const used = dbTx.hasVendor() ? dbTx.vendor() : dbTx.description;
-    if (used == "" || used == provided) {
-      continue;
-    }
-    lookupList[provided] ??= {};
-    lookupList[provided][used] = (lookupList[provided][used] ?? 0) + 1;
-  }
-  const lookup = {};
-  for (const [obDesc, usedMappings] of Object.entries(lookupList)) {
-    const [mostUsedMapping] = Object.entries(usedMappings).sort(
-      (a, b) => b[1] - a[1]
-    )[0];
-    lookup[obDesc] = mostUsedMapping;
-  }
-
-  const prototypes = [] as TransactionPrototype[];
-  for (const accountId in input.openBankingTransactions) {
-    for (const t of input.openBankingTransactions[accountId]) {
-      if (t.amount == 0) {
-        continue;
-      }
-      const proto: TransactionPrototype = {
-        amount: t.amount,
-        timestamp: new Date(t.timestamp),
-        vendor: lookup[t.description] ?? t.description,
-        mode: t.amount < 0 ? FormMode.PERSONAL : FormMode.INCOME,
-        accountFromId: t.amount < 0 ? +accountId : undefined,
-        accountToId: t.amount > 0 ? +accountId : undefined,
-        openBankingTransactionId: t.transaction_id,
-        openBankingTransaction: t,
-      };
-      prototypes.push(proto);
-    }
-  }
-
-  const transfers = [] as TransactionPrototype[];
-  const usedInTransfer = {};
-  const incomePrototypes = prototypes.filter((p) => p.amount > 0);
-  for (const to of incomePrototypes) {
-    const fromCandidates = prototypes
-      .filter(
-        (from) =>
-          Math.abs(from.amount + to.amount) < 0.01 &&
-          isBefore(from.timestamp, to.timestamp) &&
-          differenceInHours(to.timestamp, from.timestamp) < 2 &&
-          from.accountFromId != to.accountToId
-      )
-      // sort, so the closest to `to` transfer comes first
-      .sort(
-        (f1, f2) =>
-          differenceInMilliseconds(to.timestamp, f1.timestamp) -
-          differenceInMilliseconds(to.timestamp, f2.timestamp)
-      );
-    if (!fromCandidates.length) {
-      continue;
-    }
-    const from = fromCandidates[0];
-    const transfer = {
-      amount: to.amount,
-      timestamp: from.timestamp,
-      vendor: from.vendor,
-      mode: FormMode.TRANSFER,
-      accountFromId: from.accountFromId,
-      accountToId: to.accountToId,
-      openBankingTransactionId: from.openBankingTransactionId,
-      openBankingTransaction: from.openBankingTransaction,
-      openBankingTransaction2: to.openBankingTransaction,
-    };
-    transfers.push(transfer);
-    usedInTransfer[from.openBankingTransactionId] = true;
-    usedInTransfer[to.openBankingTransactionId] = true;
-  }
-
-  const usedInTransaction = Object.fromEntries(
-    input.transactionPrototypes.map((x) => [x.openBankingTransactionId, true])
-  );
-  const unusedProtos = prototypes
-    .filter((p) => !usedInTransfer[p.openBankingTransactionId])
-    .filter((p) => !usedInTransaction[p.openBankingTransactionId]);
-  const out = [...unusedProtos, ...transfers].sort(
-    (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
-  );
-
-  return out;
-}
-
-const NewTransactionSuggestions = (props: {
-  banks: Bank[];
-  openBankingTransactions: IOBTransactionsByAccountId;
-  transactionPrototypes: DBTransactionPrototype[];
-  allTransactions: Transaction[];
-  onItemClick: (t: TransactionPrototype) => void;
-}) => {
-  const [hideBeforeLatest, setHideBeforeLatest] = useState(true);
-  const [expanded, setExpanded] = useState({} as { [id: string]: boolean });
-  const [limit, setLimit] = useState({} as { [id: string]: number });
-  const prototypes = makePrototypes({
-    allTransactions: props.allTransactions,
-    openBankingTransactions: props.openBankingTransactions,
-    transactionPrototypes: props.transactionPrototypes,
-  });
-  const protosByAccountId = new Map<number, TransactionPrototype[]>();
-  prototypes.forEach((p) => {
-    const append = (accountId: number) => {
-      if (!accountId) {
-        return;
-      }
-      const ps = protosByAccountId.get(accountId) ?? [];
-      protosByAccountId.set(accountId, [...ps, p]);
-    };
-    append(p.accountFromId);
-    append(p.accountToId);
-  });
-  const latestTxByAccountId = new Map<number, Date>();
-  props.allTransactions.forEach((t) => {
-    const updateIfNewer = (accountId: number) => {
-      const latest = latestTxByAccountId.get(accountId);
-      if (!latest || isBefore(latest, t.timestamp)) {
-        latestTxByAccountId.set(accountId, t.timestamp);
-      }
-    };
-    if (t.hasAccountFrom()) {
-      updateIfNewer(t.accountFrom().id);
-    }
-    if (t.hasAccountTo()) {
-      updateIfNewer(t.accountTo().id);
-    }
-  });
-  let totalHidden = 0;
-  if (hideBeforeLatest) {
-    for (const [accountId, latest] of latestTxByAccountId.entries()) {
-      const ps = protosByAccountId.get(accountId) ?? [];
-      if (!ps.length) {
-        continue;
-      }
-      const filtered = ps.filter((p) => isAfter(p.timestamp, latest));
-      protosByAccountId.set(accountId, filtered);
-      totalHidden += ps.length - filtered.length;
-    }
-  }
-  const accountsWithData = props.banks
-    .flatMap((x) => x.accounts)
-    .filter((a) => protosByAccountId.get(a.id)?.length)
-    .sort(
-      (a, b) =>
-        protosByAccountId.get(b.id).length - protosByAccountId.get(a.id).length
-    );
-  const [activeAccount, setActiveAccount] = useState(
-    !accountsWithData.length ? null : accountsWithData[0]
-  );
-  const protosToDisplay = protosByAccountId.get(activeAccount?.id);
-  useEffect(() => {
-    if (!protosToDisplay?.length && accountsWithData.length) {
-      setActiveAccount(accountsWithData[0]);
-    }
-  }, [accountsWithData, protosToDisplay, hideBeforeLatest]);
-  if (!accountsWithData.length) {
-    return <></>;
-  }
-  return (
-    <div className="divide-y divide-gray-200 rounded border border-gray-200">
-      <div>
-        <div className="flex gap-2 p-2">
-          {accountsWithData.map((account) => (
-            <ButtonLink
-              key={account.id}
-              onClick={() => setActiveAccount(account)}
-              disabled={account.id == activeAccount.id}
-            >
-              {account.bank.name}: {account.name} (
-              {protosByAccountId.get(account.id).length})
-            </ButtonLink>
-          ))}
-        </div>
-        <div className="px-2 pb-1 text-xs text-slate-600">
-          {hideBeforeLatest && (
-            <span>
-              Hidden {totalHidden} suggestions because there are more recent
-              recorded transactions.{" "}
-              <ButtonLink onClick={() => setHideBeforeLatest(false)}>
-                Show them anyway.
-              </ButtonLink>
-            </span>
-          )}
-          {!hideBeforeLatest && (
-            <span>
-              Showing all suggestions.{" "}
-              <ButtonLink onClick={() => setHideBeforeLatest(true)}>
-                Hide irrelevant.
-              </ButtonLink>
-            </span>
-          )}
-        </div>
-      </div>
-      <ul className="divide-y divide-gray-200">
-        {protosToDisplay
-          .slice(0, limit[activeAccount.id] ?? 10)
-          .map((proto) => (
-            <li key={proto.openBankingTransactionId} className="p-2">
-              <div className="flex">
-                <div
-                  className="grow cursor-pointer"
-                  onClick={() => props.onItemClick(proto)}
-                >
-                  {proto.amount} {proto.vendor}{" "}
-                  {shortRelativeDate(proto.timestamp)}
-                </div>
-                <div>
-                  <ButtonLink
-                    onClick={() =>
-                      setExpanded((prev) =>
-                        Object.assign({}, prev, {
-                          [proto.openBankingTransactionId]:
-                            !prev[proto.openBankingTransactionId],
-                        })
-                      )
-                    }
-                  >
-                    Raw
-                  </ButtonLink>
-                </div>
-              </div>
-              {expanded[proto.openBankingTransactionId] && (
-                <pre className="text-xs">{JSON.stringify(proto, null, 2)}</pre>
-              )}
-            </li>
-          ))}
-        <li className="p-2">
-          <ButtonLink
-            onClick={() =>
-              setLimit((prev) =>
-                Object.assign({}, prev, {
-                  [activeAccount.id]: (prev[activeAccount.id] ?? 10) + 10,
-                })
-              )
-            }
-          >
-            More
-          </ButtonLink>
-        </li>
-      </ul>
-    </div>
-  );
-};
-
 export const AddTransactionForm = (props: {
   banks: Bank[];
   categories: Category[];
@@ -524,11 +244,11 @@ export const AddTransactionForm = (props: {
   const initialValues = !props.transaction
     ? initialValuesForEmptyForm
     : initialValuesForTransaction(
-        props.transaction,
-        initialMode,
-        defaultAccountFrom,
-        defaultAccountTo
-      );
+      props.transaction,
+      initialMode,
+      defaultAccountFrom,
+      defaultAccountTo
+    );
 
   const submitNewTransaction = async (
     values: AddTransactionFormValues,
@@ -621,8 +341,8 @@ export const AddTransactionForm = (props: {
                       ? "Adding…"
                       : "Add"
                     : isSubmitting
-                    ? "Updating…"
-                    : "Update"}
+                      ? "Updating…"
+                      : "Update"}
                 </ButtonFormPrimary>
               </div>
             </div>
@@ -791,9 +511,8 @@ const FormInputs = (props: {
                 disabled={isSubmitting}
               >
                 <span
-                  className={`${
-                    isFamilyExpense ? "translate-x-6" : "translate-x-1"
-                  } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                  className={`${isFamilyExpense ? "translate-x-6" : "translate-x-1"
+                    } inline-block h-4 w-4 transform rounded-full bg-white transition`}
                 />
               </Switch>
             </div>
