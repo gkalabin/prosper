@@ -51,7 +51,7 @@ export async function POST(
   return NextResponse.json(result);
 }
 
-export function updateTransactionData(
+function updateTransactionData(
   form: AddTransactionFormValues,
   userId: number,
 ): Prisma.TransactionUncheckedUpdateInput {
