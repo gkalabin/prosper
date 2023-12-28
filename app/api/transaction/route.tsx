@@ -60,7 +60,7 @@ async function writeTags({
   return { createdTags: tags.created };
 }
 
-export function createTransactionData(
+function createTransactionData(
   form: AddTransactionFormValues,
   userId: number,
 ): Prisma.TransactionUncheckedCreateInput {
