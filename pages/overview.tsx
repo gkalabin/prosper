@@ -1,5 +1,4 @@
 import { Transaction as DBTransaction } from "@prisma/client";
-import { Amount } from "components/Amount";
 import Layout from "components/Layout";
 import {
   isFullyConfigured,
@@ -16,18 +15,19 @@ import { useDisplayCurrency } from "lib/displaySettings";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
-import { IOBBalancesByAccountId, IOpenBankingData } from "lib/openbanking/interface";
+import {
+  IOpenBankingData,
+} from "lib/openbanking/interface";
 import { allDbDataPropsWithOb } from "lib/ServerSideDB";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import React, { createContext, useContext, useState } from "react";
 
-type BankAccountListItemProps = {
+const BankAccountListItem = (props: {
   banks: Bank[];
   categories: Category[];
   account: BankAccount;
   onTransactionUpdated: (updated: DBTransaction) => void;
-};
-const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
+}) => {
   const [showTransactionList, setShowTransactionList] = useState(false);
   return (
     <div className="flex flex-col py-2 pl-6 pr-2">
@@ -36,10 +36,7 @@ const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
         onClick={() => setShowTransactionList(!showTransactionList)}
       >
         <span className="text-base font-normal">{props.account.name}</span>
-        <Amount
-          amount={props.account.balance()}
-          className="ml-2 text-sm font-light"
-        />
+        <span className="ml-2 text-sm font-light">{props.account.balance().format()}</span>
       </div>
       {showTransactionList && (
         <div className="mt-4">
@@ -56,62 +53,37 @@ const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
   );
 };
 
-type BankListItemProps = {
-  banks: Bank[];
+const BanksList = (props: {
   categories: Category[];
-  bank: Bank;
+  banks: Bank[];
   onTransactionUpdated: (updated: DBTransaction) => void;
-};
-const BankListItem: React.FC<BankListItemProps> = (props) => {
+}) => {
   const displayCurrency = useDisplayCurrency();
   const showArchivedAccounts = useContext(ArchivedAccountsShownContext);
-  let accounts = props.bank.accounts;
-  if (!showArchivedAccounts) {
-    accounts = accounts.filter((x) => !x.isArchived());
-  }
-  return (
-    <div>
-      <div className="border-b bg-indigo-200 p-2 text-xl font-medium text-gray-900">
-        {props.bank.name}
-        <Amount amount={props.bank.balance(displayCurrency)} className="ml-2" />
-      </div>
-
-      <div className="divide-y divide-gray-200">
-        {accounts.map((a) => (
-          <BankAccountListItem
-            key={a.id}
-            account={a}
-            categories={props.categories}
-            banks={props.banks}
-            onTransactionUpdated={props.onTransactionUpdated}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
-
-type TransactionsListProps = {
-  categories: Category[];
-  banks: Bank[];
-  openBankingBalances: IOBBalancesByAccountId;
-  onTransactionUpdated: (updated: DBTransaction) => void;
-};
-const BanksList = (props: TransactionsListProps) => {
-  if (!props.banks?.length) {
-    return <div>No banks.</div>;
-  }
   return (
     <div className="flex-1 rounded border border-gray-200">
       <div className="flex flex-col divide-y divide-gray-200">
-        {props.banks.map((b) => (
-          <BankListItem
-            key={b.id}
-            categories={props.categories}
-            banks={props.banks}
-            bank={b}
-            onTransactionUpdated={props.onTransactionUpdated}
-          />
+        {props.banks.map((bank) => (
+          <>
+            <div className="border-b bg-indigo-200 p-2 text-xl font-medium text-gray-900">
+              {bank.name}
+              <span className="ml-2">{bank.balance(displayCurrency).format()}</span>
+            </div>
+
+            <div className="divide-y divide-gray-200">
+              {bank.accounts
+                .filter((a) => showArchivedAccounts || !a.isArchived())
+                .map((account) => (
+                  <BankAccountListItem
+                    key={account.id}
+                    account={account}
+                    categories={props.categories}
+                    banks={props.banks}
+                    onTransactionUpdated={props.onTransactionUpdated}
+                  />
+                ))}
+            </div>
+          </>
         ))}
       </div>
     </div>
@@ -190,7 +162,6 @@ export default function OverviewPage(
             banks={banks}
             categories={categories}
             onTransactionUpdated={updateTransaction}
-            openBankingBalances={dbData.openBankingData.balances}
           />
         </ArchivedAccountsShownContext.Provider>
       </CurrencyContextProvider>

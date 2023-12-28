@@ -1,6 +1,6 @@
 import { Transaction as DBTransaction } from "@prisma/client";
-import { Amount } from "components/Amount";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
+import { AmountWithCurrency } from "lib/ClientSideModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Transaction } from "lib/model/Transaction";
@@ -74,17 +74,28 @@ const TransactionTimestamp = (props: { t: Transaction }) => {
   );
 };
 
-type TransactionsListItemProps = {
+const TransactionAmount = (props: {
+  amount: AmountWithCurrency;
+  sign: number;
+}) => {
+  if (props.sign < 0) {
+    return <span className="text-red-900">-{props.amount.format()}</span>;
+  }
+  if (props.sign > 0) {
+    return <span className="text-green-900">+{props.amount.format()}</span>;
+  }
+
+  return <span>{props.amount.format()}</span>;
+};
+
+export const TransactionsListItem = (props: {
   banks: Bank[];
   categories: Category[];
   transaction: Transaction;
   allTransactions: Transaction[];
   onUpdated: (transaction: DBTransaction) => void;
   showBankAccountInStatusLine: boolean;
-};
-export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
-  props
-) => {
+}) => {
   const [showRawDetails, setShowRawDetails] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const raw = JSON.stringify(props.transaction.dbValue, null, 2);
@@ -93,7 +104,7 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
     <li className="flex flex-col gap-2 p-2">
       <div className="flex min-h-[theme('spacing[16]')] gap-2">
         <div className="min-w-[theme('spacing[20]')] flex-none whitespace-nowrap text-right text-lg font-medium text-gray-900">
-          <Amount
+          <TransactionAmount
             amount={props.transaction.amount()}
             sign={props.transaction.amountSign()}
           />
