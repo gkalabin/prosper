@@ -1,5 +1,5 @@
 import { BankAccount as DBBankAccount } from "@prisma/client";
-import { Currencies } from "lib/ClientSideModel";
+import { Currencies } from "lib/model/Currency";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import React, { useState } from "react";
 

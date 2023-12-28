@@ -1,13 +1,15 @@
 import { startOfMonth } from "date-fns";
 import {
   Amount,
-  Currencies,
-  Currency,
   StockAndCurrencyExchange,
 } from "lib/ClientSideModel";
+import {
+  Currencies,
+  Currency
+} from "lib/model/Currency";
 import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
-import { TransactionWithExtensions } from "lib/ServerSideDB";
+import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
 // import { assert } from "console";
 
 export type PersonalExpense = {

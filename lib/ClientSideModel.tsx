@@ -6,12 +6,12 @@ import {
   StockQuote as DBStockQuote,
 } from "@prisma/client";
 import { closestTo, startOfDay } from "date-fns";
+import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category, categoryModelFromDB } from "lib/model/Category";
 import { Transaction } from "lib/model/Transaction";
-import { AllDatabaseData } from "lib/ServerSideDB";
 import { createContext, useContext } from "react";
-import { NANOS_MULTIPLIER } from "./exchangeRatesBackfill";
+import { Currencies, Currency, NANOS_MULTIPLIER } from "./model/Currency";
 
 const CurrencyContext = createContext<Currencies>(null);
 export const CurrencyContextProvider = (props: {
@@ -27,63 +27,6 @@ export const CurrencyContextProvider = (props: {
 export const useCurrencyContext = () => {
   return useContext(CurrencyContext);
 };
-
-export class Currency {
-  readonly id: number;
-  readonly name: string;
-  readonly dbValue: DBCurrency;
-
-  public constructor(init: DBCurrency) {
-    this.dbValue = init;
-    this.id = init.id;
-    this.name = init.name;
-  }
-
-  isStock() {
-    return this.name.indexOf(":") >= 0;
-  }
-
-  ticker() {
-    if (!this.isStock()) {
-      throw new Error(`Currency ${this.name} is not stock`);
-    }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_unused, ticker] = this.name.split(":");
-    return ticker;
-  }
-
-  exchange() {
-    if (!this.isStock()) {
-      throw new Error(`Currency ${this.name} is not stock`);
-    }
-    const [exchange] = this.name.split(":");
-    return exchange;
-  }
-}
-export class Currencies {
-  private readonly currencies: Currency[];
-  private readonly byId: {
-    [id: number]: Currency;
-  };
-
-  public constructor(init: DBCurrency[]) {
-    this.currencies = init.map((x) => new Currency(x));
-    this.byId = Object.fromEntries(this.currencies.map((x) => [x.id, x]));
-  }
-
-  all() {
-    return this.currencies;
-  }
-  findById(id: number) {
-    return this.byId[id];
-  }
-  findByName(name: string) {
-    return this.currencies.find((c) => c.name == name);
-  }
-  empty() {
-    return !this.currencies.length;
-  }
-}
 
 export class Amount {
   private readonly amountCents: number;
@@ -270,7 +213,7 @@ export class StockQuotes {
     }
     const value = this.findQuote(c.name, when);
     return new Amount({
-      amountCents: a.cents() * value / 100,
+      amountCents: (a.cents() * value) / 100,
       currency: this.currencyByStock[c.name],
     });
   }

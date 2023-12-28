@@ -6,11 +6,12 @@ import {
   Amount,
   CurrencyContextProvider,
   modelFromDatabaseData,
-  StockAndCurrencyExchange
+  StockAndCurrencyExchange,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
+import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { Transaction } from "lib/model/Transaction";
-import { AllDatabaseData, allDbDataProps } from "lib/ServerSideDB";
+import { allDbDataProps } from "lib/ServerSideDB";
 import { formatMonth } from "lib/TimeHelpers";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { useState } from "react";

@@ -1,6 +1,6 @@
 import { Currency as DBCurrency } from "@prisma/client";
 import Layout from "components/Layout";
-import { Currencies, Currency } from "lib/ClientSideModel";
+import { Currencies, Currency } from "lib/model/Currency";
 import prisma from "lib/prisma";
 import { GetStaticProps, InferGetStaticPropsType } from "next";
 import React, { useState } from "react";

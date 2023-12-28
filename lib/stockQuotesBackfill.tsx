@@ -1,7 +1,7 @@
 import { addDays, differenceInHours, isSameDay, startOfDay } from "date-fns";
 import yahooFinance from "yahoo-finance2";
 import { HistoricalRowHistory } from "yahoo-finance2/dist/esm/src/modules/historical";
-import { Currencies, Currency } from "./ClientSideModel";
+import { Currencies, Currency } from "./model/Currency";
 import prisma from "./prisma";
 
 const UPDATE_FREQUENCY_HOURS = 6;

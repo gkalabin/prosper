@@ -1,38 +1,8 @@
-import {
-  Bank,
-  BankAccount,
-  Category,
-  Currency,
-  ExchangeRate,
-  Income,
-  PersonalExpense,
-  StockQuote,
-  ThirdPartyExpense,
-  Transaction,
-  Transfer,
-} from "@prisma/client";
-import prisma from "lib/prisma";
 import { addLatestExchangeRates } from "lib/exchangeRatesBackfill";
+import prisma from "lib/prisma";
 import { addLatestStockQuotes } from "lib/stockQuotesBackfill";
 
-export interface TransactionWithExtensions extends Transaction {
-  personalExpense?: PersonalExpense;
-  thirdPartyExpense?: ThirdPartyExpense;
-  transfer?: Transfer;
-  income?: Income;
-}
-
-export type AllDatabaseData = {
-  dbTransactions: TransactionWithExtensions[];
-  dbCategories: Category[];
-  dbBanks: Bank[];
-  dbBankAccounts: BankAccount[];
-  dbCurrencies: Currency[];
-  dbExchangeRates: ExchangeRate[];
-  dbStockQuotes: StockQuote[];
-};
-
-export const loadAllDatabaseData = async () => {
+const loadAllDatabaseData = async () => {
   const dbTransactions = await prisma.transaction.findMany({
     include: {
       personalExpense: true,

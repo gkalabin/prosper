@@ -10,7 +10,7 @@ import {
 } from "lib/AddTransactionDataModels";
 import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
 import prisma from "lib/prisma";
-import { TransactionWithExtensions } from "lib/ServerSideDB";
+import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 const includeExtensions = {

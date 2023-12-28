@@ -1,10 +1,9 @@
 import { addDays, differenceInHours, isSameDay, startOfDay } from "date-fns";
+import { Currencies, Currency, NANOS_MULTIPLIER } from "lib/model/Currency";
 import yahooFinance from "yahoo-finance2";
 import { HistoricalRowHistory } from "yahoo-finance2/dist/esm/src/modules/historical";
-import { Currencies, Currency } from "./ClientSideModel";
 import prisma from "./prisma";
 
-export const NANOS_MULTIPLIER = 1000000000;
 const UPDATE_FREQUENCY_HOURS = 6;
 
 export async function fetchExchangeRates({
@@ -17,15 +16,19 @@ export async function fetchExchangeRates({
   buy: Currency;
 }) {
   const symbol = `${sell.name}${buy.name}=X`;
-  const r = await yahooFinance.historical(symbol, {
-    period1: startOfDay(startDate),
-    interval: "1d",
-  }, {devel: false});
+  const r = await yahooFinance.historical(
+    symbol,
+    {
+      period1: startOfDay(startDate),
+      interval: "1d",
+    },
+    { devel: false }
+  );
   return r;
 }
 
 export async function addLatestExchangeRates() {
-  const timingLabel = "Exchange rate backfill"
+  const timingLabel = "Exchange rate backfill";
   console.time(timingLabel);
   const currencies = new Currencies(await prisma.currency.findMany());
   if (currencies.empty()) {
@@ -81,7 +84,7 @@ async function backfill({ sell, buy }: { sell: Currency; buy: Currency }) {
       sell.name,
       buy.name,
       fetched[0].date.toDateString()
-    )
+    );
     await prisma.exchangeRate.create({
       data: apiModelToDb(fetched[0]),
     });

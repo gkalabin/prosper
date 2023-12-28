@@ -9,9 +9,10 @@ import {
   modelFromDatabaseData,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
+import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
-import { AllDatabaseData, allDbDataProps } from "lib/ServerSideDB";
+import { allDbDataProps } from "lib/ServerSideDB";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import React, { createContext, useContext, useState } from "react";
 

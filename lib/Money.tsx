@@ -1,4 +1,4 @@
-import { Currency } from "./ClientSideModel";
+import { Currency } from "./model/Currency";
 
 const formatters = {
   EUR: new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }),

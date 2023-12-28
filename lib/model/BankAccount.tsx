@@ -1,10 +1,12 @@
 import { Bank as DBBank, BankAccount as DBBankAccount } from "@prisma/client";
 import {
   Amount,
-  Currencies,
-  Currency,
   StockAndCurrencyExchange,
 } from "lib/ClientSideModel";
+import {
+  Currencies,
+  Currency
+} from "lib/model/Currency";
 import { Transaction } from "lib/model/Transaction";
 
 export class Bank {

@@ -16,7 +16,8 @@ import {
   ButtonLink,
   AnchorLink as AnchorLink,
 } from "components/ui/buttons";
-import { banksModelFromDatabaseData, Currencies } from "lib/ClientSideModel";
+import { banksModelFromDatabaseData } from "lib/ClientSideModel";
+import { Currencies } from "lib/model/Currency";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import prisma from "lib/prisma";
 import { GetStaticProps, InferGetStaticPropsType } from "next";

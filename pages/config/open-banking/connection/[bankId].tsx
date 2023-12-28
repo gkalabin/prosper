@@ -7,7 +7,8 @@ import {
 import { Select } from "components/forms/Select";
 import Layout from "components/Layout";
 import { ButtonFormPrimary } from "components/ui/buttons";
-import { banksModelFromDatabaseData, Currencies } from "lib/ClientSideModel";
+import { banksModelFromDatabaseData } from "lib/ClientSideModel";
+import { Currencies } from "lib/model/Currency";
 import { maybeRefreshToken } from "lib/openBankingToken";
 import prisma from "lib/prisma";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";

@@ -6,7 +6,8 @@ import {
   CurrencyContextProvider,
   modelFromDatabaseData,
 } from "lib/ClientSideModel";
-import { AllDatabaseData, allDbDataProps } from "lib/ServerSideDB";
+import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
+import { allDbDataProps } from "lib/ServerSideDB";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 
