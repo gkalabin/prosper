@@ -46,7 +46,7 @@ const InputWithLabelUntyped = (props: InputProps & FieldHookConfig<any>) => {
       >
         {label}
       </label>
-      <Input
+      <FormikInput
         id={props.name}
         {...field}
         {...inputAttributes}
