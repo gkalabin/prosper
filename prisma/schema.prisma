@@ -140,9 +140,9 @@ model BankAccount {
 }
 
 model Bank {
-  id           Int                @id @default(autoincrement())
+  id           Int           @id @default(autoincrement())
   name         String
-  displayOrder Int                @default(0)
+  displayOrder Int           @default(0)
   accounts     BankAccount[]
 
   user                User                 @relation(fields: [userId], references: [id])
@@ -270,19 +270,21 @@ model StockQuote {
 }
 
 model TrueLayerToken {
-  id     String @id @default(uuid())
-  bank   Bank   @relation(fields: [bankId], references: [id])
-  bankId Int    @unique
-
-  // fields from true layer api
-  accessToken  String @db.VarChar(4096)
-  refreshToken String
-
-  // own set fields
+  id                   String   @id @default(uuid())
+  bank                 Bank     @relation(fields: [bankId], references: [id])
+  bankId               Int      @unique
+  accessToken          String   @db.VarChar(4096)
+  access               String   @default("") @db.VarChar(4096)
+  accessValidUntil     DateTime @default(now())
+  refreshToken         String
+  refresh              String   @default("") @db.VarChar(4096)
+  refreshValidUntil    DateTime @default(now())
+  // TODO: remove
   tokenCreatedAt       DateTime
   tokenValidUntil      DateTime
   connectionCreatedAt  DateTime
   connectionValidUntil DateTime
+  //
   user                 User     @relation(fields: [userId], references: [id])
   userId               Int
   createdAt            DateTime @default(now())
@@ -316,14 +318,9 @@ model NordigenToken {
   id                String   @id @default(uuid())
   bank              Bank     @relation(fields: [bankId], references: [id])
   bankId            Int      @unique
-  // fields from the api
   access            String   @db.VarChar(4096)
-  refresh           String   @db.VarChar(4096)
-  access_expires    Int
-  refresh_expires   Int
-  // own fields
-  tokenCreatedAt    DateTime
   accessValidUntil  DateTime
+  refresh           String   @db.VarChar(4096)
   refreshValidUntil DateTime
   user              User     @relation(fields: [userId], references: [id])
   userId            Int
@@ -334,6 +331,7 @@ model NordigenToken {
 model NordigenRequisition {
   id            String   @id
   requisitionId String   @unique
+  institutionId String   @default("")
   bank          Bank     @relation(fields: [bankId], references: [id])
   bankId        Int      @unique
   user          User     @relation(fields: [userId], references: [id])
@@ -344,12 +342,16 @@ model NordigenRequisition {
 }
 
 model StarlingToken {
-  id          String   @id @default(uuid())
-  bank        Bank     @relation(fields: [bankId], references: [id])
-  bankId      Int      @unique
-  accessToken String   @db.VarChar(4096)
-  user        User     @relation(fields: [userId], references: [id])
-  userId      Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String   @id @default(uuid())
+  bank              Bank     @relation(fields: [bankId], references: [id])
+  bankId            Int      @unique
+  accessToken       String   @db.VarChar(4096)
+  access            String   @default("") @db.VarChar(4096)
+  accessValidUntil  DateTime @default(now())
+  refresh           String   @default("") @db.VarChar(4096)
+  refreshValidUntil DateTime @default(now())
+  user              User     @relation(fields: [userId], references: [id])
+  userId            Int
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }

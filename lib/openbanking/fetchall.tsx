@@ -5,22 +5,24 @@ import {
   StarlingToken,
   TrueLayerToken,
 } from "@prisma/client";
+import { isBefore } from "date-fns";
 import { DB } from "lib/db";
 import {
   AccountBalance,
   AccountDetails,
+  ConnectionExpiration,
   Transaction,
 } from "lib/openbanking/interface";
 import { fetchAccounts as nordigenFetchAccounts } from "lib/openbanking/nordigen/account";
 import { fetchBalance as nordigenFetchBalance } from "lib/openbanking/nordigen/balance";
-import { maybeRefreshToken as nordigenMaybeRefreshToken } from "lib/openbanking/nordigen/token";
+import { refreshToken as nordigenRefreshToken } from "lib/openbanking/nordigen/token";
 import { fetchTransactions as nordigenFetchTransactions } from "lib/openbanking/nordigen/transactions";
 import { fetchAccounts as starlingFetchAccounts } from "lib/openbanking/starling/account";
 import { fetchBalance as starlingFetchBalance } from "lib/openbanking/starling/balance";
 import { fetchTransactions as starlingFetchTransactions } from "lib/openbanking/starling/transactions";
 import { fetchAccounts as trueLayerFetchAccounts } from "lib/openbanking/truelayer/account";
 import { fetchBalance as trueLayerFetchBalance } from "lib/openbanking/truelayer/balance";
-import { maybeRefreshToken as trueLayerMaybeRefreshToken } from "lib/openbanking/truelayer/token";
+import { refreshToken as trueLayerRefreshToken } from "lib/openbanking/truelayer/token";
 import { fetchTransactions as trueLayerFetchTransactions } from "lib/openbanking/truelayer/transactions";
 import {
   WithdrawalOrDepositPrototype,
@@ -29,7 +31,7 @@ import {
 
 type Token = TrueLayerToken | NordigenToken | StarlingToken;
 
-class Provider<T = Token> {
+class Provider<T extends Token> {
   constructor(
     readonly fetchTokens: (db: DB) => Promise<T[]>,
     readonly refreshToken: (db: DB, token: T) => Promise<T>,
@@ -47,19 +49,26 @@ class Provider<T = Token> {
       bankId: number
     ) => Promise<AccountDetails[]>
   ) {}
+
+  async refreshIfNecessary(db: DB, token: T): Promise<T> {
+    if (isBefore(new Date(), token.accessValidUntil)) {
+      return token;
+    }
+    return await this.refreshToken(db, token);
+  }
 }
 
-const providers: Provider[] = [
+const providers: Provider<Token>[] = [
   new Provider<TrueLayerToken>(
     async (db: DB) => await db.trueLayerTokenFindMany(),
-    trueLayerMaybeRefreshToken,
+    trueLayerRefreshToken,
     trueLayerFetchBalance,
     trueLayerFetchTransactions,
     trueLayerFetchAccounts
   ),
   new Provider<NordigenToken>(
     async (db: DB) => await db.nordigenTokenFindMany(),
-    nordigenMaybeRefreshToken,
+    nordigenRefreshToken,
     nordigenFetchBalance,
     nordigenFetchTransactions,
     async (token: NordigenToken, db: DB, bankId: number) => {
@@ -80,7 +89,20 @@ const providers: Provider[] = [
   ),
 ];
 
-// TODO: the next two functions are very similar, we should reduce logic duplication.
+export async function getExpirations(db: DB): Promise<ConnectionExpiration[]> {
+  const result: ConnectionExpiration[] = [];
+  for (const provider of providers) {
+    const dbTokens = await provider.fetchTokens(db);
+    result.push(
+      ...dbTokens.map((t) => ({
+        bankId: t.bankId,
+        expirationEpoch: t.refreshValidUntil.getTime(),
+      }))
+    );
+  }
+  return result;
+}
+
 export async function fetchBalances(db: DB): Promise<AccountBalance[]> {
   return await genericFetch(
     db,
@@ -110,7 +132,7 @@ async function genericFetch<D>(
   for (const provider of providers) {
     const dbTokens = await provider.fetchTokens(db);
     const tokens = await Promise.allSettled(
-      dbTokens.map((t) => provider.refreshToken(db, t))
+      dbTokens.map((t) => provider.refreshIfNecessary(db, t))
     );
     const successfulTokens = tokens
       .map((t) => {

@@ -3,6 +3,11 @@ export interface AccountBalance {
   balanceCents: number;
 }
 
+export interface ConnectionExpiration {
+  bankId: number;
+  expirationEpoch: number;
+}
+
 export interface Transaction {
   externalTransactionId: string;
   timestamp: Date;

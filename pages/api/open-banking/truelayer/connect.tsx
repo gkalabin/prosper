@@ -19,25 +19,31 @@ async function handle(
   }
   const bankId = parseInt(req.query.state as string, 10);
   try {
-    const response = await fetch(
-      `https://auth.truelayer.com/connect/token`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          code: code,
-          redirect_uri: redirectURI,
-          grant_type: "authorization_code",
-          client_id: process.env.TRUE_LAYER_CLIENT_ID,
-          client_secret: process.env.TRUE_LAYER_CLIENT_SECRET,
-        }),
-      }
-    );
+    const response = await fetch(`https://auth.truelayer.com/connect/token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        code: code,
+        redirect_uri: redirectURI,
+        grant_type: "authorization_code",
+        client_id: process.env.TRUE_LAYER_CLIENT_ID,
+        client_secret: process.env.TRUE_LAYER_CLIENT_SECRET,
+      }),
+    });
     const tokenResponse = await response.json();
     const now = new Date();
     const args = {
       accessToken: tokenResponse.access_token,
       refreshToken: tokenResponse.refresh_token,
+      access: tokenResponse.access_token,
+      accessValidUntil: new Date(
+        now.getTime() + tokenResponse.expires_in * 1000
+      ).toISOString(),
+      refresh: tokenResponse.refresh_token,
+      refreshValidUntil: new Date(
+        // 90 days in the future
+        now.getTime() + 90 * 24 * 60 * 60 * 1000
+      ).toISOString(),
       tokenCreatedAt: now.toISOString(),
       tokenValidUntil: new Date(
         now.getTime() + tokenResponse.expires_in * 1000

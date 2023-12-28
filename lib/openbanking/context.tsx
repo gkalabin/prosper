@@ -2,6 +2,19 @@ import { OpenBankingBalances } from "pages/api/open-banking/balances";
 import { OpenBankingTransactions } from "pages/api/open-banking/transactions";
 import useSWR from "swr";
 
+export const useOpenBankingExpirations = () => {
+  const fetcher = (url) => fetch(url).then((r) => r.json());
+  const { data, error, isLoading } = useSWR<OpenBankingBalances>(
+    "/api/open-banking/balances",
+    fetcher
+  );
+  return {
+    expirations: data?.expirtations,
+    isLoading,
+    isError: !!error,
+  };
+};
+
 export const useOpenBankingBalances = () => {
   const fetcher = (url) => fetch(url).then((r) => r.json());
   const { data, error, isLoading } = useSWR<OpenBankingBalances>(

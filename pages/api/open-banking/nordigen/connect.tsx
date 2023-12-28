@@ -8,39 +8,53 @@ import { v4 as uuidv4 } from "uuid";
 async function handle(
   userId: number,
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
+  db: DB
 ) {
   const bankId = parseInt(req.query.bankId as string, 10);
   const institutionId = req.query.institutionId;
+  if (!institutionId) {
+    return res.status(400).send("Missing institutionId");
+  }
   const redirectURI = `${process.env.HOST}/api/open-banking/nordigen/connected`;
-  const db = new DB({ userId });
   const [bank] = await db.bankFindMany({ where: { id: bankId } });
   if (!bank) {
     return res.status(404).json({ message: "Bank not found" });
   }
   const reference = uuidv4();
   const token = await getOrCreateToken(db, bankId);
-  const requisitionResponse = await fetch(
-    `https://ob.nordigen.com/api/v2/requisitions/`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token.access}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        redirect: redirectURI,
-        institution_id: institutionId,
-        reference,
-      }),
-    }
-  );
-  const requisition = await requisitionResponse.json();
-  await prisma.nordigenRequisition.create({
-    data: {
-      id: reference,
-      requisitionId: requisition.id,
-      userId,
+  const response = await fetch(`https://ob.nordigen.com/api/v2/requisitions/`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token.access}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      redirect: redirectURI,
+      institution_id: institutionId,
+      reference,
+    }),
+  });
+  if (Math.round(response.status / 100) * 100 !== 200) {
+    return res
+      .status(500)
+      .send(
+        `Failed to create requisition (status ${
+          response.status
+        }): ${await response.text()}`
+      );
+  }
+  const requisition = await response.json();
+  const data = {
+    id: reference,
+    requisitionId: requisition.id,
+    userId,
+    bankId,
+  };
+  await prisma.nordigenRequisition.upsert({
+    create: data,
+    update: data,
+    where: {
       bankId,
     },
   });

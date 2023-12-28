@@ -5,30 +5,30 @@ import {
 } from "components/NotConfiguredYet";
 import { TransactionsList } from "components/transactions/TransactionsList";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
-import { ButtonPagePrimary } from "components/ui/buttons";
+import { AnchorLink, ButtonPagePrimary } from "components/ui/buttons";
+import { differenceInDays } from "date-fns";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { BankAccount } from "lib/model/BankAccount";
+import { Bank, BankAccount } from "lib/model/BankAccount";
 import {
   useOpenBankingBalances,
+  useOpenBankingExpirations,
+  useOpenBankingTransactions,
 } from "lib/openbanking/context";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { onTransactionChange } from "lib/stateHelpers";
-import { TransactionAPIResponse } from "lib/transactionDbUtils";
 import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 
-const BankAccountListItem = (props: {
-  account: BankAccount;
-  onTransactionUpdated: (response: TransactionAPIResponse) => void;
-}) => {
+const BankAccountListItem = (props: { account: BankAccount }) => {
   const [showTransactionList, setShowTransactionList] = useState(false);
   let balanceText = <span>{props.account.balance().format()}</span>;
   const { balances } = useOpenBankingBalances();
+  const { setDbData } = useAllDatabaseDataContext();
   const obBalance = balances?.find(
     (b) => b.internalAccountId === props.account.id
   );
@@ -56,7 +56,6 @@ const BankAccountListItem = (props: {
       );
     }
   }
-
   return (
     <div className="flex flex-col py-2 pl-6 pr-2">
       <div
@@ -70,7 +69,7 @@ const BankAccountListItem = (props: {
         <div className="mt-4">
           <TransactionsList
             transactions={props.account.transactions}
-            onTransactionUpdated={props.onTransactionUpdated}
+            onTransactionUpdated={onTransactionChange(setDbData)}
             showBankAccountInStatusLine={false}
           />
         </div>
@@ -79,36 +78,58 @@ const BankAccountListItem = (props: {
   );
 };
 
-const BanksList = (props: {
-  onTransactionUpdated: (response: TransactionAPIResponse) => void;
-}) => {
-  const { banks } = useAllDatabaseDataContext();
-  const displayCurrency = useDisplayCurrency();
+const BanksList = ({ banks }: { banks: Bank[] }) => {
   return (
-    <div className="">
-      <div className="space-y-4">
-        {banks.map((bank) => (
-          <div key={bank.id} className="rounded border">
-            <div className="border-b bg-indigo-200 p-2 text-xl font-medium text-gray-900">
-              {bank.name}
-              <span className="ml-2">
-                {bank.balance(displayCurrency).format()}
-              </span>
-            </div>
+    <div className="space-y-4">
+      {banks.map((bank) => (
+        <BanksListItem key={bank.id} bank={bank} />
+      ))}
+    </div>
+  );
+};
 
-            <div className="divide-y divide-gray-200">
-              {bank.accounts
-                .filter((a) => !a.isArchived())
-                .map((account) => (
-                  <BankAccountListItem
-                    key={account.id}
-                    account={account}
-                    onTransactionUpdated={props.onTransactionUpdated}
-                  />
-                ))}
-            </div>
+const BanksListItem = ({ bank }: { bank: Bank }) => {
+  const displayCurrency = useDisplayCurrency();
+  const { expirations } = useOpenBankingExpirations();
+  const expiration = expirations?.find(
+    (e) => e.bankId == bank.id
+  )?.expirationEpoch;
+  const now = new Date();
+  const expiresInDays = differenceInDays(expiration, now);
+  const dayOrDays = Math.abs(expiresInDays) == 1 ? "day" : "days";
+  return (
+    <div className="rounded border">
+      <div className="border-b bg-indigo-200 p-2">
+        <div className="text-xl font-medium text-gray-900">
+          {bank.name}
+          <span className="ml-2">{bank.balance(displayCurrency).format()}</span>
+        </div>
+        {expiration && (
+          <div className="text-sm font-light text-gray-700">
+            OpenBanking connection{" "}
+            {(expiresInDays > 0 && (
+              <>
+                expires in {expiresInDays} {dayOrDays}
+              </>
+            )) || (
+              <>
+                has expired {-expiresInDays} {dayOrDays} ago
+              </>
+            )}
+            .{" "}
+            <AnchorLink href={`/api/open-banking/reconnect?bankId=${bank.id}`}>
+              Reconnect
+            </AnchorLink>
           </div>
-        ))}
+        )}
+      </div>
+
+      <div className="divide-y divide-gray-200">
+        {bank.accounts
+          .filter((a) => !a.isArchived())
+          .map((account) => (
+            <BankAccountListItem key={account.id} account={account} />
+          ))}
       </div>
     </div>
   );
@@ -139,6 +160,8 @@ function OverviewPageContent() {
     );
   const { isError: obBalancesError, isLoading: obBalancesLoading } =
     useOpenBankingBalances();
+  // Just trigger the loading of transactions, so they are cached for later.
+  useOpenBankingTransactions();
   return (
     <Layout className="space-y-4">
       <div className="rounded border">
@@ -177,7 +200,7 @@ function OverviewPageContent() {
           Loading Open Banking balances...
         </div>
       )}
-      <BanksList onTransactionUpdated={onTransactionChange(setDbData)} />
+      <BanksList banks={banks} />
     </Layout>
   );
 }

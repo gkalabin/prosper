@@ -190,7 +190,7 @@ const TrueLayerActions = ({ bank }: { bank: Bank }) => {
         Configure
       </AnchorLink>
       <AnchorLink
-        href={`/api/open-banking/truelayer/connect?bankId=${bank.id}`}
+        href={`/api/open-banking/reconnect?bankId=${bank.id}`}
       >
         Reconnect
       </AnchorLink>
@@ -206,7 +206,7 @@ const NordigenActions = ({ bank }: { bank: Bank }) => {
         Configure
       </AnchorLink>
       <AnchorLink
-        href={`/api/open-banking/nordigen/reconnect?bankId=${bank.id}`}
+        href={`/api/open-banking/reconnect?bankId=${bank.id}`}
       >
         Reconnect
       </AnchorLink>

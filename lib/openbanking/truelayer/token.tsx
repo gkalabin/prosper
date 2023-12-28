@@ -1,16 +1,11 @@
 import { TrueLayerToken } from "@prisma/client";
-import { isBefore } from "date-fns";
 import { DB } from "lib/db";
 import prisma from "lib/prisma";
 
-export async function maybeRefreshToken(
+export async function refreshToken(
   db: DB,
   token: TrueLayerToken
 ): Promise<TrueLayerToken> {
-  const now = new Date();
-  if (isBefore(now, token.tokenValidUntil)) {
-    return token;
-  }
   const fetched = await fetch(`https://auth.truelayer.com/connect/token`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -48,6 +43,7 @@ export async function maybeRefreshToken(
   }
   const json = await fetched.json();
   const { access_token, expires_in, refresh_token } = json;
+  const now = new Date();
   const newToken = await prisma.trueLayerToken.update({
     data: {
       accessToken: access_token,

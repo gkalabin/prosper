@@ -1,3 +1,4 @@
+import { DB } from "lib/db";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "pages/api/auth/[...nextauth]";
@@ -5,7 +6,8 @@ import { authOptions } from "pages/api/auth/[...nextauth]";
 export declare type AuthentiatedApiHandler = (
   userId: number,
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
+  db: DB
 ) => Promise<unknown>;
 
 export function authenticatedApiRoute(
@@ -24,7 +26,9 @@ export function authenticatedApiRoute(
       res.status(401).send("not authenticated");
       return;
     }
+    const userId = +session.user.id;
+    const db = new DB({ userId });
 
-    return await handler(+session.user.id, req, res);
+    return await handler(userId, req, res, db);
   };
 }

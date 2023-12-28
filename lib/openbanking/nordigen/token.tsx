@@ -16,50 +16,45 @@ export async function getOrCreateToken(db: DB, bankId: number) {
   if (!token || isBefore(token.refreshValidUntil, now)) {
     return createToken(db, bankId);
   }
-  return maybeRefreshToken(db, token);
+  return refreshToken(db, token);
 }
 
-function createToken(db: DB, bankId: number): Promise<NordigenToken> {
-  const now = new Date();
-  return fetch(`https://ob.nordigen.com/api/v2/token/new/`, {
+async function createToken(db: DB, bankId: number): Promise<NordigenToken> {
+  const r = await fetch(`https://ob.nordigen.com/api/v2/token/new/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       secret_id: process.env.NORDIGEN_SECRET_ID,
       secret_key: process.env.NORDIGEN_SECRET_KEY,
     }),
-  })
-    .then((r) => r.json())
-    .then(({ access, access_expires, refresh, refresh_expires }) => {
-      return prisma.nordigenToken.create({
-        data: {
-          access,
-          access_expires,
-          refresh,
-          refresh_expires,
-
-          tokenCreatedAt: now.toISOString(),
-          accessValidUntil: new Date(
-            now.getTime() + access_expires * 1000
-          ).toISOString(),
-          refreshValidUntil: new Date(
-            now.getTime() + refresh_expires * 1000
-          ).toISOString(),
-          userId: db.getUserId(),
-          bankId,
-        },
-      });
-    });
+  });
+  const { access, access_expires, refresh, refresh_expires } = await r.json();
+  const now = new Date();
+  const data = {
+    access,
+    accessValidUntil: new Date(
+      now.getTime() + access_expires * 1000
+    ).toISOString(),
+    refresh,
+    refreshValidUntil: new Date(
+      now.getTime() + refresh_expires * 1000
+    ).toISOString(),
+    userId: db.getUserId(),
+    bankId,
+  };
+  return await prisma.nordigenToken.upsert({
+    create: data,
+    update: data,
+    where: {
+      bankId,
+    },
+  });
 }
 
-export async function maybeRefreshToken(
+export async function refreshToken(
   db: DB,
   token: NordigenToken
 ): Promise<NordigenToken> {
-  const now = new Date();
-  if (isBefore(now, token.accessValidUntil)) {
-    return token;
-  }
   const fetched = await fetch(`https://ob.nordigen.com/api/v2/token/refresh/`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -81,10 +76,10 @@ export async function maybeRefreshToken(
   }
   const json = await fetched.json();
   const { access, access_expires } = json;
+  const now = new Date();
   const updatedToken = await prisma.nordigenToken.update({
     data: {
       access,
-      access_expires,
       accessValidUntil: new Date(
         now.getTime() + access_expires * 1000
       ).toISOString(),
