@@ -28,7 +28,7 @@ async function handle(
       const createdTransaction = await tx.transaction.create(
         Object.assign({ data }, includeExtensions)
       );
-      const createdOpenBankingTransactions =
+      const { createdOpenBankingTransactions } =
         await writeUsedOpenBankingTransactions({
           usedOpenBankingTransactions,
           suggestedVendor,

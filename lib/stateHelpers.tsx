@@ -1,10 +1,19 @@
+import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
+import { IOpenBankingData } from "lib/openbanking/interface";
+import { TransactionAPIResponse } from "lib/transactionCreation";
 import { SetStateAction } from "react";
-import { AllDatabaseData } from "./model/AllDatabaseDataModel";
-import { TransactionAPIResponse } from "./transactionCreation";
 
-export function onTransactionChange(setter: Setter<AllDatabaseData>) {
-  return ({ transaction, trip, tags }: TransactionAPIResponse) => {
-    setter((old) => {
+export function onTransactionChange(
+  setDbData: Setter<AllDatabaseData>,
+  setObData?: Setter<IOpenBankingData>
+) {
+  return ({
+    transaction,
+    trip,
+    tags,
+    openBankingTransactions,
+  }: TransactionAPIResponse) => {
+    setDbData((old) => {
       let updatedTrips = [...old.dbTrips];
       if (trip) {
         updatedTrips = updateOrAppend(updatedTrips, trip);
@@ -16,6 +25,16 @@ export function onTransactionChange(setter: Setter<AllDatabaseData>) {
         dbTrips: updatedTrips,
         dbTags: updatedTags,
       });
+    });
+    if (!setObData) {
+      return;
+    }
+    setObData((old) => {
+      const updatedObTransactions = [
+        ...old.dbOpenBankingTransactions,
+        ...openBankingTransactions,
+      ];
+      return { ...old, dbOpenBankingTransactions: updatedObTransactions };
     });
   };
 }

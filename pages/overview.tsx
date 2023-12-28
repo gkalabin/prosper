@@ -117,6 +117,7 @@ function OverviewPageContent() {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
   const displayCurrency = useDisplayCurrency();
   const { banks, exchange, setDbData } = useAllDatabaseDataContext();
+  const { setObData } = useOpenBankingDataContext();
 
   const accounts = banks.flatMap((b) => b.accounts);
   const now = new Date();
@@ -148,7 +149,7 @@ function OverviewPageContent() {
         )}
         {showAddTransactionForm && (
           <AddTransactionForm
-            onAddedOrUpdated={onTransactionChange(setDbData)}
+            onAddedOrUpdated={onTransactionChange(setDbData, setObData)}
             onClose={() => setShowAddTransactionForm(false)}
           />
         )}

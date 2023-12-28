@@ -38,6 +38,7 @@ export type TransactionAPIResponse = {
   transaction: TransactionWithExtensions;
   trip: Trip;
   tags: Tag[];
+  openBankingTransactions: OpenBankingTransaction[];
 };
 
 export const includeExtensions = {
