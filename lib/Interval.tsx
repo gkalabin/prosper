@@ -1,4 +1,4 @@
-import { format, isAfter, isBefore, subMonths } from "date-fns";
+import { format, isAfter, isBefore, isValid, subMonths } from "date-fns";
 
 export class Interval {
   private readonly _start?: Date;
@@ -17,8 +17,8 @@ export class Interval {
     if (isBefore(end, start)) {
       throw new Error(`end must be after start, got ${start} and ${end}`);
     }
-    this._start = start;
-    this._end = end;
+    this._start = isValid(start) ? start : undefined;
+    this._end = isValid(end) ? end : undefined;
     this._label = label;
   }
   start() {
