@@ -62,18 +62,18 @@ export const FormTransfer = ({
   }, [setFieldValue, mostFrequentCategory, transaction]);
 
   useEffect(() => {
-    const proto = prototype;
-    if (!proto) {
+    if (!prototype) {
       return;
     }
-    if (proto.type != "transfer") {
-      throw new Error("Unknown proto type: " + proto.type);
-    }
-    setFieldValue("amount", proto.deposit.absoluteAmountCents / 100);
-    setFieldValue("timestamp", toDateTimeLocal(proto.deposit.timestampEpoch));
-    setFieldValue("description", proto.deposit.description);
-    setFieldValue("fromBankAccountId", proto.withdrawal.internalAccountId);
-    setFieldValue("toBankAccountId", proto.deposit.internalAccountId);
+    const [withdrawal, deposit] =
+      prototype.type == "transfer"
+        ? [prototype.withdrawal, prototype.deposit]
+        : [prototype, prototype];
+    setFieldValue("amount", deposit.absoluteAmountCents / 100);
+    setFieldValue("timestamp", toDateTimeLocal(deposit.timestampEpoch));
+    setFieldValue("description", deposit.description);
+    setFieldValue("fromBankAccountId", withdrawal.internalAccountId);
+    setFieldValue("toBankAccountId", deposit.internalAccountId);
   }, [prototype, setFieldValue]);
 
   const fromAccount = bankAccounts.find((a) => a.id == fromBankAccountId);

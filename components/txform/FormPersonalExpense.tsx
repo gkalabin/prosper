@@ -93,15 +93,15 @@ export const FormPersonalExpense = ({
   }, [setFieldValue, mostFrequentCategory, transaction]);
 
   useEffect(() => {
-    const proto = prototype;
-    if (!proto) {
+    if (!prototype) {
       return;
     }
-    const singleOpProto = proto.type == "transfer" ? proto.withdrawal : proto;
-    setFieldValue("amount", singleOpProto.absoluteAmountCents / 100);
-    setFieldValue("timestamp", toDateTimeLocal(singleOpProto.timestampEpoch));
-    setFieldValue("vendor", singleOpProto.description);
-    setFieldValue("fromBankAccountId", singleOpProto.internalAccountId);
+    const withdrawal =
+      prototype.type == "transfer" ? prototype.withdrawal : prototype;
+    setFieldValue("amount", withdrawal.absoluteAmountCents / 100);
+    setFieldValue("timestamp", toDateTimeLocal(withdrawal.timestampEpoch));
+    setFieldValue("vendor", withdrawal.description);
+    setFieldValue("fromBankAccountId", withdrawal.internalAccountId);
   }, [prototype, setFieldValue]);
 
   useEffect(() => {

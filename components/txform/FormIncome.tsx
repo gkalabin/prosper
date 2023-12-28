@@ -80,15 +80,15 @@ export const FormIncome = ({
   }, [setFieldValue, mostFrequentCategory, transaction]);
 
   useEffect(() => {
-    const proto = prototype;
-    if (!proto) {
+    if (!prototype) {
       return;
     }
-    const singleOpProto = proto.type == "transfer" ? proto.deposit : proto;
-    setFieldValue("amount", singleOpProto.absoluteAmountCents / 100);
-    setFieldValue("timestamp", toDateTimeLocal(singleOpProto.timestampEpoch));
-    setFieldValue("payer", singleOpProto.description);
-    setFieldValue("toBankAccountId", singleOpProto.internalAccountId);
+    const deposit =
+      prototype.type == "transfer" ? prototype.deposit : prototype;
+    setFieldValue("amount", deposit.absoluteAmountCents / 100);
+    setFieldValue("timestamp", toDateTimeLocal(deposit.timestampEpoch));
+    setFieldValue("payer", deposit.description);
+    setFieldValue("toBankAccountId", deposit.internalAccountId);
   }, [prototype, setFieldValue]);
 
   useEffect(() => {
