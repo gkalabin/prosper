@@ -1,18 +1,18 @@
 import { Switch } from "@headlessui/react";
 import {
   Transaction as DBTransaction,
-  TransactionPrototype as DBTransactionPrototype
+  TransactionPrototype as DBTransactionPrototype,
 } from "@prisma/client";
 import { BankAccountSelect } from "components/forms/BankAccountSelect";
 import {
   MoneyInputWithLabel,
-  TextInputWithLabel
+  TextInputWithLabel,
 } from "components/forms/Input";
 import { SelectNumber } from "components/forms/Select";
 import {
   ButtonFormPrimary,
   ButtonFormSecondary,
-  ButtonLink
+  ButtonLink,
 } from "components/ui/buttons";
 import { differenceInHours, format } from "date-fns";
 import { Formik, FormikHelpers, useFormikContext } from "formik";
@@ -20,14 +20,18 @@ import {
   AddTransactionFormValues,
   FormMode,
   formModeForTransaction,
-  formToDTO
+  formToDTO,
 } from "lib/AddTransactionDataModels";
 import { useCurrencyContext } from "lib/ClientSideModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
 import { Transaction } from "lib/model/Transaction";
-import { IOBTransactionsByAccountId } from "lib/openbanking/interface";
+import {
+  IOBTransaction,
+  IOBTransactionsByAccountId,
+} from "lib/openbanking/interface";
+import { shortRelativeDate } from "lib/TimeHelpers";
 import { useEffect, useState } from "react";
 import { FormTransactionTypeSelector } from "./FormTransactionTypeSelector";
 
@@ -182,6 +186,8 @@ type TransactionPrototype = {
   accountToId?: number;
   mode: FormMode;
   openBankingTransactionId: string;
+  openBankingTransaction: IOBTransaction;
+  openBankingTransaction2?: IOBTransaction;
 };
 
 function makePrototypes(input: {
@@ -189,31 +195,28 @@ function makePrototypes(input: {
   openBankingTransactions: IOBTransactionsByAccountId;
   transactionPrototypes: DBTransactionPrototype[];
 }) {
-  const dbTxById = Object.fromEntries(input.allTransactions.map((t) => [t.id, t]));
-
+  const dbTxById = Object.fromEntries(
+    input.allTransactions.map((t) => [t.id, t])
+  );
   const lookupList: { [obDesc: string]: { [dbDesc: string]: number } } = {};
   for (const t of input.transactionPrototypes) {
     const dbTx = dbTxById[t.transactionId];
-    lookupList[t.openBankingDescription] ??= {};
-    if (dbTx.hasVendor()) {
-      lookupList[t.openBankingDescription][dbTx.vendor()] ??= 0;
-      lookupList[t.openBankingDescription][dbTx.vendor()]++;
-    } else {
-      lookupList[t.openBankingDescription][dbTx.description] ??= 0;
-      lookupList[t.openBankingDescription][dbTx.description]++;
+    const provided = t.openBankingDescription;
+    const used = dbTx.hasVendor() ? dbTx.vendor() : dbTx.description;
+    if (used == "" || used == provided) {
+      continue;
     }
+    lookupList[provided] ??= {};
+    lookupList[provided][used] ??= 0;
+    lookupList[provided][used]++;
   }
-  console.log(JSON.stringify(lookupList, null, 2));
-
   const lookup = {};
   for (const obDesc of Object.keys(lookupList)) {
-    const [dbDesc, frequency] = Object.entries(lookupList[obDesc]).sort(
+    const [dbDesc] = Object.entries(lookupList[obDesc]).sort(
       (a, b) => b[1] - a[1]
     )[0];
-    console.log(`Using ${obDesc}->${dbDesc} with frequency ${frequency}`);
     lookup[obDesc] = dbDesc;
   }
-  console.log(JSON.stringify(lookup, null, 2));
 
   const prototypes = [] as TransactionPrototype[];
   for (const accountId in input.openBankingTransactions) {
@@ -222,13 +225,14 @@ function makePrototypes(input: {
         continue;
       }
       const proto: TransactionPrototype = {
-        amount: Math.abs(t.amount),
+        amount: t.amount,
         timestamp: new Date(t.timestamp),
         vendor: lookup[t.description] ?? t.description,
         mode: t.amount < 0 ? FormMode.PERSONAL : FormMode.INCOME,
         accountFromId: t.amount < 0 ? +accountId : undefined,
         accountToId: t.amount > 0 ? +accountId : undefined,
         openBankingTransactionId: t.transaction_id,
+        openBankingTransaction: t,
       };
       prototypes.push(proto);
     }
@@ -241,24 +245,26 @@ function makePrototypes(input: {
       continue;
     }
     for (const from of prototypes) {
-      if (Math.abs(from.amount - to.amount) >= 0.01) {
-        continue
+      if (Math.abs(from.amount + to.amount) >= 0.01) {
+        continue;
       }
       if (Math.abs(differenceInHours(from.timestamp, to.timestamp)) > 3) {
-        continue
+        continue;
       }
       if (from.accountFromId == to.accountToId) {
-        continue
+        continue;
       }
       const transfer = {
-        amount: from.amount,
+        amount: to.amount,
         timestamp: from.timestamp,
         vendor: from.vendor,
         mode: FormMode.TRANSFER,
         accountFromId: from.accountFromId,
-        accountToId: from.accountToId,
+        accountToId: to.accountToId,
         openBankingTransactionId: from.openBankingTransactionId,
-      }
+        openBankingTransaction: from.openBankingTransaction,
+        openBankingTransaction2: to.openBankingTransaction,
+      };
       transfers.push(transfer);
       usedInTransfer[from.openBankingTransactionId] = true;
       usedInTransfer[to.openBankingTransactionId] = true;
@@ -269,9 +275,11 @@ function makePrototypes(input: {
     input.transactionPrototypes.map((x) => [x.openBankingTransactionId, true])
   );
   const unusedProtos = prototypes
-    .filter(p => !usedInTransfer[p.openBankingTransactionId])
-    .filter(p => !usedInTransaction[p.openBankingTransactionId]);
-  const out = [...unusedProtos, ...transfers].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    .filter((p) => !usedInTransfer[p.openBankingTransactionId])
+    .filter((p) => !usedInTransaction[p.openBankingTransactionId]);
+  const out = [...unusedProtos, ...transfers].sort(
+    (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
+  );
 
   return out;
 }
@@ -287,21 +295,29 @@ const NewTransactionSuggestions = (props: {
     allTransactions: props.allTransactions,
     openBankingTransactions: props.openBankingTransactions,
     transactionPrototypes: props.transactionPrototypes,
-  })
+  });
   const accountsWithData = props.banks
     .flatMap((x) => x.accounts)
-    .filter((x) => !!props.openBankingTransactions[x.id])
-    .sort(
-      (a, b) =>
-        props.openBankingTransactions[b.id].length -
-        props.openBankingTransactions[a.id].length
+    .filter((a) =>
+      prototypes.find((p) => p.accountFromId == a.id || p.accountToId == a.id)
     );
+  const protosByAccountId = Object.fromEntries(
+    accountsWithData.map((a) => {
+      const protos = prototypes.filter(
+        (p) => p.accountFromId == a.id || p.accountToId == a.id
+      );
+      return [a.id, protos];
+    })
+  );
+  accountsWithData.sort(
+    (a, b) => protosByAccountId[b.id].length - protosByAccountId[a.id].length
+  );
   const [activeAccount, setActiveAccount] = useState(
     !accountsWithData.length ? null : accountsWithData[0]
   );
   const [expanded, setExpanded] = useState({} as { [id: string]: boolean });
-  const transactionsToDisplay =
-    props.openBankingTransactions[activeAccount?.id];
+  const [limit, setLimit] = useState({} as { [id: string]: number });
+  const protosToDisplay = protosByAccountId[activeAccount?.id];
   if (!accountsWithData.length) {
     return <></>;
   }
@@ -315,39 +331,56 @@ const NewTransactionSuggestions = (props: {
             disabled={account.id == activeAccount.id}
           >
             {account.bank.name}: {account.name} (
-            {props.openBankingTransactions[account.id].length})
+            {protosByAccountId[account.id].length})
           </ButtonLink>
         ))}
       </div>
       <ul className="divide-y divide-gray-200">
-        {transactionsToDisplay.slice(0, 10).map((t) => (
-          <li key={t.transaction_id} className="p-2">
-            <div className="flex">
-              <div
-                className="grow cursor-pointer"
-                onClick={() => props.onItemClick(t)}
-              >
-                {t.amount} {t.description}
-              </div>
-              <div>
-                <ButtonLink
-                  onClick={() =>
-                    setExpanded((prev) =>
-                      Object.assign({}, prev, {
-                        [t.transaction_id]: !prev[t.transaction_id],
-                      })
-                    )
-                  }
+        {protosToDisplay
+          .slice(0, limit[activeAccount.id] ?? 10)
+          .map((proto) => (
+            <li key={proto.openBankingTransactionId} className="p-2">
+              <div className="flex">
+                <div
+                  className="grow cursor-pointer"
+                  onClick={() => props.onItemClick(proto)}
                 >
-                  raw
-                </ButtonLink>
+                  {proto.amount} {proto.vendor}{" "}
+                  {shortRelativeDate(proto.timestamp)}
+                </div>
+                <div>
+                  <ButtonLink
+                    onClick={() =>
+                      setExpanded((prev) =>
+                        Object.assign({}, prev, {
+                          [proto.openBankingTransactionId]:
+                            !prev[proto.openBankingTransactionId],
+                        })
+                      )
+                    }
+                  >
+                    Raw
+                  </ButtonLink>
+                </div>
               </div>
-            </div>
-            {expanded[t.transaction_id] && (
-              <pre className="text-xs">{JSON.stringify(t, null, 2)}</pre>
-            )}
-          </li>
-        ))}
+              {expanded[proto.openBankingTransactionId] && (
+                <pre className="text-xs">{JSON.stringify(proto, null, 2)}</pre>
+              )}
+            </li>
+          ))}
+        <li className="p-2">
+          <ButtonLink
+            onClick={() =>
+              setLimit((prev) =>
+                Object.assign({}, prev, {
+                  [activeAccount.id]: (prev[activeAccount.id] ?? 10) + 10,
+                })
+              )
+            }
+          >
+            More
+          </ButtonLink>
+        </li>
       </ul>
     </div>
   );
@@ -396,16 +429,16 @@ export const AddTransactionForm = (props: {
   const defaultCurrency = currencies.all()[0];
   const initialValues = !props.transaction
     ? initialValuesEmpty(
-      defaultAccountFrom,
-      defaultAccountTo,
-      defaultCategory,
-      defaultCurrency
-    )
+        defaultAccountFrom,
+        defaultAccountTo,
+        defaultCategory,
+        defaultCurrency
+      )
     : initialValuesForTransaction(
-      props.transaction,
-      defaultAccountFrom,
-      defaultAccountTo
-    );
+        props.transaction,
+        defaultAccountFrom,
+        defaultAccountTo
+      );
 
   return (
     <div>
@@ -468,8 +501,8 @@ export const AddTransactionForm = (props: {
                       ? "Adding…"
                       : "Add"
                     : isSubmitting
-                      ? "Updating…"
-                      : "Update"
+                    ? "Updating…"
+                    : "Update"
                 }
               />
             </div>
@@ -595,12 +628,14 @@ const FormInputs = (props: {
                 onChange={() => {
                   setFieldValue("isFamilyExpense", !isFamilyExpense);
                 }}
-                className={`${isFamilyExpense ? "bg-indigo-700" : "bg-gray-200"
-                  } relative inline-flex h-6 w-11 items-center rounded-full`}
+                className={`${
+                  isFamilyExpense ? "bg-indigo-700" : "bg-gray-200"
+                } relative inline-flex h-6 w-11 items-center rounded-full`}
               >
                 <span
-                  className={`${isFamilyExpense ? "translate-x-6" : "translate-x-1"
-                    } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                  className={`${
+                    isFamilyExpense ? "translate-x-6" : "translate-x-1"
+                  } inline-block h-4 w-4 transform rounded-full bg-white transition`}
                 />
               </Switch>
             </div>
