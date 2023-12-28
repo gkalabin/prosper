@@ -39,7 +39,15 @@ export const FormInputs = (props: {
 }) => {
   const { transactions, banks } = useAllDatabaseDataContext();
   const {
-    values: { vendor, isShared, fromBankAccountId, mode, amount },
+    values: {
+      vendor,
+      isShared,
+      fromBankAccountId,
+      mode,
+      amount,
+      description,
+      payer,
+    },
     setFieldValue,
     resetForm,
   } = useFormikContext<AddTransactionFormValues>();
@@ -80,14 +88,24 @@ export const FormInputs = (props: {
     }
   }, [setFieldValue, mostFrequentPayer, props.transaction]);
 
-  const vendorFilter = (x: Transaction): boolean =>
-    !vendor || (x.hasVendor() && x.vendor() == vendor);
+  const transactionFilter = (x: Transaction): boolean => {
+    if (mode == FormMode.PERSONAL || mode == FormMode.EXTERNAL) {
+      return !vendor || (x.hasVendor() && x.vendor() == vendor);
+    }
+    if (mode == FormMode.TRANSFER) {
+      return !description || x.description == description;
+    }
+    if (mode == FormMode.INCOME) {
+      return !payer || (x.hasPayer() && x.payer() == payer);
+    }
+    throw new Error("Unknown mode: " + mode);
+  };
   let [mostFrequentCategory] = uniqMostFrequent(
-    recentTransactionsForMode.filter(vendorFilter).map((x) => x.category)
+    recentTransactionsForMode.filter(transactionFilter).map((x) => x.category)
   );
   if (!mostFrequentCategory) {
     [mostFrequentCategory] = uniqMostFrequent(
-      transactionsForMode.filter(vendorFilter).map((x) => x.category)
+      transactionsForMode.filter(transactionFilter).map((x) => x.category)
     );
   }
   useEffect(() => {
@@ -640,17 +658,34 @@ function ParentTransaction() {
 }
 
 function Category() {
-  const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
+  const {
+    isSubmitting,
+    setFieldValue,
+    values: { categoryId },
+  } = useFormikContext<AddTransactionFormValues>();
   const { categories } = useAllDatabaseDataContext();
   return (
     <div className="col-span-6">
-      <SelectNumber name="categoryId" label="Category" disabled={isSubmitting}>
-        {categories.map((c) => (
-          <option key={c.id()} value={c.id()}>
-            {c.nameWithAncestors()}
-          </option>
-        ))}
-      </SelectNumber>
+      <label className="block text-sm font-medium text-gray-700">
+        Category
+      </label>
+      <Select
+        styles={undoTailwindInputStyles()}
+        options={categories.map((x) => {
+          return {
+            label: x.nameWithAncestors(),
+            value: x.id(),
+          };
+        })}
+        value={{
+          label: categories
+            .find((x) => x.id() == categoryId)
+            .nameWithAncestors(),
+          value: categoryId,
+        }}
+        onChange={(newValue) => setFieldValue("categoryId", newValue.value)}
+        isDisabled={isSubmitting}
+      />
     </div>
   );
 }

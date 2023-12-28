@@ -233,7 +233,7 @@ export const AddTransactionForm = (props: {
   return (
     <Formik initialValues={initialValues} onSubmit={submitNewTransaction}>
       <Form>
-        <div className="overflow-hidden shadow sm:rounded-md">
+        <div className="shadow sm:rounded-md">
           <div className="bg-white p-2 sm:p-6">
             {creatingNewTransaction && (
               <div className="mb-2">
