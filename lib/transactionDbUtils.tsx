@@ -150,6 +150,7 @@ const extensionConfigByMode = new Map<
         userId: number
       ) => {
         return {
+          vendor: payer,
           payer,
           otherPartyName,
           userId,
