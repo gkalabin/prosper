@@ -90,12 +90,14 @@ export const ButtonPagePrimary = (
 export const ButtonFormPrimary = (
   props: React.ButtonHTMLAttributes<HTMLButtonElement>
 ) => {
+  const { className, ...rest } = props;
   return (
     <button
-      {...props}
+      {...rest}
       className={classNames(
-        props.className,
-        "inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        className,
+        props.disabled ? "opacity-30" : "hover:bg-indigo-700",
+        "inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
       )}
     >
       {props.children}
@@ -104,18 +106,20 @@ export const ButtonFormPrimary = (
 };
 
 export const ButtonFormSecondary = (
-  props: React.ButtonHTMLAttributes<HTMLButtonElement> & { label: string }
+  props: React.ButtonHTMLAttributes<HTMLButtonElement>
 ) => {
+  const { className, ...rest } = props;
   return (
     <button
       type="button"
-      {...props}
+      {...rest}
       className={classNames(
-        props.className,
-        "inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        className,
+        props.disabled ? "opacity-30" : "hover:bg-gray-50",
+        "inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
       )}
     >
-      {props.label}
+      {props.children}
     </button>
   );
 };

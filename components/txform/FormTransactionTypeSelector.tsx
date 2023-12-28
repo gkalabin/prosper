@@ -22,7 +22,8 @@ export const FormTransactionTypeSelector = (props: {
           <button
             type="button"
             className={classNames(
-              "rounded-l-lg border border-gray-200 bg-white py-1 px-2 text-sm font-medium hover:bg-gray-100 hover:text-indigo-700 focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white",
+              props.disabled ? "opacity-30" : "hover:bg-gray-100 hover:text-indigo-700 dark:hover:bg-gray-600 dark:hover:text-white",
+              "rounded-l-lg border border-gray-200 bg-white py-1 px-2 text-sm font-medium focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:text-white",
               modeSelectorTextColor(FormMode.PERSONAL)
             )}
             onClick={() => props.setMode(FormMode.PERSONAL)}
@@ -33,7 +34,8 @@ export const FormTransactionTypeSelector = (props: {
           <button
             type="button"
             className={classNames(
-              "border-t border-b border-r border-gray-200 bg-white py-1 px-2 text-sm font-medium hover:bg-gray-100 hover:text-indigo-700 focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white",
+              props.disabled ? "opacity-30" : "hover:bg-gray-100 hover:text-indigo-700 dark:hover:bg-gray-600 dark:hover:text-white",
+              "border-t border-b border-r border-gray-200 bg-white py-1 px-2 text-sm font-medium focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:text-white",
               modeSelectorTextColor(FormMode.EXTERNAL)
             )}
             onClick={() => props.setMode(FormMode.EXTERNAL)}
@@ -44,7 +46,8 @@ export const FormTransactionTypeSelector = (props: {
           <button
             type="button"
             className={classNames(
-              "border-t border-b border-r border-gray-200 bg-white py-1 px-2 text-sm font-medium hover:bg-gray-100 hover:text-indigo-700 focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white",
+              props.disabled ? "opacity-30" : "hover:bg-gray-100 hover:text-indigo-700 dark:hover:bg-gray-600 dark:hover:text-white",
+              "border-t border-b border-r border-gray-200 bg-white py-1 px-2 text-sm font-medium focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:text-white",
               modeSelectorTextColor(FormMode.TRANSFER)
             )}
             onClick={() => props.setMode(FormMode.TRANSFER)}
@@ -54,7 +57,8 @@ export const FormTransactionTypeSelector = (props: {
           </button>
           <button
             className={classNames(
-              "rounded-r-md border border-gray-200 bg-white py-1 px-2 text-sm font-medium hover:bg-gray-100 hover:text-indigo-700 focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600 dark:hover:text-white dark:focus:text-white",
+              props.disabled ? "opacity-30" : "hover:bg-gray-100 hover:text-indigo-700 dark:hover:bg-gray-600 dark:hover:text-white",
+              "rounded-r-md border border-gray-200 bg-white py-1 px-2 text-sm font-medium focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:text-white",
               modeSelectorTextColor(FormMode.INCOME)
             )}
             type="button"

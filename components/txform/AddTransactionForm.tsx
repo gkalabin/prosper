@@ -3,8 +3,10 @@ import {
   Transaction as DBTransaction,
   TransactionPrototype as DBTransactionPrototype,
 } from "@prisma/client";
+import classNames from "classnames";
 import { BankAccountSelect } from "components/forms/BankAccountSelect";
 import {
+  Input,
   MoneyInputWithLabel,
   TextInputWithLabel,
 } from "components/forms/Input";
@@ -465,6 +467,10 @@ export const AddTransactionForm = (props: {
                     banks={props.banks}
                     allTransactions={props.allTransactions}
                     onItemClick={(t) => {
+                      if (isSubmitting) {
+                        // The form is disabled while being submitted, so do not change it through suggestions either.
+                        return;
+                      }
                       setPrototype(t);
                       setMode(t.mode);
                     }}
@@ -497,29 +503,31 @@ export const AddTransactionForm = (props: {
                   className="self-start"
                   onClick={() => setAdvancedMode(!isAdvancedMode)}
                   disabled={isSubmitting}
-                  label="Advanced"
-                />
+                >
+                  Advanced
+                </ButtonFormSecondary>
 
                 <ButtonFormSecondary
                   className="self-start"
                   onClick={props.onClose}
                   disabled={isSubmitting}
-                  label="Cancel"
-                />
+                >
+                  Cancel
+                </ButtonFormSecondary>
 
                 <ButtonFormPrimary
                   className="self-start"
                   disabled={isSubmitting}
-                  label={
-                    creatingNewTransaction
-                      ? isSubmitting
-                        ? "Adding…"
-                        : "Add"
-                      : isSubmitting
-                      ? "Updating…"
-                      : "Update"
-                  }
-                />
+                  type="submit"
+                >
+                  {creatingNewTransaction
+                    ? isSubmitting
+                      ? "Adding…"
+                      : "Add"
+                    : isSubmitting
+                    ? "Updating…"
+                    : "Update"}
+                </ButtonFormPrimary>
               </div>
             </div>
           </Form>
@@ -544,16 +552,16 @@ const FormInputs = (props: {
     touched,
     setFieldValue,
     handleChange,
-    dirty,
+    isSubmitting,
   } = useFormikContext<AddTransactionFormValues>();
 
   useEffect(() => {
     setFieldValue("ownShareAmount", isFamilyExpense ? amount / 2 : amount);
-  }, [amount, dirty, isFamilyExpense, setFieldValue]);
+  }, [amount, isFamilyExpense, setFieldValue]);
 
   useEffect(() => {
     setFieldValue("receivedAmount", amount);
-  }, [amount, dirty, setFieldValue]);
+  }, [amount, setFieldValue]);
 
   useEffect(() => {
     if (!props.transaction && !touched["fromBankAccountId"]) {
@@ -635,7 +643,11 @@ const FormInputs = (props: {
   return (
     <>
       <InputRow>
-        <MoneyInputWithLabel name="amount" label="Amount" />
+        <MoneyInputWithLabel
+          name="amount"
+          label="Amount"
+          disabled={isSubmitting}
+        />
       </InputRow>
 
       <InputRow
@@ -646,7 +658,11 @@ const FormInputs = (props: {
             : []
         }
       >
-        <MoneyInputWithLabel name="ownShareAmount" label="Own share amount" />
+        <MoneyInputWithLabel
+          name="ownShareAmount"
+          label="Own share amount"
+          disabled={isSubmitting}
+        />
       </InputRow>
 
       <InputRow
@@ -661,9 +677,12 @@ const FormInputs = (props: {
                 onChange={() => {
                   setFieldValue("isFamilyExpense", !isFamilyExpense);
                 }}
-                className={`${
-                  isFamilyExpense ? "bg-indigo-700" : "bg-gray-200"
-                } relative inline-flex h-6 w-11 items-center rounded-full`}
+                className={classNames(
+                  isFamilyExpense ? "bg-indigo-700" : "bg-gray-200",
+                  isSubmitting ? "opacity-30" : "",
+                  "relative inline-flex h-6 w-11 items-center rounded-full"
+                )}
+                disabled={isSubmitting}
               >
                 <span
                   className={`${
@@ -688,7 +707,11 @@ const FormInputs = (props: {
         mode={props.mode}
         modes={props.isAdvancedMode ? [FormMode.TRANSFER] : []}
       >
-        <MoneyInputWithLabel name="receivedAmount" label="Received" />
+        <MoneyInputWithLabel
+          name="receivedAmount"
+          label="Received"
+          disabled={isSubmitting}
+        />
       </InputRow>
 
       {/* TODO: verify that datetime-local is processed correctly with regards to timezones */}
@@ -699,11 +722,12 @@ const FormInputs = (props: {
         >
           Time
         </label>
-        <input
+        <Input
           type="datetime-local"
           name="timestamp"
           id="timestamp"
-          className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          disabled={isSubmitting}
+          className="mt-1 block w-full"
           value={timestamp}
           onChange={handleChange}
         />
@@ -713,7 +737,12 @@ const FormInputs = (props: {
         mode={props.mode}
         modes={[FormMode.PERSONAL, FormMode.EXTERNAL, FormMode.INCOME]}
       >
-        <TextInputWithLabel name="vendor" label="Vendor" list="vendors" />
+        <TextInputWithLabel
+          name="vendor"
+          label="Vendor"
+          list="vendors"
+          disabled={isSubmitting}
+        />
         <datalist id="vendors">
           {vendors.map((v) => (
             <option key={v} value={v} />
@@ -729,11 +758,19 @@ const FormInputs = (props: {
             : [FormMode.TRANSFER]
         }
       >
-        <TextInputWithLabel name="description" label="Description" />
+        <TextInputWithLabel
+          name="description"
+          label="Description"
+          disabled={isSubmitting}
+        />
       </InputRow>
 
       <InputRow mode={props.mode}>
-        <SelectNumber name="categoryId" label="Category">
+        <SelectNumber
+          name="categoryId"
+          label="Category"
+          disabled={isSubmitting}
+        >
           {props.categories.map((c) => (
             <option key={c.id} value={c.id}>
               {c.nameWithAncestors}
@@ -743,7 +780,11 @@ const FormInputs = (props: {
       </InputRow>
 
       <InputRow mode={props.mode} modes={[FormMode.EXTERNAL]}>
-        <TextInputWithLabel name="payer" label="Payer" />
+        <TextInputWithLabel
+          name="payer"
+          label="Payer"
+          disabled={isSubmitting}
+        />
       </InputRow>
 
       <InputRow
@@ -754,6 +795,7 @@ const FormInputs = (props: {
           name="fromBankAccountId"
           label="Account From"
           banks={props.banks}
+          disabled={isSubmitting}
         />
       </InputRow>
 
@@ -762,11 +804,16 @@ const FormInputs = (props: {
           name="toBankAccountId"
           label="Account To"
           banks={props.banks}
+          disabled={isSubmitting}
         />
       </InputRow>
 
       <InputRow mode={props.mode} modes={[FormMode.EXTERNAL]}>
-        <SelectNumber name="currencyId" label="Currency">
+        <SelectNumber
+          name="currencyId"
+          label="Currency"
+          disabled={isSubmitting}
+        >
           {currencies.all().map((c) => (
             <option key={c.id} value={c.id}>
               {c.name}

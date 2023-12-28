@@ -122,11 +122,9 @@ const BankName = (props: {
         disabled={requestInFlight}
         value={displayOrder}
       />
-      <ButtonFormSecondary
-        onClick={close}
-        disabled={requestInFlight}
-        label="Cancel"
-      />
+      <ButtonFormSecondary onClick={close} disabled={requestInFlight}>
+        Cancel
+      </ButtonFormSecondary>
       <ButtonFormPrimary disabled={!name || requestInFlight} type="submit">
         {requestInFlight ? "Updating…" : "Update"}
       </ButtonFormPrimary>

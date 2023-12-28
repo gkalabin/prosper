@@ -54,6 +54,7 @@ export const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => {
       {...otherProps}
       className={classNames(
         className,
+        props.disabled ? "opacity-30" : "",
         "rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
       )}
     />
