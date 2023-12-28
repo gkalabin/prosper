@@ -1,4 +1,4 @@
-import { BanksPage } from "app/config/banks/client";
+import { BanksConfigPage } from "app/config/banks/BanksConfigPage";
 import { DB } from "lib/db";
 import { getUserId } from "lib/user";
 import { Metadata } from "next";
@@ -36,7 +36,7 @@ export default async function Page() {
   const userId = await getUserId();
   const data = await getData(userId);
   return (
-    <BanksPage
+    <BanksConfigPage
       dbBanks={data.dbBanks}
       dbBankAccounts={data.dbBankAccounts}
       dbStocks={data.dbStocks}

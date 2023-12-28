@@ -67,9 +67,9 @@ function BanksListItem({
   bank: Bank;
   bankAccounts: BankAccount[];
   stocks: Stock[];
-  trueLayerToken: DBTrueLayerToken;
-  nordigenToken: DBNordigenToken;
-  starlingToken: DBStarlingToken;
+  trueLayerToken?: DBTrueLayerToken;
+  nordigenToken?: DBNordigenToken;
+  starlingToken?: DBStarlingToken;
   onBankUpdated: (updated: DBBank) => void;
   onAccountAddedOrUpdated: (x: DBBankAccount) => void;
 }) {
@@ -148,9 +148,9 @@ const BankConnections = ({
   starlingToken,
   bank,
 }: {
-  trueLayerToken: DBTrueLayerToken;
-  nordigenToken: DBNordigenToken;
-  starlingToken: DBStarlingToken;
+  trueLayerToken?: DBTrueLayerToken;
+  nordigenToken?: DBNordigenToken;
+  starlingToken?: DBStarlingToken;
   bank: Bank;
 }) => {
   if (!trueLayerToken && !nordigenToken && !starlingToken) {
@@ -288,7 +288,7 @@ const AccountListItem = (props: {
   );
 };
 
-export function BanksPage({
+export function BanksConfigPage({
   dbBanks: dbBanksInitial,
   dbBankAccounts: dbBankAccountsInitial,
   dbStocks,
