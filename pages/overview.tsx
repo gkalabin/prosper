@@ -16,7 +16,7 @@ import { useDisplayCurrency } from "lib/displaySettings";
 import { BankAccount } from "lib/model/BankAccount";
 import { IOBBalancesByAccountId } from "lib/openbanking/interface";
 import { allDbDataPropsWithOb } from "lib/ServerSideDB";
-import { updateOrAppend } from "lib/stateHelpers";
+import { onTransactionChange } from "lib/stateHelpers";
 import { TransactionAPIResponse } from "lib/transactionCreation";
 import { InferGetServerSidePropsType } from "next";
 import { createContext, useContext, useState } from "react";
@@ -124,26 +124,6 @@ export default function OverviewPage(
   const [dbDataState, setDbData] = useState(dbData);
   const [archivedShown, setShowArchived] = useState(false);
 
-  const transactionAddedOrUpdated = ({
-    transaction,
-    trip,
-    tags,
-  }: TransactionAPIResponse) => {
-    setDbData((old) => {
-      let updatedTrips = [...old.dbTrips];
-      if (trip) {
-        updatedTrips = updateOrAppend(updatedTrips, trip);
-      }
-      let updatedTags = [...old.dbTags];
-      tags.forEach((t) => (updatedTags = updateOrAppend(updatedTags, t)));
-      return Object.assign({}, old, {
-        dbTransactions: updateOrAppend(old.dbTransactions, transaction),
-        dbTrips: updatedTrips,
-        dbTags: updatedTags,
-      });
-    });
-  };
-
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }
@@ -156,29 +136,28 @@ export default function OverviewPage(
             <div className="flex justify-end">
               <ButtonPagePrimary
                 onClick={() => setShowAddTransactionForm(true)}
-                label="New Transaction"
-              />
+              >
+                New Transaction
+              </ButtonPagePrimary>
             </div>
           )}
           {showAddTransactionForm && (
             <AddTransactionForm
-              onAddedOrUpdated={transactionAddedOrUpdated}
+              onAddedOrUpdated={onTransactionChange(setDbData)}
               openBankingTransactions={dbData.openBankingData.transactions}
               transactionPrototypes={dbData.dbTransactionPrototypes}
               onClose={() => setShowAddTransactionForm(false)}
             />
           )}
         </div>
-        <div className="flex justify-end">
-          <ButtonPagePrimary
-            className="mb-4"
-            onClick={() => setShowArchived(!archivedShown)}
-            label={archivedShown ? "Hide archived" : "Show archived"}
-          />
+        <div className="mb-4 flex justify-end">
+          <ButtonPagePrimary onClick={() => setShowArchived(!archivedShown)}>
+            {archivedShown ? "Hide archived" : "Show archived"}
+          </ButtonPagePrimary>
         </div>
         <ArchivedAccountsShownContext.Provider value={archivedShown}>
           <BanksList
-            onTransactionUpdated={transactionAddedOrUpdated}
+            onTransactionUpdated={onTransactionChange(setDbData)}
             openBankingBalances={dbData.openBankingData.balances}
           />
         </ArchivedAccountsShownContext.Provider>

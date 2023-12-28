@@ -27,6 +27,16 @@ const inOrderTreeTraversal = (
   });
 };
 
+export const matchesWithAncestors = (p: Category, idToMatch: number) => {
+  if (p.id == idToMatch) {
+    return true;
+  }
+  if (!p.parent) {
+    return false;
+  }
+  return matchesWithAncestors(p.parent, idToMatch);
+};
+
 export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
   const categories = dbCategories.map((c) =>
     Object.assign({}, c, {

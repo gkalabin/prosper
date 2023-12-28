@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import { InputProps } from "components/forms/InputProps";
-import { FieldHookConfig, useField } from "formik";
+import { Field, FieldHookConfig, useField } from "formik";
 import { ClassAttributes } from "react";
 
 export const MoneyInputWithLabel = (
@@ -52,6 +52,23 @@ export const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => {
   return (
     <input
       {...otherProps}
+      className={classNames(
+        className,
+        props.disabled ? "opacity-30" : "",
+        "rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+      )}
+    />
+  );
+};
+
+export const FormikInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => {
+  const { className, type, id, name, ...otherProps } = props;
+  return (
+    <Field
+      {...otherProps}
+      id={id ?? name}
+      name={name}
+      type={type ?? "text"}
       className={classNames(
         className,
         props.disabled ? "opacity-30" : "",

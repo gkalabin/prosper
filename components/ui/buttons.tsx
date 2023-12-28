@@ -71,7 +71,7 @@ export const AnchorLink = (
 };
 
 export const ButtonPagePrimary = (
-  props: React.ButtonHTMLAttributes<HTMLButtonElement> & { label: string }
+  props: React.ButtonHTMLAttributes<HTMLButtonElement>
 ) => {
   return (
     <button
@@ -82,7 +82,7 @@ export const ButtonPagePrimary = (
         "rounded-md bg-indigo-600 px-4 py-1.5 text-base font-medium leading-7 text-white shadow-sm hover:bg-indigo-700 hover:ring-indigo-700"
       )}
     >
-      {props.label}
+      {props.children}
     </button>
   );
 };
