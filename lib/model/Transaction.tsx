@@ -71,7 +71,9 @@ export class Transaction {
     this.amountCents = init.amountCents;
     this.category = categoryById[init.categoryId];
     this.exchange = exchange;
-    this._tags = init.tags?.length ? init.tags.map(({id}) => tagById.get(id)) : [];
+    this._tags = init.tags?.length
+      ? init.tags.map(({ id }) => tagById.get(id))
+      : [];
     this._parentTransactionId = init.transactionToBeRepayedId;
 
     if (init.personalExpense) {
@@ -123,6 +125,10 @@ export class Transaction {
 
   tags() {
     return this._tags;
+  }
+
+  hasTag(tagName: string) {
+    return this._tags.some((tag) => tag.name() == tagName);
   }
 
   hasParentTransaction() {

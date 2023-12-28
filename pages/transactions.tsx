@@ -33,17 +33,7 @@ export default function TransactionsPageLayout(
   return (
     <Layout>
       <AllDatabaseDataContextProvider init={modelFromDatabaseData(dbDataState)}>
-        <Formik
-          onSubmit={null}
-          initialValues={{
-            vendor: "",
-            timeFrom: "",
-            timeTo: "",
-            accountIds: [],
-            categoryIds: [],
-            includeChildrenCategories: true,
-          }}
-        >
+        <Formik onSubmit={null} initialValues={initialFilters}>
           <>
             <div className="mb-4">
               <Filters />
@@ -67,6 +57,19 @@ type FiltersFormValues = {
   categoryIds: number[];
   includeChildrenCategories: boolean;
   tripId: number;
+  tagNames: string[];
+  allTagsShouldMatch: boolean;
+};
+const initialFilters: FiltersFormValues = {
+  vendor: "",
+  timeFrom: "",
+  timeTo: "",
+  accountIds: [],
+  categoryIds: [],
+  includeChildrenCategories: true,
+  tripId: 0,
+  tagNames: [],
+  allTagsShouldMatch: false,
 };
 
 function FilteredTransactionsList({ onTransactionChange }) {
@@ -80,6 +83,8 @@ function FilteredTransactionsList({ onTransactionChange }) {
       tripId,
       timeFrom,
       timeTo,
+      tagNames,
+      allTagsShouldMatch,
     },
   } = useFormikContext<FiltersFormValues>();
   const displayTransactions = transactions.filter(
@@ -98,11 +103,15 @@ function FilteredTransactionsList({ onTransactionChange }) {
         : true) &&
       (tripId ? t.hasTrip() && t.trip().id() == tripId : true) &&
       (timeFrom
-        ? Math.abs(differenceInMilliseconds(new Date(timeFrom), t.timestamp)) <
-          1
+        ? differenceInMilliseconds(t.timestamp, new Date(timeFrom)) >= 0
         : true) &&
       (timeTo
-        ? Math.abs(differenceInMilliseconds(new Date(timeTo), t.timestamp)) < 1
+        ? differenceInMilliseconds(new Date(timeTo), t.timestamp) >= 0
+        : true) &&
+      (tagNames?.length
+        ? allTagsShouldMatch
+          ? tagNames.every((tn) => t.hasTag(tn))
+          : tagNames.some((tn) => t.hasTag(tn))
         : true)
   );
   return (
@@ -115,9 +124,9 @@ function FilteredTransactionsList({ onTransactionChange }) {
 
 function Filters() {
   const [showFilters, setShowFilters] = useState(false);
-  const { banks, categories } = useAllDatabaseDataContext();
+  const { banks, categories, trips, tags } = useAllDatabaseDataContext();
   const {
-    values: { accountIds, categoryIds },
+    values: { accountIds, categoryIds, tripId, tagNames },
     setFieldValue,
   } = useFormikContext<FiltersFormValues>();
   const bankAccountOptions = banks
@@ -140,6 +149,16 @@ function Filters() {
     number,
     { value: number; label: string }
   >(categoryOptions.map((x) => [x.value, x]));
+
+  const tripOptions = trips.map((a) => ({
+    value: a.id(),
+    label: a.name(),
+  }));
+
+  const tagNameOptions = tags.map((t) => ({
+    value: t.name(),
+    label: t.name(),
+  }));
 
   return (
     <>
@@ -227,27 +246,68 @@ function Filters() {
               htmlFor="timeFrom"
               className="block text-sm font-medium text-gray-700"
             >
-              Time From
+              From
             </label>
-            <FormikInput
-              name="timeFrom"
-              type="datetime-local"
-              className="block w-full"
-            />
+            <FormikInput name="timeFrom" type="date" className="block w-full" />
           </div>
           <div className="col-span-6">
             <label
               htmlFor="timeTo"
               className="block text-sm font-medium text-gray-700"
             >
-              Time To
+              To
             </label>
-            <FormikInput
-              name="timeTo"
-              type="datetime-local"
-              className="block w-full"
+            <FormikInput name="timeTo" type="date" className="block w-full" />
+          </div>
+          <div className="col-span-6">
+            <label
+              htmlFor="tripId"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Trip
+            </label>
+            <Select
+              options={tripOptions}
+              value={tripOptions.find((x) => x.value == tripId)}
+              onChange={(x) => setFieldValue("tripId", x.value)}
             />
           </div>
+          <div className="col-span-6">
+            <label
+              htmlFor="tagNames"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Tags
+            </label>
+            <Select
+              options={tagNameOptions}
+              isMulti
+              value={tagNames.map((x) => ({
+                label: x,
+                value: x,
+              }))}
+              onChange={(x) =>
+                setFieldValue(
+                  "tagNames",
+                  x.map((x) => x.value)
+                )
+              }
+            />
+            <div className="ml-2 block">
+              <label
+                htmlFor="allTagsShouldMatch"
+                className="text-sm font-medium text-gray-700"
+              >
+                Transaction should have all selected tags
+              </label>
+              <FormikInput
+                name="allTagsShouldMatch"
+                type="checkbox"
+                className="ml-2"
+              />
+            </div>
+          </div>
+
           <div className="col-span-6">
             <ButtonFormSecondary onClick={() => setShowFilters(false)}>
               Close
