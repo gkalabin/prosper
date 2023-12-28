@@ -5,6 +5,7 @@ import yahooFinance from "yahoo-finance2";
 import { HistoricalRowHistory } from "yahoo-finance2/dist/esm/src/modules/historical";
 
 const UPDATE_FREQUENCY_HOURS = 6;
+const NO_HISTORY_LOOK_BACK_DAYS = 30;
 
 export async function fetchQuotes({
   startDate,
@@ -32,7 +33,7 @@ export async function addLatestStockQuotes() {
   const dbStocks = await prisma.stock.findMany();
   const stocks = dbStocks.map((x) => new Stock(x));
   for (const stock of stocks) {
-    await backfill(stock);
+        await backfill(stock);
   }
   console.timeEnd(timingLabel);
 }
@@ -65,20 +66,19 @@ async function backfill(stock: Stock) {
   });
 
   if (!latest) {
-    console.warn("%s: no history", stock.ticker());
-    const fetched = await fetchQuotes({ stock, startDate: now });
-    if (fetched?.length != 1) {
+    console.info("%s: no history", stock.ticker());
+    const startDate = addDays(now, -NO_HISTORY_LOOK_BACK_DAYS);
+    const fetched = await fetchQuotes({ stock, startDate });
+    if (fetched?.length == 0) {
       console.warn(
-        "%s: found %d rates on %s, want 1, ignoring",
+        "%s: historical data not found starting on %s",
         stock.ticker(),
-        fetched?.length,
-        now.toDateString()
+        startDate.toDateString()
       );
       return;
     }
-    // TODO: provide currency for stock when creating stock, not using USD below.
-    await prisma.stockQuote.create({
-      data: apiModelToDb(fetched[0]),
+    await prisma.stockQuote.createMany({
+      data: fetched.map(apiModelToDb),
     });
     return;
   }

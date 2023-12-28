@@ -5,6 +5,7 @@ import { HistoricalRowHistory } from "yahoo-finance2/dist/esm/src/modules/histor
 import prisma from "./prisma";
 
 const UPDATE_FREQUENCY_HOURS = 6;
+const NO_HISTORY_LOOK_BACK_DAYS = 30;
 
 export async function fetchExchangeRates({
   startDate,
@@ -28,7 +29,7 @@ export async function fetchExchangeRates({
 }
 
 export async function addLatestExchangeRates() {
-  const timingLabel = "Exchange rate backfill " + new Date().getTime();
+    const timingLabel = "Exchange rate backfill " + new Date().getTime();
   console.time(timingLabel);
   const backfillPromises: Promise<void>[] = [];
   for (const sell of Currency.all()) {
@@ -71,15 +72,15 @@ async function backfill({ sell, buy }: { sell: Currency; buy: Currency }) {
   });
 
   if (!latest) {
-    console.warn(`${sell.code()}->${buy.code()}: no history`);
-    const fetched = await fetchExchangeRates({ sell, buy, startDate: now });
-    if (fetched?.length != 1) {
+    console.info(`${sell.code()}->${buy.code()}: no history`);
+    const startDate = addDays(now, -NO_HISTORY_LOOK_BACK_DAYS);
+    const fetched = await fetchExchangeRates({ sell, buy, startDate });
+    if (fetched?.length == 0) {
       console.warn(
-        "%s->%s: found %d rates on %s, want 1, ignoring",
+        "%s->%s: historical data not found starting on %s",
         sell.code(),
         buy.code(),
-        fetched?.length,
-        now.toDateString()
+        startDate.toDateString()
       );
       return;
     }
@@ -89,8 +90,8 @@ async function backfill({ sell, buy }: { sell: Currency; buy: Currency }) {
       buy.code(),
       fetched[0].date.toDateString()
     );
-    await prisma.exchangeRate.create({
-      data: apiModelToDb(fetched[0]),
+    await prisma.exchangeRate.createMany({
+      data: fetched.map(apiModelToDb),
     });
     return;
   }
