@@ -9,13 +9,22 @@ import {
 import { TransactionFrequencyChart } from "components/charts/TransactionFrequency";
 import { YearlyAllParties, YearlyOwnShare } from "components/charts/YearlySum";
 import { ButtonFormSecondary } from "components/ui/buttons";
-import {
-  differenceInMonths,
-  startOfMonth,
-} from "date-fns";
+import { differenceInMonths, startOfMonth } from "date-fns";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
+import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { Transaction } from "lib/model/Transaction";
+import {
+  Expense,
+  Income,
+  Transaction,
+  amountAllParties,
+  amountOwnShare,
+  isExpense,
+  isIncome,
+  isPersonalExpense,
+  isThirdPartyExpense,
+  isTransfer,
+} from "lib/model/Transaction";
 import { AppendMap } from "lib/util/AppendingMap";
 import { MoneyTimeseries } from "lib/util/Timeseries";
 
@@ -24,7 +33,7 @@ export function TransactionStats(props: {
   transactions: Transaction[];
 }) {
   const transactionsByTimestamp = [...props.transactions].sort(
-    (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
+    (a, b) => a.timestampEpoch - b.timestampEpoch
   );
   return (
     <div className="grid grid-cols-6 gap-6 bg-white p-2 shadow sm:rounded-md sm:p-6">
@@ -70,20 +79,18 @@ function TextSummary({ transactions }: { transactions: Transaction[] }) {
   return (
     <div className="col-span-6">
       Matched {transactions.length} transations over the last{" "}
-      {differenceInMonths(last.timestamp, first.timestamp)} months
+      {differenceInMonths(last.timestampEpoch, first.timestampEpoch)} months
       <div className="ml-2 text-sm text-slate-600">
         <div>
-          Personal: {transactions.filter((t) => t.isPersonalExpense()).length}
+          Personal: {transactions.filter((t) => isPersonalExpense(t)).length}
         </div>
         <div>
-          External: {transactions.filter((t) => t.isThirdPartyExpense()).length}
+          External: {transactions.filter((t) => isThirdPartyExpense(t)).length}
         </div>
-        <div>
-          Transfers: {transactions.filter((t) => t.isTransfer()).length}
-        </div>
-        <div>Income: {transactions.filter((t) => t.isIncome()).length}</div>
-        <div>First: {first.timestamp.toISOString()}</div>
-        <div>Last: {last.timestamp.toISOString()}</div>
+        <div>Transfers: {transactions.filter((t) => isTransfer(t)).length}</div>
+        <div>Income: {transactions.filter((t) => isIncome(t)).length}</div>
+        <div>First: {new Date(first.timestampEpoch).toISOString()}</div>
+        <div>Last: {new Date(last.timestampEpoch).toISOString()}</div>
       </div>
     </div>
   );
@@ -94,7 +101,7 @@ function Charts({ transactions }: { transactions: Transaction[] }) {
     transactions[0],
     transactions[transactions.length - 1],
   ];
-  const duration = { start: first.timestamp, end: last.timestamp };
+  const duration = { start: first.timestampEpoch, end: last.timestampEpoch };
   return (
     <div className="col-span-6">
       <TransactionFrequencyChart
@@ -111,9 +118,8 @@ function Charts({ transactions }: { transactions: Transaction[] }) {
 
 function ExenseStats({ transactions }: { transactions: Transaction[] }) {
   const displayCurrency = useDisplayCurrency();
-  const expenses = transactions.filter(
-    (t) => t.isPersonalExpense() || t.isThirdPartyExpense()
-  );
+  const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
+  const expenses = transactions.filter((t): t is Expense => isExpense(t));
   if (!expenses.length) {
     return <></>;
   }
@@ -121,7 +127,7 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
     transactions[0],
     transactions[transactions.length - 1],
   ];
-  const duration = { start: first.timestamp, end: last.timestamp };
+  const duration = { start: first.timestampEpoch, end: last.timestampEpoch };
   const zero = AmountWithCurrency.zero(displayCurrency);
   const grossPerMonth = new MoneyTimeseries(displayCurrency);
   const netPerMonth = new MoneyTimeseries(displayCurrency);
@@ -136,14 +142,26 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
   const gross: AmountWithCurrency[] = [];
   const net: AmountWithCurrency[] = [];
   for (const t of expenses) {
-    const ts = startOfMonth(t.timestamp);
-    const g = t.amountAllParties(displayCurrency);
-    const n = t.amountOwnShare(displayCurrency);
+    const ts = startOfMonth(t.timestampEpoch);
+    const g = amountAllParties(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange
+    );
+    const n = amountOwnShare(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange
+    );
     gross.push(g);
     net.push(n);
     netPerMonth.append(ts, n);
     grossPerMonth.append(ts, g);
-    const cid = t.category.id();
+    const cid = t.categoryId;
     grossPerCategory.append(cid, g);
     netPerCategory.append(cid, n);
   }
@@ -214,7 +232,10 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
 
 function IncomeStats({ transactions }: { transactions: Transaction[] }) {
   const displayCurrency = useDisplayCurrency();
-  const incomeTransactions = transactions.filter((t) => t.isIncome());
+  const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
+  const incomeTransactions = transactions.filter((t): t is Income =>
+    isIncome(t)
+  );
   if (!incomeTransactions.length) {
     return <></>;
   }
@@ -222,7 +243,7 @@ function IncomeStats({ transactions }: { transactions: Transaction[] }) {
     transactions[0],
     transactions[transactions.length - 1],
   ];
-  const duration = { start: first.timestamp, end: last.timestamp };
+  const duration = { start: first.timestampEpoch, end: last.timestampEpoch };
   const zero = AmountWithCurrency.zero(displayCurrency);
   const grossPerMonth = new MoneyTimeseries(displayCurrency);
   const netPerMonth = new MoneyTimeseries(displayCurrency);
@@ -237,14 +258,26 @@ function IncomeStats({ transactions }: { transactions: Transaction[] }) {
   const gross: AmountWithCurrency[] = [];
   const net: AmountWithCurrency[] = [];
   for (const t of incomeTransactions) {
-    const ts = startOfMonth(t.timestamp);
-    const g = t.amountAllParties(displayCurrency);
-    const n = t.amountOwnShare(displayCurrency);
+    const ts = startOfMonth(t.timestampEpoch);
+    const g = amountAllParties(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange
+    );
+    const n = amountOwnShare(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange
+    );
     gross.push(g);
     net.push(n);
     netPerMonth.append(ts, n);
     grossPerMonth.append(ts, g);
-    const cid = t.category.id();
+    const cid = t.categoryId;
     grossPerCategory.append(cid, g);
     netPerCategory.append(cid, n);
   }

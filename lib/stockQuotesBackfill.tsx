@@ -1,5 +1,5 @@
 import { addDays, differenceInHours, format, isSameDay } from "date-fns";
-import { Stock } from "lib/model/Stock";
+import { Stock, stockModelFromDB } from "lib/model/Stock";
 import prisma from "lib/prisma";
 import yahooFinance from "yahoo-finance2";
 import { HistoricalRowHistory } from "yahoo-finance2/dist/esm/src/modules/historical";
@@ -15,7 +15,7 @@ export async function fetchQuotes({
   stock: Stock;
 }) {
   const r = await yahooFinance.historical(
-    stock.ticker(),
+    stock.ticker,
     {
       period1: format(startDate, "yyyy-MM-dd"),
       interval: "1d",
@@ -31,7 +31,7 @@ export async function addLatestStockQuotes() {
   const timingLabel = "Stock quotes backfill " + new Date().getTime();
   console.time(timingLabel);
   const dbStocks = await prisma.stock.findMany();
-  const stocks = dbStocks.map((x) => new Stock(x));
+  const stocks = dbStocks.map(stockModelFromDB);
   for (const stock of stocks) {
     await backfill(stock);
   }
@@ -42,14 +42,14 @@ async function backfill(stock: Stock) {
   const now = new Date();
   const apiModelToDb = (x: HistoricalRowHistory) => {
     return {
-      stockId: stock.id(),
+      stockId: stock.id,
       value: Math.round(x.close * 100),
       quoteTimestamp: x.date.toISOString(),
     };
   };
   const latest = await prisma.stockQuote.findFirst({
     where: {
-      stockId: stock.id(),
+      stockId: stock.id,
     },
     orderBy: [
       {
@@ -62,13 +62,13 @@ async function backfill(stock: Stock) {
   });
 
   if (!latest) {
-    console.info("%s: no history", stock.ticker());
+    console.info("%s: no history", stock.ticker);
     const startDate = addDays(now, -NO_HISTORY_LOOK_BACK_DAYS);
     const fetched = await fetchQuotes({ stock, startDate });
     if (fetched?.length == 0) {
       console.warn(
         "%s: historical data not found starting on %s",
-        stock.ticker(),
+        stock.ticker,
         startDate.toDateString()
       );
       return;
@@ -86,7 +86,7 @@ async function backfill(stock: Stock) {
     if (ageHours < UPDATE_FREQUENCY_HOURS) {
       console.warn(
         "%s: rate for %s is still fresh, updated %d hours ago on %s",
-        stock.ticker(),
+        stock.ticker,
         latest.quoteTimestamp.toDateString(),
         ageHours,
         latest.updatedAt
@@ -95,7 +95,7 @@ async function backfill(stock: Stock) {
     }
     console.log(
       "%s: updating today's (%s) quote as it's %d hours old",
-      stock.ticker(),
+      stock.ticker,
       latest.quoteTimestamp.toDateString(),
       ageHours
     );
@@ -103,7 +103,7 @@ async function backfill(stock: Stock) {
     if (fetched?.length != 1) {
       console.warn(
         "%s: found %d rates on %s, want 1, ignoring",
-        stock.ticker(),
+        stock.ticker,
         fetched?.length,
         now.toDateString(),
         fetched
@@ -123,7 +123,7 @@ async function backfill(stock: Stock) {
     // When the timestamp was updated on a later date, it's up to date, so not reupdate it.
     console.log(
       "%s: latest rate from %s was updated on %s, skipping additional update",
-      stock.ticker(),
+      stock.ticker,
       latest.quoteTimestamp.toDateString(),
       latest.updatedAt.toDateString()
     );
@@ -132,7 +132,7 @@ async function backfill(stock: Stock) {
 
   console.log(
     "%s: fetching from %s",
-    stock.ticker(),
+    stock.ticker,
     startDate.toDateString(),
     now.toDateString()
   );
@@ -144,7 +144,7 @@ async function backfill(stock: Stock) {
   if (toUpdate) {
     console.log(
       "%s: updating quote for %s",
-      stock.ticker(),
+      stock.ticker,
       toUpdate.date.toDateString()
     );
     await prisma.stockQuote.update({
@@ -158,7 +158,7 @@ async function backfill(stock: Stock) {
     (x) => !isSameDay(x.date, latest.quoteTimestamp)
   );
   if (toInsert) {
-    console.log("%s: inserting %d entries", stock.ticker(), toInsert.length);
+    console.log("%s: inserting %d entries", stock.ticker, toInsert.length);
     await prisma.stockQuote.createMany({
       data: toInsert.map((x) => apiModelToDb(x)),
     });

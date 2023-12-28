@@ -17,6 +17,8 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
+import { transactionIsDescendant } from "lib/model/Category";
+import { amountOwnShare } from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
 import { InferGetServerSidePropsType } from "next";
@@ -25,7 +27,8 @@ import Select from "react-select";
 
 export function IncomeCharts({ input }: { input: TransactionsStatsInput }) {
   const displayCurrency = useDisplayCurrency();
-  const { categories } = useAllDatabaseDataContext();
+  const { categories, bankAccounts, stocks, exchange } =
+    useAllDatabaseDataContext();
   const zero = AmountWithCurrency.zero(displayCurrency);
   const months = input.months().map((x) => x.getTime());
   const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
@@ -34,12 +37,18 @@ export function IncomeCharts({ input }: { input: TransactionsStatsInput }) {
     Map<number, AmountWithCurrency>
   >();
   for (const t of input.income()) {
-    const ts = startOfMonth(t.timestamp).getTime();
-    const exchanged = t.amountOwnShare(displayCurrency);
+    const ts = startOfMonth(t.timestampEpoch).getTime();
+    const exchanged = amountOwnShare(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange
+    );
     const categorySeries =
-      byCategoryIdAndMonth.get(t.category.id()) ?? new Map(zeroes);
+      byCategoryIdAndMonth.get(t.categoryId) ?? new Map(zeroes);
     categorySeries.set(ts, exchanged.add(categorySeries.get(ts)));
-    byCategoryIdAndMonth.set(t.category.id(), categorySeries);
+    byCategoryIdAndMonth.set(t.categoryId, categorySeries);
   }
 
   return (
@@ -96,7 +105,10 @@ function PageContent() {
     label: a.nameWithAncestors(),
   }));
   const filteredTransactions = transactions.filter(
-    (t) => !excludeCategories.includes(t.category.id())
+    (t) =>
+      !excludeCategories.some((cid) =>
+        transactionIsDescendant(t, cid, categories)
+      )
   );
   const input = new TransactionsStatsInput(filteredTransactions, duration);
   return (

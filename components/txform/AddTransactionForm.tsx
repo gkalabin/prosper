@@ -14,11 +14,21 @@ import {
 } from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { BankAccount } from "lib/model/BankAccount";
-import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
-import { Transaction } from "lib/model/Transaction";
-import { TransactionType } from "lib/model/TransactionType";
+import { Tag } from "lib/model/Tag";
+import { Trip } from "lib/model/Trip";
+import {
+  Income,
+  PersonalExpense,
+  ThirdPartyExpense,
+  Transaction,
+  Transfer,
+  otherPartyNameOrNull,
+  ownShareAmountCentsIgnoreRefuds,
+  parentTransactionId,
+  transactionTags,
+  transactionTrip,
+} from "lib/model/Transaction";
 import {
   AddTransactionFormValues,
   FormMode,
@@ -34,63 +44,182 @@ export function toDateTimeLocal(d: Date | number) {
 }
 
 export const formModeForTransaction = (t: Transaction) => {
-  if (!t) {
-    throw new Error("No transaction provided");
-  }
-  switch (t.type()) {
-    case TransactionType.PERSONAL:
+  switch (t.kind) {
+    case "PersonalExpense":
       return FormMode.PERSONAL;
-    case TransactionType.EXTERNAL:
+    case "ThirdPartyExpense":
       return FormMode.EXTERNAL;
-    case TransactionType.TRANSFER:
+    case "Transfer":
       return FormMode.TRANSFER;
-    case TransactionType.INCOME:
+    case "Income":
       return FormMode.INCOME;
+    default:
+      const _exhaustiveCheck: never = t;
+      throw new Error(`Unknown transaction type for ${_exhaustiveCheck}`);
   }
-  throw new Error(`Unknown transaction type for ${t}`);
 };
+
+function initialValuesForPersonalExpense(
+  t: PersonalExpense,
+  mode: FormMode,
+  displayCurrency: Currency,
+  allTags: Tag[],
+  allTrips: Trip[]
+): AddTransactionFormValues {
+  const defaults: AddTransactionFormValues = {
+    mode,
+    timestamp: toDateTimeLocal(t.timestampEpoch),
+    description: t.note,
+    vendor: t.vendor,
+    otherPartyName: otherPartyNameOrNull(t) ?? "",
+    amount: t.amountCents / 100,
+    ownShareAmount: ownShareAmountCentsIgnoreRefuds(t) / 100,
+    receivedAmount: t.amountCents / 100,
+    fromBankAccountId: t.accountId,
+    toBankAccountId: t.accountId,
+    categoryId: t.categoryId,
+    currencyCode: displayCurrency.code(),
+    isShared: t.companions.length > 0,
+    tripName: transactionTrip(t, allTrips)?.name ?? "",
+    payer: t.vendor,
+    tagNames: transactionTags(t, allTags).map((x) => x.name),
+    parentTransactionId: 0,
+  };
+  return defaults;
+}
+
+function initialValuesForThirdPartyExpense(
+  t: ThirdPartyExpense,
+  mode: FormMode,
+  allTags: Tag[],
+  allTrips: Trip[],
+  defaultAccountFrom: number,
+  defaultAccountTo: number
+): AddTransactionFormValues {
+  return {
+    mode,
+    timestamp: toDateTimeLocal(t.timestampEpoch),
+    description: t.note,
+    vendor: t.vendor,
+    otherPartyName: otherPartyNameOrNull(t) ?? "",
+    amount: t.amountCents / 100,
+    ownShareAmount: ownShareAmountCentsIgnoreRefuds(t) / 100,
+    receivedAmount: t.amountCents / 100,
+    fromBankAccountId: defaultAccountFrom,
+    toBankAccountId: defaultAccountTo,
+    categoryId: t.categoryId,
+    currencyCode: t.currencyCode,
+    isShared: t.companions.length > 0,
+    tripName: transactionTrip(t, allTrips)?.name ?? "",
+    payer: t.payer,
+    tagNames: transactionTags(t, allTags).map((x) => x.name),
+    parentTransactionId: 0,
+  };
+}
+
+function initialValuesForTransfer(
+  t: Transfer,
+  mode: FormMode,
+  displayCurrency: Currency,
+  allTags: Tag[]
+): AddTransactionFormValues {
+  return {
+    mode,
+    timestamp: toDateTimeLocal(t.timestampEpoch),
+    description: t.note,
+    vendor: "",
+    otherPartyName: "",
+    amount: t.sentAmountCents / 100,
+    ownShareAmount: 0,
+    receivedAmount: t.receivedAmountCents / 100,
+    fromBankAccountId: t.fromAccountId,
+    toBankAccountId: t.toAccountId,
+    categoryId: t.categoryId,
+    currencyCode: displayCurrency.code(),
+    isShared: false,
+    tripName: "",
+    payer: "",
+    tagNames: transactionTags(t, allTags).map((x) => x.name),
+    parentTransactionId: 0,
+  };
+}
+
+function initialValuesForIncome(
+  t: Income,
+  mode: FormMode,
+  displayCurrency: Currency,
+  allTags: Tag[],
+  allTrips: Trip[]
+): AddTransactionFormValues {
+  return {
+    mode,
+    timestamp: toDateTimeLocal(t.timestampEpoch),
+    description: t.note,
+    vendor: t.payer,
+    otherPartyName: otherPartyNameOrNull(t) ?? "",
+    amount: t.amountCents / 100,
+    ownShareAmount: ownShareAmountCentsIgnoreRefuds(t) / 100,
+    receivedAmount: t.amountCents / 100,
+    fromBankAccountId: t.accountId,
+    toBankAccountId: t.accountId,
+    categoryId: t.categoryId,
+    currencyCode: displayCurrency.code(),
+    isShared: t.companions.length > 0,
+    tripName: transactionTrip(t, allTrips)?.name ?? "",
+    payer: t.payer,
+    tagNames: transactionTags(t, allTags).map((x) => x.name),
+    parentTransactionId: parentTransactionId(t) ?? 0,
+  };
+}
 
 function initialValuesForTransaction(
   t: Transaction,
   mode: FormMode,
-  defaultAccountFrom: BankAccount,
-  defaultAccountTo: BankAccount,
-  displayCurrency: Currency
+  defaultAccountFrom: number,
+  defaultAccountTo: number,
+  displayCurrency: Currency,
+  allTags: Tag[],
+  allTrips: Trip[]
 ): AddTransactionFormValues {
-  const defaults: AddTransactionFormValues = {
-    mode,
-    timestamp: toDateTimeLocal(t.timestamp),
-    description: t.description,
-    vendor: t.hasVendor() ? t.vendor() : "",
-    otherPartyName: t.hasOtherParty() ? t.otherParty() : "",
-    amount: t.amt().dollar(),
-    ownShareAmount: t.amtOwnShare().dollar(),
-    receivedAmount: t.isTransfer()
-      ? t.amountReceived().dollar()
-      : t.amt().dollar(),
-    fromBankAccountId: (t.accountFrom() ?? defaultAccountFrom).id,
-    toBankAccountId: (t.accountTo() ?? defaultAccountTo).id,
-    categoryId: t.category.id(),
-    currencyCode: t.isThirdPartyExpense()
-      ? t.currency().code()
-      : displayCurrency.code(),
-    isShared: t.isShared(),
-    tripName: t.hasTrip() ? t.trip().name() : "",
-    payer: t.hasPayer() ? t.payer() : "",
-    tagNames: t.tags().map((x) => x.name()),
-    parentTransactionId: t.hasParentTransaction() ? t.parentTransactionId() : 0,
-  };
-  if (t.isPersonalExpense() || t.isThirdPartyExpense() || t.isIncome()) {
-    defaults.ownShareAmount = t.amtOwnShare().dollar();
+  switch (t.kind) {
+    case "PersonalExpense":
+      return initialValuesForPersonalExpense(
+        t,
+        mode,
+        displayCurrency,
+        allTags,
+        allTrips
+      );
+    case "ThirdPartyExpense":
+      return initialValuesForThirdPartyExpense(
+        t,
+        mode,
+        allTags,
+        allTrips,
+        defaultAccountFrom,
+        defaultAccountTo
+      );
+    case "Transfer":
+      return initialValuesForTransfer(t, mode, displayCurrency, allTags);
+    case "Income":
+      return initialValuesForIncome(
+        t,
+        mode,
+        displayCurrency,
+        allTags,
+        allTrips
+      );
+    default:
+      const _exhaustiveCheck: never = t;
+      throw new Error(`Unknown transaction type for ${_exhaustiveCheck}`);
   }
-  return defaults;
 }
 
 function initialValuesEmpty(
   mode: FormMode,
-  defaultAccountFrom: BankAccount,
-  defaultAccountTo: BankAccount,
-  defaultCategory: Category,
+  defaultAccountFromId: number,
+  defaultAccountToId: number,
+  defaultCategoryId: number,
   displayCurrency: Currency
 ): AddTransactionFormValues {
   const today = startOfDay(new Date());
@@ -103,9 +232,9 @@ function initialValuesEmpty(
     amount: 0,
     ownShareAmount: 0,
     receivedAmount: 0,
-    fromBankAccountId: defaultAccountFrom.id,
-    toBankAccountId: defaultAccountTo.id,
-    categoryId: defaultCategory.id(),
+    fromBankAccountId: defaultAccountFromId,
+    toBankAccountId: defaultAccountToId,
+    categoryId: defaultCategoryId,
     currencyCode: displayCurrency.code(),
     isShared: false,
     tripName: "",
@@ -115,43 +244,55 @@ function initialValuesEmpty(
   };
 }
 
-export function mostUsedAccountFrom(txs: Transaction[]): BankAccount {
+export function mostUsedAccountFrom(txs: Transaction[]): number {
   const accounts = txs
-    .filter((x) => x.hasAccountFrom())
-    .map((x) => x.accountFrom());
-  return mostFrequent(accounts);
+    .map((x) => {
+      if (x.kind == "Transfer") {
+        return x.fromAccountId;
+      }
+      if (x.kind == "PersonalExpense") {
+        return x.accountId;
+      }
+      return null;
+    })
+    .filter((x) => x);
+  const [mostFrequent] = uniqMostFrequent(accounts);
+  return mostFrequent;
 }
 
-export function mostUsedAccountTo(txs: Transaction[]): BankAccount {
+export function mostUsedAccountTo(txs: Transaction[]): number {
   const accounts = txs
-    .filter((x) => x.hasAccountTo())
-    .map((x) => x.accountTo());
-  return mostFrequent(accounts);
+    .map((x) => {
+      if (x.kind == "Transfer") {
+        return x.toAccountId;
+      }
+      if (x.kind == "Income") {
+        return x.accountId;
+      }
+      return null;
+    })
+    .filter((x) => x);
+  const [mostFrequent] = uniqMostFrequent(accounts);
+  return mostFrequent;
 }
 
-export function mostUsedCategory(txs: Transaction[], vendor: string): Category {
+export function mostUsedCategoryId(txs: Transaction[], vendor: string): number {
   const categories = txs
-    .filter((x) => (vendor ? x.hasVendor() && x.vendor() == vendor : true))
-    .map((x) => x.category);
+    .filter((x) => {
+      if (!vendor) {
+        return true;
+      }
+      if (x.kind == "PersonalExpense" || x.kind == "ThirdPartyExpense") {
+        return x.vendor == vendor;
+      }
+      if (x.kind == "Income") {
+        return x.payer == vendor;
+      }
+      return false;
+    })
+    .map((x) => x.categoryId);
   const [mostFrequentCategory] = uniqMostFrequent(categories);
   return mostFrequentCategory;
-}
-
-function mostFrequent<T extends { id: number }>(items: T[]): T {
-  if (!items.length) {
-    return null;
-  }
-  const itemById = {};
-  const frequencyById: { [id: number]: number } = {};
-  items.forEach((x) => {
-    itemById[x.id] = x;
-    frequencyById[x.id] ??= 0;
-    frequencyById[x.id]++;
-  });
-  const mostFrequentId = Object.entries(frequencyById).sort(
-    (a, b) => b[1] - a[1]
-  )[0][0];
-  return itemById[mostFrequentId];
 }
 
 export const AddTransactionForm = (props: {
@@ -165,12 +306,19 @@ export const AddTransactionForm = (props: {
   const initialMode = props.transaction
     ? formModeForTransaction(props.transaction)
     : FormMode.PERSONAL;
-  const { transactions, categories } = useAllDatabaseDataContext();
+  const {
+    transactions,
+    categories,
+    tags: allTags,
+    trips: allTrips,
+  } = useAllDatabaseDataContext();
   const bankAccounts = useDisplayBankAccounts();
   const defaultAccountFrom =
-    mostUsedAccountFrom(transactions) ?? bankAccounts[0];
-  const defaultAccountTo = mostUsedAccountTo(transactions) ?? bankAccounts[0];
-  const defaultCategory = mostUsedCategory(transactions, "") ?? categories[0];
+    mostUsedAccountFrom(transactions) ?? bankAccounts[0].id;
+  const defaultAccountTo =
+    mostUsedAccountTo(transactions) ?? bankAccounts[0].id;
+  const defaultCategory =
+    mostUsedCategoryId(transactions, "") ?? categories[0].id();
   const displayCurrency = useDisplayCurrency();
   const initialValuesForEmptyForm = initialValuesEmpty(
     initialMode,
@@ -186,7 +334,9 @@ export const AddTransactionForm = (props: {
         initialMode,
         defaultAccountFrom,
         defaultAccountTo,
-        displayCurrency
+        displayCurrency,
+        allTags,
+        allTrips
       );
 
   const submitNewTransaction = async (

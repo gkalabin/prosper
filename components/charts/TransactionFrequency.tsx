@@ -14,7 +14,7 @@ export function TransactionFrequencyChart({
   const months = eachMonthOfInterval(duration).map((t) => t.getTime());
   const count = new AppendMap<number, number>((a, b) => a + b, 0);
   for (const t of transactions) {
-    const ts = startOfMonth(t.timestamp).getTime();
+    const ts = startOfMonth(t.timestampEpoch).getTime();
     count.append(ts, 1);
   }
 

@@ -1,4 +1,5 @@
 import { Category as DBCategory } from "@prisma/client";
+import { Transaction } from "./Transaction";
 
 export class Category {
   private readonly _id: number;
@@ -125,3 +126,18 @@ export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
   inOrderTreeTraversal(rootCategories);
   return categoriesSorted;
 };
+
+export function transactionIsDescendant(
+  t: Transaction,
+  cid: number,
+  categories: Category[]
+): boolean {
+  if (t.categoryId == cid) {
+    return true;
+  }
+  const transactionCategory = categories.find((c) => c.id() == t.categoryId);
+  if (!transactionCategory) {
+    throw new Error(`Category ${t.categoryId} not found`);
+  }
+  return transactionCategory.childOf(cid);
+}

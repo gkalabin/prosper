@@ -1,106 +1,80 @@
 import { Bank as DBBank, BankAccount as DBBankAccount } from "@prisma/client";
-import { AmountWithUnit } from "lib/AmountWithUnit";
 import { Currency } from "lib/model/Currency";
 import { Stock } from "lib/model/Stock";
-import { Transaction } from "lib/model/Transaction";
+
 import { Unit } from "lib/model/Unit";
 
-export class Bank {
-  readonly id: number;
-  readonly name: string;
-  readonly displayOrder: number;
-  readonly accounts: BankAccount[];
+export type Bank = {
+  id: number;
+  name: string;
+  displayOrder: number;
+};
 
-  public constructor(init: DBBank) {
-    this.id = init.id;
-    this.name = init.name;
-    this.displayOrder = init.displayOrder;
-    this.accounts = [];
-  }
+export function bankModelFromDB(init: DBBank): Bank {
+  return {
+    id: init.id,
+    name: init.name,
+    displayOrder: init.displayOrder,
+  };
 }
 
-export class BankAccount {
-  readonly id: number;
-  readonly name: string;
-  readonly initialBalanceCents: number;
-  readonly _currency?: Currency;
-  readonly _stock?: Stock;
-  readonly displayOrder: number;
-  readonly bank: Bank;
-  readonly transactions: Transaction[];
+export function accountsForBank(
+  bank: Bank,
+  accounts: BankAccount[]
+): BankAccount[] {
+  return accounts.filter((a) => a.bankId == bank.id);
+}
 
-  readonly dbValue: DBBankAccount;
+export type BankAccount = {
+  id: number;
+  name: string;
+  bankId: number;
+  initialBalanceCents: number;
+  currencyCode?: string;
+  stockId?: number;
+  displayOrder: number;
+  archived: boolean;
+  joint: boolean;
+  liquid: boolean;
+};
 
-  public constructor(
-    init: DBBankAccount,
-    bankById: { [id: number]: Bank },
-    stocks: Stock[]
-  ) {
-    this.dbValue = init;
-    this.id = init.id;
-    this.name = init.name;
-    this.initialBalanceCents = init.initialBalanceCents;
-    this._currency =
-      init.currencyCode && Currency.findByCode(init.currencyCode);
-    this._stock = init.stockId && stocks.find((s) => s.id() == init.stockId);
-    this.displayOrder = init.displayOrder;
-    this.bank = bankById[init.bankId];
-    this.transactions = [];
+export function bankAccountModelFromDB(init: DBBankAccount): BankAccount {
+  return {
+    id: init.id,
+    name: init.name,
+    bankId: init.bankId,
+    initialBalanceCents: init.initialBalanceCents,
+    currencyCode: init.currencyCode,
+    stockId: init.stockId,
+    displayOrder: init.displayOrder,
+    archived: init.archived,
+    joint: init.joint,
+    liquid: init.liquid,
+  };
+}
+
+export function accountUnit(account: BankAccount, stocks: Stock[]): Unit {
+  if (account.currencyCode) {
+    return Currency.findByCode(account.currencyCode);
   }
-
-  hasStock(): boolean {
-    return !!this._stock;
-  }
-
-  stock(): Stock {
-    if (!this._stock) {
-      throw new Error(`BankAccount ${this.name} does not have a stock`);
+  if (account.stockId) {
+    const stock = stocks.find((s) => s.id == account.stockId);
+    if (!stock) {
+      throw new Error(
+        `Cannot find stock ${account.stockId} for account ${account.id}`
+      );
     }
-    return this._stock;
+    return stock;
   }
+  throw new Error(`Account ${account.id} has no unit`);
+}
 
-  hasCurrency(): boolean {
-    return !!this._currency;
+export function fullAccountName(account: BankAccount, banks: Bank[]): string {
+  const bank = banks.find((b) => b.id == account.bankId);
+  if (!bank) {
+    throw new Error(
+      `Cannot find bank ${account.bankId} for account ${account.id}`
+    );
   }
-
-  currency(): Currency {
-    if (!this._currency) {
-      throw new Error(`BankAccount ${this.name} does not have a currency`);
-    }
-    return this._currency;
-  }
-
-  isArchived() {
-    return this.dbValue.archived;
-  }
-
-  isJoint() {
-    return this.dbValue.joint;
-  }
-
-  isLiquid() {
-    return this.dbValue.liquid;
-  }
-
-  unit(): Unit {
-    if (this.hasStock()) {
-      return this.stock();
-    }
-    if (this.hasCurrency()) {
-      return this.currency();
-    }
-    throw new Error(`BankAccount ${this.id} has no unit`);
-  }
-
-  balance(): AmountWithUnit {
-    let balance = this.initialBalanceCents;
-    this.transactions.forEach((t) => {
-      const amount = t.amountSignedCents(this);
-      balance += amount;
-    });
-    return new AmountWithUnit({
-      amountCents: balance,
-      unit: this.unit(),
-    });
-  }
+  return `${bank.name}: ${account.name}`;
 }

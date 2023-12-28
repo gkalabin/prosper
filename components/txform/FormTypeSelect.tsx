@@ -30,7 +30,7 @@ export const FormTypeSelect = () => {
   const {
     values: { mode },
     setFieldValue,
-    isSubmitting
+    isSubmitting,
   } = useFormikContext<AddTransactionFormValues>();
   return (
     <div className="col-span-6 flex justify-center">

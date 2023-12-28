@@ -1,8 +1,14 @@
 import { Interval, eachMonthOfInterval } from "date-fns";
 import ReactEcharts from "echarts-for-react";
+import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { defaultMonthlyMoneyChart } from "lib/charts";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { Transaction } from "lib/model/Transaction";
+import {
+  Expense,
+  Income,
+  amountAllParties,
+  amountOwnShare,
+} from "lib/model/Transaction";
 import { MoneyTimeseries } from "lib/util/Timeseries";
 
 export function MonthlyOwnShare({
@@ -10,16 +16,23 @@ export function MonthlyOwnShare({
   duration,
   title,
 }: {
-  transactions: Transaction[];
+  transactions: (Expense | Income)[];
   duration: Interval;
   title: string;
 }) {
   const displayCurrency = useDisplayCurrency();
+  const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
   const months = eachMonthOfInterval(duration);
   const data = new MoneyTimeseries(displayCurrency);
   for (const t of transactions) {
-    const exchanged = t.amountOwnShare(displayCurrency);
-    data.append(t.timestamp, exchanged);
+    const amount = amountOwnShare(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange
+    );
+    data.append(t.timestampEpoch, amount);
   }
   return (
     <ReactEcharts
@@ -41,22 +54,28 @@ export function MonthlyOwnShare({
   );
 }
 
-
 export function MonthlyAllParties({
   transactions,
   duration,
   title,
 }: {
-  transactions: Transaction[];
+  transactions: (Expense | Income)[];
   duration: Interval;
   title: string;
 }) {
   const displayCurrency = useDisplayCurrency();
+  const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
   const months = eachMonthOfInterval(duration);
   const data = new MoneyTimeseries(displayCurrency);
   for (const t of transactions) {
-    const exchanged = t.amountAllParties(displayCurrency);
-    data.append(t.timestamp, exchanged);
+    const amount = amountAllParties(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange
+    );
+    data.append(t.timestampEpoch, amount);
   }
   return (
     <ReactEcharts

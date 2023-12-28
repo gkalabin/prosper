@@ -22,11 +22,13 @@ import Async from "react-select/async";
 export const AddOrEditAccountForm = ({
   bank,
   bankAccount,
+  bankAccounts,
   stocks,
   onAddedOrUpdated,
   onClose,
 }: {
   bankAccount?: BankAccount;
+  bankAccounts: BankAccount[];
   bank: Bank;
   stocks: Stock[];
   onAddedOrUpdated: (x: DBBankAccount) => void;
@@ -34,7 +36,7 @@ export const AddOrEditAccountForm = ({
 }) => {
   const [apiError, setApiError] = useState("");
   const addingNewAccount = !bankAccount;
-  const initialValues = formValues(bank, bankAccount);
+  const initialValues = formValues(bank, bankAccounts, stocks, bankAccount);
 
   const handleSubmit = async (values) => {
     setApiError("");
@@ -135,6 +137,8 @@ export const AddOrEditAccountForm = ({
 
 function formValues(
   bank: Bank,
+  bankAccounts: BankAccount[],
+  stocks: Stock[],
   bankAccount?: BankAccount
 ): BankAccountApiModel {
   if (!bankAccount) {
@@ -144,22 +148,29 @@ function formValues(
       isJoint: false,
       isArchived: false,
       initialBalance: 0,
-      displayOrder: 100 * bank.accounts.length,
+      displayOrder:
+        100 * bankAccounts.filter((a) => a.bankId == bank.id).length,
     };
   }
 
   let unit: UnitApiModel;
-  if (bankAccount.hasStock()) {
+  if (bankAccount.stockId) {
+    const stock = stocks.find((s) => s.id === bankAccount.stockId);
+    if (!stock) {
+      throw new Error(
+        `BankAccount ${bankAccount.id} has stockId ${bankAccount.stockId} but it does not exist`
+      );
+    }
     unit = {
       kind: "stock",
-      ticker: bankAccount.stock().ticker(),
-      exchange: bankAccount.stock().exchange(),
-      name: bankAccount.stock().name(),
+      ticker: stock.ticker,
+      exchange: stock.exchange,
+      name: stock.name,
     };
-  } else if (bankAccount.hasCurrency()) {
+  } else if (bankAccount.currencyCode) {
     unit = {
       kind: "currency",
-      currencyCode: bankAccount.currency().code(),
+      currencyCode: Currency.findByCode(bankAccount.currencyCode).code(),
     };
   } else {
     throw new Error(
@@ -169,8 +180,8 @@ function formValues(
   return {
     name: bankAccount.name,
     unit,
-    isJoint: bankAccount.isJoint(),
-    isArchived: bankAccount.isArchived(),
+    isJoint: bankAccount.joint,
+    isArchived: bankAccount.archived,
     initialBalance: bankAccount.initialBalanceCents / 100,
     displayOrder: bankAccount.displayOrder,
   };
@@ -209,9 +220,9 @@ export function UnitSelect({ stocks }: { stocks: Stock[] }) {
   }));
   const initialStocks = stocks.map((s) => ({
     kind: "stock",
-    ticker: s.ticker(),
-    exchange: s.exchange(),
-    name: s.name(),
+    ticker: s.ticker,
+    exchange: s.exchange,
+    name: s.name,
   }));
   const initialOptions = [...currencies, ...initialStocks].map(unitToOption);
   // Debounce the loadOptions function to avoid spamming the API.

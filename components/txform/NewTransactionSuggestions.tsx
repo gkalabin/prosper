@@ -9,8 +9,19 @@ import {
   useDisplayBankAccounts,
 } from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
-import { BankAccount } from "lib/model/BankAccount";
-import { Transaction } from "lib/model/Transaction";
+import {
+  Bank,
+  BankAccount,
+  accountUnit,
+  fullAccountName,
+} from "lib/model/BankAccount";
+import { formatUnit } from "lib/model/Unit";
+import {
+  Transaction,
+  isExpense,
+  isIncome,
+  otherPartyNameOrNull,
+} from "lib/model/Transaction";
 import { useOpenBankingTransactions } from "lib/openbanking/context";
 import {
   TransactionPrototype,
@@ -31,12 +42,12 @@ export function fillMostCommonDescriptions(input: {
       continue;
     }
     const external = p.externalDescription;
-    let internal = t.description;
-    if (t.hasPayer()) {
-      internal = t.payer();
+    let internal = t.note;
+    if (isIncome(t)) {
+      internal = t.payer;
     }
-    if (t.hasVendor()) {
-      internal = t.vendor();
+    if (isExpense(t)) {
+      internal = t.vendor;
     }
     if (internal == "" || internal == external) {
       continue;
@@ -90,7 +101,8 @@ const NonEmptyNewTransactionSuggestions = (props: {
   activePrototype: TransactionPrototype;
   onItemClick: (t: TransactionPrototype) => void;
 }) => {
-  const { transactions, transactionPrototypes } = useAllDatabaseDataContext();
+  const { transactions, banks, transactionPrototypes } =
+    useAllDatabaseDataContext();
   const bankAccounts = useDisplayBankAccounts();
   const withdrawalsOrDeposits = fillMostCommonDescriptions({
     transactions,
@@ -144,7 +156,7 @@ const NonEmptyNewTransactionSuggestions = (props: {
                 onClick={() => setActiveAccount(account)}
                 disabled={account.id == activeAccount.id}
               >
-                {account.bank.name}: {account.name}
+                {fullAccountName(account, banks)}
               </ButtonLink>
             </div>
           ))}
@@ -224,6 +236,32 @@ function SuggestionsList(props: {
   );
 }
 
+function summary(
+  t: Transaction,
+  bankAccounts: BankAccount[],
+  banks: Bank[]
+): string {
+  switch (t.kind) {
+    case "PersonalExpense":
+      return `${t.vendor} ${
+        otherPartyNameOrNull(t) ? "split with " + otherPartyNameOrNull(t) : ""
+      }`;
+    case "ThirdPartyExpense":
+      return `${t.vendor} paid by ${t.payer}`;
+    case "Income":
+      return `${t.payer} ${
+        otherPartyNameOrNull(t) ? "split with " + otherPartyNameOrNull(t) : ""
+      }`;
+    case "Transfer":
+      const from = bankAccounts.find((a) => a.id == t.fromAccountId);
+      const to = bankAccounts.find((a) => a.id == t.toAccountId);
+      return `${fullAccountName(from, banks)} → ${fullAccountName(to, banks)}`;
+    default:
+      const _exhaustiveCheck: never = t;
+      throw new Error(`Unknown transaction type for ${_exhaustiveCheck}`);
+  }
+}
+
 function SuggestionItem({
   proto,
   isActive,
@@ -236,8 +274,8 @@ function SuggestionItem({
   onClick: (t: TransactionPrototype) => void;
 }) {
   const { isSubmitting } = useFormikContext();
-  const { transactions, transactionPrototypes } = useAllDatabaseDataContext();
-  const bankAccounts = useDisplayBankAccounts();
+  const { transactions, transactionPrototypes, bankAccounts, banks, stocks } =
+    useAllDatabaseDataContext();
   const singleOpProto = singleOperationProto(proto, bankAccount);
   const usedProto = transactionPrototypes.find((p) =>
     proto.type != "transfer"
@@ -261,6 +299,7 @@ function SuggestionItem({
       ? proto.withdrawal.internalAccountId
       : proto.deposit.internalAccountId;
   const otherAccount = bankAccounts.find((a) => a.id == otherAccountId);
+  const unit = accountUnit(bankAccount, stocks);
   return (
     <div className={classNames({ "bg-gray-100": isActive })}>
       <div className="flex px-2 py-1">
@@ -276,7 +315,7 @@ function SuggestionItem({
             {proto.type == "transfer" && (
               <div className="text-xs italic text-gray-600">
                 Transfer {singleOpProto.type == "deposit" ? "from" : "to"}{" "}
-                {otherAccount.bank.name} {otherAccount.name}
+                {fullAccountName(otherAccount, banks)}
               </div>
             )}
             <div className="text-xs text-gray-600">
@@ -289,20 +328,19 @@ function SuggestionItem({
               "text-green-900": singleOpProto.type == "deposit",
             })}
           >
-            {bankAccount.unit().format(
-              singleOpProto.absoluteAmountCents / 100
-            )}
+            {formatUnit(unit, singleOpProto.absoluteAmountCents / 100)}
           </div>
         </div>
       </div>
       {usedTransaction && (
         <div className="ml-2 text-xs text-gray-600">
-          Recorded as <i>{usedTransaction.summary()}</i>
+          Recorded as <i>{summary(usedTransaction, bankAccounts, banks)}</i>
         </div>
       )}
     </div>
   );
 }
+
 function singleOperationProto(
   proto: TransactionPrototype,
   bankAccount: BankAccount

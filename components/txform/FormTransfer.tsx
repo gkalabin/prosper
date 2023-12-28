@@ -16,8 +16,12 @@ import {
   useDisplayBankAccounts,
 } from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
-import { BankAccount } from "lib/model/BankAccount";
-import { Transaction } from "lib/model/Transaction";
+import { accountUnit } from "lib/model/BankAccount";
+import {
+  Transaction,
+  Transfer,
+  isTransfer,
+} from "lib/model/Transaction";
 import { AddTransactionFormValues } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect } from "react";
@@ -31,34 +35,37 @@ export const FormTransfer = ({
   transaction: Transaction;
   prototype: TransactionPrototype;
 }) => {
-  const { transactions } = useAllDatabaseDataContext();
+  const { transactions, stocks } = useAllDatabaseDataContext();
   const {
     values: { description, fromBankAccountId, toBankAccountId },
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
   const bankAccounts = useDisplayBankAccounts();
 
-  const transfers = transactions.filter((x) => x.isTransfer());
+  const transfers = transactions.filter((x): x is Transfer => isTransfer(x));
   const now = new Date();
-  let [mostFrequentCategory] = uniqMostFrequent(
+  let [mostFrequentCategoryId] = uniqMostFrequent(
     transfers
       .filter(
-        (x) => differenceInMonths(now, x.timestamp) < SUGGESTIONS_WINDOW_MONTHS
+        (x) =>
+          differenceInMonths(now, x.timestampEpoch) < SUGGESTIONS_WINDOW_MONTHS
       )
-      .filter((x) => !description || x.description == description)
-      .map((x) => x.category)
+      .filter((x) => !description || x.note == description)
+      .map((x) => x.categoryId)
   );
-  if (!mostFrequentCategory) {
-    [mostFrequentCategory] = uniqMostFrequent(transfers.map((x) => x.category));
+  if (!mostFrequentCategoryId) {
+    [mostFrequentCategoryId] = uniqMostFrequent(
+      transfers.map((x) => x.categoryId)
+    );
   }
   useEffect(() => {
     if (transaction) {
       return;
     }
-    if (mostFrequentCategory) {
-      setFieldValue("categoryId", mostFrequentCategory.id());
+    if (mostFrequentCategoryId) {
+      setFieldValue("categoryId", mostFrequentCategoryId);
     }
-  }, [setFieldValue, mostFrequentCategory, transaction]);
+  }, [setFieldValue, mostFrequentCategoryId, transaction]);
 
   useEffect(() => {
     if (!prototype) {
@@ -79,14 +86,8 @@ export const FormTransfer = ({
   const fromAccount = bankAccounts.find((a) => a.id == fromBankAccountId);
   const toAccount = bankAccounts.find((a) => a.id == toBankAccountId);
   const showReceivedAmount =
-    fromAccount.currency().code() != toAccount.currency().code();
-  useReceivedAmountEffect(
-    fromAccount,
-    toAccount,
-    showReceivedAmount,
-    transaction,
-    prototype
-  );
+    accountUnit(fromAccount, stocks) != accountUnit(toAccount, stocks);
+  useReceivedAmountEffect(showReceivedAmount, transaction, prototype);
   return (
     <>
       <Timestamp />
@@ -109,8 +110,6 @@ export const FormTransfer = ({
   );
 };
 function useReceivedAmountEffect(
-  fromAccount: BankAccount,
-  toAccount: BankAccount,
   showReceivedAmount: boolean,
   transaction: Transaction,
   prototype: TransactionPrototype
@@ -123,27 +122,20 @@ function useReceivedAmountEffect(
     if (prototype) {
       return;
     }
-    if (!showReceivedAmount) {
+    if (!showReceivedAmount || !transaction) {
       setFieldValue("receivedAmount", amount);
       return;
     }
-    if (transaction && transaction.amount().dollar() == amount) {
-      if (transaction.isTransfer()) {
-        setFieldValue("receivedAmount", transaction.amountReceived().dollar());
-      } else {
-        setFieldValue("receivedAmount", transaction.amount().dollar());
-      }
+    const amountCents = Math.round(amount * 100);
+    if (isTransfer(transaction) && transaction.sentAmountCents == amountCents) {
+      setFieldValue("receivedAmount", transaction.receivedAmountCents / 100);
+      return;
+    }
+    if (!isTransfer(transaction) && transaction.amountCents == amountCents) {
+      setFieldValue("receivedAmount", transaction.amountCents / 100);
       return;
     }
     setFieldValue("receivedAmount", amount);
-  }, [
-    amount,
-    setFieldValue,
-    showReceivedAmount,
-    fromAccount.currency,
-    toAccount.currency,
-    transaction,
-    prototype,
-  ]);
+  }, [amount, setFieldValue, showReceivedAmount, transaction, prototype]);
   return showReceivedAmount;
 }

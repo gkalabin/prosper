@@ -1,7 +1,7 @@
 import { Amount } from "lib/Amount";
-import { Currency } from "lib/model/Currency";
-import { Stock } from "lib/model/Stock";
-import { Unit } from "lib/model/Unit";
+import { formatStock } from "lib/model/Stock";
+import { Unit, isCurrency, isStock } from "lib/model/Unit";
+import { formatCurrency } from "./model/Currency";
 
 export class AmountWithUnit {
   private readonly amount: Amount;
@@ -116,9 +116,15 @@ export class AmountWithUnit {
   }
 
   public format(): string {
-    return this.unit.format(this.amount.dollar(), {
+    const opts = {
       maximumFractionDigits: this.isRound() ? 0 : 2,
-    });
+    };
+    if (isStock(this.unit)) {
+      return formatStock(this.unit, this.amount.dollar(), opts);
+    }
+    if (isCurrency(this.unit)) {
+      return formatCurrency(this.unit, this.amount.dollar(), opts);
+    }
   }
 
   public toString() {
@@ -127,17 +133,17 @@ export class AmountWithUnit {
 
   private assertSameUnit(that: AmountWithUnit) {
     if (
-      that.unit instanceof Currency &&
-      this.unit instanceof Currency &&
+      isCurrency(that.unit) &&
+      isCurrency(this.unit) &&
       that.unit.code() == this.unit.code()
     ) {
       return;
     }
     if (
-      that.unit instanceof Stock &&
-      this.unit instanceof Stock &&
-      that.unit.exchange() == this.unit.exchange() &&
-      that.unit.ticker() == this.unit.ticker()
+      isStock(that.unit) &&
+      isStock(this.unit) &&
+      that.unit.exchange == this.unit.exchange &&
+      that.unit.ticker == this.unit.ticker
     ) {
       return;
     }

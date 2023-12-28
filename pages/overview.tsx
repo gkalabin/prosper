@@ -15,9 +15,21 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { Bank, BankAccount } from "lib/model/BankAccount";
+import {
+  accountsForBank,
+  accountUnit,
+  Bank,
+  BankAccount,
+} from "lib/model/BankAccount";
 import { Currency } from "lib/model/Currency";
 import { Stock } from "lib/model/Stock";
+import {
+  Income,
+  PersonalExpense,
+  Transaction,
+  Transfer,
+} from "lib/model/Transaction";
+import { isCurrency, isStock } from "lib/model/Unit";
 import {
   useOpenBankingBalances,
   useOpenBankingExpirations,
@@ -28,32 +40,82 @@ import { onTransactionChange } from "lib/stateHelpers";
 import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 
-const BankAccountListItem = (props: { account: BankAccount }) => {
+function accountBalance(
+  account: BankAccount,
+  allTransactions: Transaction[],
+  stocks: Stock[]
+): AmountWithUnit {
+  let balance = account.initialBalanceCents;
+  allTransactions.forEach((t) => {
+    if (!transactionBelongsToAccount(t, account)) {
+      return;
+    }
+    switch (t.kind) {
+      case "PersonalExpense":
+        balance = balance - t.amountCents;
+        return;
+      case "Income":
+        balance = balance + t.amountCents;
+        return;
+      case "Transfer":
+        if (t.fromAccountId == account.id) {
+          balance = balance - t.sentAmountCents;
+        } else if (t.toAccountId == account.id) {
+          balance = balance + t.receivedAmountCents;
+        }
+        return;
+    }
+  });
+  return new AmountWithUnit({
+    amountCents: balance,
+    unit: accountUnit(account, stocks),
+  });
+}
+
+function transactionBelongsToAccount(
+  t: Transaction,
+  account: BankAccount
+): boolean {
+  switch (t.kind) {
+    case "ThirdPartyExpense":
+      return false;
+    case "PersonalExpense":
+    case "Income":
+      return t.accountId == account.id;
+    case "Transfer":
+      return t.fromAccountId == account.id || t.toAccountId == account.id;
+    default:
+      const _exhaustiveCheck: never = t;
+      throw new Error(`Unknown transaction kind ${_exhaustiveCheck}`);
+  }
+}
+
+const BankAccountListItem = ({ account }: { account: BankAccount }) => {
   const [showTransactionList, setShowTransactionList] = useState(false);
-  let balanceText = <span>{props.account.balance().format()}</span>;
-  const { balances } = useOpenBankingBalances();
-  const { setDbData } = useAllDatabaseDataContext();
-  const obBalance = balances?.find(
-    (b) => b.internalAccountId === props.account.id
+  const { setDbData, transactions, stocks } = useAllDatabaseDataContext();
+  const appBalance = accountBalance(account, transactions, stocks);
+  const unit = accountUnit(account, stocks);
+  const accountTransactions = transactions.filter(
+    (t): t is PersonalExpense | Transfer | Income =>
+      transactionBelongsToAccount(t, account)
   );
+  let balanceText = <span>{appBalance.format()}</span>;
+  const { balances } = useOpenBankingBalances();
+  const obBalance = balances?.find((b) => b.internalAccountId === account.id);
   if (obBalance) {
     const obAmount = new AmountWithUnit({
       amountCents: obBalance.balanceCents,
-      unit: props.account.unit(),
+      unit,
     });
-    const delta = props.account.balance().subtract(obAmount);
+    const delta = appBalance.subtract(obAmount);
     if (delta.isZero()) {
       balanceText = (
-        <span className="text-green-600">
-          {props.account.balance().format()}
-        </span>
+        <span className="text-green-600">{appBalance.format()}</span>
       );
     } else {
       balanceText = (
         <>
-          <span className="text-red-600">
-            {props.account.balance().format()}
-          </span>{" "}
+          <span className="text-red-600">{appBalance.format()}</span>{" "}
           {delta.abs().format()} unaccounted{" "}
           {delta.isNegative() ? "income" : "expense"}
         </>
@@ -66,13 +128,13 @@ const BankAccountListItem = (props: { account: BankAccount }) => {
         className="cursor-pointer"
         onClick={() => setShowTransactionList(!showTransactionList)}
       >
-        <span className="text-base font-normal">{props.account.name}</span>
+        <span className="text-base font-normal">{account.name}</span>
         <span className="ml-2 text-sm font-light">{balanceText}</span>
       </div>
       {showTransactionList && (
         <div className="mt-4">
           <TransactionsList
-            transactions={props.account.transactions}
+            transactions={accountTransactions}
             onTransactionUpdated={onTransactionChange(setDbData)}
             showBankAccountInStatusLine={false}
           />
@@ -94,7 +156,8 @@ const BanksList = ({ banks }: { banks: Bank[] }) => {
 
 const BanksListItem = ({ bank }: { bank: Bank }) => {
   const displayCurrency = useDisplayCurrency();
-  const { exchange } = useAllDatabaseDataContext();
+  const { exchange, stocks, transactions, bankAccounts } =
+    useAllDatabaseDataContext();
   const { expirations } = useOpenBankingExpirations();
   const expiration = expirations?.find(
     (e) => e.bankId == bank.id
@@ -102,13 +165,20 @@ const BanksListItem = ({ bank }: { bank: Bank }) => {
   const now = new Date();
   const expiresInDays = differenceInDays(expiration, now);
   const dayOrDays = Math.abs(expiresInDays) == 1 ? "day" : "days";
+  const accounts = accountsForBank(bank, bankAccounts);
   return (
     <div className="rounded border">
       <div className="border-b bg-indigo-200 p-2">
         <div className="text-xl font-medium text-gray-900">
           {bank.name}
           <span className="ml-2">
-            {accountsSum(bank.accounts, displayCurrency, exchange).format()}
+            {accountsSum(
+              accounts,
+              displayCurrency,
+              exchange,
+              transactions,
+              stocks
+            ).format()}
           </span>
         </div>
         {expiration && expiresInDays < 7 && (
@@ -132,8 +202,8 @@ const BanksListItem = ({ bank }: { bank: Bank }) => {
       </div>
 
       <div className="divide-y divide-gray-200">
-        {bank.accounts
-          .filter((a) => !a.isArchived())
+        {accounts
+          .filter((a) => !a.archived)
           .map((account) => (
             <BankAccountListItem key={account.id} account={account} />
           ))}
@@ -145,14 +215,16 @@ const BanksListItem = ({ bank }: { bank: Bank }) => {
 function accountsSum(
   accounts: BankAccount[],
   targetCurrency: Currency,
-  exchange: StockAndCurrencyExchange
+  exchange: StockAndCurrencyExchange,
+  allTransactions: Transaction[],
+  stocks: Stock[]
 ): AmountWithCurrency {
   let sum = AmountWithCurrency.zero(targetCurrency);
   const now = new Date();
   accounts.forEach((x) => {
-    const b = x.balance();
+    const b = accountBalance(x, allTransactions, stocks);
     const unit = b.getUnit();
-    if (unit instanceof Currency) {
+    if (isCurrency(unit)) {
       const delta = exchange.exchangeCurrency(
         new AmountWithCurrency({
           amountCents: b.cents(),
@@ -162,7 +234,9 @@ function accountsSum(
         now
       );
       sum = sum.add(delta);
-    } else if (unit instanceof Stock) {
+      return;
+    }
+    if (isStock(unit)) {
       const sharesValue = exchange.exchangeStock(
         b.getAmount(),
         unit,
@@ -171,9 +245,9 @@ function accountsSum(
       );
       const delta = exchange.exchangeCurrency(sharesValue, targetCurrency, now);
       sum = sum.add(delta);
-    } else {
-      throw new Error(`Unknown unit: ${unit} for ${x.id}`);
+      return;
     }
+    throw new Error(`Unknown unit: ${unit} for ${x.id}`);
   });
   return sum;
 }
@@ -181,14 +255,22 @@ function accountsSum(
 function OverviewPageContent() {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
   const displayCurrency = useDisplayCurrency();
-  const { banks, exchange, setDbData } = useAllDatabaseDataContext();
+  const { banks, bankAccounts, transactions, exchange, stocks, setDbData } =
+    useAllDatabaseDataContext();
 
-  const accounts = banks.flatMap((b) => b.accounts);
-  const total = accountsSum(accounts, displayCurrency, exchange);
-  const totalLiquid = accountsSum(
-    accounts.filter((a) => a.isLiquid()),
+  const total = accountsSum(
+    bankAccounts,
     displayCurrency,
-    exchange
+    exchange,
+    transactions,
+    stocks
+  );
+  const totalLiquid = accountsSum(
+    bankAccounts.filter((a) => a.liquid),
+    displayCurrency,
+    exchange,
+    transactions,
+    stocks
   );
   const { isError: obBalancesError, isLoading: obBalancesLoading } =
     useOpenBankingBalances();

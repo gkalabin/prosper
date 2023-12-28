@@ -1,10 +1,17 @@
+import { TransactionsList } from "components/transactions/TransactionsList";
 import { ButtonLink } from "components/ui/buttons";
+import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { Transaction } from "lib/model/Transaction";
+import {
+  Transaction,
+  amountAllParties,
+  amountSent,
+  isTransfer,
+} from "lib/model/Transaction";
+import { isCurrency, isStock } from "lib/model/Unit";
 import { onTransactionChange } from "lib/stateHelpers";
 import { useState } from "react";
-import { TransactionsList } from "./TransactionsList";
 
 export enum SortingMode {
   DATE_ASC,
@@ -21,27 +28,55 @@ export const SortableTransactionsList = (props: {
   const [sorting, setSorting] = useState(
     props.initialSorting ?? SortingMode.DATE_ASC
   );
-  const { setDbData } = useAllDatabaseDataContext();
+  const { setDbData, bankAccounts, stocks, exchange } =
+    useAllDatabaseDataContext();
   const displayCurrency = useDisplayCurrency();
   if (!props.transactions?.length) {
     return <div>No transactions.</div>;
   }
+  const amount = (transaction: Transaction): AmountWithCurrency => {
+    if (isTransfer(transaction)) {
+      const sent = amountSent(transaction, bankAccounts, stocks);
+      const unit = sent.getUnit();
+      if (isCurrency(unit)) {
+        const amount = new AmountWithCurrency({
+          amountCents: sent.cents(),
+          currency: unit,
+        });
+        return exchange.exchangeCurrency(
+          amount,
+          displayCurrency,
+          transaction.timestampEpoch
+        );
+      }
+      if (isStock(unit)) {
+        return exchange.exchangeStock(
+          sent.getAmount(),
+          unit,
+          displayCurrency,
+          transaction.timestampEpoch
+        );
+      }
+      throw new Error(`Unknown unit: ${unit}`);
+    }
+    return amountAllParties(
+      transaction,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange
+    );
+  };
   const sortedTransactions = [...props.transactions].sort((a, b) => {
     switch (sorting) {
       case SortingMode.AMOUNT_ASC:
-        return (
-          a.amountAllParties(displayCurrency).dollar() -
-          b.amountAllParties(displayCurrency).dollar()
-        );
+        return amount(a).dollar() - amount(b).dollar();
       case SortingMode.AMOUNT_DESC:
-        return (
-          b.amountAllParties(displayCurrency).dollar() -
-          a.amountAllParties(displayCurrency).dollar()
-        );
+        return amount(b).dollar() - amount(a).dollar();
       case SortingMode.DATE_ASC:
-        return a.timestamp.getTime() - b.timestamp.getTime();
+        return a.timestampEpoch - b.timestampEpoch;
       case SortingMode.DATE_DESC:
-        return b.timestamp.getTime() - a.timestamp.getTime();
+        return b.timestampEpoch - a.timestampEpoch;
       default:
         throw new Error("Unknown sorting mode: " + sorting);
     }

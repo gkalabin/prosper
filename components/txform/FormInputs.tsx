@@ -18,9 +18,18 @@ import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { shortRelativeDate } from "lib/TimeHelpers";
 import { uniqMostFrequent } from "lib/collections";
 import { Currency } from "lib/model/Currency";
-import { Tag } from "lib/model/Tag";
-import { Transaction } from "lib/model/Transaction";
 import { Trip } from "lib/model/Trip";
+import {
+  Income,
+  PersonalExpense,
+  ThirdPartyExpense,
+  Transaction,
+  formatAmount,
+  isIncome,
+  isPersonalExpense,
+  isThirdPartyExpense,
+  otherPartyNameOrNull,
+} from "lib/model/Transaction";
 import { AddTransactionFormValues, FormMode } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect } from "react";
@@ -64,22 +73,25 @@ export const FormInputs = (props: {
 export const Trips = () => {
   const { transactions, trips } = useAllDatabaseDataContext();
   const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
-  const transactionsWithTrips = transactions.filter((x) => x.hasTrip());
-  const tripIds = [...new Set(transactionsWithTrips.map((x) => x.trip().id()))];
-  const tripLastUsageDate = new Map<number, Date>();
+  const transactionsWithTrips = transactions.filter(
+    (x): x is PersonalExpense | ThirdPartyExpense | Income =>
+      x.kind !== "Transfer" && !!x.tripId
+  );
+  const tripIds = [...new Set(transactionsWithTrips.map((x) => x.tripId))];
+  const tripLastUsageDate = new Map<number, number>();
   transactionsWithTrips.forEach((x) => {
-    const trip = x.trip().id();
+    const trip = x.tripId;
     const existing = tripLastUsageDate.get(trip);
-    if (!existing || isBefore(existing, x.timestamp)) {
-      tripLastUsageDate.set(trip, x.timestamp);
+    if (!existing || isBefore(existing, x.timestampEpoch)) {
+      tripLastUsageDate.set(trip, x.timestampEpoch);
     }
   });
-  const tripById = new Map<number, Trip>(trips.map((x) => [x.id(), x]));
+  const tripById = new Map<number, Trip>(trips.map((x) => [x.id, x]));
   const tripNames = tripIds
     .sort((t1, t2) =>
       isBefore(tripLastUsageDate.get(t1), tripLastUsageDate.get(t2)) ? 1 : -1
     )
-    .map((x) => tripById.get(x).name());
+    .map((x) => tripById.get(x).name);
   return (
     <div className="col-span-6">
       <TextInputWithLabel
@@ -169,7 +181,17 @@ export function Vendor() {
     (x) => formModeForTransaction(x) == mode
   );
   const vendors = uniqMostFrequent(
-    transactionsForMode.filter((x) => x.hasVendor()).map((x) => x.vendor())
+    transactionsForMode
+      .map((x) => {
+        if (isPersonalExpense(x) || isThirdPartyExpense(x)) {
+          return x.vendor;
+        }
+        if (isIncome(x)) {
+          return x.payer;
+        }
+        return null;
+      })
+      .filter((x) => x)
   );
   return (
     <div className="col-span-6">
@@ -192,16 +214,9 @@ export function Description() {
   const transactionsForMode = transactions.filter(
     (x) => formModeForTransaction(x) == mode
   );
-  const descriptionFrequency = new Map<string, number>();
-  transactionsForMode
-    .map((x) => x.description)
-    .filter((x) => !!x)
-    .forEach((x) =>
-      descriptionFrequency.set(x, (descriptionFrequency.get(x) ?? 0) + 1)
-    );
-  const descriptions = [...descriptionFrequency.entries()]
-    .sort(([_v1, f1], [_v2, f2]) => f2 - f1)
-    .map(([description]) => description);
+  const descriptions = uniqMostFrequent(
+    transactionsForMode.map((x) => x.note).filter((x) => x)
+  );
   return (
     <div className="col-span-6">
       <TextInputWithLabel
@@ -226,12 +241,12 @@ export function Tags() {
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
   const { transactions, tags } = useAllDatabaseDataContext();
-  const tagFrequency = new Map<Tag, number>(tags.map((x) => [x, 0]));
+  const tagFrequency = new Map<number, number>(tags.map((x) => [x.id, 0]));
   transactions
-    .flatMap((x) => x.tags())
+    .flatMap((x) => x.tagsIds)
     .forEach((x) => tagFrequency.set(x, (tagFrequency.get(x) ?? 0) + 1));
   const tagsByFrequency = [...tags].sort(
-    (t1, t2) => tagFrequency.get(t2) - tagFrequency.get(t1)
+    (t1, t2) => tagFrequency.get(t2.id) - tagFrequency.get(t1.id)
   );
   const makeOption = (x: string) => ({ label: x, value: x });
   return (
@@ -245,7 +260,7 @@ export function Tags() {
       <CreatableSelect
         isMulti
         styles={undoTailwindInputStyles()}
-        options={tagsByFrequency.map((x) => makeOption(x.name()))}
+        options={tagsByFrequency.map((x) => makeOption(x.name))}
         value={tagNames.map((x) => makeOption(x))}
         onChange={(newValue) =>
           setFieldValue(
@@ -265,13 +280,17 @@ export function ParentTransaction() {
     isSubmitting,
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
-  const { transactions } = useAllDatabaseDataContext();
-  const makeTransactionLabel = (t: Transaction): string =>
-    `${t.amount().format()} ${t.vendor()} ${shortRelativeDate(t.timestamp)}`;
+  const { transactions, bankAccounts } = useAllDatabaseDataContext();
   const parentTransaction = parentTransactionId
     ? transactions.find((t) => t.id == parentTransactionId)
     : null;
-  const makeOption = (t: Transaction) => ({
+  const parentExpense =
+    parentTransaction?.kind == "PersonalExpense" ? parentTransaction : null;
+  const makeTransactionLabel = (t: PersonalExpense): string =>
+    `${formatAmount(t, bankAccounts)} ${t.vendor} ${shortRelativeDate(
+      t.timestampEpoch
+    )}`;
+  const makeOption = (t: PersonalExpense) => ({
     label: makeTransactionLabel(t),
     value: t.id,
   });
@@ -285,22 +304,18 @@ export function ParentTransaction() {
         isClearable
         loadOptions={async (input: string) => {
           return transactions
-            .filter((t) => t.isPersonalExpense())
-            .filter((t) =>
-              t.vendor().toLowerCase().includes(input.toLowerCase())
-            )
+            .filter((t): t is PersonalExpense => t.kind == "PersonalExpense")
+            .filter((t) => t.vendor.toLowerCase().includes(input.toLowerCase()))
             .slice(0, 40)
             .map(makeOption);
         }}
         defaultOptions={transactions
-          .filter((t) => t.isPersonalExpense())
-          .filter((t) => t.accountFrom().id == toBankAccountId)
-          .filter((t) => differenceInMonths(new Date(), t.timestamp) < 3)
+          .filter((t): t is PersonalExpense => t.kind == "PersonalExpense")
+          .filter((t) => t.accountId == toBankAccountId)
+          .filter((t) => differenceInMonths(new Date(), t.timestampEpoch) < 3)
           .map(makeOption)}
         value={{
-          label: parentTransaction
-            ? makeTransactionLabel(parentTransaction)
-            : "None",
+          label: parentExpense ? makeTransactionLabel(parentExpense) : "None",
           value: parentTransactionId,
         }}
         onChange={(newValue) =>
@@ -348,14 +363,16 @@ export function Category() {
 export function Payer() {
   const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
   const { transactions } = useAllDatabaseDataContext();
-  const payerFrequency = new Map<string, number>();
-  transactions
-    .filter((x) => x.hasPayer())
-    .map((x) => x.payer())
-    .forEach((x) => payerFrequency.set(x, (payerFrequency.get(x) ?? 0) + 1));
-  const payers = [...payerFrequency.entries()]
-    .sort(([_v1, f1], [_v2, f2]) => f2 - f1)
-    .map(([value]) => value);
+  const payers = uniqMostFrequent(
+    transactions
+      .map((x) => {
+        if (isIncome(x)) {
+          return x.payer;
+        }
+        return null;
+      })
+      .filter((x) => x)
+  );
   return (
     <>
       <label
@@ -381,14 +398,9 @@ export function Payer() {
 
 export function OtherPartyName() {
   const { transactions } = useAllDatabaseDataContext();
-  const frequency = new Map<string, number>();
-  transactions
-    .filter((x) => x.hasOtherParty())
-    .map((x) => x.otherParty())
-    .forEach((x) => frequency.set(x, (frequency.get(x) ?? 0) + 1));
-  const values = [...frequency.entries()]
-    .sort(([_v1, f1], [_v2, f2]) => f2 - f1)
-    .map(([value]) => value);
+  const otherParties = uniqMostFrequent(
+    transactions.map((x) => otherPartyNameOrNull(x)).filter((x) => x)
+  );
   return (
     <>
       <label
@@ -403,7 +415,7 @@ export function OtherPartyName() {
         className="block w-full"
       />
       <datalist id="otherParties">
-        {values.map((v) => (
+        {otherParties.map((v) => (
           <option key={v} value={v} />
         ))}
       </datalist>

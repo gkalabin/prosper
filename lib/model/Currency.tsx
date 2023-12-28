@@ -49,10 +49,19 @@ export class Currency {
   }
 
   format(amountDollar: number, options?: Intl.NumberFormatOptions) {
-    const formatter = formatters[this.name](options);
-    if (!formatter) {
-      throw new Error(`Unknown formatter for currency ${this.name}`);
-    }
-    return formatter.format(amountDollar);
+    return formatCurrency(this, amountDollar, options);
   }
+}
+
+export function formatCurrency(
+  currency: Currency,
+  amountDollar: number,
+  options?: Intl.NumberFormatOptions
+) {
+  const code = currency.code();
+  const formatter = formatters[code](options);
+  if (!formatter) {
+    throw new Error(`Unknown formatter for currency ${code}`);
+  }
+  return formatter.format(amountDollar);
 }

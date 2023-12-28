@@ -4,9 +4,23 @@ import { ButtonFormSecondary } from "components/ui/buttons";
 import { differenceInMilliseconds, startOfDay } from "date-fns";
 import { useFormikContext } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
-import { Transaction } from "lib/model/Transaction";
-import { TransactionType } from "lib/model/TransactionType";
+import { fullAccountName } from "lib/model/BankAccount";
+import { transactionIsDescendant } from "lib/model/Category";
+import {
+  Transaction,
+  isExpense,
+  isIncome,
+  isPersonalExpense,
+  isTransfer,
+  otherPartyNameOrNull,
+} from "lib/model/Transaction";
 import Select from "react-select";
+
+type TransactionType =
+  | "PersonalExpense"
+  | "ThirdPartyExpense"
+  | "Transfer"
+  | "Income";
 
 export type FiltersFormValues = {
   freeTextSearch: string;
@@ -18,16 +32,16 @@ export type FiltersFormValues = {
   categoryIds: number[];
   includeChildrenCategories: boolean;
   tripId: number;
-  tagNames: string[];
+  tagIds: number[];
   allTagsShouldMatch: boolean;
 };
 export const initialTransactionFilters: FiltersFormValues = {
   freeTextSearch: "",
   transactionTypes: [
-    TransactionType.PERSONAL,
-    TransactionType.EXTERNAL,
-    TransactionType.TRANSFER,
-    TransactionType.INCOME,
+    "PersonalExpense",
+    "ThirdPartyExpense",
+    "Transfer",
+    "Income",
   ],
   vendor: "",
   timeFrom: "",
@@ -36,12 +50,12 @@ export const initialTransactionFilters: FiltersFormValues = {
   categoryIds: [],
   includeChildrenCategories: true,
   tripId: 0,
-  tagNames: [],
+  tagIds: [],
   allTagsShouldMatch: false,
 };
 
 export function useFilteredTransactions() {
-  const { transactions } = useAllDatabaseDataContext();
+  const { transactions, categories } = useAllDatabaseDataContext();
   const {
     values: {
       freeTextSearch,
@@ -53,7 +67,7 @@ export function useFilteredTransactions() {
       tripId,
       timeFrom,
       timeTo,
-      tagNames,
+      tagIds,
       allTagsShouldMatch,
     },
   } = useFormikContext<FiltersFormValues>();
@@ -63,24 +77,31 @@ export function useFilteredTransactions() {
     }
     const lowerCaseSearch = freeTextSearch.toLocaleLowerCase();
     if (
-      t.hasVendor() &&
-      t.vendor().toLocaleLowerCase().includes(lowerCaseSearch)
+      isExpense(t) &&
+      t.vendor.toLocaleLowerCase().includes(lowerCaseSearch)
     ) {
       return true;
     }
-    if (t.description.toLocaleLowerCase().includes(lowerCaseSearch)) {
+    if (t.note.toLocaleLowerCase().includes(lowerCaseSearch)) {
+      return true;
+    }
+    if (isIncome(t) && t.payer.toLocaleLowerCase().includes(lowerCaseSearch)) {
+      return true;
+    }
+    if (otherPartyNameOrNull(t)?.includes(lowerCaseSearch)) {
       return true;
     }
     if (
-      t.hasPayer() &&
-      t.payer().toLocaleLowerCase().includes(lowerCaseSearch)
+      (isExpense(t) || isIncome(t)) &&
+      t.amountCents / 100 == +freeTextSearch
     ) {
       return true;
     }
-    if (t.hasOtherParty() && t.otherParty().includes(lowerCaseSearch)) {
-      return true;
-    }
-    if (t.amt().dollar() == +freeTextSearch) {
+    if (
+      isTransfer(t) &&
+      (t.sentAmountCents / 100 == +freeTextSearch ||
+        t.receivedAmountCents / 100 == +freeTextSearch)
+    ) {
       return true;
     }
     if (new RegExp(`\\b${t.id}\\b`).test(freeTextSearch)) {
@@ -97,29 +118,35 @@ export function useFilteredTransactions() {
     .filter(transactionMatchesFreeTextSearch)
     .filter(
       (t) =>
-        transactionTypes.some((tt) => t.matchesType(tt)) &&
+        transactionTypes.some((tt) => t.kind == tt) &&
         (vendor
-          ? t.hasVendor() &&
-            t.vendor().toLocaleLowerCase().includes(vendor.toLocaleLowerCase())
+          ? isExpense(t) &&
+            t.vendor.toLocaleLowerCase().includes(vendor.toLocaleLowerCase())
           : true) &&
         (accountIds?.length
-          ? (t.hasAccountFrom() && accountIds.includes(t.accountFrom().id)) ||
-            (t.hasAccountTo() && accountIds.includes(t.accountTo().id))
+          ? ((isPersonalExpense(t) || isIncome(t)) &&
+              accountIds.includes(t.accountId)) ||
+            (isTransfer(t) &&
+              (accountIds.includes(t.fromAccountId) ||
+                accountIds.includes(t.toAccountId)))
           : true) &&
         (categoryIds?.length
           ? categoryIds.some(
               (cid) =>
-                t.category.id() == cid ||
-                (includeChildrenCategories && t.category.childOf(cid))
+                t.categoryId == cid ||
+                (includeChildrenCategories &&
+                  transactionIsDescendant(t, cid, categories))
             )
           : true) &&
-        (tripId ? t.hasTrip() && t.trip().id() == tripId : true) &&
-        (timeFrom ? sameDayOrBefore(timeFrom, t.timestamp) : true) &&
-        (timeTo ? sameDayOrBefore(t.timestamp, timeTo) : true) &&
-        (tagNames?.length
+        (tripId ? (isExpense(t) || isIncome(t)) && t.tripId == tripId : true) &&
+        (timeFrom
+          ? sameDayOrBefore(timeFrom, new Date(t.timestampEpoch))
+          : true) &&
+        (timeTo ? sameDayOrBefore(new Date(t.timestampEpoch), timeTo) : true) &&
+        (tagIds?.length
           ? allTagsShouldMatch
-            ? tagNames.every((tn) => t.hasTag(tn))
-            : tagNames.some((tn) => t.hasTag(tn))
+            ? tagIds.every((tagId) => t.tagsIds.includes(tagId))
+            : tagIds.some((tagId) => t.tagsIds.includes(tagId))
           : true)
     );
 }
@@ -139,18 +166,16 @@ export function SearchForAnythingInput() {
 }
 
 export function TransactionFiltersForm(props: { onClose: () => void }) {
-  const { banks, categories, trips, tags } = useAllDatabaseDataContext();
+  const { banks, bankAccounts, categories, trips, tags } =
+    useAllDatabaseDataContext();
   const {
-    values: { transactionTypes, accountIds, categoryIds, tripId, tagNames },
+    values: { transactionTypes, accountIds, categoryIds, tripId, tagIds },
     setFieldValue,
   } = useFormikContext<FiltersFormValues>();
-  const bankAccountOptions = banks
-    .flatMap((x) => x.accounts)
-    .filter((x) => !x.isArchived())
-    .map((a) => ({
-      value: a.id,
-      label: `${a.bank.name}: ${a.name}`,
-    }));
+  const bankAccountOptions = bankAccounts.map((a) => ({
+    value: a.id,
+    label: `${fullAccountName(a, banks)}` + (a.archived ? " (archived)" : ""),
+  }));
   const bankAccountOptionByValue = new Map<
     number,
     { value: number; label: string }
@@ -166,20 +191,20 @@ export function TransactionFiltersForm(props: { onClose: () => void }) {
   >(categoryOptions.map((x) => [x.value, x]));
 
   const tripOptions = trips.map((a) => ({
-    value: a.id(),
-    label: a.name(),
+    value: a.id,
+    label: a.name,
   }));
 
-  const tagNameOptions = tags.map((t) => ({
-    value: t.name(),
-    label: t.name(),
+  const tagIdOptions = tags.map((t) => ({
+    value: t.id,
+    label: t.name,
   }));
 
-  const transactionTypeOptions = [
-    { value: TransactionType.PERSONAL, label: "Personal" },
-    { value: TransactionType.EXTERNAL, label: "External" },
-    { value: TransactionType.TRANSFER, label: "Transfer" },
-    { value: TransactionType.INCOME, label: "Income" },
+  const transactionTypeOptions: { value: TransactionType; label: string }[] = [
+    { value: "PersonalExpense", label: "Personal" },
+    { value: "ThirdPartyExpense", label: "External" },
+    { value: "Transfer", label: "Transfer" },
+    { value: "Income", label: "Income" },
   ];
   return (
     <>
@@ -312,22 +337,22 @@ export function TransactionFiltersForm(props: { onClose: () => void }) {
         </div>
         <div className="col-span-6">
           <label
-            htmlFor="tagNames"
+            htmlFor="tagIds"
             className="block text-sm font-medium text-gray-700"
           >
             Tags
           </label>
           <Select
             styles={undoTailwindInputStyles()}
-            options={tagNameOptions}
+            options={tagIdOptions}
             isMulti
-            value={tagNames.map((x) => ({
-              label: x,
+            value={tagIds.map((x) => ({
+              label: tags.find((t) => t.id == x).name,
               value: x,
             }))}
             onChange={(x) =>
               setFieldValue(
-                "tagNames",
+                "tagIds",
                 x.map((x) => x.value)
               )
             }

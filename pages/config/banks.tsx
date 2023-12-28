@@ -26,6 +26,7 @@ import { useState } from "react";
 
 const BanksList = (props: {
   banks: Bank[];
+  bankAccounts: BankAccount[];
   stocks: Stock[];
   trueLayerTokens: DBTrueLayerToken[];
   nordigenTokens: DBNordigenToken[];
@@ -42,6 +43,7 @@ const BanksList = (props: {
         <BanksListItem
           key={bank.id}
           bank={bank}
+          bankAccounts={props.bankAccounts.filter((x) => x.bankId == bank.id)}
           stocks={props.stocks}
           trueLayerToken={props.trueLayerTokens.find(
             (t) => t.bankId == bank.id
@@ -58,6 +60,7 @@ const BanksList = (props: {
 
 function BanksListItem({
   bank,
+  bankAccounts,
   stocks,
   trueLayerToken,
   nordigenToken,
@@ -66,6 +69,7 @@ function BanksListItem({
   onAccountAddedOrUpdated,
 }: {
   bank: Bank;
+  bankAccounts: BankAccount[];
   stocks: Stock[];
   trueLayerToken: DBTrueLayerToken;
   nordigenToken: DBNordigenToken;
@@ -116,7 +120,7 @@ function BanksListItem({
       <div className="space-y-1 px-4">
         <AccountsList
           bank={bank}
-          accounts={bank.accounts}
+          accounts={bankAccounts}
           stocks={stocks}
           onAccountUpdated={onAccountAddedOrUpdated}
         />
@@ -128,6 +132,7 @@ function BanksListItem({
         {newAccountFormDisplayed && (
           <AddOrEditAccountForm
             bank={bank}
+            bankAccounts={bankAccounts}
             stocks={stocks}
             onAddedOrUpdated={(x) => {
               setNewAccountFormDisplayed(false);
@@ -231,13 +236,17 @@ const AccountsList = (props: {
   if (!props.accounts) {
     return <div>No accounts.</div>;
   }
+  const accountsForBank = props.accounts.filter(
+    (x) => x.bankId == props.bank.id
+  );
   return (
     <>
-      {props.accounts.map((account) => (
+      {accountsForBank.map((account) => (
         <AccountListItem
           key={account.id}
           bank={props.bank}
           account={account}
+          bankAccounts={props.accounts}
           stocks={props.stocks}
           onUpdated={props.onAccountUpdated}
         />
@@ -249,6 +258,7 @@ const AccountsList = (props: {
 const AccountListItem = (props: {
   bank: Bank;
   account: BankAccount;
+  bankAccounts: BankAccount[];
   stocks: Stock[];
   onUpdated: (updated: DBBankAccount) => void;
 }) => {
@@ -267,6 +277,7 @@ const AccountListItem = (props: {
         <div className="ml-2">
           <AddOrEditAccountForm
             bank={props.bank}
+            bankAccounts={props.bankAccounts}
             bankAccount={props.account}
             stocks={props.stocks}
             onAddedOrUpdated={(x) => {
@@ -341,7 +352,7 @@ export default function BanksPage({
   const onBankAddedOrUpdated = updateState(setDbBanks);
   const [formDisplayed, setFormDisplayed] = useState(false);
 
-  const [banks, _, stocks] = banksModelFromDatabaseData(
+  const [banks, bankAccounts, stocks] = banksModelFromDatabaseData(
     dbBanks,
     dbBankAccounts,
     dbStocks
@@ -351,6 +362,7 @@ export default function BanksPage({
     <ConfigPageLayout>
       <BanksList
         banks={banks}
+        bankAccounts={bankAccounts}
         stocks={stocks}
         trueLayerTokens={dbTrueLayerTokens}
         nordigenTokens={dbNordigenTokens}

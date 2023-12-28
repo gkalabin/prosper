@@ -1,6 +1,7 @@
 import ReactEcharts from "echarts-for-react";
+import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { Transaction } from "lib/model/Transaction";
+import { Expense, amountOwnShare } from "lib/model/Transaction";
 import { AppendMap, currencyAppendMap } from "lib/util/AppendingMap";
 import { topN, topNAmount } from "lib/util/util";
 
@@ -9,14 +10,22 @@ export function TopNVendorsMostSpent({
   title,
   n,
 }: {
-  transactions: Transaction[];
+  transactions: Expense[];
   title: string;
   n: number;
 }) {
   const displayCurrency = useDisplayCurrency();
+  const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
   const sum = currencyAppendMap<string>(displayCurrency);
   for (const t of transactions) {
-    sum.append(t.vendor(), t.amountOwnShare(displayCurrency));
+    const amount = amountOwnShare(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange
+    );
+    sum.append(t.vendor, amount);
   }
   const topSum = topNAmount(sum, n, (x) => `Other ${x} vendors`);
   return (
@@ -50,13 +59,13 @@ export function TopNVendorsMostTransactions({
   title,
   n,
 }: {
-  transactions: Transaction[];
+  transactions: Expense[];
   title: string;
   n: number;
 }) {
   const count = new AppendMap<string, number>((a, b) => a + b, 0);
   for (const t of transactions) {
-    count.append(t.vendor(), 1);
+    count.append(t.vendor, 1);
   }
   const topCount = topN(count, n, (x) => `Other ${x} vendors`);
 

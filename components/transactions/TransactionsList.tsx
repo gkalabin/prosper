@@ -3,53 +3,95 @@ import classNames from "classnames";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
 import { ButtonLink } from "components/ui/buttons";
 import { format } from "date-fns";
+import { AmountWithUnit } from "lib/AmountWithUnit";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
-import { Transaction } from "lib/model/Transaction";
+import { fullAccountName } from "lib/model/BankAccount";
+import {
+  Transaction,
+  amountReceived,
+  amountSent,
+  incomingBankAccount,
+  isExpense,
+  isIncome,
+  isPersonalExpense,
+  isThirdPartyExpense,
+  isTransfer,
+  otherPartyNameOrNull,
+  outgoingBankAccount,
+  ownShareAmountIgnoreRefunds,
+  rawTransactionAmount,
+  transactionBankAccount,
+  transactionCategory,
+  transactionUnit,
+} from "lib/model/Transaction";
 import { TransactionAPIResponse } from "lib/transactionDbUtils";
 import { useState } from "react";
 
 const TransactionTitle = ({ t }: { t: Transaction }) => {
-  if (t.isTransfer()) {
-    const from = t.accountFrom();
-    const to = t.accountTo();
-    let transferDetails = (
+  const { banks, bankAccounts } = useAllDatabaseDataContext();
+  if (isTransfer(t)) {
+    const from = outgoingBankAccount(t, bankAccounts);
+    const to = incomingBankAccount(t, bankAccounts);
+    return (
       <>
-        {from.bank.name} {from.name} → {to.bank.name} {to.name}
+        {fullAccountName(from, banks)} → {fullAccountName(to, banks)}
       </>
     );
-    if (from.bank.id == to.bank.id) {
-      transferDetails = (
+  }
+  if (isPersonalExpense(t)) {
+    return (
+      <>
+        {t.vendor}{" "}
+        {otherPartyNameOrNull(t) && (
+          <small>split with {otherPartyNameOrNull(t)}</small>
+        )}
+      </>
+    );
+  }
+  if (isThirdPartyExpense(t)) {
+    return (
+      <>
+        {t.vendor} <small>paid by {t.payer}</small>
+      </>
+    );
+  }
+  if (isIncome(t)) {
+    return (
+      <>
+        {t.payer}{" "}
+        {otherPartyNameOrNull(t) && (
+          <small>split with {otherPartyNameOrNull(t)}</small>
+        )}
+      </>
+    );
+  }
+  throw new Error(`Unknown transaction type ${t}`);
+};
+
+const TransactionAmount = (props: { transaction: Transaction }) => {
+  const { bankAccounts, stocks } = useAllDatabaseDataContext();
+  const t = props.transaction;
+  switch (t.kind) {
+    case "PersonalExpense":
+    case "ThirdPartyExpense":
+    case "Income":
+      const a = new AmountWithUnit({
+        amountCents: t.amountCents,
+        unit: transactionUnit(t, bankAccounts, stocks),
+      });
+      return (
         <>
-          {from.bank.name} {from.name} → {to.name}
+          {isIncome(t) ? "+" : ""}
+          {a.format()}
         </>
       );
-    }
-    return <>{transferDetails}</>;
+    case "Transfer":
+      const sent = amountSent(t, bankAccounts, stocks);
+      return <>{sent.format()}</>;
+    default:
+      const _exhaustiveCheck: never = t;
+      throw new Error(`Unknown transaction ${_exhaustiveCheck}`);
   }
-  if (t.isPersonalExpense()) {
-    return (
-      <>
-        {t.vendor()}{" "}
-        {t.hasOtherParty() && <small>split with {t.otherParty()}</small>}
-      </>
-    );
-  }
-  if (t.isThirdPartyExpense()) {
-    return (
-      <>
-        {t.vendor()} <small>paid by {t.payer()}</small>
-      </>
-    );
-  }
-  if (t.isIncome()) {
-    return (
-      <>
-        {t.hasPayer() ? t.payer() : "Unknown payer"}{" "}
-        {t.hasOtherParty() && <small>split with {t.otherParty()}</small>}
-      </>
-    );
-  }
-  throw new Error("Unknown transaction type");
 };
 
 export const TransactionsListItem = (props: {
@@ -60,9 +102,11 @@ export const TransactionsListItem = (props: {
   const [showRawDetails, setShowRawDetails] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-  const raw = JSON.stringify(props.transaction.dbValue, null, 2);
-  const { tags } = useAllDatabaseDataContext();
+  const raw = JSON.stringify(props.transaction, null, 2);
+  const { tags, categories, bankAccounts, banks, stocks, trips } =
+    useAllDatabaseDataContext();
   const t = props.transaction;
+  const category = transactionCategory(t, categories);
   return (
     <div className="p-2">
       <div
@@ -73,18 +117,17 @@ export const TransactionsListItem = (props: {
           <div>
             <TransactionTitle t={t} />
           </div>
-          <div className="text-xs italic text-gray-600">{t.description}</div>
+          <div className="text-xs italic text-gray-600">{t.note}</div>
           <div className="text-xs text-gray-600">
-            {format(t.timestamp, "yyyy-MM-dd HH:mm")}
+            {format(t.timestampEpoch, "yyyy-MM-dd HH:mm")}
           </div>
         </div>
         <div
           className={classNames("self-center pr-2 text-lg", {
-            "text-green-900": t.isIncome(),
+            "text-green-900": isIncome(t),
           })}
         >
-          {t.isIncome() ? "+" : ""}
-          {t.amountWithUnit().format()}
+          <TransactionAmount transaction={t} />
         </div>
         <div className="self-center">
           {!expanded && <ChevronRightIcon className="inline h-4 w-4" />}
@@ -94,44 +137,70 @@ export const TransactionsListItem = (props: {
 
       {expanded && (
         <div className="pl-1">
-          {/* TODO: do not show ID in the user interface */}
           <div>ID: {t.id}</div>
-          <div>Time: {t.timestamp.toISOString()}</div>
-          <div>Type: {t.type()}</div>
-          <div>Category: {t.category.nameWithAncestors()}</div>
-          {t.hasVendor() && <div>Vendor: {t.vendor()}</div>}
-          {t.hasOtherParty() && <div>Other party: {t.otherParty()}</div>}
-          {t.hasPayer() && <div>Payer: {t.payer()}</div>}
-          {t.hasAccountFrom() && (
+          <div>Time: {new Date(t.timestampEpoch).toISOString()}</div>
+          <div>Type: {t.kind}</div>
+          <div>Category: {category.nameWithAncestors()}</div>
+          {isExpense(t) && <div>Vendor: {t.vendor}</div>}
+          {otherPartyNameOrNull(t) && (
+            <div>Other party: {otherPartyNameOrNull(t)}</div>
+          )}
+          {isIncome(t) && <div>Payer: {t.payer}</div>}
+          {isPersonalExpense(t) && (
             <div>
-              Account from: {t.accountFrom().bank.name} {t.accountFrom().name}
+              Account from:{" "}
+              {fullAccountName(transactionBankAccount(t, bankAccounts), banks)}
             </div>
           )}
-          {t.hasAccountTo() && (
+          {isIncome(t) && (
             <div>
-              Account to: {t.accountTo().bank.name} {t.accountTo().name}
+              Account to:{" "}
+              {fullAccountName(transactionBankAccount(t, bankAccounts), banks)}
             </div>
           )}
-          {(t.isPersonalExpense() ||
-            t.isThirdPartyExpense() ||
-            t.isIncome()) && <div>Full amount: {t.amount().format()}</div>}
-          {(t.isPersonalExpense() ||
-            t.isThirdPartyExpense() ||
-            t.isIncome()) && (
-            <div>Own share: {t.amtOwnShare().format()}</div>
+          {isTransfer(t) && (
+            <div>
+              Account from:{" "}
+              {fullAccountName(outgoingBankAccount(t, bankAccounts), banks)}
+            </div>
           )}
-          {t.isTransfer() && <div>Sent: {t.amount().format()}</div>}
-          {t.isTransfer() && <div>Received: {t.amountReceived().format()}</div>}
-          {!!t.tags().length && (
+          {isTransfer(t) && (
+            <div>
+              Account to:{" "}
+              {fullAccountName(incomingBankAccount(t, bankAccounts), banks)}
+            </div>
+          )}
+          {(isExpense(t) || isIncome(t)) && (
+            <div>
+              Full amount:{" "}
+              {rawTransactionAmount(t, bankAccounts, stocks).format()}
+            </div>
+          )}
+          {(isExpense(t) || isIncome(t)) && (
+            <div>
+              Own share:{" "}
+              {ownShareAmountIgnoreRefunds(t, bankAccounts, stocks).format()}
+            </div>
+          )}
+          {isTransfer(t) && (
+            <div>Sent: {amountSent(t, bankAccounts, stocks).format()}</div>
+          )}
+          {isTransfer(t) && (
+            <div>
+              Received: {amountReceived(t, bankAccounts, stocks).format()}
+            </div>
+          )}
+          {t.tagsIds.length > 0 && (
             <div>
               Tags:{" "}
-              {t
-                .tags()
-                .map((t) => tags.find((x) => x.id() == t.id()).name())
+              {t.tagsIds
+                .map((tt) => tags.find((x) => x.id == tt).name)
                 .join(", ")}
             </div>
           )}
-          {t.hasTrip() && <div>Trip: {t.trip().name()}</div>}
+          {(isExpense(t) || isIncome(t)) && t.tripId && (
+            <div>Trip: {trips.find((trip) => trip.id == t.tripId).name}</div>
+          )}
         </div>
       )}
 

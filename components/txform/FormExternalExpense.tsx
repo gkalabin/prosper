@@ -16,7 +16,12 @@ import { differenceInMonths } from "date-fns";
 import { useFormikContext } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
-import { Transaction } from "lib/model/Transaction";
+import {
+  ThirdPartyExpense,
+  Transaction,
+  isThirdPartyExpense,
+  otherPartyNameOrNull,
+} from "lib/model/Transaction";
 import { AddTransactionFormValues } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect, useState } from "react";
@@ -34,18 +39,18 @@ export const FormExternalExpense = ({
     values: { vendor, isShared, amount, description },
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
-  const transactionsForMode = transactions.filter((x) =>
-    x.isThirdPartyExpense()
+  const transactionsForMode = transactions.filter((x): x is ThirdPartyExpense =>
+    isThirdPartyExpense(x)
   );
   const now = new Date();
   const recentTransactionsForMode = transactionsForMode.filter(
-    (x) => differenceInMonths(now, x.timestamp) < SUGGESTIONS_WINDOW_MONTHS
+    (x) => differenceInMonths(now, x.timestampEpoch) < SUGGESTIONS_WINDOW_MONTHS
   );
 
   const [mostFrequentOtherParty] = uniqMostFrequent(
     recentTransactionsForMode
-      .filter((x) => x.hasOtherParty())
-      .map((x) => x.otherParty())
+      .map((x) => otherPartyNameOrNull(x))
+      .filter((x) => x)
   );
   useEffect(() => {
     if (transaction) {
@@ -60,7 +65,7 @@ export const FormExternalExpense = ({
   }, [isShared, setFieldValue, mostFrequentOtherParty, transaction]);
 
   const [mostFrequentPayer] = uniqMostFrequent(
-    recentTransactionsForMode.filter((x) => x.hasPayer()).map((x) => x.payer())
+    recentTransactionsForMode.map((x) => x.payer)
   );
   useEffect(() => {
     if (transaction) {
@@ -71,41 +76,31 @@ export const FormExternalExpense = ({
     }
   }, [setFieldValue, mostFrequentPayer, transaction]);
 
-  let [mostFrequentCategory] = uniqMostFrequent(
+  let [mostFrequentCategoryId] = uniqMostFrequent(
     recentTransactionsForMode
-      .filter((x) => !vendor || (x.hasVendor() && x.vendor() == vendor))
-      .map((x) => x.category)
+      .filter((x) => !vendor || x.vendor == vendor)
+      .map((x) => x.categoryId)
   );
-  if (!mostFrequentCategory) {
-    [mostFrequentCategory] = uniqMostFrequent(
-      transactionsForMode.map((x) => x.category)
+  if (!mostFrequentCategoryId) {
+    [mostFrequentCategoryId] = uniqMostFrequent(
+      transactionsForMode.map((x) => x.categoryId)
     );
   }
   useEffect(() => {
     if (transaction) {
       return;
     }
-    if (mostFrequentCategory) {
-      setFieldValue("categoryId", mostFrequentCategory.id());
+    if (mostFrequentCategoryId) {
+      setFieldValue("categoryId", mostFrequentCategoryId);
     }
-  }, [setFieldValue, mostFrequentCategory, transaction]);
+  }, [setFieldValue, mostFrequentCategoryId, transaction]);
 
   useEffect(() => {
     if (!isShared) {
       setFieldValue("ownShareAmount", amount);
       return;
     }
-    let newAmount = amount / 2;
-    if (
-      transaction &&
-      !transaction.amt().isZero() &&
-      !transaction.amtOwnShare().isZero()
-    ) {
-      const transactionRatio =
-        transaction.amtOwnShare().cents() /
-        transaction.amt().cents();
-      newAmount = transactionRatio * amount;
-    }
+    const newAmount = amount / 2;
     // Round new amount to the closest cent.
     const newAmountRounded = Math.round(100 * newAmount) / 100;
     setFieldValue("ownShareAmount", newAmountRounded);

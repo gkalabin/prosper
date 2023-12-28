@@ -17,6 +17,14 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
+import {
+  amountAllParties,
+  amountOwnShare,
+  Expense,
+  Income,
+  isExpense,
+  isIncome,
+} from "lib/model/Transaction";
 import { Trip } from "lib/model/Trip";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { InferGetServerSidePropsType } from "next";
@@ -39,7 +47,7 @@ export default function Page(
 function PageLayout() {
   const { trips } = useAllDatabaseDataContext();
   const router = useRouter();
-  const trip = trips.find((t) => t.name() == router.query.name);
+  const trip = trips.find((t) => t.name == router.query.name);
   if (!trip) {
     router.push({ pathname: "/trips" });
     return <></>;
@@ -53,22 +61,27 @@ function PageLayout() {
 
 function TripDetails(props: { trip: Trip }) {
   const { transactions: allTransactions } = useAllDatabaseDataContext();
-  const currency = useDisplayCurrency();
+  const displayCurrency = useDisplayCurrency();
+  const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
   const transactions = allTransactions
-    .filter((tx) => tx.hasTrip())
-    .filter((tx) => tx.trip().id() == props.trip.id());
+    .filter((tx): tx is Income | Expense => isIncome(tx) || isExpense(tx))
+    .filter((tx) => tx.tripId == props.trip.id);
 
   const fullAmount = transactions
-    .map((t) => t.amountAllParties(currency))
+    .map((t) =>
+      amountAllParties(t, displayCurrency, bankAccounts, stocks, exchange)
+    )
     .reduce((a, b) => a.add(b));
   const ownAmount = transactions
-    .map((t) => t.amountOwnShare(currency))
+    .map((t) =>
+      amountOwnShare(t, displayCurrency, bankAccounts, stocks, exchange)
+    )
     .reduce((a, b) => a.add(b));
 
   return (
     <div>
       <AnchorLink href="/trips">Back to all trips</AnchorLink>
-      <h1 className="text-xl leading-7">{props.trip.name()}</h1>
+      <h1 className="text-xl leading-7">{props.trip.name}</h1>
       <div>Gross amount: {fullAmount.format()}</div>
       <div>
         Net amount, own share only: {ownAmount.format()} (

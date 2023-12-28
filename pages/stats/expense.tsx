@@ -26,8 +26,14 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { Category } from "lib/model/Category";
-import { Transaction } from "lib/model/Transaction";
+import { Category, transactionIsDescendant } from "lib/model/Category";
+import {
+  amountOwnShare,
+  Expense,
+  isExpense,
+  Transaction,
+  transactionCategory,
+} from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
 import { InferGetServerSidePropsType } from "next";
@@ -36,7 +42,8 @@ import Select from "react-select";
 
 export function ExpenseCharts({ input }: { input: TransactionsStatsInput }) {
   const displayCurrency = useDisplayCurrency();
-  const { categories } = useAllDatabaseDataContext();
+  const { categories, bankAccounts, stocks, exchange } =
+    useAllDatabaseDataContext();
   const zero = AmountWithCurrency.zero(displayCurrency);
   const months = input.months().map((x) => x.getTime());
   const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
@@ -50,16 +57,23 @@ export function ExpenseCharts({ input }: { input: TransactionsStatsInput }) {
     Map<number, AmountWithCurrency>
   >();
   for (const t of input.expenses()) {
-    const ts = startOfMonth(t.timestamp).getTime();
-    const exchanged = t.amountOwnShare(displayCurrency);
+    const ts = startOfMonth(t.timestampEpoch).getTime();
+    const exchanged = amountOwnShare(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange
+    );
     {
-      const cid = t.category.id();
+      const cid = t.categoryId;
       const series = byCategoryIdAndMonth.get(cid) ?? new Map(zeroes);
       series.set(ts, exchanged.add(series.get(ts) ?? zero));
       byCategoryIdAndMonth.set(cid, series);
     }
     {
-      const cid = t.category.root().id();
+      const category = transactionCategory(t, categories);
+      const cid = category.root().id();
       const series = byRootCategoryIdAndMonth.get(cid) ?? new Map(zeroes);
       series.set(ts, exchanged.add(series.get(ts) ?? zero));
       byRootCategoryIdAndMonth.set(cid, series);
@@ -164,10 +178,13 @@ export function ExpenseByCategory(props: {
   duration: Interval;
 }) {
   const displayCurrency = useDisplayCurrency();
-  const { categories } = useAllDatabaseDataContext();
+  const { categories, bankAccounts, stocks, exchange } =
+    useAllDatabaseDataContext();
   const transactions = props.transactions
-    .filter((t) => t.isPersonalExpense() || t.isThirdPartyExpense())
-    .filter((t) => t.category.childOf(props.category.id()));
+    .filter((t): t is Expense => isExpense(t))
+    .filter((t) =>
+      transactionCategory(t, categories).childOf(props.category.id())
+    );
   const zero = AmountWithCurrency.zero(displayCurrency);
   const months = eachMonthOfInterval(props.duration).map((x) => x.getTime());
   const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
@@ -175,9 +192,15 @@ export function ExpenseByCategory(props: {
   let totalSum = zero;
   const byCategoryMonth = new Map<number, Map<number, AmountWithCurrency>>();
   for (const t of transactions) {
-    const ts = startOfMonth(t.timestamp).getTime();
-    const current = t.amountOwnShare(displayCurrency);
-    const cid = t.category.id();
+    const ts = startOfMonth(t.timestampEpoch).getTime();
+    const current = amountOwnShare(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange
+    );
+    const cid = t.categoryId;
     const series = byCategoryMonth.get(cid) ?? new Map(zeroes);
     series.set(ts, current.add(series.get(ts)));
     byCategoryMonth.set(cid, series);
@@ -228,8 +251,8 @@ function PageContent() {
   }));
   const filteredTransactions = transactions.filter(
     (t) =>
-      !excludeCategories.some(
-        (cid) => t.category.id() == cid || t.category.childOf(cid)
+      !excludeCategories.some((cid) =>
+        transactionIsDescendant(t, cid, categories)
       )
   );
   const input = new TransactionsStatsInput(filteredTransactions, duration);

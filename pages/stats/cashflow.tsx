@@ -17,6 +17,7 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
+import { transactionIsDescendant } from "lib/model/Category";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
 import { MoneyTimeseries } from "lib/util/Timeseries";
@@ -26,16 +27,27 @@ import Select from "react-select";
 
 export function CashflowCharts({ input }: { input: TransactionsStatsInput }) {
   const displayCurrency = useDisplayCurrency();
+  const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
   const zero = AmountWithCurrency.zero(displayCurrency);
   // collect monthly in/out amounts
   const moneyOut = new MoneyTimeseries(displayCurrency);
-  moneyOut.appendOwnShare(...input.expensesAllTime());
+  moneyOut.appendOwnShare(
+    bankAccounts,
+    stocks,
+    exchange,
+    ...input.expensesAllTime()
+  );
   const moneyIn = new MoneyTimeseries(displayCurrency);
-  moneyIn.appendOwnShare(...input.incomeAllTime());
+  moneyIn.appendOwnShare(
+    bankAccounts,
+    stocks,
+    exchange,
+    ...input.incomeAllTime()
+  );
   // calculate cashflow for each month
   const dataMonthsIndex = new Set<number>(
     [...input.expensesAllTime(), ...input.incomeAllTime()].map((t) =>
-      startOfMonth(t.timestamp).getTime()
+      startOfMonth(t.timestampEpoch).getTime()
     )
   );
   const dataMonths = [...dataMonthsIndex.keys()].sort();
@@ -127,8 +139,8 @@ function PageContent() {
   }));
   const filteredTransactions = transactions.filter(
     (t) =>
-      !excludeCategories.some(
-        (cid) => t.category.id() == cid || t.category.childOf(cid)
+      !excludeCategories.some((cid) =>
+        transactionIsDescendant(t, cid, categories)
       )
   );
   const input = new TransactionsStatsInput(filteredTransactions, duration);

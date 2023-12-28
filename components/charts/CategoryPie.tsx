@@ -3,21 +3,36 @@ import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { defaultPieChartOptions } from "lib/charts";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { Transaction } from "lib/model/Transaction";
+import {
+  Expense,
+  Income,
+  amountAllParties,
+  amountOwnShare,
+} from "lib/model/Transaction";
 import { AppendMap, currencyAppendMap } from "lib/util/AppendingMap";
 
 export function TopLevelCategoryOwnShareChart({
   transactions,
   title,
 }: {
-  transactions: Transaction[];
+  transactions: (Expense | Income)[];
   title: string;
 }) {
   const displayCurrency = useDisplayCurrency();
+  const { categories, bankAccounts, stocks, exchange } =
+    useAllDatabaseDataContext();
   const data = currencyAppendMap<number>(displayCurrency);
   for (const t of transactions) {
-    const cid = t.category.root().id();
-    data.append(cid, t.amountOwnShare(displayCurrency));
+    const category = categories.find((c) => c.id() == t.categoryId);
+    const cid = category.root().id();
+    const amount = amountOwnShare(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange
+    );
+    data.append(cid, amount);
   }
   return <ByCategoryChart title={title} data={data} />;
 }
@@ -26,14 +41,24 @@ export function TopLevelCategoryFullAmountChart({
   transactions,
   title,
 }: {
-  transactions: Transaction[];
+  transactions: (Expense | Income)[];
   title: string;
 }) {
   const displayCurrency = useDisplayCurrency();
+  const { categories, bankAccounts, stocks, exchange } =
+    useAllDatabaseDataContext();
   const data = currencyAppendMap<number>(displayCurrency);
   for (const t of transactions) {
-    const cid = t.category.root().id();
-    data.append(cid, t.amountAllParties(displayCurrency));
+    const category = categories.find((c) => c.id() == t.categoryId);
+    const cid = category.root().id();
+    const amount = amountAllParties(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange
+    );
+    data.append(cid, amount);
   }
   return <ByCategoryChart title={title} data={data} />;
 }
@@ -42,14 +67,24 @@ export function ChildCategoryOwnShareChart({
   transactions,
   title,
 }: {
-  transactions: Transaction[];
+  transactions: (Expense | Income)[];
   title: string;
 }) {
   const displayCurrency = useDisplayCurrency();
+  const { categories, bankAccounts, stocks, exchange } =
+    useAllDatabaseDataContext();
   const data = currencyAppendMap<number>(displayCurrency);
   for (const t of transactions) {
-    const cid = t.category.id();
-    data.append(cid, t.amountOwnShare(displayCurrency));
+    const category = categories.find((c) => c.id() == t.categoryId);
+    const cid = category.id();
+    const amount = amountOwnShare(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange
+    );
+    data.append(cid, amount);
   }
   return <ByCategoryChart title={title} data={data} />;
 }
@@ -58,14 +93,24 @@ export function ChildCategoryFullAmountChart({
   transactions,
   title,
 }: {
-  transactions: Transaction[];
+  transactions: (Expense | Income)[];
   title: string;
 }) {
   const displayCurrency = useDisplayCurrency();
+  const { categories, bankAccounts, stocks, exchange } =
+    useAllDatabaseDataContext();
   const data = currencyAppendMap<number>(displayCurrency);
   for (const t of transactions) {
-    const cid = t.category.id();
-    data.append(cid, t.amountAllParties(displayCurrency));
+    const category = categories.find((c) => c.id() == t.categoryId);
+    const cid = category.id();
+    const amount = amountAllParties(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange
+    );
+    data.append(cid, amount);
   }
   return <ByCategoryChart title={title} data={data} />;
 }

@@ -1,24 +1,29 @@
 import {
   Bank as DBBank,
-  Stock as DBStock,
   BankAccount as DBBankAccount,
   ExchangeRate as DBExchangeRate,
+  Stock as DBStock,
   StockQuote as DBStockQuote,
   TransactionPrototype,
 } from "@prisma/client";
 import { addDays, closestTo, isBefore, startOfDay } from "date-fns";
+import { Amount } from "lib/Amount";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { DisplaySettings } from "lib/displaySettings";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
-import { Bank, BankAccount } from "lib/model/BankAccount";
+import {
+  Bank,
+  BankAccount,
+  bankAccountModelFromDB,
+  bankModelFromDB,
+} from "lib/model/BankAccount";
 import { Category, categoryModelFromDB } from "lib/model/Category";
 import { Currency, NANOS_MULTIPLIER } from "lib/model/Currency";
-import { Stock } from "lib/model/Stock";
-import { Tag } from "lib/model/Tag";
-import { Transaction } from "lib/model/Transaction";
-import { Trip } from "lib/model/Trip";
+import { Stock, stockModelFromDB } from "lib/model/Stock";
+import { Tag, tagModelFromDB } from "lib/model/Tag";
+import { Transaction, transactionModelFromDB } from "lib/model/Transaction";
+import { Trip, tripModelFromDB } from "lib/model/Trip";
 import { createContext, useContext, useState } from "react";
-import { Amount } from "./Amount";
 
 export class StockAndCurrencyExchange {
   private readonly exchangeRates?: ExchangeRates;
@@ -32,7 +37,7 @@ export class StockAndCurrencyExchange {
   exchangeCurrency(
     a: AmountWithCurrency,
     target: Currency,
-    when: Date
+    when: Date | number
   ): AmountWithCurrency {
     return this.exchangeRates.exchange(a, target, when);
   }
@@ -41,7 +46,7 @@ export class StockAndCurrencyExchange {
     a: Amount,
     stock: Stock,
     target: Currency,
-    when: Date
+    when: Date | number
   ): AmountWithCurrency {
     const exchangeCurrencyAmount = this.stockQuotes.exchange(a, stock, when);
     return this.exchangeRates.exchange(exchangeCurrencyAmount, target, when);
@@ -92,7 +97,7 @@ export class ExchangeRates {
   exchange(
     a: AmountWithCurrency,
     target: Currency,
-    when: Date
+    when: Date | number
   ): AmountWithCurrency {
     if (a.getCurrency().code() == target.code()) {
       return a;
@@ -107,7 +112,7 @@ export class ExchangeRates {
     });
   }
 
-  private findRate(from: Currency, to: Currency, when: Date) {
+  private findRate(from: Currency, to: Currency, when: Date | number) {
     const whenDay = startOfDay(when);
     const ratesHistory = this.rates[from.code()][to.code()];
     const rate = ratesHistory[whenDay.getTime()];
@@ -143,20 +148,21 @@ export class StockQuotes {
     }
   }
 
-  exchange(a: Amount, stock: Stock, when: Date): AmountWithCurrency {
+  exchange(a: Amount, stock: Stock, when: Date | number): AmountWithCurrency {
+    const currency = Currency.findByCode(stock.currencyCode);
     if (a.isZero()) {
-      return AmountWithCurrency.zero(stock.currency());
+      return AmountWithCurrency.zero(currency);
     }
     const pricePerShareCents = this.findQuote(stock, when);
     return new AmountWithCurrency({
       amountCents: Math.round(a.dollar() * pricePerShareCents),
-      currency: stock.currency(),
+      currency,
     });
   }
 
-  private findQuote(stock: Stock, when: Date): number {
+  private findQuote(stock: Stock, when: Date | number): number {
     const whenDay = startOfDay(when);
-    const quotesForStock = this.quotes[stock.id()];
+    const quotesForStock = this.quotes[stock.id];
     const quote = quotesForStock[whenDay.getTime()];
     if (quote) {
       return quote;
@@ -174,6 +180,8 @@ export type AllClientDataModel = {
   transactions: Transaction[];
   categories: Category[];
   banks: Bank[];
+  bankAccounts: BankAccount[];
+  stocks: Stock[];
   trips: Trip[];
   tags: Tag[];
   exchange: StockAndCurrencyExchange;
@@ -202,8 +210,8 @@ export const useAllDatabaseDataContext = () => {
   return useContext(AllDatabaseDataContext);
 };
 export const useDisplayBankAccounts = () => {
-  const { banks } = useAllDatabaseDataContext();
-  return banks.flatMap((x) => x.accounts).filter((x) => !x.isArchived());
+  const { bankAccounts } = useAllDatabaseDataContext();
+  return bankAccounts.filter((x) => !x.archived);
 };
 
 export const banksModelFromDatabaseData = (
@@ -211,19 +219,24 @@ export const banksModelFromDatabaseData = (
   dbBankAccounts: DBBankAccount[],
   dbStocks: DBStock[]
 ): [Bank[], BankAccount[], Stock[]] => {
-  const banks = dbBanks.map((b) => new Bank(b));
-  const stocks = dbStocks.map((s) => new Stock(s));
-  const bankById: {
-    [id: number]: Bank;
-  } = Object.fromEntries(banks.map((x) => [x.id, x]));
-  const bankAccounts = dbBankAccounts.map(
-    (x) => new BankAccount(x, bankById, stocks)
+  const stocks = dbStocks.map(stockModelFromDB);
+  const banks = dbBanks
+    .map(bankModelFromDB)
+    .sort((a, b) => a.displayOrder - b.displayOrder);
+  const bankAccounts = dbBankAccounts.map(bankAccountModelFromDB);
+  // Sort bank accounts by display order, but taking precedence of the bank display order.
+  const bankById = new Map<number, Bank>(banks.map((b) => [b.id, b]));
+  const bankByBankAccountId = new Map<number, Bank>(
+    bankAccounts.map((ba) => [ba.id, bankById.get(ba.bankId)])
   );
-  bankAccounts.forEach((x) => x.bank.accounts.push(x));
-  banks.sort((a, b) => a.displayOrder - b.displayOrder);
-  banks.forEach((b) =>
-    b.accounts.sort((a, b) => a.displayOrder - b.displayOrder)
-  );
+  bankAccounts.sort((a, b) => {
+    const bankA = bankByBankAccountId.get(a.id);
+    const bankB = bankByBankAccountId.get(b.id);
+    if (bankA.displayOrder != bankB.displayOrder) {
+      return bankA.displayOrder - bankB.displayOrder;
+    }
+    return a.displayOrder - b.displayOrder;
+  });
   return [banks, bankAccounts, stocks];
 };
 
@@ -231,49 +244,27 @@ export const modelFromDatabaseData = (
   dbData: AllDatabaseData
 ): AllClientDataModel => {
   const categories = categoryModelFromDB(dbData.dbCategories);
-  const categoryById: {
-    [id: number]: Category;
-  } = Object.fromEntries(categories.map((c) => [c.id(), c]));
-
   const exchangeRates = new ExchangeRates(dbData.dbExchangeRates);
   const stockQuotes = new StockQuotes(dbData.dbStockQuotes);
   const exchange = new StockAndCurrencyExchange(exchangeRates, stockQuotes);
 
-  const [banks, bankAccounts] = banksModelFromDatabaseData(
+  const [banks, bankAccounts, stocks] = banksModelFromDatabaseData(
     dbData.dbBanks,
     dbData.dbBankAccounts,
     dbData.dbStocks
   );
-  const bankAccountById: {
-    [id: number]: BankAccount;
-  } = Object.fromEntries(bankAccounts.map((x) => [x.id, x]));
 
-  const trips = dbData.dbTrips.map((x) => new Trip(x));
-  const tripById = new Map<number, Trip>(trips.map((x) => [x.id(), x]));
-  const tags = dbData.dbTags.map((x) => new Tag(x));
-  const tagById = new Map<number, Tag>(tags.map((x) => [x.id(), x]));
+  const trips = dbData.dbTrips.map(tripModelFromDB);
+  const tags = dbData.dbTags.map(tagModelFromDB);
 
   const transactions: Transaction[] = dbData.dbTransactions
-    .map(
-      (t) =>
-        new Transaction(
-          t,
-          categoryById,
-          bankAccountById,
-          tripById,
-          tagById,
-          exchange
-        )
-    )
-    .filter((x) => x.valid());
-
-  transactions.sort(compareTransactions);
-  bankAccounts.forEach((ba) => ba.transactions.sort(compareTransactions));
-
+    .map(transactionModelFromDB)
+    .sort(compareTransactions);
   const displaySettings = new DisplaySettings(dbData.dbDisplaySettings);
-
   return {
     banks,
+    bankAccounts,
+    stocks,
     categories,
     trips,
     tags,
@@ -285,8 +276,8 @@ export const modelFromDatabaseData = (
 };
 
 function compareTransactions(a: Transaction, b: Transaction) {
-  if (b.timestamp.getTime() != a.timestamp.getTime()) {
-    return b.timestamp.getTime() - a.timestamp.getTime();
+  if (b.timestampEpoch != a.timestampEpoch) {
+    return b.timestampEpoch - a.timestampEpoch;
   }
   if (b.id != a.id) {
     return b.id - a.id;

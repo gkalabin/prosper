@@ -12,9 +12,16 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
+import { BankAccount } from "lib/model/BankAccount";
 import { Currency } from "lib/model/Currency";
 import { Stock } from "lib/model/Stock";
-import { Transaction } from "lib/model/Transaction";
+import {
+  amountAllParties,
+  Expense,
+  Income,
+  isExpense,
+  isIncome,
+} from "lib/model/Transaction";
 import { Trip } from "lib/model/Trip";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { InferGetServerSidePropsType } from "next";
@@ -34,32 +41,16 @@ export default function Page(
 }
 
 const amountSum = (
-  txs: Transaction[],
-  currency: Currency,
+  txs: (Expense | Income)[],
+  displayCurrency: Currency,
+  bankAccounts: BankAccount[],
+  stocks: Stock[],
   exchange: StockAndCurrencyExchange
 ): AmountWithCurrency => {
   return txs
-    .filter((t) => !t.isTransfer() && !t.isIncome())
-    .map((t) => {
-      const u = t.unit();
-      if (u instanceof Currency) {
-        const amount = new AmountWithCurrency({
-          amountCents: t.amt().cents(),
-          currency: u,
-        });
-        return exchange.exchangeCurrency(amount, currency, t.timestamp);
-      }
-      if (u instanceof Stock) {
-        const sharesValue = exchange.exchangeStock(
-          t.amt(),
-          u,
-          currency,
-          t.timestamp
-        );
-        return exchange.exchangeCurrency(sharesValue, currency, t.timestamp);
-      }
-      throw new Error(`Unknown unit type: ${u} for transaction ${t.id}`);
-    })
+    .map((t) =>
+      amountAllParties(t, displayCurrency, bankAccounts, stocks, exchange)
+    )
     .reduce((a, b) => a.add(b));
 };
 
@@ -72,29 +63,37 @@ function PageLayout() {
 }
 
 function TripsList() {
-  const { trips, transactions, exchange } = useAllDatabaseDataContext();
+  const { trips, transactions, bankAccounts, stocks, exchange } =
+    useAllDatabaseDataContext();
   const displayCurrency = useDisplayCurrency();
-  const transactionsByTripId = new Map<number, Transaction[]>(
+  const travelTransactions = transactions
+    .filter((tx): tx is Expense | Income => isExpense(tx) || isIncome(tx))
+    .filter((tx) => tx.tripId);
+  const transactionsByTripId = new Map<number, (Expense | Income)[]>(
     trips.map((t) => [
-      t.id(),
-      transactions
-        .filter((tx) => tx.hasTrip())
-        .filter((tx) => tx.trip().id() == t.id()),
+      t.id,
+      travelTransactions.filter((tx) => tx.tripId == t.id),
     ])
   );
   const tripEpoch = (trip: Trip): number => {
-    const txs = transactions
-      .filter((x) => x.hasTrip() && x.trip().id() == trip.id())
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    const txs = travelTransactions
+      .filter((x) => x.tripId == trip.id)
+      .sort((a, b) => b.timestampEpoch - a.timestampEpoch);
     if (!txs.length) {
       return new Date().getTime();
     }
-    return txs[0].timestamp.getTime();
+    return txs[0].timestampEpoch;
   };
   const totalByTrip = new Map<number, AmountWithCurrency>(
     trips.map((t) => [
-      t.id(),
-      amountSum(transactionsByTripId.get(t.id()), displayCurrency, exchange),
+      t.id,
+      amountSum(
+        transactionsByTripId.get(t.id),
+        displayCurrency,
+        bankAccounts,
+        stocks,
+        exchange
+      ),
     ])
   );
   const totals = [...totalByTrip.values()]
@@ -122,16 +121,16 @@ function TripsList() {
     <>
       {tripsByTs.map((t) => (
         <div
-          key={t.id()}
+          key={t.id}
           className={classNames({
-            "text-xl leading-7": p100Trips.includes(t.id()),
-            "text-lg leading-7": p75Trips.includes(t.id()),
-            "text-base leading-7": p50Trips.includes(t.id()),
-            "text-sm leading-7": p25Trips.includes(t.id()),
+            "text-xl leading-7": p100Trips.includes(t.id),
+            "text-lg leading-7": p75Trips.includes(t.id),
+            "text-base leading-7": p50Trips.includes(t.id),
+            "text-sm leading-7": p25Trips.includes(t.id),
           })}
         >
-          <AnchorLink href={`/trips/${t.name()}`}>
-            {t.name()} {totalByTrip.get(t.id()).format()}
+          <AnchorLink href={`/trips/${t.name}`}>
+            {t.name} {totalByTrip.get(t.id).format()}
           </AnchorLink>
         </div>
       ))}

@@ -9,6 +9,7 @@ import { Select } from "components/forms/Select";
 import { ButtonFormPrimary } from "components/ui/buttons";
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
 import { DB } from "lib/db";
+import { accountUnit } from "lib/model/BankAccount";
 import { fetchAccounts } from "lib/openbanking/fetchall";
 import { AccountDetails } from "lib/openbanking/interface";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
@@ -90,11 +91,12 @@ export default function Page({
   const [requestInFlight, setRequestInFlight] = useState(false);
   const [apiError, setApiError] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
-  const [[bank]] = banksModelFromDatabaseData(
+  const [[bank], allBankAccounts, stocks] = banksModelFromDatabaseData(
     [dbBank],
     dbBankAccounts,
     dbStocks
   );
+  const accountsForBank = allBankAccounts.filter((x) => x.bankId === dbBank.id);
   const [dbMapping, setDbMapping] = useState(dbMappingInitial);
   const initialMapping = Object.fromEntries(
     dbMapping.map((x) => [x.externalAccountId, x.internalAccountId])
@@ -155,9 +157,9 @@ export default function Page({
             }
           >
             <option value="0">None</option>
-            {bank.accounts.map((ba) => (
+            {accountsForBank.map((ba) => (
               <option key={ba.id} value={ba.id}>
-                {bank.name} {ba.name} ({ba.unit()})
+                {bank.name} {ba.name} ({accountUnit(ba, stocks)})
               </option>
             ))}
           </Select>

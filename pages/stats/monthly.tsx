@@ -24,6 +24,14 @@ import {
 } from "lib/ClientSideModel";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { useDisplayCurrency } from "lib/displaySettings";
+import { transactionIsDescendant } from "lib/model/Category";
+import {
+  Expense,
+  Income,
+  amountOwnShare,
+  isExpense,
+  isIncome,
+} from "lib/model/Transaction";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
 import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
@@ -129,17 +137,20 @@ export function MonthlyStats({ input }: { input: TransactionsStatsInput }) {
   const [month, setMonth] = useState(months[months.length - 1]);
   const transactions = input
     .transactionsAllTime()
-    .filter((t) => isSameMonth(month, t.timestamp));
-  const expenses = transactions.filter(
-    (t) => t.isPersonalExpense() || t.isThirdPartyExpense()
-  );
-  const income = transactions.filter((t) => t.isIncome());
+    .filter((t) => isSameMonth(month, t.timestampEpoch));
+  const expenses = transactions.filter((t): t is Expense => isExpense(t));
+  const income = transactions.filter((t): t is Income => isIncome(t));
   const displayCurrency = useDisplayCurrency();
+  const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
   const totalExpense = expenses
-    .map((t) => t.amountOwnShare(displayCurrency))
+    .map((t) =>
+      amountOwnShare(t, displayCurrency, bankAccounts, stocks, exchange)
+    )
     .reduce((p, c) => c.add(p));
   const totalIncome = income
-    .map((t) => t.amountOwnShare(displayCurrency))
+    .map((t) =>
+      amountOwnShare(t, displayCurrency, bankAccounts, stocks, exchange)
+    )
     .reduce((p, c) => c.add(p));
 
   const expenseIncomeRatio = totalIncome.isZero()
@@ -215,10 +226,8 @@ export function VendorStats({
 }) {
   const transactions = input
     .transactionsAllTime()
-    .filter((t) => isSameMonth(month, t.timestamp));
-  const expenses = transactions.filter(
-    (t) => t.isPersonalExpense() || t.isThirdPartyExpense()
-  );
+    .filter((t) => isSameMonth(month, t.timestampEpoch));
+  const expenses = transactions.filter((t): t is Expense => isExpense(t));
   return (
     <div>
       <h1 className="text-xl font-medium leading-7">Vendors</h1>
@@ -243,11 +252,14 @@ function PageContent() {
     label: a.nameWithAncestors(),
   }));
   const filteredTransactions = transactions.filter(
-    (t) => !excludeCategories.includes(t.category.id())
+    (t) =>
+      !excludeCategories.some((cid) =>
+        transactionIsDescendant(t, cid, categories)
+      )
   );
   const durations = transactions
-    .map((t) => t.timestamp)
-    .sort((a, b) => a.getTime() - b.getTime());
+    .map((t) => t.timestampEpoch)
+    .sort((a, b) => a - b);
   const input = new TransactionsStatsInput(filteredTransactions, {
     start: durations[0],
     end: durations[durations.length - 1],

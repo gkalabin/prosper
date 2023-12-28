@@ -22,7 +22,7 @@ export const LAST_12_MONTHS: Interval = {
 function useCommonIntervals() {
   const { transactions } = useAllDatabaseDataContext();
   const [firstTransaction] = [...transactions].sort(
-    (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
+    (a, b) => a.timestampEpoch - b.timestampEpoch
   );
   return [
     {
@@ -36,7 +36,7 @@ function useCommonIntervals() {
     {
       label: "All time",
       interval: {
-        start: startOfMonth(firstTransaction.timestamp),
+        start: startOfMonth(firstTransaction.timestampEpoch),
         end: now,
       },
     },

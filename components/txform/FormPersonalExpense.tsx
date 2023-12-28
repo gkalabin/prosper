@@ -19,7 +19,14 @@ import { useFormikContext } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
 import { Category as CategoryModel } from "lib/model/Category";
-import { Transaction } from "lib/model/Transaction";
+import {
+  PersonalExpense,
+  ThirdPartyExpense,
+  Transaction,
+  isExpense,
+  isPersonalExpense,
+  otherPartyNameOrNull,
+} from "lib/model/Transaction";
 import { AddTransactionFormValues, FormMode } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect, useMemo, useState } from "react";
@@ -34,7 +41,7 @@ export const FormPersonalExpense = ({
   transaction: Transaction;
   prototype: TransactionPrototype;
 }) => {
-  const { transactions, banks } = useAllDatabaseDataContext();
+  const { transactions, bankAccounts } = useAllDatabaseDataContext();
   const {
     values: {
       isShared,
@@ -47,16 +54,18 @@ export const FormPersonalExpense = ({
     },
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
-  const transactionsForMode = transactions.filter((x) => x.isPersonalExpense());
+  const transactionsForMode: PersonalExpense[] = transactions.filter(
+    (x): x is PersonalExpense => isPersonalExpense(x)
+  );
   const now = new Date();
   const recentTransactionsForMode = transactionsForMode.filter(
-    (x) => differenceInMonths(now, x.timestamp) < SUGGESTIONS_WINDOW_MONTHS
+    (x) => differenceInMonths(now, x.timestampEpoch) < SUGGESTIONS_WINDOW_MONTHS
   );
 
   const [mostFrequentOtherParty] = uniqMostFrequent(
     recentTransactionsForMode
-      .filter((x) => x.hasOtherParty())
-      .map((x) => x.otherParty())
+      .map((x) => otherPartyNameOrNull(x))
+      .filter((x) => x)
   );
   useEffect(() => {
     if (transaction) {
@@ -71,33 +80,33 @@ export const FormPersonalExpense = ({
   }, [isShared, setFieldValue, mostFrequentOtherParty, transaction]);
 
   // First, try recent transactions matching vendor.
-  let [mostFrequentCategory] = uniqMostFrequent(
+  let [mostFrequentCategoryId] = uniqMostFrequent(
     recentTransactionsForMode
-      .filter((x) => !vendor || (x.hasVendor() && x.vendor() == vendor))
-      .map((x) => x.category)
+      .filter((x) => !vendor || x.vendor == vendor)
+      .map((x) => x.categoryId)
   );
   // If no recent transactions match vendor, look for the same vendor across all transactions.
-  if (!mostFrequentCategory) {
-    [mostFrequentCategory] = uniqMostFrequent(
+  if (!mostFrequentCategoryId) {
+    [mostFrequentCategoryId] = uniqMostFrequent(
       transactionsForMode
-        .filter((x) => !vendor || (x.hasVendor() && x.vendor() == vendor))
-        .map((x) => x.category)
+        .filter((x) => !vendor || x.vendor == vendor)
+        .map((x) => x.categoryId)
     );
   }
   // If this vendor is not known, just fallback to all recent transactions.
-  if (!mostFrequentCategory) {
-    [mostFrequentCategory] = uniqMostFrequent(
-      recentTransactionsForMode.map((x) => x.category)
+  if (!mostFrequentCategoryId) {
+    [mostFrequentCategoryId] = uniqMostFrequent(
+      recentTransactionsForMode.map((x) => x.categoryId)
     );
   }
   useEffect(() => {
     if (transaction) {
       return;
     }
-    if (mostFrequentCategory) {
-      setFieldValue("categoryId", mostFrequentCategory.id());
+    if (mostFrequentCategoryId) {
+      setFieldValue("categoryId", mostFrequentCategoryId);
     }
-  }, [setFieldValue, mostFrequentCategory, transaction]);
+  }, [setFieldValue, mostFrequentCategoryId, transaction]);
 
   useEffect(() => {
     if (!prototype) {
@@ -117,29 +126,18 @@ export const FormPersonalExpense = ({
       return;
     }
     if (mode == FormMode.PERSONAL) {
-      const account = banks
-        .flatMap((b) => b.accounts)
-        .find((a) => a.id == fromBankAccountId);
+      const account = bankAccounts.find((a) => a.id == fromBankAccountId);
       if (account) {
-        setFieldValue("isShared", account.isJoint());
+        setFieldValue("isShared", account.joint);
       }
     }
-  }, [mode, setFieldValue, banks, fromBankAccountId, transaction]);
+  }, [mode, setFieldValue, bankAccounts, fromBankAccountId, transaction]);
   useEffect(() => {
     if (!isShared) {
       setFieldValue("ownShareAmount", amount);
       return;
     }
-    let newAmount = amount / 2;
-    if (
-      transaction &&
-      !transaction.amt().isZero() &&
-      !transaction.amtOwnShare().isZero()
-    ) {
-      const transactionRatio =
-        transaction.amtOwnShare().cents() / transaction.amt().cents();
-      newAmount = transactionRatio * amount;
-    }
+    const newAmount = amount / 2;
     // Round new amount to the closest cent.
     const newAmountRounded = Math.round(100 * newAmount) / 100;
     setFieldValue("ownShareAmount", newAmountRounded);
@@ -205,9 +203,12 @@ export function Category() {
     values: { categoryId, vendor },
   } = useFormikContext<AddTransactionFormValues>();
   const { categories, transactions } = useAllDatabaseDataContext();
-  const mostFrequent = useMemo(
+  const mostFrequentIds = useMemo(
     () => mostFrequentCategories(transactions, vendor),
     [transactions, vendor]
+  );
+  const mostFrequent = mostFrequentIds.map((id) =>
+    categories.find((c) => c.id() == id)
   );
 
   const makeOption = (x: CategoryModel) => ({
@@ -250,40 +251,40 @@ export function Category() {
   );
 }
 
-function appendNew<T extends { id: () => number }>(
-  target: T[],
-  newItems: T[]
-): T[] {
-  const existing = new Set(target.map((x) => x.id()));
-  const newDistinct = newItems.filter((x) => !existing.has(x.id()));
-  return [...target, ...newDistinct];
+function appendNew(target: number[], newItems: number[]): number[] {
+  const existing = new Set(target);
+  const newUnseen = newItems.filter((x) => !existing.has(x));
+  return [...target, ...newUnseen];
 }
 
 function mostFrequentCategories(
   allTransactions: Transaction[],
   vendor: string
-) {
+): number[] {
   const expenses = allTransactions.filter(
-    (x) => x.isPersonalExpense() || x.isThirdPartyExpense()
+    (x): x is PersonalExpense | ThirdPartyExpense => isExpense(x)
   );
-  const matching = expenses.filter((x) => !vendor || x.vendor() == vendor);
+  const matching = expenses.filter((x) => !vendor || x.vendor == vendor);
   const now = new Date();
   const matchingRecent = matching.filter(
-    (x) => differenceInMonths(now, x.timestamp) <= 3
+    (x) => differenceInMonths(now, x.timestampEpoch) <= 3
   );
   // Start with categories for recent transactions matching vendor.
-  let result = uniqMostFrequent(matchingRecent.map((t) => t.category));
+  let result = uniqMostFrequent(matchingRecent.map((t) => t.categoryId));
   if (result.length >= MAX_MOST_FREQUENT) {
     return result;
   }
   // Expand to all transactions matching vendor.
-  result = appendNew(result, uniqMostFrequent(matching.map((t) => t.category)));
+  result = appendNew(
+    result,
+    uniqMostFrequent(matching.map((t) => t.categoryId))
+  );
   if (result.length >= MAX_MOST_FREQUENT) {
     return result;
   }
   // At this stage, just add all categories for recent transactions.
   const recent = expenses.filter(
-    (x) => differenceInMonths(now, x.timestamp) <= 3
+    (x) => differenceInMonths(now, x.timestampEpoch) <= 3
   );
-  return appendNew(result, uniqMostFrequent(recent.map((t) => t.category)));
+  return appendNew(result, uniqMostFrequent(recent.map((t) => t.categoryId)));
 }

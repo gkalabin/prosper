@@ -24,6 +24,14 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
+import { transactionIsDescendant } from "lib/model/Category";
+import {
+  amountOwnShare,
+  Expense,
+  Income,
+  isExpense,
+  isIncome,
+} from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
 import { InferGetServerSidePropsType } from "next";
@@ -69,10 +77,8 @@ export function VendorStats({
 }) {
   const transactions = input
     .transactionsAllTime()
-    .filter((t) => isSameYear(year, t.timestamp));
-  const expenses = transactions.filter(
-    (t) => t.isPersonalExpense() || t.isThirdPartyExpense()
-  );
+    .filter((t) => isSameYear(year, t.timestampEpoch));
+  const expenses = transactions.filter((t): t is Expense => isExpense(t));
   return (
     <div>
       <h1 className="text-xl font-medium leading-7">Vendors</h1>
@@ -91,25 +97,30 @@ export function YearlyStats({ input }: { input: TransactionsStatsInput }) {
   const [year, setYear] = useState(years[years.length - 1]);
   const transactions = input
     .transactionsAllTime()
-    .filter((t) => isSameYear(year, t.timestamp));
-  const expenses = transactions.filter(
-    (t) => t.isPersonalExpense() || t.isThirdPartyExpense()
-  );
-  const income = transactions.filter((t) => t.isIncome());
+    .filter((t) => isSameYear(year, t.timestampEpoch));
+  const expenses = transactions.filter((t): t is Expense => isExpense(t));
+  const income = transactions.filter((t): t is Income => isIncome(t));
   const displayCurrency = useDisplayCurrency();
+  const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
   const zero = AmountWithCurrency.zero(displayCurrency);
   const totalExpense = expenses
-    .map((t) => t.amountOwnShare(displayCurrency))
+    .map((t) =>
+      amountOwnShare(t, displayCurrency, bankAccounts, stocks, exchange)
+    )
     .reduce((p, c) => c.add(p), zero);
   const totalIncome = income
-    .map((t) => t.amountOwnShare(displayCurrency))
+    .map((t) =>
+      amountOwnShare(t, displayCurrency, bankAccounts, stocks, exchange)
+    )
     .reduce((p, c) => c.add(p), zero);
   const expenseIncomeRatio = totalIncome.isZero()
     ? Infinity
     : totalExpense.dollar() / totalIncome.dollar();
   const tripsTotal = expenses
-    .filter((t) => t.hasTrip())
-    .map((t) => t.amountOwnShare(displayCurrency))
+    .filter((t) => t.tripId)
+    .map((t) =>
+      amountOwnShare(t, displayCurrency, bankAccounts, stocks, exchange)
+    )
     .reduce((p, c) => c.add(p), zero);
 
   return (
@@ -181,11 +192,14 @@ function PageContent() {
     label: a.nameWithAncestors(),
   }));
   const filteredTransactions = transactions.filter(
-    (t) => !excludeCategories.includes(t.category.id())
+    (t) =>
+      !excludeCategories.some((cid) =>
+        transactionIsDescendant(t, cid, categories)
+      )
   );
   const durations = transactions
-    .map((t) => t.timestamp)
-    .sort((a, b) => a.getTime() - b.getTime());
+    .map((t) => t.timestampEpoch)
+    .sort((a, b) => a - b);
   const input = new TransactionsStatsInput(filteredTransactions, {
     start: durations[0],
     end: durations[durations.length - 1],
