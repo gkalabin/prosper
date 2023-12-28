@@ -3,11 +3,14 @@ import { DB } from "lib/db";
 import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
 import prisma from "lib/prisma";
 import {
-  addExtensionAndTrip,
   AddTransactionFormValues,
   FormMode,
   includeExtensions,
-  transactionDbInput
+  TransactionAPIResponse,
+  transactionDbInput,
+  writeExtension,
+  writeTags,
+  writeTrip,
 } from "lib/transactionCreation";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -26,28 +29,31 @@ async function handle(
     res.status(404).send(`Transaction not found`);
     return;
   }
-  const result = await prisma.$transaction(async (tx) => {
-    if (!sameExtension(existing, form)) {
-      deleteExistingTransaction(tx, userId, existing);
+  const result: TransactionAPIResponse = await prisma.$transaction(
+    async (tx) => {
+      if (!sameExtension(existing, form)) {
+        deleteExistingTransaction(tx, userId, existing);
+      }
+      const data = transactionDbInput(form, userId);
+      writeExtension({ data, form, userId, operation: "update" });
+      const { createdTrip } = await writeTrip({ tx, data, form, userId });
+      const { createdTags } = await writeTags({ tx, data, form, userId });
+      const updatedTransaction = await tx.transaction.update(
+        Object.assign(
+          {
+            data: data,
+            where: { id: transactionId, userId },
+          },
+          includeExtensions
+        )
+      );
+      return {
+        transaction: updatedTransaction,
+        trip: createdTrip,
+        tags: createdTags,
+      };
     }
-    let data = transactionDbInput(form, userId);
-    data = await addExtensionAndTrip({
-      tx,
-      data,
-      form,
-      userId,
-      operation: "update",
-    });
-    return await tx.transaction.update(
-      Object.assign(
-        {
-          data: data,
-          where: { id: transactionId, userId },
-        },
-        includeExtensions
-      )
-    );
-  });
+  );
 
   res.json(result);
 }

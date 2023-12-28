@@ -1,43 +1,36 @@
 import { Switch } from "@headlessui/react";
-import {
-  Transaction as DBTransaction,
-  TransactionPrototype as DBTransactionPrototype
-} from "@prisma/client";
+import { TransactionPrototype as DBTransactionPrototype } from "@prisma/client";
 import classNames from "classnames";
 import {
   Input,
   MoneyInputWithLabel,
-  TextInputWithLabel
+  TextInputWithLabel,
 } from "components/forms/Input";
 import { BankAccountSelect } from "components/txform/BankAccountSelect";
 import { FormTransactionTypeSelector } from "components/txform/FormTransactionTypeSelector";
-import { NewTransactionSuggestions, TransactionPrototype } from "components/txform/NewTransactionSuggestions";
+import {
+  NewTransactionSuggestions,
+  TransactionPrototype,
+} from "components/txform/NewTransactionSuggestions";
 import { SelectNumber } from "components/txform/Select";
-import {
-  ButtonFormPrimary,
-  ButtonFormSecondary
-} from "components/ui/buttons";
-import {
-  format,
-  isBefore
-} from "date-fns";
+import { ButtonFormPrimary, ButtonFormSecondary } from "components/ui/buttons";
+import { format, isBefore } from "date-fns";
 import { Form, Formik, FormikHelpers, useFormikContext } from "formik";
-import {
-  useAllDatabaseDataContext
-} from "lib/ClientSideModel";
+import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
+import { Tag } from "lib/model/Tag";
 import { Transaction } from "lib/model/Transaction";
 import { Trip } from "lib/model/Trip";
-import {
-  IOBTransactionsByAccountId
-} from "lib/openbanking/interface";
+import { IOBTransactionsByAccountId } from "lib/openbanking/interface";
 import {
   AddTransactionFormValues,
-  FormMode
+  FormMode,
+  TransactionAPIResponse,
 } from "lib/transactionCreation";
 import { useEffect, useState } from "react";
+import CreatableSelect from "react-select/creatable";
 
 export const InputRow = (props: {
   mode?: FormMode;
@@ -91,7 +84,9 @@ function initialValuesForTransaction(
     vendor: t.hasVendor() ? t.vendor() : "",
     amount: t.amount().dollar(),
     ownShareAmount: t.amount().dollar(),
-    receivedAmount: t.isTransfer() ? t.amountReceived().dollar() : t.amount().dollar(),
+    receivedAmount: t.isTransfer()
+      ? t.amountReceived().dollar()
+      : t.amount().dollar(),
     fromBankAccountId: (t.accountFrom() ?? defaultAccountFrom).id,
     toBankAccountId: (t.accountTo() ?? defaultAccountTo).id,
     categoryId: t.category.id,
@@ -99,6 +94,7 @@ function initialValuesForTransaction(
     isFamilyExpense: t.isFamilyExpense(),
     tripName: t.hasTrip() ? t.trip().name() : "",
     payer: t.hasPayer() ? t.payer() : "",
+    tagNames: t.tags().map((x) => x.name()),
   };
   if (t.isPersonalExpense() || t.isThirdPartyExpense() || t.isIncome()) {
     defaults.ownShareAmount = t.amountOwnShare().dollar();
@@ -128,6 +124,7 @@ function initialValuesEmpty(
     isFamilyExpense: false,
     tripName: "",
     payer: "",
+    tagNames: [],
   };
 }
 
@@ -152,12 +149,9 @@ function mostUsedCurrency(txs: Transaction[]): Currency {
   return mostFrequent(currencies);
 }
 
-function mostUsedCategory(
-  txs: Transaction[],
-  vendor: string
-): Category {
+function mostUsedCategory(txs: Transaction[], vendor: string): Category {
   const categories = txs
-    .filter((x) => vendor ? x.hasVendor() && x.vendor() == vendor : true)
+    .filter((x) => (vendor ? x.hasVendor() && x.vendor() == vendor : true))
     .map((x) => x.category);
   return mostFrequent(categories);
 }
@@ -183,7 +177,7 @@ export const AddTransactionForm = (props: {
   transaction?: Transaction;
   openBankingTransactions?: IOBTransactionsByAccountId;
   transactionPrototypes?: DBTransactionPrototype[];
-  onAdded: (added: DBTransaction) => void;
+  onAddedOrUpdated: (response: TransactionAPIResponse) => void;
   onClose: () => void;
 }) => {
   const [apiError, setApiError] = useState("");
@@ -208,11 +202,11 @@ export const AddTransactionForm = (props: {
   const initialValues = !props.transaction
     ? initialValuesForEmptyForm
     : initialValuesForTransaction(
-      props.transaction,
-      initialMode,
-      defaultAccountFrom,
-      defaultAccountTo
-    );
+        props.transaction,
+        initialMode,
+        defaultAccountFrom,
+        defaultAccountTo
+      );
 
   const submitNewTransaction = async (
     values: AddTransactionFormValues,
@@ -228,7 +222,7 @@ export const AddTransactionForm = (props: {
         setSubmitting(false);
         resetForm({ values: initialValuesForEmptyForm });
         setPrototype(null);
-        props.onAdded(await added.json());
+        props.onAddedOrUpdated(await added.json());
       })
       .catch((error) => {
         setSubmitting(false);
@@ -303,8 +297,8 @@ export const AddTransactionForm = (props: {
                       ? "Adding…"
                       : "Add"
                     : isSubmitting
-                      ? "Updating…"
-                      : "Update"}
+                    ? "Updating…"
+                    : "Update"}
                 </ButtonFormPrimary>
               </div>
             </div>
@@ -320,7 +314,8 @@ const FormInputs = (props: {
   isAdvancedMode: boolean;
   prototype: TransactionPrototype;
 }) => {
-  const { transactions, currencies, categories, banks, trips } = useAllDatabaseDataContext();
+  const { transactions, currencies, categories, banks, trips, tags } =
+    useAllDatabaseDataContext();
   const {
     values: {
       amount,
@@ -329,6 +324,7 @@ const FormInputs = (props: {
       isFamilyExpense,
       fromBankAccountId,
       mode,
+      tagNames,
     },
     setFieldValue,
     handleChange,
@@ -383,7 +379,9 @@ const FormInputs = (props: {
     }
   }, [mode, setFieldValue, banks, fromBankAccountId]);
 
-  const transactionsForMode = transactions.filter((x) => formModeForTransaction(x) == mode);
+  const transactionsForMode = transactions.filter(
+    (x) => formModeForTransaction(x) == mode
+  );
   const vendorFrequency = new Map<string, number>();
   transactionsForMode
     .filter((x) => x.hasVendor())
@@ -410,6 +408,14 @@ const FormInputs = (props: {
       isBefore(tripLastUsageDate.get(t1), tripLastUsageDate.get(t2)) ? 1 : -1
     )
     .map((x) => tripById.get(x).name());
+
+  const tagFrequency = new Map<Tag, number>(tags.map((x) => [x, 0]));
+  transactions
+    .flatMap((x) => x.tags())
+    .forEach((x) => tagFrequency.set(x, (tagFrequency.get(x) ?? 0) + 1));
+  const tagsByFrequency = [...tags].sort(
+    (t1, t2) => tagFrequency.get(t2) - tagFrequency.get(t1)
+  );
 
   return (
     <>
@@ -456,8 +462,9 @@ const FormInputs = (props: {
                 disabled={isSubmitting}
               >
                 <span
-                  className={`${isFamilyExpense ? "translate-x-6" : "translate-x-1"
-                    } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                  className={`${
+                    isFamilyExpense ? "translate-x-6" : "translate-x-1"
+                  } inline-block h-4 w-4 transform rounded-full bg-white transition`}
                 />
               </Switch>
             </div>
@@ -532,6 +539,25 @@ const FormInputs = (props: {
           name="description"
           label="Description"
           disabled={isSubmitting}
+        />
+      </InputRow>
+
+      <InputRow mode={mode}>
+        <CreatableSelect
+          isMulti
+          options={tagsByFrequency.map((x) => {
+            return { label: x.name(), value: x.name() };
+          })}
+          value={tagNames.map((x) => {
+            return { label: x, value: x };
+          })}
+          onChange={(newValue) =>
+            setFieldValue(
+              "tagNames",
+              newValue.map((x) => x.value)
+            )
+          }
+          isDisabled={isSubmitting}
         />
       </InputRow>
 

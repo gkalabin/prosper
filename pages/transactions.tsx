@@ -1,4 +1,3 @@
-import { Transaction as DBTransaction } from "@prisma/client";
 import Layout from "components/Layout";
 import {
   isFullyConfigured,
@@ -12,6 +11,7 @@ import {
 } from "lib/ClientSideModel";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { updateOrAppend } from "lib/stateHelpers";
+import { TransactionAPIResponse } from "lib/transactionCreation";
 import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 
@@ -30,10 +30,22 @@ export default function TransactionsPage(
   const [displayTransactions, setDisplayTransactions] =
     useState(personalTransactions);
 
-  const updateTransactions = (x: DBTransaction) => {
+  const transactionAddedOrUpdated = ({
+    transaction,
+    trip,
+    tags,
+  }: TransactionAPIResponse) => {
     setDbData((old) => {
+      let updatedTrips = [...old.dbTrips];
+      if (trip) {
+        updatedTrips = updateOrAppend(updatedTrips, trip);
+      }
+      let updatedTags = [...old.dbTags];
+      tags.forEach((t) => (updatedTags = updateOrAppend(updatedTags, t)));
       return Object.assign({}, old, {
-        dbTransactions: updateOrAppend(old.dbTransactions, x),
+        dbTransactions: updateOrAppend(old.dbTransactions, transaction),
+        dbTrips: updatedTrips,
+        dbTags: updatedTags,
       });
     });
   };
@@ -81,7 +93,7 @@ export default function TransactionsPage(
         {showAddTransactionForm && (
           <div className="">
             <AddTransactionForm
-              onAdded={updateTransactions}
+              onAddedOrUpdated={transactionAddedOrUpdated}
               transactionPrototypes={dbData.dbTransactionPrototypes}
               onClose={() => setShowAddTransactionForm(false)}
             />
@@ -90,7 +102,7 @@ export default function TransactionsPage(
 
         <TransactionsList
           transactions={displayTransactions}
-          onTransactionUpdated={updateTransactions}
+          onTransactionUpdated={transactionAddedOrUpdated}
         />
       </AllDatabaseDataContextProvider>
     </Layout>

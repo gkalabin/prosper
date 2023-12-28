@@ -1,4 +1,3 @@
-import { Transaction as DBTransaction } from "@prisma/client";
 import Layout from "components/Layout";
 import {
   isFullyConfigured,
@@ -18,12 +17,13 @@ import { BankAccount } from "lib/model/BankAccount";
 import { IOBBalancesByAccountId } from "lib/openbanking/interface";
 import { allDbDataPropsWithOb } from "lib/ServerSideDB";
 import { updateOrAppend } from "lib/stateHelpers";
+import { TransactionAPIResponse } from "lib/transactionCreation";
 import { InferGetServerSidePropsType } from "next";
 import { createContext, useContext, useState } from "react";
 
 const BankAccountListItem = (props: {
   account: BankAccount;
-  onTransactionUpdated: (updated: DBTransaction) => void;
+  onTransactionUpdated: (response: TransactionAPIResponse) => void;
   openBankingBalance?: Amount;
 }) => {
   const [showTransactionList, setShowTransactionList] = useState(false);
@@ -77,7 +77,7 @@ const BankAccountListItem = (props: {
 
 const BanksList = (props: {
   openBankingBalances: IOBBalancesByAccountId;
-  onTransactionUpdated: (updated: DBTransaction) => void;
+  onTransactionUpdated: (response: TransactionAPIResponse) => void;
 }) => {
   const { banks } = useAllDatabaseDataContext();
   const displayCurrency = useDisplayCurrency();
@@ -124,10 +124,22 @@ export default function OverviewPage(
   const [dbDataState, setDbData] = useState(dbData);
   const [archivedShown, setShowArchived] = useState(false);
 
-  const updateTransactions = (x: DBTransaction) => {
+  const transactionAddedOrUpdated = ({
+    transaction,
+    trip,
+    tags,
+  }: TransactionAPIResponse) => {
     setDbData((old) => {
+      let updatedTrips = [...old.dbTrips];
+      if (trip) {
+        updatedTrips = updateOrAppend(updatedTrips, trip);
+      }
+      let updatedTags = [...old.dbTags];
+      tags.forEach((t) => (updatedTags = updateOrAppend(updatedTags, t)));
       return Object.assign({}, old, {
-        dbTransactions: updateOrAppend(old.dbTransactions, x),
+        dbTransactions: updateOrAppend(old.dbTransactions, transaction),
+        dbTrips: updatedTrips,
+        dbTags: updatedTags,
       });
     });
   };
@@ -150,7 +162,7 @@ export default function OverviewPage(
           )}
           {showAddTransactionForm && (
             <AddTransactionForm
-              onAdded={updateTransactions}
+              onAddedOrUpdated={transactionAddedOrUpdated}
               openBankingTransactions={dbData.openBankingData.transactions}
               transactionPrototypes={dbData.dbTransactionPrototypes}
               onClose={() => setShowAddTransactionForm(false)}
@@ -166,7 +178,7 @@ export default function OverviewPage(
         </div>
         <ArchivedAccountsShownContext.Provider value={archivedShown}>
           <BanksList
-            onTransactionUpdated={updateTransactions}
+            onTransactionUpdated={transactionAddedOrUpdated}
             openBankingBalances={dbData.openBankingData.balances}
           />
         </ArchivedAccountsShownContext.Provider>

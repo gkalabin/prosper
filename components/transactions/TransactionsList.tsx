@@ -1,9 +1,9 @@
-import { Transaction as DBTransaction } from "@prisma/client";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
 import { AmountWithCurrency } from "lib/ClientSideModel";
 import { BankAccount } from "lib/model/BankAccount";
 import { Transaction } from "lib/model/Transaction";
 import { descriptiveDateTime, shortRelativeDate } from "lib/TimeHelpers";
+import { TransactionAPIResponse } from "lib/transactionCreation";
 import { useState } from "react";
 
 const transactionHeadingText = (t: Transaction) => {
@@ -89,7 +89,7 @@ const TransactionAmount = (props: {
 
 export const TransactionsListItem = (props: {
   transaction: Transaction;
-  onUpdated: (transaction: DBTransaction) => void;
+  onUpdated: (response: TransactionAPIResponse) => void;
   showBankAccountInStatusLine: boolean;
 }) => {
   const [showRawDetails, setShowRawDetails] = useState(false);
@@ -153,7 +153,7 @@ export const TransactionsListItem = (props: {
         <div>
           <AddTransactionForm
             transaction={props.transaction}
-            onAdded={(updated) => {
+            onAddedOrUpdated={(updated) => {
               props.onUpdated(updated);
               setShowEditForm(false);
             }}
@@ -167,7 +167,7 @@ export const TransactionsListItem = (props: {
 
 export const TransactionsList = (props: {
   transactions: Transaction[];
-  onTransactionUpdated: (transaction: DBTransaction) => void;
+  onTransactionUpdated: (response: TransactionAPIResponse) => void;
   displayLimit?: number;
   showBankAccountInStatusLine?: boolean;
 }) => {

@@ -1,4 +1,5 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, Tag, Trip } from "@prisma/client";
+import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
 
 export enum FormMode {
   PERSONAL,
@@ -22,6 +23,13 @@ export type AddTransactionFormValues = {
   receivedAmount: number;
   isFamilyExpense: boolean;
   tripName: string;
+  tagNames: string[];
+};
+
+export type TransactionAPIResponse = {
+  transaction: TransactionWithExtensions;
+  trip: Trip;
+  tags: Tag[];
 };
 
 export const includeExtensions = {
@@ -33,41 +41,51 @@ export const includeExtensions = {
   },
 };
 
-const toCents = (x: number): number => Math.round(x * 100);
-
-export const transactionDbInput = (
-  { timestamp, description, amount, categoryId },
-  userId: number
-): Prisma.TransactionUncheckedCreateInput &
-  Prisma.TransactionUncheckedUpdateInput => {
-  return {
-    description, categoryId, userId,
-    timestamp: new Date(timestamp).toISOString(),
-    amountCents: toCents(amount),
-  };
-};
-
-declare type ExtensionDbDataGenerator = (
-  form: AddTransactionFormValues,
-  userId: number
-) =>
+type TransactionDbData = Prisma.TransactionUncheckedCreateInput &
+  Prisma.TransactionUncheckedUpdateInput;
+type ExtensionDbData =
   | Prisma.PersonalExpenseUncheckedCreateWithoutTransactionInput
   | Prisma.ThirdPartyExpenseUncheckedCreateWithoutTransactionInput
   | Prisma.TransferUncheckedCreateWithoutTransactionInput
   | Prisma.IncomeUncheckedCreateWithoutTransactionInput;
 
-const extensionConfigByMode = new Map<FormMode, {
-  mode: FormMode;
-  extensionDbField: string;
-  formToDbData: ExtensionDbDataGenerator;
-}>(
+const toCents = (x: number): number => Math.round(x * 100);
+
+export const transactionDbInput = (
+  { timestamp, description, amount, categoryId },
+  userId: number
+): TransactionDbData => {
+  return {
+    description,
+    categoryId,
+    userId,
+    timestamp: new Date(timestamp).toISOString(),
+    amountCents: toCents(amount),
+  };
+};
+
+const extensionConfigByMode = new Map<
+  FormMode,
+  {
+    mode: FormMode;
+    extensionDbField: string;
+    formToDbData: (
+      form: AddTransactionFormValues,
+      userId: number
+    ) => ExtensionDbData;
+  }
+>(
   [
     {
       mode: FormMode.PERSONAL,
       extensionDbField: "personalExpense",
-      formToDbData: ({ vendor, ownShareAmount, fromBankAccountId }, userId: number) => {
+      formToDbData: (
+        { vendor, ownShareAmount, fromBankAccountId },
+        userId: number
+      ) => {
         return {
-          vendor, userId,
+          vendor,
+          userId,
           accountId: fromBankAccountId,
           ownShareAmountCents: toCents(ownShareAmount),
         };
@@ -76,9 +94,15 @@ const extensionConfigByMode = new Map<FormMode, {
     {
       mode: FormMode.EXTERNAL,
       extensionDbField: "thirdPartyExpense",
-      formToDbData: ({ vendor, ownShareAmount, payer, currencyId }, userId: number) => {
+      formToDbData: (
+        { vendor, ownShareAmount, payer, currencyId },
+        userId: number
+      ) => {
         return {
-          vendor, payer, currencyId, userId,
+          vendor,
+          payer,
+          currencyId,
+          userId,
           ownShareAmountCents: toCents(ownShareAmount),
         };
       },
@@ -101,7 +125,10 @@ const extensionConfigByMode = new Map<FormMode, {
     {
       mode: FormMode.INCOME,
       extensionDbField: "income",
-      formToDbData: ({ vendor, ownShareAmount, toBankAccountId }, userId: number) => {
+      formToDbData: (
+        { vendor, ownShareAmount, toBankAccountId },
+        userId: number
+      ) => {
         return {
           vendor,
           userId,
@@ -113,58 +140,95 @@ const extensionConfigByMode = new Map<FormMode, {
   ].map((x) => [x.mode, x])
 );
 
-export async function addExtensionAndTrip({
+export async function writeTags({
   form,
   userId,
   data,
-  operation,
   tx,
 }: {
   form: AddTransactionFormValues;
   userId: number;
-  data: Prisma.TransactionUncheckedCreateInput &
-  Prisma.TransactionUncheckedUpdateInput;
-  operation: "create" | "update";
+  data: TransactionDbData;
   tx;
-}) {
-  const config = extensionConfigByMode.get(form.mode);
-  const extensionData = Object.assign(config.formToDbData(form, userId), { userId });
-  // attach trip if present
-  if (
-    form.tripName &&
-    [FormMode.PERSONAL, FormMode.EXTERNAL].includes(form.mode)
-  ) {
-    const tripId = await maybeCreateTrip(tx, form, userId);
-    extensionData[config.extensionDbField][operation].tripId = tripId;
+}): Promise<{ createdTags: Tag[] }> {
+  if (!form.tagNames?.length) {
+    return { createdTags: [] };
   }
-  // extend data with the generated extension
-  return Object.assign(data, {
-    [config.extensionDbField]: {
-      [operation]: extensionData,
+  const found: Tag[] = await tx.tag.findMany({
+    where: {
+      userId,
+      name: {
+        in: form.tagNames,
+      },
     },
   });
+  const foundByName = new Map<string, Tag>(found.map((x) => [x.name, x]));
+  const newTagNames = form.tagNames.filter((x) => !foundByName.has(x));
+  const createdTags = await Promise.all(
+    newTagNames.map((name) => tx.tag.create({ data: { name, userId } }))
+  );
+  data.tags = {
+    connect: [...found, ...createdTags].map((x) => {
+      return { id: x.id };
+    }),
+  };
+  return { createdTags };
 }
 
-export async function maybeCreateTrip(
+export async function writeTrip({
+  form,
+  userId,
+  data,
   tx,
-  form: AddTransactionFormValues,
-  userId: number
-) {
-  if (!form.tripName) {
-    return 0;
+}: {
+  form: AddTransactionFormValues;
+  userId: number;
+  data: TransactionDbData;
+  tx;
+}): Promise<{ createdTrip: Trip }> {
+  if (
+    !(
+      form.tripName &&
+      [FormMode.PERSONAL, FormMode.EXTERNAL].includes(form.mode)
+    )
+  ) {
+    return { createdTrip: null };
   }
+  const config = extensionConfigByMode.get(form.mode);
+  const extension = data[config.extensionDbField];
+  const extensionData = extension.update ?? extension.create;
   const tripNameAndUser = {
     name: form.tripName,
     userId,
   };
-  const existingTrip = await tx.trip.findFirst({
-    where: tripNameAndUser,
-  });
+  const existingTrip = await tx.trip.findFirst({ where: tripNameAndUser });
   if (existingTrip) {
-    return existingTrip.id;
+    extensionData.tripId = existingTrip.id;
+    return { createdTrip: null };
   }
-  const newTrip = await tx.trip.create({
-    data: tripNameAndUser,
+  const createdTrip = await tx.trip.create({ data: tripNameAndUser });
+  extensionData.tripId = createdTrip.id;
+  return { createdTrip };
+}
+
+export function writeExtension({
+  form,
+  userId,
+  data,
+  operation,
+}: {
+  form: AddTransactionFormValues;
+  userId: number;
+  data: TransactionDbData;
+  operation: "create" | "update";
+}) {
+  const config = extensionConfigByMode.get(form.mode);
+  const extensionData = Object.assign(config.formToDbData(form, userId), {
+    userId,
   });
-  return newTrip.id;
+  Object.assign(data, {
+    [config.extensionDbField]: {
+      [operation]: extensionData,
+    },
+  });
 }
