@@ -2,7 +2,7 @@ import { TransactionType } from "@prisma/client";
 import { AmountWithUnit } from "lib/AmountWithUnit";
 import { assert } from "lib/assert";
 import { TransactionWithTagIds } from "lib/model/AllDatabaseDataModel";
-import { BankAccount, accountUnit } from "lib/model/BankAccount";
+import { Bank, BankAccount, accountBank, accountUnit } from "lib/model/BankAccount";
 import { Stock } from "lib/model/Stock";
 
 export type Transfer = {
@@ -33,6 +33,25 @@ export function transferModelFromDB(init: TransactionWithTagIds): Transfer {
     tagsIds: init.tags.map((t) => t.id),
   };
 }
+
+export function outgoingBank(
+  t: Transfer,
+  banks: Bank[],
+  bankAccounts: BankAccount[],
+): Bank {
+  const account = outgoingBankAccount(t, bankAccounts);
+  return accountBank(account, banks);
+}
+
+export function incomingBank(
+  t: Transfer,
+  banks: Bank[],
+  bankAccounts: BankAccount[],
+): Bank {
+  const account = incomingBankAccount(t, bankAccounts);
+  return accountBank(account, banks);
+}
+
 
 export function outgoingBankAccount(
   t: Transfer,

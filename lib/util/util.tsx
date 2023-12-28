@@ -96,3 +96,34 @@ export function notEmpty<T>(value: T | null | undefined): value is T {
   // This return should always be true, it is here only to prevent unused variable.
   return !!exhaustivenessCheck;
 }
+
+export function parseAmountAsCents(s: string): number {
+  const sign = s.startsWith("-") ? -1 : 1;
+  if (sign < 0) {
+    s = s.slice(1);
+  }
+  const match = s.match(/^([0-9]+)((\.|,)[0-9]{1,2})?$/);
+  if (!match) {
+    return NaN;
+  }
+  const cents = parseInt(match[1], 10) * 100;
+  if (match[2]) {
+    let fractionString = match[2].slice(1);
+    if (fractionString.length == 1) {
+      fractionString = fractionString + "0";
+    }
+    const fraction = parseInt(fractionString, 10);
+    if (fraction > 0) {
+      return sign * (cents + fraction);
+    }
+  }
+  return sign * cents;
+}
+
+// TODO: write tests (XS)
+export function removeQuotes(s: string): string {
+  if (s.startsWith('"') && s.endsWith('"')) {
+    return s.substring(1, s.length - 1);
+  }
+  return s;
+}

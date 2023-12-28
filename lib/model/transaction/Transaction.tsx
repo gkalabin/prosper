@@ -1,6 +1,11 @@
 import { TransactionType } from "@prisma/client";
 import { TransactionWithTagIds } from "lib/model/AllDatabaseDataModel";
-import { BankAccount, accountUnit } from "lib/model/BankAccount";
+import {
+  Bank,
+  BankAccount,
+  accountBank,
+  accountUnit,
+} from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
 import { Stock } from "lib/model/Stock";
@@ -60,6 +65,15 @@ export function transactionBankAccount(
     );
   }
   return account;
+}
+
+export function transactionBank(
+  t: PersonalExpense | Income,
+  banks: Bank[],
+  bankAccounts: BankAccount[],
+): Bank {
+  const account = transactionBankAccount(t, bankAccounts);
+  return accountBank(account, banks);
 }
 
 export function transactionUnit(
@@ -138,6 +152,10 @@ export function otherPartyNameOrNull(t: Transaction): string | null {
   if (t.kind == "Transfer") {
     return null;
   }
+  return otherPartyName(t);
+}
+
+export function otherPartyName(t: Expense | Income): string | null {
   if (!t.companions.length) {
     return null;
   }

@@ -20,7 +20,7 @@ export function bankModelFromDB(init: DBBank): Bank {
 
 export function accountsForBank(
   bank: Bank,
-  accounts: BankAccount[]
+  accounts: BankAccount[],
 ): BankAccount[] {
   return accounts.filter((a) => a.bankId == bank.id);
 }
@@ -59,7 +59,7 @@ export function accountUnit(account: BankAccount, stocks: Stock[]): Unit {
     const stock = stocks.find((s) => s.id == account.stockId);
     if (!stock) {
       throw new Error(
-        `Cannot find stock ${account.stockId} for account ${account.id}`
+        `Cannot find stock ${account.stockId} for account ${account.id}`,
       );
     }
     return stock;
@@ -67,11 +67,21 @@ export function accountUnit(account: BankAccount, stocks: Stock[]): Unit {
   throw new Error(`Account ${account.id} has no unit`);
 }
 
+export function accountBank(account: BankAccount, banks: Bank[]): Bank {
+  const bank = banks.find((b) => b.id == account.bankId);
+  if (!bank) {
+    throw new Error(
+      `Cannot find bank ${account.bankId} for account ${account.id}`,
+    );
+  }
+  return bank;
+}
+
 export function fullAccountName(account: BankAccount, banks: Bank[]): string {
   const bank = banks.find((b) => b.id == account.bankId);
   if (!bank) {
     throw new Error(
-      `Cannot find bank ${account.bankId} for account ${account.id}`
+      `Cannot find bank ${account.bankId} for account ${account.id}`,
     );
   }
   return `${bank.name}: ${account.name}`;

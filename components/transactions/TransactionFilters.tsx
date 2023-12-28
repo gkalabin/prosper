@@ -1,166 +1,191 @@
 import { FormikInput } from "components/forms/Input";
 import { undoTailwindInputStyles } from "components/forms/Select";
 import { ButtonFormSecondary } from "components/ui/buttons";
-import { differenceInMilliseconds, startOfDay } from "date-fns";
+import { format } from "date-fns";
 import { useFormikContext } from "formik";
 import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { fullAccountName } from "lib/model/BankAccount";
-import { transactionIsDescendant } from "lib/model/Category";
-import {
-  Transaction,
-  isExpense,
-  isIncome,
-  isPersonalExpense,
-  isTransfer,
-  otherPartyNameOrNull,
-} from "lib/model/transaction/Transaction";
+import { Tag } from "lib/model/Tag";
+import { Trip } from "lib/model/Trip";
+import { Transaction } from "lib/model/transaction/Transaction";
+import { QuerySyntaxError, fallbackSearch, search } from "lib/search/search";
+import { notEmpty } from "lib/util/util";
+import { useEffect } from "react";
 import Select from "react-select";
 
-type TransactionType =
-  | "PersonalExpense"
-  | "ThirdPartyExpense"
-  | "Transfer"
-  | "Income";
+type TransactionType = "personal" | "external" | "transfer" | "income";
 
 export type FiltersFormValues = {
-  freeTextSearch: string;
+  query: string;
   transactionTypes: TransactionType[];
   vendor: string;
   timeFrom: string;
   timeTo: string;
   accountIds: number[];
   categoryIds: number[];
-  includeChildrenCategories: boolean;
   tripId: number | undefined;
   tagIds: number[];
   allTagsShouldMatch: boolean;
 };
 export const initialTransactionFilters: FiltersFormValues = {
-  freeTextSearch: "",
-  transactionTypes: [
-    "PersonalExpense",
-    "ThirdPartyExpense",
-    "Transfer",
-    "Income",
-  ],
+  query: "",
+  transactionTypes: [],
   vendor: "",
   timeFrom: "",
   timeTo: "",
   accountIds: [],
   categoryIds: [],
-  includeChildrenCategories: true,
   tripId: undefined,
   tagIds: [],
   allTagsShouldMatch: false,
 };
 
-export function useFilteredTransactions() {
-  const { transactions, categories } = useAllDatabaseDataContext();
+function generateQuery({
+  formValues,
+  trips,
+  tags,
+}: {
+  formValues: Omit<FiltersFormValues, "query">;
+  trips: Trip[];
+  tags: Tag[];
+}) {
+  const {
+    transactionTypes,
+    vendor,
+    accountIds,
+    categoryIds,
+    tripId,
+    timeFrom,
+    timeTo,
+    tagIds,
+    allTagsShouldMatch,
+  } = formValues;
+  const parts: string[] = [];
+  const appendOR = (...or: (string | undefined)[]) => {
+    const values = or.filter(notEmpty).filter((x) => x.trim().length > 0);
+    if (values.length > 1) {
+      parts.push(`(${values.join(" OR ")})`);
+    } else {
+      parts.push(...values);
+    }
+  };
+  appendOR(...transactionTypes.map((tt) => `t:${tt}`));
+  appendOR(vendor && `vendor:${vendor}`);
+  appendOR(...accountIds.map((id) => `account:${id}`));
+  appendOR(...categoryIds.map((id) => `c:${id}`));
+  if (tripId) {
+    const trip = trips.find((t) => t.id == tripId);
+    appendOR(trip && `trip:"${trip.name}"`);
+  }
+  appendOR(timeFrom && `date>=${format(new Date(timeFrom), "yyyy-MM-dd")}`);
+  appendOR(timeTo && `date<=${format(new Date(timeTo), "yyyy-MM-dd")}`);
+  if (tagIds.length > 0) {
+    const tagSet = new Set(tagIds);
+    const selectedTags = tags.filter((t) => tagSet.has(t.id));
+    const tagParts = selectedTags.map((t) => `tag:${t.name}`);
+    if (tagParts.length > 1 && !allTagsShouldMatch) {
+      parts.push(`(${tagParts.join(" OR ")})`);
+    } else {
+      parts.push(...tagParts);
+    }
+  }
+  return parts.join(" ");
+}
+
+export function useFilteredTransactions(): {
+  results: Transaction[];
+  error?: QuerySyntaxError;
+} {
+  const { transactions, banks, bankAccounts, categories, trips, tags } =
+    useAllDatabaseDataContext();
   const {
     values: {
-      freeTextSearch,
+      query,
       transactionTypes,
       vendor,
       accountIds,
       categoryIds,
-      includeChildrenCategories,
       tripId,
       timeFrom,
       timeTo,
       tagIds,
       allTagsShouldMatch,
     },
+    setFieldValue,
   } = useFormikContext<FiltersFormValues>();
-  const transactionMatchesFreeTextSearch = (t: Transaction) => {
-    if (!freeTextSearch) {
-      return true;
-    }
-    const lowerCaseSearch = freeTextSearch.toLocaleLowerCase();
-    if (
-      isExpense(t) &&
-      t.vendor.toLocaleLowerCase().includes(lowerCaseSearch)
-    ) {
-      return true;
-    }
-    if (t.note.toLocaleLowerCase().includes(lowerCaseSearch)) {
-      return true;
-    }
-    if (isIncome(t) && t.payer.toLocaleLowerCase().includes(lowerCaseSearch)) {
-      return true;
-    }
-    if (otherPartyNameOrNull(t)?.includes(lowerCaseSearch)) {
-      return true;
-    }
-    if (
-      (isExpense(t) || isIncome(t)) &&
-      t.amountCents / 100 == +freeTextSearch
-    ) {
-      return true;
-    }
-    if (
-      isTransfer(t) &&
-      (t.sentAmountCents / 100 == +freeTextSearch ||
-        t.receivedAmountCents / 100 == +freeTextSearch)
-    ) {
-      return true;
-    }
-    if (new RegExp(`\\b${t.id}\\b`).test(freeTextSearch)) {
-      return true;
-    }
-    return false;
-  };
-  const sameDayOrBefore = (a: Date | string, b: Date | string) =>
-    differenceInMilliseconds(
-      startOfDay(new Date(a)),
-      startOfDay(new Date(b)),
-    ) <= 0;
-  return transactions
-    .filter(transactionMatchesFreeTextSearch)
-    .filter(
-      (t) =>
-        transactionTypes.some((tt) => t.kind == tt) &&
-        (vendor
-          ? isExpense(t) &&
-            t.vendor.toLocaleLowerCase().includes(vendor.toLocaleLowerCase())
-          : true) &&
-        (accountIds?.length
-          ? ((isPersonalExpense(t) || isIncome(t)) &&
-              accountIds.includes(t.accountId)) ||
-            (isTransfer(t) &&
-              (accountIds.includes(t.fromAccountId) ||
-                accountIds.includes(t.toAccountId)))
-          : true) &&
-        (categoryIds?.length
-          ? categoryIds.some(
-              (cid) =>
-                t.categoryId == cid ||
-                (includeChildrenCategories &&
-                  transactionIsDescendant(t, cid, categories)),
-            )
-          : true) &&
-        (tripId ? (isExpense(t) || isIncome(t)) && t.tripId == tripId : true) &&
-        (timeFrom
-          ? sameDayOrBefore(timeFrom, new Date(t.timestampEpoch))
-          : true) &&
-        (timeTo ? sameDayOrBefore(new Date(t.timestampEpoch), timeTo) : true) &&
-        (tagIds?.length
-          ? allTagsShouldMatch
-            ? tagIds.every((tagId) => t.tagsIds.includes(tagId))
-            : tagIds.some((tagId) => t.tagsIds.includes(tagId))
-          : true),
+
+  // update query input with the generated query when any of the other fields change
+  useEffect(() => {
+    const generated = generateQuery({
+      formValues: {
+        transactionTypes,
+        vendor,
+        accountIds,
+        categoryIds,
+        tripId,
+        timeFrom,
+        timeTo,
+        tagIds,
+        allTagsShouldMatch,
+      },
+      trips,
+      tags,
+    });
+    setFieldValue("query", generated);
+  }, [
+    transactionTypes,
+    vendor,
+    accountIds,
+    categoryIds,
+    tripId,
+    timeFrom,
+    timeTo,
+    tagIds,
+    allTagsShouldMatch,
+    trips,
+    tags,
+    setFieldValue,
+  ]);
+
+  try {
+    const results = search(
+      query,
+      transactions,
+      banks,
+      bankAccounts,
+      categories,
+      trips,
+      tags,
     );
+    return { results };
+  } catch (e) {
+    if (e instanceof QuerySyntaxError) {
+      const fallbackResults = fallbackSearch(
+        query,
+        transactions,
+        banks,
+        bankAccounts,
+        categories,
+        trips,
+        tags,
+      );
+      return { results: fallbackResults, error: e };
+    } else {
+      throw e;
+    }
+  }
 }
 
 export function SearchForAnythingInput() {
   return (
     <>
       <label
-        htmlFor="freeTextSearch"
+        htmlFor="query"
         className="block text-sm font-medium text-gray-700"
       >
         Search for anything
       </label>
-      <FormikInput name="freeTextSearch" className="block w-full" />
+      <FormikInput name="query" className="block w-full" />
     </>
   );
 }
@@ -201,10 +226,10 @@ export function TransactionFiltersForm(props: { onClose: () => void }) {
   }));
 
   const transactionTypeOptions: { value: TransactionType; label: string }[] = [
-    { value: "PersonalExpense", label: "Personal" },
-    { value: "ThirdPartyExpense", label: "External" },
-    { value: "Transfer", label: "Transfer" },
-    { value: "Income", label: "Income" },
+    { value: "personal", label: "Personal" },
+    { value: "external", label: "External" },
+    { value: "transfer", label: "Transfer" },
+    { value: "income", label: "Income" },
   ];
   return (
     <>
@@ -290,19 +315,6 @@ export function TransactionFiltersForm(props: { onClose: () => void }) {
               )
             }
           />
-          <div className="ml-2 block">
-            <label
-              htmlFor="includeChildrenCategories"
-              className="text-sm font-medium text-gray-700"
-            >
-              Include subcategories
-            </label>
-            <FormikInput
-              name="includeChildrenCategories"
-              type="checkbox"
-              className="ml-2"
-            />
-          </div>
         </div>
         <div className="col-span-6">
           <label

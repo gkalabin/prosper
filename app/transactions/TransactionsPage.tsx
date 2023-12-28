@@ -16,7 +16,7 @@ import { ButtonPagePrimary } from "components/ui/buttons";
 import { Formik } from "formik";
 import {
   AllDatabaseDataContextProvider,
-  useAllDatabaseDataContext
+  useAllDatabaseDataContext,
 } from "lib/context/AllDatabaseDataContext";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { onTransactionChange } from "lib/stateHelpers";
@@ -25,7 +25,7 @@ import { useState } from "react";
 function NonEmptyPageContent() {
   const [showFiltersForm, setShowFiltersForm] = useState(false);
   const [showStats, setShowStats] = useState(false);
-  const filteredTransactions = useFilteredTransactions();
+  const { results: filteredTransactions, error } = useFilteredTransactions();
   const { setDbData } = useAllDatabaseDataContext();
   return (
     <div className="space-y-4">
@@ -44,6 +44,16 @@ function NonEmptyPageContent() {
       )}
       <div className="w-full">
         <SearchForAnythingInput />
+        {error && (
+          <div className="text-red-500">
+            {error.message}:
+            {error.getErrors().map((e) => (
+              <div key={e} className="ml-2">
+                {e}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
       {showStats && (
         <TransactionStats
