@@ -15,11 +15,6 @@ export function descriptiveDateTime(d: Date) {
   return format(d, "MMM dd, yy, H:mm O");
 }
 
-export function toDateTimeLocal(d: Date) {
-  // 2022-12-19T18:05:59
-  return format(d, "yyyy-MM-dd\'T\'HH:mm");
-}
-
 export function formatMonth(d: Date| number): string {
   // Nov 2022
   return format(d, "MMM yyyy");

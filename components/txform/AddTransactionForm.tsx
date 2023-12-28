@@ -7,6 +7,7 @@ import {
 } from "components/forms/Input";
 import { SelectNumber } from "components/forms/Select";
 import { ButtonFormPrimary, ButtonFormSecondary } from "components/ui/buttons";
+import { format } from "date-fns";
 import { Form, Formik, FormikHelpers, useFormikContext } from "formik";
 import {
   AddTransactionFormValues,
@@ -15,10 +16,10 @@ import {
   formToDTO,
 } from "lib/AddTransactionDataModels";
 import { useCurrencyContext } from "lib/ClientSideModel";
-import { Bank } from "lib/model/BankAccount";
+import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
+import { Currency } from "lib/model/Currency";
 import { Transaction } from "lib/model/Transaction";
-import { toDateTimeLocal } from "lib/TimeHelpers";
 import React, { useEffect, useState } from "react";
 import { FormTransactionTypeSelector } from "./FormTransactionTypeSelector";
 
@@ -98,6 +99,52 @@ export const InputRow = (props: {
   );
 };
 
+export function toDateTimeLocal(d: Date) {
+  // 2022-12-19T18:05:59
+  return format(d, "yyyy-MM-dd'T'HH:mm");
+}
+
+function initialValuesForTransaction(
+  t: Transaction,
+  defaultAccountFrom: BankAccount,
+  defaultAccountTo: BankAccount
+) {
+  return {
+    // 2022-12-19T18:05:59
+    timestamp: toDateTimeLocal(t.timestamp),
+    vendor: t.vendor(),
+    description: t.description,
+    amount: t.amount().cents(),
+    ownShareAmount: (t.amountOwnShare() ?? t.amount()).cents(),
+    receivedAmount: (t.amountReceived() ?? t.amount()).cents(),
+    fromBankAccountId: (t.accountFrom() ?? defaultAccountFrom).id,
+    toBankAccountId: (t.accountTo() ?? defaultAccountTo).id,
+    categoryId: t.category.id,
+    currencyId: t.currency().id,
+  };
+}
+
+function initialValuesEmpty(
+  defaultAccountFrom: BankAccount,
+  defaultAccountTo: BankAccount,
+  defaultCategory: Category,
+  defaultCurrency: Currency
+) {
+  const now = new Date();
+  return {
+    timestamp: toDateTimeLocal(now),
+    vendor: "",
+    description: "",
+    amount: 0,
+    ownShareAmount: 0,
+    receivedAmount: 0,
+    fromBankAccountId: defaultAccountFrom.id,
+    toBankAccountId: defaultAccountTo.id,
+    categoryId: defaultCategory.id,
+    currencyId: defaultCurrency.id,
+  };
+}
+
 export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
   props
 ) => {
@@ -108,7 +155,6 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
   );
   const [isFamilyExpenseDirty, setFamilyExpenseDirty] = useState(false);
   const [isAdvancedMode, setAdvancedMode] = useState(false);
-  const bankAccountsList = props.banks.flatMap((b) => b.accounts);
   const currencies = useCurrencyContext();
 
   const submitNewTransaction = async (
@@ -132,29 +178,23 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
   };
 
   const creatingNewTransaction = !props.transaction;
-  const now = new Date();
-  const initialValues = {
-    timestamp: toDateTimeLocal(props.transaction?.timestamp ?? now),
-    vendor: props.transaction?.vendor() ?? "",
-    description: props.transaction?.description ?? "",
-    amount: props.transaction?.amountDeprecated() ?? 0,
-    ownShareAmount:
-      props.transaction?.amountOwnShare() ??
-      props.transaction?.amountDeprecated() ??
-      0,
-    receivedAmount:
-      props.transaction?.amountReceivedDeprecated() ??
-      props.transaction?.amountDeprecated() ??
-      0,
-    fromBankAccountId: (props.transaction?.accountFrom() ?? bankAccountsList[0])
-      .id,
-    toBankAccountId: (props.transaction?.accountTo() ?? bankAccountsList[0]).id,
-    categoryId: (props.transaction?.category ?? props.categories[0]).id,
-    currencyId: (props.transaction?.isThirdPartyExpense()
-      ? props.transaction?.currency()
-      : currencies.all()[0]
-    ).id,
-  };
+  const bankAccountsList = props.banks.flatMap((b) => b.accounts);
+  const defaultAccountFrom = bankAccountsList[0];
+  const defaultAccountTo = bankAccountsList[0];
+  const defaultCategory = props.categories[0];
+  const defaultCurrency = currencies.all()[0];
+  const initialValues = !props.transaction
+    ? initialValuesEmpty(
+        defaultAccountFrom,
+        defaultAccountTo,
+        defaultCategory,
+        defaultCurrency
+      )
+    : initialValuesForTransaction(
+        props.transaction,
+        defaultAccountFrom,
+        defaultAccountTo
+      );
 
   return (
     <div>

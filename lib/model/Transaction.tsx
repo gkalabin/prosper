@@ -1,15 +1,9 @@
 import { startOfMonth } from "date-fns";
-import {
-  Amount,
-  StockAndCurrencyExchange,
-} from "lib/ClientSideModel";
-import {
-  Currencies,
-  Currency
-} from "lib/model/Currency";
+import { Amount, StockAndCurrencyExchange } from "lib/ClientSideModel";
+import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
 import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
-import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
+import { Currencies, Currency } from "lib/model/Currency";
 // import { assert } from "console";
 
 export type PersonalExpense = {
@@ -150,11 +144,6 @@ export class Transaction {
     });
   }
 
-  /** @deprecated */
-  amountDeprecated() {
-    return centsToDollar(this.amountCents);
-  }
-
   monthEpoch() {
     return startOfMonth(this.timestamp).getTime();
   }
@@ -178,10 +167,18 @@ export class Transaction {
   }
 
   amountOwnShare() {
-    return centsToDollar(
-      firstNonNull(this.personalExpense, this.thirdPartyExpense, this.income)
-        ?.ownShareAmountCents
+    const extension = firstNonNull(
+      this.personalExpense,
+      this.thirdPartyExpense,
+      this.income
     );
+    if (!extension) {
+      throw new Error("no extension found");
+    }
+    return new Amount({
+      amountCents: extension.ownShareAmountCents,
+      currency: this.currency(),
+    });
   }
 
   amountReceived() {
@@ -189,11 +186,6 @@ export class Transaction {
       amountCents: this.transfer.receivedAmountCents,
       currency: this.transfer.accountTo.currency,
     });
-  }
-
-  /** @deprecated */
-  amountReceivedDeprecated() {
-    return centsToDollar(this.transfer?.receivedAmountCents);
   }
 
   amountSignedCents(ba: BankAccount) {
@@ -265,8 +257,4 @@ export class Transaction {
 
 function firstNonNull(a: PersonalExpense, b: ThirdPartyExpense, c: Income) {
   return a ?? b ?? c;
-}
-
-function centsToDollar(cents: number) {
-  return cents / 100;
 }
