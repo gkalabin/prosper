@@ -1,13 +1,16 @@
+import {
+  BankAccount as DBBankAccount
+} from "@prisma/client";
+import { Bank } from "lib/model/BankAccount";
+import { Currency } from "lib/model/Currency";
 import Link from "next/link";
 import React, { useState } from "react";
-import { Bank, BankAccount } from "lib/model/BankAccount";
-import { Currency } from "lib/model/Currency";
 
 type AddBankAccountFormProps = {
   displayOrder: number;
   bank: Bank;
   currencies: Currency[];
-  onAdded: (bank: Bank, added: BankAccount) => void;
+  onAdded: (added: DBBankAccount) => void;
 };
 
 const AddBankAccountForm: React.FC<AddBankAccountFormProps> = (props) => {
@@ -50,7 +53,7 @@ const AddBankAccountForm: React.FC<AddBankAccountFormProps> = (props) => {
         body: JSON.stringify(body),
       });
       close();
-      props.onAdded(props.bank, await added.json());
+      props.onAdded(await added.json());
     } catch (error) {
       setApiError(`Failed to add: ${error}`);
     }

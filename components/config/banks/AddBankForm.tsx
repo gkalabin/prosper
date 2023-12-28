@@ -1,9 +1,9 @@
+import { Bank as DBBank } from "@prisma/client";
 import React, { useState } from "react";
-import { Bank } from "lib/model/BankAccount";
 
 type AddBankFormProps = {
   displayOrder: number;
-  onAdded: (added: Bank) => void;
+  onAdded: (added: DBBank) => void;
 };
 
 const AddBankForm: React.FC<AddBankFormProps> = (props) => {

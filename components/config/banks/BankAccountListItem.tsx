@@ -1,12 +1,13 @@
-import React, { useState } from "react";
+import { BankAccount as DBBankAccount } from "@prisma/client";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Currency } from "lib/model/Currency";
+import React, { useState } from "react";
 
 type BankAccountListItemProps = {
   bank: Bank;
   account: BankAccount;
   currencies: Currency[];
-  onUpdated: (bank: Bank, updated: BankAccount) => void;
+  onUpdated: (updated: DBBankAccount) => void;
 };
 
 const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
@@ -55,7 +56,7 @@ const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
       );
       close();
       const responseJson = await response.json();
-      props.onUpdated(props.bank, responseJson);
+      props.onUpdated(responseJson);
     } catch (error) {
       setApiError(`Failed to update: ${error}`);
     }

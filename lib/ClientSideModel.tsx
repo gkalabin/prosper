@@ -1,3 +1,8 @@
+import {
+  Bank as DBBank,
+  BankAccount as DBBankAccount,
+  Currency as DBCurrency,
+} from "@prisma/client";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category, categoryModelFromDB } from "lib/model/Category";
 import { Currency, currencyModelFromDB } from "lib/model/Currency";
@@ -10,6 +15,43 @@ export type AllDataModel = {
   banks: Bank[];
   bankAccounts: BankAccount[];
   currencies: Currency[];
+};
+
+export const currencyModelFromDatabaseData = currencyModelFromDB;
+
+export const banksModelFromDatabaseData = (
+  dbBanks: DBBank[],
+  dbBankAccounts: DBBankAccount[],
+  dbCurrencies: DBCurrency[]
+): [Bank[], BankAccount[]] => {
+  const currencies = currencyModelFromDB(dbCurrencies);
+  const currencyById: {
+    [id: number]: Currency;
+  } = Object.fromEntries(currencies.map((x) => [x.id, x]));
+
+  const banks = dbBanks.map((b) =>
+    Object.assign({}, b, {
+      accounts: [],
+    })
+  );
+  const bankById: {
+    [id: number]: Bank;
+  } = Object.fromEntries(banks.map((x) => [x.id, x]));
+  const bankAccounts = dbBankAccounts.map((x) =>
+    Object.assign({}, x, {
+      bank: bankById[x.bankId],
+      currency: currencyById[x.currencyId],
+      transactions: [],
+    })
+  );
+  bankAccounts.forEach((x) => x.bank.accounts.push(x));
+
+  banks.sort((a, b) => a.displayOrder - b.displayOrder);
+  banks.forEach((b) =>
+    b.accounts.sort((a, b) => a.displayOrder - b.displayOrder)
+  );
+
+  return [banks, bankAccounts];
 };
 
 export const modelFromDatabaseData = (
@@ -25,24 +67,11 @@ export const modelFromDatabaseData = (
     [id: number]: Currency;
   } = Object.fromEntries(currencies.map((x) => [x.id, x]));
 
-  const banks = dbData.dbBanks.map((b) =>
-    Object.assign({}, b, {
-      accounts: [],
-      dbValue: b,
-    })
+  const [banks, bankAccounts] = banksModelFromDatabaseData(
+    dbData.dbBanks,
+    dbData.dbBankAccounts,
+    dbData.dbCurrencies
   );
-  const bankById: {
-    [id: number]: Bank;
-  } = Object.fromEntries(banks.map((x) => [x.id, x]));
-  const bankAccounts = dbData.dbBankAccounts.map((x) =>
-    Object.assign({}, x, {
-      bank: bankById[x.bankId],
-      currency: currencyById[x.currencyId],
-      dbValue: x,
-      transactions: [],
-    })
-  );
-  bankAccounts.forEach((x) => x.bank.accounts.push(x));
   const bankAccountById: {
     [id: number]: BankAccount;
   } = Object.fromEntries(bankAccounts.map((x) => [x.id, x]));

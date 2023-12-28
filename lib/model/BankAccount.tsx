@@ -1,4 +1,3 @@
-import { Bank as DBBank, BankAccount as DBBankAccount } from "@prisma/client";
 import { Currency } from "lib/model/Currency";
 import { Transaction } from "lib/model/Transaction";
 
@@ -7,7 +6,6 @@ export type Bank = {
   name: string;
   displayOrder: number;
   accounts: BankAccount[];
-  dbValue: DBBank;
 };
 
 export type BankAccount = {
@@ -18,7 +16,6 @@ export type BankAccount = {
   displayOrder: number;
   bank: Bank;
   transactions: Transaction[];
-  dbValue: DBBankAccount;
 };
 
 export const bankAccountBalance = (ba: BankAccount): number => {
