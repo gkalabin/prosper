@@ -1,8 +1,9 @@
+"use client";
+import { Trip as DBTrip } from "@prisma/client";
 import {
   ChildCategoryFullAmountChart,
   ChildCategoryOwnShareChart,
 } from "components/charts/CategoryPie";
-import Layout from "components/Layout";
 import {
   isFullyConfigured,
   NotConfiguredYet,
@@ -11,12 +12,13 @@ import {
   SortableTransactionsList,
   SortingMode,
 } from "components/transactions/SortableTransactionsList";
-import { AnchorLink } from "components/ui/buttons";
+import { AnchorLink } from "components/ui/anchors";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
+import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import {
   amountAllParties,
   amountOwnShare,
@@ -25,41 +27,9 @@ import {
   isExpense,
   isIncome,
 } from "lib/model/Transaction";
-import { Trip } from "lib/model/Trip";
-import { allDbDataProps } from "lib/ServerSideDB";
-import { InferGetServerSidePropsType } from "next";
-import { useRouter } from "next/router";
+import { Trip, tripModelFromDB } from "lib/model/Trip";
 
-export const getServerSideProps = allDbDataProps;
-export default function Page(
-  dbData: InferGetServerSidePropsType<typeof getServerSideProps>
-) {
-  if (!isFullyConfigured(dbData)) {
-    return <NotConfiguredYet />;
-  }
-  return (
-    <AllDatabaseDataContextProvider dbData={dbData}>
-      <PageLayout />
-    </AllDatabaseDataContextProvider>
-  );
-}
-
-function PageLayout() {
-  const { trips } = useAllDatabaseDataContext();
-  const router = useRouter();
-  const trip = trips.find((t) => t.name == router.query.name);
-  if (!trip) {
-    router.push({ pathname: "/trips" });
-    return <></>;
-  }
-  return (
-    <Layout>
-      <TripDetails trip={trip} />
-    </Layout>
-  );
-}
-
-function TripDetails(props: { trip: Trip }) {
+function NonEmptyTripDetails(props: { trip: Trip }) {
   const { transactions: allTransactions } = useAllDatabaseDataContext();
   const displayCurrency = useDisplayCurrency();
   const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
@@ -69,12 +39,12 @@ function TripDetails(props: { trip: Trip }) {
 
   const fullAmount = transactions
     .map((t) =>
-      amountAllParties(t, displayCurrency, bankAccounts, stocks, exchange)
+      amountAllParties(t, displayCurrency, bankAccounts, stocks, exchange),
     )
     .reduce((a, b) => a.add(b));
   const ownAmount = transactions
     .map((t) =>
-      amountOwnShare(t, displayCurrency, bankAccounts, stocks, exchange)
+      amountOwnShare(t, displayCurrency, bankAccounts, stocks, exchange),
     )
     .reduce((a, b) => a.add(b));
 
@@ -102,5 +72,23 @@ function TripDetails(props: { trip: Trip }) {
         initialSorting={SortingMode.DATE_ASC}
       />
     </div>
+  );
+}
+
+export function TripDetails({
+  dbData,
+  dbTrip,
+}: {
+  dbData: AllDatabaseData;
+  dbTrip: DBTrip;
+}) {
+  if (!isFullyConfigured(dbData)) {
+    return <NotConfiguredYet />;
+  }
+  const trip = tripModelFromDB(dbTrip);
+  return (
+    <AllDatabaseDataContextProvider dbData={dbData}>
+      <NonEmptyTripDetails trip={trip} />
+    </AllDatabaseDataContextProvider>
   );
 }
