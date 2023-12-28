@@ -84,10 +84,10 @@ const BanksList = (props: {
   const { banks } = useAllDatabaseDataContext();
   const displayCurrency = useDisplayCurrency();
   return (
-    <div className="flex-1 rounded border border-gray-200">
-      <div className="flex flex-col divide-y divide-gray-200">
+    <div className="">
+      <div className="space-y-4">
         {banks.map((bank) => (
-          <div key={bank.id}>
+          <div key={bank.id} className="rounded border">
             <div className="border-b bg-indigo-200 p-2 text-xl font-medium text-gray-900">
               {bank.name}
               <span className="ml-2">
@@ -138,7 +138,18 @@ function OverviewPageContent() {
       zero
     );
   return (
-    <Layout>
+    <Layout className="space-y-4">
+      <div className="rounded border">
+        <h2 className="bg-indigo-300 p-2 text-2xl font-medium text-gray-900">
+          Total {total.format()}
+        </h2>
+        <div className="grid grid-cols-2">
+          <span className="pl-3 text-lg font-medium">Cash</span>{" "}
+          {totalLiquid.format()}
+          <span className="pl-3 text-lg font-medium">Non liquid</span>{" "}
+          {total.subtract(totalLiquid).format()}
+        </div>
+      </div>
       <div className="mb-4">
         {!showAddTransactionForm && (
           <div className="flex justify-end">
@@ -153,11 +164,6 @@ function OverviewPageContent() {
             onClose={() => setShowAddTransactionForm(false)}
           />
         )}
-      </div>
-      <div>
-        <h2 className="text-2xl font-medium text-gray-900">Summary</h2>
-        <div>Total: {total.format()}</div>
-        <div>Liquid: {totalLiquid.format()}</div>
       </div>
       <BanksList onTransactionUpdated={onTransactionChange(setDbData)} />
     </Layout>
