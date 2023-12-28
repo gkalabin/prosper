@@ -1,4 +1,5 @@
 import { ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import { TransactionAPIResponse } from "app/api/transaction/dbHelpers";
 import classNames from "classnames";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
 import { ButtonLink } from "components/ui/buttons";
@@ -28,7 +29,6 @@ import {
   ownShareAmountIgnoreRefunds,
   paidTotal,
 } from "lib/model/transaction/amounts";
-import { TransactionAPIResponse } from "lib/transactionDbUtils";
 import { useState } from "react";
 
 const TransactionTitle = ({ t }: { t: Transaction }) => {

@@ -20,6 +20,13 @@ import { uniqMostFrequent } from "lib/collections";
 import { Currency } from "lib/model/Currency";
 import { Trip } from "lib/model/Trip";
 import {
+  FormMode,
+  TransactionFormValues,
+} from "lib/model/forms/TransactionFormValues";
+import { Income } from "lib/model/transaction/Income";
+import { PersonalExpense } from "lib/model/transaction/PersonalExpense";
+import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
+import {
   Transaction,
   formatAmount,
   isIncome,
@@ -27,10 +34,6 @@ import {
   isThirdPartyExpense,
   otherPartyNameOrNull,
 } from "lib/model/transaction/Transaction";
-import { Income } from "lib/model/transaction/Income";
-import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
-import { PersonalExpense } from "lib/model/transaction/PersonalExpense";
-import { AddTransactionFormValues, FormMode } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect } from "react";
 import Select from "react-select";
@@ -44,7 +47,7 @@ export const FormInputs = (props: {
   const {
     values: { mode },
     setFieldValue,
-  } = useFormikContext<AddTransactionFormValues>();
+  } = useFormikContext<TransactionFormValues>();
 
   useEffect(() => {
     const proto = props.prototype;
@@ -72,10 +75,10 @@ export const FormInputs = (props: {
 
 export const Trips = () => {
   const { transactions, trips } = useAllDatabaseDataContext();
-  const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
+  const { isSubmitting } = useFormikContext<TransactionFormValues>();
   const transactionsWithTrips = transactions.filter(
     (x): x is PersonalExpense | ThirdPartyExpense | Income =>
-      x.kind !== "Transfer" && !!x.tripId
+      x.kind !== "Transfer" && !!x.tripId,
   );
   const tripIds = [...new Set(transactionsWithTrips.map((x) => x.tripId))];
   const tripLastUsageDate = new Map<number, number>();
@@ -89,7 +92,7 @@ export const Trips = () => {
   const tripById = new Map<number, Trip>(trips.map((x) => [x.id, x]));
   const tripNames = tripIds
     .sort((t1, t2) =>
-      isBefore(tripLastUsageDate.get(t1), tripLastUsageDate.get(t2)) ? 1 : -1
+      isBefore(tripLastUsageDate.get(t1), tripLastUsageDate.get(t2)) ? 1 : -1,
     )
     .map((x) => tripById.get(x).name);
   return (
@@ -118,7 +121,7 @@ export function IsShared() {
     values: { isShared },
     isSubmitting,
     setFieldValue,
-  } = useFormikContext<AddTransactionFormValues>();
+  } = useFormikContext<TransactionFormValues>();
   return (
     <Switch.Group>
       <div className="flex items-center">
@@ -131,7 +134,7 @@ export function IsShared() {
             className={classNames(
               isShared ? "bg-indigo-700" : "bg-gray-200",
               isSubmitting ? "opacity-30" : "",
-              "relative inline-flex h-6 w-11 items-center rounded-full"
+              "relative inline-flex h-6 w-11 items-center rounded-full",
             )}
             disabled={isSubmitting}
           >
@@ -153,7 +156,7 @@ export function IsShared() {
 }
 
 export function Timestamp() {
-  const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
+  const { isSubmitting } = useFormikContext<TransactionFormValues>();
   return (
     <div className="col-span-6">
       <label
@@ -175,10 +178,10 @@ export function Timestamp() {
 export function Vendor() {
   const {
     values: { mode },
-  } = useFormikContext<AddTransactionFormValues>();
+  } = useFormikContext<TransactionFormValues>();
   const { transactions } = useAllDatabaseDataContext();
   const transactionsForMode = transactions.filter(
-    (x) => formModeForTransaction(x) == mode
+    (x) => formModeForTransaction(x) == mode,
   );
   const vendors = uniqMostFrequent(
     transactionsForMode
@@ -191,7 +194,7 @@ export function Vendor() {
         }
         return null;
       })
-      .filter((x) => x)
+      .filter((x) => x),
   );
   return (
     <div className="col-span-6">
@@ -209,13 +212,13 @@ export function Description() {
   const {
     values: { mode },
     isSubmitting,
-  } = useFormikContext<AddTransactionFormValues>();
+  } = useFormikContext<TransactionFormValues>();
   const { transactions } = useAllDatabaseDataContext();
   const transactionsForMode = transactions.filter(
-    (x) => formModeForTransaction(x) == mode
+    (x) => formModeForTransaction(x) == mode,
   );
   const descriptions = uniqMostFrequent(
-    transactionsForMode.map((x) => x.note).filter((x) => x)
+    transactionsForMode.map((x) => x.note).filter((x) => x),
   );
   return (
     <div className="col-span-6">
@@ -239,14 +242,14 @@ export function Tags() {
     values: { tagNames },
     isSubmitting,
     setFieldValue,
-  } = useFormikContext<AddTransactionFormValues>();
+  } = useFormikContext<TransactionFormValues>();
   const { transactions, tags } = useAllDatabaseDataContext();
   const tagFrequency = new Map<number, number>(tags.map((x) => [x.id, 0]));
   transactions
     .flatMap((x) => x.tagsIds)
     .forEach((x) => tagFrequency.set(x, (tagFrequency.get(x) ?? 0) + 1));
   const tagsByFrequency = [...tags].sort(
-    (t1, t2) => tagFrequency.get(t2.id) - tagFrequency.get(t1.id)
+    (t1, t2) => tagFrequency.get(t2.id) - tagFrequency.get(t1.id),
   );
   const makeOption = (x: string) => ({ label: x, value: x });
   return (
@@ -265,7 +268,7 @@ export function Tags() {
         onChange={(newValue) =>
           setFieldValue(
             "tagNames",
-            newValue.map((x) => x.value)
+            newValue.map((x) => x.value),
           )
         }
         isDisabled={isSubmitting}
@@ -279,7 +282,7 @@ export function ParentTransaction() {
     values: { toBankAccountId, parentTransactionId },
     isSubmitting,
     setFieldValue,
-  } = useFormikContext<AddTransactionFormValues>();
+  } = useFormikContext<TransactionFormValues>();
   const { transactions, bankAccounts } = useAllDatabaseDataContext();
   const parentTransaction = parentTransactionId
     ? transactions.find((t) => t.id == parentTransactionId)
@@ -288,7 +291,7 @@ export function ParentTransaction() {
     parentTransaction?.kind == "PersonalExpense" ? parentTransaction : null;
   const makeTransactionLabel = (t: PersonalExpense): string =>
     `${formatAmount(t, bankAccounts)} ${t.vendor} ${shortRelativeDate(
-      t.timestampEpoch
+      t.timestampEpoch,
     )}`;
   const makeOption = (t: PersonalExpense) => ({
     label: makeTransactionLabel(t),
@@ -332,7 +335,7 @@ export function Category() {
     isSubmitting,
     setFieldValue,
     values: { categoryId },
-  } = useFormikContext<AddTransactionFormValues>();
+  } = useFormikContext<TransactionFormValues>();
   const { categories } = useAllDatabaseDataContext();
   return (
     <div className="col-span-6">
@@ -361,7 +364,7 @@ export function Category() {
 }
 
 export function Payer() {
-  const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
+  const { isSubmitting } = useFormikContext<TransactionFormValues>();
   const { transactions } = useAllDatabaseDataContext();
   const payers = uniqMostFrequent(
     transactions
@@ -371,7 +374,7 @@ export function Payer() {
         }
         return null;
       })
-      .filter((x) => x)
+      .filter((x) => x),
   );
   return (
     <>
@@ -399,7 +402,7 @@ export function Payer() {
 export function OtherPartyName() {
   const { transactions } = useAllDatabaseDataContext();
   const otherParties = uniqMostFrequent(
-    transactions.map((x) => otherPartyNameOrNull(x)).filter((x) => x)
+    transactions.map((x) => otherPartyNameOrNull(x)).filter((x) => x),
   );
   return (
     <>
@@ -424,7 +427,7 @@ export function OtherPartyName() {
 }
 
 export function AccountFrom() {
-  const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
+  const { isSubmitting } = useFormikContext<TransactionFormValues>();
   return (
     <div className="col-span-6">
       <BankAccountSelect
@@ -437,7 +440,7 @@ export function AccountFrom() {
 }
 
 export function AccountTo() {
-  const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
+  const { isSubmitting } = useFormikContext<TransactionFormValues>();
   return (
     <div className="col-span-6">
       <BankAccountSelect

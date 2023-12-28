@@ -1,5 +1,5 @@
+import { TransactionAPIResponse } from "app/api/transaction/dbHelpers";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
-import { TransactionAPIResponse } from "lib/transactionDbUtils";
 import { SetStateAction } from "react";
 
 export function onTransactionChange(setDbData: Setter<AllDatabaseData>) {
@@ -24,7 +24,7 @@ export function onTransactionChange(setDbData: Setter<AllDatabaseData>) {
 
 export function updateOrAppend<T extends { id: unknown }>(
   list: T[],
-  item: T
+  item: T,
 ): T[] {
   let updated = false;
   const updatedList = list.map((x) => {

@@ -11,17 +11,12 @@ import {
 } from "components/txform/FormInputs";
 import { differenceInMonths } from "date-fns";
 import { useFormikContext } from "formik";
-import {
-  useAllDatabaseDataContext
-} from "lib/ClientSideModel";
+import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
 import { accountUnit } from "lib/model/BankAccount";
-import {
-  Transaction,
-  isTransfer,
-} from "lib/model/transaction/Transaction";
+import { TransactionFormValues } from "lib/model/forms/TransactionFormValues";
+import { Transaction, isTransfer } from "lib/model/transaction/Transaction";
 import { Transfer } from "lib/model/transaction/Transfer";
-import { AddTransactionFormValues } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect } from "react";
 
@@ -38,7 +33,7 @@ export const FormTransfer = ({
   const {
     values: { description, fromBankAccountId, toBankAccountId },
     setFieldValue,
-  } = useFormikContext<AddTransactionFormValues>();
+  } = useFormikContext<TransactionFormValues>();
 
   const transfers = transactions.filter((x): x is Transfer => isTransfer(x));
   const now = new Date();
@@ -46,14 +41,14 @@ export const FormTransfer = ({
     transfers
       .filter(
         (x) =>
-          differenceInMonths(now, x.timestampEpoch) < SUGGESTIONS_WINDOW_MONTHS
+          differenceInMonths(now, x.timestampEpoch) < SUGGESTIONS_WINDOW_MONTHS,
       )
       .filter((x) => !description || x.note == description)
-      .map((x) => x.categoryId)
+      .map((x) => x.categoryId),
   );
   if (!mostFrequentCategoryId) {
     [mostFrequentCategoryId] = uniqMostFrequent(
-      transfers.map((x) => x.categoryId)
+      transfers.map((x) => x.categoryId),
     );
   }
   useEffect(() => {
@@ -110,12 +105,12 @@ export const FormTransfer = ({
 function useReceivedAmountEffect(
   showReceivedAmount: boolean,
   transaction: Transaction,
-  prototype: TransactionPrototype
+  prototype: TransactionPrototype,
 ) {
   const {
     values: { amount },
     setFieldValue,
-  } = useFormikContext<AddTransactionFormValues>();
+  } = useFormikContext<TransactionFormValues>();
   useEffect(() => {
     if (prototype) {
       return;

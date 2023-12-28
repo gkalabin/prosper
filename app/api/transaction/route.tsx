@@ -1,7 +1,5 @@
 import { Prisma, Tag } from "@prisma/client";
-import prisma from "lib/prisma";
 import {
-  AddTransactionFormValues,
   TransactionAPIRequest,
   TransactionAPIResponse,
   commonTransactionDbData,
@@ -9,7 +7,9 @@ import {
   includeTagIds,
   writeTrip,
   writeUsedPrototypes,
-} from "lib/transactionDbUtils";
+} from "app/api/transaction/dbHelpers";
+import { TransactionFormValues } from "lib/model/forms/TransactionFormValues";
+import prisma from "lib/prisma";
 import { getUserId } from "lib/user";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -49,7 +49,7 @@ async function writeTags({
   data,
   tx,
 }: {
-  form: AddTransactionFormValues;
+  form: TransactionFormValues;
   userId: number;
   data: Prisma.TransactionUncheckedCreateInput;
   tx: Prisma.TransactionClient;
@@ -61,7 +61,7 @@ async function writeTags({
 }
 
 function createTransactionData(
-  form: AddTransactionFormValues,
+  form: TransactionFormValues,
   userId: number,
 ): Prisma.TransactionUncheckedCreateInput {
   return commonTransactionDbData(form, userId);

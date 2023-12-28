@@ -18,13 +18,13 @@ import { differenceInMonths } from "date-fns";
 import { useFormikContext } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
+import { TransactionFormValues } from "lib/model/forms/TransactionFormValues";
 import { Income } from "lib/model/transaction/Income";
 import {
   Transaction,
   isIncome,
   otherPartyNameOrNull,
 } from "lib/model/transaction/Transaction";
-import { AddTransactionFormValues } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect, useState } from "react";
 
@@ -49,7 +49,7 @@ export const FormIncome = ({
       description,
     },
     setFieldValue,
-  } = useFormikContext<AddTransactionFormValues>();
+  } = useFormikContext<TransactionFormValues>();
   const incomeTransactions = transactions.filter((x): x is Income =>
     isIncome(x),
   );

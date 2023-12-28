@@ -1,9 +1,12 @@
 import classNames from "classnames";
 import { useFormikContext } from "formik";
-import { AddTransactionFormValues, FormMode } from "lib/transactionDbUtils";
+import {
+  FormMode,
+  TransactionFormValues,
+} from "lib/model/forms/TransactionFormValues";
 
 const Button = (
-  props: React.ButtonHTMLAttributes<HTMLButtonElement> & { active: boolean }
+  props: React.ButtonHTMLAttributes<HTMLButtonElement> & { active: boolean },
 ) => {
   const { className, active, ...rest } = props;
   return (
@@ -17,7 +20,7 @@ const Button = (
         props.active
           ? "text-indigo-700 dark:text-indigo-200"
           : "text-gray-900 dark:text-white",
-        "border border-gray-200 bg-white py-1 px-2 text-sm font-medium focus:z-10 dark:border-gray-600 dark:bg-gray-700"
+        "border border-gray-200 bg-white px-2 py-1 text-sm font-medium focus:z-10 dark:border-gray-600 dark:bg-gray-700",
       )}
       {...rest}
     >
@@ -31,7 +34,7 @@ export const FormTypeSelect = () => {
     values: { mode },
     setFieldValue,
     isSubmitting,
-  } = useFormikContext<AddTransactionFormValues>();
+  } = useFormikContext<TransactionFormValues>();
   return (
     <div className="col-span-6 flex justify-center">
       <div className="rounded-md shadow-sm">
@@ -44,7 +47,7 @@ export const FormTypeSelect = () => {
           Personal
         </Button>
         <Button
-          className={classNames("border-t border-b border-r")}
+          className={classNames("border-b border-r border-t")}
           onClick={() => setFieldValue("mode", FormMode.EXTERNAL)}
           active={mode == FormMode.EXTERNAL}
           disabled={isSubmitting}
@@ -52,7 +55,7 @@ export const FormTypeSelect = () => {
           External
         </Button>
         <Button
-          className={classNames("border-t border-b border-r")}
+          className={classNames("border-b border-r border-t")}
           onClick={() => setFieldValue("mode", FormMode.TRANSFER)}
           active={mode == FormMode.TRANSFER}
           disabled={isSubmitting}

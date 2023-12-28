@@ -7,39 +7,16 @@ import {
 } from "@prisma/client";
 import { TransactionWithTagIds } from "lib/model/AllDatabaseDataModel";
 import {
+  FormMode,
+  TransactionFormValues,
+} from "lib/model/forms/TransactionFormValues";
+import {
   TransactionPrototype,
   WithdrawalOrDepositPrototype,
 } from "lib/txsuggestions/TransactionPrototype";
 
-export enum FormMode {
-  PERSONAL,
-  EXTERNAL,
-  TRANSFER,
-  INCOME,
-}
-
-export type AddTransactionFormValues = {
-  mode: FormMode;
-  timestamp: string;
-  description: string;
-  amount: number;
-  ownShareAmount: number;
-  categoryId: number;
-  vendor: string;
-  otherPartyName: string;
-  fromBankAccountId: number;
-  toBankAccountId: number;
-  payer: string;
-  currencyCode: string;
-  receivedAmount: number;
-  isShared: boolean;
-  tripName: string;
-  tagNames: string[];
-  parentTransactionId: number;
-};
-
 export type TransactionAPIRequest = {
-  form: AddTransactionFormValues;
+  form: TransactionFormValues;
   usedPrototype: TransactionPrototype;
 };
 
@@ -81,7 +58,7 @@ export function commonTransactionDbData(
     receivedAmount,
     payer,
     currencyCode,
-  }: AddTransactionFormValues,
+  }: TransactionFormValues,
   userId: number,
 ): CommonCreateAndUpdateInput {
   const result: CommonCreateAndUpdateInput = {
@@ -179,7 +156,7 @@ export async function writeTrip({
   data,
   tx,
 }: {
-  form: AddTransactionFormValues;
+  form: TransactionFormValues;
   userId: number;
   data:
     | Prisma.TransactionUncheckedCreateInput

@@ -1,3 +1,7 @@
+import {
+  TransactionAPIRequest,
+  TransactionAPIResponse,
+} from "app/api/transaction/dbHelpers";
 import { FormInputs } from "components/txform/FormInputs";
 import { FormTypeSelect } from "components/txform/FormTypeSelect";
 import { NewTransactionSuggestions } from "components/txform/NewTransactionSuggestions";
@@ -18,23 +22,21 @@ import { Currency } from "lib/model/Currency";
 import { Tag } from "lib/model/Tag";
 import { Trip } from "lib/model/Trip";
 import {
+  FormMode,
+  TransactionFormValues,
+} from "lib/model/forms/TransactionFormValues";
+import { Income } from "lib/model/transaction/Income";
+import { PersonalExpense } from "lib/model/transaction/PersonalExpense";
+import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
+import {
   Transaction,
   otherPartyNameOrNull,
   parentTransactionId,
   transactionTags,
   transactionTrip,
 } from "lib/model/transaction/Transaction";
-import { ownShareAmountCentsIgnoreRefuds } from "lib/model/transaction/amounts";
-import { Income } from "lib/model/transaction/Income";
 import { Transfer } from "lib/model/transaction/Transfer";
-import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
-import { PersonalExpense } from "lib/model/transaction/PersonalExpense";
-import {
-  AddTransactionFormValues,
-  FormMode,
-  TransactionAPIRequest,
-  TransactionAPIResponse,
-} from "lib/transactionDbUtils";
+import { ownShareAmountCentsIgnoreRefuds } from "lib/model/transaction/amounts";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useState } from "react";
 
@@ -64,9 +66,9 @@ function initialValuesForPersonalExpense(
   mode: FormMode,
   displayCurrency: Currency,
   allTags: Tag[],
-  allTrips: Trip[]
-): AddTransactionFormValues {
-  const defaults: AddTransactionFormValues = {
+  allTrips: Trip[],
+): TransactionFormValues {
+  const defaults: TransactionFormValues = {
     mode,
     timestamp: toDateTimeLocal(t.timestampEpoch),
     description: t.note,
@@ -94,8 +96,8 @@ function initialValuesForThirdPartyExpense(
   allTags: Tag[],
   allTrips: Trip[],
   defaultAccountFrom: number,
-  defaultAccountTo: number
-): AddTransactionFormValues {
+  defaultAccountTo: number,
+): TransactionFormValues {
   return {
     mode,
     timestamp: toDateTimeLocal(t.timestampEpoch),
@@ -121,8 +123,8 @@ function initialValuesForTransfer(
   t: Transfer,
   mode: FormMode,
   displayCurrency: Currency,
-  allTags: Tag[]
-): AddTransactionFormValues {
+  allTags: Tag[],
+): TransactionFormValues {
   return {
     mode,
     timestamp: toDateTimeLocal(t.timestampEpoch),
@@ -149,8 +151,8 @@ function initialValuesForIncome(
   mode: FormMode,
   displayCurrency: Currency,
   allTags: Tag[],
-  allTrips: Trip[]
-): AddTransactionFormValues {
+  allTrips: Trip[],
+): TransactionFormValues {
   return {
     mode,
     timestamp: toDateTimeLocal(t.timestampEpoch),
@@ -179,8 +181,8 @@ function initialValuesForTransaction(
   defaultAccountTo: number,
   displayCurrency: Currency,
   allTags: Tag[],
-  allTrips: Trip[]
-): AddTransactionFormValues {
+  allTrips: Trip[],
+): TransactionFormValues {
   switch (t.kind) {
     case "PersonalExpense":
       return initialValuesForPersonalExpense(
@@ -188,7 +190,7 @@ function initialValuesForTransaction(
         mode,
         displayCurrency,
         allTags,
-        allTrips
+        allTrips,
       );
     case "ThirdPartyExpense":
       return initialValuesForThirdPartyExpense(
@@ -197,7 +199,7 @@ function initialValuesForTransaction(
         allTags,
         allTrips,
         defaultAccountFrom,
-        defaultAccountTo
+        defaultAccountTo,
       );
     case "Transfer":
       return initialValuesForTransfer(t, mode, displayCurrency, allTags);
@@ -207,7 +209,7 @@ function initialValuesForTransaction(
         mode,
         displayCurrency,
         allTags,
-        allTrips
+        allTrips,
       );
     default:
       const _exhaustiveCheck: never = t;
@@ -220,8 +222,8 @@ function initialValuesEmpty(
   defaultAccountFromId: number,
   defaultAccountToId: number,
   defaultCategoryId: number,
-  displayCurrency: Currency
-): AddTransactionFormValues {
+  displayCurrency: Currency,
+): TransactionFormValues {
   const today = startOfDay(new Date());
   return {
     mode,
@@ -325,7 +327,7 @@ export const AddTransactionForm = (props: {
     defaultAccountFrom,
     defaultAccountTo,
     defaultCategory,
-    displayCurrency
+    displayCurrency,
   );
   const initialValues = !props.transaction
     ? initialValuesForEmptyForm
@@ -336,12 +338,12 @@ export const AddTransactionForm = (props: {
         defaultAccountTo,
         displayCurrency,
         allTags,
-        allTrips
+        allTrips,
       );
 
   const submitNewTransaction = async (
-    values: AddTransactionFormValues,
-    { setSubmitting, resetForm }: FormikHelpers<AddTransactionFormValues>
+    values: TransactionFormValues,
+    { setSubmitting, resetForm }: FormikHelpers<TransactionFormValues>,
   ) => {
     const body: TransactionAPIRequest = {
       form: values,

@@ -16,13 +16,13 @@ import { differenceInMonths } from "date-fns";
 import { useFormikContext } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
+import { TransactionFormValues } from "lib/model/forms/TransactionFormValues";
 import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
 import {
   Transaction,
   isThirdPartyExpense,
   otherPartyNameOrNull,
 } from "lib/model/transaction/Transaction";
-import { AddTransactionFormValues } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect, useState } from "react";
 
@@ -38,7 +38,7 @@ export const FormExternalExpense = ({
   const {
     values: { vendor, isShared, amount, description, tripName },
     setFieldValue,
-  } = useFormikContext<AddTransactionFormValues>();
+  } = useFormikContext<TransactionFormValues>();
   const transactionsForMode = transactions.filter((x): x is ThirdPartyExpense =>
     isThirdPartyExpense(x),
   );

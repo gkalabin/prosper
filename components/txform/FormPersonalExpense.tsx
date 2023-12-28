@@ -20,14 +20,17 @@ import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
 import { Category as CategoryModel } from "lib/model/Category";
 import {
+  FormMode,
+  TransactionFormValues,
+} from "lib/model/forms/TransactionFormValues";
+import { PersonalExpense } from "lib/model/transaction/PersonalExpense";
+import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
+import {
   Transaction,
   isExpense,
   isPersonalExpense,
   otherPartyNameOrNull,
 } from "lib/model/transaction/Transaction";
-import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
-import { PersonalExpense } from "lib/model/transaction/PersonalExpense";
-import { AddTransactionFormValues, FormMode } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect, useMemo, useState } from "react";
 import Select from "react-select";
@@ -53,19 +56,20 @@ export const FormPersonalExpense = ({
       vendor,
     },
     setFieldValue,
-  } = useFormikContext<AddTransactionFormValues>();
+  } = useFormikContext<TransactionFormValues>();
   const transactionsForMode: PersonalExpense[] = transactions.filter(
-    (x): x is PersonalExpense => isPersonalExpense(x)
+    (x): x is PersonalExpense => isPersonalExpense(x),
   );
   const now = new Date();
   const recentTransactionsForMode = transactionsForMode.filter(
-    (x) => differenceInMonths(now, x.timestampEpoch) < SUGGESTIONS_WINDOW_MONTHS
+    (x) =>
+      differenceInMonths(now, x.timestampEpoch) < SUGGESTIONS_WINDOW_MONTHS,
   );
 
   const [mostFrequentOtherParty] = uniqMostFrequent(
     recentTransactionsForMode
       .map((x) => otherPartyNameOrNull(x))
-      .filter((x) => x)
+      .filter((x) => x),
   );
   useEffect(() => {
     if (transaction) {
@@ -83,20 +87,20 @@ export const FormPersonalExpense = ({
   let [mostFrequentCategoryId] = uniqMostFrequent(
     recentTransactionsForMode
       .filter((x) => !vendor || x.vendor == vendor)
-      .map((x) => x.categoryId)
+      .map((x) => x.categoryId),
   );
   // If no recent transactions match vendor, look for the same vendor across all transactions.
   if (!mostFrequentCategoryId) {
     [mostFrequentCategoryId] = uniqMostFrequent(
       transactionsForMode
         .filter((x) => !vendor || x.vendor == vendor)
-        .map((x) => x.categoryId)
+        .map((x) => x.categoryId),
     );
   }
   // If this vendor is not known, just fallback to all recent transactions.
   if (!mostFrequentCategoryId) {
     [mostFrequentCategoryId] = uniqMostFrequent(
-      recentTransactionsForMode.map((x) => x.categoryId)
+      recentTransactionsForMode.map((x) => x.categoryId),
     );
   }
   useEffect(() => {
@@ -201,14 +205,14 @@ export function Category() {
     isSubmitting,
     setFieldValue,
     values: { categoryId, vendor },
-  } = useFormikContext<AddTransactionFormValues>();
+  } = useFormikContext<TransactionFormValues>();
   const { categories, transactions } = useAllDatabaseDataContext();
   const mostFrequentIds = useMemo(
     () => mostFrequentCategories(transactions, vendor),
-    [transactions, vendor]
+    [transactions, vendor],
   );
   const mostFrequent = mostFrequentIds.map((id) =>
-    categories.find((c) => c.id() == id)
+    categories.find((c) => c.id() == id),
   );
 
   const makeOption = (x: CategoryModel) => ({
@@ -259,15 +263,15 @@ function appendNew(target: number[], newItems: number[]): number[] {
 
 function mostFrequentCategories(
   allTransactions: Transaction[],
-  vendor: string
+  vendor: string,
 ): number[] {
   const expenses = allTransactions.filter(
-    (x): x is PersonalExpense | ThirdPartyExpense => isExpense(x)
+    (x): x is PersonalExpense | ThirdPartyExpense => isExpense(x),
   );
   const matching = expenses.filter((x) => !vendor || x.vendor == vendor);
   const now = new Date();
   const matchingRecent = matching.filter(
-    (x) => differenceInMonths(now, x.timestampEpoch) <= 3
+    (x) => differenceInMonths(now, x.timestampEpoch) <= 3,
   );
   // Start with categories for recent transactions matching vendor.
   let result = uniqMostFrequent(matchingRecent.map((t) => t.categoryId));
@@ -277,14 +281,14 @@ function mostFrequentCategories(
   // Expand to all transactions matching vendor.
   result = appendNew(
     result,
-    uniqMostFrequent(matching.map((t) => t.categoryId))
+    uniqMostFrequent(matching.map((t) => t.categoryId)),
   );
   if (result.length >= MAX_MOST_FREQUENT) {
     return result;
   }
   // At this stage, just add all categories for recent transactions.
   const recent = expenses.filter(
-    (x) => differenceInMonths(now, x.timestampEpoch) <= 3
+    (x) => differenceInMonths(now, x.timestampEpoch) <= 3,
   );
   return appendNew(result, uniqMostFrequent(recent.map((t) => t.categoryId)));
 }
