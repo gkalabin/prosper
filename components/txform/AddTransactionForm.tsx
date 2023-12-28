@@ -160,9 +160,11 @@ export const AddTransactionForm = (props: {
   const initialMode = props.transaction
     ? formModeForTransaction(props.transaction)
     : FormMode.PERSONAL;
-  const { transactions, bankAccounts, categories, currencies } = useAllDatabaseDataContext();
-  const defaultAccountFrom = mostUsedAccountFrom(transactions) ?? bankAccounts[0];
-  const defaultAccountTo = mostUsedAccountTo(transactions)  ?? bankAccounts[0];
+  const { transactions, bankAccounts, categories, currencies } =
+    useAllDatabaseDataContext();
+  const defaultAccountFrom =
+    mostUsedAccountFrom(transactions) ?? bankAccounts[0];
+  const defaultAccountTo = mostUsedAccountTo(transactions) ?? bankAccounts[0];
   const defaultCategory = mostUsedCategory(transactions, "") ?? categories[0];
   const defaultCurrency = mostUsedCurrency(transactions) ?? currencies.all()[0];
   const initialValuesForEmptyForm = initialValuesEmpty(
@@ -190,7 +192,6 @@ export const AddTransactionForm = (props: {
       usedOpenBankingTransactions: [],
       suggestedVendor: prototype?.vendor,
     };
-    const creatingNewTransaction = !props.transaction;
     if (creatingNewTransaction) {
       body.usedOpenBankingTransactions = [
         prototype?.openBankingTransaction,
@@ -223,18 +224,20 @@ export const AddTransactionForm = (props: {
           <Form>
             <div className="overflow-hidden shadow sm:rounded-md">
               <div className="bg-white p-2 sm:p-6">
-                <div className="mb-2">
-                  <NewTransactionSuggestions
-                    onItemClick={(t) => {
-                      if (isSubmitting) {
-                        // The form is disabled while being submitted, so do not change it through suggestions either.
-                        return;
-                      }
-                      setPrototype(t);
-                      setFieldValue("mode", t.mode);
-                    }}
-                  />
-                </div>
+                {creatingNewTransaction && (
+                  <div className="mb-2">
+                    <NewTransactionSuggestions
+                      onItemClick={(t) => {
+                        if (isSubmitting) {
+                          // The form is disabled while being submitted, so do not change it through suggestions either.
+                          return;
+                        }
+                        setPrototype(t);
+                        setFieldValue("mode", t.mode);
+                      }}
+                    />
+                  </div>
+                )}
 
                 <FormTransactionTypeSelector
                   disabled={isSubmitting}
