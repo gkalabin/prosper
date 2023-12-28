@@ -63,7 +63,8 @@ const TransactionsPage: React.FC<PageProps> = (props) => {
   const [transactionsUnordered, setTransactionsUnordered] = useState(
     props.transactions
   );
-  const transactions = [].concat(transactionsUnordered);
+  const [displayLimit, setDisplayLimit] = useState(10);
+  const transactions = [].concat(transactionsUnordered).slice(0, displayLimit);
 
   const addTransaction = (added: Transaction) => {
     setTransactionsUnordered((old) => [...old, added]);
@@ -86,6 +87,7 @@ const TransactionsPage: React.FC<PageProps> = (props) => {
         transactions={transactions}
         onTransactionUpdated={updateTransaction}
       />
+      <button onClick={() => setDisplayLimit(displayLimit + 10)}>Show 10 more</button>
     </Layout>
   );
 };
