@@ -86,7 +86,7 @@ export class AmountWithCurrency {
     return this.amount.cents() % 100 == 0;
   }
 
-  public add(other: AmountWithCurrency | undefined): AmountWithCurrency {
+  public add(other: AmountWithCurrency): AmountWithCurrency {
     if (!other) {
       return this;
     }
@@ -97,7 +97,7 @@ export class AmountWithCurrency {
     });
   }
 
-  public subtract(other: AmountWithCurrency|undefined): AmountWithCurrency {
+  public subtract(other: AmountWithCurrency): AmountWithCurrency {
     if (!other) {
       return this;
     }

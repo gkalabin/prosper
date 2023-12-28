@@ -18,14 +18,16 @@ import {
   transactionCategory,
   transactionUnit,
 } from "lib/model/transaction/Transaction";
-import { amountSent } from "lib/model/transaction/Transfer";
-import { ownShareAmountIgnoreRefunds } from "lib/model/transaction/amounts";
 import {
   amountReceived,
+  amountSent,
   incomingBankAccount,
   outgoingBankAccount,
 } from "lib/model/transaction/Transfer";
-import { paidTotal } from "lib/model/transaction/amounts";
+import {
+  ownShareAmountIgnoreRefunds,
+  paidTotal,
+} from "lib/model/transaction/amounts";
 import { TransactionAPIResponse } from "lib/transactionDbUtils";
 import { useState } from "react";
 
@@ -179,8 +181,7 @@ export const TransactionsListItem = (props: {
           )}
           {(isExpense(t) || isIncome(t)) && (
             <div>
-              Full amount:{" "}
-              {paidTotal(t, bankAccounts, stocks).format()}
+              Full amount: {paidTotal(t, bankAccounts, stocks).format()}
             </div>
           )}
           {(isExpense(t) || isIncome(t)) && (
@@ -201,12 +202,16 @@ export const TransactionsListItem = (props: {
             <div>
               Tags:{" "}
               {t.tagsIds
-                .map((tt) => tags.find((x) => x.id == tt).name)
+                .map((tt) => tags.find((x) => x.id == tt)?.name ?? "")
                 .join(", ")}
             </div>
           )}
           {(isExpense(t) || isIncome(t)) && t.tripId && (
-            <div>Trip: {trips.find((trip) => trip.id == t.tripId).name}</div>
+            <div>
+              Trip:{" "}
+              {trips.find((trip) => trip.id == t.tripId)?.name ??
+                "Unknown trip"}
+            </div>
           )}
         </div>
       )}

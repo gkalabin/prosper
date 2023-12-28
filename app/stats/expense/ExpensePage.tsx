@@ -1,4 +1,5 @@
 "use client";
+import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
 import { ExcludedCategoriesSelector } from "app/stats/ExcludedCategoriesSelector";
 import { categoryNameById, dollarsRounded } from "app/stats/modelHelpers";
 import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
@@ -46,6 +47,7 @@ export function ExpenseCharts({ input }: { input: TransactionsStatsInput }) {
   const zero = AmountWithCurrency.zero(displayCurrency);
   const months = input.months().map((x) => x.getTime());
   const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
+  const failedToExchange: Transaction[] = [];
 
   const byRootCategoryIdAndMonth = new Map<
     number,
@@ -64,6 +66,10 @@ export function ExpenseCharts({ input }: { input: TransactionsStatsInput }) {
       stocks,
       exchange,
     );
+    if (!exchanged) {
+      failedToExchange.push(t);
+      continue;
+    }
     {
       const cid = t.categoryId;
       const series = byCategoryIdAndMonth.get(cid) ?? new Map(zeroes);
@@ -81,6 +87,8 @@ export function ExpenseCharts({ input }: { input: TransactionsStatsInput }) {
 
   return (
     <>
+      <CurrencyExchangeFailed failedTransactions={failedToExchange} />
+
       <MonthlyOwnShare
         transactions={input.expenses()}
         duration={input.interval()}
@@ -187,6 +195,7 @@ export function ExpenseByCategory(props: {
   const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
 
   let totalSum = zero;
+  const failedToExchange: Transaction[] = [];
   const byCategoryMonth = new Map<number, Map<number, AmountWithCurrency>>();
   for (const t of transactions) {
     const ts = startOfMonth(t.timestampEpoch).getTime();
@@ -197,9 +206,13 @@ export function ExpenseByCategory(props: {
       stocks,
       exchange,
     );
+    if (!current) {
+      failedToExchange.push(t);
+      continue;
+    }
     const cid = t.categoryId;
     const series = byCategoryMonth.get(cid) ?? new Map(zeroes);
-    series.set(ts, current.add(series.get(ts)));
+    series.set(ts, current.add(series.get(ts) ?? zero));
     byCategoryMonth.set(cid, series);
     totalSum = totalSum.add(current);
   }
@@ -210,6 +223,7 @@ export function ExpenseByCategory(props: {
 
   return (
     <>
+      <CurrencyExchangeFailed failedTransactions={failedToExchange} />
       <ReactEcharts
         notMerge
         option={{
