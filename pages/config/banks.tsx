@@ -85,7 +85,7 @@ const BankName: React.FC<BankNameProps> = (props) => {
           order {props.bank.displayOrder}
         </small>
 
-        <ButtonLink className="text-sm" onClick={open} label="Edit" />
+        <ButtonLink className="text-sm" onClick={open}>Edit</ButtonLink>
         {!props.openBankingToken && (
           <AnchorLink
             className="ml-1 text-sm"

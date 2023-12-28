@@ -96,6 +96,7 @@ export default function TransactionsPage(
               categories={categories}
               banks={banks}
               allTransactions={transactions}
+              transactionPrototypes={dbData.dbTransactionPrototypes}
               onClose={() => setShowAddTransactionForm(false)}
             />
           </div>

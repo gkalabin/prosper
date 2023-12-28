@@ -172,15 +172,14 @@ export const TransactionsListItem = (props: {
   );
 };
 
-type TransactionsListProps = {
+export const TransactionsList = (props: {
   banks: Bank[];
   categories: Category[];
   transactions: Transaction[];
   onTransactionUpdated: (transaction: DBTransaction) => void;
   displayLimit?: number;
   showBankAccountInStatusLine?: boolean;
-};
-export const TransactionsList: React.FC<TransactionsListProps> = (props) => {
+}) => {
   const [displayLimit, setDisplayLimit] = useState(props.displayLimit || 10);
 
   if (!props.transactions?.length) {

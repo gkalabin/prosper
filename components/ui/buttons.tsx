@@ -4,7 +4,7 @@ import Link from "next/link";
 import React, { forwardRef } from "react";
 
 export const ButtonLink = (
-  props: React.ButtonHTMLAttributes<HTMLButtonElement> & { label: string }
+  props: React.ButtonHTMLAttributes<HTMLButtonElement>
 ) => {
   return (
     <button
@@ -12,10 +12,11 @@ export const ButtonLink = (
       {...props}
       className={classNames(
         props.className,
-        "font-medium text-indigo-600 hover:text-indigo-500"
+        props.disabled ? "opacity-30" : "hover:text-indigo-500",
+        "font-medium text-indigo-600"
       )}
     >
-      {props.label}
+      {props.children}
     </button>
   );
 };

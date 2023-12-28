@@ -9,7 +9,8 @@ import {
   StockQuote,
   ThirdPartyExpense,
   Transaction,
-  Transfer
+  TransactionPrototype,
+  Transfer,
 } from "@prisma/client";
 
 export interface TransactionWithExtensions extends Transaction {
@@ -27,4 +28,5 @@ export type AllDatabaseData = {
   dbCurrencies: Currency[];
   dbExchangeRates: ExchangeRate[];
   dbStockQuotes: StockQuote[];
+  dbTransactionPrototypes: TransactionPrototype[];
 };

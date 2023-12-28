@@ -29,6 +29,8 @@ model Transaction {
   income            Income?
   transfer          Transfer?
 
+  prototype TransactionPrototype?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -248,6 +250,17 @@ model OpenBankingAccount {
   bankAccount          BankAccount @relation(fields: [bankAccountId], references: [id])
   bankAccountId        Int
   openBankingAccountId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TransactionPrototype {
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  transactionId Int         @unique
+
+  openBankingTransactionId String
+  openBankingDescription String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

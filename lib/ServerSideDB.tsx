@@ -1,10 +1,12 @@
 import { addLatestExchangeRates } from "lib/exchangeRatesBackfill";
+import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { fetchBalances } from "lib/openbanking/balance";
+import { fetchOpenBankingTransactions } from "lib/openbanking/transactions";
 import prisma from "lib/prisma";
 import { addLatestStockQuotes } from "lib/stockQuotesBackfill";
-import { fetchOpenBankingTransactions } from "./openbanking/transactions";
+import { IOpenBankingData } from "./openbanking/interface";
 
-const loadAllDatabaseData = async () => {
+const loadAllDatabaseData = async (): Promise<AllDatabaseData> => {
   const dbTransactions = await prisma.transaction.findMany({
     include: {
       personalExpense: true,
@@ -22,6 +24,7 @@ const loadAllDatabaseData = async () => {
     dbCategories: await prisma.category.findMany(),
     dbExchangeRates: await prisma.exchangeRate.findMany(),
     dbStockQuotes: await prisma.stockQuote.findMany(),
+    dbTransactionPrototypes: await prisma.transactionPrototype.findMany(),
   };
 };
 
@@ -39,7 +42,7 @@ const jsonEncodingHacks = (key: string, value) => {
   return value;
 };
 
-export const allDbDataProps = async () => {
+export const allDbDataProps = async (): Promise<{ props: AllDatabaseData }> => {
   await Promise.all([addLatestExchangeRates(), addLatestStockQuotes()]).catch(
     (reason) => {
       console.warn("Failed to update rates", reason);
@@ -52,11 +55,15 @@ export const allDbDataProps = async () => {
   return JSON.parse(JSON.stringify(out, jsonEncodingHacks));
 };
 
-export const allDbDataPropsWithOb = async () => {
-  const out = await allDbDataProps();
-  out.props.openBankingData = {
-    balances: await fetchBalances(),
-    transactions: await fetchOpenBankingTransactions(),
-  };
-  return JSON.parse(JSON.stringify(out, jsonEncodingHacks));
+export const allDbDataPropsWithOb = async (): Promise<{
+  props: AllDatabaseData & IOpenBankingData;
+}> => {
+  const dbData = await allDbDataProps();
+  const props = Object.assign(dbData.props, {
+    openBankingData: {
+      balances: await fetchBalances(),
+      transactions: await fetchOpenBankingTransactions(),
+    },
+  });
+  return JSON.parse(JSON.stringify({ props }, jsonEncodingHacks));
 };

@@ -178,7 +178,8 @@ export default function OverviewPage(
               banks={banks}
               allTransactions={transactions}
               onAdded={addTransaction}
-              obTransactions={dbData.openBankingData.transactions}
+              openBankingTransactions={dbData.openBankingData.transactions}
+              transactionPrototypes={dbData.dbTransactionPrototypes}
               onClose={() => setShowAddTransactionForm(false)}
             />
           )}
