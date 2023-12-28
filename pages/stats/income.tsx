@@ -9,7 +9,7 @@ import { StatsPageLayout } from "components/StatsPageLayout";
 import { startOfMonth } from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { defaultMoneyChartOptions, legend } from "lib/charts";
+import { defaultMonthlyMoneyChart, legend } from "lib/charts";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -48,7 +48,7 @@ export function IncomeCharts({ input }: { input: TransactionsStatsInput }) {
       <ReactEcharts
         notMerge
         option={{
-          ...defaultMoneyChartOptions(displayCurrency, months),
+          ...defaultMonthlyMoneyChart(displayCurrency, input.interval()),
           ...legend(),
           title: {
             text: "Total money in",
@@ -74,7 +74,7 @@ export function IncomeCharts({ input }: { input: TransactionsStatsInput }) {
       <ReactEcharts
         notMerge
         option={{
-          ...defaultMoneyChartOptions(displayCurrency, months),
+          ...defaultMonthlyMoneyChart(displayCurrency, input.interval()),
           ...legend(),
           title: {
             text: "By category",

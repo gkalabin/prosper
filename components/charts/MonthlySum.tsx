@@ -1,6 +1,6 @@
 import { Interval, eachMonthOfInterval } from "date-fns";
 import ReactEcharts from "echarts-for-react";
-import { defaultMoneyChartOptions } from "lib/charts";
+import { defaultMonthlyMoneyChart } from "lib/charts";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { Transaction } from "lib/model/Transaction";
 import { MoneyTimeseries } from "lib/util/Timeseries";
@@ -25,7 +25,7 @@ export function MonthlyOwnShare({
     <ReactEcharts
       notMerge
       option={{
-        ...defaultMoneyChartOptions(displayCurrency, months),
+        ...defaultMonthlyMoneyChart(displayCurrency, duration),
         title: {
           text: title,
         },

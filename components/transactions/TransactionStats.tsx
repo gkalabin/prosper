@@ -9,7 +9,7 @@ import {
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
-import { defaultMoneyChartOptions, defaultPieChartOptions } from "lib/charts";
+import { defaultMonthlyMoneyChart, defaultPieChartOptions } from "lib/charts";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { Transaction } from "lib/model/Transaction";
 import { AppendMap } from "lib/util/AppendingMap";
@@ -178,7 +178,7 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
       <ReactEcharts
         notMerge
         option={{
-          ...defaultMoneyChartOptions(displayCurrency, months),
+          ...defaultMonthlyMoneyChart(displayCurrency, duration),
           title: {
             text: "Money spent (gross: all parties)",
           },
@@ -308,7 +308,7 @@ function IncomeStats({ transactions }: { transactions: Transaction[] }) {
       <ReactEcharts
         notMerge
         option={{
-          ...defaultMoneyChartOptions(displayCurrency, months),
+          ...defaultMonthlyMoneyChart(displayCurrency, duration),
           title: {
             text: "Money received (gross: all parties)",
           },
@@ -323,7 +323,7 @@ function IncomeStats({ transactions }: { transactions: Transaction[] }) {
       <ReactEcharts
         notMerge
         option={{
-          ...defaultMoneyChartOptions(displayCurrency, months),
+          ...defaultMonthlyMoneyChart(displayCurrency, duration),
           title: {
             text: "Money received (net: own share)",
           },

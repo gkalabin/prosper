@@ -1,10 +1,10 @@
-import { eachMonthOfInterval, Interval } from "date-fns";
+import { Interval } from "date-fns";
 import ReactEcharts from "echarts-for-react";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { defaultMoneyChartOptions, legend } from "lib/charts";
+import { defaultMonthlyMoneyChart, monthlyData } from "lib/charts";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { Transaction } from "lib/model/Transaction";
 import { MoneyTimeseries } from "lib/util/Timeseries";
+import { runningAverage } from "lib/util/util";
 
 export function RunningAverageOwnShare(props: {
   transactions: Transaction[];
@@ -17,27 +17,12 @@ export function RunningAverageOwnShare(props: {
   for (const t of props.transactions) {
     net.append(t.timestamp, t.amountOwnShare(displayCurrency));
   }
-  const monthlyAmounts = [...net.monthlyMap().entries()].sort(
-    ([t1], [t2]) => t1 - t2
-  );
-  const months = eachMonthOfInterval(props.duration).map((x) => x.getTime());
-  const window = [] as AmountWithCurrency[];
-  const averages = new Map<number, number>();
-  for (const [month, amount] of monthlyAmounts) {
-    window.push(amount);
-    if (window.length > props.maxWindowLength) {
-      window.shift();
-    }
-    const sum = AmountWithCurrency.sum(window, displayCurrency);
-    averages.set(month, Math.round(sum.dollar() / window.length));
-  }
-
+  const averages = runningAverage(net.monthlyMap(), props.maxWindowLength);
   return (
     <ReactEcharts
       notMerge
       option={{
-        ...defaultMoneyChartOptions(displayCurrency, months),
-        ...legend(),
+        ...defaultMonthlyMoneyChart(displayCurrency, props.duration),
         title: {
           text: props.title,
         },
@@ -45,7 +30,7 @@ export function RunningAverageOwnShare(props: {
           {
             type: "bar",
             name: props.title,
-            data: months.map((m) => averages.get(m)),
+            data: monthlyData(props.duration, averages),
           },
         ],
       }}

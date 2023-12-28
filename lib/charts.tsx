@@ -1,6 +1,8 @@
+import { Interval, eachMonthOfInterval } from "date-fns";
 import { EChartsOption } from "echarts";
-import { Currency } from "lib/model/Currency";
+import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { formatMonth } from "lib/TimeHelpers";
+import { Currency } from "lib/model/Currency";
 
 export function stackedBarChartTooltip(c: Currency): EChartsOption {
   return {
@@ -57,10 +59,11 @@ function stackedBarChartTooltipFormatter(c: Currency) {
   };
 }
 
-export function defaultMoneyChartOptions(
+export function defaultMonthlyMoneyChart(
   c: Currency,
-  months: number[] | Date[]
+  interval: Interval
 ): EChartsOption {
+  const months = eachMonthOfInterval(interval).map((x) => x.getTime());
   return {
     grid: {
       containLabel: true,
@@ -103,4 +106,19 @@ export function defaultPieChartOptions(): EChartsOption {
 
 export function currencyFormatter(c: Currency) {
   return (v) => c.format(v, { maximumFractionDigits: 0 });
+}
+
+export function monthlyData(
+  interval: Interval,
+  timeseries: Map<number, AmountWithCurrency>
+) {
+  const months = eachMonthOfInterval(interval).map((x) => x.getTime());
+  return makeData(months, timeseries);
+}
+
+export function makeData(
+  time: number[],
+  timeseries: Map<number, AmountWithCurrency>
+) {
+  return time.map((m) => timeseries.get(m).round().dollar());
 }
