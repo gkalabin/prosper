@@ -9,6 +9,7 @@ import { Form, Formik } from "formik";
 import { DisplaySettings } from "lib/displaySettings";
 import { categoryModelFromDB } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
+import { DispalySettingsFormValues } from "lib/model/api/DisplaySettingsConfig";
 import { useState } from "react";
 import Select from "react-select";
 
@@ -16,7 +17,7 @@ export function DispalySettings({
   dbDisplaySettings: initialDbDisplaySettings,
   dbCategories,
 }: {
-  dbDisplaySettings?: DBDisplaySettings;
+  dbDisplaySettings: DBDisplaySettings;
   dbCategories: DBCategory[];
 }) {
   const categories = categoryModelFromDB(dbCategories);
@@ -26,17 +27,14 @@ export function DispalySettings({
   const displaySettings = new DisplaySettings(dbDisplaySettings);
   const [apiError, setApiError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (values: DispalySettingsFormValues) => {
     setApiError("");
     setSuccessMessage("");
     try {
-      const body = {
-        ...values,
-      };
       const response = await fetch(`/api/config/display-settings/`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify(values),
       });
       setDbDisplaySettings(await response.json());
       setSuccessMessage("Successfully saved!");
@@ -49,7 +47,7 @@ export function DispalySettings({
     value: a.id(),
     label: a.nameWithAncestors(),
   }));
-  const initialValues = {
+  const initialValues: DispalySettingsFormValues = {
     displayCurrencyCode: displaySettings.displayCurrency().code(),
     excludeCategoryIdsInStats: displaySettings.excludeCategoryIdsInStats(),
   };
@@ -92,7 +90,8 @@ export function DispalySettings({
               options={categoryOptions}
               isMulti
               value={values.excludeCategoryIdsInStats.map((x) => ({
-                label: categoryOptions.find((c) => c.value == x).label,
+                label:
+                  categoryOptions.find((c) => c.value == x)?.label ?? "Unknown",
                 value: x,
               }))}
               onChange={(x) =>
