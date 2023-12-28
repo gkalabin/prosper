@@ -32,22 +32,24 @@ async function handle(
   }
   const result: TransactionAPIResponse = await prisma.$transaction(
     async (tx) => {
-      if (!sameExtension(existing, form)) {
-        deleteExistingTransaction(tx, userId, existing);
+      const sameExtension = isSameExtension(existing, form);
+      if (!sameExtension) {
+        await deleteExistingTransaction(tx, existing);
       }
       const data = transactionDbInput(form, userId);
-      writeExtension({ data, form, userId, operation: "update" });
+      writeExtension({
+        data,
+        form,
+        userId,
+        operation: sameExtension ? "update" : "create",
+      });
       const createdTrip = await writeTrip({ tx, data, form, userId });
       const { createdTags } = await writeTags({ tx, data, form, userId });
-      const updatedTransaction = await tx.transaction.update(
-        Object.assign(
-          {
-            data: data,
-            where: { id: transactionId },
-          },
-          includeExtensions
-        )
-      );
+      const updatedTransaction = await tx.transaction.update({
+        ...includeExtensions,
+        data,
+        where: { id: transactionId },
+      });
       return {
         transaction: updatedTransaction,
         trip: createdTrip,
@@ -60,29 +62,28 @@ async function handle(
   res.json(result);
 }
 
-function deleteExistingTransaction(
+async function deleteExistingTransaction(
   tx,
-  userId: number,
   existing: TransactionWithExtensions
 ) {
-  const whereTransactionUser = {
-    where: { transactionId: existing.id, userId },
+  const whereTransaction = {
+    where: { transactionId: existing.id },
   };
   if (existing.personalExpense) {
-    tx.personalExpense.delete(whereTransactionUser);
+    await tx.personalExpense.delete(whereTransaction);
   }
   if (existing.thirdPartyExpense) {
-    tx.thirdPartyExpense.delete(whereTransactionUser);
+    await tx.thirdPartyExpense.delete(whereTransaction);
   }
   if (existing.transfer) {
-    tx.transfer.delete(whereTransactionUser);
+    await tx.transfer.delete(whereTransaction);
   }
   if (existing.income) {
-    tx.income.delete(whereTransactionUser);
+    await tx.income.delete(whereTransaction);
   }
 }
 
-function sameExtension(
+function isSameExtension(
   oldData: TransactionWithExtensions,
   form: AddTransactionFormValues
 ) {
