@@ -22,6 +22,7 @@ async function getData(userId: number) {
   const dbTrueLayerTokens = await db.trueLayerTokenFindMany(whereBankId);
   const dbNordigenTokens = await db.nordigenTokenFindMany(whereBankId);
   const dbStarlingTokens = await db.starlingTokenFindMany(whereBankId);
+  const dbDisplaySettings = await db.getOrCreateDbDisplaySettings();
   return {
     dbBanks,
     dbBankAccounts,
@@ -29,6 +30,7 @@ async function getData(userId: number) {
     dbTrueLayerTokens,
     dbNordigenTokens,
     dbStarlingTokens,
+    dbDisplaySettings,
   };
 }
 
@@ -43,6 +45,7 @@ export default async function Page() {
       dbTrueLayerTokens={data.dbTrueLayerTokens}
       dbNordigenTokens={data.dbNordigenTokens}
       dbStarlingTokens={data.dbStarlingTokens}
+      dbDisplaySettings={data.dbDisplaySettings}
     />
   );
 }

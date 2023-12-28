@@ -2,6 +2,7 @@
 import {
   Bank as DBBank,
   BankAccount as DBBankAccount,
+  DisplaySettings as DBDisplaySettings,
   NordigenToken as DBNordigenToken,
   StarlingToken as DBStarlingToken,
   Stock as DBStock,
@@ -15,6 +16,7 @@ import {
   ButtonPagePrimary,
 } from "components/ui/buttons";
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
+import { DisplaySettingsContextProvider } from "lib/context/DisplaySettingsContext";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Stock } from "lib/model/Stock";
 import { updateState } from "lib/stateHelpers";
@@ -295,6 +297,7 @@ export function BanksConfigPage({
   dbTrueLayerTokens,
   dbNordigenTokens,
   dbStarlingTokens,
+  dbDisplaySettings,
 }: {
   dbBanks: DBBank[];
   dbBankAccounts: DBBankAccount[];
@@ -302,6 +305,7 @@ export function BanksConfigPage({
   dbTrueLayerTokens: DBTrueLayerToken[];
   dbNordigenTokens: DBNordigenToken[];
   dbStarlingTokens: DBStarlingToken[];
+  dbDisplaySettings: DBDisplaySettings;
 }) {
   const [dbBanks, setDbBanks] = useState(dbBanksInitial);
   const [dbBankAccounts, setDbBankAccounts] = useState(dbBankAccountsInitial);
@@ -314,7 +318,7 @@ export function BanksConfigPage({
   );
 
   return (
-    <>
+    <DisplaySettingsContextProvider initialDbSettings={dbDisplaySettings}>
       <BanksList
         banks={banks}
         bankAccounts={bankAccounts}
@@ -345,6 +349,6 @@ export function BanksConfigPage({
           />
         </div>
       )}
-    </>
+    </DisplaySettingsContextProvider>
   );
 }
