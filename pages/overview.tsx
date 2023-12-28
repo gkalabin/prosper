@@ -1,5 +1,7 @@
 import { Transaction as DBTransaction } from "@prisma/client";
-import { GetStaticProps } from "next";
+import { withIronSessionSsr } from "iron-session/next";
+import { InferGetServerSidePropsType } from "next";
+import Router from "next/router";
 import React, { useState } from "react";
 import { Amount } from "../components/Amount";
 import Layout from "../components/Layout";
@@ -12,13 +14,8 @@ import {
   bankAccountBalance,
 } from "../lib/model/BankAccount";
 import { AllDatabaseData, loadAllDatabaseData } from "../lib/ServerSideDB";
-
-export const getStaticProps: GetStaticProps = async () => {
-  const allData = await loadAllDatabaseData();
-  return {
-    props: JSON.parse(JSON.stringify(allData)),
-  };
-};
+import { sessionOptions } from "../lib/session";
+import { User } from "./api/user";
 
 type BankAccountListItemProps = {
   account: BankAccount;
@@ -56,7 +53,7 @@ type BankListItemProps = {
 const BankListItem: React.FC<BankListItemProps> = (props) => {
   return (
     <div className="">
-      <div className="border-b bg-green-100 p-2 text-xl font-medium text-gray-900">
+      <div className="border-b bg-indigo-200 p-2 text-xl font-medium text-gray-900">
         {props.bank.name}
       </div>
 
@@ -89,10 +86,49 @@ const BanksList: React.FC<TransactionsListProps> = (props) => {
   );
 };
 
-const OverviewPage: React.FC<AllDatabaseData> = (props) => {
+export const getServerSideProps = withIronSessionSsr<{
+  user: User;
+  dbData?: AllDatabaseData;
+}>(async function ({ req, res }) {
+  const user = req.session.user;
+
+  if (user === undefined) {
+    res.setHeader("location", "/login");
+    res.statusCode = 302;
+    res.end();
+    return {
+      props: {
+        user: { isLoggedIn: false, login: "" } as User,
+      },
+    };
+  }
+  const allData = await loadAllDatabaseData();
+
+  return {
+    props: {
+      user: req.session.user,
+      dbData: JSON.parse(JSON.stringify(allData)),
+    },
+  };
+}, sessionOptions);
+
+export default function OverviewPageWrapper({
+  user,
+  dbData,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  if (!user?.isLoggedIn) {
+    Router.push("/login");
+    return <></>;
+  }
+  return <OverviewPage dbData={dbData} user={user} />;
+}
+
+function OverviewPage({
+  dbData,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
-  const [dbData, setDbData] = useState(props);
-  const model = modelFromDatabaseData(dbData);
+  const [dbDataState, setDbData] = useState(dbData);
+  const model = modelFromDatabaseData(dbDataState);
 
   const addTransaction = (added: DBTransaction) => {
     setDbData((old) => {
@@ -142,6 +178,4 @@ const OverviewPage: React.FC<AllDatabaseData> = (props) => {
       </div>
     </Layout>
   );
-};
-
-export default OverviewPage;
+}
