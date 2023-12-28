@@ -13,9 +13,10 @@ import {
   modelFromDatabaseData,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { AllDatabaseData, OpenBankingData } from "lib/model/AllDatabaseDataModel";
+import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
+import { IOpenBankingData } from "lib/openbanking/interface";
 import { allDbDataPropsWithOb } from "lib/ServerSideDB";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import React, { createContext, useContext, useState } from "react";
@@ -118,8 +119,9 @@ const BanksList: React.FC<TransactionsListProps> = (props) => {
 
 const ArchivedAccountsShownContext = createContext<boolean>(false);
 
-export const getServerSideProps: GetServerSideProps<AllDatabaseData & OpenBankingData> =
-  allDbDataPropsWithOb;
+export const getServerSideProps: GetServerSideProps<
+  AllDatabaseData & IOpenBankingData
+> = allDbDataPropsWithOb;
 
 export default function OverviewPage(
   dbData: InferGetServerSidePropsType<typeof getServerSideProps>
@@ -170,7 +172,7 @@ export default function OverviewPage(
               banks={banks}
               allTransactions={transactions}
               onAdded={addTransaction}
-              obData={dbData.obData}
+              obTransactions={dbData.openBankingData.transactions}
               onClose={() => setShowAddTransactionForm(false)}
             />
           )}

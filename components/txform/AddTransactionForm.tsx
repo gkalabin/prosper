@@ -20,6 +20,7 @@ import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
 import { Transaction } from "lib/model/Transaction";
+import { IOBTransactionsByAccountId } from "lib/openbanking/interface";
 import React, { useEffect, useState } from "react";
 import { FormTransactionTypeSelector } from "./FormTransactionTypeSelector";
 
@@ -28,7 +29,7 @@ export type AddTransactionFormProps = {
   categories: Category[];
   transaction?: Transaction;
   allTransactions: Transaction[];
-  obData?: any;
+  obTransactions?: IOBTransactionsByAccountId;
   onAdded: (added: DBTransaction) => void;
   onClose: () => void;
 };
@@ -177,46 +178,23 @@ function mostFrequent<T extends { id: number }>(items: T[]): T {
 }
 
 const NewTransactionSuggestions = ({
-  obData,
+  obTransactions,
   banks,
 }: {
   banks: Bank[];
-  obData: any;
+  obTransactions: IOBTransactionsByAccountId;
 }) => {
-  console.log(obData);
   const accountsWithData = banks
     .flatMap((x) => x.accounts)
-    .filter((x) => !!obData.transactions[x.id]);
-  const obTransactions = Object.fromEntries(
-    Object.entries(obData.transactions).map(([accountId, transactions]) => {
-      const pending = transactions.pending.map((t) =>
-        Object.assign({}, t, {
-          pending: true,
-        })
-      );
-      const settled = transactions.settled.map((t) =>
-        Object.assign({}, t, {
-          pending: false,
-        })
-      );
-      const merged = [...pending, ...settled]
-        .map((t) =>
-          Object.assign(t, {
-            timestamp: new Date(t.timestamp),
-          })
-        )
-        .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-      return [accountId, merged];
-    })
-  );
+    .filter((x) => !!obTransactions[x.id]);
   return (
     <>
       {accountsWithData.map((account) => (
         <h1 key={account.id}>
           {account.bank.name}: {account.name}
-          {obTransactions[account.id].slice(0, 10).map((obTransaction) => (
-            <li key={obTransaction.id}>
-              {obTransaction.timestamp.toISOString()}: {obTransaction.description}
+          {obTransactions[account.id].slice(0, 10).map((t) => (
+            <li key={t.transaction_id}>
+              {t.timestamp}: {t.description}
             </li>
           ))}
         </h1>
@@ -276,7 +254,7 @@ export const AddTransactionForm = (props: AddTransactionFormProps) => {
           <div className="overflow-hidden shadow sm:rounded-md">
             <div className="bg-white p-2 sm:p-6">
               <NewTransactionSuggestions
-                obData={props.obData}
+                obTransactions={props.obTransactions}
                 banks={props.banks}
               />
 

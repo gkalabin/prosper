@@ -54,7 +54,7 @@ export const allDbDataProps = async () => {
 
 export const allDbDataPropsWithOb = async () => {
   const out = await allDbDataProps();
-  out.props.obData = {
+  out.props.openBankingData = {
     balances: await fetchBalances(),
     transactions: await fetchOpenBankingTransactions(),
   };
