@@ -5,13 +5,13 @@ import { intParam } from "lib/util/searchParams";
 import { redirect } from "next/navigation";
 import { NextRequest } from "next/server";
 
-export async function GET(request: NextRequest): Promise<Response> {
+export async function POST(request: NextRequest): Promise<Response> {
   const query = request.nextUrl.searchParams;
   const bankId = intParam(query.get("bankId"));
   if (!bankId) {
     return new Response(`bankId must be an integer`, { status: 400 });
   }
-  const token = query.get("token");
+  const token = (await request.formData()).get("token").toString();
   if (!token) {
     return new Response(`token is required`, { status: 400 });
   }
