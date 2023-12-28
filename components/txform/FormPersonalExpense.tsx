@@ -32,6 +32,7 @@ import {
   otherPartyNameOrNull,
 } from "lib/model/transaction/Transaction";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
+import { notEmpty } from "lib/util/util";
 import { useEffect, useMemo, useState } from "react";
 import Select from "react-select";
 
@@ -211,9 +212,9 @@ export function Category() {
     () => mostFrequentCategories(transactions, vendor),
     [transactions, vendor],
   );
-  const mostFrequent = mostFrequentIds.map((id) =>
-    categories.find((c) => c.id() == id),
-  );
+  const mostFrequent = mostFrequentIds
+    .map((id) => categories.find((c) => c.id() == id))
+    .filter(notEmpty);
 
   const makeOption = (x: CategoryModel) => ({
     label: x.nameWithAncestors(),
@@ -245,10 +246,12 @@ export function Category() {
         value={{
           label: categories
             .find((x) => x.id() == categoryId)
-            .nameWithAncestors(),
+            ?.nameWithAncestors(),
           value: categoryId,
         }}
-        onChange={(newValue) => setFieldValue("categoryId", newValue.value)}
+        onChange={(newValue) =>
+          setFieldValue("categoryId", newValue?.value ?? 0)
+        }
         isDisabled={isSubmitting}
       />
     </div>
