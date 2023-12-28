@@ -146,7 +146,7 @@ function OverviewPageContent() {
         <div className="grid grid-cols-2">
           <span className="pl-3 text-lg font-medium">Cash</span>{" "}
           {totalLiquid.format()}
-          <span className="pl-3 text-lg font-medium">Non liquid</span>{" "}
+          <span className="pl-3 text-lg font-medium">Equity</span>{" "}
           {total.subtract(totalLiquid).format()}
         </div>
       </div>
