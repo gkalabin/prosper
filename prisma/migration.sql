@@ -1,3 +1,3 @@
 -- (cd /opt/prosper/ && npx prisma db push)
 -- sudo mysql prosperdb -e '
-INSERT INTO ExternalAccountMapping (internalAccountId, externalAccountId, userId, createdAt, updatedAt) SELECT bankAccountId, openBankingAccountId, userId, createdAt, updatedAt FROM OpenBankingAccount;
+INSERT INTO TrueLayerToken (id, bankId, accessToken, expiresIn, tokenType, refreshToken, scope, tokenCreatedAt, tokenValidUntil, connectionCreatedAt, connectionValidUntil, userId, createdAt, updatedAt) SELECT id, bankId, accessToken, expiresIn, tokenType, refreshToken, scope, tokenCreatedAt, tokenValidUntil, connectionCreatedAt, connectionValidUntil, userId, createdAt, updatedAt FROM OpenBankingToken;

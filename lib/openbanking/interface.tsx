@@ -11,3 +11,8 @@ export interface AccountBalance {
   internalAccountId: number;
   balanceCents: number;
 }
+
+export interface AccountDetails {
+  externalAccountId: string;
+  name: string;
+}

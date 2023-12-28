@@ -2,7 +2,7 @@ import {
   BankAccount,
   ExternalAccountMapping,
   NordigenToken,
-  OpenBankingToken,
+  TrueLayerToken,
 } from "@prisma/client";
 import { DB } from "lib/db";
 import { AccountBalance, IOpenBankingData } from "lib/openbanking/interface";
@@ -30,7 +30,7 @@ export async function fetchBalances(db: DB): Promise<AccountBalance[]> {
   const mappings = await db.externalAccountMappingFindMany();
   const fetches: Promise<AccountBalance>[] = [];
   {
-    const dbTokens = await db.openBankingTokenFindMany();
+    const dbTokens = await db.trueLayerTokenFindMany();
     const tokens = await Promise.all(dbTokens.map(trueLayerMaybeRefreshToken));
     const trueLayerFetches = tokens.flatMap((token) =>
       mappingsForToken(token, internalBankAccounts, mappings).map((m) =>
@@ -60,7 +60,7 @@ export async function fetchTransactions(
   const mappings = await db.externalAccountMappingFindMany();
   const fetches: Promise<WithdrawalOrDepositPrototype[]>[] = [];
   {
-    const dbTokens = await db.openBankingTokenFindMany();
+    const dbTokens = await db.trueLayerTokenFindMany();
     const tokens = await Promise.all(dbTokens.map(trueLayerMaybeRefreshToken));
     const trueLayerFetches = tokens.flatMap((token) =>
       mappingsForToken(token, internalBankAccounts, mappings).map((m) =>
@@ -84,7 +84,7 @@ export async function fetchTransactions(
 }
 
 function mappingsForToken(
-  token: OpenBankingToken | NordigenToken,
+  token: TrueLayerToken | NordigenToken,
   internalBankAccounts: BankAccount[],
   mappings: ExternalAccountMapping[]
 ) {

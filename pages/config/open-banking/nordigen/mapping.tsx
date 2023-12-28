@@ -10,11 +10,9 @@ import { ButtonFormPrimary } from "components/ui/buttons";
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
 import { DB } from "lib/db";
 import { Currencies } from "lib/model/Currency";
+import { AccountDetails } from "lib/openbanking/interface";
+import { fetchAccounts } from "lib/openbanking/nordigen/account";
 import { getOrCreateToken } from "lib/openbanking/nordigen/token";
-import {
-  AccountDetails,
-  fetchAccounts,
-} from "lib/openbanking/nordigen/accountDetails";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "pages/api/auth/[...nextauth]";
@@ -108,7 +106,10 @@ export default function Page({
   );
   const [mapping, setMapping] = useState(
     Object.fromEntries(
-      nordigenAccounts.map((a) => [a.id, initialMapping[a.id] ?? -1])
+      nordigenAccounts.map((a) => [
+        a.externalAccountId,
+        initialMapping[a.externalAccountId] ?? -1,
+      ])
     )
   );
 
@@ -146,15 +147,15 @@ export default function Page({
     <ConfigPageLayout>
       {statusMessage && <span className="text-green-500">{statusMessage}</span>}
       {nordigenAccounts.map((nordigenAccount) => (
-        <div key={nordigenAccount.id}>
+        <div key={nordigenAccount.externalAccountId}>
           Nordigen account {nordigenAccount.name} connected with
           <Select
             disabled={requestInFlight}
-            value={mapping[nordigenAccount.id]}
+            value={mapping[nordigenAccount.externalAccountId]}
             onChange={(e) =>
               setMapping((old) => ({
                 ...old,
-                [nordigenAccount.id]: +e.target.value,
+                [nordigenAccount.externalAccountId]: +e.target.value,
               }))
             }
           >

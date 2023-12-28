@@ -1,10 +1,10 @@
-import { OpenBankingToken } from "@prisma/client";
+import { TrueLayerToken } from "@prisma/client";
 import { isBefore } from "date-fns";
 import prisma from "lib/prisma";
 
 export async function maybeRefreshToken(
-  token: OpenBankingToken
-): Promise<OpenBankingToken> {
+  token: TrueLayerToken
+): Promise<TrueLayerToken> {
   const now = new Date();
   if (isBefore(now, token.tokenValidUntil)) {
     return token;
@@ -21,7 +21,7 @@ export async function maybeRefreshToken(
   })
     .then((r) => r.json())
     .then(({ access_token, expires_in, token_type, refresh_token, scope }) => {
-      return prisma.openBankingToken.update({
+      return prisma.trueLayerToken.update({
         data: {
           accessToken: access_token,
           expiresIn: expires_in,

@@ -50,7 +50,7 @@ async function handle(
         userId,
         bankId,
       };
-      await prisma.openBankingToken.upsert({
+      await prisma.trueLayerToken.upsert({
         create: args,
         update: args,
         where: { bankId },

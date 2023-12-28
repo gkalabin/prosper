@@ -132,8 +132,6 @@ model BankAccount {
   incomingTransfers Transfer[]        @relation("IncomingTransfers")
   Income            Income[]
 
-  OpenBankingAccount OpenBankingAccount[]
-
   user                   User                     @relation(fields: [userId], references: [id])
   userId                 Int
   createdAt              DateTime                 @default(now())
@@ -154,6 +152,7 @@ model Bank {
   updatedAt           DateTime             @updatedAt
   NordigenRequisition NordigenRequisition?
   NordigenToken       NordigenToken?
+  TrueLayerToken      TrueLayerToken?
 }
 
 model Currency {
@@ -237,10 +236,10 @@ model User {
   Income                 Income[]
   Transfer               Transfer[]
   OpenBankingToken       OpenBankingToken[]
-  OpenBankingAccount     OpenBankingAccount[]
   BankAccount            BankAccount[]
   DisplaySettings        DisplaySettings?
   TransactionPrototype   TransactionPrototype[]
+  TrueLayerToken         TrueLayerToken[]
   NordigenToken          NordigenToken[]
   NordigenRequisition    NordigenRequisition[]
   ExternalAccountMapping ExternalAccountMapping[]
@@ -293,15 +292,27 @@ model OpenBankingToken {
   updatedAt            DateTime @updatedAt
 }
 
-model OpenBankingAccount {
-  id                   String      @id @default(uuid())
-  bankAccount          BankAccount @relation(fields: [bankAccountId], references: [id])
-  bankAccountId        Int
-  openBankingAccountId String
-  user                 User        @relation(fields: [userId], references: [id])
+model TrueLayerToken {
+  id     String @id @default(uuid())
+  bank   Bank   @relation(fields: [bankId], references: [id])
+  bankId Int    @unique
+
+  // fields from true layer api
+  accessToken  String @db.VarChar(4096)
+  expiresIn    Int
+  tokenType    String
+  refreshToken String
+  scope        String
+
+  // own set fields
+  tokenCreatedAt       DateTime
+  tokenValidUntil      DateTime
+  connectionCreatedAt  DateTime
+  connectionValidUntil DateTime
+  user                 User     @relation(fields: [userId], references: [id])
   userId               Int
-  createdAt            DateTime    @default(now())
-  updatedAt            DateTime    @updatedAt
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 model ExternalAccountMapping {

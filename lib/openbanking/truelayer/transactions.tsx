@@ -1,8 +1,8 @@
-import { ExternalAccountMapping, OpenBankingToken } from "@prisma/client";
+import { ExternalAccountMapping, TrueLayerToken } from "@prisma/client";
 import { WithdrawalOrDepositPrototype } from "lib/txsuggestions/TransactionPrototype";
 
 export function fetchTransactions(
-  token: OpenBankingToken,
+  token: TrueLayerToken,
   mapping: ExternalAccountMapping
 ): Promise<WithdrawalOrDepositPrototype[]> {
   const init = {

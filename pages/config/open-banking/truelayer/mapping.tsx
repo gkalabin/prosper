@@ -10,6 +10,8 @@ import { ButtonFormPrimary } from "components/ui/buttons";
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
 import { DB } from "lib/db";
 import { Currencies } from "lib/model/Currency";
+import { AccountDetails } from "lib/openbanking/interface";
+import { fetchAccounts } from "lib/openbanking/truelayer/account";
 import { maybeRefreshToken } from "lib/openbanking/truelayer/token";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { getServerSession } from "next-auth/next";
@@ -17,21 +19,13 @@ import { authOptions } from "pages/api/auth/[...nextauth]";
 import { AccountMappingRequest } from "pages/api/open-banking/account-mapping";
 import { useState } from "react";
 
-interface OpenBankingAccount {
-  openBankingAccountId: string;
-  displayName: string;
-  currency: string;
-  providerDisplayName: string;
-  providerId: string;
-}
-
 export const getServerSideProps: GetServerSideProps<{
   data?: {
     dbBank: DBBank;
     dbBankAccounts: DBBankAccount[];
     dbCurrencies: DBCurrency[];
     dbMapping: DBExternalAccountMapping[];
-    obAccounts: OpenBankingAccount[];
+    obAccounts: AccountDetails[];
   };
 }> = async ({ params, req, res }) => {
   const session = await getServerSession(req, res, authOptions);
@@ -63,27 +57,11 @@ export const getServerSideProps: GetServerSideProps<{
     },
   });
 
-  const [dbToken] = await db.openBankingTokenFindMany({
+  const [dbToken] = await db.trueLayerTokenFindMany({
     where: { bankId },
   });
   const token = await maybeRefreshToken(dbToken);
-  const obAccounts = await fetch(`https://api.truelayer.com/data/v1/accounts`, {
-    method: "GET",
-    headers: { Authorization: `Bearer ${token.accessToken}` },
-  })
-    .then((r) => r.json())
-    .then((x) => {
-      return x.results.map((r) => {
-        const oba: OpenBankingAccount = {
-          openBankingAccountId: r.account_id,
-          displayName: r.display_name,
-          currency: r.currency,
-          providerDisplayName: r.provider.display_name,
-          providerId: r.provider.provider_id,
-        };
-        return oba;
-      });
-    });
+  const obAccounts = await fetchAccounts(token);
   return {
     props: {
       data: JSON.parse(
@@ -92,7 +70,7 @@ export const getServerSideProps: GetServerSideProps<{
           dbBankAccounts: bankAccounts,
           dbCurrencies: currencies,
           dbMapping,
-          obAccounts: obAccounts,
+          obAccounts,
         })
       ),
     },
@@ -124,8 +102,8 @@ export default function ConnectBanksPage({
   const [mapping, setMapping] = useState(
     Object.fromEntries(
       obAccounts.map((a) => [
-        a.openBankingAccountId,
-        initialMapping[a.openBankingAccountId] ?? -1,
+        a.externalAccountId,
+        initialMapping[a.externalAccountId] ?? -1,
       ])
     )
   );
@@ -166,16 +144,15 @@ export default function ConnectBanksPage({
       {statusMessage && <span className="text-green-500">{statusMessage}</span>}
       {obAccounts.map((oba) => (
         <>
-          <div key={oba.openBankingAccountId}>
-            {oba.providerDisplayName} {oba.displayName} ({oba.currency})
-            connected with
+          <div key={oba.externalAccountId}>
+            TrueLayer account <i>{oba.name}</i> connected with
             <Select
               disabled={requestInFlight}
-              value={mapping[oba.openBankingAccountId]}
+              value={mapping[oba.externalAccountId]}
               onChange={(e) =>
                 setMapping((old) =>
                   Object.assign({}, old, {
-                    [oba.openBankingAccountId]: +e.target.value,
+                    [oba.externalAccountId]: +e.target.value,
                   })
                 )
               }

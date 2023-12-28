@@ -1,8 +1,8 @@
-import { ExternalAccountMapping, OpenBankingToken } from "@prisma/client";
+import { ExternalAccountMapping, TrueLayerToken } from "@prisma/client";
 import { AccountBalance } from "lib/openbanking/interface";
 
 export function fetchBalance(
-  token: OpenBankingToken,
+  token: TrueLayerToken,
   mapping: ExternalAccountMapping
 ): Promise<AccountBalance> {
   const init = {

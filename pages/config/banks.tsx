@@ -3,7 +3,7 @@ import {
   BankAccount as DBBankAccount,
   Currency as DBCurrency,
   NordigenToken as DBNordigenToken,
-  OpenBankingToken as DBOpenBankingToken,
+  TrueLayerToken as DBTrueLayerToken,
 } from "@prisma/client";
 import { ConfigPageLayout } from "components/ConfigPageLayout";
 import { AddOrEditAccountForm } from "components/config/AddOrEditAccountForm";
@@ -26,7 +26,7 @@ import { useState } from "react";
 const BanksList = (props: {
   banks: Bank[];
   currencies: Currencies;
-  trueLayerTokens: DBOpenBankingToken[];
+  trueLayerTokens: DBTrueLayerToken[];
   nordigenTokens: DBNordigenToken[];
   onBankUpdated: (updated: DBBank) => void;
   onAccountAddedOrUpdated: (x: DBBankAccount) => void;
@@ -132,7 +132,7 @@ const BankConnections = ({
   nordigenToken,
   bank,
 }: {
-  trueLayerToken: DBOpenBankingToken;
+  trueLayerToken: DBTrueLayerToken;
   nordigenToken: DBNordigenToken;
   bank: Bank;
 }) => {
@@ -254,7 +254,7 @@ export const getServerSideProps: GetServerSideProps<{
     dbBanks: DBBank[];
     dbBankAccounts: DBBankAccount[];
     dbCurrencies: DBCurrency[];
-    dbTrueLayerTokens: DBOpenBankingToken[];
+    dbTrueLayerTokens: DBTrueLayerToken[];
     dbNordigenTokens: DBNordigenToken[];
   };
 }> = async (context) => {
@@ -272,7 +272,7 @@ export const getServerSideProps: GetServerSideProps<{
     },
   });
   const dbCurrencies = await db.currencyFindMany();
-  const dbTrueLayerTokens = await db.openBankingTokenFindMany({
+  const dbTrueLayerTokens = await db.trueLayerTokenFindMany({
     where: {
       bankId: {
         in: dbBanks.map((x) => x.id),

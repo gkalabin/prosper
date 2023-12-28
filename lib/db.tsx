@@ -48,9 +48,6 @@ export class DB {
   bankAccountFindMany(args?: Prisma.BankAccountFindManyArgs) {
     return prisma.bankAccount.findMany(this.whereUser(args));
   }
-  openBankingTokenFindMany(args?: Prisma.OpenBankingTokenFindManyArgs) {
-    return prisma.openBankingToken.findMany(this.whereUser(args));
-  }
   categoryFindMany(args?: Prisma.CategoryFindManyArgs) {
     return prisma.category.findMany(this.whereUser(args));
   }
@@ -65,17 +62,19 @@ export class DB {
     return prisma.exchangeRate.findMany(args);
   }
 
-  externalAccountMappingFindMany(
-    args?: Prisma.ExternalAccountMappingFindManyArgs
-  ) {
-    return prisma.externalAccountMapping.findMany(this.whereUser(args));
+  trueLayerTokenFindMany(args?: Prisma.TrueLayerTokenFindManyArgs) {
+    return prisma.trueLayerToken.findMany(this.whereUser(args));
   }
-
   nordigenTokenFindMany(args?: Prisma.NordigenTokenFindFirstArgs) {
     return prisma.nordigenToken.findMany(this.whereUser(args));
   }
   nordigenRequisitionFindFirst(args?: Prisma.NordigenRequisitionFindFirstArgs) {
     return prisma.nordigenRequisition.findFirst(this.whereUser(args));
+  }
+  externalAccountMappingFindMany(
+    args?: Prisma.ExternalAccountMappingFindManyArgs
+  ) {
+    return prisma.externalAccountMapping.findMany(this.whereUser(args));
   }
 
   async getOrCreateDbDisplaySettings() {
