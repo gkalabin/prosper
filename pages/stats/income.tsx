@@ -107,6 +107,7 @@ export function IncomeCharts(props: { transactions: Transaction[] }) {
         )}
       </div>
       <ReactEcharts
+        notMerge
         option={Object.assign({}, defaultChartOptions, {
           title: {
             text: "Total money in",
@@ -129,6 +130,7 @@ export function IncomeCharts(props: { transactions: Transaction[] }) {
         })}
       />
       <ReactEcharts
+        notMerge
         option={Object.assign({}, defaultChartOptions, {
           title: {
             text: "By category",
@@ -176,6 +178,7 @@ function PageContent() {
           Categories to exclude
         </label>
         <Select
+          instanceId={"categoryIds"}
           styles={undoTailwindInputStyles()}
           options={categoryOptions}
           isMulti
