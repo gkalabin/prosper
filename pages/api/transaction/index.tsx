@@ -18,14 +18,12 @@ async function handle(
   res: NextApiResponse
 ) {
   const { form, usedPrototype } = req.body as TransactionAPIRequest;
-  console.log(form);
   const result: TransactionAPIResponse = await prisma.$transaction(
     async (tx) => {
       const data = transactionDbInput(form, userId);
       writeExtension({ data, form, userId, operation: "create" });
       const createdTrip = await writeTrip({ tx, data, form, userId });
       const { createdTags } = await writeTags({ tx, data, form, userId });
-      console.log(data);
       const createdTransaction = await tx.transaction.create(
         Object.assign({ data }, includeExtensions)
       );
