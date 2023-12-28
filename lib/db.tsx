@@ -22,13 +22,17 @@ export class DB {
     return new DB({ userId: +session.user.id });
   }
 
-  transactionFindMany(args?: Prisma.TransactionFindManyArgs) {
+  transactionFindMany<T extends Prisma.TransactionFindManyArgs>(
+    args?: Prisma.SelectSubset<T, Prisma.TransactionFindManyArgs>
+  ): Prisma.PrismaPromise<Array<Prisma.TransactionGetPayload<T>>> {
     return prisma.transaction.findMany(this.whereUser(args));
   }
   transactionFindFirst(args?: Prisma.TransactionFindFirstArgs) {
     return prisma.transaction.findFirst(this.whereUser(args));
   }
-  openBankingTransactionPrototypeFindMany(args?: Prisma.OpenBankingTransactionFindManyArgs) {
+  openBankingTransactionPrototypeFindMany(
+    args?: Prisma.OpenBankingTransactionFindManyArgs
+  ) {
     return prisma.openBankingTransaction.findMany(this.whereUser(args));
   }
   tripFindMany(args?: Prisma.TripFindManyArgs) {

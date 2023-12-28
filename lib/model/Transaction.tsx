@@ -1,6 +1,6 @@
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { StockAndCurrencyExchange } from "lib/ClientSideModel";
-import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
+import { TransactionWithExtensionsAndTagIds } from "lib/model/AllDatabaseDataModel";
 import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currencies, Currency } from "lib/model/Currency";
@@ -50,10 +50,10 @@ export class Transaction {
 
   private readonly exchange: StockAndCurrencyExchange;
 
-  readonly dbValue: TransactionWithExtensions;
+  readonly dbValue: TransactionWithExtensionsAndTagIds;
 
   public constructor(
-    init: TransactionWithExtensions,
+    init: TransactionWithExtensionsAndTagIds,
     categoryById: { [id: number]: Category },
     bankAccountById: { [id: number]: BankAccount },
     tripById: Map<number, Trip>,

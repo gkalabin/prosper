@@ -21,8 +21,15 @@ export interface TransactionWithExtensions extends Transaction {
   income?: Income;
 }
 
+export interface TransactionWithExtensionsAndTagIds
+  extends TransactionWithExtensions {
+  tags: {
+    id: number;
+  }[];
+}
+
 export type AllDatabaseData = {
-  dbTransactions: TransactionWithExtensions[];
+  dbTransactions: TransactionWithExtensionsAndTagIds[];
   dbCategories: Category[];
   dbBanks: Bank[];
   dbBankAccounts: BankAccount[];
