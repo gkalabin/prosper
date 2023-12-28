@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
-import { authOptions } from "pages/api/auth/[...nextauth]";
+import { authOptions } from "app/api/auth/[...nextauth]/authOptions";
 
 export async function getUserId(): Promise<number> {
   const session = await getServerSession(authOptions);
