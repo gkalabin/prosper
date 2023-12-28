@@ -1,3 +1,4 @@
+import { RunningAverageOwnShare } from "components/charts/RunningAverage";
 import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
 import { undoTailwindInputStyles } from "components/forms/Select";
 import {
@@ -5,7 +6,7 @@ import {
   NotConfiguredYet,
 } from "components/NotConfiguredYet";
 import { StatsPageLayout } from "components/StatsPageLayout";
-import { eachMonthOfInterval, isWithinInterval, startOfMonth } from "date-fns";
+import { startOfMonth } from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { defaultMoneyChartOptions, legend } from "lib/charts";
@@ -14,29 +15,25 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { Transaction } from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
+import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
 import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import Select from "react-select";
 
-export function IncomeCharts(props: {
-  transactions: Transaction[];
-  duration: Interval;
-}) {
+export function IncomeCharts({ input }: { input: TransactionsStatsInput }) {
   const displayCurrency = useDisplayCurrency();
   const { categories } = useAllDatabaseDataContext();
   const zero = AmountWithCurrency.zero(displayCurrency);
-  const months = eachMonthOfInterval(props.duration).map((x) => x.getTime());
+  const months = input.months().map((x) => x.getTime());
   const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
 
-  const incomeTransactions = props.transactions.filter((t) => t.isIncome());
   const moneyIn = new Map<number, AmountWithCurrency>(zeroes);
   const byCategoryIdAndMonth = new Map<
     number,
     Map<number, AmountWithCurrency>
   >();
-  for (const t of incomeTransactions) {
+  for (const t of input.income()) {
     const ts = startOfMonth(t.timestamp).getTime();
     const exchanged = t.amountOwnShare(displayCurrency);
     moneyIn.set(ts, exchanged.add(moneyIn.get(ts)));
@@ -67,6 +64,12 @@ export function IncomeCharts(props: {
             },
           ],
         }}
+      />
+      <RunningAverageOwnShare
+        transactions={input.incomeAllTime()}
+        duration={input.interval()}
+        maxWindowLength={12}
+        title="Average income (over previous 12 months)"
       />
       <ReactEcharts
         notMerge
@@ -102,10 +105,9 @@ function PageContent() {
     label: a.nameWithAncestors(),
   }));
   const filteredTransactions = transactions.filter(
-    (t) =>
-      isWithinInterval(t.timestamp, duration) &&
-      !excludeCategories.includes(t.category.id())
+    (t) => !excludeCategories.includes(t.category.id())
   );
+  const input = new TransactionsStatsInput(filteredTransactions, duration);
   return (
     <StatsPageLayout>
       <DurationSelector duration={duration} onChange={setDuration} />
@@ -128,7 +130,7 @@ function PageContent() {
           onChange={(x) => setExcludeCategories(x.map((x) => x.value))}
         />
       </div>
-      <IncomeCharts transactions={filteredTransactions} duration={duration} />
+      <IncomeCharts input={input} />
     </StatsPageLayout>
   );
 }

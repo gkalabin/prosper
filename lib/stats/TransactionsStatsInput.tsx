@@ -17,6 +17,14 @@ export class TransactionsStatsInput {
     return this.intervalOnly(this.expensesAllTime());
   }
 
+  incomeAllTime() {
+    return this._transactions.filter((t) => t.isIncome());
+  }
+
+  income() {
+    return this.intervalOnly(this.incomeAllTime());
+  }
+
   interval() {
     return this._interval;
   }
