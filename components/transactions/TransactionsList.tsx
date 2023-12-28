@@ -1,90 +1,55 @@
+import { ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import classNames from "classnames";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { BankAccount } from "lib/model/BankAccount";
+import { ButtonLink } from "components/ui/buttons";
+import { format } from "date-fns";
+import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { Transaction } from "lib/model/Transaction";
-import { descriptiveDateTime, shortRelativeDate } from "lib/TimeHelpers";
 import { TransactionAPIResponse } from "lib/transactionDbUtils";
 import { useState } from "react";
 
-const transactionHeadingText = (t: Transaction) => {
-  if (t.hasVendor()) {
-    return t.vendor();
-  }
+const TransactionTitle = ({ t }: { t: Transaction }) => {
   if (t.isTransfer()) {
     const from = t.accountFrom();
     const to = t.accountTo();
+    let transferDetails = (
+      <>
+        {from.bank.name} {from.name} → {to.bank.name} {to.name}
+      </>
+    );
     if (from.bank.id == to.bank.id) {
-      return `${from.bank.name}: ${from.name} → ${to.name}`;
+      transferDetails = (
+        <>
+          {from.bank.name} {from.name} → {to.name}
+        </>
+      );
     }
-    return `${from.bank.name}: ${from.name} → ${to.bank.name}: ${to.name}`;
+    return <>{transferDetails}</>;
   }
-  return t.description;
-};
-
-export const TransactionHeading = (props: { t: Transaction }) => {
-  return <>{transactionHeadingText(props.t)}</>;
-};
-
-export const TransactionDescription = (props: { t: Transaction }) => {
-  if (transactionHeadingText(props.t) != props.t.description) {
-    return <>{props.t.description}</>;
-  }
-  return <></>;
-};
-
-const TransactionStatusLine = (props: {
-  t: Transaction;
-  showBankAccountInStatusLine: boolean;
-}) => {
-  if (props.t.isPersonalExpense()) {
-    const maybeBankAccount = props.showBankAccountInStatusLine && (
-      <BankAccountLabel account={props.t.accountFrom()} />
+  if (t.isPersonalExpense()) {
+    return (
+      <>
+        {t.vendor()}{" "}
+        {t.hasOtherParty() && <small>split with {t.otherParty()}</small>}
+      </>
     );
-    return <>{maybeBankAccount}</>;
   }
-  if (props.t.isThirdPartyExpense()) {
-    return <>{props.t.payer()}</>;
-  }
-  if (props.t.isIncome()) {
-    const maybeBankAccount = props.showBankAccountInStatusLine && (
-      <BankAccountLabel account={props.t.accountTo()} />
+  if (t.isThirdPartyExpense()) {
+    return (
+      <>
+        {t.vendor()} <small>paid by {t.payer()}</small>
+      </>
     );
-    return <>{maybeBankAccount}</>;
   }
-  return <></>;
-};
-
-const BankAccountLabel = (props: { account: BankAccount }) => {
-  return (
-    <span className="rounded bg-gray-100 px-2 py-1">
-      {props.account.bank.name}: {props.account.name}
-    </span>
-  );
-};
-
-const TransactionTimestamp = (props: { t: Transaction }) => {
-  const [showShort, setShowShort] = useState(true);
-  const longFormat = descriptiveDateTime(props.t.timestamp);
-  // TODO: show tooltip on click instead of changing the contents
-  return (
-    <span onClick={() => setShowShort(!showShort)} title={longFormat}>
-      {(showShort && shortRelativeDate(props.t.timestamp)) || longFormat}
-    </span>
-  );
-};
-
-const TransactionAmount = (props: {
-  amount: AmountWithCurrency;
-  sign: number;
-}) => {
-  if (props.sign < 0) {
-    return <span className="text-red-900">-{props.amount.format()}</span>;
+  if (t.isIncome()) {
+    return (
+      <>
+        {t.hasPayer() ? t.payer() : "Unknown payer"}{" "}
+        {t.hasOtherParty() && <small>split with {t.otherParty()}</small>}
+      </>
+    );
   }
-  if (props.sign > 0) {
-    return <span className="text-green-900">+{props.amount.format()}</span>;
-  }
-
-  return <span>{props.amount.format()}</span>;
+  throw new Error("Unknown transaction type");
 };
 
 export const TransactionsListItem = (props: {
@@ -93,63 +58,100 @@ export const TransactionsListItem = (props: {
   showBankAccountInStatusLine: boolean;
 }) => {
   const [showRawDetails, setShowRawDetails] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const raw = JSON.stringify(props.transaction.dbValue, null, 2);
+  const { tags } = useAllDatabaseDataContext();
+  const t = props.transaction;
   return (
-    // TODO: add date and category
-    <li className="flex flex-col gap-2 p-2">
-      <div className="flex min-h-[theme('spacing[16]')] gap-2">
-        <div className="min-w-[theme('spacing[20]')] flex-none whitespace-nowrap text-right text-lg font-medium text-gray-900">
-          <TransactionAmount
-            amount={props.transaction.amount()}
-            sign={props.transaction.amountSign()}
-          />
-        </div>
-
-        <div className="flex grow flex-col gap-1">
-          <div className="text-base font-medium text-gray-900">
-            <TransactionHeading t={props.transaction} />
+    <div className="p-2">
+      <div
+        className="flex cursor-pointer flex-row"
+        onClick={() => setExpanded(!expanded)}
+      >
+        <div className="grow">
+          <div>
+            <TransactionTitle t={t} />
           </div>
-          <div className="grow text-sm text-gray-500">
-            <TransactionDescription t={props.transaction} />
-          </div>
-
-          <div className="text-sm text-gray-500">
-            <TransactionStatusLine
-              t={props.transaction}
-              showBankAccountInStatusLine={props.showBankAccountInStatusLine}
-            />
+          <div className="text-xs italic text-gray-600">{t.description}</div>
+          <div className="text-xs text-gray-600">
+            {format(t.timestamp, "yyyy-MM-dd HH:mm")}
           </div>
         </div>
-
-        <div className=" flex min-w-[theme('spacing[16]')] flex-col justify-between">
-          <div className="text-sm text-gray-500">
-            <TransactionTimestamp t={props.transaction} />
-          </div>
-
-          <div className="flex flex-col gap-1 md:flex-row">
-            <button
-              onClick={() => setShowEditForm(true)}
-              className="font-medium text-indigo-600 hover:text-indigo-500"
-            >
-              Edit
-            </button>
-            <button
-              className="font-medium text-indigo-600 hover:text-indigo-500"
-              onClick={() => setShowRawDetails(!showRawDetails)}
-            >
-              Raw
-            </button>
-          </div>
+        <div
+          className={classNames(
+            "self-center pr-2 text-lg",
+            t.isIncome() && "text-green-900"
+          )}
+        >
+          {t.isIncome() ? "+" : ""}
+          {t.amount().format()}
+        </div>
+        <div className="self-center">
+          {!expanded && <ChevronRightIcon className="inline h-4 w-4" />}
+          {expanded && <ChevronDownIcon className="inline h-4 w-4" />}
         </div>
       </div>
 
-      {showRawDetails && (
-        <div>
-          <pre className="text-xs">{raw}</pre>
+      {expanded && (
+        <div className="pl-1">
+          <div>Category: {t.category.nameWithAncestors()}</div>
+          <div>{t.hasVendor() ? "Vendor: " + t.vendor() : ""}</div>
+          <div>{t.hasOtherParty() ? "Other party: " + t.otherParty() : ""}</div>
+          <div>{t.hasPayer() ? "Payer: " + t.payer() : ""}</div>
+          <div>
+            {t.hasAccountFrom()
+              ? "Account from: " +
+                t.accountFrom().bank.name +
+                " " +
+                t.accountFrom().name
+              : ""}
+          </div>
+          <div>
+            {t.hasAccountTo()
+              ? "Account to: " +
+                t.accountTo().bank.name +
+                " " +
+                t.accountTo().name
+              : ""}
+          </div>
+          <div>
+            {t.isPersonalExpense() || t.isThirdPartyExpense() || t.isIncome()
+              ? "Full amount: " + t.amount().format()
+              : ""}
+          </div>
+          <div>
+            {t.isPersonalExpense() || t.isThirdPartyExpense() || t.isIncome()
+              ? "Own share: " + t.amountOwnShare().format()
+              : ""}
+          </div>
+          <div>{t.isTransfer() ? "Sent: " + t.amount().format() : ""}</div>
+          <div>
+            {t.isTransfer() ? "Received: " + t.amountReceived().format() : ""}
+          </div>
+          <div>
+            Tags:{" "}
+            {t
+              .tags()
+              .map((t) => tags.find((x) => x.id() == t.id()).name())
+              .join(", ")}
+          </div>
         </div>
       )}
-      {showEditForm && (
+
+      {expanded && (
+        <div className="space-x-2 pl-1">
+          {!showEditForm && (
+            <ButtonLink onClick={() => setShowEditForm(true)}>Edit</ButtonLink>
+          )}
+          <ButtonLink onClick={() => setShowRawDetails(!showRawDetails)}>
+            {showRawDetails ? "Hide" : "Show"} raw details
+          </ButtonLink>
+        </div>
+      )}
+
+      {expanded && showRawDetails && <pre className="text-xs">{raw}</pre>}
+      {expanded && showEditForm && (
         <div>
           <AddTransactionForm
             transaction={props.transaction}
@@ -161,7 +163,7 @@ export const TransactionsListItem = (props: {
           />
         </div>
       )}
-    </li>
+    </div>
   );
 };
 
