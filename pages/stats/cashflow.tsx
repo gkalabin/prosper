@@ -1,5 +1,8 @@
+import { MonthlyChart } from "components/charts/Monthly";
 import { MonthlyOwnShare } from "components/charts/MonthlySum";
 import { RunningAverageAmounts } from "components/charts/RunningAverage";
+import { YearlyChart } from "components/charts/Yearly";
+import { YearlyOwnShare } from "components/charts/YearlySum";
 import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
 import { undoTailwindInputStyles } from "components/forms/Select";
 import {
@@ -7,10 +10,8 @@ import {
   NotConfiguredYet,
 } from "components/NotConfiguredYet";
 import { StatsPageLayout } from "components/StatsPageLayout";
-import { startOfMonth } from "date-fns";
-import ReactEcharts from "echarts-for-react";
+import { startOfMonth, startOfYear } from "date-fns";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { defaultMonthlyMoneyChart } from "lib/charts";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -50,39 +51,20 @@ export function CashflowCharts({ input }: { input: TransactionsStatsInput }) {
     current = current.add(cashflow.month(m));
     cashflowCumulative.append(m, current);
   }
+  const yearsIncomplete = startOfYear(input.interval().start).getTime() != +input.interval().start
+  || startOfYear(input.interval().end).getTime() != +input.interval().end;
   return (
     <>
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultMonthlyMoneyChart(displayCurrency, input.interval()),
-          title: {
-            text: "Cashflow",
-          },
-          series: [
-            {
-              type: "bar",
-              name: "Money in vs out",
-              data: cashflow.monthRoundDollars(displayMonths),
-            },
-          ],
-        }}
+      <MonthlyChart
+        data={cashflow}
+        duration={input.interval()}
+        title="Monthly cashflow"
       />
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultMonthlyMoneyChart(displayCurrency, input.interval()),
-          title: {
-            text: "Cashflow (cumulative)",
-          },
-          series: [
-            {
-              type: "line",
-              name: "Money in vs out (cumulative)",
-              data: cashflowCumulative.monthRoundDollars(displayMonths),
-            },
-          ],
-        }}
+      <MonthlyChart
+        data={cashflowCumulative}
+        duration={input.interval()}
+        title="Monthly cashflow (cumulative)"
+        type="line"
       />
       <RunningAverageAmounts
         title="Cashflow running average (over 12 months)"
@@ -91,12 +73,39 @@ export function CashflowCharts({ input }: { input: TransactionsStatsInput }) {
         maxWindowLength={12}
       />
       <MonthlyOwnShare
-        title="Money out"
+        title="Monthly out"
         transactions={input.expenses()}
         duration={input.interval()}
       />
       <MonthlyOwnShare
-        title="Money in"
+        title="Monthly in"
+        transactions={input.income()}
+        duration={input.interval()}
+      />
+
+      {yearsIncomplete && (
+        <div className="text-medium text-lg border bg-yellow-300 rounded p-2 text-slate-700">
+          Showing data for incomplete years
+        </div>
+      )}
+      <YearlyChart
+        data={cashflow}
+        duration={input.interval()}
+        title="Yearly cashflow"
+      />
+      <YearlyChart
+        data={cashflowCumulative}
+        duration={input.interval()}
+        title="Yearly cashflow (cumulative)"
+        type="line"
+      />
+      <YearlyOwnShare
+        title="Yearly out"
+        transactions={input.expenses()}
+        duration={input.interval()}
+      />
+      <YearlyOwnShare
+        title="Yearly in"
         transactions={input.income()}
         duration={input.interval()}
       />

@@ -1,4 +1,6 @@
+import { MonthlyOwnShare } from "components/charts/MonthlySum";
 import { RunningAverageOwnShare } from "components/charts/RunningAverage";
+import { YearlyOwnShare } from "components/charts/YearlySum";
 import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
 import { undoTailwindInputStyles } from "components/forms/Select";
 import {
@@ -6,7 +8,7 @@ import {
   NotConfiguredYet,
 } from "components/NotConfiguredYet";
 import { StatsPageLayout } from "components/StatsPageLayout";
-import { startOfMonth } from "date-fns";
+import { differenceInYears, startOfMonth } from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { defaultMonthlyMoneyChart, legend } from "lib/charts";
@@ -27,8 +29,6 @@ export function IncomeCharts({ input }: { input: TransactionsStatsInput }) {
   const zero = AmountWithCurrency.zero(displayCurrency);
   const months = input.months().map((x) => x.getTime());
   const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
-
-  const moneyIn = new Map<number, AmountWithCurrency>(zeroes);
   const byCategoryIdAndMonth = new Map<
     number,
     Map<number, AmountWithCurrency>
@@ -36,7 +36,6 @@ export function IncomeCharts({ input }: { input: TransactionsStatsInput }) {
   for (const t of input.income()) {
     const ts = startOfMonth(t.timestamp).getTime();
     const exchanged = t.amountOwnShare(displayCurrency);
-    moneyIn.set(ts, exchanged.add(moneyIn.get(ts)));
     const categorySeries =
       byCategoryIdAndMonth.get(t.category.id()) ?? new Map(zeroes);
     categorySeries.set(ts, exchanged.add(categorySeries.get(ts)));
@@ -45,26 +44,18 @@ export function IncomeCharts({ input }: { input: TransactionsStatsInput }) {
 
   return (
     <>
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultMonthlyMoneyChart(displayCurrency, input.interval()),
-          ...legend(),
-          title: {
-            text: "Total money in",
-          },
-          series: [
-            {
-              type: "bar",
-              name: "Money In",
-              data: months.map((m) => Math.round(moneyIn.get(m).dollar())),
-              itemStyle: {
-                color: "#15803d",
-              },
-            },
-          ],
-        }}
+      <MonthlyOwnShare
+        title="Monthly income"
+        transactions={input.income()}
+        duration={input.interval()}
       />
+      {differenceInYears(input.interval().end, input.interval().start) > 1 && (
+        <YearlyOwnShare
+          title="Yearly income"
+          transactions={input.income()}
+          duration={input.interval()}
+        />
+      )}
       <RunningAverageOwnShare
         transactions={input.incomeAllTime()}
         duration={input.interval()}

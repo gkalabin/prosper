@@ -1,7 +1,7 @@
 import {
   ChildCategoryFullAmountChart,
   ChildCategoryOwnShareChart,
-} from "components/charts/CategoryPieChart";
+} from "components/charts/CategoryPie";
 import Layout from "components/Layout";
 import {
   isFullyConfigured,

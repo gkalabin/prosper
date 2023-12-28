@@ -1,4 +1,9 @@
-import { Interval, eachMonthOfInterval } from "date-fns";
+import {
+  Interval,
+  eachMonthOfInterval,
+  eachYearOfInterval,
+  format,
+} from "date-fns";
 import { EChartsOption } from "echarts";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { formatMonth } from "lib/TimeHelpers";
@@ -65,13 +70,32 @@ export function defaultMonthlyMoneyChart(
 ): EChartsOption {
   const months = eachMonthOfInterval(interval).map((x) => x.getTime());
   return {
+    ...defaultMoneyChart(c),
+    xAxis: {
+      data: months.map((x) => formatMonth(x)),
+    },
+  };
+}
+
+export function defaultYearlyMoneyChart(
+  c: Currency,
+  interval: Interval
+): EChartsOption {
+  const years = eachYearOfInterval(interval).map((x) => x.getTime());
+  return {
+    ...defaultMoneyChart(c),
+    xAxis: {
+      data: years.map((x) => format(x, "yyyy")),
+    },
+  };
+}
+
+export function defaultMoneyChart(c: Currency): EChartsOption {
+  return {
     grid: {
       containLabel: true,
     },
     tooltip: {},
-    xAxis: {
-      data: months.map((x) => formatMonth(x)),
-    },
     yAxis: {
       axisLabel: {
         formatter: currencyFormatter(c),

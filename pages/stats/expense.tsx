@@ -1,5 +1,6 @@
 import { MonthlyOwnShare } from "components/charts/MonthlySum";
 import { RunningAverageOwnShare } from "components/charts/RunningAverage";
+import { YearlyOwnShare } from "components/charts/YearlySum";
 import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
 import { undoTailwindInputStyles } from "components/forms/Select";
 import {
@@ -7,7 +8,12 @@ import {
   NotConfiguredYet,
 } from "components/NotConfiguredYet";
 import { StatsPageLayout } from "components/StatsPageLayout";
-import { eachMonthOfInterval, Interval, startOfMonth } from "date-fns";
+import {
+  differenceInYears,
+  eachMonthOfInterval,
+  Interval,
+  startOfMonth,
+} from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
@@ -65,8 +71,15 @@ export function ExpenseCharts({ input }: { input: TransactionsStatsInput }) {
       <MonthlyOwnShare
         transactions={input.expenses()}
         duration={input.interval()}
-        title="Total"
+        title="Monthly expense"
       />
+      {differenceInYears(input.interval().end, input.interval().start) > 1 && (
+        <YearlyOwnShare
+          title="Yearly expense"
+          transactions={input.expenses()}
+          duration={input.interval()}
+        />
+      )}
       <RunningAverageOwnShare
         transactions={input.expensesAllTime()}
         duration={input.interval()}

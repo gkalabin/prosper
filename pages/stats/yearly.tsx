@@ -1,7 +1,7 @@
 import {
   ChildCategoryOwnShareChart,
   TopLevelCategoryOwnShareChart,
-} from "components/charts/CategoryPieChart";
+} from "components/charts/CategoryPie";
 import { undoTailwindInputStyles } from "components/forms/Select";
 import {
   isFullyConfigured,
