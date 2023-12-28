@@ -16,7 +16,7 @@ import {
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
-  defaultChartOptions,
+  defaultMoneyChartOptions,
   legend,
   stackedBarChartTooltip,
 } from "lib/charts";
@@ -99,7 +99,7 @@ export function ExpenseCharts(props: {
       <ReactEcharts
         notMerge
         option={{
-          ...defaultChartOptions(displayCurrency, months),
+          ...defaultMoneyChartOptions(displayCurrency, months),
           ...legend(),
           title: {
             text: "Total money out",
@@ -119,7 +119,7 @@ export function ExpenseCharts(props: {
       <ReactEcharts
         notMerge
         option={{
-          ...defaultChartOptions(displayCurrency, months),
+          ...defaultMoneyChartOptions(displayCurrency, months),
           ...stackedBarChartTooltip(displayCurrency),
           ...legend(),
           title: {
@@ -138,7 +138,7 @@ export function ExpenseCharts(props: {
       <ReactEcharts
         notMerge
         option={{
-          ...defaultChartOptions(displayCurrency, months),
+          ...defaultMoneyChartOptions(displayCurrency, months),
           ...stackedBarChartTooltip(displayCurrency),
           title: {
             text: "By bottom level category",
@@ -223,7 +223,7 @@ export function ExpenseByCategory(props: {
       <ReactEcharts
         notMerge
         option={{
-          ...defaultChartOptions(displayCurrency, months),
+          ...defaultMoneyChartOptions(displayCurrency, months),
           ...stackedBarChartTooltip(displayCurrency),
           title: {
             text: props.category.nameWithAncestors(),

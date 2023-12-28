@@ -1,0 +1,402 @@
+import { ButtonFormSecondary } from "components/ui/buttons";
+import {
+  differenceInMonths,
+  eachMonthOfInterval,
+  startOfMonth,
+} from "date-fns";
+import { Transaction } from "lib/model/Transaction";
+import ReactEcharts from "echarts-for-react";
+import {
+  defaultCountChartOptions,
+  defaultMoneyChartOptions,
+  defaultPieChartOptions,
+} from "lib/charts";
+import { useDisplayCurrency } from "lib/displaySettings";
+import { AmountWithCurrency } from "lib/AmountWithCurrency";
+import { useAllDatabaseDataContext } from "lib/ClientSideModel";
+import { percentile } from "lib/util/percentiles";
+
+export function TransactionStats(props: {
+  onClose: () => void;
+  transactions: Transaction[];
+}) {
+  const transactionsByTimestamp = [...props.transactions].sort(
+    (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
+  );
+  return (
+    <div className="grid grid-cols-6 gap-6 bg-white p-2 shadow sm:rounded-md sm:p-6">
+      <div className="col-span-6 text-xl font-medium leading-7">Stats</div>
+      {!props.transactions.length && <div>No transactions found</div>}
+      {!!props.transactions.length && (
+        <NonEmptyTransactionStats
+          onClose={props.onClose}
+          transactions={transactionsByTimestamp}
+        />
+      )}
+    </div>
+  );
+}
+
+function NonEmptyTransactionStats({
+  onClose,
+  transactions,
+}: {
+  onClose: () => void;
+  transactions: Transaction[];
+}) {
+  return (
+    <>
+      <div className="col-span-6">
+        <TextSummary transactions={transactions} />
+      </div>
+
+      <Charts transactions={transactions} />
+
+      <div className="col-span-6">
+        <ButtonFormSecondary onClick={onClose}>Close</ButtonFormSecondary>
+      </div>
+    </>
+  );
+}
+
+function TextSummary({ transactions }: { transactions: Transaction[] }) {
+  const [first, last] = [
+    transactions[0],
+    transactions[transactions.length - 1],
+  ];
+  return (
+    <div className="col-span-6">
+      Matched {transactions.length} transations over the last{" "}
+      {differenceInMonths(last.timestamp, first.timestamp)} months
+      <div className="ml-2 text-sm text-slate-600">
+        <div>
+          Personal: {transactions.filter((t) => t.isPersonalExpense()).length}
+        </div>
+        <div>
+          External: {transactions.filter((t) => t.isThirdPartyExpense()).length}
+        </div>
+        <div>
+          Transfers: {transactions.filter((t) => t.isTransfer()).length}
+        </div>
+        <div>Income: {transactions.filter((t) => t.isIncome()).length}</div>
+        <div>First: {first.timestamp.toISOString()}</div>
+        <div>Last: {last.timestamp.toISOString()}</div>
+      </div>
+    </div>
+  );
+}
+
+function Charts({ transactions }: { transactions: Transaction[] }) {
+  const [first, last] = [
+    transactions[0],
+    transactions[transactions.length - 1],
+  ];
+  const duration = { start: first.timestamp, end: last.timestamp };
+  const months = eachMonthOfInterval(duration).map((x) => x.getTime());
+  const count = new Map<number, number>(months.map((m) => [m, 0]));
+  for (const t of transactions) {
+    const ts = startOfMonth(t.timestamp).getTime();
+    count.set(ts, (count.get(ts) ?? 0) + 1);
+  }
+  return (
+    <div className="col-span-6">
+      <ReactEcharts
+        notMerge
+        option={{
+          ...defaultCountChartOptions(months),
+          title: {
+            text: "Count of transactions",
+          },
+          series: [
+            {
+              type: "bar",
+              data: months.map((m) => count.get(m)),
+            },
+          ],
+        }}
+      />
+      <h1 className="mt-4 mb-1 text-xl font-medium leading-7">Expenses</h1>
+      <ExenseStats transactions={transactions} />
+      <h1 className="mt-4 mb-1 text-xl font-medium leading-7">Income</h1>
+      <IncomeStats transactions={transactions} />
+    </div>
+  );
+}
+
+function ExenseStats({ transactions }: { transactions: Transaction[] }) {
+  const displayCurrency = useDisplayCurrency();
+  const { categories } = useAllDatabaseDataContext();
+  const [first, last] = [
+    transactions[0],
+    transactions[transactions.length - 1],
+  ];
+  const duration = { start: first.timestamp, end: last.timestamp };
+  const months = eachMonthOfInterval(duration).map((x) => x.getTime());
+  const zero = AmountWithCurrency.zero(displayCurrency);
+  const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
+  const grossPerMonth = new Map<number, AmountWithCurrency>(zeroes);
+  const netPerMonth = new Map<number, AmountWithCurrency>(zeroes);
+  const grossPerCategory = new Map<number, AmountWithCurrency>();
+  const netPerCategory = new Map<number, AmountWithCurrency>();
+  const gross: AmountWithCurrency[] = [];
+  const net: AmountWithCurrency[] = [];
+  for (const t of transactions) {
+    const ts = startOfMonth(t.timestamp).getTime();
+    if (t.isPersonalExpense() || t.isThirdPartyExpense()) {
+      const g = t.amountAllParties(displayCurrency);
+      const n = t.amountOwnShare(displayCurrency);
+      gross.push(g);
+      net.push(n);
+      netPerMonth.set(ts, n.add(netPerMonth.get(ts)));
+      grossPerMonth.set(ts, g.add(grossPerMonth.get(ts)));
+      const cid = t.category.id();
+      grossPerCategory.set(cid, g.add(grossPerCategory.get(cid)));
+      netPerCategory.set(cid, n.add(netPerCategory.get(cid)));
+    }
+  }
+  const totalGross = gross.reduce((a, b) => a.add(b), zero);
+  const totalNet = net.reduce((a, b) => a.add(b), zero);
+  const mapPercentile = (m: Map<number, AmountWithCurrency>, p: number) =>
+    percentile([...m.values()], p);
+
+  return (
+    <div>
+      <div className="ml-2 mb-2 text-sm text-slate-600">
+        <div>
+          Total: {totalGross.round().format()}(gross) /{" "}
+          {totalNet.round().format()}(net)
+        </div>
+        <div>
+          Own share percent:{" "}
+          {Math.round((100 * totalNet.cents()) / totalGross.cents())}%
+        </div>
+        <div>
+          Monthly percentiles (gross):
+          <div className="ml-1 text-xs">
+            {mapPercentile(grossPerMonth, 25).round().format()} (p25) /{" "}
+            {mapPercentile(grossPerMonth, 50).round().format()} (p50) /{" "}
+            {mapPercentile(grossPerMonth, 75).round().format()} (p75) /{" "}
+            {mapPercentile(grossPerMonth, 100).round().format()} (max)
+          </div>
+        </div>
+        <div>
+          Monthly percentiles (net):
+          <div className="ml-1 text-xs">
+            {mapPercentile(netPerMonth, 25).round().format()} (p25) /{" "}
+            {mapPercentile(netPerMonth, 50).round().format()} (p50) /{" "}
+            {mapPercentile(netPerMonth, 75).round().format()} (p75) /{" "}
+            {mapPercentile(netPerMonth, 100).round().format()} (max)
+          </div>
+        </div>
+      </div>
+      <ReactEcharts
+        notMerge
+        option={{
+          ...defaultMoneyChartOptions(displayCurrency, months),
+          title: {
+            text: "Money spent (gross: all parties)",
+          },
+          series: [
+            {
+              type: "bar",
+              data: months.map((m) =>
+                Math.round(grossPerMonth.get(m).dollar())
+              ),
+            },
+          ],
+        }}
+      />
+      <ReactEcharts
+        notMerge
+        option={{
+          ...defaultMoneyChartOptions(displayCurrency, months),
+          title: {
+            text: "Money spent (net: own share)",
+          },
+          series: [
+            {
+              type: "bar",
+              data: months.map((m) => Math.round(netPerMonth.get(m).dollar())),
+            },
+          ],
+        }}
+      />
+
+      <ReactEcharts
+        notMerge
+        option={{
+          ...defaultPieChartOptions(),
+          title: {
+            text: "By category (gross)",
+          },
+          series: [
+            {
+              type: "pie",
+              data: [...grossPerCategory.entries()].map(([cid, amount]) => ({
+                name: categories.find((c) => c.id() == cid).nameWithAncestors(),
+                value: amount.dollar(),
+              })),
+            },
+          ],
+        }}
+      />
+      <ReactEcharts
+        notMerge
+        option={{
+          ...defaultPieChartOptions(),
+          title: {
+            text: "By category (net)",
+          },
+          series: [
+            {
+              type: "pie",
+              data: [...netPerCategory.entries()].map(([cid, amount]) => ({
+                name: categories.find((c) => c.id() == cid).nameWithAncestors(),
+                value: amount.dollar(),
+              })),
+            },
+          ],
+        }}
+      />
+    </div>
+  );
+}
+
+function IncomeStats({ transactions }: { transactions: Transaction[] }) {
+  const displayCurrency = useDisplayCurrency();
+  const { categories } = useAllDatabaseDataContext();
+  const [first, last] = [
+    transactions[0],
+    transactions[transactions.length - 1],
+  ];
+  const duration = { start: first.timestamp, end: last.timestamp };
+  const months = eachMonthOfInterval(duration).map((x) => x.getTime());
+  const zero = AmountWithCurrency.zero(displayCurrency);
+  const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
+  const grossPerMonth = new Map<number, AmountWithCurrency>(zeroes);
+  const netPerMonth = new Map<number, AmountWithCurrency>(zeroes);
+  const grossPerCategory = new Map<number, AmountWithCurrency>();
+  const netPerCategory = new Map<number, AmountWithCurrency>();
+  const gross: AmountWithCurrency[] = [];
+  const net: AmountWithCurrency[] = [];
+  for (const t of transactions) {
+    const ts = startOfMonth(t.timestamp).getTime();
+    if (t.isIncome()) {
+      const g = t.amountAllParties(displayCurrency);
+      const n = t.amountOwnShare(displayCurrency);
+      gross.push(g);
+      net.push(n);
+      netPerMonth.set(ts, n.add(netPerMonth.get(ts)));
+      grossPerMonth.set(ts, g.add(grossPerMonth.get(ts)));
+      const cid = t.category.id();
+      grossPerCategory.set(cid, g.add(grossPerCategory.get(cid)));
+      netPerCategory.set(cid, n.add(netPerCategory.get(cid)));
+    }
+  }
+  const totalGross = gross.reduce((a, b) => a.add(b), zero);
+  const totalNet = net.reduce((a, b) => a.add(b), zero);
+  const mapPercentile = (m: Map<number, AmountWithCurrency>, p: number) =>
+    percentile([...m.values()], p);
+
+  return (
+    <div>
+      <div className="ml-2 mb-2 text-sm text-slate-600">
+        <div>
+          Total: {totalGross.round().format()}(gross) /{" "}
+          {totalNet.round().format()}(net)
+        </div>
+        <div>
+          Own share percent:{" "}
+          {Math.round((100 * totalNet.cents()) / totalGross.cents())}%
+        </div>
+        <div>
+          Monthly percentiles (gross):
+          <div className="ml-1 text-xs">
+            {mapPercentile(grossPerMonth, 25).round().format()} (p25) /{" "}
+            {mapPercentile(grossPerMonth, 50).round().format()} (p50) /{" "}
+            {mapPercentile(grossPerMonth, 75).round().format()} (p75) /{" "}
+            {mapPercentile(grossPerMonth, 100).round().format()} (max)
+          </div>
+        </div>
+        <div>
+          Monthly percentiles (net):
+          <div className="ml-1 text-xs">
+            {mapPercentile(netPerMonth, 25).round().format()} (p25) /{" "}
+            {mapPercentile(netPerMonth, 50).round().format()} (p50) /{" "}
+            {mapPercentile(netPerMonth, 75).round().format()} (p75) /{" "}
+            {mapPercentile(netPerMonth, 100).round().format()} (max)
+          </div>
+        </div>
+      </div>
+      <ReactEcharts
+        notMerge
+        option={{
+          ...defaultMoneyChartOptions(displayCurrency, months),
+          title: {
+            text: "Money received (gross: all parties)",
+          },
+          series: [
+            {
+              type: "bar",
+              data: months.map((m) =>
+                Math.round(grossPerMonth.get(m).dollar())
+              ),
+            },
+          ],
+        }}
+      />
+      <ReactEcharts
+        notMerge
+        option={{
+          ...defaultMoneyChartOptions(displayCurrency, months),
+          title: {
+            text: "Money received (net: own share)",
+          },
+          series: [
+            {
+              type: "bar",
+              data: months.map((m) => Math.round(netPerMonth.get(m).dollar())),
+            },
+          ],
+        }}
+      />
+
+      <ReactEcharts
+        notMerge
+        option={{
+          ...defaultPieChartOptions(),
+          title: {
+            text: "Income by category (gross)",
+          },
+          series: [
+            {
+              type: "pie",
+              data: [...grossPerCategory.entries()].map(([cid, amount]) => ({
+                name: categories.find((c) => c.id() == cid).nameWithAncestors(),
+                value: amount.dollar(),
+              })),
+            },
+          ],
+        }}
+      />
+      <ReactEcharts
+        notMerge
+        option={{
+          ...defaultPieChartOptions(),
+          title: {
+            text: "Income by category (net)",
+          },
+          series: [
+            {
+              type: "pie",
+              data: [...netPerCategory.entries()].map(([cid, amount]) => ({
+                name: categories.find((c) => c.id() == cid).nameWithAncestors(),
+                value: amount.dollar(),
+              })),
+            },
+          ],
+        }}
+      />
+    </div>
+  );
+}

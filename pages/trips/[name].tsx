@@ -5,9 +5,9 @@ import {
 } from "components/NotConfiguredYet";
 import { TransactionsList } from "components/transactions/TransactionsList";
 import { AnchorLink, ButtonLink } from "components/ui/buttons";
-import { EChartsOption } from "echarts";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
+import { defaultPieChartOptions } from "lib/charts";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -109,13 +109,6 @@ function TripDetails(props: { trip: Trip }) {
     );
   }
 
-  const defaultChartOptions: EChartsOption = {
-    grid: {
-      containLabel: true,
-    },
-    tooltip: {},
-  };
-
   return (
     <div>
       <AnchorLink href="/trips">Back to all trips</AnchorLink>
@@ -131,7 +124,7 @@ function TripDetails(props: { trip: Trip }) {
       <ReactEcharts
         notMerge
         option={{
-          ...defaultChartOptions,
+          ...defaultPieChartOptions(),
           title: {
             text: "Gross",
           },
@@ -150,7 +143,7 @@ function TripDetails(props: { trip: Trip }) {
       <ReactEcharts
         notMerge
         option={{
-          ...defaultChartOptions,
+          ...defaultPieChartOptions(),
           title: {
             text: "Net",
           },

@@ -43,6 +43,16 @@ export class AmountWithCurrency {
     return this;
   }
 
+  public round() {
+    if (!this.isRound()) {
+      return new AmountWithCurrency({
+        amountCents: Math.round(this.amount.dollar()) * 100,
+        currency: this.currency,
+      });
+    }
+    return this;
+  }
+
   public isZero() {
     return this.amount.isZero();
   }
@@ -53,6 +63,10 @@ export class AmountWithCurrency {
 
   public isNegative() {
     return this.amount.isNegative();
+  }
+
+  public isRound() {
+    return this.amount.cents() % 100 == 0;
   }
 
   public add(other: AmountWithCurrency): AmountWithCurrency {
@@ -85,7 +99,9 @@ export class AmountWithCurrency {
   }
 
   public format(): string {
-    return this.currency.format(this.amount.dollar());
+    return this.currency.format(this.amount.dollar(), {
+      maximumFractionDigits: this.isRound() ? 0 : 2,
+    });
   }
 
   public toString() {

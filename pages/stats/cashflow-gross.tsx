@@ -10,7 +10,7 @@ import { ButtonLink } from "components/ui/buttons";
 import { eachMonthOfInterval, isWithinInterval, startOfMonth } from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { defaultChartOptions, legend } from "lib/charts";
+import { defaultMoneyChartOptions, legend } from "lib/charts";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -63,7 +63,7 @@ export function MoneyInMoneyOut(props: {
     <>
       <ReactEcharts
         option={{
-          ...defaultChartOptions(displayCurrency, months),
+          ...defaultMoneyChartOptions(displayCurrency, months),
           ...legend(),
           title: {
             text: "Money In vs Money Out",
@@ -110,7 +110,7 @@ export function MoneyInMoneyOut(props: {
 
       <ReactEcharts
         option={{
-          ...defaultChartOptions(displayCurrency, months),
+          ...defaultMoneyChartOptions(displayCurrency, months),
           title: {
             text: "Delta (difference between money in and money out)",
           },
@@ -126,7 +126,7 @@ export function MoneyInMoneyOut(props: {
 
       <ReactEcharts
         option={{
-          ...defaultChartOptions(displayCurrency, months),
+          ...defaultMoneyChartOptions(displayCurrency, months),
           title: {
             text: "Cumulative delta",
           },

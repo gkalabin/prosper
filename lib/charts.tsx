@@ -57,7 +57,7 @@ function stackedBarChartTooltipFormatter(c: Currency) {
   };
 }
 
-export function defaultChartOptions(
+export function defaultMoneyChartOptions(
   c: Currency,
   months: number[] | Date[]
 ): EChartsOption {
@@ -74,6 +74,30 @@ export function defaultChartOptions(
         formatter: currencyFormatter(c),
       },
     },
+  };
+}
+
+export function defaultCountChartOptions(
+  months: number[] | Date[]
+): EChartsOption {
+  return {
+    grid: {
+      containLabel: true,
+    },
+    tooltip: {},
+    xAxis: {
+      data: months.map((x) => formatMonth(x)),
+    },
+    yAxis: {},
+  };
+}
+
+export function defaultPieChartOptions(): EChartsOption {
+  return {
+    grid: {
+      containLabel: true,
+    },
+    tooltip: {},
   };
 }
 

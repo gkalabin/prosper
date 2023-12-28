@@ -8,7 +8,7 @@ import { StatsPageLayout } from "components/StatsPageLayout";
 import { eachMonthOfInterval, isWithinInterval, startOfMonth } from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { defaultChartOptions } from "lib/charts";
+import { defaultMoneyChartOptions } from "lib/charts";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -65,7 +65,7 @@ export function CashflowCharts({
       <ReactEcharts
         notMerge
         option={{
-          ...defaultChartOptions(displayCurrency, months),
+          ...defaultMoneyChartOptions(displayCurrency, months),
           title: {
             text: "Cashflow",
           },
@@ -81,7 +81,7 @@ export function CashflowCharts({
       <ReactEcharts
         notMerge
         option={{
-          ...defaultChartOptions(displayCurrency, months),
+          ...defaultMoneyChartOptions(displayCurrency, months),
           title: {
             text: "Cashflow (cumulative)",
           },
@@ -97,7 +97,7 @@ export function CashflowCharts({
       <ReactEcharts
         notMerge
         option={{
-          ...defaultChartOptions(displayCurrency, months),
+          ...defaultMoneyChartOptions(displayCurrency, months),
           title: {
             text: "Money out",
           },
@@ -113,7 +113,7 @@ export function CashflowCharts({
       <ReactEcharts
         notMerge
         option={{
-          ...defaultChartOptions(displayCurrency, months),
+          ...defaultMoneyChartOptions(displayCurrency, months),
           title: {
             text: "Money In",
           },

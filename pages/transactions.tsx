@@ -10,6 +10,7 @@ import {
   initialTransactionFilters,
   useFilteredTransactions,
 } from "components/transactions/TransactionFilters";
+import { TransactionStats } from "components/transactions/TransactionStats";
 import { TransactionsList } from "components/transactions/TransactionsList";
 import { ButtonPagePrimary } from "components/ui/buttons";
 import { Formik } from "formik";
@@ -42,6 +43,7 @@ export default function Page(
 
 function PageContent() {
   const [showFiltersForm, setShowFiltersForm] = useState(false);
+  const [showStats, setShowStats] = useState(false);
   const filteredTransactions = useFilteredTransactions();
   const { setDbData } = useAllDatabaseDataContext();
   return (
@@ -51,7 +53,7 @@ function PageContent() {
           <FunnelIcon className="mr-2 inline h-4 w-4" />
           Filters
         </ButtonPagePrimary>
-        <ButtonPagePrimary onClick={() => setShowFiltersForm(true)}>
+        <ButtonPagePrimary onClick={() => setShowStats(!showStats)}>
           <ChartPieIcon className="mr-2 inline h-4 w-4" />
           Stats
         </ButtonPagePrimary>
@@ -62,6 +64,12 @@ function PageContent() {
       <div className="w-full">
         <SearchForAnythingInput />
       </div>
+      {showStats && (
+        <TransactionStats
+          transactions={filteredTransactions}
+          onClose={() => setShowStats(false)}
+        />
+      )}
       <TransactionsList
         transactions={filteredTransactions}
         onTransactionUpdated={onTransactionChange(setDbData)}
