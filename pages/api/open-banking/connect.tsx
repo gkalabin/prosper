@@ -8,8 +8,7 @@ async function handle(
   res: NextApiResponse
 ) {
   const code = req.query.code as string;
-  // TODO: use proper hostname
-  const redirectURI = `${process.env.NEXTAUTH_URL}api/open-banking/connect`;
+  const redirectURI = `${process.env.HOST}/api/open-banking/connect`;
 
   if (!code) {
     const connectingBankId = parseInt(req.query.bankId as string, 10);
@@ -17,7 +16,7 @@ async function handle(
     res.redirect(authURL);
     return;
   }
-  const connectingBankId = parseInt(req.query.state as string, 10);
+  const bankId = parseInt(req.query.state as string, 10);
   await fetch(`https://auth.truelayer.com/connect/token`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -39,7 +38,6 @@ async function handle(
         refreshToken: tokenResponse.refresh_token,
         scope: tokenResponse.scope,
 
-        bankId: connectingBankId,
         tokenCreatedAt: now.toISOString(),
         tokenValidUntil: new Date(
           now.getTime() + tokenResponse.expires_in * 1000
@@ -50,9 +48,14 @@ async function handle(
           now.getTime() + 90 * 24 * 60 * 60 * 1000
         ).toISOString(),
         userId,
+        bankId,
       };
-      await prisma.openBankingToken.create({ data: args });
-      res.redirect(`/config/open-banking/connection/${connectingBankId}`);
+      await prisma.openBankingToken.upsert({
+        create: args,
+        update: args,
+        where: { bankId },
+      });
+      res.redirect(`/config/open-banking/connection/${bankId}`);
     })
     .catch((err) => {
       res.status(500).send(`Open banking api error: ${err}`);
