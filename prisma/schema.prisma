@@ -1,0 +1,169 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Transaction {
+  id          Int      @id @default(autoincrement())
+  timestamp   DateTime
+  description String
+  amountCents Int
+
+  // categorisation
+  tags       Tag[]
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+
+  // refunds and debt repayments
+  transactionToBeRepayed   Transaction?  @relation("Repayments", fields: [transactionToBeRepayedId], references: [id])
+  transactionToBeRepayedId Int?
+  repayments               Transaction[] @relation("Repayments")
+
+  // extensions
+  personalExpense   PersonalExpense?
+  thirdPartyExpense ThirdPartyExpense?
+  income            Income?
+  transfer          Transfer?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PersonalExpense {
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  transactionId Int         @unique
+
+  // basic field extensions
+  vendor              String
+  ownShareAmountCents Int
+
+  // trip expenses tracking
+  trip   Trip? @relation(fields: [tripId], references: [id])
+  tripId Int?
+
+  // where the money were payed from
+  account   BankAccount @relation(fields: [accountId], references: [id])
+  accountId Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ThirdPartyExpense {
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  transactionId Int         @unique
+
+  // basic field extensions
+  vendor              String
+  ownShareAmountCents Int
+  payer               String
+  currency            Currency @relation(fields: [currencyId], references: [id])
+  currencyId          Int
+
+  // trip expenses tracking
+  trip   Trip? @relation(fields: [tripId], references: [id])
+  tripId Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Income {
+  transaction         Transaction @relation(fields: [transactionId], references: [id])
+  transactionId       Int         @unique
+  vendor              String
+  ownShareAmountCents Int
+  account             BankAccount @relation(fields: [accountId], references: [id])
+  accountId           Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Transfer {
+  transaction         Transaction @relation(fields: [transactionId], references: [id])
+  transactionId       Int         @unique
+  receivedAmountCents Int
+  accountFrom         BankAccount @relation("OutgoingTransfers", fields: [accountFromId], references: [id])
+  accountFromId       Int
+  accountTo           BankAccount @relation("IncomingTransfers", fields: [accountToId], references: [id])
+  accountToId         Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BankAccount {
+  id         Int      @id @default(autoincrement())
+  name       String
+  bank       Bank     @relation(fields: [bankId], references: [id])
+  bankId     Int
+  currency   Currency @relation(fields: [currencyId], references: [id])
+  currencyId Int
+
+  // UI configuration
+  displayOrder Int     @default(0)
+  archived     Boolean @default(false)
+  liquid       Boolean @default(true)
+
+  // Joint accounts are owned by 2 people and personal value of such accounts is half of the balance.
+  joint Boolean @default(false)
+
+  PersonalExpense   PersonalExpense[]
+  outgoingTransfers Transfer[]        @relation("OutgoingTransfers")
+  incomingTransfers Transfer[]        @relation("IncomingTransfers")
+  Income            Income[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Bank {
+  id        Int           @id @default(autoincrement())
+  name      String
+  accounts  BankAccount[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model Currency {
+  id                Int                 @id @default(autoincrement())
+  name              String
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  ThirdPartyExpense ThirdPartyExpense[]
+  BankAccount       BankAccount[]
+}
+
+model Category {
+  id           Int           @id @default(autoincrement())
+  name         String
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Tag {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  transactions Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Trip {
+  id                Int                 @id @default(autoincrement())
+  destination       String
+  start             DateTime
+  end               DateTime
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  PersonalExpense   PersonalExpense[]
+  ThirdPartyExpense ThirdPartyExpense[]
+}
