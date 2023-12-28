@@ -1,4 +1,5 @@
 import { Transaction as DBTransaction } from "@prisma/client";
+import { format, formatDistance, isAfter, subDays } from "date-fns";
 import React, { useState } from "react";
 import { BankAccount } from "../../lib/model/BankAccount";
 import { Transaction, transactionSign } from "../../lib/model/Transaction";
@@ -77,59 +78,31 @@ const BankAccountLabel = (props: { account: BankAccount }) => {
   );
 };
 
-// function humanReadableDate(comparisonDate) {
-//     const today = new Date();
-//     const yesterday = subDays(today, 1);
-//     const aWeekAgo = subDays(today, 7);
-//     const twoWeeksAgo = subDays(today, 14);
-//     const threeWeeksAgo = subDays(today, 21);
+function shortRelativeDate(d: Date) {
+  const today = new Date();
+  const fourDaysAgo = subDays(today, 4);
+  if (isAfter(d, fourDaysAgo)) {
+    // 2 days ago
+    return formatDistance(d, today, { includeSeconds: false, addSuffix: true });
+  }
+  // Nov 19
+  return format(d, "MMM dd");
+}
 
-//     // Get the date in English locale to match English day of week keys
-//     const compare = parseISO(comparisonDate);
-
-//     let result = '';
-//     if (isSameDay(compare, today)) {
-//         result = intl.t('Updated.Today');
-//     } else if (isSameDay(compare, yesterday)) {
-//         result = intl.t('Updated.Yesterday');
-//     } else if (isAfter(compare, aWeekAgo)) {
-//         result = intl.t(`Updated.${formatDate(compare, 'EEEE')}`);
-//     } else if (isAfter(compare, twoWeeksAgo)) {
-//         result = intl.t('Updated.LastWeek');
-//     } else if (isAfter(compare, threeWeeksAgo)) {
-//         result = intl.t('Updated.TwoWeeksAgo');
-//     }
-
-//     return result;
-// }
-
-// Dec 27
-const shortDateFormat = Intl.DateTimeFormat("en", {
-  month: "short",
-  day: "numeric",
-});
-
-// Dec 27
-const longDateFormat = Intl.DateTimeFormat("en", {
-  hour: "numeric",
-  minute: "numeric",
-  hour12: false,
-  year: "2-digit",
-  month: "short",
-  day: "numeric",
-});
 const TransactionTimestamp = (props: { t: Transaction }) => {
   const [showShort, setShowShort] = useState(true);
+  // Mar 22, 21, 19:05 GMT+0
+  const longFormat = format(props.t.timestamp, "MMM dd, yy, H:mm O");
   if (showShort) {
     return (
-      <span onClick={() => setShowShort(false)}>
-        {shortDateFormat.format(props.t.timestamp)}
+      <span onClick={() => setShowShort(false)} title={longFormat}>
+        {shortRelativeDate(props.t.timestamp)}
       </span>
     );
   }
   return (
     <span onClick={() => setShowShort(true)}>
-      {longDateFormat.format(props.t.timestamp)}
+      {longFormat}
     </span>
   );
 };
