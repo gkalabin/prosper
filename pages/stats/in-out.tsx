@@ -1,7 +1,5 @@
 import { Switch } from "@headlessui/react";
 import Layout from "components/Layout";
-import Highcharts from "highcharts";
-import HighchartsReact from "highcharts-react-official";
 import {
   AmountWithCurrency,
   CurrencyContextProvider,
@@ -15,6 +13,8 @@ import { allDbDataProps } from "lib/ServerSideDB";
 import { formatMonth } from "lib/TimeHelpers";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { useState } from "react";
+import ReactEcharts from "echarts-for-react";
+import { EChartOption } from "echarts";
 
 export const getServerSideProps: GetServerSideProps<AllDatabaseData> =
   allDbDataProps;
@@ -25,7 +25,10 @@ export function MoneyInMoneyOut(props: {
 }) {
   const displayCurrency = useDisplayCurrency();
   const [includeTransfersInDelta, setIncludeTransfersInDelta] = useState(false);
-  const zero = new AmountWithCurrency({ amountCents: 0, currency: displayCurrency });
+  const zero = new AmountWithCurrency({
+    amountCents: 0,
+    currency: displayCurrency,
+  });
 
   const transactions = props.transactions.filter(
     (t) => !t.isThirdPartyExpense()
@@ -83,42 +86,48 @@ export function MoneyInMoneyOut(props: {
     moneyOut[m] ??= zero;
   });
 
-  const options: Highcharts.Options = {
+  const inOutOptions: EChartOption = {
     title: {
       text: "Money In/Out",
     },
+    tooltip: {},
+    legend: {
+      orient: "horizontal",
+      bottom: 10,
+      top: "bottom",
+    },
     xAxis: {
-      categories: months.map((x) => formatMonth(x)),
+      data: months.map((x) => formatMonth(x)),
     },
-    yAxis: {
-      min: 0,
-    },
+    yAxis: {},
     series: [
       {
-        type: "column",
+        type: "bar",
         name: "Money In",
         data: months.map((m) => Math.round(moneyIn[m].dollar())),
-        color: "green",
+        itemStyle: {
+          color: "#15803d",
+        },
       },
       {
-        type: "column",
+        type: "bar",
         name: "Money Out",
         data: months.map((m) => Math.round(moneyOut[m].dollar())),
-        color: "red",
+        itemStyle: {
+          color: "#b91c1c",
+        },
       },
     ],
   };
-
-  const deltaOptions: Highcharts.Options = {
-    title: {
-      text: null,
-    },
+  const deltaOptions: EChartOption = {
+    tooltip: {},
     xAxis: {
-      categories: months.map((x) => formatMonth(x)),
+      data: months.map((x) => formatMonth(x)),
     },
+    yAxis: {},
     series: [
       {
-        type: "column",
+        type: "bar",
         name: "Delta",
         data: months.map((m) => Math.round(delta[m].dollar())),
       },
@@ -127,9 +136,10 @@ export function MoneyInMoneyOut(props: {
 
   return (
     <>
-      <HighchartsReact highcharts={Highcharts} options={options} />
+      <ReactEcharts option={inOutOptions} />
+
       <div className="flex flex-col gap-2 rounded border p-1 shadow-sm">
-        <h1 className="mt-2 text-center text-lg">In minus out</h1>
+        <h1 className="mt-2 text-center text-lg">Delta: in-out</h1>
         <Switch.Group>
           <div className="flex items-center">
             <div className="flex">
@@ -161,7 +171,7 @@ export function MoneyInMoneyOut(props: {
           </div>
         </Switch.Group>
 
-        <HighchartsReact highcharts={Highcharts} options={deltaOptions} />
+        <ReactEcharts option={deltaOptions} />
       </div>
     </>
   );
