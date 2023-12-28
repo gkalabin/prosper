@@ -263,9 +263,9 @@ const TransferForm = () => {
   ]);
   return (
     <>
+      <Timestamp />
       <AccountFrom />
       <AccountTo />
-      <Timestamp />
       <div
         className={classNames(showReceivedAmount ? "col-span-3" : "col-span-6")}
       >
@@ -292,8 +292,8 @@ const IncomeForm = () => {
   const [showNote, setShowNote] = useState(false);
   return (
     <>
-      <AccountTo />
       <Timestamp />
+      <AccountTo />
       <div className="col-span-3 flex">
         <IsShared />
       </div>
