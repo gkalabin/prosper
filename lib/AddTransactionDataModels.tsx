@@ -24,17 +24,20 @@ export type AddTransactionFormValues = {
 
 export type AddTransactionDTO = {
   mode: FormMode;
-  vendor?: string;
   description: string;
   timestamp: Date;
   amountCents: number;
-  ownShareAmountCents?: number;
   categoryId: number;
-  fromBankAccountId?: number;
-  toBankAccountId?: number;
+  personalTransaction?: PersonalTransactionDTO;
   externalTransaction?: ExternalTransactionDTO;
   transferTransaction?: TransferTransactionDTO;
   incomeTransaction?: IncomeTransactionDTO;
+};
+
+export type PersonalTransactionDTO = {
+  vendor: string;
+  ownShareAmountCents: number;
+  bankAccountId: number;
 };
 
 export type ExternalTransactionDTO = {
@@ -60,13 +63,22 @@ export const formToDTO = (
   mode: FormMode,
   form: AddTransactionFormValues
 ): AddTransactionDTO => {
-  const ownShareCents = Math.round(form.ownShareAmount * 100);
-  const out: AddTransactionDTO = Object.assign({}, form, {
+  const out: AddTransactionDTO = {
     mode: mode,
+    timestamp: form.timestamp,
     amountCents: Math.round(form.amount * 100),
-    ownShareAmountCents: ownShareCents,
-  });
+    description: form.description,
+    categoryId: form.categoryId,
+  };
 
+  const ownShareCents = Math.round(form.ownShareAmount * 100);
+  if (mode == FormMode.PERSONAL) {
+    out.personalTransaction = {
+      vendor: form.vendor,
+      ownShareAmountCents: ownShareCents,
+      bankAccountId: form.fromBankAccountId,
+    };
+  }
   if (mode == FormMode.EXTERNAL) {
     out.externalTransaction = {
       ownShareAmountCents: ownShareCents,
@@ -112,11 +124,11 @@ export const dtoToDb = (
   if (dto.mode == FormMode.PERSONAL) {
     dbArgs.data.personalExpense = {
       create: {
-        vendor: dto.vendor,
-        ownShareAmountCents: dto.ownShareAmountCents,
+        vendor: dto.personalTransaction.vendor,
+        ownShareAmountCents: dto.personalTransaction.ownShareAmountCents,
         account: {
           connect: {
-            id: dto.fromBankAccountId,
+            id: dto.personalTransaction.bankAccountId,
           },
         },
       },

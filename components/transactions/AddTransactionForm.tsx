@@ -174,6 +174,7 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
             close();
             props.onAdded(await added.json());
           } catch (error) {
+            console.log(error);
             setApiError(`Failed to add: ${error}`);
           }
           setSubmitting(false);
