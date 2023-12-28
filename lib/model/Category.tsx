@@ -1,5 +1,5 @@
 import { Category as DBCategory } from "@prisma/client";
-import { Transaction } from "./Transaction";
+import { Transaction } from "./transaction/Transaction";
 
 export class Category {
   private readonly _id: number;

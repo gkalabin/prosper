@@ -22,7 +22,7 @@ import {
   Income,
   isExpense,
   isIncome,
-} from "lib/model/Transaction";
+} from "lib/model/transaction/Transaction";
 import { Trip } from "lib/model/Trip";
 
 const amountSum = (

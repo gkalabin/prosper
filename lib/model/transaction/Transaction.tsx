@@ -5,11 +5,11 @@ import { StockAndCurrencyExchange } from "lib/ClientSideModel";
 import { Stock } from "lib/model/Stock";
 import { Tag } from "lib/model/Tag";
 import { Trip } from "lib/model/Trip";
-import { TransactionWithExtensionsAndTagIds } from "./AllDatabaseDataModel";
-import { BankAccount, accountUnit } from "./BankAccount";
-import { Category } from "./Category";
-import { Currency } from "./Currency";
-import { Unit, isCurrency, isStock } from "./Unit";
+import { TransactionWithExtensionsAndTagIds } from "../AllDatabaseDataModel";
+import { BankAccount, accountUnit } from "../BankAccount";
+import { Category } from "../Category";
+import { Currency } from "../Currency";
+import { Unit, isCurrency, isStock } from "../Unit";
 
 export type TransactionCompanion = {
   name: string;

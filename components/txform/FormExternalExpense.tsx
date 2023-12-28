@@ -21,7 +21,7 @@ import {
   Transaction,
   isThirdPartyExpense,
   otherPartyNameOrNull,
-} from "lib/model/Transaction";
+} from "lib/model/transaction/Transaction";
 import { AddTransactionFormValues } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect, useState } from "react";

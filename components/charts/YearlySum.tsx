@@ -8,7 +8,7 @@ import {
   Income,
   amountAllParties,
   amountOwnShare,
-} from "lib/model/Transaction";
+} from "lib/model/transaction/Transaction";
 import { MoneyTimeseries } from "lib/util/Timeseries";
 
 export function YearlyOwnShare({

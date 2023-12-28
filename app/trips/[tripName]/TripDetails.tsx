@@ -26,7 +26,7 @@ import {
   Income,
   isExpense,
   isIncome,
-} from "lib/model/Transaction";
+} from "lib/model/transaction/Transaction";
 import { Trip, tripModelFromDB } from "lib/model/Trip";
 
 function NonEmptyTripDetails(props: { trip: Trip }) {

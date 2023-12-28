@@ -23,7 +23,7 @@ import {
   transactionBankAccount,
   transactionCategory,
   transactionUnit,
-} from "lib/model/Transaction";
+} from "lib/model/transaction/Transaction";
 import { TransactionAPIResponse } from "lib/transactionDbUtils";
 import { useState } from "react";
 

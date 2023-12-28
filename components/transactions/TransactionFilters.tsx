@@ -13,7 +13,7 @@ import {
   isPersonalExpense,
   isTransfer,
   otherPartyNameOrNull,
-} from "lib/model/Transaction";
+} from "lib/model/transaction/Transaction";
 import Select from "react-select";
 
 type TransactionType =

@@ -8,7 +8,7 @@ import {
   Income,
   amountAllParties,
   amountOwnShare,
-} from "lib/model/Transaction";
+} from "lib/model/transaction/Transaction";
 import { AppendMap, currencyAppendMap } from "lib/util/AppendingMap";
 import dynamic from "next/dynamic";
 

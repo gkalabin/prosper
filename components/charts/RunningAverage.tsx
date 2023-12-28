@@ -3,7 +3,7 @@ import ReactEcharts from "echarts-for-react";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { defaultMonthlyMoneyChart, monthlyData } from "lib/charts";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { Expense, Income, amountOwnShare } from "lib/model/Transaction";
+import { Expense, Income, amountOwnShare } from "lib/model/transaction/Transaction";
 import { MoneyTimeseries } from "lib/util/Timeseries";
 import { runningAverage } from "lib/util/util";
 

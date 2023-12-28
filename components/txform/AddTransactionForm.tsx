@@ -28,7 +28,7 @@ import {
   parentTransactionId,
   transactionTags,
   transactionTrip,
-} from "lib/model/Transaction";
+} from "lib/model/transaction/Transaction";
 import {
   AddTransactionFormValues,
   FormMode,

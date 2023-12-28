@@ -21,7 +21,7 @@ import {
   isExpense,
   isIncome,
   otherPartyNameOrNull,
-} from "lib/model/Transaction";
+} from "lib/model/transaction/Transaction";
 import { useOpenBankingTransactions } from "lib/openbanking/context";
 import {
   TransactionPrototype,

@@ -21,7 +21,7 @@ import { Category, categoryModelFromDB } from "lib/model/Category";
 import { Currency, NANOS_MULTIPLIER } from "lib/model/Currency";
 import { Stock, stockModelFromDB } from "lib/model/Stock";
 import { Tag, tagModelFromDB } from "lib/model/Tag";
-import { Transaction, transactionModelFromDB } from "lib/model/Transaction";
+import { Transaction, transactionModelFromDB } from "lib/model/transaction/Transaction";
 import { Trip, tripModelFromDB } from "lib/model/Trip";
 import { Setter } from "lib/stateHelpers";
 import { createContext, useContext, useState } from "react";

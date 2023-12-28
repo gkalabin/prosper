@@ -10,7 +10,7 @@ import {
   Transaction,
   isExpense,
   isIncome,
-} from "lib/model/Transaction";
+} from "lib/model/transaction/Transaction";
 
 export class TransactionsStatsInput {
   constructor(

@@ -32,7 +32,7 @@ import {
   Income,
   isExpense,
   isIncome,
-} from "lib/model/Transaction";
+} from "lib/model/transaction/Transaction";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
 import { useState } from "react";
 import Select from "react-select";

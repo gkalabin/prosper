@@ -29,7 +29,7 @@ import {
   PersonalExpense,
   Transaction,
   Transfer,
-} from "lib/model/Transaction";
+} from "lib/model/transaction/Transaction";
 import { isCurrency, isStock } from "lib/model/Unit";
 import {
   useOpenBankingBalances,

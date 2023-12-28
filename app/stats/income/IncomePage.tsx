@@ -19,7 +19,7 @@ import {
 import { useDisplayCurrency } from "lib/displaySettings";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { transactionIsDescendant } from "lib/model/Category";
-import { amountOwnShare } from "lib/model/Transaction";
+import { amountOwnShare } from "lib/model/transaction/Transaction";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
 import { useState } from "react";
 import Select from "react-select";

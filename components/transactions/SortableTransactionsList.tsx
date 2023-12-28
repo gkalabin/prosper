@@ -8,7 +8,7 @@ import {
   amountAllParties,
   amountSent,
   isTransfer,
-} from "lib/model/Transaction";
+} from "lib/model/transaction/Transaction";
 import { isCurrency, isStock } from "lib/model/Unit";
 import { onTransactionChange } from "lib/stateHelpers";
 import { useState } from "react";

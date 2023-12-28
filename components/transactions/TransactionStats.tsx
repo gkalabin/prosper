@@ -24,7 +24,7 @@ import {
   isPersonalExpense,
   isThirdPartyExpense,
   isTransfer,
-} from "lib/model/Transaction";
+} from "lib/model/transaction/Transaction";
 import { AppendMap } from "lib/util/AppendingMap";
 import { MoneyTimeseries } from "lib/util/Timeseries";
 
