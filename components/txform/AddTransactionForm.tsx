@@ -1,3 +1,4 @@
+import { FormInputs } from "components/txform/FormInputs";
 import { FormTransactionTypeSelector } from "components/txform/FormTransactionTypeSelector";
 import {
   NewTransactionSuggestions,
@@ -18,7 +19,6 @@ import {
   TransactionAPIResponse,
 } from "lib/transactionDbUtils";
 import { useState } from "react";
-import { FormInputs } from "./FormInputs";
 
 export function toDateTimeLocal(d: Date) {
   // 2022-12-19T18:05:59
@@ -55,6 +55,7 @@ function initialValuesForTransaction(
     timestamp: toDateTimeLocal(t.timestamp),
     description: t.description,
     vendor: t.hasVendor() ? t.vendor() : "",
+    otherPartyName: t.hasOtherParty() ? t.otherParty() : "",
     amount: t.amount().dollar(),
     ownShareAmount: t.amount().dollar(),
     receivedAmount: t.isTransfer()
@@ -64,7 +65,7 @@ function initialValuesForTransaction(
     toBankAccountId: (t.accountTo() ?? defaultAccountTo).id,
     categoryId: t.category.id,
     currencyId: t.currency().id,
-    isFamilyExpense: t.isFamilyExpense(),
+    isShared: t.isShared(),
     tripName: t.hasTrip() ? t.trip().name() : "",
     payer: t.hasPayer() ? t.payer() : "",
     tagNames: t.tags().map((x) => x.name()),
@@ -88,6 +89,7 @@ function initialValuesEmpty(
     mode,
     timestamp: toDateTimeLocal(today),
     vendor: "",
+    otherPartyName: "",
     description: "",
     amount: 0,
     ownShareAmount: 0,
@@ -96,7 +98,7 @@ function initialValuesEmpty(
     toBankAccountId: defaultAccountTo.id,
     categoryId: defaultCategory.id,
     currencyId: defaultCurrency.id,
-    isFamilyExpense: false,
+    isShared: false,
     tripName: "",
     payer: "",
     tagNames: [],
@@ -155,7 +157,6 @@ export const AddTransactionForm = (props: {
   onClose: () => void;
 }) => {
   const [apiError, setApiError] = useState("");
-  const [isAdvancedMode, setAdvancedMode] = useState(false);
   const [prototype, setPrototype] = useState<TransactionPrototype>(null);
   const creatingNewTransaction = !props.transaction;
   const initialMode = props.transaction
@@ -248,7 +249,6 @@ export const AddTransactionForm = (props: {
                   <FormInputs
                     transaction={props.transaction}
                     prototype={prototype}
-                    isAdvancedMode={isAdvancedMode}
                   />
                 </div>
               </div>
@@ -260,14 +260,6 @@ export const AddTransactionForm = (props: {
               )}
 
               <div className="flex justify-end gap-2 bg-gray-50 px-4 py-3 sm:px-6">
-                <ButtonFormSecondary
-                  className="self-start"
-                  onClick={() => setAdvancedMode(!isAdvancedMode)}
-                  disabled={isSubmitting}
-                >
-                  Advanced
-                </ButtonFormSecondary>
-
                 <ButtonFormSecondary
                   className="self-start"
                   onClick={props.onClose}

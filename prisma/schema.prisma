@@ -42,6 +42,7 @@ model PersonalExpense {
   transactionId       Int         @unique
   // basic field extensions
   vendor              String
+  otherPartyName      String      @default("")
   ownShareAmountCents Int
   // trip expenses tracking
   trip                Trip?       @relation(fields: [tripId], references: [id])
@@ -81,6 +82,8 @@ model Income {
   transactionId       Int         @unique
   // basic field extensions
   vendor              String
+  payer               String      @default("")
+  otherPartyName      String      @default("")
   ownShareAmountCents Int
   // extension specific fields
   account             BankAccount @relation(fields: [accountId], references: [id])

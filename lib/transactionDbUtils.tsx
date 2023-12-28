@@ -17,12 +17,13 @@ export type AddTransactionFormValues = {
   ownShareAmount: number;
   categoryId: number;
   vendor: string;
+  otherPartyName: string;
   fromBankAccountId: number;
   toBankAccountId: number;
   payer: string;
   currencyId: number;
   receivedAmount: number;
-  isFamilyExpense: boolean;
+  isShared: boolean;
   tripName: string;
   tagNames: string[];
   parentTransactionId: number;
@@ -98,11 +99,12 @@ const extensionConfigByMode = new Map<
       mode: FormMode.PERSONAL,
       extensionDbField: "personalExpense",
       formToDbData: (
-        { vendor, ownShareAmount, fromBankAccountId },
+        { vendor, ownShareAmount, fromBankAccountId, otherPartyName },
         userId: number
       ) => {
         return {
           vendor,
+          otherPartyName,
           userId,
           accountId: fromBankAccountId,
           ownShareAmountCents: toCents(ownShareAmount),
@@ -144,11 +146,12 @@ const extensionConfigByMode = new Map<
       mode: FormMode.INCOME,
       extensionDbField: "income",
       formToDbData: (
-        { vendor, ownShareAmount, toBankAccountId },
+        { payer, otherPartyName, ownShareAmount, toBankAccountId },
         userId: number
       ) => {
         return {
-          vendor,
+          payer,
+          otherPartyName,
           userId,
           accountId: toBankAccountId,
           ownShareAmountCents: toCents(ownShareAmount),

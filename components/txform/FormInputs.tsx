@@ -16,37 +16,50 @@ import {
 import { BankAccountSelect } from "components/txform/BankAccountSelect";
 import { TransactionPrototype } from "components/txform/NewTransactionSuggestions";
 import { SelectNumber } from "components/txform/Select";
+import { ButtonLink } from "components/ui/buttons";
 import { differenceInMonths, isBefore } from "date-fns";
 import { useFormikContext } from "formik";
+import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
+import { uniqMostFrequent } from "lib/collections";
 import { Tag } from "lib/model/Tag";
 import { Transaction } from "lib/model/Transaction";
 import { Trip } from "lib/model/Trip";
 import { shortRelativeDate } from "lib/TimeHelpers";
 import { AddTransactionFormValues, FormMode } from "lib/transactionDbUtils";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 
 export const FormInputs = (props: {
   transaction: Transaction;
-  isAdvancedMode: boolean;
   prototype: TransactionPrototype;
 }) => {
   const { transactions, banks } = useAllDatabaseDataContext();
   const {
-    values: { amount, vendor, isFamilyExpense, fromBankAccountId, mode },
+    values: { amount, vendor, isShared, fromBankAccountId, mode },
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
+  const transactionsForMode = transactions.filter(
+    (x) => formModeForTransaction(x) == mode
+  );
+  const [mostFrequentOtherParty] = uniqMostFrequent(
+    transactionsForMode
+      .filter((x) => x.hasOtherParty())
+      .map((x) => x.otherParty())
+  );
 
   useEffect(() => {
     // If amount is $0.05, round half of it to the closest cent.
     const halfAmount = Math.round(100 * (amount / 2)) / 100;
-    setFieldValue("ownShareAmount", isFamilyExpense ? halfAmount : amount);
-  }, [amount, isFamilyExpense, setFieldValue]);
+    setFieldValue("ownShareAmount", isShared ? halfAmount : amount);
+  }, [amount, isShared, setFieldValue]);
+
   useEffect(() => {
-    setFieldValue("receivedAmount", amount);
-  }, [amount, setFieldValue]);
+    if (isShared && mostFrequentOtherParty) {
+      setFieldValue("otherPartyName", mostFrequentOtherParty);
+    }
+  }, [isShared, setFieldValue, mostFrequentOtherParty]);
 
   useEffect(() => {
     if (!props.prototype) {
@@ -95,99 +108,236 @@ export const FormInputs = (props: {
       const account = banks
         .flatMap((b) => b.accounts)
         .find((a) => a.id == fromBankAccountId);
-      setFieldValue("isFamilyExpense", account.isJoint());
+      setFieldValue("isShared", account.isJoint());
     }
   }, [mode, setFieldValue, banks, fromBankAccountId]);
 
   return (
     <>
-      {mode == FormMode.PERSONAL && (
-        <PersonalExpenseForm isAdvancedMode={props.isAdvancedMode} />
-      )}
-      {mode == FormMode.EXTERNAL && (
-        <ExternalExpenseForm isAdvancedMode={props.isAdvancedMode} />
-      )}
-      {mode == FormMode.TRANSFER && (
-        <TransferForm isAdvancedMode={props.isAdvancedMode} />
-      )}
-      {mode == FormMode.INCOME && (
-        <IncomeForm isAdvancedMode={props.isAdvancedMode} />
-      )}
+      {mode == FormMode.PERSONAL && <PersonalExpenseForm />}
+      {mode == FormMode.EXTERNAL && <ExternalExpenseForm />}
+      {mode == FormMode.TRANSFER && <TransferForm />}
+      {mode == FormMode.INCOME && <IncomeForm />}
     </>
   );
 };
 
-const PersonalExpenseForm = ({
-  isAdvancedMode,
-}: {
-  isAdvancedMode: boolean;
-}) => {
+const PersonalExpenseForm = () => {
+  const {
+    values: { isShared },
+    setFieldValue,
+  } = useFormikContext<AddTransactionFormValues>();
+  const [showNote, setShowNote] = useState(false);
+  const [showTrip, setShowTrip] = useState(false);
   return (
     <>
-      <Amount />
-      {isAdvancedMode && <OwnShareAmount />}
-      <IsFamilyExpense />
       <Timestamp />
-      <Vendor />
-      {isAdvancedMode && <Description />}
-      <Tags />
-      <Category />
       <AccountFrom />
-      {isAdvancedMode && <Trips />}
+      <div className="col-span-3 flex">
+        <IsShared />
+      </div>
+      {isShared && (
+        <div className="col-span-3">
+          <OtherPartyName />
+        </div>
+      )}
+      <div className={classNames(isShared ? "col-span-3" : "col-span-6")}>
+        <MoneyInputWithLabel name="amount" label="Amount" />
+      </div>
+      {isShared && (
+        <div className="col-span-3">
+          <MoneyInputWithLabel name="ownShareAmount" label="Own share amount" />
+        </div>
+      )}
+      <Vendor />
+      <Tags />
+      <Category />
+      <div className="col-span-6 text-xs">
+        Add a{" "}
+        <ButtonLink
+          onClick={() => {
+            setShowNote(!showNote);
+            setFieldValue("description", "");
+          }}
+        >
+          note
+        </ButtonLink>{" "}
+        to this transaction or link it to a{" "}
+        <ButtonLink
+          onClick={() => {
+            setShowTrip(!showTrip);
+            setFieldValue("tripName", "");
+          }}
+        >
+          trip
+        </ButtonLink>
+        .
+      </div>
+      {showTrip && <Trips />}
+      {showNote && <Description />}
     </>
   );
 };
 
-const ExternalExpenseForm = ({
-  isAdvancedMode,
-}: {
-  isAdvancedMode: boolean;
-}) => {
+const ExternalExpenseForm = () => {
+  const { setFieldValue } = useFormikContext<AddTransactionFormValues>();
+  const [showNote, setShowNote] = useState(false);
+  const [showTrip, setShowTrip] = useState(false);
   return (
     <>
-      <Amount />
-      {isAdvancedMode && <OwnShareAmount />}
-      <IsFamilyExpense />
       <Timestamp />
+      <div className="col-span-3 flex">
+        <IsShared />
+      </div>
+      <div className="col-span-3">
+        <Payer />
+      </div>
+      <div className="col-span-3">
+        <MoneyInputWithLabel name="amount" label="Amount" />
+      </div>
+      <div className="col-span-3">
+        <MoneyInputWithLabel name="ownShareAmount" label="Own share amount" />
+      </div>
       <Vendor />
-      {isAdvancedMode && <Description />}
       <Tags />
       <Category />
-      <Payer />
       <Currencies />
-      {isAdvancedMode && <Trips />}
+      <div className="col-span-6 text-xs">
+        Add a{" "}
+        <ButtonLink
+          onClick={() => {
+            setShowNote(!showNote);
+            setFieldValue("description", "");
+          }}
+        >
+          note
+        </ButtonLink>{" "}
+        to this transaction or link it to a{" "}
+        <ButtonLink
+          onClick={() => {
+            setShowTrip(!showTrip);
+            setFieldValue("tripName", "");
+          }}
+        >
+          trip
+        </ButtonLink>
+        .
+      </div>
+      {showTrip && <Trips />}
+      {showNote && <Description />}
     </>
   );
 };
 
-const TransferForm = ({ isAdvancedMode }: { isAdvancedMode: boolean }) => {
+const TransferForm = () => {
+  const { bankAccounts, exchange } = useAllDatabaseDataContext();
+  const {
+    values: { fromBankAccountId, toBankAccountId, amount },
+    setFieldValue,
+  } = useFormikContext<AddTransactionFormValues>();
+  const fromAccount = bankAccounts.find((a) => a.id == fromBankAccountId);
+  const toAccount = bankAccounts.find((a) => a.id == toBankAccountId);
+  const showReceivedAmount = fromAccount.currency.id != toAccount.currency.id;
+  useEffect(() => {
+    if (!showReceivedAmount) {
+      setFieldValue("receivedAmount", amount);
+      return;
+    }
+    const now = new Date();
+    const exchanged = exchange.exchange(
+      new AmountWithCurrency({
+        amountCents: amount * 100,
+        currency: fromAccount.currency,
+      }),
+      toAccount.currency,
+      now
+    );
+    setFieldValue("receivedAmount", exchanged.dollar());
+  }, [
+    exchange,
+    amount,
+    setFieldValue,
+    showReceivedAmount,
+    fromAccount.currency,
+    toAccount.currency,
+  ]);
   return (
     <>
-      <Amount />
-      <ReceivedAmount />
-      <Timestamp />
-      <Description />
-      {isAdvancedMode && <Tags />}
-      <Category />
       <AccountFrom />
       <AccountTo />
+      <Timestamp />
+      <div
+        className={classNames(showReceivedAmount ? "col-span-3" : "col-span-6")}
+      >
+        <MoneyInputWithLabel name="amount" label="Amount" />
+      </div>
+      {showReceivedAmount && (
+        <div className="col-span-3">
+          <MoneyInputWithLabel name="receivedAmount" label="Received" />
+        </div>
+      )}
+      <Description />
+      <Tags />
+      <Category />
     </>
   );
 };
 
-const IncomeForm = ({ isAdvancedMode }: { isAdvancedMode: boolean }) => {
+const IncomeForm = () => {
+  const {
+    values: { isShared },
+    setFieldValue,
+  } = useFormikContext<AddTransactionFormValues>();
+  const [showParent, setShowParent] = useState(false);
+  const [showNote, setShowNote] = useState(false);
   return (
     <>
-      <Amount />
-      <OwnShareAmount />
-      <IsFamilyExpense />
+      <AccountTo />
       <Timestamp />
-      <Vendor />
-      <Description />
-      {isAdvancedMode && <ParentTransaction />}
+      <div className="col-span-3 flex">
+        <IsShared />
+      </div>
+      {isShared && (
+        <div className="col-span-3">
+          <OtherPartyName />
+        </div>
+      )}
+      <div className={classNames(isShared ? "col-span-3" : "col-span-6")}>
+        <MoneyInputWithLabel name="amount" label="Amount" />
+      </div>
+      {isShared && (
+        <div className="col-span-3">
+          <MoneyInputWithLabel name="ownShareAmount" label="Own share amount" />
+        </div>
+      )}
+      <div className="col-span-6">
+        <Payer />
+      </div>
       <Tags />
       <Category />
-      <AccountTo />
+      <div className="col-span-6 text-xs">
+        Add a{" "}
+        <ButtonLink
+          onClick={() => {
+            setShowNote(!showNote);
+            setFieldValue("description", "");
+          }}
+        >
+          note
+        </ButtonLink>{" "}
+        or{" "}
+        <ButtonLink
+          onClick={() => {
+            setShowParent(!showParent);
+            setFieldValue("parentTransactionId", 0);
+          }}
+        >
+          link the transaction this is the refund for
+        </ButtonLink>
+        .
+      </div>
+      {showParent && <ParentTransaction />}
+      {showNote && <Description />}
     </>
   );
 };
@@ -228,86 +378,42 @@ const Trips = () => {
   );
 };
 
-function Amount() {
-  const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
-  return (
-    <div className="col-span-6">
-      <MoneyInputWithLabel
-        name="amount"
-        label="Amount"
-        disabled={isSubmitting}
-      />
-    </div>
-  );
-}
-
-function OwnShareAmount() {
-  const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
-  return (
-    <div className="col-span-6">
-      <MoneyInputWithLabel
-        name="ownShareAmount"
-        label="Own share amount"
-        disabled={isSubmitting}
-      />
-    </div>
-  );
-}
-
-function IsFamilyExpense() {
+function IsShared() {
   const {
-    values: { isFamilyExpense },
+    values: { isShared },
     isSubmitting,
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
   return (
-    <div className="col-span-6">
-      <Switch.Group>
-        <div className="flex items-center">
-          <div className="flex">
-            <Switch
-              checked={isFamilyExpense}
-              onChange={() => {
-                setFieldValue("isFamilyExpense", !isFamilyExpense);
-              }}
-              className={classNames(
-                isFamilyExpense ? "bg-indigo-700" : "bg-gray-200",
-                isSubmitting ? "opacity-30" : "",
-                "relative inline-flex h-6 w-11 items-center rounded-full"
-              )}
-              disabled={isSubmitting}
-            >
-              <span
-                className={`${
-                  isFamilyExpense ? "translate-x-6" : "translate-x-1"
-                } inline-block h-4 w-4 transform rounded-full bg-white transition`}
-              />
-            </Switch>
-          </div>
-          <div className="ml-4 text-sm">
-            <Switch.Label className="font-medium text-gray-700">
-              Shared transaction
-            </Switch.Label>
-            <p className="text-gray-500">
-              Set the own amount to be 50% of the total.
-            </p>
-          </div>
+    <Switch.Group>
+      <div className="flex items-center">
+        <div className="flex">
+          <Switch
+            checked={isShared}
+            onChange={() => {
+              setFieldValue("isShared", !isShared);
+            }}
+            className={classNames(
+              isShared ? "bg-indigo-700" : "bg-gray-200",
+              isSubmitting ? "opacity-30" : "",
+              "relative inline-flex h-6 w-11 items-center rounded-full"
+            )}
+            disabled={isSubmitting}
+          >
+            <span
+              className={`${
+                isShared ? "translate-x-6" : "translate-x-1"
+              } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+            />
+          </Switch>
         </div>
-      </Switch.Group>
-    </div>
-  );
-}
-
-function ReceivedAmount() {
-  const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
-  return (
-    <div className="col-span-6">
-      <MoneyInputWithLabel
-        name="receivedAmount"
-        label="Received"
-        disabled={isSubmitting}
-      />
-    </div>
+        <div className="ml-4 text-sm">
+          <Switch.Label className="font-medium text-gray-700">
+            Split transaction
+          </Switch.Label>
+        </div>
+      </div>
+    </Switch.Group>
   );
 }
 
@@ -340,14 +446,9 @@ function Vendor() {
   const transactionsForMode = transactions.filter(
     (x) => formModeForTransaction(x) == mode
   );
-  const vendorFrequency = new Map<string, number>();
-  transactionsForMode
-    .filter((x) => x.hasVendor())
-    .map((x) => x.vendor())
-    .forEach((x) => vendorFrequency.set(x, (vendorFrequency.get(x) ?? 0) + 1));
-  const vendors = [...vendorFrequency.entries()]
-    .sort(([_v1, f1], [_v2, f2]) => f2 - f1)
-    .map(([vendor]) => vendor);
+  const vendors = uniqMostFrequent(
+    transactionsForMode.filter((x) => x.hasVendor()).map((x) => x.vendor())
+  );
   return (
     <div className="col-span-6">
       <TextInputWithLabel
@@ -514,7 +615,7 @@ function Payer() {
     .sort(([_v1, f1], [_v2, f2]) => f2 - f1)
     .map(([value]) => value);
   return (
-    <div className="col-span-6">
+    <>
       <label
         htmlFor="payer"
         className="block text-sm font-medium text-gray-700"
@@ -532,7 +633,41 @@ function Payer() {
           <option key={v} value={v} />
         ))}
       </datalist>
-    </div>
+    </>
+  );
+}
+
+function OtherPartyName() {
+  const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
+  const { transactions } = useAllDatabaseDataContext();
+  const frequency = new Map<string, number>();
+  transactions
+    .filter((x) => x.hasOtherParty())
+    .map((x) => x.otherParty())
+    .forEach((x) => frequency.set(x, (frequency.get(x) ?? 0) + 1));
+  const values = [...frequency.entries()]
+    .sort(([_v1, f1], [_v2, f2]) => f2 - f1)
+    .map(([value]) => value);
+  return (
+    <>
+      <label
+        htmlFor="otherPartyName"
+        className="block text-sm font-medium text-gray-700"
+      >
+        Shared with
+      </label>
+      <FormikInput
+        name="otherPartyName"
+        list="otherParties"
+        className="block w-full"
+        disabled={isSubmitting}
+      />
+      <datalist id="otherParties">
+        {values.map((v) => (
+          <option key={v} value={v} />
+        ))}
+      </datalist>
+    </>
   );
 }
 

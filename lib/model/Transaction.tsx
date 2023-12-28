@@ -9,6 +9,7 @@ import { Trip } from "lib/model/Trip";
 
 export type PersonalExpense = {
   vendor: string;
+  otherPartyName: string;
   ownShareAmountCents: number;
   account: BankAccount;
   trip?: Trip;
@@ -18,6 +19,7 @@ export type Income = {
   vendor: string;
   ownShareAmountCents: number;
   account: BankAccount;
+  otherPartyName: string;
 };
 
 export type Transfer = {
@@ -137,8 +139,8 @@ export class Transaction {
     return this._parentTransactionId;
   }
 
-  isFamilyExpense() {
-    if (this.isIncome()) {
+  isShared() {
+    if (this.isTransfer()) {
       return false;
     }
     const ownShareAmountCents = firstNonNull3(
@@ -181,6 +183,17 @@ export class Transaction {
       throw new Error("Transaction has no vendor");
     }
     return this.vendorOrNull();
+  }
+
+  hasOtherParty() {
+    return this.isPersonalExpense() || this.isIncome();
+  }
+
+  otherParty() {
+    if (!this.hasOtherParty()) {
+      throw new Error("Transaction has no other party");
+    }
+    return this.personalExpense?.otherPartyName ?? this.income.otherPartyName;
   }
 
   hasPayer() {
