@@ -7,10 +7,10 @@ import {
 import { DebugTable } from "components/stats/DebugTable";
 import { StatsPageLayout } from "components/StatsPageLayout";
 import { ButtonLink } from "components/ui/buttons";
-import { isWithinInterval, startOfMonth } from "date-fns";
-import { EChartsOption } from "echarts";
+import { eachMonthOfInterval, isWithinInterval, startOfMonth } from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
+import { defaultChartOptions } from "lib/charts";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -18,67 +18,36 @@ import {
 import { useDisplayCurrency } from "lib/displaySettings";
 import { Transaction } from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
-import { formatMonth } from "lib/TimeHelpers";
 import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import Select from "react-select";
 
-export function IncomeCharts(props: { transactions: Transaction[] }) {
+export function IncomeCharts(props: {
+  transactions: Transaction[];
+  duration: Interval;
+}) {
   const [showDebugTable, setShowDebugTable] = useState(false);
   const displayCurrency = useDisplayCurrency();
-  const { exchange, categories } = useAllDatabaseDataContext();
+  const { categories } = useAllDatabaseDataContext();
   const zero = AmountWithCurrency.zero(displayCurrency);
+  const months = eachMonthOfInterval(props.duration).map((x) => x.getTime());
+  const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
 
   const incomeTransactions = props.transactions.filter((t) => t.isIncome());
-  const moneyIn: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
+  const moneyIn = new Map<number, AmountWithCurrency>(zeroes);
   const byCategoryIdAndMonth = new Map<
     number,
     Map<number, AmountWithCurrency>
   >();
-  const monthsIndex: { [firstOfMonthEpoch: number]: boolean } = {};
   for (const t of incomeTransactions) {
     const ts = startOfMonth(t.timestamp).getTime();
-    monthsIndex[ts] = true;
-    moneyIn[ts] ??= zero;
-    const exchanged = exchange.exchange(
-      t.amount(),
-      displayCurrency,
-      t.timestamp
-    );
-    moneyIn[ts] = moneyIn[ts].add(exchanged);
+    const exchanged = t.amountOwnShare(displayCurrency);
+    moneyIn.set(ts, exchanged.add(moneyIn.get(ts)));
     const categorySeries =
-      byCategoryIdAndMonth.get(t.category.id()) ?? new Map();
-    const current = categorySeries.get(ts) ?? zero;
-    categorySeries.set(ts, exchanged.add(current));
+      byCategoryIdAndMonth.get(t.category.id()) ?? new Map(zeroes);
+    categorySeries.set(ts, exchanged.add(categorySeries.get(ts)));
     byCategoryIdAndMonth.set(t.category.id(), categorySeries);
   }
-
-  const months = Object.keys(monthsIndex)
-    .map((x) => +x)
-    .sort();
-  months.forEach((m) => {
-    moneyIn[m] ??= zero;
-    [...byCategoryIdAndMonth.values()].forEach((v) => {
-      v.set(m, v.get(m) ?? zero);
-    });
-  });
-
-  const currencyFormatter = (value) =>
-    displayCurrency.format(value, { maximumFractionDigits: 0 });
-  const defaultChartOptions: EChartsOption = {
-    grid: {
-      containLabel: true,
-    },
-    tooltip: {},
-    xAxis: {
-      data: months.map((x) => formatMonth(x)),
-    },
-    yAxis: {
-      axisLabel: {
-        formatter: currencyFormatter,
-      },
-    },
-  };
 
   return (
     <>
@@ -105,7 +74,8 @@ export function IncomeCharts(props: { transactions: Transaction[] }) {
       </div>
       <ReactEcharts
         notMerge
-        option={Object.assign({}, defaultChartOptions, {
+        option={{
+          ...defaultChartOptions(displayCurrency, months),
           title: {
             text: "Total money in",
           },
@@ -118,17 +88,18 @@ export function IncomeCharts(props: { transactions: Transaction[] }) {
             {
               type: "bar",
               name: "Money In",
-              data: months.map((m) => Math.round(moneyIn[m].dollar())),
+              data: months.map((m) => Math.round(moneyIn.get(m).dollar())),
               itemStyle: {
                 color: "#15803d",
               },
             },
           ],
-        })}
+        }}
       />
       <ReactEcharts
         notMerge
-        option={Object.assign({}, defaultChartOptions, {
+        option={{
+          ...defaultChartOptions(displayCurrency, months),
           title: {
             text: "By category",
           },
@@ -145,7 +116,7 @@ export function IncomeCharts(props: { transactions: Transaction[] }) {
               data: months.map((m) => Math.round(series.get(m).dollar())),
             })
           ),
-        })}
+        }}
       />
     </>
   );
@@ -189,7 +160,7 @@ function PageContent() {
           onChange={(x) => setExcludeCategories(x.map((x) => x.value))}
         />
       </div>
-      <IncomeCharts transactions={filteredTransactions} />
+      <IncomeCharts transactions={filteredTransactions} duration={duration} />
     </StatsPageLayout>
   );
 }

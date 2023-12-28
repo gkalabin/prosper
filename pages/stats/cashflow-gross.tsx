@@ -8,9 +8,9 @@ import { DebugTable } from "components/stats/DebugTable";
 import { StatsPageLayout } from "components/StatsPageLayout";
 import { ButtonLink } from "components/ui/buttons";
 import { isWithinInterval, startOfMonth } from "date-fns";
-import { EChartsOption } from "echarts";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
+import { defaultChartOptions } from "lib/charts";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -18,7 +18,6 @@ import {
 import { useDisplayCurrency } from "lib/displaySettings";
 import { Transaction } from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
-import { formatMonth } from "lib/TimeHelpers";
 import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import Select from "react-select";
@@ -79,32 +78,11 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
     cumulativeDelta[ts] = currentDeltaSum;
   }
 
-  const currencyFormatter = (value) =>
-    displayCurrency.format(value, { maximumFractionDigits: 0 });
-  const defaultChartOptions: EChartsOption = {
-    grid: {
-      containLabel: true,
-    },
-    tooltip: {
-      formatter: (params) => {
-        const { name, value } = params;
-        return `${name}: ${currencyFormatter(value)}`;
-      },
-    },
-    xAxis: {
-      data: months.map((x) => formatMonth(x)),
-    },
-    yAxis: {
-      axisLabel: {
-        formatter: currencyFormatter,
-      },
-    },
-  };
-
   return (
     <>
       <ReactEcharts
-        option={Object.assign({}, defaultChartOptions, {
+        option={{
+          ...defaultChartOptions(displayCurrency, months),
           title: {
             text: "Money In vs Money Out",
           },
@@ -131,7 +109,7 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
               },
             },
           ],
-        })}
+        }}
       />
 
       <div className="m-4">
@@ -154,7 +132,8 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
       </div>
 
       <ReactEcharts
-        option={Object.assign({}, defaultChartOptions, {
+        option={{
+          ...defaultChartOptions(displayCurrency, months),
           title: {
             text: "Delta (difference between money in and money out)",
           },
@@ -165,11 +144,12 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
               data: months.map((m) => Math.round(delta[m].dollar())),
             },
           ],
-        })}
+        }}
       />
 
       <ReactEcharts
-        option={Object.assign({}, defaultChartOptions, {
+        option={{
+          ...defaultChartOptions(displayCurrency, months),
           title: {
             text: "Cumulative delta",
           },
@@ -180,7 +160,7 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
               data: months.map((m) => Math.round(cumulativeDelta[m].dollar())),
             },
           ],
-        })}
+        }}
       />
     </>
   );
@@ -204,8 +184,11 @@ function IncomeExpenseDebugTable(props: { transactions: Transaction[] }) {
 
 function InOutPageContent() {
   const [duration, setDuration] = useState<Interval>(LAST_6_MONTHS.interval);
-  const { transactions, categories, displaySettings } = useAllDatabaseDataContext();
-  const [excludeCategories, setExcludeCategories] = useState(displaySettings.excludeCategoryIdsInStats());
+  const { transactions, categories, displaySettings } =
+    useAllDatabaseDataContext();
+  const [excludeCategories, setExcludeCategories] = useState(
+    displaySettings.excludeCategoryIdsInStats()
+  );
 
   const categoryOptions = categories.map((a) => ({
     value: a.id(),
@@ -214,7 +197,7 @@ function InOutPageContent() {
 
   const filteredTransactions = transactions.filter(
     (t) =>
-    isWithinInterval(t.timestamp, duration) &&
+      isWithinInterval(t.timestamp, duration) &&
       !excludeCategories.includes(t.category.id())
   );
   return (

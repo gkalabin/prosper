@@ -6,9 +6,9 @@ import {
 } from "components/NotConfiguredYet";
 import { StatsPageLayout } from "components/StatsPageLayout";
 import { eachMonthOfInterval, isWithinInterval, startOfMonth } from "date-fns";
-import { EChartsOption } from "echarts";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
+import { defaultChartOptions } from "lib/charts";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -16,7 +16,6 @@ import {
 import { useDisplayCurrency } from "lib/displaySettings";
 import { Transaction } from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
-import { formatMonth } from "lib/TimeHelpers";
 import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import Select from "react-select";
@@ -51,23 +50,6 @@ export function CashflowCharts({
       moneyIn.set(ts, moneyIn.get(ts).add(exchanged));
     });
 
-  const currencyFormatter = (value) =>
-    displayCurrency.format(value, { maximumFractionDigits: 0 });
-  const defaultChartOptions: EChartsOption = {
-    grid: {
-      containLabel: true,
-    },
-    tooltip: {},
-    xAxis: {
-      data: months.map((x) => formatMonth(x)),
-    },
-    yAxis: {
-      axisLabel: {
-        formatter: currencyFormatter,
-      },
-    },
-  };
-
   const cashflow = new Map<number, AmountWithCurrency>(
     months.map((m) => [m, moneyIn.get(m).subtract(moneyOut.get(m))])
   );
@@ -83,7 +65,7 @@ export function CashflowCharts({
       <ReactEcharts
         notMerge
         option={{
-          ...defaultChartOptions,
+          ...defaultChartOptions(displayCurrency, months),
           title: {
             text: "Cashflow",
           },
@@ -99,7 +81,7 @@ export function CashflowCharts({
       <ReactEcharts
         notMerge
         option={{
-          ...defaultChartOptions,
+          ...defaultChartOptions(displayCurrency, months),
           title: {
             text: "Cashflow (cumulative)",
           },
