@@ -79,7 +79,7 @@ export const FormInputs = (props: {
 
   const [mostFrequentCategory] = uniqMostFrequent(
     recentTransactionsForMode
-      .filter((x) => !vendor || x.vendor() == vendor)
+      .filter((x) => !vendor || (x.hasVendor() && x.vendor() == vendor))
       .map((x) => x.category)
   );
   useEffect(() => {
