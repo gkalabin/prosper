@@ -11,6 +11,7 @@ import { Category, categoryModelFromDB } from "lib/model/Category";
 import { Transaction } from "lib/model/Transaction";
 import { AllDatabaseData } from "lib/ServerSideDB";
 import { createContext, useContext } from "react";
+import { NANOS_MULTIPLIER } from "./exchangeRatesBackfill";
 
 const CurrencyContext = createContext<Currencies>(null);
 export const CurrencyContextProvider = (props: {
@@ -218,7 +219,7 @@ export class ExchangeRates {
     }
     const rateNanos = this.findRate(a.getCurrency(), target, when);
     return new Amount({
-      amountCents: (a.cents() * rateNanos) / 1000000000,
+      amountCents: (a.cents() * rateNanos) / NANOS_MULTIPLIER,
       currency: target,
     });
   }

@@ -12,6 +12,8 @@ import {
   Transfer,
 } from "@prisma/client";
 import prisma from "lib/prisma";
+import { addLatestExchangeRates } from "lib/exchangeRatesBackfill";
+import { addLatestStockQuotes } from "lib/stockQuotesBackfill";
 
 export interface TransactionWithExtensions extends Transaction {
   personalExpense?: PersonalExpense;
@@ -51,7 +53,7 @@ export const loadAllDatabaseData = async () => {
   };
 };
 
-Date.prototype.toJSON = function(){
+Date.prototype.toJSON = function () {
   return this.getTime();
 };
 
@@ -67,6 +69,8 @@ const jsonEncodingHacks = (key: string, value) => {
 
 export const allDbDataProps = async () => {
   const allData = await loadAllDatabaseData();
+  addLatestExchangeRates();
+  addLatestStockQuotes();
   return {
     props: JSON.parse(JSON.stringify(allData, jsonEncodingHacks)),
   };
