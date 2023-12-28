@@ -144,20 +144,20 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
   const [updateError, setUpdateError] = useState("");
   const [updateInProgress, setUpdateInProgress] = useState(false);
 
-  const resetForm = () => {
+  const reset = () => {
     setName(props.category.name);
     setDisplayOrder(props.category.displayOrder);
     setParentId(props.category.parentCategoryId);
     setUpdateError("");
   };
 
-  const openForm = () => {
-    resetForm();
+  const open = () => {
+    reset();
     setShowForm(true);
   };
 
-  const closeForm = () => {
-    resetForm();
+  const close = () => {
+    reset();
     setShowForm(false);
   };
 
@@ -177,7 +177,7 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      closeForm();
+      close();
       props.onCategoryUpdated(await response.json());
     } catch (error) {
       setUpdateError(`Failed to update: ${error}`);
@@ -194,7 +194,7 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
       <>
         {categoryName}
         <small>displayOrder {props.category.displayOrder}</small>
-        <button onClick={(e) => openForm()}>Edit</button>
+        <button onClick={open}>Edit</button>
       </>
     );
   }
@@ -226,7 +226,7 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
           </option>
         ))}
       </select>
-      <button onClick={closeForm} disabled={updateInProgress}>
+      <button onClick={close} disabled={updateInProgress}>
         Cancel
       </button>
       <input
