@@ -1,5 +1,5 @@
+"use client";
 import { ChartPieIcon, FunnelIcon } from "@heroicons/react/24/outline";
-import Layout from "components/Layout";
 import {
   NotConfiguredYet,
   isFullyConfigured,
@@ -18,30 +18,11 @@ import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
-import { allDbDataProps } from "lib/ServerSideDB";
+import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { onTransactionChange } from "lib/stateHelpers";
-import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 
-export const getServerSideProps = allDbDataProps;
-export default function Page(
-  dbData: InferGetServerSidePropsType<typeof getServerSideProps>
-) {
-  if (!isFullyConfigured(dbData)) {
-    return <NotConfiguredYet />;
-  }
-  return (
-    <AllDatabaseDataContextProvider dbData={dbData}>
-      <Layout>
-        <Formik onSubmit={null} initialValues={initialTransactionFilters}>
-          <PageContent />
-        </Formik>
-      </Layout>
-    </AllDatabaseDataContextProvider>
-  );
-}
-
-function PageContent() {
+function NonEmptyPageContent() {
   const [showFiltersForm, setShowFiltersForm] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const filteredTransactions = useFilteredTransactions();
@@ -75,5 +56,18 @@ function PageContent() {
         onTransactionUpdated={onTransactionChange(setDbData)}
       />
     </div>
+  );
+}
+
+export function TransactionsPage({ dbData }: { dbData: AllDatabaseData }) {
+  if (!isFullyConfigured(dbData)) {
+    return <NotConfiguredYet />;
+  }
+  return (
+    <AllDatabaseDataContextProvider dbData={dbData}>
+      <Formik onSubmit={null} initialValues={initialTransactionFilters}>
+        <NonEmptyPageContent />
+      </Formik>
+    </AllDatabaseDataContextProvider>
   );
 }
