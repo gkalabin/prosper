@@ -1,10 +1,10 @@
 import { Prisma } from "@prisma/client";
+import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
+import { Currency } from "lib/model/Currency";
 import {
   CreateBankAccountRequest,
   UnitApiModel,
 } from "lib/model/api/BankAccountForm";
-import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
-import { Currency } from "lib/model/Currency";
 import prisma from "lib/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
 import yahooFinance from "yahoo-finance2";
@@ -45,7 +45,7 @@ export async function fillUnitData(
     return;
   }
   if (unit.kind !== "stock") {
-    throw new Error("Unknown unit kind: " + unit);
+    throw new Error("unknown unit kind: " + unit);
   }
   const existingStock = await prisma.stock.findFirst({
     where: {
@@ -59,20 +59,22 @@ export async function fillUnitData(
   }
   const quote: Quote = await yahooFinance.quote(unit.ticker);
   if (!quote) {
-    throw new Error("Could not find stock: " + unit.ticker);
+    throw new Error("could not find stock: " + unit.ticker);
   }
-  const currency = Currency.findByCode(quote.currency);
+  if (!quote.currency) {
+    throw new Error(`quote for ${unit.ticker} has no currency`);
+  }
+  const currency = Currency.findByCode(quote.currency.toUpperCase());
   if (!currency) {
-    console.error("Could not find currency", quote.currency, quote);
     throw new Error(
-      `Could not find currency '${quote.currency}' when creating stock ${unit.ticker}`
+      `could not find currency '${quote.currency}' when creating stock ${unit.ticker}`
     );
   }
   const newStock = await prisma.stock.create({
     data: {
       exchange: quote.exchange,
       ticker: quote.symbol,
-      currencyCode: quote.currency,
+      currencyCode: currency.code(),
       name: quote.longName ?? quote.shortName,
     },
   });

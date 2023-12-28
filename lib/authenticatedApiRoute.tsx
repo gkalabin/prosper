@@ -29,6 +29,11 @@ export function authenticatedApiRoute(
     const userId = +session.user.id;
     const db = new DB({ userId });
 
-    return await handler(userId, req, res, db);
+    try {
+      return await handler(userId, req, res, db);
+    } catch (e) {
+      console.error(e);
+      res.status(500).send(e.message);
+    }
   };
 }

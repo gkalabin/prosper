@@ -51,6 +51,12 @@ export const AddOrEditAccountForm = ({
           body: JSON.stringify(body),
         }
       );
+      if (!added.ok) {
+        setApiError(
+          `Failed to add: ${await added.text()} (code ${added.status})`
+        );
+        return;
+      }
       onAddedOrUpdated(await added.json());
     } catch (error) {
       setApiError(`Failed to add: ${error}`);
@@ -108,6 +114,11 @@ export const AddOrEditAccountForm = ({
             </label>
             <FormikInput name="isArchived" type="checkbox" />
           </div>
+          <div>
+            {apiError && (
+              <div className="font-medium text-red-500">{apiError}</div>
+            )}
+          </div>
           <div className="flex flex-row justify-end gap-2">
             <ButtonFormSecondary onClick={onClose} disabled={isSubmitting}>
               Cancel
@@ -115,12 +126,6 @@ export const AddOrEditAccountForm = ({
             <ButtonFormPrimary disabled={!values.name} type="submit">
               <AddOrUpdateButtonText add={!bankAccount} />
             </ButtonFormPrimary>
-          </div>
-
-          <div>
-            {apiError && (
-              <div className="font-medium text-red-500">{apiError}</div>
-            )}
           </div>
         </Form>
       )}
