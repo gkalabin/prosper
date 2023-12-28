@@ -16,7 +16,6 @@ async function handle(
   const farFuture = addYears(new Date(), 100).toISOString();
   await prisma.starlingToken.create({
     data: {
-      accessToken: token,
       access: token,
       accessValidUntil: farFuture,
       refresh: "",

@@ -1,5 +1,5 @@
 import { NordigenToken } from "@prisma/client";
-import { isBefore } from "date-fns";
+import { addSeconds, isBefore } from "date-fns";
 import { DB } from "lib/db";
 import prisma from "lib/prisma";
 
@@ -32,13 +32,9 @@ async function createToken(db: DB, bankId: number): Promise<NordigenToken> {
   const now = new Date();
   const data = {
     access,
-    accessValidUntil: new Date(
-      now.getTime() + access_expires * 1000
-    ).toISOString(),
+    accessValidUntil: addSeconds(now, access_expires).toISOString(),
     refresh,
-    refreshValidUntil: new Date(
-      now.getTime() + refresh_expires * 1000
-    ).toISOString(),
+    refreshValidUntil: addSeconds(now, refresh_expires).toISOString(),
     userId: db.getUserId(),
     bankId,
   };
@@ -80,9 +76,7 @@ export async function refreshToken(
   const updatedToken = await prisma.nordigenToken.update({
     data: {
       access,
-      accessValidUntil: new Date(
-        now.getTime() + access_expires * 1000
-      ).toISOString(),
+      accessValidUntil: addSeconds(now, access_expires).toISOString(),
     },
     where: {
       id: token.id,

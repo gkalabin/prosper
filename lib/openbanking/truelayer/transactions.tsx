@@ -1,13 +1,13 @@
 import { ExternalAccountMapping, TrueLayerToken } from "@prisma/client";
 import { Transaction } from "lib/openbanking/interface";
 
-export function fetchTransactions(
+export async function fetchTransactions(
   token: TrueLayerToken,
   mapping: ExternalAccountMapping
 ): Promise<Transaction[]> {
   const init = {
     method: "GET",
-    headers: { Authorization: `Bearer ${token.accessToken}` },
+    headers: { Authorization: `Bearer ${token.access}` },
   };
   const urlSettled = `https://api.truelayer.com/data/v1/accounts/${mapping.externalAccountId}/transactions`;
   const urlPending = `https://api.truelayer.com/data/v1/accounts/${mapping.externalAccountId}/transactions/pending`;
@@ -16,7 +16,8 @@ export function fetchTransactions(
       .then((r) => r.json())
       .then((r) => decode({ r, accountId: mapping.internalAccountId }))
   );
-  return Promise.all(fetches).then((x) => x.flat());
+  const x = await Promise.all(fetches);
+  return x.flat();
 }
 
 function decode(arg: { accountId: number; r }): Transaction[] {

@@ -6,7 +6,7 @@ export async function fetchAccounts(
 ): Promise<AccountDetails[]> {
   return await fetch(`https://api.truelayer.com/data/v1/accounts`, {
     method: "GET",
-    headers: { Authorization: `Bearer ${token.accessToken}` },
+    headers: { Authorization: `Bearer ${token.access}` },
   })
     .then((r) => r.json())
     .then((x) => {

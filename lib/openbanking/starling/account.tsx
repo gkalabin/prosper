@@ -8,7 +8,7 @@ export async function fetchAccounts(
 ): Promise<AccountDetails[]> {
   const response = await fetch(`https://api.starlingbank.com/api/v2/accounts`, {
     method: "GET",
-    headers: { Authorization: `Bearer ${token.accessToken}` },
+    headers: { Authorization: `Bearer ${token.access}` },
   }).then((r) => r.json());
   return (response.accounts ?? []).map(
     ({ accountUid, defaultCategory, name, currency }) =>

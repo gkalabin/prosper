@@ -12,7 +12,7 @@ async function handle(
   db: DB
 ) {
   const bankId = parseInt(req.query.bankId as string, 10);
-  const institutionId = req.query.institutionId;
+  const institutionId = req.query.institutionId as string;
   if (!institutionId) {
     return res.status(400).send("Missing institutionId");
   }
@@ -48,6 +48,7 @@ async function handle(
   const data = {
     id: reference,
     requisitionId: requisition.id,
+    institutionId,
     userId,
     bankId,
   };

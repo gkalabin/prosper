@@ -9,7 +9,7 @@ export async function fetchTransactions(
 ): Promise<Transaction[]> {
   const init = {
     method: "GET",
-    headers: { Authorization: `Bearer ${token.accessToken}` },
+    headers: { Authorization: `Bearer ${token.access}` },
   };
   const { accountUid, defaultCategory } = parseExternalAccountId(
     mapping.externalAccountId

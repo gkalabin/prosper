@@ -11,7 +11,7 @@ export async function fetchBalance(
     `https://api.starlingbank.com/api/v2/accounts/${accountUid}/balance`,
     {
       method: "GET",
-      headers: { Authorization: `Bearer ${token.accessToken}` },
+      headers: { Authorization: `Bearer ${token.access}` },
     }
   )
     .then((r) => r.json())
