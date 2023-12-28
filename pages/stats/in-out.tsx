@@ -1,19 +1,21 @@
 import { Switch } from "@headlessui/react";
 import Layout from "components/Layout";
+import {
+  isFullyConfigured,
+  NotConfiguredYet,
+} from "components/NotConfiguredYet";
 import { EChartOption } from "echarts";
 import ReactEcharts from "echarts-for-react";
 import {
   AllDatabaseDataContextProvider,
   AmountWithCurrency,
-  modelFromDatabaseData, useAllDatabaseDataContext
+  useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { formatMonth } from "lib/TimeHelpers";
 import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
-
-export const getServerSideProps = allDbDataProps;
 
 export function MoneyInMoneyOut() {
   const displayCurrency = useDisplayCurrency();
@@ -58,11 +60,7 @@ export function MoneyInMoneyOut() {
       delta[ts] = delta[ts].add(exchanged);
     }
     if (includeTransfersInDelta && t.isTransfer()) {
-      const send = exchange.exchange(
-        t.amount(),
-        displayCurrency,
-        t.timestamp
-      );
+      const send = exchange.exchange(t.amount(), displayCurrency, t.timestamp);
       const received = exchange.exchange(
         t.amountReceived(),
         displayCurrency,
@@ -142,12 +140,14 @@ export function MoneyInMoneyOut() {
                 onChange={() =>
                   setIncludeTransfersInDelta(!includeTransfersInDelta)
                 }
-                className={`${includeTransfersInDelta ? "bg-indigo-700" : "bg-gray-200"
-                  } relative inline-flex h-6 w-11 items-center rounded-full`}
+                className={`${
+                  includeTransfersInDelta ? "bg-indigo-700" : "bg-gray-200"
+                } relative inline-flex h-6 w-11 items-center rounded-full`}
               >
                 <span
-                  className={`${includeTransfersInDelta ? "translate-x-6" : "translate-x-1"
-                    } inline-block h-4 w-4 transform rounded-full bg-white transition`}
+                  className={`${
+                    includeTransfersInDelta ? "translate-x-6" : "translate-x-1"
+                  } inline-block h-4 w-4 transform rounded-full bg-white transition`}
                 />
               </Switch>
             </div>
@@ -169,9 +169,7 @@ export function MoneyInMoneyOut() {
   );
 }
 
-export default function TransactionsPage(
-  dbData: InferGetServerSidePropsType<typeof getServerSideProps>
-) {
+function InOutPageContent() {
   return (
     <Layout
       subheader={[
@@ -185,9 +183,21 @@ export default function TransactionsPage(
         },
       ]}
     >
-      <AllDatabaseDataContextProvider init={modelFromDatabaseData(dbData)}>
-        <MoneyInMoneyOut />
-      </AllDatabaseDataContextProvider>
+      <MoneyInMoneyOut />
     </Layout>
+  );
+}
+
+export const getServerSideProps = allDbDataProps;
+export default function InOutPage(
+  dbData: InferGetServerSidePropsType<typeof getServerSideProps>
+) {
+  if (!isFullyConfigured(dbData)) {
+    return <NotConfiguredYet />;
+  }
+  return (
+    <AllDatabaseDataContextProvider dbData={dbData}>
+      <InOutPageContent />
+    </AllDatabaseDataContextProvider>
   );
 }

@@ -8,11 +8,11 @@ import { addDays, closestTo, isBefore, startOfDay } from "date-fns";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category, categoryModelFromDB } from "lib/model/Category";
+import { Currencies, Currency, NANOS_MULTIPLIER } from "lib/model/Currency";
+import { Tag } from "lib/model/Tag";
 import { Transaction } from "lib/model/Transaction";
 import { Trip } from "lib/model/Trip";
-import { Tag } from "lib/model/Tag";
-import { createContext, useContext } from "react";
-import { Currencies, Currency, NANOS_MULTIPLIER } from "lib/model/Currency";
+import { createContext, useContext, useState } from "react";
 
 export class AmountWithCurrency {
   private readonly amount: Amount;
@@ -314,13 +314,19 @@ export type AllClientDataModel = {
   exchange: StockAndCurrencyExchange;
 };
 
-const AllDatabaseDataContext = createContext<AllClientDataModel>(null);
+const AllDatabaseDataContext = createContext<
+  AllClientDataModel & {
+    setDbData: (x: AllDatabaseData) => void;
+  }
+>(null);
 export const AllDatabaseDataContextProvider = (props: {
-  init: AllClientDataModel;
+  dbData: AllDatabaseData;
   children: JSX.Element | JSX.Element[];
 }) => {
+  const [dbDataState, setDbData] = useState(props.dbData);
+  const model = modelFromDatabaseData(dbDataState);
   return (
-    <AllDatabaseDataContext.Provider value={props.init}>
+    <AllDatabaseDataContext.Provider value={{ ...model, setDbData }}>
       {props.children}
     </AllDatabaseDataContext.Provider>
   );
@@ -376,14 +382,22 @@ export const modelFromDatabaseData = (
   } = Object.fromEntries(bankAccounts.map((x) => [x.id, x]));
 
   const trips = dbData.dbTrips.map((x) => new Trip(x));
-  const tripById = new Map<number, Trip>(trips.map(x => [x.id(), x]));
+  const tripById = new Map<number, Trip>(trips.map((x) => [x.id(), x]));
   const tags = dbData.dbTags.map((x) => new Tag(x));
-  const tagById = new Map<number, Tag>(tags.map(x => [x.id(), x]));
+  const tagById = new Map<number, Tag>(tags.map((x) => [x.id(), x]));
 
   const transactions: Transaction[] = dbData.dbTransactions
     .map(
       (t) =>
-        new Transaction(t, categoryById, bankAccountById, tripById, tagById, currencies, exchange)
+        new Transaction(
+          t,
+          categoryById,
+          bankAccountById,
+          tripById,
+          tagById,
+          currencies,
+          exchange
+        )
     )
     .filter((x) => x.valid());
 

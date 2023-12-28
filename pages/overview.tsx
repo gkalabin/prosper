@@ -9,7 +9,7 @@ import { ButtonPagePrimary } from "components/ui/buttons";
 import {
   AllDatabaseDataContextProvider,
   Amount,
-  modelFromDatabaseData,
+  AmountWithCurrency,
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
@@ -97,13 +97,13 @@ const BanksList = (props: {
               {bank.accounts
                 .filter((a) => !a.isArchived())
                 .map((account) => (
-                <BankAccountListItem
-                  key={account.id}
-                  account={account}
-                  openBankingBalance={props.openBankingBalances[account.id]}
-                  onTransactionUpdated={props.onTransactionUpdated}
-                />
-              ))}
+                  <BankAccountListItem
+                    key={account.id}
+                    account={account}
+                    openBankingBalance={props.openBankingBalances[account.id]}
+                    onTransactionUpdated={props.onTransactionUpdated}
+                  />
+                ))}
             </div>
           </div>
         ))}
@@ -112,44 +112,75 @@ const BanksList = (props: {
   );
 };
 
+function OverviewPageContent({
+  dbData,
+}: {
+  dbData: InferGetServerSidePropsType<typeof getServerSideProps>;
+}) {
+  const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
+  const displayCurrency = useDisplayCurrency();
+  const { banks, exchange, setDbData } = useAllDatabaseDataContext();
+
+  const accounts = banks.flatMap((b) => b.accounts);
+  const now = new Date();
+  const zero = new AmountWithCurrency({
+    amountCents: 0,
+    currency: displayCurrency,
+  });
+  const total = accounts.reduce(
+    (acc, account) =>
+      acc.add(exchange.exchange(account.balance(), displayCurrency, now)),
+    zero
+  );
+  const totalLiquid = accounts
+    .filter((a) => a.isLiquid())
+    .reduce(
+      (acc, account) =>
+        acc.add(exchange.exchange(account.balance(), displayCurrency, now)),
+      zero
+    );
+  return (
+    <Layout>
+      <div className="mb-4">
+        {!showAddTransactionForm && (
+          <div className="flex justify-end">
+            <ButtonPagePrimary onClick={() => setShowAddTransactionForm(true)}>
+              New Transaction
+            </ButtonPagePrimary>
+          </div>
+        )}
+        {showAddTransactionForm && (
+          <AddTransactionForm
+            onAddedOrUpdated={onTransactionChange(setDbData)}
+            openBankingTransactions={dbData.openBankingData.transactions}
+            transactionPrototypes={dbData.dbTransactionPrototypes}
+            onClose={() => setShowAddTransactionForm(false)}
+          />
+        )}
+      </div>
+      <div>
+        <h2 className="text-2xl font-medium text-gray-900">Summary</h2>
+        <div>Total: {total.format()}</div>
+        <div>Liquid: {totalLiquid.format()}</div>
+      </div>
+      <BanksList
+        onTransactionUpdated={onTransactionChange(setDbData)}
+        openBankingBalances={dbData.openBankingData.balances}
+      />
+    </Layout>
+  );
+}
+
 export const getServerSideProps = allDbDataPropsWithOb;
 export default function OverviewPage(
   dbData: InferGetServerSidePropsType<typeof getServerSideProps>
 ) {
-  const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
-  const [dbDataState, setDbData] = useState(dbData);
-
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }
-
   return (
-    <Layout>
-      <AllDatabaseDataContextProvider init={modelFromDatabaseData(dbDataState)}>
-        <div className="mb-4">
-          {!showAddTransactionForm && (
-            <div className="flex justify-end">
-              <ButtonPagePrimary
-                onClick={() => setShowAddTransactionForm(true)}
-              >
-                New Transaction
-              </ButtonPagePrimary>
-            </div>
-          )}
-          {showAddTransactionForm && (
-            <AddTransactionForm
-              onAddedOrUpdated={onTransactionChange(setDbData)}
-              openBankingTransactions={dbData.openBankingData.transactions}
-              transactionPrototypes={dbData.dbTransactionPrototypes}
-              onClose={() => setShowAddTransactionForm(false)}
-            />
-          )}
-        </div>
-        <BanksList
-          onTransactionUpdated={onTransactionChange(setDbData)}
-          openBankingBalances={dbData.openBankingData.balances}
-        />
-      </AllDatabaseDataContextProvider>
-    </Layout>
+    <AllDatabaseDataContextProvider dbData={dbData}>
+      <OverviewPageContent dbData={dbData} />
+    </AllDatabaseDataContextProvider>
   );
 }

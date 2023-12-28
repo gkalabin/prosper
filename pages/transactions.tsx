@@ -11,7 +11,6 @@ import { differenceInMilliseconds } from "date-fns";
 import { Formik, useFormikContext } from "formik";
 import {
   AllDatabaseDataContextProvider,
-  modelFromDatabaseData,
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { matchesWithAncestors } from "lib/model/Category";
@@ -22,29 +21,31 @@ import { useState } from "react";
 import Select from "react-select";
 
 export const getServerSideProps = allDbDataProps;
-
-export default function TransactionsPageLayout(
+export default function TransactionsPage(
   dbData: InferGetServerSidePropsType<typeof getServerSideProps>
 ) {
-  const [dbDataState, setDbData] = useState(dbData);
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }
   return (
-    <Layout>
-      <AllDatabaseDataContextProvider init={modelFromDatabaseData(dbDataState)}>
-        <Formik onSubmit={null} initialValues={initialFilters}>
-          <>
-            <div className="mb-4">
-              <Filters />
-            </div>
+    <AllDatabaseDataContextProvider dbData={dbData}>
+      <TransactionsPageLayout />
+    </AllDatabaseDataContextProvider>
+  );
+}
 
-            <FilteredTransactionsList
-              onTransactionChange={onTransactionChange(setDbData)}
-            />
-          </>
-        </Formik>
-      </AllDatabaseDataContextProvider>
+function TransactionsPageLayout() {
+  return (
+    <Layout>
+      <Formik onSubmit={null} initialValues={initialFilters}>
+        <>
+          <div className="mb-4">
+            <Filters />
+          </div>
+
+          <FilteredTransactionsList />
+        </>
+      </Formik>
     </Layout>
   );
 }
@@ -72,8 +73,8 @@ const initialFilters: FiltersFormValues = {
   allTagsShouldMatch: false,
 };
 
-function FilteredTransactionsList({ onTransactionChange }) {
-  const { transactions } = useAllDatabaseDataContext();
+function FilteredTransactionsList() {
+  const { transactions, setDbData } = useAllDatabaseDataContext();
   const {
     values: {
       vendor,
@@ -117,7 +118,7 @@ function FilteredTransactionsList({ onTransactionChange }) {
   return (
     <TransactionsList
       transactions={displayTransactions}
-      onTransactionUpdated={onTransactionChange}
+      onTransactionUpdated={onTransactionChange(setDbData)}
     />
   );
 }
