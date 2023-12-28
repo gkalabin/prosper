@@ -1,6 +1,6 @@
 export enum TransactionType {
-  PERSONAL,
-  EXTERNAL,
-  TRANSFER,
-  INCOME,
+  PERSONAL = "PERSONAL",
+  EXTERNAL = "EXTERNAL",
+  TRANSFER = "TRANSFER",
+  INCOME = "INCOME",
 }

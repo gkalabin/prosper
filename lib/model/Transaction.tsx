@@ -149,7 +149,7 @@ export class Transaction {
       this.thirdPartyExpense,
       this.income
     ).ownShareAmountCents;
-    return Math.abs(this.amountCents - 2 * ownShareAmountCents) <= 1;
+    return this.amountCents != ownShareAmountCents;
   }
 
   hasAccountFrom() {
@@ -312,19 +312,26 @@ export class Transaction {
     return 0;
   }
 
-  matchesType(tt: TransactionType) {
-    switch (tt) {
-      case TransactionType.PERSONAL:
-        return this.isPersonalExpense();
-      case TransactionType.EXTERNAL:
-        return this.isThirdPartyExpense();
-      case TransactionType.INCOME:
-        return this.isIncome();
-      case TransactionType.TRANSFER:
-        return this.isTransfer();
-      default:
-        throw new Error(`Unknown transaction type: ${tt}`);
+  type(): TransactionType {
+    if (this.isPersonalExpense()) {
+      return TransactionType.PERSONAL;
     }
+    if (this.isThirdPartyExpense()) {
+      return TransactionType.EXTERNAL;
+    }
+    if (this.isIncome()) {
+      return TransactionType.INCOME;
+    }
+    if (this.isTransfer()) {
+      return TransactionType.TRANSFER;
+    }
+    throw new Error(
+      `Unknown transaction type: ${JSON.stringify(this.dbValue)}`
+    );
+  }
+
+  matchesType(tt: TransactionType) {
+    return this.type() == tt;
   }
 
   private belongsToAccount(ba: BankAccount): boolean {
