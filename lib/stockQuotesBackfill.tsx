@@ -42,8 +42,7 @@ async function backfill(stock: Stock) {
   const now = new Date();
   const apiModelToDb = (x: HistoricalRowHistory) => {
     return {
-      currencyId: 7354,
-      currencyCode: stock.currency().code(),
+      stockId: stock.id(),
       ticker: stock.ticker(),
       exchange: stock.exchange(),
       value: Math.round(x.close * 100),

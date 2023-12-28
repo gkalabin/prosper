@@ -29,7 +29,7 @@ export async function fetchExchangeRates({
 }
 
 export async function addLatestExchangeRates() {
-    const timingLabel = "Exchange rate backfill " + new Date().getTime();
+  const timingLabel = "Exchange rate backfill " + new Date().getTime();
   console.time(timingLabel);
   const backfillPromises: Promise<void>[] = [];
   for (const sell of Currency.all()) {
@@ -50,8 +50,6 @@ async function backfill({ sell, buy }: { sell: Currency; buy: Currency }) {
     return {
       currencyCodeFrom: sell.code(),
       currencyCodeTo: buy.code(),
-      currencyFromId: 7354,
-      currencyToId: 7354,
       rateTimestamp: x.date.toISOString(),
       rateNanos: Math.round(x.close * NANOS_MULTIPLIER),
     };

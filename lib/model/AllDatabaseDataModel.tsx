@@ -2,11 +2,11 @@ import {
   Bank,
   BankAccount,
   Category,
-  Currency,
   DisplaySettings,
   ExchangeRate,
   Income,
   PersonalExpense,
+  Stock,
   StockQuote,
   Tag,
   ThirdPartyExpense,
@@ -14,7 +14,6 @@ import {
   TransactionPrototype,
   Transfer,
   Trip,
-  Stock,
 } from "@prisma/client";
 
 export interface TransactionWithExtensions extends Transaction {
@@ -39,7 +38,6 @@ export type AllDatabaseData = {
   dbBankAccounts: BankAccount[];
   dbTrips: Trip[];
   dbTags: Tag[];
-  dbCurrencies: Currency[];
   dbExchangeRates: ExchangeRate[];
   dbStockQuotes: StockQuote[];
   dbDisplaySettings: DisplaySettings;

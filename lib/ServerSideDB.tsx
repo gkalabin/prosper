@@ -19,7 +19,6 @@ const fetchAllDatabaseData = async (db: DB): Promise<AllDatabaseData> => {
       async () => (data.dbTrips = await db.tripFindMany()),
       async () => (data.dbTags = await db.tagFindMany()),
       async () => (data.dbBankAccounts = await db.bankAccountFindMany()),
-      async () => (data.dbCurrencies = await db.currencyFindMany()),
       async () => (data.dbCategories = await db.categoryFindMany()),
       async () =>
         (data.dbDisplaySettings = await db.getOrCreateDbDisplaySettings()),

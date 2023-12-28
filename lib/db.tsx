@@ -53,9 +53,6 @@ export class DB {
     return prisma.category.findMany(this.whereUser(args));
   }
 
-  currencyFindMany(args?: Prisma.CurrencyFindManyArgs) {
-    return prisma.currency.findMany(args);
-  }
   stockQuoteFindMany(args?: Prisma.StockQuoteFindManyArgs) {
     return prisma.stockQuote.findMany(args);
   }
@@ -93,7 +90,6 @@ export class DB {
     }
     const created = await prisma.displaySettings.create({
       data: {
-        displayCurrencyId: 7354,
         displayCurrencyCode: Currency.USD.code(),
         excludeCategoryIdsInStats: "",
         userId: this.userId,

@@ -133,7 +133,6 @@ const extensionConfigByMode = new Map<
         return {
           vendor,
           payer,
-          currencyId: 7354,
           currencyCode,
           userId,
           ownShareAmountCents: toCents(ownShareAmount),
