@@ -8,9 +8,6 @@ import { NextRequest } from "next/server";
 export async function GET(request: NextRequest): Promise<Response> {
   const query = request.nextUrl.searchParams;
   const code = query.get("code");
-  if (!code) {
-    return new Response(`code is required`, { status: 400 });
-  }
   const redirectURI = `${process.env.HOST}/api/open-banking/truelayer/connect`;
   if (!code) {
     const connectingBankId = intParam(query.get("bankId"));

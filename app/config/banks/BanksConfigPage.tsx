@@ -167,7 +167,7 @@ const BankConnections = ({
         >
           Starling (UK),
         </AnchorLink>{" "}
-        <AnchorLink href={`/api/open-banking/connect?bankId=${bank.id}`}>
+        <AnchorLink href={`/api/open-banking/truelayer/connect?bankId=${bank.id}`}>
           TrueLayer (UK)
         </AnchorLink>{" "}
         or{" "}
