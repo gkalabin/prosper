@@ -249,7 +249,7 @@ export function ExpenseByCategory(props: {
 }
 
 function PageContent() {
-  const [duration, setDuration] = useState<Interval>(LAST_6_MONTHS.interval);
+  const [duration, setDuration] = useState(LAST_6_MONTHS);
 
   const { transactions, categories, displaySettings } =
     useAllDatabaseDataContext();

@@ -3,49 +3,51 @@ import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { CheckIcon } from "@heroicons/react/24/outline";
 import classNames from "classnames";
 import { Input } from "components/forms/Input";
-import { Interval, format, isEqual } from "date-fns";
+import { Interval, format, isEqual, startOfMonth } from "date-fns";
 import { Fragment } from "react";
 
 import { subMonths } from "date-fns";
+import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 
 const now = new Date();
-export const LAST_6_MONTHS = {
-  label: "Last 6 months",
-  interval: {
-    start: subMonths(now, 6),
-    end: now,
-  },
+export const LAST_6_MONTHS: Interval = {
+  start: startOfMonth(subMonths(now, 6)),
+  end: now,
 };
-export const LAST_12_MONTHS = {
-  label: "Last 12 months",
-  interval: {
-    start: subMonths(now, 12),
-    end: now,
-  },
+export const LAST_12_MONTHS: Interval = {
+  start: startOfMonth(subMonths(now, 12)),
+  end: now,
 };
-export const ALL_TIME = {
-  label: "All time",
-  interval: {
-    start: 0,
-    end: now,
-  },
-};
-const commonIntervals = [LAST_6_MONTHS, LAST_12_MONTHS, ALL_TIME];
+
+function useCommonIntervals() {
+  const { transactions } = useAllDatabaseDataContext();
+  const [firstTransaction] = [...transactions].sort(
+    (a, b) => a.timestamp.getTime() - b.timestamp.getTime()
+  );
+  return [
+    {
+      label: "Last 6 months",
+      interval: LAST_6_MONTHS,
+    },
+    {
+      label: "Last 12 months",
+      interval: LAST_12_MONTHS,
+    },
+    {
+      label: "All time",
+      interval: {
+        start: startOfMonth(firstTransaction.timestamp),
+        end: now,
+      },
+    },
+  ];
+}
 
 const formatDate = (date?: Date | number) =>
   date ? format(date, "yyyy-MM-dd") : "";
 
-function formatInterval(i: Interval): string {
-  if (i.start && i.end) {
-    return `${formatDate(i.start)} - ${formatDate(i.end)}`;
-  }
-  if (i.start) {
-    return `After ${formatDate(i.start)}`;
-  }
-  if (i.end) {
-    return `Before ${formatDate(i.end)}`;
-  }
-  return "Never";
+function intervalsEqual(i1: Interval, i2: Interval): boolean {
+  return isEqual(i1.start, i2.start) && isEqual(i1.end, i2.end);
 }
 
 export function DurationSelector({
@@ -55,6 +57,24 @@ export function DurationSelector({
   duration: Interval;
   onChange: (newInterval: Interval) => void;
 }) {
+  const commonIntervals = useCommonIntervals();
+  const formatInterval = (i: Interval): string => {
+    const common = commonIntervals.find((x) => intervalsEqual(x.interval, i));
+    if (common) {
+      return common.label;
+    }
+    if (i.start && i.end) {
+      return `${formatDate(i.start)} - ${formatDate(i.end)}`;
+    }
+    if (i.start) {
+      return `After ${formatDate(i.start)}`;
+    }
+    if (i.end) {
+      return `Before ${formatDate(i.end)}`;
+    }
+    return "Never";
+  };
+
   return (
     <div className="mb-4 w-full max-w-sm">
       <Popover className="relative">
@@ -92,8 +112,7 @@ export function DurationSelector({
                         <div className="text-sm font-medium text-gray-900">
                           <CheckIcon
                             className={classNames(
-                              isEqual(opt.interval.start, duration.start) &&
-                                isEqual(opt.interval.end, duration.end)
+                              intervalsEqual(duration, opt.interval)
                                 ? "visible"
                                 : "invisible",
                               "mr-2 inline h-4 w-4"
