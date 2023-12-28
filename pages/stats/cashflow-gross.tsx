@@ -1,4 +1,4 @@
-import { DurationSelector } from "components/DurationSelector";
+import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
 import { undoTailwindInputStyles } from "components/forms/Select";
 import {
   isFullyConfigured,
@@ -7,7 +7,7 @@ import {
 import { DebugTable } from "components/stats/DebugTable";
 import { StatsPageLayout } from "components/StatsPageLayout";
 import { ButtonLink } from "components/ui/buttons";
-import { startOfMonth } from "date-fns";
+import { isWithinInterval, startOfMonth } from "date-fns";
 import { EChartsOption } from "echarts";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
@@ -16,7 +16,6 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { LAST_6_MONTHS } from "lib/Interval";
 import { Transaction } from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { formatMonth } from "lib/TimeHelpers";
@@ -207,7 +206,7 @@ function IncomeExpenseDebugTable(props: { transactions: Transaction[] }) {
 }
 
 function InOutPageContent() {
-  const [duration, setDuration] = useState(LAST_6_MONTHS);
+  const [duration, setDuration] = useState<Interval>(LAST_6_MONTHS.interval);
   const { transactions, categories, displaySettings } = useAllDatabaseDataContext();
   const [excludeCategories, setExcludeCategories] = useState(displaySettings.excludeCategoryIdsInStats());
 
@@ -218,7 +217,7 @@ function InOutPageContent() {
 
   const filteredTransactions = transactions.filter(
     (t) =>
-      duration.includes(t.timestamp) &&
+    isWithinInterval(t.timestamp, duration) &&
       !excludeCategories.includes(t.category.id())
   );
   return (

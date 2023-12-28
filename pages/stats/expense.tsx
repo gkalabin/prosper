@@ -1,4 +1,4 @@
-import { DurationSelector } from "components/DurationSelector";
+import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
 import { undoTailwindInputStyles } from "components/forms/Select";
 import {
   isFullyConfigured,
@@ -7,7 +7,12 @@ import {
 import { DebugTable } from "components/stats/DebugTable";
 import { StatsPageLayout } from "components/StatsPageLayout";
 import { ButtonLink } from "components/ui/buttons";
-import { eachMonthOfInterval, startOfMonth } from "date-fns";
+import {
+  eachMonthOfInterval,
+  Interval,
+  isWithinInterval,
+  startOfMonth,
+} from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { defaultChartOptions, stackedBarChartTooltip } from "lib/charts";
@@ -16,7 +21,6 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { Interval, LAST_6_MONTHS } from "lib/Interval";
 import { Category } from "lib/model/Category";
 import { Transaction } from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
@@ -236,10 +240,7 @@ export function ExpenseByCategory(props: {
     return <></>;
   }
 
-  const months = eachMonthOfInterval({
-    start: props.duration.start(),
-    end: props.duration.end(),
-  });
+  const months = eachMonthOfInterval(props.duration);
   months.forEach((monthDate) => {
     const m = monthDate.getTime();
     [...byCategoryMonth.values()].forEach((v) => {
@@ -276,7 +277,8 @@ export function ExpenseByCategory(props: {
 }
 
 function PageContent() {
-  const [duration, setDuration] = useState(LAST_6_MONTHS);
+  const [duration, setDuration] = useState<Interval>(LAST_6_MONTHS.interval);
+
   const { transactions, categories, displaySettings } =
     useAllDatabaseDataContext();
   const [excludeCategories, setExcludeCategories] = useState(
@@ -288,7 +290,7 @@ function PageContent() {
   }));
   const filteredTransactions = transactions.filter(
     (t) =>
-      duration.includes(t.timestamp) &&
+      isWithinInterval(t.timestamp, duration) &&
       !excludeCategories.some(
         (cid) => t.category.id() == cid || t.category.childOf(cid)
       )

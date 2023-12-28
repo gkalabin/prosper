@@ -1,22 +1,21 @@
-import { DurationSelector } from "components/DurationSelector";
+import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
 import { undoTailwindInputStyles } from "components/forms/Select";
 import {
-    isFullyConfigured,
-    NotConfiguredYet
+  isFullyConfigured,
+  NotConfiguredYet,
 } from "components/NotConfiguredYet";
 import { DebugTable } from "components/stats/DebugTable";
 import { StatsPageLayout } from "components/StatsPageLayout";
 import { ButtonLink } from "components/ui/buttons";
-import { startOfMonth } from "date-fns";
+import { isWithinInterval, startOfMonth } from "date-fns";
 import { EChartsOption } from "echarts";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
-    AllDatabaseDataContextProvider,
-    useAllDatabaseDataContext
+  AllDatabaseDataContextProvider,
+  useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { LAST_6_MONTHS } from "lib/Interval";
 import { Transaction } from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { formatMonth } from "lib/TimeHelpers";
@@ -50,7 +49,8 @@ export function IncomeCharts(props: { transactions: Transaction[] }) {
       t.timestamp
     );
     moneyIn[ts] = moneyIn[ts].add(exchanged);
-    const categorySeries = byCategoryIdAndMonth.get(t.category.id()) ?? new Map();
+    const categorySeries =
+      byCategoryIdAndMonth.get(t.category.id()) ?? new Map();
     const current = categorySeries.get(ts) ?? zero;
     categorySeries.set(ts, exchanged.add(current));
     byCategoryIdAndMonth.set(t.category.id(), categorySeries);
@@ -155,16 +155,19 @@ export function IncomeCharts(props: { transactions: Transaction[] }) {
 }
 
 function PageContent() {
-  const [duration, setDuration] = useState(LAST_6_MONTHS);
-  const { transactions, categories, displaySettings } = useAllDatabaseDataContext();
-  const [excludeCategories, setExcludeCategories] = useState(displaySettings.excludeCategoryIdsInStats());
+  const [duration, setDuration] = useState<Interval>(LAST_6_MONTHS.interval);
+  const { transactions, categories, displaySettings } =
+    useAllDatabaseDataContext();
+  const [excludeCategories, setExcludeCategories] = useState(
+    displaySettings.excludeCategoryIdsInStats()
+  );
   const categoryOptions = categories.map((a) => ({
     value: a.id(),
     label: a.nameWithAncestors(),
   }));
   const filteredTransactions = transactions.filter(
     (t) =>
-      duration.includes(t.timestamp) &&
+      isWithinInterval(t.timestamp, duration) &&
       !excludeCategories.includes(t.category.id())
   );
   return (

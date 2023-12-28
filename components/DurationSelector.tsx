@@ -3,9 +3,50 @@ import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { CheckIcon } from "@heroicons/react/24/outline";
 import classNames from "classnames";
 import { Input } from "components/forms/Input";
-import { format } from "date-fns";
-import { commonIntervals, Interval } from "lib/Interval";
+import { Interval, format, isEqual } from "date-fns";
 import { Fragment } from "react";
+
+import { subMonths } from "date-fns";
+
+const now = new Date();
+export const LAST_6_MONTHS = {
+  label: "Last 6 months",
+  interval: {
+    start: subMonths(now, 6),
+    end: now,
+  },
+};
+export const LAST_12_MONTHS = {
+  label: "Last 12 months",
+  interval: {
+    start: subMonths(now, 12),
+    end: now,
+  },
+};
+export const ALL_TIME = {
+  label: "All time",
+  interval: {
+    start: 0,
+    end: now,
+  },
+};
+const commonIntervals = [LAST_6_MONTHS, LAST_12_MONTHS, ALL_TIME];
+
+const formatDate = (date?: Date | number) =>
+  date ? format(date, "yyyy-MM-dd") : "";
+
+function formatInterval(i: Interval): string {
+  if (i.start && i.end) {
+    return `${formatDate(i.start)} - ${formatDate(i.end)}`;
+  }
+  if (i.start) {
+    return `After ${formatDate(i.start)}`;
+  }
+  if (i.end) {
+    return `Before ${formatDate(i.end)}`;
+  }
+  return "Never";
+}
 
 export function DurationSelector({
   duration,
@@ -14,7 +55,6 @@ export function DurationSelector({
   duration: Interval;
   onChange: (newInterval: Interval) => void;
 }) {
-  const dateFormat = (date: Date) => (date ? format(date, "yyyy-MM-dd") : "");
   return (
     <div className="mb-4 w-full max-w-sm">
       <Popover className="relative">
@@ -25,7 +65,7 @@ export function DurationSelector({
                 ${open ? "" : "text-opacity-90"}
                 group inline-flex items-center rounded-md bg-indigo-700 px-3 py-2 text-base font-medium text-white hover:text-opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75`}
             >
-              <span>Duration: {duration.format()}</span>
+              <span>Duration: {formatInterval(duration)}</span>
               <ChevronDownIcon
                 className={`${open ? "" : "text-opacity-70"}
                   ml-2 h-5 w-5 text-indigo-300 transition duration-150 ease-in-out group-hover:text-opacity-80`}
@@ -45,18 +85,21 @@ export function DurationSelector({
                   <div className="relative grid gap-8 bg-white p-7">
                     {commonIntervals.map((opt) => (
                       <Popover.Button
-                        key={opt.format()}
+                        key={opt.label}
                         className="-m-3 flex items-center rounded-lg p-2 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-indigo-500 focus-visible:ring-opacity-50"
-                        onClick={() => onChange(opt)}
+                        onClick={() => onChange(opt.interval)}
                       >
                         <div className="text-sm font-medium text-gray-900">
                           <CheckIcon
                             className={classNames(
-                              duration.isSame(opt) ? "visible" : "invisible",
+                              isEqual(opt.interval.start, duration.start) &&
+                                isEqual(opt.interval.end, duration.end)
+                                ? "visible"
+                                : "invisible",
                               "mr-2 inline h-4 w-4"
                             )}
                           />
-                          {opt.format()}
+                          {formatInterval(opt.interval)}
                         </div>
                       </Popover.Button>
                     ))}
@@ -74,14 +117,12 @@ export function DurationSelector({
                           <Input
                             type="date"
                             className="grow"
-                            value={dateFormat(duration.start())}
+                            value={formatDate(duration.start)}
                             onChange={(x) =>
-                              onChange(
-                                new Interval({
-                                  start: new Date(x.target.value),
-                                  end: duration.end(),
-                                })
-                              )
+                              onChange({
+                                start: new Date(x.target.value),
+                                end: duration.end,
+                              })
                             }
                           />
                         </div>
@@ -95,14 +136,12 @@ export function DurationSelector({
                           <Input
                             type="date"
                             className="grow"
-                            value={dateFormat(duration.end())}
+                            value={formatDate(duration.end)}
                             onChange={(x) =>
-                              onChange(
-                                new Interval({
-                                  start: duration.start(),
-                                  end: new Date(x.target.value),
-                                })
-                              )
+                              onChange({
+                                start: duration.start,
+                                end: new Date(x.target.value),
+                              })
                             }
                           />
                         </div>

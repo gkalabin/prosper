@@ -1,11 +1,11 @@
-import { DurationSelector } from "components/DurationSelector";
+import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
 import { undoTailwindInputStyles } from "components/forms/Select";
 import {
   isFullyConfigured,
   NotConfiguredYet,
 } from "components/NotConfiguredYet";
 import { StatsPageLayout } from "components/StatsPageLayout";
-import { addMonths, differenceInMilliseconds, startOfMonth } from "date-fns";
+import { eachMonthOfInterval, isWithinInterval, startOfMonth } from "date-fns";
 import { EChartsOption } from "echarts";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
@@ -14,7 +14,6 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { Interval, LAST_6_MONTHS } from "lib/Interval";
 import { Transaction } from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { formatMonth } from "lib/TimeHelpers";
@@ -34,13 +33,8 @@ export function CashflowCharts({
     amountCents: 0,
     currency: displayCurrency,
   });
-  const months = [] as number[];
-  let currentMonth = startOfMonth(duration.start());
-  while (differenceInMilliseconds(duration.end(), currentMonth) >= 0) {
-    months.push(currentMonth.getTime());
-    currentMonth = addMonths(currentMonth, 1);
-  }
-  months.sort();
+
+  const months = eachMonthOfInterval(duration).map((x) => x.getTime());
   const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
 
   const moneyOut = new Map<number, AmountWithCurrency>(zeroes);
@@ -159,7 +153,7 @@ export function CashflowCharts({
 }
 
 function PageContent() {
-  const [duration, setDuration] = useState(LAST_6_MONTHS);
+  const [duration, setDuration] = useState<Interval>(LAST_6_MONTHS.interval);
   const { transactions, categories, displaySettings } =
     useAllDatabaseDataContext();
   const [excludeCategories, setExcludeCategories] = useState(
@@ -171,7 +165,7 @@ function PageContent() {
   }));
   const filteredTransactions = transactions.filter(
     (t) =>
-      duration.includes(t.timestamp) &&
+      isWithinInterval(t.timestamp, duration) &&
       !excludeCategories.some(
         (cid) => t.category.id() == cid || t.category.childOf(cid)
       )
