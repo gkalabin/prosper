@@ -31,7 +31,7 @@ export type FiltersFormValues = {
   accountIds: number[];
   categoryIds: number[];
   includeChildrenCategories: boolean;
-  tripId: number;
+  tripId: number | undefined;
   tagIds: number[];
   allTagsShouldMatch: boolean;
 };
@@ -49,7 +49,7 @@ export const initialTransactionFilters: FiltersFormValues = {
   accountIds: [],
   categoryIds: [],
   includeChildrenCategories: true,
-  tripId: 0,
+  tripId: undefined,
   tagIds: [],
   allTagsShouldMatch: false,
 };
@@ -112,7 +112,7 @@ export function useFilteredTransactions() {
   const sameDayOrBefore = (a: Date | string, b: Date | string) =>
     differenceInMilliseconds(
       startOfDay(new Date(a)),
-      startOfDay(new Date(b))
+      startOfDay(new Date(b)),
     ) <= 0;
   return transactions
     .filter(transactionMatchesFreeTextSearch)
@@ -135,7 +135,7 @@ export function useFilteredTransactions() {
               (cid) =>
                 t.categoryId == cid ||
                 (includeChildrenCategories &&
-                  transactionIsDescendant(t, cid, categories))
+                  transactionIsDescendant(t, cid, categories)),
             )
           : true) &&
         (tripId ? (isExpense(t) || isIncome(t)) && t.tripId == tripId : true) &&
@@ -147,7 +147,7 @@ export function useFilteredTransactions() {
           ? allTagsShouldMatch
             ? tagIds.every((tagId) => t.tagsIds.includes(tagId))
             : tagIds.some((tagId) => t.tagsIds.includes(tagId))
-          : true)
+          : true),
     );
 }
 
@@ -223,14 +223,15 @@ export function TransactionFiltersForm(props: { onClose: () => void }) {
             options={transactionTypeOptions}
             isMulti
             value={transactionTypes.map((tt) => ({
-              label: transactionTypeOptions.find(({ value }) => value == tt)
-                .label,
+              label:
+                transactionTypeOptions.find(({ value }) => value == tt)
+                  ?.label ?? "unknown",
               value: tt,
             }))}
             onChange={(x) =>
               setFieldValue(
                 "transactionTypes",
-                x.map((x) => x.value)
+                x.map((x) => x.value),
               )
             }
           />
@@ -256,13 +257,13 @@ export function TransactionFiltersForm(props: { onClose: () => void }) {
             options={bankAccountOptions}
             isMulti
             value={accountIds.map((x) => ({
-              label: bankAccountOptionByValue.get(x).label,
+              label: bankAccountOptionByValue.get(x)?.label ?? "unknown",
               value: x,
             }))}
             onChange={(x) =>
               setFieldValue(
                 "accountIds",
-                x.map((x) => x.value)
+                x.map((x) => x.value),
               )
             }
           />
@@ -279,13 +280,13 @@ export function TransactionFiltersForm(props: { onClose: () => void }) {
             options={categoryOptions}
             isMulti
             value={categoryIds.map((x) => ({
-              label: categoryOptionByValue.get(x).label,
+              label: categoryOptionByValue.get(x)?.label ?? "unknown",
               value: x,
             }))}
             onChange={(x) =>
               setFieldValue(
                 "categoryIds",
-                x.map((x) => x.value)
+                x.map((x) => x.value),
               )
             }
           />
@@ -332,7 +333,7 @@ export function TransactionFiltersForm(props: { onClose: () => void }) {
             styles={undoTailwindInputStyles()}
             options={tripOptions}
             value={tripOptions.find((x) => x.value == tripId)}
-            onChange={(x) => setFieldValue("tripId", x.value)}
+            onChange={(x) => setFieldValue("tripId", x?.value)}
           />
         </div>
         <div className="col-span-6">
@@ -347,13 +348,13 @@ export function TransactionFiltersForm(props: { onClose: () => void }) {
             options={tagIdOptions}
             isMulti
             value={tagIds.map((x) => ({
-              label: tags.find((t) => t.id == x).name,
+              label: tags.find((t) => t.id == x)?.name ?? "unknown",
               value: x,
             }))}
             onChange={(x) =>
               setFieldValue(
                 "tagIds",
-                x.map((x) => x.value)
+                x.map((x) => x.value),
               )
             }
           />
