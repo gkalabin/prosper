@@ -78,6 +78,7 @@ type TransactionsListItemProps = {
   banks: Bank[];
   categories: Category[];
   transaction: Transaction;
+  allTransactions: Transaction[];
   onUpdated: (transaction: DBTransaction) => void;
   showBankAccountInStatusLine: boolean;
 };
@@ -147,6 +148,7 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
             transaction={props.transaction}
             categories={props.categories}
             banks={props.banks}
+            allTransactions={props.allTransactions}
             onAdded={(updated) => {
               props.onUpdated(updated);
               setShowEditForm(false);
@@ -187,6 +189,7 @@ export const TransactionsList: React.FC<TransactionsListProps> = (props) => {
               categories={props.categories}
               banks={props.banks}
               transaction={t}
+              allTransactions={props.transactions}
               onUpdated={props.onTransactionUpdated}
               showBankAccountInStatusLine={
                 props.showBankAccountInStatusLine ?? true

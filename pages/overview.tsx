@@ -126,7 +126,7 @@ export default function OverviewPage(
 ) {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
   const [dbDataState, setDbData] = useState(dbData);
-  const { categories, banks } = modelFromDatabaseData(dbDataState);
+  const { categories, banks, transactions } = modelFromDatabaseData(dbDataState);
   const [archivedShown, setShowArchived] = useState(false);
 
   const addTransaction = (added: DBTransaction) => {
@@ -167,6 +167,7 @@ export default function OverviewPage(
             <AddTransactionForm
               categories={categories}
               banks={banks}
+              allTransactions={transactions}
               onAdded={addTransaction}
               onClose={() => setShowAddTransactionForm(false)}
             />

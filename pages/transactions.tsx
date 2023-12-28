@@ -95,6 +95,7 @@ export default function TransactionsPage(
               onAdded={addTransaction}
               categories={categories}
               banks={banks}
+              allTransactions={transactions}
               onClose={() => setShowAddTransactionForm(false)}
             />
           </div>
