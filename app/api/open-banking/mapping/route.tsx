@@ -1,7 +1,7 @@
-import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
 import { DB } from "lib/db";
 import prisma from "lib/prisma";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { getUserId } from "lib/user";
+import { NextRequest, NextResponse } from "next/server";
 
 export interface AccountMappingRequest {
   bankId: number;
@@ -11,21 +11,18 @@ export interface AccountMappingRequest {
   }[];
 }
 
-async function handle(
-  userId: number,
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const input: AccountMappingRequest = req.body;
+export async function POST(request: NextRequest): Promise<Response> {
+  const input: AccountMappingRequest = await request.json();
   const { bankId, mapping: mappingRaw } = input;
+  const userId = await getUserId();
   const db = new DB({ userId });
   const [bank] = await db.bankFindMany({ where: { id: bankId } });
   if (!bank) {
-    return res.status(404).json({ message: "Bank not found" });
+    return new Response(`bank not found`, { status: 404 });
   }
   const dbAccounts = await db.bankAccountFindMany({ where: { bankId } });
   const mapping = mappingRaw.filter((m) =>
-    dbAccounts.some((a) => a.id === m.internalAccountId)
+    dbAccounts.some((a) => a.id === m.internalAccountId),
   );
   const result = await prisma.$transaction(async (tx) => {
     await tx.externalAccountMapping.deleteMany({
@@ -51,7 +48,5 @@ async function handle(
       },
     });
   });
-  return res.json(result);
+  return NextResponse.json(result);
 }
-
-export default authenticatedApiRoute("POST", handle);

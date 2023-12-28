@@ -1,23 +1,18 @@
-import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
 import { DB } from "lib/db";
 import { fetchTransactions } from "lib/openbanking/fetchall";
 import { WithdrawalOrDepositPrototype } from "lib/txsuggestions/TransactionPrototype";
-import type { NextApiRequest, NextApiResponse } from "next";
+import { getUserId } from "lib/user";
+import { NextResponse } from "next/server";
 
 export interface OpenBankingTransactions {
   transactions: WithdrawalOrDepositPrototype[];
 }
 
-async function handle(
-  userId: number,
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export async function GET(): Promise<Response> {
+  const userId = await getUserId();
   const db = new DB({ userId });
   const result: OpenBankingTransactions = {
     transactions: await fetchTransactions(db),
   };
-  res.json(result);
+  return NextResponse.json(result);
 }
-
-export default authenticatedApiRoute("GET", handle);
