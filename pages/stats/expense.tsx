@@ -35,15 +35,14 @@ export function ExpenseCharts(props: {
   const [showDebugTable, setShowDebugTable] = useState(false);
   const displayCurrency = useDisplayCurrency();
   const { categories } = useAllDatabaseDataContext();
-  const zero = new AmountWithCurrency({
-    amountCents: 0,
-    currency: displayCurrency,
-  });
+  const zero = AmountWithCurrency.zero(displayCurrency);
+  const months = eachMonthOfInterval(props.duration).map((x) => x.getTime());
+  const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
 
   const transactions = props.transactions.filter(
     (t) => t.isPersonalExpense() || t.isThirdPartyExpense()
   );
-  const moneyOut: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
+  const moneyOut = new Map<number, AmountWithCurrency>(zeroes);
   const byRootCategoryIdAndMonth = new Map<
     number,
     Map<number, AmountWithCurrency>
@@ -52,39 +51,23 @@ export function ExpenseCharts(props: {
     number,
     Map<number, AmountWithCurrency>
   >();
-  const monthsIndex: { [firstOfMonthEpoch: number]: boolean } = {};
   for (const t of transactions) {
     const ts = startOfMonth(t.timestamp).getTime();
-    monthsIndex[ts] = true;
-    moneyOut[ts] ??= zero;
     const exchanged = t.amountOwnShare(displayCurrency);
-    moneyOut[ts] = moneyOut[ts].add(exchanged);
+    moneyOut.set(ts, exchanged.add(moneyOut.get(ts)));
     {
       const cid = t.category.id();
-      const series = byCategoryIdAndMonth.get(cid) ?? new Map();
+      const series = byCategoryIdAndMonth.get(cid) ?? new Map(zeroes);
       series.set(ts, exchanged.add(series.get(ts) ?? zero));
       byCategoryIdAndMonth.set(cid, series);
     }
     {
       const cid = t.category.root().id();
-      const series = byRootCategoryIdAndMonth.get(cid) ?? new Map();
+      const series = byRootCategoryIdAndMonth.get(cid) ?? new Map(zeroes);
       series.set(ts, exchanged.add(series.get(ts) ?? zero));
       byRootCategoryIdAndMonth.set(cid, series);
     }
   }
-
-  const months = Object.keys(monthsIndex)
-    .map((x) => +x)
-    .sort();
-  months.forEach((m) => {
-    moneyOut[m] ??= zero;
-    [...byCategoryIdAndMonth.values()].forEach((v) => {
-      v.set(m, v.get(m) ?? zero);
-    });
-    [...byRootCategoryIdAndMonth.values()].forEach((v) => {
-      v.set(m, v.get(m) ?? zero);
-    });
-  });
 
   return (
     <>
@@ -125,7 +108,7 @@ export function ExpenseCharts(props: {
             {
               type: "bar",
               name: "Money Out",
-              data: months.map((m) => Math.round(moneyOut[m].dollar())),
+              data: months.map((m) => Math.round(moneyOut.get(m).dollar())),
               itemStyle: {
                 color: "#15803d",
               },
@@ -219,10 +202,9 @@ export function ExpenseByCategory(props: {
   const transactions = props.transactions
     .filter((t) => t.isPersonalExpense() || t.isThirdPartyExpense())
     .filter((t) => t.category.childOf(props.category.id()));
-  const zero = new AmountWithCurrency({
-    amountCents: 0,
-    currency: displayCurrency,
-  });
+  const zero = AmountWithCurrency.zero(displayCurrency);
+  const months = eachMonthOfInterval(props.duration).map((x) => x.getTime());
+  const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
 
   let totalSum = zero;
   const byCategoryMonth = new Map<number, Map<number, AmountWithCurrency>>();
@@ -230,7 +212,7 @@ export function ExpenseByCategory(props: {
     const ts = startOfMonth(t.timestamp).getTime();
     const current = t.amountOwnShare(displayCurrency);
     const cid = t.category.id();
-    const series = byCategoryMonth.get(cid) ?? new Map();
+    const series = byCategoryMonth.get(cid) ?? new Map(zeroes);
     series.set(ts, current.add(series.get(ts)));
     byCategoryMonth.set(cid, series);
     totalSum = totalSum.add(current);
@@ -239,14 +221,6 @@ export function ExpenseByCategory(props: {
   if (totalSum.isZero()) {
     return <></>;
   }
-
-  const months = eachMonthOfInterval(props.duration);
-  months.forEach((monthDate) => {
-    const m = monthDate.getTime();
-    [...byCategoryMonth.values()].forEach((v) => {
-      v.set(m, v.get(m) ?? zero);
-    });
-  });
 
   return (
     <>
@@ -265,9 +239,7 @@ export function ExpenseByCategory(props: {
               name: categories
                 .find((c) => c.id() === categoryId)
                 .nameWithAncestors(),
-              data: months.map((m) =>
-                Math.round(series.get(m.getTime()).dollar())
-              ),
+              data: months.map((m) => Math.round(series.get(m).dollar())),
             })
           ),
         }}

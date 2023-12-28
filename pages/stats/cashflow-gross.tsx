@@ -27,10 +27,7 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
   const [showDebugTable, setShowDebugTable] = useState(false);
   const displayCurrency = useDisplayCurrency();
   const { exchange } = useAllDatabaseDataContext();
-  const zero = new AmountWithCurrency({
-    amountCents: 0,
-    currency: displayCurrency,
-  });
+  const zero = AmountWithCurrency.zero(displayCurrency);
 
   const nonThirdPartyTransactions = props.transactions.filter(
     (t) => !t.isThirdPartyExpense()

@@ -27,10 +27,7 @@ export function IncomeCharts(props: { transactions: Transaction[] }) {
   const [showDebugTable, setShowDebugTable] = useState(false);
   const displayCurrency = useDisplayCurrency();
   const { exchange, categories } = useAllDatabaseDataContext();
-  const zero = new AmountWithCurrency({
-    amountCents: 0,
-    currency: displayCurrency,
-  });
+  const zero = AmountWithCurrency.zero(displayCurrency);
 
   const incomeTransactions = props.transactions.filter((t) => t.isIncome());
   const moneyIn: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};

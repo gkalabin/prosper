@@ -10,6 +10,13 @@ export class AmountWithCurrency {
     this.currency = init.currency;
   }
 
+  public static zero(currency: Currency): AmountWithCurrency {
+    return new AmountWithCurrency({
+      amountCents: 0,
+      currency,
+    });
+  }
+
   public getCurrency() {
     return this.currency;
   }

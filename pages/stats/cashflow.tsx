@@ -29,11 +29,7 @@ export function CashflowCharts({
   duration: Interval;
 }) {
   const displayCurrency = useDisplayCurrency();
-  const zero = new AmountWithCurrency({
-    amountCents: 0,
-    currency: displayCurrency,
-  });
-
+  const zero = AmountWithCurrency.zero(displayCurrency);
   const months = eachMonthOfInterval(duration).map((x) => x.getTime());
   const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
 
