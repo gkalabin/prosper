@@ -1,7 +1,7 @@
 import classNames from "classnames";
-import Link, { LinkProps } from "next/link";
+import Link from "next/link";
 
-import React, { forwardRef, HTMLProps } from "react";
+import React, { forwardRef } from "react";
 
 export const ButtonLink = (
   props: React.ButtonHTMLAttributes<HTMLButtonElement> & { label: string }
@@ -20,49 +20,54 @@ export const ButtonLink = (
   );
 };
 
-export const AnchorPagePrimary = forwardRef<
-  HTMLAnchorElement & { label: string },
-  LinkProps & HTMLProps<HTMLAnchorElement>
+export const AnchorUnstyled = forwardRef<
+  HTMLAnchorElement,
+  React.AnchorHTMLAttributes<HTMLAnchorElement>
 >((props, ref) => {
-  const { label, href, className, ...rest } = props;
+  const { children, href, ...rest } = props;
   return (
     <Link href={href}>
-      <a
-        ref={ref}
-        className={classNames(
-          className,
-          "rounded-md bg-indigo-600 px-4 py-1.5 text-base font-medium leading-7 text-white shadow-sm hover:bg-indigo-700 hover:ring-indigo-700"
-        )}
-        {...rest}
-      >
-        {label}
+      <a ref={ref} {...rest}>
+        {children}
       </a>
     </Link>
   );
 });
-AnchorPagePrimary.displayName = "AnchorPagePrimary";
+AnchorUnstyled.displayName = "AnchorUnstyled";
 
-export const TextLink = forwardRef<
-  HTMLAnchorElement & { label: string },
-  LinkProps & HTMLProps<HTMLAnchorElement>
->((props, ref) => {
-  const { label, href, className, ...rest } = props;
+export const AnchorPagePrimary = (
+  props: React.AnchorHTMLAttributes<HTMLAnchorElement> & { label: string }
+) => {
+  const { label, className, ...rest } = props;
   return (
-    <Link href={href}>
-      <a
-        ref={ref}
-        className={classNames(
-          className,
-          "font-medium text-indigo-600 hover:text-indigo-500"
-        )}
-        {...rest}
-      >
-        {label}
-      </a>
-    </Link>
+    <AnchorUnstyled
+      className={classNames(
+        className,
+        "rounded-md bg-indigo-600 px-4 py-1.5 text-base font-medium leading-7 text-white shadow-sm hover:bg-indigo-700 hover:ring-indigo-700"
+      )}
+      {...rest}
+    >
+      {label}
+    </AnchorUnstyled>
   );
-});
-TextLink.displayName = "TextLink";
+};
+
+export const AnchorLink = (
+  props: React.AnchorHTMLAttributes<HTMLAnchorElement> & { label: string }
+) => {
+  const { label, className, ...rest } = props;
+  return (
+    <AnchorUnstyled
+      className={classNames(
+        className,
+        "font-medium text-indigo-600 hover:text-indigo-500"
+      )}
+      {...rest}
+    >
+      {label}
+    </AnchorUnstyled>
+  );
+};
 
 export const ButtonPagePrimary = (
   props: React.ButtonHTMLAttributes<HTMLButtonElement> & { label: string }

@@ -20,7 +20,7 @@ export function toDateTimeLocal(d: Date) {
   return format(d, "yyyy-MM-dd\'T\'HH:mm");
 }
 
-export function formatMonth(d: Date): string {
+export function formatMonth(d: Date| number): string {
   // Nov 2022
   return format(d, "MMM yyyy");
 }

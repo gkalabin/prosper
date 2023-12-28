@@ -14,7 +14,7 @@ import {
   ButtonFormPrimary,
   ButtonFormSecondary,
   ButtonLink,
-  TextLink as AnchorLink,
+  AnchorLink as AnchorLink,
 } from "components/ui/buttons";
 import { banksModelFromDatabaseData, Currencies } from "lib/ClientSideModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";

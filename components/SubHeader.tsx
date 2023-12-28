@@ -1,9 +1,12 @@
 import classNames from "classnames";
+import { useRouter } from "next/router";
 import { useState } from "react";
+import { AnchorLink, AnchorUnstyled } from "./ui/buttons";
 
 export type SubHeaderItem = {
   title: string;
-  onSelected: () => void;
+  onSelected?: () => void;
+  path?: string;
 };
 
 const validate = (items: SubHeaderItem[]) => {
@@ -16,12 +19,22 @@ const validate = (items: SubHeaderItem[]) => {
       throw new Error(`Title ${i.title} present more than once`);
     }
     titles[i.title] = 1;
+    if (!i.onSelected && !i.path) {
+      throw new Error(`Item ${i.title} doesn't have a callback or target path`);
+    }
+    if (i.onSelected && i.path) {
+      throw new Error(`Item ${i.title} can have either callback or the path`);
+    }
   }
 };
 
 const SubHeader = (props: { items: SubHeaderItem[] }) => {
   validate(props.items);
   const [active, setActive] = useState(props.items[0]);
+  const router = useRouter();
+  const isActive = ({ href }) => {
+    return router.pathname == href;
+  };
   const handleClick = (item: SubHeaderItem) => {
     setActive(item);
     item.onSelected();
@@ -34,19 +47,35 @@ const SubHeader = (props: { items: SubHeaderItem[] }) => {
           <div className="flex flex-1 items-stretch justify-start">
             <div className="flex space-x-4">
               {props.items.map((item) => (
-                <button
-                  type="button"
-                  key={item.title}
-                  className={classNames(
-                    item.title == active.title
-                      ? "bg-gray-800 text-white"
-                      : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                    "rounded-md px-3 py-2 text-sm font-medium"
+                <span key={item.title}>
+                  {item.onSelected && (
+                    <button
+                      type="button"
+                      className={classNames(
+                        item.title == active.title
+                          ? "bg-gray-800 text-white"
+                          : "text-gray-300 hover:bg-gray-700 hover:text-white",
+                        "rounded-md px-3 py-2 text-sm font-medium"
+                      )}
+                      onClick={() => handleClick(item)}
+                    >
+                      {item.title}
+                    </button>
                   )}
-                  onClick={() => handleClick(item)}
-                >
-                  {item.title}
-                </button>
+                  {item.path && (
+                    <AnchorUnstyled
+                      className={classNames(
+                        item.title == active.title
+                          ? "bg-gray-800 text-white"
+                          : "text-gray-300 hover:bg-gray-700",
+                        "rounded-md px-3 py-2 text-sm font-medium hover:text-white"
+                      )}
+                      href={item.path}
+                    >
+                      {item.title}
+                    </AnchorUnstyled>
+                  )}
+                </span>
               ))}
             </div>
           </div>
