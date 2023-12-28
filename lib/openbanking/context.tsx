@@ -3,7 +3,7 @@ import { OpenBankingTransactions } from "app/api/open-banking/transactions/route
 import useSWR from "swr";
 
 export const useOpenBankingExpirations = () => {
-  const fetcher = (url) => fetch(url).then((r) => r.json());
+  const fetcher = (url: string) => fetch(url).then((r) => r.json());
   const { data, error, isLoading } = useSWR<OpenBankingBalances>(
     "/api/open-banking/balances",
     fetcher,
@@ -16,7 +16,7 @@ export const useOpenBankingExpirations = () => {
 };
 
 export const useOpenBankingBalances = () => {
-  const fetcher = (url) => fetch(url).then((r) => r.json());
+  const fetcher = (url: string) => fetch(url).then((r) => r.json());
   const { data, error, isLoading } = useSWR<OpenBankingBalances>(
     "/api/open-banking/balances",
     fetcher,
@@ -29,7 +29,7 @@ export const useOpenBankingBalances = () => {
 };
 
 export const useOpenBankingTransactions = () => {
-  const fetcher = (url) => fetch(url).then((r) => r.json());
+  const fetcher = (url: string) => fetch(url).then((r) => r.json());
   const { data, error, isLoading } = useSWR<OpenBankingTransactions>(
     "/api/open-banking/transactions",
     fetcher,
