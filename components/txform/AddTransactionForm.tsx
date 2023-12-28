@@ -66,8 +66,8 @@ function initialValuesForTransaction(
   t: Transaction,
   defaultAccountFrom: BankAccount,
   defaultAccountTo: BankAccount
-) {
-  const defaults = {
+): AddTransactionFormValues {
+  const defaults: AddTransactionFormValues = {
     // 2022-12-19T18:05:59
     timestamp: toDateTimeLocal(t.timestamp),
     vendor: t.vendor(),
@@ -79,6 +79,7 @@ function initialValuesForTransaction(
     toBankAccountId: (t.accountTo() ?? defaultAccountTo).id,
     categoryId: t.category.id,
     currencyId: t.currency().id,
+    isFamilyExpense: t.isFamilyExpense(),
   };
   if (t.isTransfer()) {
     defaults.receivedAmount = t.amountReceived().dollar();
@@ -94,7 +95,7 @@ function initialValuesEmpty(
   defaultAccountTo: BankAccount,
   defaultCategory: Category,
   defaultCurrency: Currency
-) {
+): AddTransactionFormValues {
   const now = new Date();
   return {
     timestamp: toDateTimeLocal(now),
@@ -107,6 +108,7 @@ function initialValuesEmpty(
     toBankAccountId: defaultAccountTo.id,
     categoryId: defaultCategory.id,
     currencyId: defaultCurrency.id,
+    isFamilyExpense: false,
   };
 }
 
@@ -299,13 +301,9 @@ const FormInputs = (props: {
   banks: Bank[];
   mode: FormMode;
 }) => {
-  const [isFamilyExpense, setFamilyExpense] = useState(
-    props.transaction?.isFamilyExpense() ?? false
-  );
-  const [isFamilyExpenseDirty, setFamilyExpenseDirty] = useState(false);
   const currencies = useCurrencyContext();
   const {
-    values: { amount, vendor, timestamp },
+    values: { amount, vendor, timestamp, isFamilyExpense },
     touched,
     setFieldValue,
     handleChange,
@@ -313,16 +311,10 @@ const FormInputs = (props: {
   } = useFormikContext<AddTransactionFormValues>();
 
   useEffect(() => {
-    if (!dirty && !isFamilyExpenseDirty) {
-      return;
-    }
     setFieldValue("ownShareAmount", isFamilyExpense ? amount / 2 : amount);
-  }, [amount, dirty, isFamilyExpenseDirty, isFamilyExpense, setFieldValue]);
+  }, [amount, dirty, isFamilyExpense, setFieldValue]);
 
   useEffect(() => {
-    if (!dirty) {
-      return;
-    }
     setFieldValue("receivedAmount", amount);
   }, [amount, dirty, setFieldValue]);
 
@@ -348,17 +340,43 @@ const FormInputs = (props: {
   ]);
 
   useEffect(() => {
-    if (!touched["categoryId"]) {
-      const suggestion = mostUsedCategory(
-        props.mode,
-        props.allTransactions,
-        vendor
-      );
-      if (suggestion) {
-        setFieldValue("categoryId", suggestion.id);
-      }
+    const suggestion = mostUsedCategory(
+      props.mode,
+      props.allTransactions,
+      vendor
+    );
+    if (suggestion) {
+      setFieldValue("categoryId", suggestion.id);
     }
-  }, [props.allTransactions, props.mode, setFieldValue, touched, vendor]);
+  }, [
+    dirty,
+    props.allTransactions,
+    props.mode,
+    setFieldValue,
+    touched,
+    vendor,
+  ]);
+
+  const vendorFrequency: { [vendor: string]: number } = {};
+  props.allTransactions
+    .filter((x) => {
+      switch (props.mode) {
+        case FormMode.PERSONAL:
+          return x.isPersonalExpense();
+        case FormMode.INCOME:
+          return x.isIncome();
+        case FormMode.EXTERNAL:
+          return x.isThirdPartyExpense();
+        default:
+          return false;
+      }
+    })
+    .map((x) => x.vendor())
+    .forEach((x) => (vendorFrequency[x] = (vendorFrequency[x] ?? 0) + 1));
+  const vendors = Object.entries(vendorFrequency)
+    .filter((x) => x[1] > 1)
+    .sort((a, b) => b[1] - a[1])
+    .map((x) => x[0]);
 
   return (
     <>
@@ -380,6 +398,7 @@ const FormInputs = (props: {
       <InputRow
         currentMode={props.mode}
         currentlyAdvanced={props.isAdvancedMode}
+        advancedModes={[FormMode.PERSONAL, FormMode.EXTERNAL, FormMode.INCOME]}
       >
         <Switch.Group>
           <div className="flex items-center">
@@ -387,8 +406,7 @@ const FormInputs = (props: {
               <Switch
                 checked={isFamilyExpense}
                 onChange={() => {
-                  setFamilyExpense(!isFamilyExpense);
-                  setFamilyExpenseDirty(true);
+                  setFieldValue("isFamilyExpense", !isFamilyExpense);
                 }}
                 className={`${
                   isFamilyExpense ? "bg-indigo-700" : "bg-gray-200"
@@ -450,11 +468,19 @@ const FormInputs = (props: {
         <TextInputWithLabel
           name="vendor"
           label="Vendor"
+          list="vendors"
           onBlur={(e: { target: { value: string } }) => {
             setFieldValue("vendor", e.target.value);
             console.log(e.target.value);
           }}
         />
+        <datalist id="vendors">
+          (
+          {vendors.map((v) => (
+            <option key={v} value={v} />
+          ))}
+          )
+        </datalist>
       </InputRow>
 
       <InputRow

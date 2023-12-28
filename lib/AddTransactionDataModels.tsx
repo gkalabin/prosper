@@ -40,6 +40,7 @@ export type AddTransactionFormValues = {
   payer?: string;
   currencyId?: number;
   receivedAmount?: number;
+  isFamilyExpense: boolean;
 };
 
 export type AddTransactionDTO = {
