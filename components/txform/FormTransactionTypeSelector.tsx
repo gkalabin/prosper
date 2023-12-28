@@ -9,11 +9,11 @@ const Button = (props: React.ButtonHTMLAttributes<HTMLButtonElement> & { active:
       className,
       props.disabled ? "opacity-30" : "hover:bg-gray-100 hover:text-indigo-700 dark:hover:bg-gray-600 dark:hover:text-white",
       props.active ? "text-indigo-700" : "text-gray-900",
-      "rounded-l-lg border border-gray-200 bg-white py-1 px-2 text-sm font-medium focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:text-white",
+      "border border-gray-200 bg-white py-1 px-2 text-sm font-medium focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:text-white",
     )}
     {...rest}
   >
-    Personal
+    {props.children}
   </button>);
 }
 
