@@ -1,4 +1,5 @@
 import { Switch } from "@headlessui/react";
+import { DurationSelector } from "components/DurationSelector";
 import Layout from "components/Layout";
 import {
   isFullyConfigured,
@@ -12,21 +13,23 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
+import { LAST_6_MONTHS } from "lib/Interval";
+import { Transaction } from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { formatMonth } from "lib/TimeHelpers";
 import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 
-export function MoneyInMoneyOut() {
+export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
   const displayCurrency = useDisplayCurrency();
-  const { transactions, exchange } = useAllDatabaseDataContext();
+  const { exchange } = useAllDatabaseDataContext();
   const [includeTransfersInDelta, setIncludeTransfersInDelta] = useState(false);
   const zero = new AmountWithCurrency({
     amountCents: 0,
     currency: displayCurrency,
   });
 
-  const nonThirdPartyTransactions = transactions.filter(
+  const nonThirdPartyTransactions = props.transactions.filter(
     (t) => !t.isThirdPartyExpense()
   );
   const moneyOut: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
@@ -170,6 +173,11 @@ export function MoneyInMoneyOut() {
 }
 
 function InOutPageContent() {
+  const [duration, setDuration] = useState(LAST_6_MONTHS);
+  const { transactions } = useAllDatabaseDataContext();
+  const transactionsForDuration = transactions.filter((t) =>
+    duration.includes(t.timestamp)
+  );
   return (
     <Layout
       subheader={[
@@ -183,7 +191,9 @@ function InOutPageContent() {
         },
       ]}
     >
-      <MoneyInMoneyOut />
+      <DurationSelector duration={duration} onChange={setDuration} />
+
+      <MoneyInMoneyOut transactions={transactionsForDuration} />
     </Layout>
   );
 }
