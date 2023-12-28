@@ -17,7 +17,7 @@ import { getUserId } from "lib/user";
 import { intParam } from "lib/util/searchParams";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function PUT(
+export async function POST(
   request: NextRequest,
   { params }: { params: { transactionId: string } },
 ): Promise<Response> {
