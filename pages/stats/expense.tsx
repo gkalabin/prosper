@@ -8,9 +8,9 @@ import { DebugTable } from "components/stats/DebugTable";
 import { StatsPageLayout } from "components/StatsPageLayout";
 import { ButtonLink } from "components/ui/buttons";
 import { eachMonthOfInterval, startOfMonth } from "date-fns";
-import { EChartsOption } from "echarts";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
+import { defaultChartOptions, stackedBarChartTooltip } from "lib/charts";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -20,7 +20,6 @@ import { Interval, LAST_6_MONTHS } from "lib/Interval";
 import { Category } from "lib/model/Category";
 import { Transaction } from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
-import { formatMonth } from "lib/TimeHelpers";
 import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import Select from "react-select";
@@ -83,52 +82,6 @@ export function ExpenseCharts(props: {
     });
   });
 
-  const currencyFormatter = (value) =>
-    displayCurrency.format(value, { maximumFractionDigits: 0 });
-  const defaultChartOptions: EChartsOption = {
-    grid: {
-      containLabel: true,
-    },
-    tooltip: {},
-    xAxis: {
-      data: months.map((x) => formatMonth(x)),
-    },
-    yAxis: {
-      axisLabel: {
-        formatter: currencyFormatter,
-      },
-    },
-  };
-
-  const tooltipFormatterStackedBarChart = (params) => {
-    if (params.length === 0) {
-      return "No data";
-    }
-    const rows = params
-      .filter((p) => p.value !== 0)
-      .sort((a, b) => b.value - a.value)
-      .map((p) => {
-        return `
-        <div class="flex gap-2">
-          <div class="grow">
-            ${p.marker} ${p.seriesName}
-          </div>
-          <div class="font-medium">
-            ${currencyFormatter(p.value)}
-          </div>
-        </div>
-        `;
-      })
-      .join("\n");
-    const out = `
-      <div>
-        <span class="text-lg">
-          ${params[0].axisValueLabel}
-        </span>
-        ${rows}
-      </div>`;
-    return out;
-  };
   return (
     <>
       <div className="m-4">
@@ -155,7 +108,7 @@ export function ExpenseCharts(props: {
       <ReactEcharts
         notMerge
         option={{
-          ...defaultChartOptions,
+          ...defaultChartOptions(displayCurrency, months),
           title: {
             text: "Total money out",
           },
@@ -179,7 +132,8 @@ export function ExpenseCharts(props: {
       <ReactEcharts
         notMerge
         option={{
-          ...defaultChartOptions,
+          ...defaultChartOptions(displayCurrency, months),
+          ...stackedBarChartTooltip(displayCurrency),
           title: {
             text: "By top level category",
           },
@@ -187,13 +141,6 @@ export function ExpenseCharts(props: {
             orient: "horizontal",
             bottom: 10,
             top: "bottom",
-          },
-          tooltip: {
-            trigger: "axis",
-            axisPointer: {
-              type: "shadow",
-            },
-            formatter: tooltipFormatterStackedBarChart,
           },
           series: [...byRootCategoryIdAndMonth.entries()].map(
             ([categoryId, series]) => ({
@@ -208,16 +155,10 @@ export function ExpenseCharts(props: {
       <ReactEcharts
         notMerge
         option={{
-          ...defaultChartOptions,
+          ...defaultChartOptions(displayCurrency, months),
+          ...stackedBarChartTooltip(displayCurrency),
           title: {
             text: "By bottom level category",
-          },
-          tooltip: {
-            trigger: "axis",
-            axisPointer: {
-              type: "shadow",
-            },
-            formatter: tooltipFormatterStackedBarChart,
           },
           series: [...byCategoryIdAndMonth.entries()].map(
             ([categoryId, series]) => ({
@@ -306,67 +247,15 @@ export function ExpenseByCategory(props: {
     });
   });
 
-  const currencyFormatter = (value) =>
-    displayCurrency.format(value, { maximumFractionDigits: 0 });
-  const defaultChartOptions: EChartsOption = {
-    grid: {
-      containLabel: true,
-    },
-    tooltip: {},
-    xAxis: {
-      data: months.map((x) => formatMonth(x)),
-    },
-    yAxis: {
-      axisLabel: {
-        formatter: currencyFormatter,
-      },
-    },
-  };
-
-  const tooltipFormatterStackedBarChart = (params) => {
-    if (params.length === 0) {
-      return "No data";
-    }
-    const rows = params
-      .filter((p) => p.value !== 0)
-      .sort((a, b) => b.value - a.value)
-      .map((p) => {
-        return `
-        <div class="flex gap-2">
-          <div class="grow">
-            ${p.marker} ${p.seriesName}
-          </div>
-          <div class="font-medium">
-            ${currencyFormatter(p.value)}
-          </div>
-        </div>
-        `;
-      })
-      .join("\n");
-    const out = `
-      <div>
-        <span class="text-lg">
-          ${params[0].axisValueLabel}
-        </span>
-        ${rows}
-      </div>`;
-    return out;
-  };
   return (
     <>
       <ReactEcharts
         notMerge
         option={{
-          ...defaultChartOptions,
+          ...defaultChartOptions(displayCurrency, months),
+          ...stackedBarChartTooltip(displayCurrency),
           title: {
             text: props.category.nameWithAncestors(),
-          },
-          tooltip: {
-            trigger: "axis",
-            axisPointer: {
-              type: "shadow",
-            },
-            formatter: tooltipFormatterStackedBarChart,
           },
           series: [...byCategoryMonth.entries()].map(
             ([categoryId, series]) => ({

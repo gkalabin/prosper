@@ -15,7 +15,7 @@ export function descriptiveDateTime(d: Date) {
   return format(d, "MMM dd, yy, H:mm O");
 }
 
-export function formatMonth(d: Date| number): string {
+export function formatMonth(d: Date | number): string {
   // Nov 2022
   return format(d, "MMM yyyy");
 }
