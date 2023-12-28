@@ -9,7 +9,9 @@ import { GetServerSideProps } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "pages/api/auth/[...nextauth]";
 
-const fetchAllDatabaseData = async (db: DB): Promise<AllDatabaseData> => {
+const fetchAllDatabaseData = async (
+  db: DB
+): Promise<Partial<AllDatabaseData>> => {
   const dbTransactions = await db.transactionFindMany({
     include: {
       personalExpense: true,
@@ -31,8 +33,49 @@ const fetchAllDatabaseData = async (db: DB): Promise<AllDatabaseData> => {
     dbBankAccounts: await db.bankAccountFindMany(),
     dbCurrencies: await db.currencyFindMany(),
     dbCategories: await db.categoryFindMany(),
-    dbExchangeRates: await db.exchangeRateFindMany(),
-    dbStockQuotes: await db.stockQuoteFindMany(),
+  };
+};
+
+const withExchangeData = async (
+  data: Partial<AllDatabaseData>,
+  {
+    db,
+    fetchAll,
+  }: {
+    db: DB;
+    fetchAll: boolean;
+  }
+): Promise<Partial<AllDatabaseData>> => {
+  if (fetchAll) {
+    return {
+      ...data,
+      dbExchangeRates: await db.exchangeRateFindMany(),
+      dbStockQuotes: await db.stockQuoteFindMany(),
+    };
+  }
+  const dbCurrencies = data.dbCurrencies ?? (await db.currencyFindMany());
+  const dbExchangeRates = await db.exchangeRateFindMany({
+    orderBy: {
+      rateTimestamp: "desc",
+    },
+    where: {
+      currencyToId: 1,
+    },
+    distinct: ["currencyFromId"],
+    take: dbCurrencies.length - 1,
+  });
+  const dbStockQuotes = await db.stockQuoteFindMany({
+    orderBy: {
+      quoteTimestamp: "desc",
+    },
+    distinct: ["exchange", "ticker"],
+    take: dbCurrencies.filter((c) => c.name.includes(":")).length,
+  });
+  return {
+    ...data,
+    dbCurrencies,
+    dbExchangeRates: dbExchangeRates,
+    dbStockQuotes: dbStockQuotes,
   };
 };
 
@@ -74,8 +117,9 @@ export const allDbDataProps: GetServerSideProps<AllDatabaseData> = async (
     }
   );
   const db = await DB.fromContext(context);
-  const dbData = await fetchAllDatabaseData(db);
-  const props = Object.assign(dbData, { session });
+  let dbData = await fetchAllDatabaseData(db);
+  dbData = await withExchangeData(dbData, { db, fetchAll: true });
+  const props = { ...dbData, session };
   return JSON.parse(JSON.stringify({ props }, jsonEncodingHacks));
 };
 
@@ -92,10 +136,9 @@ export const allDbDataPropsWithOb: GetServerSideProps<
     };
   }
   const db = await DB.fromContext(context);
-  const dbData = await fetchAllDatabaseData(db);
-  const props = Object.assign({ session }, dbData, {
-    openBankingData: {} as IOpenBankingData,
-  });
+  let dbData = await fetchAllDatabaseData(db);
+  dbData = await withExchangeData(dbData, { db, fetchAll: true });
+  const props = { ...dbData, session, openBankingData: {} as IOpenBankingData };
   // TODO: fetch async with page load
   await fetchOpenBankingData(db)
     .then((openBankingData) => (props.openBankingData = openBankingData))
