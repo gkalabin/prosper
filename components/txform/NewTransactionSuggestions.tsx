@@ -1,4 +1,5 @@
 import { OpenBankingTransaction as DBOpenBankingTransaction } from "@prisma/client";
+import classNames from "classnames";
 import { ButtonLink } from "components/ui/buttons";
 import {
   differenceInHours,
@@ -144,8 +145,6 @@ const NonEmptyNewTransactionSuggestions = (props: {
   const { dbOpenBankingTransactions, transactions: obTransactions } =
     useOpenBankingDataContext();
   const [hideBeforeLatest, setHideBeforeLatest] = useState(true);
-  const [expanded, setExpanded] = useState({} as { [id: string]: boolean });
-  const [limit, setLimit] = useState({} as { [id: string]: number });
   const { transactions: dbTransactions, banks } = useAllDatabaseDataContext();
   const prototypes = makePrototypes({
     dbTransactions,
@@ -245,53 +244,80 @@ const NonEmptyNewTransactionSuggestions = (props: {
           )}
         </div>
       </div>
-      <ul className="divide-y divide-gray-200">
-        {protosToDisplay
-          .slice(0, limit[activeAccount.id] ?? 10)
-          .map((proto) => (
-            <li key={proto.openBankingTransactionId} className="p-2">
-              <div className="flex">
-                <div
-                  className="grow cursor-pointer"
-                  onClick={() => props.onItemClick(proto)}
-                >
-                  {proto.amount} {proto.vendor}{" "}
-                  {shortRelativeDate(proto.timestamp)}
-                </div>
-                <div>
-                  <ButtonLink
-                    onClick={() =>
-                      setExpanded((prev) =>
-                        Object.assign({}, prev, {
-                          [proto.openBankingTransactionId]:
-                            !prev[proto.openBankingTransactionId],
-                        })
-                      )
-                    }
-                  >
-                    Raw
-                  </ButtonLink>
-                </div>
-              </div>
-              {expanded[proto.openBankingTransactionId] && (
-                <pre className="text-xs">{JSON.stringify(proto, null, 2)}</pre>
-              )}
-            </li>
-          ))}
-        <li className="p-2">
-          <ButtonLink
-            onClick={() =>
-              setLimit((prev) =>
-                Object.assign({}, prev, {
-                  [activeAccount.id]: (prev[activeAccount.id] ?? 10) + 10,
-                })
-              )
-            }
-          >
-            More
-          </ButtonLink>
-        </li>
-      </ul>
+      <SuggestionsList
+        items={protosToDisplay}
+        onItemClick={props.onItemClick}
+      />
     </div>
   );
 };
+
+function SuggestionsList(props: {
+  items: TransactionPrototype[];
+  onItemClick: (t: TransactionPrototype) => void;
+}) {
+  const [limit, setLimit] = useState(10);
+  const [activeItem, setActiveItem] = useState(null as TransactionPrototype);
+  const onItemClick = (proto: TransactionPrototype) => {
+    const isActive =
+      proto?.openBankingTransactionId != activeItem?.openBankingTransactionId;
+    if (isActive) {
+      setActiveItem(proto);
+      props.onItemClick(proto);
+    } else {
+      setActiveItem(null);
+      props.onItemClick(null);
+    }
+  };
+  return (
+    <ul className="divide-y divide-gray-200">
+      {props.items.slice(0, limit).map((proto) => (
+        <SuggestionItem
+          key={proto.openBankingTransactionId}
+          proto={proto}
+          isActive={
+            proto.openBankingTransactionId ==
+            activeItem.openBankingTransactionId
+          }
+          onClick={onItemClick}
+        />
+      ))}
+      <li className="p-2">
+        <ButtonLink onClick={() => setLimit(limit + 10)}>More</ButtonLink>
+      </li>
+    </ul>
+  );
+}
+
+function SuggestionItem({
+  proto,
+  isActive,
+  onClick,
+}: {
+  proto: TransactionPrototype;
+  isActive: boolean;
+  onClick: (t: TransactionPrototype) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <li>
+      <div className={classNames("flex p-2", isActive ? "bg-gray-100" : "")}>
+        <div
+          className={classNames(
+            "grow cursor-pointer",
+            isActive ? "text-slate-500" : ""
+          )}
+          onClick={() => onClick(proto)}
+        >
+          {proto.amount} {proto.vendor} {shortRelativeDate(proto.timestamp)}
+        </div>
+        <div>
+          <ButtonLink onClick={() => setExpanded(!expanded)}>Raw</ButtonLink>
+        </div>
+      </div>
+      {expanded && (
+        <pre className="text-xs">{JSON.stringify(proto, null, 2)}</pre>
+      )}
+    </li>
+  );
+}
