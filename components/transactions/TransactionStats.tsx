@@ -1,3 +1,4 @@
+import { MonthlyNet } from "components/charts/MonthlyAmount";
 import { TransactionFrequencyChart } from "components/charts/TransactionFrequency";
 import { ButtonFormSecondary } from "components/ui/buttons";
 import {
@@ -8,10 +9,7 @@ import {
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
-import {
-  defaultMoneyChartOptions,
-  defaultPieChartOptions,
-} from "lib/charts";
+import { defaultMoneyChartOptions, defaultPieChartOptions } from "lib/charts";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { Transaction } from "lib/model/Transaction";
 import { AppendMap } from "lib/util/AppendingMap";
@@ -129,19 +127,20 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
   );
   const gross: AmountWithCurrency[] = [];
   const net: AmountWithCurrency[] = [];
-  for (const t of transactions) {
+  const expenses = transactions.filter(
+    (t) => t.isPersonalExpense() || t.isThirdPartyExpense()
+  );
+  for (const t of expenses) {
     const ts = startOfMonth(t.timestamp);
-    if (t.isPersonalExpense() || t.isThirdPartyExpense()) {
-      const g = t.amountAllParties(displayCurrency);
-      const n = t.amountOwnShare(displayCurrency);
-      gross.push(g);
-      net.push(n);
-      netPerMonth.append(ts, n);
-      grossPerMonth.append(ts, g);
-      const cid = t.category.id();
-      grossPerCategory.append(cid, g);
-      netPerCategory.append(cid, n);
-    }
+    const g = t.amountAllParties(displayCurrency);
+    const n = t.amountOwnShare(displayCurrency);
+    gross.push(g);
+    net.push(n);
+    netPerMonth.append(ts, n);
+    grossPerMonth.append(ts, g);
+    const cid = t.category.id();
+    grossPerCategory.append(cid, g);
+    netPerCategory.append(cid, n);
   }
   const totalGross = gross.reduce((a, b) => a.add(b), zero);
   const totalNet = net.reduce((a, b) => a.add(b), zero);
@@ -191,20 +190,10 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
           ],
         }}
       />
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultMoneyChartOptions(displayCurrency, months),
-          title: {
-            text: "Money spent (net: own share)",
-          },
-          series: [
-            {
-              type: "bar",
-              data: netPerMonth.monthRoundDollars(months),
-            },
-          ],
-        }}
+      <MonthlyNet
+        transactions={expenses}
+        duration={duration}
+        title="Total spent (own share)"
       />
 
       <ReactEcharts

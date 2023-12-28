@@ -1,3 +1,4 @@
+import { MonthlyNet } from "components/charts/MonthlyAmount";
 import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
 import { undoTailwindInputStyles } from "components/forms/Select";
 import {
@@ -43,7 +44,6 @@ export function ExpenseCharts(props: {
   const transactions = props.transactions.filter(
     (t) => t.isPersonalExpense() || t.isThirdPartyExpense()
   );
-  const moneyOut = new Map<number, AmountWithCurrency>(zeroes);
   const byRootCategoryIdAndMonth = new Map<
     number,
     Map<number, AmountWithCurrency>
@@ -55,7 +55,6 @@ export function ExpenseCharts(props: {
   for (const t of transactions) {
     const ts = startOfMonth(t.timestamp).getTime();
     const exchanged = t.amountOwnShare(displayCurrency);
-    moneyOut.set(ts, exchanged.add(moneyOut.get(ts)));
     {
       const cid = t.category.id();
       const series = byCategoryIdAndMonth.get(cid) ?? new Map(zeroes);
@@ -72,25 +71,10 @@ export function ExpenseCharts(props: {
 
   return (
     <>
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultMoneyChartOptions(displayCurrency, months),
-          ...legend(),
-          title: {
-            text: "Total money out",
-          },
-          series: [
-            {
-              type: "bar",
-              name: "Money Out",
-              data: months.map((m) => Math.round(moneyOut.get(m).dollar())),
-              itemStyle: {
-                color: "#15803d",
-              },
-            },
-          ],
-        }}
+      <MonthlyNet
+        transactions={transactions}
+        duration={props.duration}
+        title="Total"
       />
       <ReactEcharts
         notMerge
