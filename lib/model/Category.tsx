@@ -38,16 +38,15 @@ export const matchesWithAncestors = (p: Category, idToMatch: number) => {
 };
 
 export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
-  const categories = dbCategories.map((c) =>
-    Object.assign({}, c, {
-      nameWithAncestors: c.name,
-      isRoot: !c.parentCategoryId,
-      depth: 0,
-      children: [],
-      parent: null,
-      dbValue: c,
-    })
-  );
+  const categories = dbCategories.map((c) => ({
+    ...c,
+    nameWithAncestors: c.name,
+    isRoot: !c.parentCategoryId,
+    depth: 0,
+    children: [],
+    parent: null,
+    dbValue: c,
+  }));
   const categoryById = Object.fromEntries(categories.map((c) => [c.id, c]));
   categories.forEach((c) => {
     if (!c.parentCategoryId) {

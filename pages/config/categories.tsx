@@ -1,7 +1,9 @@
+import { ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { Category as DBCategory } from "@prisma/client";
-import AddCategoryForm from "components/config/categories/AddCategoryForm";
-import EditableCategoryListItem from "components/config/categories/CategoryListItem";
+import classNames from "classnames";
+import { CategoryAddOrEditForm } from "components/config/categories/CategoryForm";
 import { ConfigPageLayout } from "components/ConfigPageLayout";
+import { ButtonLink, ButtonPagePrimary } from "components/ui/buttons";
 import { DB } from "lib/db";
 import { Category, categoryModelFromDB } from "lib/model/Category";
 import { updateState } from "lib/stateHelpers";
@@ -19,24 +21,87 @@ const CategoriesList = (props: {
     return <div>No categories found.</div>;
   }
   return (
-    <ul className="list-inside list-disc space-y-1 px-4">
+    <div>
       {props.categories.map((category) => (
-        <li key={category.id}>
+        <div key={category.id}>
           <EditableCategoryListItem
             category={category}
-            categories={props.allCategories}
-            onUpdated={props.onCategoryUpdated}
+            allCategories={props.allCategories}
+            onCategoryUpdated={props.onCategoryUpdated}
           />
-          {category.children && (
-            <CategoriesList
-              categories={category.children}
-              allCategories={props.allCategories}
-              onCategoryUpdated={props.onCategoryUpdated}
-            />
-          )}
-        </li>
+        </div>
       ))}
-    </ul>
+    </div>
+  );
+};
+
+const EditableCategoryListItem = ({
+  category,
+  allCategories,
+  onCategoryUpdated,
+}: {
+  category: Category;
+  allCategories: Category[];
+  onCategoryUpdated: (updated: DBCategory) => void;
+}) => {
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [showChildren, setShowChildren] = useState(true);
+  const hasChildren = category.children && category.children.length > 0;
+  return (
+    <>
+      <div
+        className={classNames(
+          "my-2 rounded-md border p-3 shadow",
+          "ml-" + category.depth * 4
+        )}
+      >
+        <div className="flex items-center justify-between">
+          <div
+            className="grow cursor-pointer"
+            onClick={() => setShowChildren(!showChildren)}
+          >
+            {hasChildren && showChildren && (
+              <ChevronDownIcon className="inline h-5 w-5" />
+            )}
+            {hasChildren && !showChildren && (
+              <ChevronRightIcon className="inline h-5 w-5" />
+            )}
+            <span
+              className={classNames(
+                category.isRoot && "text-xl font-medium",
+                category.depth == 1 && "text-lg",
+                category.depth > 1 && "text-base font-light",
+                "align-middle"
+              )}
+            >
+              {showEditForm && "Editing "}
+              {category.name}
+            </span>
+          </div>
+          {!showEditForm && (
+            <ButtonLink onClick={() => setShowEditForm(true)}>Edit</ButtonLink>
+          )}
+        </div>
+        {showEditForm && (
+          <CategoryAddOrEditForm
+            category={category}
+            categories={allCategories}
+            onAddedOrUpdated={(x) => {
+              onCategoryUpdated(x);
+              setShowEditForm(false);
+            }}
+            onClose={() => setShowEditForm(false)}
+          />
+        )}
+      </div>
+      {category.children && showChildren && (
+        <CategoriesList
+          categories={category.children}
+          allCategories={allCategories}
+          onCategoryUpdated={onCategoryUpdated}
+        />
+      )}
+    </>
   );
 };
 
@@ -51,9 +116,10 @@ export const getServerSideProps: GetServerSideProps<{
   }
   const userId = +session.user.id;
   const db = new DB({ userId });
-  const categories = await db.categoryFindMany();
+  const dbCategories = await db.categoryFindMany();
+  const props = { session, data: { dbCategories } };
   return {
-    props: { data: { dbCategories: JSON.parse(JSON.stringify(categories)) } },
+    props: JSON.parse(JSON.stringify(props)),
   };
 };
 
@@ -61,9 +127,11 @@ const CategoriesPage = ({
   data: { dbCategories: initialDbCategories },
 }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const [dbCategories, setDbCategories] = useState(initialDbCategories);
+  const [showAddForm, setShowAddForm] = useState(false);
   const allCategoriesFlat = categoryModelFromDB(dbCategories);
   const rootCategories = allCategoriesFlat.filter((c) => c.isRoot);
 
+  const addOrUpdateState = updateState(setDbCategories);
   return (
     <ConfigPageLayout>
       <CategoriesList
@@ -71,10 +139,30 @@ const CategoriesPage = ({
         allCategories={allCategoriesFlat}
         onCategoryUpdated={updateState(setDbCategories)}
       />
-      <AddCategoryForm
-        allCategories={allCategoriesFlat}
-        onAdded={updateState(setDbCategories)}
-      />
+      <div className="my-6">
+        {!showAddForm && (
+          <ButtonPagePrimary onClick={() => setShowAddForm(true)}>
+            Add new category
+          </ButtonPagePrimary>
+        )}
+        {showAddForm && (
+          <>
+            <div className="my-4 text-xl font-medium leading-5">
+              Add New Category
+            </div>
+            <div className="ml-4">
+              <CategoryAddOrEditForm
+                categories={allCategoriesFlat}
+                onAddedOrUpdated={(x) => {
+                  setShowAddForm(false);
+                  addOrUpdateState(x);
+                }}
+                onClose={() => setShowAddForm(false)}
+              />
+            </div>
+          </>
+        )}
+      </div>
     </ConfigPageLayout>
   );
 };

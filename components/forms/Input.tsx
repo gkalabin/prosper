@@ -26,6 +26,11 @@ export const TextInputWithLabel = (
   return <InputWithLabelUntyped {...props} type="text" />;
 };
 
+export const InputWithLabel = (props: InputProps & FieldHookConfig<string>) => {
+  const { type, ...otherProps } = props;
+  return <InputWithLabelUntyped {...otherProps} type={type ?? "text"} />;
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const InputWithLabelUntyped = (props: InputProps & FieldHookConfig<any>) => {
   const { disabled, ...otherProps } = props;
