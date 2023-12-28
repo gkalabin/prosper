@@ -55,7 +55,7 @@ async function handle(
         update: args,
         where: { bankId },
       });
-      res.redirect(`/config/open-banking/truelayer/connection/${bankId}`);
+      res.redirect(`/config/open-banking/mapping?bankId=${bankId}`);
     })
     .catch((err) => {
       res.status(500).send(`Open banking api error: ${err}`);
