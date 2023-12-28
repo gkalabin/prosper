@@ -23,7 +23,7 @@ export default function Header() {
 function HeaderImpl() {
   const { data: session } = useSession();
   const pathname = usePathname();
-  const isActive = ({ href }) => {
+  const isActive = ({ href }: { href: string }) => {
     return href === pathname;
   };
 
@@ -111,7 +111,7 @@ function HeaderImpl() {
                         )}
                       </Menu.Item>
 
-                      {!session?.user?.name && (
+                      {!session?.user.name && (
                         <Menu.Item>
                           {({ active }) => (
                             <a
@@ -127,12 +127,12 @@ function HeaderImpl() {
                         </Menu.Item>
                       )}
 
-                      {session?.user?.name && (
+                      {session?.user.name && (
                         <Menu.Item>
                           {({ active }) => (
                             <>
                               <span className="block px-4 py-2 text-sm text-gray-700">
-                                Signed in as <i>{session.user.name}</i>
+                                Signed in as <i>{session?.user.name}</i>
                               </span>
                               <a
                                 onClick={() => signOut()}
