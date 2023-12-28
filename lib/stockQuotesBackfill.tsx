@@ -33,7 +33,7 @@ export async function addLatestStockQuotes() {
   const dbStocks = await prisma.stock.findMany();
   const stocks = dbStocks.map((x) => new Stock(x));
   for (const stock of stocks) {
-        await backfill(stock);
+    await backfill(stock);
   }
   console.timeEnd(timingLabel);
 }
@@ -43,16 +43,13 @@ async function backfill(stock: Stock) {
   const apiModelToDb = (x: HistoricalRowHistory) => {
     return {
       stockId: stock.id(),
-      ticker: stock.ticker(),
-      exchange: stock.exchange(),
       value: Math.round(x.close * 100),
       quoteTimestamp: x.date.toISOString(),
     };
   };
   const latest = await prisma.stockQuote.findFirst({
     where: {
-      ticker: stock.ticker(),
-      exchange: stock.exchange(),
+      stockId: stock.id(),
     },
     orderBy: [
       {

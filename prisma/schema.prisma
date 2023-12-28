@@ -257,8 +257,6 @@ model StockQuote {
   id             Int      @id @default(autoincrement())
   stock          Stock    @relation(fields: [stockId], references: [id])
   stockId        Int
-  exchange       String
-  ticker         String
   quoteTimestamp DateTime
   value          Int
   createdAt      DateTime @default(now())
