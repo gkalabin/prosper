@@ -38,9 +38,8 @@ const jsonEncodingHacks = (key: string, value) => {
 };
 
 export const allDbDataProps = async () => {
+  await Promise.all([addLatestExchangeRates(), addLatestStockQuotes()]);
   const allData = await loadAllDatabaseData();
-  addLatestExchangeRates();
-  addLatestStockQuotes();
   return {
     props: JSON.parse(JSON.stringify(allData, jsonEncodingHacks)),
   };

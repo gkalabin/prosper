@@ -5,7 +5,7 @@ import {
   ExchangeRate as DBExchangeRate,
   StockQuote as DBStockQuote,
 } from "@prisma/client";
-import { closestTo, startOfDay } from "date-fns";
+import { addDays, closestTo, isBefore, startOfDay } from "date-fns";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category, categoryModelFromDB } from "lib/model/Category";
@@ -130,6 +130,22 @@ export class StockAndCurrencyExchange {
   }
 }
 
+const backfillMissingDates = (ratesByDate: { [epoch: number]: number }) => {
+  const dates = [];
+  for (const ts of Object.keys(ratesByDate)) {
+    dates.push(+ts);
+  }
+  dates.push(new Date());
+  dates.sort();
+  for (let i = 1; i < dates.length; i++) {
+    const prev = dates[i - 1];
+    const current = dates[i];
+    for (let x = addDays(prev, 1); isBefore(x, current); x = addDays(x, 1)) {
+      ratesByDate[x.getTime()] = ratesByDate[prev];
+    }
+  }
+};
+
 export class ExchangeRates {
   private readonly rates: {
     [currencyIdFrom: number]: {
@@ -143,12 +159,15 @@ export class ExchangeRates {
     this.rates = {};
     for (const r of init) {
       const { currencyFromId: fromId, currencyToId: toId } = r;
-      const ts = new Date(r.rateTimestamp);
       this.rates[fromId] ??= {};
       this.rates[fromId][toId] ??= {};
-      this.rates[fromId][toId][ts.getTime()] = +r.rateNanos.toString();
-      const start = startOfDay(ts);
-      this.rates[fromId][toId][start.getTime()] = +r.rateNanos.toString();
+      const date = startOfDay(new Date(r.rateTimestamp));
+      this.rates[fromId][toId][date.getTime()] = +r.rateNanos.toString();
+    }
+    for (const from of Object.keys(this.rates)) {
+      for (const to of Object.keys(this.rates[from])) {
+        backfillMissingDates(this.rates[from][to]);
+      }
     }
   }
 
@@ -199,11 +218,12 @@ export class StockQuotes {
       const { currencyId, ticker, exchange, value } = r;
       const stockName = `${exchange}:${ticker}`;
       this.currencyByStock[stockName] = currencies.findById(currencyId);
-      const ts = new Date(r.quoteTimestamp);
-      const start = startOfDay(ts);
+      const date = startOfDay(new Date(r.quoteTimestamp));
       this.quotes[stockName] ??= {};
-      this.quotes[stockName][ts.getTime()] = value;
-      this.quotes[stockName][start.getTime()] = value;
+      this.quotes[stockName][date.getTime()] = value;
+    }
+    for (const stockName of Object.keys(this.quotes)) {
+      backfillMissingDates(this.quotes[stockName]);
     }
   }
 
