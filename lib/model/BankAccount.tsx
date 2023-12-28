@@ -23,9 +23,13 @@ export type BankAccount = {
 
 export const bankAccountBalance = (ba: BankAccount): number => {
   let balance = ba.initialBalanceCents;
-  ba.transactions.forEach(t => {
-    const amount = t.absoluteAmount(ba);
+  ba.transactions.forEach((t) => {
+    const amount = t.amountSignedCents(ba);
     balance += amount;
-  })
+  });
   return balance;
+};
+
+export const bankAccountsFlatList = (banks: Bank[]): BankAccount[] => {
+  return banks.flatMap((b) => b.accounts);
 };

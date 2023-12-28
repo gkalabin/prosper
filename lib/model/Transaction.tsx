@@ -42,58 +42,47 @@ export class Transaction {
   private income?: Income;
   private transfer?: Transfer;
 
+  readonly dbValue: TransactionWithExtensions;
+
   public constructor(
-    {
-      id,
-      timestamp,
-      description,
-      amountCents,
-      categoryId,
-      personalExpense,
-      thirdPartyExpense,
-      income,
-      transfer,
-    }: TransactionWithExtensions,
+    init: TransactionWithExtensions,
     categoryById: { [id: number]: Category },
     bankAccountById: { [id: number]: BankAccount },
     currencyById: { [id: number]: Currency }
   ) {
-    this.id = id;
-    this.timestamp = new Date(timestamp);
-    this.description = description;
-    this.amountCents = amountCents;
-    this.category = categoryById[categoryId];
+    this.dbValue = init;
+    this.id = init.id;
+    this.timestamp = new Date(init.timestamp);
+    this.description = init.description;
+    this.amountCents = init.amountCents;
+    this.category = categoryById[init.categoryId];
 
-    this.thirdPartyExpense = null;
-    this.income = null;
-    this.transfer = null;
-    if (personalExpense) {
-      const bankAccount = bankAccountById[personalExpense.accountId];
-      this.personalExpense = Object.assign({}, personalExpense, {
+    if (init.personalExpense) {
+      const bankAccount = bankAccountById[init.personalExpense.accountId];
+      this.personalExpense = Object.assign({}, init.personalExpense, {
         account: bankAccount,
-        dbValue: personalExpense,
       });
       bankAccount.transactions.push(this);
     }
 
-    if (thirdPartyExpense) {
-      this.thirdPartyExpense = Object.assign({}, thirdPartyExpense, {
-        currency: currencyById[thirdPartyExpense.currencyId],
+    if (init.thirdPartyExpense) {
+      this.thirdPartyExpense = Object.assign({}, init.thirdPartyExpense, {
+        currency: currencyById[init.thirdPartyExpense.currencyId],
       });
     }
-    if (transfer) {
-      const accountFrom = bankAccountById[transfer.accountFromId];
-      const accountTo = bankAccountById[transfer.accountToId];
-      this.transfer = Object.assign({}, transfer, {
+    if (init.transfer) {
+      const accountFrom = bankAccountById[init.transfer.accountFromId];
+      const accountTo = bankAccountById[init.transfer.accountToId];
+      this.transfer = Object.assign({}, init.transfer, {
         accountFrom: accountFrom,
         accountTo: accountTo,
       });
       accountFrom.transactions.push(this);
       accountTo.transactions.push(this);
     }
-    if (income) {
-      const bankAccount = bankAccountById[income.accountId];
-      this.income = Object.assign({}, income, {
+    if (init.income) {
+      const bankAccount = bankAccountById[init.income.accountId];
+      this.income = Object.assign({}, init.income, {
         account: bankAccount,
       });
       bankAccount.transactions.push(this);
@@ -113,6 +102,18 @@ export class Transaction {
     return !!this.transfer;
   }
 
+  isFamilyExpense() {
+    if (this.isIncome()) {
+      return false;
+    }
+    const ownShareAmountCents = firstNonNull(
+      this.personalExpense,
+      this.thirdPartyExpense,
+      this.income
+    ).ownShareAmountCents;
+    return Math.abs(this.amountCents - 2 * ownShareAmountCents) <= 1;
+  }
+
   accountFrom() {
     return this.personalExpense?.account ?? this.transfer?.accountFrom;
   }
@@ -129,7 +130,40 @@ export class Transaction {
     )?.vendor;
   }
 
-  absoluteAmount(ba: BankAccount): number {
+  amount() {
+    return centsToDollar(this.amountCents);
+  }
+
+  currency() {
+    if (this.personalExpense) {
+      return this.personalExpense.account.currency;
+    }
+    if (this.thirdPartyExpense) {
+      return this.thirdPartyExpense.currency;
+    }
+    if (this.transfer) {
+      return this.transfer.accountFrom.currency;
+    }
+    if (this.income) {
+      return this.income.account.currency;
+    }
+    throw new Error(
+      `No currency found for transaction: ${JSON.stringify(this, undefined, 2)}`
+    );
+  }
+
+  amountOwnShare() {
+    return centsToDollar(
+      firstNonNull(this.personalExpense, this.thirdPartyExpense, this.income)
+        ?.ownShareAmountCents
+    );
+  }
+
+  amountReceived() {
+    return centsToDollar(this.transfer?.receivedAmountCents);
+  }
+
+  amountSignedCents(ba: BankAccount) {
     if (!this.belongsToAccount(ba)) {
       console.warn(`Transaction doesn't belong to the account`, this, ba);
       return 0;
@@ -149,7 +183,7 @@ export class Transaction {
     return transfer.receivedAmountCents;
   }
 
-  amountSign(): number {
+  amountSign() {
     if (this.personalExpense || this.thirdPartyExpense) {
       return -1;
     }
@@ -198,4 +232,8 @@ export class Transaction {
 
 function firstNonNull(a: PersonalExpense, b: ThirdPartyExpense, c: Income) {
   return a ?? b ?? c;
+}
+
+function centsToDollar(cents: number) {
+  return cents / 100;
 }

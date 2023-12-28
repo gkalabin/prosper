@@ -1,4 +1,6 @@
 import { Prisma } from "@prisma/client";
+import { fail } from "assert";
+import { Transaction } from "./model/Transaction";
 
 export enum FormMode {
   PERSONAL,
@@ -6,6 +8,25 @@ export enum FormMode {
   TRANSFER,
   INCOME,
 }
+
+export const formModeForTransaction = (t?: Transaction) => {
+  if (!t) {
+    return FormMode.PERSONAL;
+  }
+  if (t.isPersonalExpense()) {
+    return FormMode.PERSONAL;
+  }
+  if (t.isThirdPartyExpense()) {
+    return FormMode.EXTERNAL;
+  }
+  if (t.isTransfer()) {
+    return FormMode.TRANSFER;
+  }
+  if (t.isIncome()) {
+    return FormMode.INCOME;
+  }
+  fail(`Unknown transaction type for ${t}`);
+};
 
 export type AddTransactionFormValues = {
   timestamp: string;
@@ -23,6 +44,7 @@ export type AddTransactionFormValues = {
 
 export type AddTransactionDTO = {
   mode: FormMode;
+  transactionId: number;
   description: string;
   timestamp: Date;
   amountCents: number;
@@ -60,10 +82,12 @@ export type IncomeTransactionDTO = {
 
 export const formToDTO = (
   mode: FormMode,
-  form: AddTransactionFormValues
+  form: AddTransactionFormValues,
+  transaction?: Transaction,
 ): AddTransactionDTO => {
   const out: AddTransactionDTO = {
     mode: mode,
+    transactionId: transaction?.id,
     timestamp: new Date(form.timestamp),
     amountCents: Math.round(form.amount * 100),
     description: form.description,

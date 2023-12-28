@@ -20,3 +20,20 @@ export default async function handle(
     );
   }
 }
+
+
+async function handleUpdate(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  if (req.method === "POST") {
+    const input = req.body as AddTransactionDTO;
+    const dbArgs = dtoToDb(input);
+    const result = await prisma.transaction.create(dbArgs);
+    res.json(result);
+  } else {
+    throw new Error(
+      `The HTTP ${req.method} method is not supported at this route.`
+    );
+  }
+}

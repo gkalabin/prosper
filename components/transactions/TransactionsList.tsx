@@ -4,7 +4,6 @@ import { Bank, BankAccount } from "../../lib/model/BankAccount";
 import { Category } from "../../lib/model/Category";
 import { Currency } from "../../lib/model/Currency";
 import { Transaction } from "../../lib/model/Transaction";
-import { currencyByTransaction } from "../../lib/Money";
 import { descriptiveDateTime, shortRelativeDate } from "../../lib/TimeHelpers";
 import { Amount } from "../Amount";
 import { AddTransactionForm } from "./AddTransactionForm";
@@ -89,7 +88,7 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
 ) => {
   const [showRawDetails, setShowRawDetails] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-  const raw = ""; //JSON.stringify(props.transaction.category, null, 2);
+  const raw = JSON.stringify(props.transaction.dbValue, null, 2);
   return (
     // TODO: add date and category
     <li className="flex flex-col gap-2 p-2">
@@ -98,7 +97,8 @@ export const TransactionsListItem: React.FC<TransactionsListItemProps> = (
           <Amount
             amountCents={props.transaction.amountCents}
             sign={props.transaction.amountSign()}
-            currency={currencyByTransaction(props.transaction)}
+            // TODO: fix for transfers
+            currency={props.transaction.currency()}
           />
         </div>
 

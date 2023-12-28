@@ -1,5 +1,4 @@
 import { Currency } from "./model/Currency";
-import { Transaction } from "./model/Transaction";
 
 const formatters = {
   EUR: new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }),
@@ -25,22 +24,4 @@ export const formatMoney = (amountCents: number, currency: Currency) => {
     return `${realAmount} ${currency.name}`;
   }
   return formatterByCurrency(currency).format(realAmount);
-};
-
-export const currencyByTransaction = (t: Transaction): Currency => {
-  if (t.personalExpense) {
-    return t.personalExpense.account.currency;
-  }
-  if (t.thirdPartyExpense) {
-    return t.thirdPartyExpense.currency;
-  }
-  if (t.transfer) {
-    return t.transfer.accountFrom.currency;
-  }
-  if (t.income) {
-    return t.income.account.currency;
-  }
-  throw new Error(
-    `No currency found for transaction: ${JSON.stringify(t, undefined, 2)}`
-  );
 };

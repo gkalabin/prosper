@@ -7,9 +7,10 @@ import React, { useEffect, useState } from "react";
 import {
   AddTransactionFormValues,
   FormMode,
+  formModeForTransaction,
   formToDTO,
 } from "../../lib/AddTransactionDataModels";
-import { Bank } from "../../lib/model/BankAccount";
+import { Bank, bankAccountsFlatList } from "../../lib/model/BankAccount";
 import { Category } from "../../lib/model/Category";
 import { Currency } from "../../lib/model/Currency";
 import { Transaction } from "../../lib/model/Transaction";
@@ -27,15 +28,30 @@ type AddTransactionFormProps = {
   onClose: () => void;
 };
 
-const MyShareAmount = (props: { name: string; isFamilyExpense: boolean }) => {
+const MyShareAmount = (props: {
+  name: string;
+  isFamilyExpense: boolean;
+  isFamilyExpenseDirty: boolean;
+}) => {
   const {
     values: { amount },
     setFieldValue,
+    dirty,
   } = useFormikContext<AddTransactionFormValues>();
 
   useEffect(() => {
+    if (!dirty && !props.isFamilyExpenseDirty) {
+      return;
+    }
     setFieldValue(props.name, props.isFamilyExpense ? amount / 2 : amount);
-  }, [props.name, amount, props.isFamilyExpense, setFieldValue]);
+  }, [
+    props.name,
+    amount,
+    dirty,
+    props.isFamilyExpenseDirty,
+    props.isFamilyExpense,
+    setFieldValue,
+  ]);
   return <MoneyInput name={props.name} label="Own share amount" />;
 };
 
@@ -43,11 +59,15 @@ const ReceivedAmount = (props: { name: string }) => {
   const {
     values: { amount },
     setFieldValue,
+    dirty,
   } = useFormikContext<AddTransactionFormValues>();
 
   useEffect(() => {
+    if (!dirty) {
+      return;
+    }
     setFieldValue(props.name, amount);
-  }, [props.name, amount, setFieldValue]);
+  }, [props.name, amount, dirty, setFieldValue]);
   return <MoneyInput name={props.name} label="Received" />;
 };
 
@@ -55,23 +75,29 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
   props
 ) => {
   const [apiError, setApiError] = useState("");
-  const [mode, setMode] = useState(FormMode.PERSONAL);
-  const [isFamilyExpense, setFamilyExpense] = useState(false);
+  const [mode, setMode] = useState(formModeForTransaction(props.transaction));
+  const [isFamilyExpense, setFamilyExpense] = useState(
+    props.transaction?.isFamilyExpense() ?? false
+  );
+  const [isFamilyExpenseDirty, setFamilyExpenseDirty] = useState(false);
+  const bankAccountsList = bankAccountsFlatList(props.banks);
 
-  if (!props.categories?.length || !props.banks?.length) {
+  if (!props.categories?.length || !bankAccountsList.length) {
     return (
       <div>
         To create transactions, you need to have at least one:
-        {!props.categories?.length && (
-          <li>
-            <Link href="/config/categories">category</Link>
-          </li>
-        )}
-        {!props.banks?.length && (
-          <li>
-            <Link href="/config/banks">bank</Link>
-          </li>
-        )}
+        <ul>
+          {!props.categories?.length && (
+            <li>
+              <Link href="/config/categories">category</Link>
+            </li>
+          )}
+          {!bankAccountsList.length && (
+            <li>
+              <Link href="/config/banks">bank with a bank account</Link>
+            </li>
+          )}
+        </ul>
       </div>
     );
   }
@@ -84,14 +110,12 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
     return className;
   };
 
-  // TODO: verify that datetime-local is processed correctly with regards to timezones
-
   const submitNewTransaction = async (
     values: AddTransactionFormValues,
     { setSubmitting }: FormikHelpers<AddTransactionFormValues>
   ) => {
     try {
-      const body = JSON.stringify(formToDTO(mode, values));
+      const body = JSON.stringify(formToDTO(mode, values, props.transaction));
       const added = await fetch("/api/transaction", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -107,18 +131,22 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
   };
 
   const now = new Date();
+
   const initialValues = {
     timestamp: toDateTimeLocal(props.transaction?.timestamp ?? now),
     vendor: props.transaction?.vendor() ?? "",
-    description: "",
-    amount: 0,
-    ownShareAmount: 0,
-    receivedAmount: 0,
-    // TODO: fix, use bank account
-    fromBankAccountId: props.banks[0].id,
-    toBankAccountId: props.banks[0].id,
-    categoryId: props.categories[0].id,
-    currencyId: props.currencies[0].id,
+    description: props.transaction.description ?? "",
+    amount: props.transaction.amount(),
+    ownShareAmount: props.transaction.amountOwnShare() ?? 0,
+    receivedAmount: props.transaction.amountReceived() ?? 0,
+    fromBankAccountId: (props.transaction.accountFrom() ?? bankAccountsList[0])
+      .id,
+    toBankAccountId: (props.transaction.accountTo() ?? bankAccountsList[0]).id,
+    categoryId: (props.transaction.category ?? props.categories[0]).id,
+    currencyId: (props.transaction.isThirdPartyExpense()
+      ? props.transaction.currency()
+      : props.currencies[0]
+    ).id,
   };
 
   return (
@@ -194,6 +222,7 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
                         <MyShareAmount
                           name="ownShareAmount"
                           isFamilyExpense={isFamilyExpense}
+                          isFamilyExpenseDirty={isFamilyExpenseDirty}
                         />
                       </div>
 
@@ -203,9 +232,10 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
                             <div className="flex">
                               <Switch
                                 checked={isFamilyExpense}
-                                onChange={() =>
-                                  setFamilyExpense(!isFamilyExpense)
-                                }
+                                onChange={() => {
+                                  setFamilyExpense(!isFamilyExpense);
+                                  setFamilyExpenseDirty(true);
+                                }}
                                 className={`${
                                   isFamilyExpense
                                     ? "bg-indigo-700"
@@ -241,6 +271,7 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
                     </div>
                   )}
 
+                  {/* TODO: verify that datetime-local is processed correctly with regards to timezones */}
                   <div className="col-span-6">
                     <label
                       htmlFor="timestamp"
