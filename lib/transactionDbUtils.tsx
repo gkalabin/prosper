@@ -207,18 +207,17 @@ export async function writeTrip({
   userId: number;
   data: TransactionDbData;
   tx;
-}): Promise<{ createdTrip: Trip }> {
-  if (
-    !(
-      form.tripName &&
-      [FormMode.PERSONAL, FormMode.EXTERNAL].includes(form.mode)
-    )
-  ) {
-    return { createdTrip: null };
+}): Promise<Trip> {
+  if (![FormMode.PERSONAL, FormMode.EXTERNAL].includes(form.mode)) {
+    return null;
   }
   const config = extensionConfigByMode.get(form.mode);
   const extension = data[config.extensionDbField];
   const extensionData = extension.update ?? extension.create;
+  if (!form.tripName) {
+   extensionData.tripId = null; 
+   return null;
+  }
   const tripNameAndUser = {
     name: form.tripName,
     userId,
@@ -226,11 +225,11 @@ export async function writeTrip({
   const existingTrip = await tx.trip.findFirst({ where: tripNameAndUser });
   if (existingTrip) {
     extensionData.tripId = existingTrip.id;
-    return { createdTrip: null };
+    return null;
   }
   const createdTrip = await tx.trip.create({ data: tripNameAndUser });
   extensionData.tripId = createdTrip.id;
-  return { createdTrip };
+  return createdTrip;
 }
 
 export async function writeUsedOpenBankingTransactions({

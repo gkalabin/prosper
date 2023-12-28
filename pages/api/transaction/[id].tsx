@@ -37,7 +37,7 @@ async function handle(
       }
       const data = transactionDbInput(form, userId);
       writeExtension({ data, form, userId, operation: "update" });
-      const { createdTrip } = await writeTrip({ tx, data, form, userId });
+      const createdTrip = await writeTrip({ tx, data, form, userId });
       const { createdTags } = await writeTags({ tx, data, form, userId });
       const updatedTransaction = await tx.transaction.update(
         Object.assign(

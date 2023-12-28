@@ -161,11 +161,11 @@ export const FormInputs = (props: {
 
 const PersonalExpenseForm = () => {
   const {
-    values: { isShared },
+    values: { isShared, tripName, description },
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
-  const [showNote, setShowNote] = useState(false);
-  const [showTrip, setShowTrip] = useState(false);
+  const [showNote, setShowNote] = useState(!!description);
+  const [showTrip, setShowTrip] = useState(!!tripName);
   return (
     <>
       <Timestamp />

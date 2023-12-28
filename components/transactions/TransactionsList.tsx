@@ -132,6 +132,7 @@ export const TransactionsListItem = (props: {
                 .join(", ")}
             </div>
           )}
+          {t.hasTrip() && <div>Trip: {t.trip().name()}</div>}
         </div>
       )}
 
