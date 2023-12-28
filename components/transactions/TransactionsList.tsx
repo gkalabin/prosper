@@ -95,47 +95,43 @@ export const TransactionsListItem = (props: {
 
       {expanded && (
         <div className="pl-1">
+          {/* TODO: do not show ID in the user interface */}
+          <div>ID: {t.id}</div>
+          <div>Time: {t.timestamp.toISOString()}</div>
+          <div>Type: {t.type()}</div>
           <div>Category: {t.category.nameWithAncestors()}</div>
-          <div>{t.hasVendor() ? "Vendor: " + t.vendor() : ""}</div>
-          <div>{t.hasOtherParty() ? "Other party: " + t.otherParty() : ""}</div>
-          <div>{t.hasPayer() ? "Payer: " + t.payer() : ""}</div>
-          <div>
-            {t.hasAccountFrom()
-              ? "Account from: " +
-                t.accountFrom().bank.name +
-                " " +
-                t.accountFrom().name
-              : ""}
-          </div>
-          <div>
-            {t.hasAccountTo()
-              ? "Account to: " +
-                t.accountTo().bank.name +
-                " " +
-                t.accountTo().name
-              : ""}
-          </div>
-          <div>
-            {t.isPersonalExpense() || t.isThirdPartyExpense() || t.isIncome()
-              ? "Full amount: " + t.amount().format()
-              : ""}
-          </div>
-          <div>
-            {t.isPersonalExpense() || t.isThirdPartyExpense() || t.isIncome()
-              ? "Own share: " + t.amountOwnShare().format()
-              : ""}
-          </div>
-          <div>{t.isTransfer() ? "Sent: " + t.amount().format() : ""}</div>
-          <div>
-            {t.isTransfer() ? "Received: " + t.amountReceived().format() : ""}
-          </div>
-          <div>
-            Tags:{" "}
-            {t
-              .tags()
-              .map((t) => tags.find((x) => x.id() == t.id()).name())
-              .join(", ")}
-          </div>
+          {t.hasVendor() && <div>Vendor: {t.vendor()}</div>}
+          {t.hasOtherParty() && <div>Other party: {t.otherParty()}</div>}
+          {t.hasPayer() && <div>Payer: {t.payer()}</div>}
+          {t.hasAccountFrom() && (
+            <div>
+              Account from: {t.accountFrom().bank.name} {t.accountFrom().name}
+            </div>
+          )}
+          {t.hasAccountTo() && (
+            <div>
+              Account to: {t.accountTo().bank.name} {t.accountTo().name}
+            </div>
+          )}
+          {(t.isPersonalExpense() ||
+            t.isThirdPartyExpense() ||
+            t.isIncome()) && <div>Full amount: {t.amount().format()}</div>}
+          {(t.isPersonalExpense() ||
+            t.isThirdPartyExpense() ||
+            t.isIncome()) && (
+            <div>Own share: {t.amountOwnShare().format()}</div>
+          )}
+          {t.isTransfer() && <div>Sent: {t.amount().format()}</div>}
+          {t.isTransfer() && <div>Received: {t.amountReceived().format()}</div>}
+          {!!t.tags().length && (
+            <div>
+              Tags:{" "}
+              {t
+                .tags()
+                .map((t) => tags.find((x) => x.id() == t.id()).name())
+                .join(", ")}
+            </div>
+          )}
         </div>
       )}
 
