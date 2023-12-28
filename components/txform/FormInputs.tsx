@@ -36,7 +36,7 @@ export const FormInputs = (props: {
 }) => {
   const { transactions, banks } = useAllDatabaseDataContext();
   const {
-    values: { vendor, isShared, fromBankAccountId, mode },
+    values: { vendor, isShared, fromBankAccountId, mode, amount },
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
   const transactionsForMode = transactions.filter(
@@ -126,26 +126,40 @@ export const FormInputs = (props: {
       setFieldValue("isShared", account.isJoint());
     }
   }, [mode, setFieldValue, banks, fromBankAccountId, props.transaction]);
+  useEffect(() => {
+    if (!isShared) {
+      setFieldValue("ownShareAmount", amount);
+      return;
+    }
+    let newAmount = amount / 2;
+    if (
+      props.transaction &&
+      !props.transaction.amount().isZero() &&
+      !props.transaction.amountOwnShare().isZero()
+    ) {
+      const transactionRatio =
+        props.transaction.amountOwnShare().cents() /
+        props.transaction.amount().cents();
+      newAmount = transactionRatio * amount;
+    }
+    // Round new amount to the closest cent.
+    const newAmountRounded = Math.round(100 * newAmount) / 100;
+    setFieldValue("ownShareAmount", newAmountRounded);
+  }, [amount, isShared, setFieldValue, props.transaction]);
 
   return (
     <>
-      {mode == FormMode.PERSONAL && (
-        <PersonalExpenseForm transaction={props.transaction} />
-      )}
-      {mode == FormMode.EXTERNAL && (
-        <ExternalExpenseForm transaction={props.transaction} />
-      )}
+      {mode == FormMode.PERSONAL && <PersonalExpenseForm />}
+      {mode == FormMode.EXTERNAL && <ExternalExpenseForm />}
       {mode == FormMode.TRANSFER && (
         <TransferForm transaction={props.transaction} />
       )}
-      {mode == FormMode.INCOME && (
-        <IncomeForm transaction={props.transaction} />
-      )}
+      {mode == FormMode.INCOME && <IncomeForm />}
     </>
   );
 };
 
-const PersonalExpenseForm = ({ transaction }: { transaction: Transaction }) => {
+const PersonalExpenseForm = () => {
   const {
     values: { isShared },
     setFieldValue,
@@ -169,7 +183,7 @@ const PersonalExpenseForm = ({ transaction }: { transaction: Transaction }) => {
       </div>
       {isShared && (
         <div className="col-span-3">
-          <OwnShareAmount transaction={transaction} />
+          <OwnShareAmount />
         </div>
       )}
       <Vendor />
@@ -202,7 +216,7 @@ const PersonalExpenseForm = ({ transaction }: { transaction: Transaction }) => {
   );
 };
 
-const ExternalExpenseForm = ({ transaction }: { transaction: Transaction }) => {
+const ExternalExpenseForm = () => {
   const { setFieldValue } = useFormikContext<AddTransactionFormValues>();
   const [showNote, setShowNote] = useState(false);
   const [showTrip, setShowTrip] = useState(false);
@@ -219,7 +233,7 @@ const ExternalExpenseForm = ({ transaction }: { transaction: Transaction }) => {
         <MoneyInputWithLabel name="amount" label="Amount" />
       </div>
       <div className="col-span-3">
-        <OwnShareAmount transaction={transaction} />
+        <OwnShareAmount />
       </div>
       <Vendor />
       <Tags />
@@ -311,7 +325,7 @@ const TransferForm = ({ transaction }: { transaction: Transaction }) => {
   );
 };
 
-const IncomeForm = ({ transaction }: { transaction: Transaction }) => {
+const IncomeForm = () => {
   const {
     values: { isShared },
     setFieldValue,
@@ -335,7 +349,7 @@ const IncomeForm = ({ transaction }: { transaction: Transaction }) => {
       </div>
       {isShared && (
         <div className="col-span-3">
-          <OwnShareAmount transaction={transaction} />
+          <OwnShareAmount />
         </div>
       )}
       <div className="col-span-6">
@@ -406,22 +420,7 @@ const Trips = () => {
   );
 };
 
-function OwnShareAmount({ transaction }: { transaction: Transaction }) {
-  const {
-    values: { amount, isShared },
-    setFieldValue,
-  } = useFormikContext<AddTransactionFormValues>();
-  useEffect(() => {
-    let newAmount = isShared ? amount / 2 : amount;
-    if (transaction && !transaction.amount().isZero()) {
-      const transactionRatio =
-        transaction.amountOwnShare().cents() / transaction.amount().cents();
-      newAmount = transactionRatio * amount;
-    }
-    // Round new amount to the closest cent.
-    const newAmountRounded = Math.round(100 * newAmount) / 100;
-    setFieldValue("ownShareAmount", newAmountRounded);
-  }, [amount, isShared, setFieldValue, transaction]);
+function OwnShareAmount() {
   return <MoneyInputWithLabel name="ownShareAmount" label="Own share amount" />;
 }
 
