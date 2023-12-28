@@ -34,7 +34,6 @@ export const FormInputs = (props: {
   const {
     values: { mode },
     setFieldValue,
-    resetForm,
   } = useFormikContext<AddTransactionFormValues>();
 
   useEffect(() => {
@@ -42,7 +41,6 @@ export const FormInputs = (props: {
     if (!proto) {
       return;
     }
-    resetForm();
     if (proto.type == "deposit") {
       setFieldValue("mode", FormMode.INCOME);
     } else if (proto.type == "withdrawal") {
@@ -50,7 +48,7 @@ export const FormInputs = (props: {
     } else if (proto.type == "transfer") {
       setFieldValue("mode", FormMode.TRANSFER);
     }
-  }, [props.prototype, resetForm, setFieldValue]);
+  }, [props.prototype, setFieldValue]);
 
   return (
     <>

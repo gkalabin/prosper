@@ -102,6 +102,7 @@ export const FormPersonalExpense = ({
     setFieldValue("timestamp", toDateTimeLocal(withdrawal.timestampEpoch));
     setFieldValue("vendor", withdrawal.description);
     setFieldValue("fromBankAccountId", withdrawal.internalAccountId);
+    setFieldValue("description", "");
   }, [prototype, setFieldValue]);
 
   useEffect(() => {

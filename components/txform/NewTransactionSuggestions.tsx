@@ -161,6 +161,9 @@ function SuggestionsList(props: {
   const [limit, setLimit] = useState(5);
   const displayItems = items.slice(0, limit);
   const sameProto = (a: TransactionPrototype, b: TransactionPrototype) => {
+    if (!a || !b) {
+      return false;
+    }
     if (a.type != b.type) {
       return false;
     }
