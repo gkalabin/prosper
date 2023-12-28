@@ -2,20 +2,22 @@ import { Transaction as DBTransaction } from "@prisma/client";
 import Layout from "components/Layout";
 import {
   isFullyConfigured,
-  NotConfiguredYet
+  NotConfiguredYet,
 } from "components/NotConfiguredYet";
 import { TransactionsList } from "components/transactions/TransactionsList";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
 import { ButtonPagePrimary } from "components/ui/buttons";
 import {
   AllDatabaseDataContextProvider,
-  Amount, modelFromDatabaseData,
-  useAllDatabaseDataContext
+  Amount,
+  modelFromDatabaseData,
+  useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { BankAccount } from "lib/model/BankAccount";
 import { IOBBalancesByAccountId } from "lib/openbanking/interface";
 import { allDbDataPropsWithOb } from "lib/ServerSideDB";
+import { updateOrAppend } from "lib/stateHelpers";
 import { InferGetServerSidePropsType } from "next";
 import { createContext, useContext, useState } from "react";
 
@@ -122,20 +124,11 @@ export default function OverviewPage(
   const [dbDataState, setDbData] = useState(dbData);
   const [archivedShown, setShowArchived] = useState(false);
 
-  const addTransaction = (added: DBTransaction) => {
+  const updateTransactions = (x: DBTransaction) => {
     setDbData((old) => {
-      const newDataCopy = Object.assign({}, old);
-      newDataCopy.dbTransactions = [...old.dbTransactions, added];
-      return newDataCopy;
-    });
-  };
-  const updateTransaction = (updated: DBTransaction) => {
-    setDbData((oldDbData) => {
-      const newDbData = Object.assign({}, oldDbData);
-      newDbData.dbTransactions = oldDbData.dbTransactions.map((t) =>
-        t.id == updated.id ? updated : t
-      );
-      return newDbData;
+      return Object.assign({}, old, {
+        dbTransactions: updateOrAppend(old.dbTransactions, x),
+      });
     });
   };
 
@@ -157,7 +150,7 @@ export default function OverviewPage(
           )}
           {showAddTransactionForm && (
             <AddTransactionForm
-              onAdded={addTransaction}
+              onAdded={updateTransactions}
               openBankingTransactions={dbData.openBankingData.transactions}
               transactionPrototypes={dbData.dbTransactionPrototypes}
               onClose={() => setShowAddTransactionForm(false)}
@@ -173,7 +166,7 @@ export default function OverviewPage(
         </div>
         <ArchivedAccountsShownContext.Provider value={archivedShown}>
           <BanksList
-            onTransactionUpdated={updateTransaction}
+            onTransactionUpdated={updateTransactions}
             openBankingBalances={dbData.openBankingData.balances}
           />
         </ArchivedAccountsShownContext.Provider>

@@ -2,6 +2,7 @@ import { Category as DBCategory } from "@prisma/client";
 import AddCategoryForm from "components/config/categories/AddCategoryForm";
 import EditableCategoryListItem from "components/config/categories/CategoryListItem";
 import Layout from "components/Layout";
+import { updateState } from "lib/stateHelpers";
 import { DB } from "lib/db";
 import { Category, categoryModelFromDB } from "lib/model/Category";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
@@ -63,25 +64,16 @@ const CategoriesPage = ({
   const allCategoriesFlat = categoryModelFromDB(dbCategories);
   const rootCategories = allCategoriesFlat.filter((c) => c.isRoot);
 
-  const addNewCategory = (added: DBCategory) => {
-    setDbCategories((old) => [...old, added]);
-  };
-  const updateCategory = (updated: DBCategory) => {
-    setDbCategories((old) =>
-      old.map((c) => (c.id == updated.id ? updated : c))
-    );
-  };
-
   return (
     <Layout>
       <CategoriesList
         categories={rootCategories}
         allCategories={allCategoriesFlat}
-        onCategoryUpdated={updateCategory}
+        onCategoryUpdated={updateState(setDbCategories)}
       />
       <AddCategoryForm
         allCategories={allCategoriesFlat}
-        onAdded={addNewCategory}
+        onAdded={updateState(setDbCategories)}
       />
     </Layout>
   );

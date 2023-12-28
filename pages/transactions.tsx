@@ -2,14 +2,16 @@ import { Transaction as DBTransaction } from "@prisma/client";
 import Layout from "components/Layout";
 import {
   isFullyConfigured,
-  NotConfiguredYet
+  NotConfiguredYet,
 } from "components/NotConfiguredYet";
 import { TransactionsList } from "components/transactions/TransactionsList";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
 import {
-  AllDatabaseDataContextProvider, modelFromDatabaseData
+  AllDatabaseDataContextProvider,
+  modelFromDatabaseData,
 } from "lib/ClientSideModel";
 import { allDbDataProps } from "lib/ServerSideDB";
+import { updateOrAppend } from "lib/stateHelpers";
 import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 
@@ -28,21 +30,11 @@ export default function TransactionsPage(
   const [displayTransactions, setDisplayTransactions] =
     useState(personalTransactions);
 
-  const addTransaction = (added: DBTransaction) => {
+  const updateTransactions = (x: DBTransaction) => {
     setDbData((old) => {
-      const newDataCopy = Object.assign({}, old);
-      newDataCopy.dbTransactions = [...old.dbTransactions, added];
-      return newDataCopy;
-    });
-    setShowAddTransactionForm(false);
-  };
-  const updateTransaction = (updated: DBTransaction) => {
-    setDbData((old) => {
-      const newDataCopy = Object.assign({}, old);
-      newDataCopy.dbTransactions = old.dbTransactions.map((t) =>
-        t.id == updated.id ? updated : t
-      );
-      return newDataCopy;
+      return Object.assign({}, old, {
+        dbTransactions: updateOrAppend(old.dbTransactions, x),
+      });
     });
   };
 
@@ -89,7 +81,7 @@ export default function TransactionsPage(
         {showAddTransactionForm && (
           <div className="">
             <AddTransactionForm
-              onAdded={addTransaction}
+              onAdded={updateTransactions}
               transactionPrototypes={dbData.dbTransactionPrototypes}
               onClose={() => setShowAddTransactionForm(false)}
             />
@@ -98,7 +90,7 @@ export default function TransactionsPage(
 
         <TransactionsList
           transactions={displayTransactions}
-          onTransactionUpdated={updateTransaction}
+          onTransactionUpdated={updateTransactions}
         />
       </AllDatabaseDataContextProvider>
     </Layout>

@@ -1,5 +1,6 @@
 import { Currency as DBCurrency } from "@prisma/client";
 import Layout from "components/Layout";
+import { updateState } from "lib/stateHelpers";
 import { DB } from "lib/db";
 import { Currencies, Currency } from "lib/model/Currency";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
@@ -200,19 +201,13 @@ export default function CurrenciesPage(
   const [dbCurrencies, setDbCurrencies] = useState(props.data?.dbCurrencies);
   const currencies = new Currencies(dbCurrencies);
 
-  const addCurrency = (added: DBCurrency) => {
-    setDbCurrencies((old) => [...old, added]);
-  };
-  const updateCurrency = (updated: DBCurrency) => {
-    setDbCurrencies((old) =>
-      old.map((x) => (x.id == updated.id ? updated : x))
-    );
-  };
-
   return (
     <Layout>
-      <CurrenciesList currencies={currencies} onUpdated={updateCurrency} />
-      <AddCurrencyForm onAdded={addCurrency} />
+      <CurrenciesList
+        currencies={currencies}
+        onUpdated={updateState(setDbCurrencies)}
+      />
+      <AddCurrencyForm onAdded={updateState(setDbCurrencies)} />
     </Layout>
   );
 }

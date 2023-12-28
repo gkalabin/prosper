@@ -16,6 +16,7 @@ import {
   ButtonFormSecondary,
   ButtonLink,
 } from "components/ui/buttons";
+import { updateState } from "lib/stateHelpers";
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
 import { DB } from "lib/db";
 import { Bank, BankAccount } from "lib/model/BankAccount";
@@ -271,22 +272,6 @@ export default function BanksPage({
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [dbBanks, setDbBanks] = useState(dbBanksInitial);
   const [dbBankAccounts, setDbBankAccounts] = useState(dbBankAccountsInitial);
-  const addBank = (added: DBBank) => {
-    setDbBanks((old: DBBank[]) => [...old, added]);
-  };
-  const updateBank = (updated: DBBank) => {
-    setDbBanks((old: DBBank[]) =>
-      old.map((b) => (b.id == updated.id ? updated : b))
-    );
-  };
-  const addBankAccount = (added: DBBankAccount) => {
-    setDbBankAccounts((old: DBBankAccount[]) => [...old, added]);
-  };
-  const updateBankAccount = (updated: DBBankAccount) => {
-    setDbBankAccounts((old: DBBankAccount[]) =>
-      old.map((b) => (b.id == updated.id ? updated : b))
-    );
-  };
 
   const currencies = new Currencies(dbCurrencies);
   const [banks] = banksModelFromDatabaseData(
@@ -302,12 +287,15 @@ export default function BanksPage({
         openBankingTokens={dbOpenBankingTokens}
         openBankingAccounts={dbOpenBankingAccounts}
         currencies={currencies}
-        onBankUpdated={updateBank}
-        onBankAccountAdded={addBankAccount}
-        onBankAccountUpdated={updateBankAccount}
+        onBankUpdated={updateState(setDbBanks)}
+        onBankAccountAdded={updateState(setDbBankAccounts)}
+        onBankAccountUpdated={updateState(setDbBankAccounts)}
       />
 
-      <AddBankForm displayOrder={banks.length * 100} onAdded={addBank} />
+      <AddBankForm
+        displayOrder={banks.length * 100}
+        onAdded={updateState(setDbBanks)}
+      />
     </Layout>
   );
 }
