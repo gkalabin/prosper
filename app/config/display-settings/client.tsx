@@ -3,7 +3,7 @@ import {
   Category as DBCategory,
   DisplaySettings as DBDisplaySettings,
 } from "@prisma/client";
-import { SelectNumber, undoTailwindInputStyles } from "components/forms/Select";
+import { FormikSelect, undoTailwindInputStyles } from "components/forms/Select";
 import { FormikButtonFormPrimary } from "components/ui/buttons";
 import { Form, Formik } from "formik";
 import { DisplaySettings } from "lib/displaySettings";
@@ -67,9 +67,8 @@ export function DispalySettings({
             >
               Display currency
             </label>
-            <SelectNumber
+            <FormikSelect
               name="displayCurrencyCode"
-              disabled={isSubmitting}
               className="w-full"
               value={values.displayCurrencyCode}
             >
@@ -78,7 +77,7 @@ export function DispalySettings({
                   {x.code()}
                 </option>
               ))}
-            </SelectNumber>
+            </FormikSelect>
           </div>
           <div>
             <label
