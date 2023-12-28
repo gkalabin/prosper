@@ -16,12 +16,12 @@ import { differenceInMonths } from "date-fns";
 import { useFormikContext } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
+import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
 import {
   Transaction,
   isThirdPartyExpense,
   otherPartyNameOrNull,
 } from "lib/model/transaction/Transaction";
-import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
 import { AddTransactionFormValues } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect, useState } from "react";
@@ -36,21 +36,22 @@ export const FormExternalExpense = ({
 }) => {
   const { transactions } = useAllDatabaseDataContext();
   const {
-    values: { vendor, isShared, amount, description },
+    values: { vendor, isShared, amount, description, tripName },
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
   const transactionsForMode = transactions.filter((x): x is ThirdPartyExpense =>
-    isThirdPartyExpense(x)
+    isThirdPartyExpense(x),
   );
   const now = new Date();
   const recentTransactionsForMode = transactionsForMode.filter(
-    (x) => differenceInMonths(now, x.timestampEpoch) < SUGGESTIONS_WINDOW_MONTHS
+    (x) =>
+      differenceInMonths(now, x.timestampEpoch) < SUGGESTIONS_WINDOW_MONTHS,
   );
 
   const [mostFrequentOtherParty] = uniqMostFrequent(
     recentTransactionsForMode
       .map((x) => otherPartyNameOrNull(x))
-      .filter((x) => x)
+      .filter((x) => x),
   );
   useEffect(() => {
     if (transaction) {
@@ -65,7 +66,7 @@ export const FormExternalExpense = ({
   }, [isShared, setFieldValue, mostFrequentOtherParty, transaction]);
 
   const [mostFrequentPayer] = uniqMostFrequent(
-    recentTransactionsForMode.map((x) => x.payer)
+    recentTransactionsForMode.map((x) => x.payer),
   );
   useEffect(() => {
     if (transaction) {
@@ -79,11 +80,11 @@ export const FormExternalExpense = ({
   let [mostFrequentCategoryId] = uniqMostFrequent(
     recentTransactionsForMode
       .filter((x) => !vendor || x.vendor == vendor)
-      .map((x) => x.categoryId)
+      .map((x) => x.categoryId),
   );
   if (!mostFrequentCategoryId) {
     [mostFrequentCategoryId] = uniqMostFrequent(
-      transactionsForMode.map((x) => x.categoryId)
+      transactionsForMode.map((x) => x.categoryId),
     );
   }
   useEffect(() => {
@@ -107,7 +108,7 @@ export const FormExternalExpense = ({
   }, [amount, isShared, setFieldValue, transaction]);
 
   const [showNote, setShowNote] = useState(!!description);
-  const [showTrip, setShowTrip] = useState(false);
+  const [showTrip, setShowTrip] = useState(!!tripName);
   return (
     <>
       <Timestamp />

@@ -1,16 +1,13 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, Tag } from "@prisma/client";
 import { DB } from "lib/db";
-import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
 import prisma from "lib/prisma";
 import {
   AddTransactionFormValues,
-  FormMode,
   TransactionAPIRequest,
   TransactionAPIResponse,
-  includeExtensionsAndTags,
-  transactionDbInput,
-  writeExtension,
-  writeTags,
+  commonTransactionDbData,
+  fetchOrCreateTags,
+  includeTagIds,
   writeTrip,
 } from "lib/transactionDbUtils";
 import { getUserId } from "lib/user";
@@ -34,21 +31,11 @@ export async function POST(
   }
   const result: TransactionAPIResponse = await prisma.$transaction(
     async (tx: Prisma.TransactionClient) => {
-      const sameExtension = isSameExtension(existing, form);
-      if (!sameExtension) {
-        await deleteExistingTransaction(tx, existing);
-      }
-      const data = transactionDbInput(form, userId);
-      writeExtension({
-        data,
-        form,
-        userId,
-        operation: sameExtension ? "update" : "create",
-      });
+      const data = updateTransactionData(form, userId);
       const createdTrip = await writeTrip({ tx, data, form, userId });
       const { createdTags } = await writeTags({ tx, data, form, userId });
       const updatedTransaction = await tx.transaction.update({
-        ...includeExtensionsAndTags,
+        ...includeTagIds,
         data,
         where: { id: transactionId },
       });
@@ -64,35 +51,33 @@ export async function POST(
   return NextResponse.json(result);
 }
 
-async function deleteExistingTransaction(
-  tx: Prisma.TransactionClient,
-  existing: TransactionWithExtensions,
-) {
-  const whereTransaction = {
-    where: { transactionId: existing.id },
-  };
-  if (existing.personalExpense) {
-    await tx.personalExpense.delete(whereTransaction);
+export function updateTransactionData(
+  form: AddTransactionFormValues,
+  userId: number,
+): Prisma.TransactionUncheckedUpdateInput {
+  const data: Prisma.TransactionUncheckedUpdateInput = commonTransactionDbData(
+    form,
+    userId,
+  );
+  if (!form.parentTransactionId) {
+    data.transactionToBeRepayedId = { set: null };
   }
-  if (existing.thirdPartyExpense) {
-    await tx.thirdPartyExpense.delete(whereTransaction);
-  }
-  if (existing.transfer) {
-    await tx.transfer.delete(whereTransaction);
-  }
-  if (existing.income) {
-    await tx.income.delete(whereTransaction);
-  }
+  return data;
 }
 
-function isSameExtension(
-  oldData: TransactionWithExtensions,
-  form: AddTransactionFormValues,
-) {
-  return (
-    (oldData.personalExpense && form.mode == FormMode.PERSONAL) ||
-    (oldData.thirdPartyExpense && form.mode == FormMode.EXTERNAL) ||
-    (oldData.income && form.mode == FormMode.INCOME) ||
-    (oldData.transfer && form.mode == FormMode.TRANSFER)
-  );
+async function writeTags({
+  form,
+  userId,
+  data,
+  tx,
+}: {
+  form: AddTransactionFormValues;
+  userId: number;
+  data: Prisma.TransactionUncheckedUpdateInput;
+  tx: Prisma.TransactionClient;
+}): Promise<{ createdTags: Tag[] }> {
+  const tags = await fetchOrCreateTags(tx, form.tagNames, userId);
+  const allTags = [...tags.existing, ...tags.created];
+  data.tags = { set: allTags.map(({ id }) => ({ id })) };
+  return { createdTags: tags.created };
 }

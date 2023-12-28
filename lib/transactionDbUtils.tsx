@@ -2,9 +2,10 @@ import {
   TransactionPrototype as DBTransactionPrototype,
   Prisma,
   Tag,
+  TransactionType,
   Trip,
 } from "@prisma/client";
-import { TransactionWithExtensionsAndTagIds } from "lib/model/AllDatabaseDataModel";
+import { TransactionWithTagIds } from "lib/model/AllDatabaseDataModel";
 import {
   TransactionPrototype,
   WithdrawalOrDepositPrototype,
@@ -43,18 +44,14 @@ export type TransactionAPIRequest = {
 };
 
 export type TransactionAPIResponse = {
-  transaction: TransactionWithExtensionsAndTagIds;
-  trip: Trip|null;
+  transaction: TransactionWithTagIds;
+  trip: Trip | null;
   tags: Tag[];
   prototypes: DBTransactionPrototype[];
 };
 
-export const includeExtensionsAndTags = {
+export const includeTagIds = {
   include: {
-    personalExpense: true,
-    thirdPartyExpense: true,
-    transfer: true,
-    income: true,
     tags: {
       select: {
         id: true,
@@ -63,27 +60,31 @@ export const includeExtensionsAndTags = {
   },
 };
 
-type TransactionDbData = Prisma.TransactionUncheckedCreateInput &
-  Prisma.TransactionUncheckedUpdateInput;
-type ExtensionDbData =
-  | Prisma.PersonalExpenseUncheckedCreateWithoutTransactionInput
-  | Prisma.ThirdPartyExpenseUncheckedCreateWithoutTransactionInput
-  | Prisma.TransferUncheckedCreateWithoutTransactionInput
-  | Prisma.IncomeUncheckedCreateWithoutTransactionInput;
-
 const toCents = (x: number): number => Math.round(x * 100);
 
-export const transactionDbInput = (
+type CommonCreateAndUpdateInput = Prisma.TransactionUncheckedCreateInput &
+  Prisma.TransactionUncheckedUpdateInput;
+
+export function commonTransactionDbData(
   {
     timestamp,
     description,
     amount,
     categoryId,
     parentTransactionId,
+    mode,
+    vendor,
+    otherPartyName,
+    ownShareAmount,
+    fromBankAccountId,
+    toBankAccountId,
+    receivedAmount,
+    payer,
+    currencyCode,
   }: AddTransactionFormValues,
   userId: number,
-): TransactionDbData => {
-  return {
+): CommonCreateAndUpdateInput {
+  const result: CommonCreateAndUpdateInput = {
     description,
     categoryId,
     userId,
@@ -92,139 +93,84 @@ export const transactionDbInput = (
     ...(parentTransactionId && {
       transactionToBeRepayedId: parentTransactionId,
     }),
+    vendor: null,
+    otherPartyName: null,
+    ownShareAmountCents: null,
+    outgoingAccountId: null,
+    outgoingAmountCents: null,
+    incomingAccountId: null,
+    incomingAmountCents: null,
+    payer: null,
+    currencyCode: null,
+    payerOutgoingAmountCents: null,
   };
-};
-
-const extensionConfigByMode = new Map<
-  FormMode,
-  {
-    mode: FormMode;
-    extensionDbField: string;
-    formToDbData: (
-      form: AddTransactionFormValues,
-      userId: number,
-    ) => ExtensionDbData;
+  switch (mode) {
+    case FormMode.PERSONAL:
+      return {
+        ...result,
+        transactionType: TransactionType.PERSONAL_EXPENSE,
+        vendor,
+        otherPartyName,
+        ownShareAmountCents: toCents(ownShareAmount),
+        outgoingAccountId: fromBankAccountId,
+        outgoingAmountCents: toCents(amount),
+      };
+    case FormMode.EXTERNAL:
+      return {
+        ...result,
+        transactionType: TransactionType.THIRD_PARTY_EXPENSE,
+        vendor,
+        payer,
+        currencyCode,
+        ownShareAmountCents: toCents(ownShareAmount),
+        payerOutgoingAmountCents: toCents(amount),
+      };
+    case FormMode.TRANSFER:
+      return {
+        ...result,
+        transactionType: TransactionType.TRANSFER,
+        outgoingAccountId: fromBankAccountId,
+        outgoingAmountCents: toCents(amount),
+        incomingAccountId: toBankAccountId,
+        incomingAmountCents: toCents(receivedAmount),
+      };
+    case FormMode.INCOME:
+      return {
+        ...result,
+        transactionType: TransactionType.INCOME,
+        incomingAccountId: toBankAccountId,
+        incomingAmountCents: toCents(amount),
+        payer,
+        otherPartyName,
+        ownShareAmountCents: toCents(ownShareAmount),
+      };
+    default:
+      const _exhaustiveCheck: never = mode;
+      throw new Error(`Unknown mode ${_exhaustiveCheck}`);
   }
->(
-  [
-    {
-      mode: FormMode.PERSONAL,
-      extensionDbField: "personalExpense",
-      formToDbData: (
-        {
-          vendor,
-          ownShareAmount,
-          fromBankAccountId,
-          otherPartyName,
-        }: AddTransactionFormValues,
-        userId: number,
-      ) => {
-        return {
-          vendor,
-          otherPartyName,
-          userId,
-          accountId: fromBankAccountId,
-          ownShareAmountCents: toCents(ownShareAmount),
-        };
-      },
-    },
-    {
-      mode: FormMode.EXTERNAL,
-      extensionDbField: "thirdPartyExpense",
-      formToDbData: (
-        {
-          vendor,
-          ownShareAmount,
-          payer,
-          currencyCode,
-        }: AddTransactionFormValues,
-        userId: number,
-      ) => {
-        return {
-          vendor,
-          payer,
-          currencyCode,
-          userId,
-          ownShareAmountCents: toCents(ownShareAmount),
-        };
-      },
-    },
-    {
-      mode: FormMode.TRANSFER,
-      extensionDbField: "transfer",
-      formToDbData: (
-        {
-          receivedAmount,
-          fromBankAccountId,
-          toBankAccountId,
-        }: AddTransactionFormValues,
-        userId: number,
-      ) => {
-        return {
-          userId,
-          accountFromId: fromBankAccountId,
-          accountToId: toBankAccountId,
-          receivedAmountCents: toCents(receivedAmount),
-        };
-      },
-    },
-    {
-      mode: FormMode.INCOME,
-      extensionDbField: "income",
-      formToDbData: (
-        {
-          payer,
-          otherPartyName,
-          ownShareAmount,
-          toBankAccountId,
-        }: AddTransactionFormValues,
-        userId: number,
-      ) => {
-        return {
-          payer,
-          otherPartyName,
-          userId,
-          accountId: toBankAccountId,
-          ownShareAmountCents: toCents(ownShareAmount),
-        };
-      },
-    },
-  ].map((x) => [x.mode, x]),
-);
+}
 
-export async function writeTags({
-  form,
-  userId,
-  data,
-  tx,
-}: {
-  form: AddTransactionFormValues;
-  userId: number;
-  data: TransactionDbData;
-  tx: Prisma.TransactionClient;
-}): Promise<{ createdTags: Tag[] }> {
-  if (!form.tagNames?.length) {
-    return { createdTags: [] };
+export async function fetchOrCreateTags(
+  tx: Prisma.TransactionClient,
+  tagNames: string[],
+  userId: number,
+): Promise<{ existing: Tag[]; created: Tag[] }> {
+  if (!tagNames.length) {
+    return { existing: [], created: [] };
   }
-  const found: Tag[] = await tx.tag.findMany({
+  const existing: Tag[] = await tx.tag.findMany({
     where: {
       userId,
       name: {
-        in: form.tagNames,
+        in: tagNames,
       },
     },
   });
-  const foundByName = new Map<string, Tag>(found.map((x) => [x.name, x]));
-  const newTagNames = form.tagNames.filter((x) => !foundByName.has(x));
-  const createdTags = await Promise.all(
-    newTagNames.map((name) => tx.tag.create({ data: { name, userId } })),
+  const newNames = tagNames.filter((x) => existing.every((t) => t.name != x));
+  const created = await Promise.all(
+    newNames.map((name) => tx.tag.create({ data: { name, userId } })),
   );
-  data.tags = {
-    connect: [...found, ...createdTags].map((x) => {
-      return { id: x.id };
-    }),
-  };
-  return { createdTags };
+  return { existing, created };
 }
 
 export async function writeTrip({
@@ -235,17 +181,16 @@ export async function writeTrip({
 }: {
   form: AddTransactionFormValues;
   userId: number;
-  data: TransactionDbData;
+  data:
+    | Prisma.TransactionUncheckedCreateInput
+    | Prisma.TransactionUncheckedUpdateInput;
   tx: Prisma.TransactionClient;
 }): Promise<Trip | null> {
-  if (![FormMode.PERSONAL, FormMode.EXTERNAL].includes(form.mode)) {
-    return null;
-  }
-  const config = extensionConfigByMode.get(form.mode);
-  const extension = data[config.extensionDbField];
-  const extensionData = extension.update ?? extension.create;
-  if (!form.tripName) {
-    extensionData.tripId = null;
+  if (
+    ![FormMode.PERSONAL, FormMode.EXTERNAL].includes(form.mode) ||
+    !form.tripName
+  ) {
+    data.tripId = null;
     return null;
   }
   const tripNameAndUser = {
@@ -254,11 +199,11 @@ export async function writeTrip({
   };
   const existingTrip = await tx.trip.findFirst({ where: tripNameAndUser });
   if (existingTrip) {
-    extensionData.tripId = existingTrip.id;
+    data.tripId = existingTrip.id;
     return null;
   }
   const createdTrip = await tx.trip.create({ data: tripNameAndUser });
-  extensionData.tripId = createdTrip.id;
+  data.tripId = createdTrip.id;
   return createdTrip;
 }
 
@@ -293,26 +238,4 @@ export async function writeUsedPrototypes({
     return { createdPrototypes: created };
   }
   return { createdPrototypes: [await createSinglePrototype(usedPrototype)] };
-}
-
-export function writeExtension({
-  form,
-  userId,
-  data,
-  operation,
-}: {
-  form: AddTransactionFormValues;
-  userId: number;
-  data: TransactionDbData;
-  operation: "create" | "update";
-}) {
-  const config = extensionConfigByMode.get(form.mode);
-  const extensionData = Object.assign(config.formToDbData(form, userId), {
-    userId,
-  });
-  Object.assign(data, {
-    [config.extensionDbField]: {
-      [operation]: extensionData,
-    },
-  });
 }

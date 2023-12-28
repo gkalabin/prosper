@@ -7,6 +7,13 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum TransactionType {
+  PERSONAL_EXPENSE
+  THIRD_PARTY_EXPENSE
+  INCOME
+  TRANSFER
+}
+
 model Transaction {
   id          Int      @id @default(autoincrement())
   timestamp   DateTime
@@ -23,88 +30,27 @@ model Transaction {
   transactionToBeRepayedId Int?
   repayments               Transaction[] @relation("Repayments")
 
-  // extensions
-  personalExpense   PersonalExpense?
-  thirdPartyExpense ThirdPartyExpense?
-  income            Income?
-  transfer          Transfer?
+  transactionType          TransactionType?
+  vendor                   String?
+  payer                    String?
+  otherPartyName           String?
+  ownShareAmountCents      Int?
+  trip                     Trip?            @relation(fields: [tripId], references: [id])
+  tripId                   Int?
+  outgoingAccount          BankAccount?     @relation("OutgoingTransactions", fields: [outgoingAccountId], references: [id])
+  outgoingAccountId        Int?
+  outgoingAmountCents      Int?
+  incomingAccount          BankAccount?     @relation("IncomingTransactions", fields: [incomingAccountId], references: [id])
+  incomingAccountId        Int?
+  incomingAmountCents      Int?
+  payerOutgoingAmountCents Int?
+  currencyCode             String?
 
   user                 User                   @relation(fields: [userId], references: [id])
   userId               Int
   createdAt            DateTime               @default(now())
   updatedAt            DateTime               @updatedAt
   TransactionPrototype TransactionPrototype[]
-}
-
-model PersonalExpense {
-  transaction         Transaction @relation(fields: [transactionId], references: [id])
-  transactionId       Int         @unique
-  // basic field extensions
-  vendor              String
-  otherPartyName      String
-  ownShareAmountCents Int
-  // trip expenses tracking
-  trip                Trip?       @relation(fields: [tripId], references: [id])
-  tripId              Int?
-  // extension specific fields
-  account             BankAccount @relation(fields: [accountId], references: [id])
-  accountId           Int
-  // system fields
-  user                User        @relation(fields: [userId], references: [id])
-  userId              Int
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-}
-
-model ThirdPartyExpense {
-  transaction         Transaction @relation(fields: [transactionId], references: [id])
-  transactionId       Int         @unique
-  // basic field extensions
-  vendor              String
-  payer               String
-  ownShareAmountCents Int
-  // trip expenses tracking
-  trip                Trip?       @relation(fields: [tripId], references: [id])
-  tripId              Int?
-  // extension specific fields
-  currencyCode        String
-  // system fields
-  user                User        @relation(fields: [userId], references: [id])
-  userId              Int
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-}
-
-model Income {
-  transaction         Transaction @relation(fields: [transactionId], references: [id])
-  transactionId       Int         @unique
-  // basic field extensions
-  payer               String
-  otherPartyName      String
-  ownShareAmountCents Int
-  // extension specific fields
-  account             BankAccount @relation(fields: [accountId], references: [id])
-  accountId           Int
-  // system fields
-  user                User        @relation(fields: [userId], references: [id])
-  userId              Int
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-}
-
-model Transfer {
-  transaction         Transaction @relation(fields: [transactionId], references: [id])
-  transactionId       Int         @unique
-  receivedAmountCents Int
-  accountFrom         BankAccount @relation("OutgoingTransfers", fields: [accountFromId], references: [id])
-  accountFromId       Int
-  accountTo           BankAccount @relation("IncomingTransfers", fields: [accountToId], references: [id])
-  accountToId         Int
-
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model BankAccount {
@@ -126,16 +72,13 @@ model BankAccount {
   // TODO: move to a separate table
   initialBalanceCents Int @default(0)
 
-  PersonalExpense   PersonalExpense[]
-  outgoingTransfers Transfer[]        @relation("OutgoingTransfers")
-  incomingTransfers Transfer[]        @relation("IncomingTransfers")
-  Income            Income[]
-
   user                   User                     @relation(fields: [userId], references: [id])
   userId                 Int
   createdAt              DateTime                 @default(now())
   updatedAt              DateTime                 @updatedAt
   ExternalAccountMapping ExternalAccountMapping[]
+  outgoingTransactions   Transaction[]            @relation("OutgoingTransactions")
+  incomingTransactions   Transaction[]            @relation("IncomingTransactions")
 }
 
 model Bank {
@@ -200,17 +143,16 @@ model Tag {
 }
 
 model Trip {
-  id                Int                 @id @default(autoincrement())
-  name              String
-  destination       String?
-  start             DateTime?
-  end               DateTime?
-  PersonalExpense   PersonalExpense[]
-  ThirdPartyExpense ThirdPartyExpense[]
-  user              User                @relation(fields: [userId], references: [id])
-  userId            Int
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  id          Int           @id @default(autoincrement())
+  name        String
+  destination String?
+  start       DateTime?
+  end         DateTime?
+  user        User          @relation(fields: [userId], references: [id])
+  userId      Int
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  Transaction Transaction[]
 }
 
 model DisplaySettings {
@@ -233,10 +175,6 @@ model User {
   Tag                    Tag[]
   Category               Category[]
   Transaction            Transaction[]
-  PersonalExpense        PersonalExpense[]
-  ThirdPartyExpense      ThirdPartyExpense[]
-  Income                 Income[]
-  Transfer               Transfer[]
   BankAccount            BankAccount[]
   DisplaySettings        DisplaySettings?
   TransactionPrototype   TransactionPrototype[]

@@ -1,5 +1,6 @@
-import { assertDefined } from "lib/assert";
-import { TransactionWithExtensionsAndTagIds } from "lib/model/AllDatabaseDataModel";
+import { TransactionType } from "@prisma/client";
+import { assert } from "lib/assert";
+import { TransactionWithTagIds } from "lib/model/AllDatabaseDataModel";
 import { TransactionCompanion } from "lib/model/transaction/TransactionCompanion";
 
 export type PersonalExpense = {
@@ -18,14 +19,14 @@ export type PersonalExpense = {
 };
 
 export function personalExpenseModelFromDB(
-  init: TransactionWithExtensionsAndTagIds,
+  init: TransactionWithTagIds,
 ): PersonalExpense {
-  assertDefined(init.personalExpense);
+  assert(init.transactionType == TransactionType.PERSONAL_EXPENSE);
   const companions = [];
-  if (init.personalExpense.ownShareAmountCents != init.amountCents) {
+  if (init.ownShareAmountCents != init.outgoingAmountCents) {
     companions.push({
-      name: init.personalExpense.otherPartyName,
-      amountCents: init.amountCents - init.personalExpense.ownShareAmountCents,
+      name: init.otherPartyName,
+      amountCents: init.amountCents - init.ownShareAmountCents,
     });
   }
   // TODO: fill for expenses.
@@ -34,14 +35,14 @@ export function personalExpenseModelFromDB(
     kind: "PersonalExpense",
     id: init.id,
     timestampEpoch: new Date(init.timestamp).getTime(),
-    vendor: init.personalExpense.vendor,
+    vendor: init.vendor,
     amountCents: init.amountCents,
     companions,
     note: init.description,
-    accountId: init.personalExpense.accountId,
+    accountId: init.outgoingAccountId,
     categoryId: init.categoryId,
     tagsIds: init.tags.map((t) => t.id),
-    tripId: init.personalExpense.tripId,
+    tripId: init.tripId,
     refundGroupTransactionIds: refundGroupTransactionIds,
   };
 }

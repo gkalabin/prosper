@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import {
   AllDatabaseData,
-  TransactionWithExtensionsAndTagIds,
+  TransactionWithTagIds,
 } from "lib/model/AllDatabaseDataModel";
 import { Currency } from "lib/model/Currency";
 import prisma from "lib/prisma";
@@ -13,38 +13,27 @@ export class DB {
     this.userId = userId;
   }
 
-  transactionFindAll(): Promise<TransactionWithExtensionsAndTagIds[]> {
+  transactionFindAll(): Promise<TransactionWithTagIds[]> {
     return prisma.transaction.findMany({
       where: {
         userId: this.userId,
       },
       include: {
-        personalExpense: true,
-        thirdPartyExpense: true,
-        transfer: true,
-        income: true,
         tags: {
           select: {
             id: true,
           },
         },
       },
-      // ...args
     });
   }
-  transactionById(
-    id: number,
-  ): Promise<TransactionWithExtensionsAndTagIds | null> {
+  transactionById(id: number): Promise<TransactionWithTagIds | null> {
     return prisma.transaction.findFirst({
       where: {
         id,
         userId: this.userId,
       },
       include: {
-        personalExpense: true,
-        thirdPartyExpense: true,
-        transfer: true,
-        income: true,
         tags: {
           select: {
             id: true,

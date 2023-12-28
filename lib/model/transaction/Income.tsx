@@ -1,5 +1,6 @@
-import { assertDefined } from "lib/assert";
-import { TransactionWithExtensionsAndTagIds } from "lib/model/AllDatabaseDataModel";
+import { TransactionType } from "@prisma/client";
+import { assert } from "lib/assert";
+import { TransactionWithTagIds } from "lib/model/AllDatabaseDataModel";
 import { TransactionCompanion } from "lib/model/transaction/TransactionCompanion";
 
 export type Income = {
@@ -17,15 +18,13 @@ export type Income = {
   refundGroupTransactionIds: number[];
 };
 
-export function incomeModelFromDB(
-  init: TransactionWithExtensionsAndTagIds,
-): Income {
-  assertDefined(init.income);
+export function incomeModelFromDB(init: TransactionWithTagIds): Income {
+  assert(init.transactionType == TransactionType.INCOME);
   const companions = [];
-  if (init.income.ownShareAmountCents != init.amountCents) {
+  if (init.ownShareAmountCents != init.incomingAmountCents) {
     companions.push({
-      name: init.income.otherPartyName,
-      amountCents: init.amountCents - init.income.ownShareAmountCents,
+      name: init.otherPartyName,
+      amountCents: init.incomingAmountCents - init.ownShareAmountCents,
     });
   }
   const refundGroupTransactionIds: number[] = [];
@@ -36,11 +35,11 @@ export function incomeModelFromDB(
     kind: "Income",
     id: init.id,
     timestampEpoch: new Date(init.timestamp).getTime(),
-    payer: init.income.payer,
+    payer: init.payer,
     amountCents: init.amountCents,
     companions,
     note: init.description,
-    accountId: init.income.accountId,
+    accountId: init.incomingAccountId,
     categoryId: init.categoryId,
     tagsIds: init.tags.map((t) => t.id),
     refundGroupTransactionIds,

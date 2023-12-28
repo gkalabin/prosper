@@ -150,6 +150,7 @@ export const TransactionsListItem = (props: {
           </div>
           <div>Type: {t.kind}</div>
           <div>Category: {category.nameWithAncestors()}</div>
+          {t.note && <div>Note: {t.note}</div>}
           {isExpense(t) && <div>Vendor: {t.vendor}</div>}
           {otherPartyNameOrNull(t) && (
             <div>Other party: {otherPartyNameOrNull(t)}</div>

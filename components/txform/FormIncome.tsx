@@ -18,12 +18,12 @@ import { differenceInMonths } from "date-fns";
 import { useFormikContext } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
+import { Income } from "lib/model/transaction/Income";
 import {
   Transaction,
   isIncome,
   otherPartyNameOrNull,
 } from "lib/model/transaction/Transaction";
-import { Income } from "lib/model/transaction/Income";
 import { AddTransactionFormValues } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect, useState } from "react";
@@ -39,21 +39,30 @@ export const FormIncome = ({
 }) => {
   const { transactions, bankAccounts } = useAllDatabaseDataContext();
   const {
-    values: { isShared, fromBankAccountId, mode, amount, payer },
+    values: {
+      isShared,
+      fromBankAccountId,
+      mode,
+      amount,
+      payer,
+      parentTransactionId,
+      description,
+    },
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
   const incomeTransactions = transactions.filter((x): x is Income =>
-    isIncome(x)
+    isIncome(x),
   );
   const now = new Date();
   const recentIncomeTransactions = incomeTransactions.filter(
-    (x) => differenceInMonths(now, x.timestampEpoch) < SUGGESTIONS_WINDOW_MONTHS
+    (x) =>
+      differenceInMonths(now, x.timestampEpoch) < SUGGESTIONS_WINDOW_MONTHS,
   );
 
   const [mostFrequentOtherParty] = uniqMostFrequent(
     recentIncomeTransactions
       .map((x) => otherPartyNameOrNull(x))
-      .filter((x) => x)
+      .filter((x) => x),
   );
   useEffect(() => {
     if (transaction) {
@@ -70,11 +79,11 @@ export const FormIncome = ({
   let [mostFrequentCategoryId] = uniqMostFrequent(
     recentIncomeTransactions
       .filter((x) => !payer || x.payer == payer)
-      .map((x) => x.categoryId)
+      .map((x) => x.categoryId),
   );
   if (!mostFrequentCategoryId) {
     [mostFrequentCategoryId] = uniqMostFrequent(
-      incomeTransactions.map((x) => x.categoryId)
+      incomeTransactions.map((x) => x.categoryId),
     );
   }
   useEffect(() => {
@@ -118,8 +127,8 @@ export const FormIncome = ({
     setFieldValue("ownShareAmount", newAmountRounded);
   }, [amount, isShared, setFieldValue, transaction]);
 
-  const [showParent, setShowParent] = useState(false);
-  const [showNote, setShowNote] = useState(false);
+  const [showParent, setShowParent] = useState(!!parentTransactionId);
+  const [showNote, setShowNote] = useState(!!description);
   return (
     <>
       <Timestamp />

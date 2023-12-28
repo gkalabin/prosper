@@ -1,4 +1,5 @@
-import { TransactionWithExtensionsAndTagIds } from "lib/model/AllDatabaseDataModel";
+import { TransactionType } from "@prisma/client";
+import { TransactionWithTagIds } from "lib/model/AllDatabaseDataModel";
 import { BankAccount, accountUnit } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
@@ -26,18 +27,18 @@ export type Transaction =
 export type Expense = PersonalExpense | ThirdPartyExpense;
 
 export function transactionModelFromDB(
-  init: TransactionWithExtensionsAndTagIds,
+  init: TransactionWithTagIds,
 ): Transaction {
-  if (init.personalExpense) {
+  if (init.transactionType == TransactionType.PERSONAL_EXPENSE) {
     return personalExpenseModelFromDB(init);
   }
-  if (init.thirdPartyExpense) {
+  if (init.transactionType == TransactionType.THIRD_PARTY_EXPENSE) {
     return thirdPartyExpenseModelFromDB(init);
   }
-  if (init.transfer) {
+  if (init.transactionType == TransactionType.TRANSFER) {
     return transferModelFromDB(init);
   }
-  if (init.income) {
+  if (init.transactionType == TransactionType.INCOME) {
     return incomeModelFromDB(init);
   }
   throw new Error(`Unknown transaction type: ${JSON.stringify(init)}`);

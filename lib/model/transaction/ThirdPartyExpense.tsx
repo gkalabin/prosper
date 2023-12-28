@@ -1,5 +1,6 @@
-import { assertDefined } from "lib/assert";
-import { TransactionWithExtensionsAndTagIds } from "lib/model/AllDatabaseDataModel";
+import { TransactionType } from "@prisma/client";
+import { assert } from "lib/assert";
+import { TransactionWithTagIds } from "lib/model/AllDatabaseDataModel";
 import { TransactionCompanion } from "lib/model/transaction/TransactionCompanion";
 
 export type ThirdPartyExpense = {
@@ -19,29 +20,28 @@ export type ThirdPartyExpense = {
 };
 
 export function thirdPartyExpenseModelFromDB(
-  init: TransactionWithExtensionsAndTagIds,
+  init: TransactionWithTagIds,
 ): ThirdPartyExpense {
-  assertDefined(init.thirdPartyExpense);
+  assert(init.transactionType == TransactionType.THIRD_PARTY_EXPENSE);
   const companions = [
     {
-      name: init.thirdPartyExpense.payer,
-      amountCents:
-        init.amountCents - init.thirdPartyExpense.ownShareAmountCents,
+      name: init.payer,
+      amountCents: init.payerOutgoingAmountCents - init.ownShareAmountCents,
     },
   ];
   return {
     kind: "ThirdPartyExpense",
     id: init.id,
     timestampEpoch: new Date(init.timestamp).getTime(),
-    payer: init.thirdPartyExpense.payer,
-    vendor: init.thirdPartyExpense.vendor,
-    amountCents: init.amountCents,
-    currencyCode: init.thirdPartyExpense.currencyCode,
-    ownShareCents: init.thirdPartyExpense.ownShareAmountCents,
+    payer: init.payer,
+    vendor: init.vendor,
+    amountCents: init.payerOutgoingAmountCents,
+    currencyCode: init.currencyCode,
+    ownShareCents: init.ownShareAmountCents,
     companions,
     note: init.description,
     categoryId: init.categoryId,
     tagsIds: init.tags.map((t) => t.id),
-    tripId: init.thirdPartyExpense.tripId,
+    tripId: init.tripId,
   };
 }

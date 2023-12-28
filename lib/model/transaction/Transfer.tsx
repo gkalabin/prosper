@@ -1,6 +1,7 @@
+import { TransactionType } from "@prisma/client";
 import { AmountWithUnit } from "lib/AmountWithUnit";
-import { assertDefined } from "lib/assert";
-import { TransactionWithExtensionsAndTagIds } from "lib/model/AllDatabaseDataModel";
+import { assert } from "lib/assert";
+import { TransactionWithTagIds } from "lib/model/AllDatabaseDataModel";
 import { BankAccount, accountUnit } from "lib/model/BankAccount";
 import { Stock } from "lib/model/Stock";
 
@@ -17,18 +18,16 @@ export type Transfer = {
   tagsIds: number[];
 };
 
-export function transferModelFromDB(
-  init: TransactionWithExtensionsAndTagIds,
-): Transfer {
-  assertDefined(init.transfer);
+export function transferModelFromDB(init: TransactionWithTagIds): Transfer {
+  assert(init.transactionType == TransactionType.TRANSFER);
   return {
     kind: "Transfer",
     id: init.id,
     timestampEpoch: new Date(init.timestamp).getTime(),
-    fromAccountId: init.transfer.accountFromId,
-    toAccountId: init.transfer.accountToId,
-    sentAmountCents: init.amountCents,
-    receivedAmountCents: init.transfer.receivedAmountCents,
+    fromAccountId: init.outgoingAccountId,
+    toAccountId: init.incomingAccountId,
+    sentAmountCents: init.outgoingAmountCents,
+    receivedAmountCents: init.incomingAmountCents,
     note: init.description,
     categoryId: init.categoryId,
     tagsIds: init.tags.map((t) => t.id),

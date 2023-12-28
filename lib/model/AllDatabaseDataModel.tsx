@@ -4,34 +4,23 @@ import {
   Category,
   DisplaySettings,
   ExchangeRate,
-  Income,
-  PersonalExpense,
   Stock,
   StockQuote,
   Tag,
-  ThirdPartyExpense,
   Transaction,
   TransactionPrototype,
-  Transfer,
   Trip,
 } from "@prisma/client";
 
-export interface TransactionWithExtensions extends Transaction {
-  personalExpense: PersonalExpense | null;
-  thirdPartyExpense: ThirdPartyExpense | null;
-  transfer: Transfer | null;
-  income: Income | null;
-}
-
-export interface TransactionWithExtensionsAndTagIds
-  extends TransactionWithExtensions {
+export interface TransactionWithTagIds
+  extends Transaction {
   tags: {
     id: number;
   }[];
 }
 
 export type AllDatabaseData = {
-  dbTransactions: TransactionWithExtensionsAndTagIds[];
+  dbTransactions: TransactionWithTagIds[];
   dbTransactionPrototypes: TransactionPrototype[];
   dbCategories: Category[];
   dbBanks: Bank[];
