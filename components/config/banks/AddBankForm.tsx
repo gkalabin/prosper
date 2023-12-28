@@ -1,50 +1,62 @@
 import { Bank as DBBank } from "@prisma/client";
 import { FormikInput } from "components/forms/Input";
 import {
+  AddOrUpdateButtonText,
   ButtonFormPrimary,
   ButtonFormSecondary,
-  ButtonPagePrimary,
 } from "components/ui/buttons";
 import { Form, Formik } from "formik";
+import { Bank } from "lib/model/BankAccount";
 import { useState } from "react";
 
-export const AddBankForm = (props: {
+export const AddOrEditBankForm = ({
+  bank,
+  displayOrder,
+  onAddedOrUpdated,
+  onCancelClick,
+}: {
+  bank?: Bank;
   displayOrder: number;
-  onAdded: (added: DBBank) => void;
+  onAddedOrUpdated: (x: DBBank) => void;
+  onCancelClick: () => void;
 }) => {
-  const [formDisplayed, setFormDisplayed] = useState(false);
   const [apiError, setApiError] = useState("");
+  const isCreate = !bank;
 
   const handleSubmit = async ({ name }) => {
     setApiError("");
     try {
       const body = {
         name,
-        displayOrder: props.displayOrder,
+        displayOrder,
       };
-      const added = await fetch("/api/config/bank", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      props.onAdded(await added.json());
-      setFormDisplayed(false);
+      const dbDbank = await fetch(
+        `/api/config/bank/${isCreate ? "" : bank.id}`,
+        {
+          method: isCreate ? "POST" : "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
+      onAddedOrUpdated(await dbDbank.json());
     } catch (error) {
       setApiError(`Failed to add: ${error}`);
     }
   };
 
-  if (!formDisplayed) {
-    return (
-      <div className="flex justify-end">
-        <ButtonPagePrimary onClick={() => setFormDisplayed(true)}>
-          Add New Bank
-        </ButtonPagePrimary>
-      </div>
-    );
+  let initialValues = {
+    name: "",
+    displayOrder,
+  };
+  if (bank) {
+    initialValues = {
+      name: bank.name,
+      displayOrder: bank.displayOrder,
+    };
   }
+
   return (
-    <Formik initialValues={{ name: "" }} onSubmit={handleSubmit}>
+    <Formik initialValues={initialValues} onSubmit={handleSubmit}>
       {({ isSubmitting, values }) => (
         <Form className="flex flex-col gap-4">
           <div>
@@ -54,17 +66,12 @@ export const AddBankForm = (props: {
             >
               Bank Name
             </label>
-            <FormikInput
-              name="name"
-              autoFocus
-              className="block w-full"
-              disabled={isSubmitting}
-            />
+            <FormikInput name="name" autoFocus className="block w-full" />
           </div>
 
           <div className="flex flex-row justify-end gap-2">
             <ButtonFormSecondary
-              onClick={() => setFormDisplayed(false)}
+              onClick={onCancelClick}
               disabled={isSubmitting}
             >
               Cancel
@@ -73,7 +80,7 @@ export const AddBankForm = (props: {
               disabled={isSubmitting || !values.name}
               type="submit"
             >
-              {isSubmitting ? "Adding…" : "Add"}
+              <AddOrUpdateButtonText add={isCreate} />
             </ButtonFormPrimary>
           </div>
 

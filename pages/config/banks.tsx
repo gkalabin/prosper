@@ -4,15 +4,13 @@ import {
   Currency as DBCurrency,
   OpenBankingToken as DBOpenBankingToken,
 } from "@prisma/client";
+import { AddOrEditBankForm } from "components/config/banks/AddBankForm";
 import { AddOrEditBankAccountForm } from "components/config/banks/AddOrEditBankAccountForm";
-import { AddBankForm } from "components/config/banks/AddBankForm";
 import { ConfigPageLayout } from "components/ConfigPageLayout";
-import { Input } from "components/forms/Input";
 import {
   AnchorLink,
-  ButtonFormPrimary,
-  ButtonFormSecondary,
   ButtonLink,
+  ButtonPagePrimary,
 } from "components/ui/buttons";
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
 import { DB } from "lib/db";
@@ -22,104 +20,7 @@ import { updateState } from "lib/stateHelpers";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "pages/api/auth/[...nextauth]";
-import React, { useState } from "react";
-
-const BankName = (props: {
-  bank: Bank;
-  openBankingToken?: DBOpenBankingToken;
-  onUpdated: (bank: DBBank) => void;
-}) => {
-  const [name, setName] = useState(props.bank.name);
-  const [displayOrder, setDisplayOrder] = useState(props.bank.displayOrder);
-  const [formDisplayed, setFormDisplayed] = useState(false);
-  const [apiError, setApiError] = useState("");
-  const [requestInFlight, setRequestInFlight] = useState(false);
-
-  const reset = () => {
-    setName(props.bank.name);
-    setDisplayOrder(props.bank.displayOrder);
-    setApiError("");
-  };
-
-  const open = () => {
-    reset();
-    setFormDisplayed(true);
-  };
-
-  const close = () => {
-    reset();
-    setFormDisplayed(false);
-  };
-
-  const handleSubmit = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    setApiError("");
-    setRequestInFlight(true);
-    try {
-      const body = {
-        name,
-        displayOrder,
-      };
-      const response = await fetch(`/api/config/bank/${props.bank.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      props.onUpdated(await response.json());
-      close();
-    } catch (error) {
-      setApiError(`Failed to update: ${error}`);
-    }
-    setRequestInFlight(false);
-  };
-
-  if (!formDisplayed) {
-    return (
-      <div className="border-b bg-indigo-200 p-2 text-gray-900">
-        <div className="flex items-center gap-3">
-          <h1 className="grow text-xl font-medium">{props.bank.name}</h1>
-          <ButtonLink onClick={open}>Edit</ButtonLink>
-          {props.openBankingToken && (
-            <AnchorLink
-              href={`/config/open-banking/connection/${props.bank.id}`}
-              label="OpenBanking"
-            />
-          )}
-          <AnchorLink
-            href={`/api/open-banking/connect?bankId=${props.bank.id}`}
-            label={props.openBankingToken ? "Reconnect" : "Connect"}
-          />
-        </div>
-      </div>
-    );
-  }
-  return (
-    <form onSubmit={handleSubmit} className="flex gap-1 p-2">
-      <Input
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Name"
-        type="text"
-        disabled={requestInFlight}
-        value={name}
-      />
-      <Input
-        onChange={(e) => setDisplayOrder(+e.target.value)}
-        placeholder="Display order"
-        type="number"
-        disabled={requestInFlight}
-        value={displayOrder}
-      />
-      <ButtonFormSecondary onClick={close} disabled={requestInFlight}>
-        Cancel
-      </ButtonFormSecondary>
-      <ButtonFormPrimary disabled={!name || requestInFlight} type="submit">
-        {requestInFlight ? "Updating…" : "Update"}
-      </ButtonFormPrimary>
-
-      {apiError && <span className="text-red-500">{apiError}</span>}
-    </form>
-  );
-};
+import { useState } from "react";
 
 const BanksList = (props: {
   banks: Bank[];
@@ -132,21 +33,19 @@ const BanksList = (props: {
     return <div>No banks found.</div>;
   }
   return (
-    <div className="flex-1 rounded border border-gray-200">
-      <div className="flex flex-col divide-y divide-gray-200">
-        {props.banks.map((bank) => (
-          <BanksListItem
-            key={bank.id}
-            bank={bank}
-            openBankingToken={props.openBankingTokens.find(
-              (t) => t.bankId == bank.id
-            )}
-            currencies={props.currencies}
-            onBankUpdated={props.onBankUpdated}
-            onBankAccountAddedOrUpdated={props.onBankAccountAddedOrUpdated}
-          />
-        ))}
-      </div>
+    <div>
+      {props.banks.map((bank) => (
+        <BanksListItem
+          key={bank.id}
+          bank={bank}
+          openBankingToken={props.openBankingTokens.find(
+            (t) => t.bankId == bank.id
+          )}
+          currencies={props.currencies}
+          onBankUpdated={props.onBankUpdated}
+          onBankAccountAddedOrUpdated={props.onBankAccountAddedOrUpdated}
+        />
+      ))}
     </div>
   );
 };
@@ -158,14 +57,41 @@ function BanksListItem({
   onBankAccountAddedOrUpdated,
   currencies,
 }) {
-  const [formDisplayed, setFormDisplayed] = useState(false);
+  const [newAccountFormDisplayed, setNewAccountFormDisplayed] = useState(false);
+  const [editBankFormDisplayed, setEditBankFormDisplayed] = useState(false);
   return (
     <div>
-      <BankName
-        bank={bank}
-        openBankingToken={openBankingToken}
-        onUpdated={onBankUpdated}
-      />
+      <div className="border-b bg-indigo-200 p-2 text-gray-900">
+        <div className="flex items-center gap-3">
+          <h1 className="grow text-xl font-medium">{bank.name}</h1>
+          <ButtonLink onClick={() => setEditBankFormDisplayed(true)}>
+            Edit
+          </ButtonLink>
+          {openBankingToken && (
+            <AnchorLink
+              href={`/config/open-banking/connection/${bank.id}`}
+              label="OpenBanking"
+            />
+          )}
+          <AnchorLink
+            href={`/api/open-banking/connect?bankId=${bank.id}`}
+            label={openBankingToken ? "Reconnect" : "Connect"}
+          />
+        </div>
+
+        {editBankFormDisplayed && (
+          <AddOrEditBankForm
+            bank={bank}
+            onAddedOrUpdated={(x) => {
+              onBankUpdated(x);
+              setEditBankFormDisplayed(false);
+            }}
+            onCancelClick={() => setEditBankFormDisplayed(false)}
+            displayOrder={0}
+          />
+        )}
+      </div>
+
       <div className="space-y-1 px-4">
         <AccountsList
           bank={bank}
@@ -173,20 +99,20 @@ function BanksListItem({
           currencies={currencies}
           onBankAccountAddedOrUpdated={onBankAccountAddedOrUpdated}
         />
-        {!formDisplayed && (
-          <ButtonLink onClick={() => setFormDisplayed(true)}>
-            Add Bank Account
+        {!newAccountFormDisplayed && (
+          <ButtonLink onClick={() => setNewAccountFormDisplayed(true)}>
+            Add New Account
           </ButtonLink>
         )}
-        {formDisplayed && (
+        {newAccountFormDisplayed && (
           <AddOrEditBankAccountForm
             bank={bank}
             currencies={currencies}
             onAddedOrUpdated={(x) => {
-              setFormDisplayed(false);
+              setNewAccountFormDisplayed(false);
               onBankAccountAddedOrUpdated(x);
             }}
-            onClose={() => setFormDisplayed(false)}
+            onClose={() => setNewAccountFormDisplayed(false)}
           />
         )}
       </div>
@@ -230,7 +156,9 @@ const AccountListItem = (props: {
       <div>
         <span className="text-lg">{props.account.name}</span>
         {!formDisplayed && (
-          <ButtonLink className="ml-2" onClick={() => setFormDisplayed(true)}>Edit</ButtonLink>
+          <ButtonLink className="ml-2" onClick={() => setFormDisplayed(true)}>
+            Edit
+          </ButtonLink>
         )}
       </div>
       {formDisplayed && (
@@ -305,6 +233,7 @@ export default function BanksPage({
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [dbBanks, setDbBanks] = useState(dbBanksInitial);
   const [dbBankAccounts, setDbBankAccounts] = useState(dbBankAccountsInitial);
+  const [formDisplayed, setFormDisplayed] = useState(false);
 
   const currencies = new Currencies(dbCurrencies);
   const [banks] = banksModelFromDatabaseData(
@@ -323,12 +252,22 @@ export default function BanksPage({
         onBankAccountAddedOrUpdated={updateState(setDbBankAccounts)}
       />
 
-      <div className="mt-4 rounded-md border p-2">
-        <AddBankForm
-          displayOrder={banks.length * 100}
-          onAdded={updateState(setDbBanks)}
-        />
-      </div>
+      {!formDisplayed && (
+        <div className="flex justify-end">
+          <ButtonPagePrimary onClick={() => setFormDisplayed(true)}>
+            Add New Bank
+          </ButtonPagePrimary>
+        </div>
+      )}
+      {formDisplayed && (
+        <div className="mt-4 rounded-md border p-2">
+          <AddOrEditBankForm
+            displayOrder={banks.length * 100}
+            onAddedOrUpdated={updateState(setDbBanks)}
+            onCancelClick={() => setFormDisplayed(false)}
+          />
+        </div>
+      )}
     </ConfigPageLayout>
   );
 }
