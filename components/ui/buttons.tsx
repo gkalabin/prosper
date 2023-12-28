@@ -5,7 +5,7 @@ import Link from "next/link";
 import React, { forwardRef } from "react";
 
 export const ButtonLink = (
-  props: React.ButtonHTMLAttributes<HTMLButtonElement>
+  props: React.ButtonHTMLAttributes<HTMLButtonElement>,
 ) => {
   return (
     <button
@@ -14,7 +14,7 @@ export const ButtonLink = (
       className={classNames(
         props.className,
         props.disabled ? "opacity-30" : "hover:text-indigo-500",
-        "font-medium text-indigo-600"
+        "font-medium text-indigo-600",
       )}
     >
       {props.children}
@@ -28,24 +28,22 @@ export const AnchorUnstyled = forwardRef<
 >((props, ref) => {
   const { children, href, ...rest } = props;
   return (
-    <Link href={href}>
-      <a ref={ref} {...rest}>
-        {children}
-      </a>
+    <Link href={href} ref={ref} {...rest}>
+      {children}
     </Link>
   );
 });
 AnchorUnstyled.displayName = "AnchorUnstyled";
 
 export const AnchorPagePrimary = (
-  props: React.AnchorHTMLAttributes<HTMLAnchorElement> & { label: string }
+  props: React.AnchorHTMLAttributes<HTMLAnchorElement> & { label: string },
 ) => {
   const { label, className, ...rest } = props;
   return (
     <AnchorUnstyled
       className={classNames(
         className,
-        "rounded-md bg-indigo-600 px-4 py-1.5 text-base font-medium leading-7 text-white shadow-sm hover:bg-indigo-700 hover:ring-indigo-700"
+        "rounded-md bg-indigo-600 px-4 py-1.5 text-base font-medium leading-7 text-white shadow-sm hover:bg-indigo-700 hover:ring-indigo-700",
       )}
       {...rest}
     >
@@ -55,14 +53,14 @@ export const AnchorPagePrimary = (
 };
 
 export const AnchorLink = (
-  props: React.AnchorHTMLAttributes<HTMLAnchorElement>
+  props: React.AnchorHTMLAttributes<HTMLAnchorElement>,
 ) => {
   const { className, ...rest } = props;
   return (
     <AnchorUnstyled
       className={classNames(
         className,
-        "font-medium text-indigo-600 hover:text-indigo-500"
+        "font-medium text-indigo-600 hover:text-indigo-500",
       )}
       {...rest}
     >
@@ -72,14 +70,14 @@ export const AnchorLink = (
 };
 
 export const ExternalAnchorLink = (
-  props: React.AnchorHTMLAttributes<HTMLAnchorElement>
+  props: React.AnchorHTMLAttributes<HTMLAnchorElement>,
 ) => {
   const { className, ...rest } = props;
   return (
     <a
       className={classNames(
         className,
-        "font-medium text-indigo-600 hover:text-indigo-500"
+        "font-medium text-indigo-600 hover:text-indigo-500",
       )}
       {...rest}
     >
@@ -89,7 +87,7 @@ export const ExternalAnchorLink = (
 };
 
 export const ButtonPagePrimary = (
-  props: React.ButtonHTMLAttributes<HTMLButtonElement>
+  props: React.ButtonHTMLAttributes<HTMLButtonElement>,
 ) => {
   return (
     <button
@@ -97,7 +95,7 @@ export const ButtonPagePrimary = (
       {...props}
       className={classNames(
         props.className,
-        "rounded-md bg-indigo-600 px-4 py-1.5 text-base font-medium leading-7 text-white shadow-sm hover:bg-indigo-700 hover:ring-indigo-700"
+        "rounded-md bg-indigo-600 px-4 py-1.5 text-base font-medium leading-7 text-white shadow-sm hover:bg-indigo-700 hover:ring-indigo-700",
       )}
     >
       {props.children}
@@ -106,7 +104,7 @@ export const ButtonPagePrimary = (
 };
 
 export const FormikButtonFormPrimary = (
-  props: React.ButtonHTMLAttributes<HTMLButtonElement>
+  props: React.ButtonHTMLAttributes<HTMLButtonElement>,
 ) => {
   const { isSubmitting } = useFormikContext();
   const { disabled, ...rest } = props;
@@ -114,7 +112,7 @@ export const FormikButtonFormPrimary = (
 };
 
 export const ButtonFormPrimary = (
-  props: React.ButtonHTMLAttributes<HTMLButtonElement>
+  props: React.ButtonHTMLAttributes<HTMLButtonElement>,
 ) => {
   const { className, ...rest } = props;
   return (
@@ -123,7 +121,7 @@ export const ButtonFormPrimary = (
       className={classNames(
         className,
         props.disabled ? "opacity-30" : "hover:bg-indigo-700",
-        "inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        "inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2",
       )}
     >
       {props.children}
@@ -132,7 +130,7 @@ export const ButtonFormPrimary = (
 };
 
 export const FormikButtonFormSecondary = (
-  props: React.ButtonHTMLAttributes<HTMLButtonElement>
+  props: React.ButtonHTMLAttributes<HTMLButtonElement>,
 ) => {
   const { isSubmitting } = useFormikContext();
   const { disabled, ...rest } = props;
@@ -140,7 +138,7 @@ export const FormikButtonFormSecondary = (
 };
 
 export const ButtonFormSecondary = (
-  props: React.ButtonHTMLAttributes<HTMLButtonElement>
+  props: React.ButtonHTMLAttributes<HTMLButtonElement>,
 ) => {
   const { className, ...rest } = props;
   return (
@@ -150,7 +148,7 @@ export const ButtonFormSecondary = (
       className={classNames(
         className,
         props.disabled ? "opacity-30" : "hover:bg-gray-50",
-        "inline-flex justify-center rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        "inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2",
       )}
     >
       {props.children}

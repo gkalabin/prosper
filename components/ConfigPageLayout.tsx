@@ -18,10 +18,6 @@ export const ConfigPageLayout = (props: {
         title: "Categories",
         path: "/config/categories",
       },
-      {
-        title: "Currencies",
-        path: "/config/currencies",
-      },
     ]}
   >
     {props.children}

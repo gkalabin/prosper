@@ -94,20 +94,20 @@ export default function Page({
   const [[bank], allBankAccounts, stocks] = banksModelFromDatabaseData(
     [dbBank],
     dbBankAccounts,
-    dbStocks
+    dbStocks,
   );
   const accountsForBank = allBankAccounts.filter((x) => x.bankId === dbBank.id);
   const [dbMapping, setDbMapping] = useState(dbMappingInitial);
   const initialMapping = Object.fromEntries(
-    dbMapping.map((x) => [x.externalAccountId, x.internalAccountId])
+    dbMapping.map((x) => [x.externalAccountId, x.internalAccountId]),
   );
   const [mapping, setMapping] = useState(
     Object.fromEntries(
       externalAccounts.map((a) => [
         a.externalAccountId,
         initialMapping[a.externalAccountId] ?? -1,
-      ])
-    )
+      ]),
+    ),
   );
 
   const handleSubmit = async (e) => {
@@ -122,7 +122,7 @@ export default function Page({
             internalAccountId,
             externalAccountId,
           };
-        }
+        },
       );
       const body: AccountMappingRequest = {
         bankId: dbBank.id,
@@ -159,7 +159,9 @@ export default function Page({
             <option value="0">None</option>
             {accountsForBank.map((ba) => (
               <option key={ba.id} value={ba.id}>
-                {bank.name} {ba.name} ({accountUnit(ba, stocks)})
+                <>
+                  {bank.name} {ba.name} ({accountUnit(ba, stocks)})
+                </>
               </option>
             ))}
           </Select>
