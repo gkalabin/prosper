@@ -129,7 +129,8 @@ export const formToDTO = (
 };
 
 export const transactionDbInput = (
-  dto: AddTransactionDTO
+  dto: AddTransactionDTO,
+  userId: number
 ): Prisma.TransactionCreateInput & Prisma.TransactionUpdateInput => {
   return {
     timestamp: new Date(dto.timestamp).toISOString(),
@@ -140,10 +141,18 @@ export const transactionDbInput = (
         id: dto.categoryId,
       },
     },
+    user: {
+      connect: {
+        id: userId,
+      },
+    },
   };
 };
 
-export const personalExpenseDbInput = (dto: AddTransactionDTO) => {
+export const personalExpenseDbInput = (
+  dto: AddTransactionDTO,
+  userId: number
+) => {
   return {
     vendor: dto.personalTransaction.vendor,
     ownShareAmountCents: dto.personalTransaction.ownShareAmountCents,
@@ -152,10 +161,18 @@ export const personalExpenseDbInput = (dto: AddTransactionDTO) => {
         id: dto.personalTransaction.bankAccountId,
       },
     },
+    user: {
+      connect: {
+        id: userId,
+      },
+    },
   };
 };
 
-export const thirdPartyExpenseDbInput = (dto: AddTransactionDTO) => {
+export const thirdPartyExpenseDbInput = (
+  dto: AddTransactionDTO,
+  userId: number
+) => {
   return {
     vendor: dto.externalTransaction.vendor,
     ownShareAmountCents: dto.externalTransaction.ownShareAmountCents,
@@ -165,10 +182,15 @@ export const thirdPartyExpenseDbInput = (dto: AddTransactionDTO) => {
         id: dto.externalTransaction.currencyId,
       },
     },
+    user: {
+      connect: {
+        id: userId,
+      },
+    },
   };
 };
 
-export const transferDbInput = (dto: AddTransactionDTO) => {
+export const transferDbInput = (dto: AddTransactionDTO, userId: number) => {
   return {
     receivedAmountCents: dto.transferTransaction.receivedAmountCents,
     accountFrom: {
@@ -181,16 +203,26 @@ export const transferDbInput = (dto: AddTransactionDTO) => {
         id: dto.transferTransaction.toBankAccountId,
       },
     },
+    user: {
+      connect: {
+        id: userId,
+      },
+    },
   };
 };
 
-export const incomeDbInput = (dto: AddTransactionDTO) => {
+export const incomeDbInput = (dto: AddTransactionDTO, userId: number) => {
   return {
     vendor: dto.incomeTransaction.vendor,
     ownShareAmountCents: dto.incomeTransaction.ownShareAmountCents,
     account: {
       connect: {
         id: dto.incomeTransaction.bankAccountId,
+      },
+    },
+    user: {
+      connect: {
+        id: userId,
       },
     },
   };

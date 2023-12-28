@@ -880,6 +880,16 @@ const FormInputs = (props: {
           ))}
         </SelectNumber>
       </InputRow>
+
+      <InputRow mode={props.mode} modes={props.isAdvancedMode
+            ? [FormMode.PERSONAL, FormMode.EXTERNAL]
+            : []}>
+        <TextInputWithLabel
+          name="tripId"
+          label="Trip"
+          disabled={isSubmitting}
+        />
+      </InputRow>
     </>
   );
 };

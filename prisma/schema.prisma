@@ -31,6 +31,8 @@ model Transaction {
 
   prototype TransactionPrototype?
 
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -51,6 +53,8 @@ model PersonalExpense {
   account   BankAccount @relation(fields: [accountId], references: [id])
   accountId Int
 
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -70,6 +74,8 @@ model ThirdPartyExpense {
   trip   Trip? @relation(fields: [tripId], references: [id])
   tripId Int?
 
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -82,6 +88,8 @@ model Income {
   account             BankAccount @relation(fields: [accountId], references: [id])
   accountId           Int
 
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -95,6 +103,8 @@ model Transfer {
   accountTo           BankAccount @relation("IncomingTransfers", fields: [accountToId], references: [id])
   accountToId         Int
 
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -125,6 +135,8 @@ model BankAccount {
 
   OpenBankingAccount OpenBankingAccount[]
 
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -135,11 +147,11 @@ model Bank {
   displayOrder Int                @default(0)
   accounts     BankAccount[]
   tokens       OpenBankingToken[]
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
 
-  // user   User @relation(fields: [userId], references: [id])
-  // userId Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Currency {
@@ -165,18 +177,21 @@ model Category {
   children         Category[] @relation("ParentCategory")
 
   transactions Transaction[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Tag {
-  id   Int    @id @default(autoincrement())
-  name String
-
+  id           Int           @id @default(autoincrement())
+  name         String
   transactions Transaction[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user         User          @relation(fields: [userId], references: [id])
+  userId       Int
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model Trip {
@@ -186,17 +201,32 @@ model Trip {
   end               DateTime
   PersonalExpense   PersonalExpense[]
   ThirdPartyExpense ThirdPartyExpense[]
+  user              User                @relation(fields: [userId], references: [id])
+  userId            Int
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  login     String
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  // Bank      Bank[]
+  id                   Int                    @id @default(autoincrement())
+  login                String
+  password             String
+  salt                 String
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  Bank                 Bank[]
+  Trip                 Trip[]
+  Tag                  Tag[]
+  Category             Category[]
+  Transaction          Transaction[]
+  PersonalExpense      PersonalExpense[]
+  ThirdPartyExpense    ThirdPartyExpense[]
+  Income               Income[]
+  Transfer             Transfer[]
+  TransactionPrototype TransactionPrototype[]
+  OpenBankingToken     OpenBankingToken[]
+  OpenBankingAccount   OpenBankingAccount[]
+  BankAccount          BankAccount[]
 }
 
 model ExchangeRate {
@@ -240,28 +270,30 @@ model OpenBankingToken {
   tokenValidUntil      DateTime
   connectionCreatedAt  DateTime
   connectionValidUntil DateTime
+  user                 User     @relation(fields: [userId], references: [id])
+  userId               Int
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 }
 
 model OpenBankingAccount {
-  id String @id @default(uuid())
-
+  id                   String      @id @default(uuid())
   bankAccount          BankAccount @relation(fields: [bankAccountId], references: [id])
   bankAccountId        Int
   openBankingAccountId String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user                 User        @relation(fields: [userId], references: [id])
+  userId               Int
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
 }
 
 model TransactionPrototype {
-  transaction   Transaction @relation(fields: [transactionId], references: [id])
-  transactionId Int         @unique
-
+  transaction              Transaction @relation(fields: [transactionId], references: [id])
+  transactionId            Int         @unique
   openBankingTransactionId String
-  openBankingDescription String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  openBankingDescription   String
+  user                     User        @relation(fields: [userId], references: [id])
+  userId                   Int
+  createdAt                DateTime    @default(now())
+  updatedAt                DateTime    @updatedAt
 }

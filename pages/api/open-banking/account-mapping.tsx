@@ -12,17 +12,18 @@ export interface AccountMappingRequest {
 }
 
 async function handle(
-  userName: string,
+  userId: number,
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   const input: AccountMappingRequest = req.body;
   const { bankId, mapping } = input;
-
-  console.log(input);
-
+  const idsToModify = mapping.filter((x) => !!x.id).map((x) => x.id);
+  if (!hasAccess({ obaIds: idsToModify, userId })) {
+    res.status(401).send(`Not authenticated`);
+    return;
+  }
   for (const oba of mapping) {
-    console.log("process", oba);
     if (!oba.id) {
       if (!oba.bankAccountId || !oba.openBankingAccountId) {
         continue;
@@ -31,6 +32,7 @@ async function handle(
         data: {
           openBankingAccountId: oba.openBankingAccountId,
           bankAccountId: oba.bankAccountId,
+          userId,
         },
       });
       continue;
@@ -57,6 +59,7 @@ async function handle(
   const dbAccounts = await prisma.bankAccount.findMany({
     where: {
       bankId,
+      userId,
     },
   });
   const result = await prisma.openBankingAccount.findMany({
@@ -64,9 +67,31 @@ async function handle(
       bankAccountId: {
         in: dbAccounts.map((x) => x.id),
       },
+      userId,
     },
   });
   res.json(result);
+}
+
+async function hasAccess({
+  obaIds,
+  userId,
+}: {
+  obaIds: string[];
+  userId: number;
+}): Promise<boolean> {
+  if (!obaIds.length) {
+    return true;
+  }
+  const found = await prisma.openBankingAccount.findMany({
+    where: {
+      id: {
+        in: obaIds,
+      },
+      userId,
+    },
+  });
+  return found.length == obaIds.length;
 }
 
 export default authenticatedApiRoute("POST", handle);

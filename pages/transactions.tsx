@@ -10,13 +10,11 @@ import {
   CurrencyContextProvider,
   modelFromDatabaseData,
 } from "lib/ClientSideModel";
-import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { allDbDataProps } from "lib/ServerSideDB";
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 
-export const getServerSideProps: GetServerSideProps<AllDatabaseData> =
-  allDbDataProps;
+export const getServerSideProps = allDbDataProps;
 
 export default function TransactionsPage(
   dbData: InferGetServerSidePropsType<typeof getServerSideProps>

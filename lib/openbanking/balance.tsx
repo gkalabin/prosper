@@ -1,19 +1,24 @@
 import { OpenBankingAccount, OpenBankingToken } from "@prisma/client";
+import { Amount } from "lib/ClientSideModel";
+import { IOBBalancesByAccountId } from "lib/openbanking/interface";
 import { maybeRefreshToken } from "lib/openbanking/token";
 import prisma from "lib/prisma";
-import { IOBBalancesByAccountId } from "lib/openbanking/interface";
-import { Amount } from "lib/ClientSideModel";
 
 const obBalanceURL = (accountId: string) =>
   `https://api.truelayer.com/data/v1/accounts/${accountId}/balance`;
 
-export async function fetchBalances(): Promise<IOBBalancesByAccountId> {
-  const banks = await prisma.bank.findMany();
+export async function fetchBalances({
+  userId,
+}: {
+  userId: number;
+}): Promise<IOBBalancesByAccountId> {
+  const banks = await prisma.bank.findMany({ where: { userId } });
   const bankAccounts = await prisma.bankAccount.findMany({
     where: {
       bankId: {
         in: banks.map((x) => x.id),
       },
+      userId,
     },
   });
   const dbOpenBankingAccounts = await prisma.openBankingAccount.findMany({
@@ -21,6 +26,7 @@ export async function fetchBalances(): Promise<IOBBalancesByAccountId> {
       bankAccountId: {
         in: bankAccounts.map((x) => x.id),
       },
+      userId,
     },
   });
 
@@ -29,6 +35,7 @@ export async function fetchBalances(): Promise<IOBBalancesByAccountId> {
       bankId: {
         in: banks.map((x) => x.id),
       },
+      userId,
     },
   });
 

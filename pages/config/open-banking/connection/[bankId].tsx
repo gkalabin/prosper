@@ -14,6 +14,9 @@ import prisma from "lib/prisma";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { AccountMappingRequest } from "pages/api/open-banking/account-mapping";
 import { useState } from "react";
+import { authOptions } from "pages/api/auth/[...nextauth]";
+import { getServerSession } from "next-auth/next";
+import { DB } from "lib/db";
 
 interface OpenBankingAccount {
   openBankingAccountId: string;
@@ -24,19 +27,33 @@ interface OpenBankingAccount {
 }
 
 export const getServerSideProps: GetServerSideProps<{
-  bankId: number;
-  dbBanks: DBBank[];
-  dbBankAccounts: DBBankAccount[];
-  dbCurrencies: DBCurrency[];
-  dbOpenBankingAccounts: DBOpenBankingAccount[];
-  obAccounts: OpenBankingAccount[];
-}> = async ({ params }) => {
+  data?: {
+    dbBank: DBBank;
+    dbBankAccounts: DBBankAccount[];
+    dbCurrencies: DBCurrency[];
+    dbOpenBankingAccounts: DBOpenBankingAccount[];
+    obAccounts: OpenBankingAccount[];
+  };
+}> = async ({ params, req, res }) => {
+  const session = await getServerSession(req, res, authOptions);
+  if (!session) {
+    return { props: {} };
+  }
   const bankId = parseInt(params.bankId as string, 10);
-  const banks = await prisma.bank.findMany();
-  const bankAccounts = await prisma.bankAccount.findMany({
+  const userId = +session.user.id;
+  const db = new DB({ userId });
+  const [bank] = await db.bankFindMany({
     where: {
-      bankId: bankId,
+      id: bankId,
     },
+  });
+  if (!bank) {
+    return {
+      notFound: true,
+    };
+  }
+  const bankAccounts = await prisma.bankAccount.findMany({
+    where: { bankId, userId },
   });
   const currencies = await prisma.currency.findMany();
   const dbOpenBankingAccounts = await prisma.openBankingAccount.findMany({
@@ -44,13 +61,12 @@ export const getServerSideProps: GetServerSideProps<{
       bankAccountId: {
         in: bankAccounts.map((x) => x.id),
       },
+      userId,
     },
   });
 
   const dbToken = await prisma.openBankingToken.findFirstOrThrow({
-    where: {
-      bankId: bankId,
-    },
+    where: { bankId, userId },
   });
   const token = await maybeRefreshToken(dbToken);
   const obAccounts = await fetch(`https://api.truelayer.com/data/v1/accounts`, {
@@ -72,13 +88,10 @@ export const getServerSideProps: GetServerSideProps<{
       });
     });
 
-  console.log(obAccounts);
-
   return {
     props: JSON.parse(
       JSON.stringify({
-        bankId,
-        dbBanks: banks,
+        dbBank: bank,
         dbBankAccounts: bankAccounts,
         dbCurrencies: currencies,
         dbOpenBankingAccounts: dbOpenBankingAccounts,
@@ -89,19 +102,20 @@ export const getServerSideProps: GetServerSideProps<{
 };
 
 export default function ConnectBanksPage({
-  bankId,
-  dbBanks,
-  dbBankAccounts,
-  dbCurrencies,
-  dbOpenBankingAccounts: dbOpenBankingAccountsInitial,
-  obAccounts,
+  data: {
+    dbBank,
+    dbBankAccounts,
+    dbCurrencies,
+    dbOpenBankingAccounts: dbOpenBankingAccountsInitial,
+    obAccounts,
+  },
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [requestInFlight, setRequestInFlight] = useState(false);
   const [apiError, setApiError] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const currencies = new Currencies(dbCurrencies);
-  const [banks] = banksModelFromDatabaseData(
-    dbBanks,
+  const [[bank]] = banksModelFromDatabaseData(
+    [dbBank],
     dbBankAccounts,
     currencies
   );
@@ -139,7 +153,7 @@ export default function ConnectBanksPage({
         }
       );
       const body: AccountMappingRequest = {
-        bankId,
+        bankId: dbBank.id,
         mapping: requestMapping,
       };
       const response = await fetch("/api/open-banking/account-mapping", {
@@ -175,13 +189,11 @@ export default function ConnectBanksPage({
               }
             >
               <option value="0">None</option>
-              {banks.map((b) =>
-                b.accounts.map((ba) => (
-                  <option key={ba.id} value={ba.id}>
-                    {b.name} {ba.name}
-                  </option>
-                ))
-              )}
+              {bank.accounts.map((ba) => (
+                <option key={ba.id} value={ba.id}>
+                  {bank.name} {ba.name}
+                </option>
+              ))}
             </Select>
           </div>
         </>

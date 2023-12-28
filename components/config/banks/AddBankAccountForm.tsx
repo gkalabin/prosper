@@ -4,23 +4,21 @@ import { Bank } from "lib/model/BankAccount";
 import Link from "next/link";
 import React, { useState } from "react";
 
-type AddBankAccountFormProps = {
+const AddBankAccountForm = (props: {
   displayOrder: number;
   bank: Bank;
   currencies: Currencies;
   onAdded: (added: DBBankAccount) => void;
-};
-
-const AddBankAccountForm: React.FC<AddBankAccountFormProps> = (props) => {
+}) => {
   const [name, setName] = useState("");
-  const [currencyId, setCurrencyId] = useState(props.currencies[0]?.id);
+  const [currencyId, setCurrencyId] = useState(props.currencies.all()[0]?.id);
   const [formDisplayed, setFormDisplayed] = useState(false);
   const [requestInFlight, setRequestInFlight] = useState(false);
   const [apiError, setApiError] = useState("");
 
   const reset = () => {
     setName("");
-    setCurrencyId(props.currencies[0]?.id);
+    setCurrencyId(props.currencies.all()[0]?.id);
     setApiError("");
   };
 

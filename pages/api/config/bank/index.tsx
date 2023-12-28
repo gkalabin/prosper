@@ -3,20 +3,22 @@ import prisma from "lib/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 async function handle(
-  userName: string,
+  userId: number,
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   const { name, displayOrder } = req.body;
-  const dbArgs = {
-    data: { name, displayOrder },
-    include: {
-      accounts: {
-        include: { currency: true },
+  const result = await prisma.bank.create({
+    data: {
+      name,
+      displayOrder,
+      user: {
+        connect: {
+          id: userId,
+        },
       },
     },
-  };
-  const result = await prisma.bank.create(dbArgs);
+  });
   res.json(result);
 }
 

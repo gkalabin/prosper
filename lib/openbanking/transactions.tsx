@@ -11,13 +11,18 @@ const obSettledTxURL = (accountId: string) =>
 const obPendingTxURL = (accountId: string) =>
   `https://api.truelayer.com/data/v1/accounts/${accountId}/transactions/pending`;
 
-export async function fetchOpenBankingTransactions(): Promise<IOBTransactionsByAccountId> {
-  const banks = await prisma.bank.findMany();
+export async function fetchOpenBankingTransactions({
+  userId,
+}: {
+  userId: number;
+}): Promise<IOBTransactionsByAccountId> {
+  const banks = await prisma.bank.findMany({ where: { userId } });
   const bankAccounts = await prisma.bankAccount.findMany({
     where: {
       bankId: {
         in: banks.map((x) => x.id),
       },
+      userId,
     },
   });
   const dbOpenBankingAccounts = await prisma.openBankingAccount.findMany({
@@ -25,6 +30,7 @@ export async function fetchOpenBankingTransactions(): Promise<IOBTransactionsByA
       bankAccountId: {
         in: bankAccounts.map((x) => x.id),
       },
+      userId,
     },
   });
 
@@ -33,6 +39,7 @@ export async function fetchOpenBankingTransactions(): Promise<IOBTransactionsByA
       bankId: {
         in: banks.map((x) => x.id),
       },
+      userId,
     },
   });
 

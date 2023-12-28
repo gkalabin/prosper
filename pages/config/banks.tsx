@@ -11,16 +11,18 @@ import BankAccountListItem from "components/config/banks/BankAccountListItem";
 import { Input } from "components/forms/Input";
 import Layout from "components/Layout";
 import {
+  AnchorLink,
   ButtonFormPrimary,
   ButtonFormSecondary,
   ButtonLink,
-  AnchorLink as AnchorLink,
 } from "components/ui/buttons";
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
-import { Currencies } from "lib/model/Currency";
 import { Bank, BankAccount } from "lib/model/BankAccount";
+import { Currencies } from "lib/model/Currency";
 import prisma from "lib/prisma";
-import { GetStaticProps, InferGetStaticPropsType } from "next";
+import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "pages/api/auth/[...nextauth]";
 import React, { useState } from "react";
 
 const BankName = (props: {
@@ -134,7 +136,7 @@ const BankName = (props: {
   );
 };
 
-type BanksListProps = {
+const BanksList = (props: {
   banks: Bank[];
   currencies: Currencies;
   openBankingTokens: DBOpenBankingToken[];
@@ -142,8 +144,7 @@ type BanksListProps = {
   onBankUpdated: (updated: DBBank) => void;
   onBankAccountAdded: (added: DBBankAccount) => void;
   onBankAccountUpdated: (updated: DBBankAccount) => void;
-};
-const BanksList: React.FC<BanksListProps> = (props) => {
+}) => {
   if (!props.banks) {
     return <div>No banks found.</div>;
   }
@@ -181,13 +182,12 @@ const BanksList: React.FC<BanksListProps> = (props) => {
   );
 };
 
-type AccountsListProps = {
+const AccountsList = (props: {
   bank: Bank;
   accounts: BankAccount[];
   currencies: Currencies;
   onBankAccountUpdated: (updated: DBBankAccount) => void;
-};
-const AccountsList: React.FC<AccountsListProps> = (props) => {
+}) => {
   if (!props.accounts) {
     return <div>No accounts found.</div>;
   }
@@ -206,15 +206,31 @@ const AccountsList: React.FC<AccountsListProps> = (props) => {
   );
 };
 
-export const getStaticProps: GetStaticProps<{
-  dbBanks: DBBank[];
-  dbBankAccounts: DBBankAccount[];
-  dbCurrencies: DBCurrency[];
-  dbOpenBankingAccounts: DBOpenBankingAccount[];
-  dbOpenBankingTokens: DBOpenBankingToken[];
-}> = async () => {
-  const banks = await prisma.bank.findMany();
-  const bankAccounts = await prisma.bankAccount.findMany();
+export const getServerSideProps: GetServerSideProps<{
+  data?: {
+    dbBanks: DBBank[];
+    dbBankAccounts: DBBankAccount[];
+    dbCurrencies: DBCurrency[];
+    dbOpenBankingAccounts: DBOpenBankingAccount[];
+    dbOpenBankingTokens: DBOpenBankingToken[];
+  };
+}> = async (context) => {
+  const session = await getServerSession(context.req, context.res, authOptions);
+  if (!session) {
+    return { props: {} };
+  }
+  const banks = await prisma.bank.findMany({
+    where: {
+      userId: +session.user.id,
+    },
+  });
+  const bankAccounts = await prisma.bankAccount.findMany({
+    where: {
+      bankId: {
+        in: banks.map((x) => x.id),
+      },
+    },
+  });
   const currencies = await prisma.currency.findMany();
 
   const dbOpenBankingTokens = await prisma.openBankingToken.findMany({
@@ -234,22 +250,28 @@ export const getStaticProps: GetStaticProps<{
 
   return {
     props: {
-      dbBanks: JSON.parse(JSON.stringify(banks)),
-      dbBankAccounts: JSON.parse(JSON.stringify(bankAccounts)),
-      dbCurrencies: JSON.parse(JSON.stringify(currencies)),
-      dbOpenBankingTokens: JSON.parse(JSON.stringify(dbOpenBankingTokens)),
-      dbOpenBankingAccounts: JSON.parse(JSON.stringify(dbOpenBankingAccounts)),
+      data: {
+        dbBanks: JSON.parse(JSON.stringify(banks)),
+        dbBankAccounts: JSON.parse(JSON.stringify(bankAccounts)),
+        dbCurrencies: JSON.parse(JSON.stringify(currencies)),
+        dbOpenBankingTokens: JSON.parse(JSON.stringify(dbOpenBankingTokens)),
+        dbOpenBankingAccounts: JSON.parse(
+          JSON.stringify(dbOpenBankingAccounts)
+        ),
+      },
     },
   };
 };
 
 export default function BanksPage({
-  dbBanks: dbBanksInitial,
-  dbBankAccounts: dbBankAccountsInitial,
-  dbCurrencies,
-  dbOpenBankingTokens,
-  dbOpenBankingAccounts,
-}: InferGetStaticPropsType<typeof getStaticProps>) {
+  data: {
+    dbBanks: dbBanksInitial,
+    dbBankAccounts: dbBankAccountsInitial,
+    dbCurrencies,
+    dbOpenBankingTokens,
+    dbOpenBankingAccounts,
+  },
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [dbBanks, setDbBanks] = useState(dbBanksInitial);
   const [dbBankAccounts, setDbBankAccounts] = useState(dbBankAccountsInitial);
   const addBank = (added: DBBank) => {

@@ -1,5 +1,7 @@
 import { Switch } from "@headlessui/react";
 import Layout from "components/Layout";
+import { EChartOption } from "echarts";
+import ReactEcharts from "echarts-for-react";
 import {
   AmountWithCurrency,
   CurrencyContextProvider,
@@ -7,17 +9,13 @@ import {
   StockAndCurrencyExchange,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { Transaction } from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
 import { formatMonth } from "lib/TimeHelpers";
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
-import ReactEcharts from "echarts-for-react";
-import { EChartOption } from "echarts";
 
-export const getServerSideProps: GetServerSideProps<AllDatabaseData> =
-  allDbDataProps;
+export const getServerSideProps = allDbDataProps;
 
 export function MoneyInMoneyOut(props: {
   transactions: Transaction[];

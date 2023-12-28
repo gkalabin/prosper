@@ -4,13 +4,13 @@ import prisma from "lib/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 async function handle(
-  userName: string,
+  userId: number,
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   const { name, parentCategoryId, displayOrder } = req.body;
   const dbArgs: Prisma.CategoryCreateArgs = {
-    data: { name, displayOrder },
+    data: { name, displayOrder, userId },
   };
   if (parentCategoryId) {
     dbArgs.data.parentCategory = { connect: { id: parentCategoryId } };

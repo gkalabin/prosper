@@ -2,25 +2,18 @@ import { Category as DBCategory } from "@prisma/client";
 import AddCategoryForm from "components/config/categories/AddCategoryForm";
 import EditableCategoryListItem from "components/config/categories/CategoryListItem";
 import Layout from "components/Layout";
+import { DB } from "lib/db";
 import { Category, categoryModelFromDB } from "lib/model/Category";
-import prisma from "lib/prisma";
-import { GetStaticProps } from "next";
-import React, { useState } from "react";
+import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "pages/api/auth/[...nextauth]";
+import { useState } from "react";
 
-export const getStaticProps: GetStaticProps = async () => {
-  const categories = await prisma.category.findMany({});
-  return {
-    props: { dbCategories: JSON.parse(JSON.stringify(categories)) },
-  };
-};
-
-type CategoriesListProps = {
+const CategoriesList = (props: {
   categories: Category[];
   allCategories: Category[];
   onCategoryUpdated: (updated: DBCategory) => void;
-};
-
-const CategoriesList: React.FC<CategoriesListProps> = (props) => {
+}) => {
   if (!props.categories) {
     return <div>No categories found.</div>;
   }
@@ -46,11 +39,27 @@ const CategoriesList: React.FC<CategoriesListProps> = (props) => {
   );
 };
 
-type PageProps = {
-  dbCategories: DBCategory[];
+export const getServerSideProps: GetServerSideProps<{
+  data?: {
+    dbCategories: DBCategory[];
+  };
+}> = async (context) => {
+  const session = await getServerSession(context.req, context.res, authOptions);
+  if (!session) {
+    return { props: {} };
+  }
+  const userId = +session.user.id;
+  const db = new DB({ userId });
+  const categories = await db.categoryFindMany();
+  return {
+    props: { data: { dbCategories: JSON.parse(JSON.stringify(categories)) } },
+  };
 };
-const CategoriesPage: React.FC<PageProps> = (props) => {
-  const [dbCategories, setDbCategories] = useState(props.dbCategories);
+
+const CategoriesPage = ({
+  data: { dbCategories: initialDbCategories },
+}: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+  const [dbCategories, setDbCategories] = useState(initialDbCategories);
   const allCategoriesFlat = categoryModelFromDB(dbCategories);
   const rootCategories = allCategoriesFlat.filter((c) => c.isRoot);
 

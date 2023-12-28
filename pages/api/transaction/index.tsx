@@ -27,58 +27,62 @@ const whereId = (id: number) => {
 };
 
 async function handle(
-  userName: string,
+  userId: number,
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   const dto = req.body as AddTransactionDTO;
   if (!dto.transactionId) {
-    await handleCreate(dto, res);
+    await handleCreate(dto, res, userId);
     return;
   }
-  const existingTransactionArgs = Object.assign(
-    {},
-    whereId(dto.transactionId),
-    includeExtensions
+  const existing = await prisma.transaction.findFirst(
+    Object.assign(whereId(dto.transactionId), includeExtensions)
   );
-  const existing = await prisma.transaction.findFirstOrThrow(
-    existingTransactionArgs
-  );
+  if (!existing) {
+    res.status(404).send(`Transaction not found`);
+    return;
+  }
+  if (existing && existing.userId != userId) {
+    res.status(401).send(`Not authenticated`);
+    return;
+  }
   if (sameExtension(existing, dto)) {
-    updateWithSameExtension(dto, res);
+    updateWithSameExtension(dto, res, userId);
     return;
   }
-  updateAndRecreateExtension(dto, existing, res);
+  updateAndRecreateExtension(dto, existing, res, userId);
 }
 
 async function handleCreate(
   dto: AddTransactionDTO,
-  res: NextApiResponse<TransactionWithExtensions>
+  res: NextApiResponse<TransactionWithExtensions>,
+  userId: number
 ) {
   const dbArgs: Prisma.TransactionCreateArgs = Object.assign(
     {
-      data: transactionDbInput(dto),
+      data: transactionDbInput(dto, userId),
     },
     includeExtensions
   );
   if (dto.mode == FormMode.PERSONAL) {
     dbArgs.data.personalExpense = {
-      create: personalExpenseDbInput(dto),
+      create: personalExpenseDbInput(dto, userId),
     };
   }
   if (dto.mode == FormMode.EXTERNAL) {
     dbArgs.data.thirdPartyExpense = {
-      create: thirdPartyExpenseDbInput(dto),
+      create: thirdPartyExpenseDbInput(dto, userId),
     };
   }
   if (dto.mode == FormMode.TRANSFER) {
     dbArgs.data.transfer = {
-      create: transferDbInput(dto),
+      create: transferDbInput(dto, userId),
     };
   }
   if (dto.mode == FormMode.INCOME) {
     dbArgs.data.income = {
-      create: incomeDbInput(dto),
+      create: incomeDbInput(dto, userId),
     };
   }
   const result = await prisma.transaction.create(dbArgs);
@@ -87,33 +91,34 @@ async function handleCreate(
 
 async function updateWithSameExtension(
   dto: AddTransactionDTO,
-  res: NextApiResponse<TransactionWithExtensions>
+  res: NextApiResponse<TransactionWithExtensions>,
+  userId: number
 ) {
   const dbArgs: Prisma.TransactionUpdateArgs = Object.assign(
     {
-      data: transactionDbInput(dto),
+      data: transactionDbInput(dto, userId),
     },
     whereId(dto.transactionId),
     includeExtensions
   );
   if (dto.mode == FormMode.PERSONAL) {
     dbArgs.data.personalExpense = {
-      update: personalExpenseDbInput(dto),
+      update: personalExpenseDbInput(dto, userId),
     };
   }
   if (dto.mode == FormMode.EXTERNAL) {
     dbArgs.data.thirdPartyExpense = {
-      update: thirdPartyExpenseDbInput(dto),
+      update: thirdPartyExpenseDbInput(dto, userId),
     };
   }
   if (dto.mode == FormMode.TRANSFER) {
     dbArgs.data.transfer = {
-      update: transferDbInput(dto),
+      update: transferDbInput(dto, userId),
     };
   }
   if (dto.mode == FormMode.INCOME) {
     dbArgs.data.income = {
-      update: incomeDbInput(dto),
+      update: incomeDbInput(dto, userId),
     };
   }
   const result = await prisma.transaction.update(dbArgs);
@@ -123,11 +128,12 @@ async function updateWithSameExtension(
 async function updateAndRecreateExtension(
   dto: AddTransactionDTO,
   existing: TransactionWithExtensions,
-  res: NextApiResponse<TransactionWithExtensions>
+  res: NextApiResponse<TransactionWithExtensions>,
+  userId: number
 ) {
   const dbArgs: Prisma.TransactionUpdateArgs = Object.assign(
     {
-      data: transactionDbInput(dto),
+      data: transactionDbInput(dto, userId),
     },
     whereId(dto.transactionId),
     includeExtensions
@@ -142,22 +148,28 @@ async function updateAndRecreateExtension(
   let createNewExtension;
   if (dto.mode == FormMode.PERSONAL) {
     createNewExtension = prisma.personalExpense.create({
-      data: Object.assign(personalExpenseDbInput(dto), transactionConnect),
+      data: Object.assign(
+        personalExpenseDbInput(dto, userId),
+        transactionConnect
+      ),
     });
   }
   if (dto.mode == FormMode.EXTERNAL) {
     createNewExtension = prisma.thirdPartyExpense.create({
-      data: Object.assign(thirdPartyExpenseDbInput(dto), transactionConnect),
+      data: Object.assign(
+        thirdPartyExpenseDbInput(dto, userId),
+        transactionConnect
+      ),
     });
   }
   if (dto.mode == FormMode.TRANSFER) {
     createNewExtension = prisma.transfer.create({
-      data: Object.assign(transferDbInput(dto), transactionConnect),
+      data: Object.assign(transferDbInput(dto, userId), transactionConnect),
     });
   }
   if (dto.mode == FormMode.INCOME) {
     createNewExtension = prisma.income.create({
-      data: Object.assign(incomeDbInput(dto), transactionConnect),
+      data: Object.assign(incomeDbInput(dto, userId), transactionConnect),
     });
   }
   const whereTransactionId = {
@@ -188,14 +200,14 @@ async function updateAndRecreateExtension(
 }
 
 function sameExtension(
-  existing: TransactionWithExtensions,
+  oldData: TransactionWithExtensions,
   newData: AddTransactionDTO
 ) {
   return (
-    (existing.personalExpense && newData.personalTransaction) ||
-    (existing.thirdPartyExpense && newData.externalTransaction) ||
-    (existing.income && newData.incomeTransaction) ||
-    (existing.transfer && newData.transferTransaction)
+    (oldData.personalExpense && newData.personalTransaction) ||
+    (oldData.thirdPartyExpense && newData.externalTransaction) ||
+    (oldData.income && newData.incomeTransaction) ||
+    (oldData.transfer && newData.transferTransaction)
   );
 }
 

@@ -1,11 +1,24 @@
+import prisma from "lib/prisma";
 import NextAuth, { User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 export const authOptions = {
+  callbacks: {
+    jwt({ token, account, user }) {
+      if (account) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    session({ session, token }) {
+      session.user.id = token.id;
+      return session;
+    },
+  },
   // Configure one or more authentication providers
   providers: [
     CredentialsProvider({
       // The name to display on the sign in form (e.g. 'Sign in with...')
-      name: "Credentials",
+      name: "Login and password",
       // The credentials is used to generate a suitable form on the sign in page.
       // You can specify whatever fields you are expecting to be submitted.
       // e.g. domain, username, password, 2FA token, etc.
@@ -15,17 +28,21 @@ export const authOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (
-          credentials.login != process.env.LOGIN ||
-          credentials.password != process.env.PASSWORD
-        ) {
+        const found = await prisma.user.findFirst({
+          where: {
+            login: credentials.login,
+          },
+        });
+        if (!found) {
           return null;
         }
-        const user: User = {
-          id: credentials.login,
-          name: credentials.login,
-        };
-        return user;
+        if (found.password != credentials.password) {
+          return null;
+        }
+        return {
+          id: found.id + "",
+          name: found.login,
+        } as User;
       },
     }),
   ],

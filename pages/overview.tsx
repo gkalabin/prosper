@@ -13,16 +13,12 @@ import {
   modelFromDatabaseData,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
-import {
-  IOBBalancesByAccountId,
-  IOpenBankingData,
-} from "lib/openbanking/interface";
+import { IOBBalancesByAccountId } from "lib/openbanking/interface";
 import { allDbDataPropsWithOb } from "lib/ServerSideDB";
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import React, { createContext, useContext, useState } from "react";
+import { InferGetServerSidePropsType } from "next";
+import { createContext, useContext, useState } from "react";
 
 const BankAccountListItem = (props: {
   banks: Bank[];
@@ -125,9 +121,7 @@ const BanksList = (props: {
 
 const ArchivedAccountsShownContext = createContext<boolean>(false);
 
-export const getServerSideProps: GetServerSideProps<
-  AllDatabaseData & IOpenBankingData
-> = allDbDataPropsWithOb;
+export const getServerSideProps = allDbDataPropsWithOb;
 
 export default function OverviewPage(
   dbData: InferGetServerSidePropsType<typeof getServerSideProps>
