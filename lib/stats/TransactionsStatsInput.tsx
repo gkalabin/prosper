@@ -7,6 +7,10 @@ export class TransactionsStatsInput {
     private readonly _interval: Interval
   ) {}
 
+  transactionsAllTime() {
+    return this._transactions;
+  }
+
   expensesAllTime() {
     return this._transactions.filter(
       (t) => t.isPersonalExpense() || t.isThirdPartyExpense()

@@ -18,6 +18,10 @@ export const StatsPageLayout = (props: {
         title: "Expense",
         path: "/stats/expense",
       },
+      {
+        title: "Monthly",
+        path: "/stats/monthly",
+      },
     ]}
   >
     {props.children}
