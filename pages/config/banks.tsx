@@ -4,6 +4,7 @@ import {
   Currency as DBCurrency,
   NordigenToken as DBNordigenToken,
   TrueLayerToken as DBTrueLayerToken,
+  StarlingToken as DBStarlingToken,
 } from "@prisma/client";
 import { ConfigPageLayout } from "components/ConfigPageLayout";
 import { AddOrEditAccountForm } from "components/config/AddOrEditAccountForm";
@@ -28,6 +29,7 @@ const BanksList = (props: {
   currencies: Currencies;
   trueLayerTokens: DBTrueLayerToken[];
   nordigenTokens: DBNordigenToken[];
+  starlingTokens: DBStarlingToken[];
   onBankUpdated: (updated: DBBank) => void;
   onAccountAddedOrUpdated: (x: DBBankAccount) => void;
 }) => {
@@ -44,6 +46,7 @@ const BanksList = (props: {
             (t) => t.bankId == bank.id
           )}
           nordigenToken={props.nordigenTokens.find((t) => t.bankId == bank.id)}
+          starlingToken={props.starlingTokens.find((t) => t.bankId == bank.id)}
           currencies={props.currencies}
           onBankUpdated={props.onBankUpdated}
           onAccountAddedOrUpdated={props.onAccountAddedOrUpdated}
@@ -55,11 +58,20 @@ const BanksList = (props: {
 
 function BanksListItem({
   bank,
+  currencies,
   trueLayerToken,
   nordigenToken,
+  starlingToken,
   onBankUpdated,
   onAccountAddedOrUpdated,
-  currencies,
+}: {
+  bank: Bank;
+  currencies: Currencies;
+  trueLayerToken: DBTrueLayerToken;
+  nordigenToken: DBNordigenToken;
+  starlingToken: DBStarlingToken;
+  onBankUpdated: (updated: DBBank) => void;
+  onAccountAddedOrUpdated: (x: DBBankAccount) => void;
 }) {
   const [newAccountFormDisplayed, setNewAccountFormDisplayed] = useState(false);
   const [editBankFormDisplayed, setEditBankFormDisplayed] = useState(false);
@@ -79,7 +91,9 @@ function BanksListItem({
           </div>
           {!editBankFormDisplayed && (
             <div className="text-sm text-gray-600">
-              <BankConnections {...{ trueLayerToken, nordigenToken, bank }} />
+              <BankConnections
+                {...{ trueLayerToken, nordigenToken, starlingToken, bank }}
+              />
             </div>
           )}
         </div>
@@ -130,16 +144,23 @@ function BanksListItem({
 const BankConnections = ({
   trueLayerToken,
   nordigenToken,
+  starlingToken,
   bank,
 }: {
   trueLayerToken: DBTrueLayerToken;
   nordigenToken: DBNordigenToken;
+  starlingToken: DBStarlingToken;
   bank: Bank;
 }) => {
-  if (!trueLayerToken && !nordigenToken) {
+  if (!trueLayerToken && !nordigenToken && !starlingToken) {
     return (
       <div>
         Connect with{" "}
+        <AnchorLink
+          href={`/config/open-banking/starling/connect?bankId=${bank.id}`}
+        >
+          Starling (UK),
+        </AnchorLink>{" "}
         <AnchorLink href={`/api/open-banking/connect?bankId=${bank.id}`}>
           TrueLayer (UK)
         </AnchorLink>{" "}
@@ -156,6 +177,7 @@ const BankConnections = ({
     <>
       {trueLayerToken && <TrueLayerActions bank={bank} />}
       {nordigenToken && <NordigenActions bank={bank} />}
+      {starlingToken && <StarlingActions bank={bank} />}
     </>
   );
 };
@@ -167,7 +189,9 @@ const TrueLayerActions = ({ bank }: { bank: Bank }) => {
       <AnchorLink href={`/config/open-banking/mapping?bankId=${bank.id}`}>
         Configure
       </AnchorLink>
-      <AnchorLink href={`/api/open-banking/truelayer/connect?bankId=${bank.id}`}>
+      <AnchorLink
+        href={`/api/open-banking/truelayer/connect?bankId=${bank.id}`}
+      >
         Reconnect
       </AnchorLink>
     </div>
@@ -186,6 +210,18 @@ const NordigenActions = ({ bank }: { bank: Bank }) => {
       >
         Reconnect
       </AnchorLink>
+    </div>
+  );
+};
+
+const StarlingActions = ({ bank }: { bank: Bank }) => {
+  return (
+    <div className="space-x-3">
+      <span>Connected with Starling</span>
+      <AnchorLink href={`/config/open-banking/mapping?bankId=${bank.id}`}>
+        Configure
+      </AnchorLink>
+      <AnchorLink href={`!!!TODO`}>Delete connection</AnchorLink>
     </div>
   );
 };
@@ -256,6 +292,7 @@ export const getServerSideProps: GetServerSideProps<{
     dbCurrencies: DBCurrency[];
     dbTrueLayerTokens: DBTrueLayerToken[];
     dbNordigenTokens: DBNordigenToken[];
+    dbStarlingTokens: DBStarlingToken[];
   };
 }> = async (context) => {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -263,29 +300,19 @@ export const getServerSideProps: GetServerSideProps<{
     return { props: {} };
   }
   const db = await DB.fromContext(context);
-  const dbBanks = await db.bankFindMany();
-  const dbBankAccounts = await db.bankAccountFindMany({
-    where: {
-      bankId: {
-        in: dbBanks.map((x) => x.id),
-      },
-    },
-  });
   const dbCurrencies = await db.currencyFindMany();
-  const dbTrueLayerTokens = await db.trueLayerTokenFindMany({
+  const dbBanks = await db.bankFindMany();
+  const whereBankId = {
     where: {
       bankId: {
         in: dbBanks.map((x) => x.id),
       },
     },
-  });
-  const dbNordigenTokens = await db.nordigenTokenFindMany({
-    where: {
-      bankId: {
-        in: dbBanks.map((x) => x.id),
-      },
-    },
-  });
+  };
+  const dbBankAccounts = await db.bankAccountFindMany(whereBankId);
+  const dbTrueLayerTokens = await db.trueLayerTokenFindMany(whereBankId);
+  const dbNordigenTokens = await db.nordigenTokenFindMany(whereBankId);
+  const dbStarlingTokens = await db.starlingTokenFindMany(whereBankId);
 
   const props = {
     session,
@@ -295,6 +322,7 @@ export const getServerSideProps: GetServerSideProps<{
       dbCurrencies,
       dbTrueLayerTokens,
       dbNordigenTokens,
+      dbStarlingTokens,
     },
   };
   return {
@@ -309,6 +337,7 @@ export default function BanksPage({
     dbCurrencies,
     dbTrueLayerTokens,
     dbNordigenTokens,
+    dbStarlingTokens,
   },
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [dbBanks, setDbBanks] = useState(dbBanksInitial);
@@ -329,6 +358,7 @@ export default function BanksPage({
         banks={banks}
         trueLayerTokens={dbTrueLayerTokens}
         nordigenTokens={dbNordigenTokens}
+        starlingTokens={dbStarlingTokens}
         currencies={currencies}
         onBankUpdated={updateState(setDbBanks)}
         onAccountAddedOrUpdated={updateState(setDbBankAccounts)}

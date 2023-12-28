@@ -2,6 +2,7 @@ import {
   BankAccount,
   ExternalAccountMapping,
   NordigenToken,
+  StarlingToken,
   TrueLayerToken,
 } from "@prisma/client";
 import { DB } from "lib/db";
@@ -14,6 +15,9 @@ import { fetchAccounts as nordigenFetchAccounts } from "lib/openbanking/nordigen
 import { fetchBalance as nordigenFetchBalance } from "lib/openbanking/nordigen/balance";
 import { maybeRefreshToken as nordigenMaybeRefreshToken } from "lib/openbanking/nordigen/token";
 import { fetchTransactions as nordigenFetchTransactions } from "lib/openbanking/nordigen/transactions";
+import { fetchAccounts as starlingFetchAccounts } from "lib/openbanking/starling/account";
+import { fetchBalance as starlingFetchBalance } from "lib/openbanking/starling/balance";
+import { fetchTransactions as starlingFetchTransactions } from "lib/openbanking/starling/transactions";
 import { fetchAccounts as trueLayerFetchAccounts } from "lib/openbanking/truelayer/account";
 import { fetchBalance as trueLayerFetchBalance } from "lib/openbanking/truelayer/balance";
 import { maybeRefreshToken as trueLayerMaybeRefreshToken } from "lib/openbanking/truelayer/token";
@@ -55,6 +59,15 @@ export async function fetchBalances(db: DB): Promise<AccountBalance[]> {
     );
     fetches.push(...nordigenFetches);
   }
+  {
+    const dbTokens = await db.starlingTokenFindMany();
+    const starlingFetches = dbTokens.flatMap((token) =>
+      mappingsForToken(token, internalBankAccounts, mappings).map((m) =>
+        starlingFetchBalance(token, m)
+      )
+    );
+    fetches.push(...starlingFetches);
+  }
   const balances = await Promise.all(fetches);
   return balances.flat().filter((x) => !!x);
 }
@@ -85,12 +98,29 @@ export async function fetchTransactions(
     );
     fetches.push(...nordigenFetches);
   }
-  const transactions = await Promise.all(fetches);
+  {
+    const dbTokens = await db.starlingTokenFindMany();
+    const starlingFetches = dbTokens.flatMap((token) =>
+      mappingsForToken(token, internalBankAccounts, mappings).map((m) =>
+        starlingFetchTransactions(token, m)
+      )
+    );
+    fetches.push(...starlingFetches);
+  }
+  const fetchesWithErrorHandling = fetches.map(async (f) => {
+    try {
+      return await f;
+    } catch (e) {
+      console.error(e);
+      return [];
+    }
+  });
+  const transactions = await Promise.all(fetchesWithErrorHandling);
   return transactions.flat().filter((x) => !!x);
 }
 
 function mappingsForToken(
-  token: TrueLayerToken | NordigenToken,
+  token: TrueLayerToken | NordigenToken | StarlingToken,
   internalBankAccounts: BankAccount[],
   mappings: ExternalAccountMapping[]
 ) {
@@ -125,6 +155,14 @@ export async function fetchAccounts(
     if (requisition && dbToken) {
       const token = await nordigenMaybeRefreshToken(dbToken);
       return await nordigenFetchAccounts(token, requisition);
+    }
+  }
+  {
+    const [dbToken] = await db.starlingTokenFindMany({
+      where: { bankId },
+    });
+    if (dbToken) {
+      return await starlingFetchAccounts(dbToken);
     }
   }
   return null;

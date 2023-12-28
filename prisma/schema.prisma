@@ -153,6 +153,7 @@ model Bank {
   NordigenRequisition NordigenRequisition?
   NordigenToken       NordigenToken?
   TrueLayerToken      TrueLayerToken?
+  StarlingToken       StarlingToken?
 }
 
 model Currency {
@@ -243,6 +244,7 @@ model User {
   NordigenToken          NordigenToken[]
   NordigenRequisition    NordigenRequisition[]
   ExternalAccountMapping ExternalAccountMapping[]
+  StarlingToken          StarlingToken[]
 }
 
 model ExchangeRate {
@@ -367,4 +369,15 @@ model NordigenRequisition {
   completed     Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model StarlingToken {
+  id          String   @id @default(uuid())
+  bank        Bank     @relation(fields: [bankId], references: [id])
+  bankId      Int      @unique
+  accessToken String   @db.VarChar(4096)
+  user        User     @relation(fields: [userId], references: [id])
+  userId      Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

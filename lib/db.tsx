@@ -71,6 +71,9 @@ export class DB {
   nordigenRequisitionFindFirst(args?: Prisma.NordigenRequisitionFindFirstArgs) {
     return prisma.nordigenRequisition.findFirst(this.whereUser(args));
   }
+  starlingTokenFindMany(args?: Prisma.StarlingTokenFindFirstArgs) {
+    return prisma.starlingToken.findMany(this.whereUser(args));
+  }
   externalAccountMappingFindMany(
     args?: Prisma.ExternalAccountMappingFindManyArgs
   ) {
@@ -104,12 +107,12 @@ export class DB {
 
   // TODO: add types
   private whereUser(args) {
-    args ??= {};
-    args.where ??= {};
-    if (args.where.userId) {
+    const copy = { ...args };
+    copy.where = { ...copy.where };
+    if (copy.where.userId) {
       throw new Error("User id is already set");
     }
-    args.where.userId = this.userId;
-    return args;
+    copy.where.userId = this.userId;
+    return copy;
   }
 }
