@@ -1,34 +1,22 @@
 import { Bank as DBBank } from "@prisma/client";
-import React, { useState } from "react";
+import { FormikInput } from "components/forms/Input";
+import {
+  ButtonFormPrimary,
+  ButtonFormSecondary,
+  ButtonPagePrimary,
+} from "components/ui/buttons";
+import { Form, Formik } from "formik";
+import { useState } from "react";
 
-const AddBankForm = (props: {
+export const AddBankForm = (props: {
   displayOrder: number;
   onAdded: (added: DBBank) => void;
 }) => {
-  const [name, setName] = useState("");
   const [formDisplayed, setFormDisplayed] = useState(false);
-  const [requestInFlight, setRequestInFlight] = useState(false);
   const [apiError, setApiError] = useState("");
 
-  const reset = () => {
-    setName("");
+  const handleSubmit = async ({ name }) => {
     setApiError("");
-  };
-
-  const open = () => {
-    reset();
-    setFormDisplayed(true);
-  };
-
-  const close = () => {
-    reset();
-    setFormDisplayed(false);
-  };
-
-  const handleSubmit = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    setApiError("");
-    setRequestInFlight(true);
     try {
       const body = {
         name,
@@ -39,39 +27,59 @@ const AddBankForm = (props: {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      close();
       props.onAdded(await added.json());
+      setFormDisplayed(false);
     } catch (error) {
       setApiError(`Failed to add: ${error}`);
     }
-    setRequestInFlight(false);
   };
 
   if (!formDisplayed) {
-    return <button onClick={open}>New Bank</button>;
+    return (
+      <div className="flex justify-end">
+        <ButtonPagePrimary onClick={() => setFormDisplayed(true)}>
+          Add New Bank
+        </ButtonPagePrimary>
+      </div>
+    );
   }
   return (
-    <form onSubmit={handleSubmit}>
-      <h3>New Bank</h3>
-      <input
-        autoFocus
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Name"
-        disabled={requestInFlight}
-        type="text"
-        value={name}
-      />
-      <button onClick={close} disabled={requestInFlight}>
-        Cancel
-      </button>
-      <input
-        disabled={!name || requestInFlight}
-        type="submit"
-        value={requestInFlight ? "Adding…" : "Add"}
-      />
-      {apiError && <span>{apiError}</span>}
-    </form>
+    <Formik initialValues={{ name: "" }} onSubmit={handleSubmit}>
+      {({ isSubmitting, values }) => (
+        <Form className="flex flex-col gap-4">
+          <div>
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Bank Name
+            </label>
+            <FormikInput
+              name="name"
+              autoFocus
+              className="block w-full"
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div className="flex flex-row justify-end gap-2">
+            <ButtonFormSecondary
+              onClick={() => setFormDisplayed(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </ButtonFormSecondary>
+            <ButtonFormPrimary
+              disabled={isSubmitting || !values.name}
+              type="submit"
+            >
+              {isSubmitting ? "Adding…" : "Add"}
+            </ButtonFormPrimary>
+          </div>
+
+          <div>{apiError && <span>{apiError}</span>}</div>
+        </Form>
+      )}
+    </Formik>
   );
 };
-
-export default AddBankForm;

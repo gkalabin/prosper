@@ -6,7 +6,7 @@ import {
   OpenBankingToken as DBOpenBankingToken,
 } from "@prisma/client";
 import AddBankAccountForm from "components/config/banks/AddBankAccountForm";
-import AddBankForm from "components/config/banks/AddBankForm";
+import { AddBankForm } from "components/config/banks/AddBankForm";
 import BankAccountListItem from "components/config/banks/BankAccountListItem";
 import { ConfigPageLayout } from "components/ConfigPageLayout";
 import { Input } from "components/forms/Input";
@@ -290,10 +290,12 @@ export default function BanksPage({
         onBankAccountUpdated={updateState(setDbBankAccounts)}
       />
 
-      <AddBankForm
-        displayOrder={banks.length * 100}
-        onAdded={updateState(setDbBanks)}
-      />
+      <div className="mt-4 rounded-md border p-2">
+        <AddBankForm
+          displayOrder={banks.length * 100}
+          onAdded={updateState(setDbBanks)}
+        />
+      </div>
     </ConfigPageLayout>
   );
 }
