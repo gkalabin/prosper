@@ -33,7 +33,7 @@ export const SubHeader = (props: { items: SubHeaderItem[] }) => {
   validate(props.items);
   const pathname = usePathname();
   const activeItem = props.items.find((i) => i.path == pathname);
-  const [active, setActive] = useState(activeItem ?? props.items[0]);
+  const [active, setActive] = useState<SubHeaderItem|undefined>(activeItem);
   const handleClick = (item: SubHeaderItem) => {
     setActive(item);
     item.onSelected();
@@ -58,7 +58,7 @@ function Button({
   onClick,
 }: {
   item: SubHeaderItem;
-  active: SubHeaderItem;
+  active?: SubHeaderItem;
   onClick: (item: SubHeaderItem) => void;
 }) {
   return (
@@ -67,7 +67,7 @@ function Button({
         <button type="button" onClick={() => onClick(item)}>
           <ButtonContent
             text={item.title}
-            isActive={item.title == active.title}
+            isActive={item.title == active?.title}
           />
         </button>
       )}
@@ -75,7 +75,7 @@ function Button({
         <AnchorUnstyled href={item.path}>
           <ButtonContent
             text={item.title}
-            isActive={item.title == active.title}
+            isActive={item.title == active?.title}
           />
         </AnchorUnstyled>
       )}
