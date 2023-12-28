@@ -1,5 +1,4 @@
 import {
-  BankAccount,
   ExternalAccountMapping,
   NordigenToken,
   StarlingToken,
@@ -33,6 +32,7 @@ type Token = TrueLayerToken | NordigenToken | StarlingToken;
 
 class Provider<T extends Token> {
   constructor(
+    readonly name: "Starling" | "TrueLayer" | "Nordigen",
     readonly fetchTokens: (db: DB) => Promise<T[]>,
     readonly refreshToken: (db: DB, token: T) => Promise<T>,
     readonly fetchBalance: (
@@ -49,17 +49,11 @@ class Provider<T extends Token> {
       bankId: number
     ) => Promise<AccountDetails[]>
   ) {}
-
-  async refreshIfNecessary(db: DB, token: T): Promise<T> {
-    if (isBefore(new Date(), token.accessValidUntil)) {
-      return token;
-    }
-    return await this.refreshToken(db, token);
-  }
 }
 
 const providers: Provider<Token>[] = [
   new Provider<TrueLayerToken>(
+    "TrueLayer",
     async (db: DB) => await db.trueLayerTokenFindMany(),
     trueLayerRefreshToken,
     trueLayerFetchBalance,
@@ -67,6 +61,7 @@ const providers: Provider<Token>[] = [
     trueLayerFetchAccounts
   ),
   new Provider<NordigenToken>(
+    "Nordigen",
     async (db: DB) => await db.nordigenTokenFindMany(),
     nordigenRefreshToken,
     nordigenFetchBalance,
@@ -81,6 +76,7 @@ const providers: Provider<Token>[] = [
     }
   ),
   new Provider<StarlingToken>(
+    "Starling",
     async (db: DB) => await db.starlingTokenFindMany(),
     async (db: DB, t: StarlingToken) => t,
     starlingFetchBalance,
@@ -122,56 +118,81 @@ export async function fetchTransactions(
   return transactions.flat().map(fromOpenBankingTransaction);
 }
 
+interface ProviderToken<T extends Token> {
+  provider: Provider<T>;
+  token: T;
+}
+
+async function fetchTokensFromDB(db: DB): Promise<ProviderToken<Token>[]> {
+  const fetches = providers.map(async (p) => {
+    try {
+      const r = await p.fetchTokens(db);
+      return r.map((t) => ({ token: t, provider: p }));
+    } catch (err) {
+      console.warn(`Fetching ${p.name} tokens from db failed`, err);
+      return [];
+    }
+  });
+  const fetched = await Promise.all(fetches);
+  return fetched.flat();
+}
+
+async function refreshTokens(
+  db: DB,
+  maybeStaleTokens: ProviderToken<Token>[]
+): Promise<ProviderToken<Token>[]> {
+  const now = new Date();
+  const refreshes = maybeStaleTokens.map(async (pt) => {
+    const { provider, token } = pt;
+    if (isBefore(now, token.accessValidUntil)) {
+      return pt;
+    }
+    try {
+      pt.token = await provider.refreshToken(db, token);
+      return pt;
+    } catch (err) {
+      console.warn(
+        `Refreshing ${provider.name} token for bank id ${token.bankId} failed`,
+        err
+      );
+      return null;
+    }
+  });
+  return (await Promise.all(refreshes)).filter((x) => x);
+}
+
 async function genericFetch<D>(
   db: DB,
   fn: (p: Provider<Token>, t: Token, m: ExternalAccountMapping) => Promise<D>
 ): Promise<D[]> {
-  const internalBankAccounts = await db.bankAccountFindMany();
-  const mappings = await db.externalAccountMappingFindMany();
+  const maybeStaleTokens = await fetchTokensFromDB(db);
+  const freshTokens = await refreshTokens(db, maybeStaleTokens);
+  const [bankAccounts, allMappings] = await Promise.all([
+    db.bankAccountFindMany(),
+    db.externalAccountMappingFindMany(),
+  ]);
   const fetches: Promise<D>[] = [];
-  for (const provider of providers) {
-    const dbTokens = await provider.fetchTokens(db);
-    const tokens = await Promise.allSettled(
-      dbTokens.map((t) => provider.refreshIfNecessary(db, t))
+  for (const { provider, token } of freshTokens) {
+    const tokenAccounts = new Set(
+      bankAccounts.filter((a) => a.bankId == token.bankId).map((a) => a.id)
     );
-    const successfulTokens = tokens
-      .map((t) => {
-        if (t.status == "fulfilled") {
-          return t.value;
-        }
-        console.warn("Failed to refresh token: " + t.reason);
+    const tokenMappings = allMappings.filter((m) =>
+      tokenAccounts.has(m.internalAccountId)
+    );
+    const tokenFetches = tokenMappings.map(async (m) => {
+      try {
+        return await fn(provider, token, m);
+      } catch (err) {
+        console.warn(
+          `Failed to fetch ${provider.name} for bank ${token.bankId} and account ${m.internalAccountId}`,
+          err
+        );
         return null;
-      })
-      .filter((x) => !!x);
-    const providerFetches = successfulTokens.flatMap((token) =>
-      mappingsForToken(token, internalBankAccounts, mappings).map((m) =>
-        fn(provider, token, m)
-      )
-    );
-    fetches.push(...providerFetches);
-  }
-  const settled = await Promise.allSettled(fetches);
-  const successfulFetches = settled
-    .map((x) => {
-      if (x.status == "fulfilled") {
-        return x.value;
       }
-      console.warn("Failed to fetch: " + x.reason);
-      return null;
-    })
-    .filter((x) => !!x);
-  return successfulFetches;
-}
-
-function mappingsForToken(
-  token: TrueLayerToken | NordigenToken | StarlingToken,
-  internalBankAccounts: BankAccount[],
-  mappings: ExternalAccountMapping[]
-) {
-  const accounts = internalBankAccounts.filter((a) => a.bankId == token.bankId);
-  return mappings.filter((m) =>
-    accounts.some((a) => a.id == m.internalAccountId)
-  );
+    });
+    fetches.push(...tokenFetches);
+  }
+  return (await Promise.all(fetches)).filter((x) => x);
 }
 
 export async function fetchAccounts(
