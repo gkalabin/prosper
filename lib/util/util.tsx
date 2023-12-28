@@ -1,5 +1,6 @@
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { Currency } from "lib/model/Currency";
+import { AppendMap } from "lib/util/AppendingMap";
 
 export function percentile(data: AmountWithCurrency[], p: number) {
   if (p < 0 || p > 100 || p != Math.round(p)) {
@@ -41,4 +42,22 @@ export function runningAverage(
     averages.set(month, avg);
   }
   return averages;
+}
+
+export function topN<T>(
+  data: AppendMap<T, AmountWithCurrency>,
+  n: number,
+  otherFormatter: (otherPoints: number) => T
+): [T, AmountWithCurrency][] {
+  // Using n+1 here to avoid rolling up a single value into "other".
+  if (data.size <= n + 1) {
+    return [...data.entries()];
+  }
+  const sorted = [...data].sort((a, b) => b[1].cents() - a[1].cents());
+  const topSum = sorted.slice(0, n);
+  const sumOther = sorted
+    .slice(10)
+    .map(([_, sum]) => sum)
+    .reduce((p, c) => p.add(c));
+  return topSum.concat([[otherFormatter(sorted.length - 10), sumOther]]);
 }

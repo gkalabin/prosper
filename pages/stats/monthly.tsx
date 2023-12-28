@@ -1,26 +1,29 @@
 import {
+  NotConfiguredYet,
+  isFullyConfigured,
+} from "components/NotConfiguredYet";
+import { StatsPageLayout } from "components/StatsPageLayout";
+import {
   ChildCategoryOwnShareChart,
   TopLevelCategoryOwnShareChart,
 } from "components/charts/CategoryPie";
 import { undoTailwindInputStyles } from "components/forms/Select";
-import {
-  isFullyConfigured,
-  NotConfiguredYet,
-} from "components/NotConfiguredYet";
-import { StatsPageLayout } from "components/StatsPageLayout";
 import {
   SortableTransactionsList,
   SortingMode,
 } from "components/transactions/SortableTransactionsList";
 import { ButtonLink } from "components/ui/buttons";
 import { addMonths, format, isSameMonth } from "date-fns";
+import ReactEcharts from "echarts-for-react";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
-import { useDisplayCurrency } from "lib/displaySettings";
 import { allDbDataProps } from "lib/ServerSideDB";
+import { useDisplayCurrency } from "lib/displaySettings";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
+import { AppendMap, currencyAppendMap } from "lib/util/AppendingMap";
+import { topN } from "lib/util/util";
 import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import Select from "react-select";
@@ -193,9 +196,89 @@ export function MonthlyStats({ input }: { input: TransactionsStatsInput }) {
               initialSorting={SortingMode.AMOUNT_DESC}
             />
           </div>
+          <div>
+            <VendorStats input={input} month={month} />
+          </div>
         </div>
       </div>
     </>
+  );
+}
+
+export function VendorStats({
+  input,
+  month,
+}: {
+  input: TransactionsStatsInput;
+  month: Date;
+}) {
+  const transactions = input
+    .transactionsAllTime()
+    .filter((t) => isSameMonth(month, t.timestamp));
+  const expenses = transactions.filter(
+    (t) => t.isPersonalExpense() || t.isThirdPartyExpense()
+  );
+  const displayCurrency = useDisplayCurrency();
+  const sum = currencyAppendMap<string>(displayCurrency);
+  const count = new AppendMap<string, number>((a, b) => a + b, 0);
+  for (const t of expenses) {
+    sum.append(t.vendor(), t.amountOwnShare(displayCurrency));
+    count.append(t.vendor(), 1);
+  }
+  const topSum = topN(sum, 10, (x) => `Other ${x} vendors`);
+
+  const vendorsByCount = Array.from(count.entries()).sort(
+    (a, b) => b[1] - a[1]
+  );
+
+  return (
+    <div>
+      <h1 className="text-xl font-medium leading-7">Vendors</h1>
+      <ReactEcharts
+        notMerge
+        option={{
+          grid: {
+            containLabel: true,
+          },
+          tooltip: {},
+          xAxis: {
+            data: topSum.map(([vendor]) => vendor),
+          },
+          yAxis: {},
+          title: {
+            text: "Most paid",
+          },
+          series: [
+            {
+              type: "bar",
+              data: topSum.map(([_, sum]) => sum.round().dollar()),
+            },
+          ],
+        }}
+      />
+      <ReactEcharts
+        notMerge
+        option={{
+          grid: {
+            containLabel: true,
+          },
+          tooltip: {},
+          xAxis: {
+            data: vendorsByCount.map(([vendor]) => vendor),
+          },
+          yAxis: {},
+          title: {
+            text: "Most transactions",
+          },
+          series: [
+            {
+              type: "bar",
+              data: vendorsByCount.map(([_, sum]) => sum),
+            },
+          ],
+        }}
+      />
+    </div>
   );
 }
 
