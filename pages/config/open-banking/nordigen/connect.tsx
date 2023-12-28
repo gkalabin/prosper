@@ -152,14 +152,12 @@ function InstitutionSelector({
       <h1 className="mb-2 text-xl font-medium leading-7">Select bank:</h1>
       <div className="space-y-2">
         {institutions.map((institution) => (
-          <div
-            key={institution.id}
-            className="rounded rounded-md bg-slate-50 p-2"
-          >
+          <div key={institution.id} className="rounded-md bg-slate-50 p-2">
             <ExternalAnchorLink
               href={`/api/open-banking/nordigen/connect?bankId=${dbBank.id}&institutionId=${institution.id}`}
               className="flex flex-row items-center gap-4"
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={institution.logo}
                 alt={institution.name}
