@@ -1,4 +1,10 @@
-import { Currencies, Currency } from "lib/ClientSideModel";
+import { startOfMonth } from "date-fns";
+import {
+  Amount,
+  Currencies,
+  Currency,
+  StockAndCurrencyExchange,
+} from "lib/ClientSideModel";
 import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { TransactionWithExtensions } from "lib/ServerSideDB";
@@ -42,6 +48,8 @@ export class Transaction {
   private income?: Income;
   private transfer?: Transfer;
 
+  private readonly exchange: StockAndCurrencyExchange;
+
   readonly dbValue: TransactionWithExtensions;
 
   public constructor(
@@ -49,6 +57,7 @@ export class Transaction {
     categoryById: { [id: number]: Category },
     bankAccountById: { [id: number]: BankAccount },
     currencies: Currencies,
+    exchange: StockAndCurrencyExchange
   ) {
     this.dbValue = init;
     this.id = init.id;
@@ -56,6 +65,7 @@ export class Transaction {
     this.description = init.description;
     this.amountCents = init.amountCents;
     this.category = categoryById[init.categoryId];
+    this.exchange = exchange;
 
     if (init.personalExpense) {
       const bankAccount = bankAccountById[init.personalExpense.accountId];
@@ -131,7 +141,20 @@ export class Transaction {
   }
 
   amount() {
+    // TODO: cache value in constructor
+    return new Amount({
+      amountCents: this.amountCents,
+      currency: this.currency(),
+    });
+  }
+
+  /** @deprecated */
+  amountDeprecated() {
     return centsToDollar(this.amountCents);
+  }
+
+  monthEpoch() {
+    return startOfMonth(this.timestamp).getTime();
   }
 
   currency() {
@@ -160,6 +183,14 @@ export class Transaction {
   }
 
   amountReceived() {
+    return new Amount({
+      amountCents: this.transfer.receivedAmountCents,
+      currency: this.transfer.accountTo.currency,
+    });
+  }
+
+  /** @deprecated */
+  amountReceivedDeprecated() {
     return centsToDollar(this.transfer?.receivedAmountCents);
   }
 

@@ -1,8 +1,8 @@
 import { Transaction as DBTransaction } from "@prisma/client";
 import { Amount } from "components/Amount";
 import Layout from "components/Layout";
-import { AddTransactionForm } from "components/txform/FormTransactionTypeSelector";
 import { TransactionsList } from "components/transactions/TransactionsList";
+import { AddTransactionForm } from "components/txform/AddTransactionForm";
 import {
   Currencies,
   CurrencyContextProvider,
@@ -32,9 +32,7 @@ const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
       >
         <span className="text-base font-normal">{props.account.name}</span>
         <Amount
-          amountCents={props.account.balance()}
-          sign={0}
-          currency={props.account.currency}
+          amount={props.account.balance()}
           className="ml-2 text-sm font-light"
         />
       </div>
@@ -66,11 +64,7 @@ const BankListItem: React.FC<BankListItemProps> = (props) => {
     <div>
       <div className="border-b bg-indigo-200 p-2 text-xl font-medium text-gray-900">
         {props.bank.name}
-        <Amount
-          amountCents={props.bank.balance(displayCurrency)}
-          currency={displayCurrency}
-          className="ml-2"
-        />
+        <Amount amount={props.bank.balance(displayCurrency)} className="ml-2" />
       </div>
 
       <div className="divide-y divide-gray-200">

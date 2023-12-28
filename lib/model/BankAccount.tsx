@@ -1,9 +1,9 @@
 import { Bank as DBBank, BankAccount as DBBankAccount } from "@prisma/client";
 import {
+  Amount,
   Currencies,
   Currency,
-  ExchangeRates,
-  StockQuotes,
+  StockAndCurrencyExchange,
 } from "lib/ClientSideModel";
 import { Transaction } from "lib/model/Transaction";
 
@@ -13,42 +13,31 @@ export class Bank {
   readonly displayOrder: number;
   readonly accounts: BankAccount[];
   readonly dbValue: DBBank;
-  private readonly exchangeRates?: ExchangeRates;
-  private readonly stockQuotes?: StockQuotes;
+  private readonly exchange?: StockAndCurrencyExchange;
 
-  public constructor(init: DBBank, er?: ExchangeRates, sq?: StockQuotes) {
+  public constructor(init: DBBank, exchange?: StockAndCurrencyExchange) {
     this.dbValue = init;
     this.id = init.id;
     this.name = init.name;
     this.displayOrder = init.displayOrder;
     this.accounts = [];
-    this.exchangeRates = er;
-    this.stockQuotes = sq;
+    this.exchange = exchange;
   }
 
-  balance(targetCurrency: Currency) {
-    if (!this.exchangeRates) {
+  balance(targetCurrency: Currency): Amount {
+    if (!this.exchange) {
       throw new Error("No exchange rates set");
     }
-    let balance = 0;
+    let bankBalance = new Amount({
+      amountCents: 0,
+      currency: targetCurrency,
+    });
     const now = new Date();
     this.accounts.forEach((x) => {
-      let amount = x.balance();
-      let currency = x.currency;
-      if (currency.isStock()) {
-        const { amount: exchangedAmount, currency: exchangedCurrency } =
-          this.stockQuotes.exchange(currency, now, amount);
-        amount = exchangedAmount;
-        currency = exchangedCurrency;
-      }
-      balance += this.exchangeRates.exchange(
-        currency,
-        targetCurrency,
-        now,
-        amount
-      );
+      const delta = this.exchange.exchange(x.balance(), targetCurrency, now);
+      bankBalance = bankBalance.add(delta);
     });
-    return balance;
+    return bankBalance;
   }
 }
 
@@ -78,12 +67,15 @@ export class BankAccount {
     this.transactions = [];
   }
 
-  balance() {
+  balance(): Amount {
     let balance = this.initialBalanceCents;
     this.transactions.forEach((t) => {
       const amount = t.amountSignedCents(this);
       balance += amount;
     });
-    return balance;
+    return new Amount({
+      amountCents: balance,
+      currency: this.currency,
+    });
   }
 }

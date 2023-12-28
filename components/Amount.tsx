@@ -1,31 +1,36 @@
 import classNames from "classnames";
-import { Currency } from "lib/ClientSideModel";
+import { Amount as AmountModel } from "lib/ClientSideModel";
 import { formatMoney } from "lib/Money";
 
 export const Amount = (props: {
-  amountCents: number;
+  amount: AmountModel;
   sign?: number;
-  currency: Currency;
   className?: string;
 }) => {
   if (props.sign < 0) {
     return (
       <span className={classNames(props.className, "text-red-900")}>
-        {formatMoney(-props.amountCents, props.currency)}
+        {formatMoney(
+          -props.amount.cents(),
+          props.amount.getCurrency()
+        )}
       </span>
     );
   }
   if (props.sign > 0) {
     return (
       <span className={classNames(props.className, "text-green-900")}>
-        {formatMoney(+props.amountCents, props.currency)}
+        {formatMoney(
+          +props.amount.cents(),
+          props.amount.getCurrency()
+        )}
       </span>
     );
   }
 
   return (
     <span className={props.className}>
-      {formatMoney(props.amountCents, props.currency)}
+      {formatMoney(props.amount.cents(), props.amount.getCurrency())}
     </span>
   );
 };

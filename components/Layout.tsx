@@ -1,8 +1,9 @@
 import Header from "components/Header";
 import SubHeader, { SubHeaderItem } from "components/SubHeader";
+import { ReactNode } from "react";
 
 const Layout = (props: {
-  children: JSX.Element | JSX.Element[];
+  children: ReactNode | ReactNode[];
   subheader?: SubHeaderItem[];
 }) => (
   <div>

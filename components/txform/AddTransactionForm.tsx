@@ -158,11 +158,11 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
     timestamp: toDateTimeLocal(props.transaction?.timestamp ?? now),
     vendor: props.transaction?.vendor() ?? "",
     description: props.transaction?.description ?? "",
-    amount: props.transaction?.amount() ?? 0,
+    amount: props.transaction?.amountDeprecated() ?? 0,
     ownShareAmount:
-      props.transaction?.amountOwnShare() ?? props.transaction?.amount() ?? 0,
+      props.transaction?.amountOwnShare() ?? props.transaction?.amountDeprecated() ?? 0,
     receivedAmount:
-      props.transaction?.amountReceived() ?? props.transaction?.amount() ?? 0,
+      props.transaction?.amountReceivedDeprecated() ?? props.transaction?.amountDeprecated() ?? 0,
     fromBankAccountId: (props.transaction?.accountFrom() ?? bankAccountsList[0])
       .id,
     toBankAccountId: (props.transaction?.accountTo() ?? bankAccountsList[0]).id,

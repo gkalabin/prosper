@@ -17,6 +17,7 @@ const formatterByCurrency = (currency: Currency) => {
   return formatter;
 };
 
+/** @deprecated */
 export const formatMoney = (amountCents: number, currency: Currency) => {
   const realAmount = amountCents / 100;
   // TODO: move stocks into a separate type

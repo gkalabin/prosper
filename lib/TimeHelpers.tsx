@@ -19,3 +19,8 @@ export function toDateTimeLocal(d: Date) {
   // 2022-12-19T18:05:59
   return format(d, "yyyy-MM-dd\'T\'HH:mm");
 }
+
+export function formatMonth(d: Date): string {
+  // Nov 2022
+  return format(d, "MMM yyyy");
+}
