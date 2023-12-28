@@ -2,7 +2,6 @@ import { Switch } from "@headlessui/react";
 import classNames from "classnames";
 import {
   FormikInput,
-  Input,
   MoneyInputWithLabel,
   TextInputWithLabel,
 } from "components/forms/Input";
@@ -70,8 +69,14 @@ export const FormInputs = (props: {
       // If there is a prototype (suggestion from banking API), do not mess with bank account selector either.
       return;
     }
-    setFieldValue("fromBankAccountId", mostUsedAccountFrom(transactions).id);
-    setFieldValue("toBankAccountId", mostUsedAccountTo(transactions).id);
+    const from = mostUsedAccountFrom(transactions);
+    if (from) {
+      setFieldValue("fromBankAccountId", from.id);
+    }
+    const to = mostUsedAccountTo(transactions);
+    if (to) {
+      setFieldValue("toBankAccountId", to.id);
+    }
   }, [transactions, mode, setFieldValue, props.transaction, props.prototype]);
 
   useEffect(() => {
@@ -303,11 +308,7 @@ function ReceivedAmount() {
 }
 
 function Timestamp() {
-  const {
-    values: { timestamp },
-    isSubmitting,
-    handleChange,
-  } = useFormikContext<AddTransactionFormValues>();
+  const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
   return (
     <div className="col-span-6">
       <label
@@ -316,14 +317,11 @@ function Timestamp() {
       >
         Time
       </label>
-      <Input
+      <FormikInput
         type="datetime-local"
         name="timestamp"
-        id="timestamp"
         disabled={isSubmitting}
-        className="mt-1 block w-full"
-        value={timestamp}
-        onChange={handleChange}
+        className="block w-full"
       />
     </div>
   );

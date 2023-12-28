@@ -16,7 +16,7 @@ const SelectWithLabelUntyped = (props: FieldHookConfig<any> & { label: string })
       >
         {label}
       </label>
-      <Select {...field} {...inputProps} className="mt-1 block w-full" />
+      <Select {...field} {...inputProps} className="block w-full" />
     </>
   );
 };

@@ -1,18 +1,24 @@
 import classNames from "classnames";
 import { InputProps } from "components/forms/InputProps";
-import { Field, FieldHookConfig, useField } from "formik";
+import { Field, FieldHookConfig, useField, useFormikContext } from "formik";
 import { ClassAttributes } from "react";
 
 export const MoneyInputWithLabel = (
   props: InputProps & FieldHookConfig<number>
 ) => {
+  const { setFieldValue } = useFormikContext();
   return (
     <InputWithLabelUntyped
       {...props}
-      type="number"
+      type="text"
       step="0.01"
       inputMode="decimal"
       onFocus={(e) => e.target.select()}
+      onChange={(e) => {
+        // When locale set to NL for the example, the decimal separator is a comma.
+        // TODO: try using making AddTransactionFormValues a class with a method providing number value for the text.
+        setFieldValue(props.name, e.target.value.replace(/,/g, "."));
+      }}
     />
   );
 };

@@ -85,17 +85,18 @@ export const getServerSideProps: GetServerSideProps<{
         return oba;
       });
     });
-
   return {
-    props: JSON.parse(
-      JSON.stringify({
-        dbBank: bank,
-        dbBankAccounts: bankAccounts,
-        dbCurrencies: currencies,
-        dbOpenBankingAccounts: dbOpenBankingAccounts,
-        obAccounts: obAccounts,
-      })
-    ),
+    props: {
+      data: JSON.parse(
+        JSON.stringify({
+          dbBank: bank,
+          dbBankAccounts: bankAccounts,
+          dbCurrencies: currencies,
+          dbOpenBankingAccounts: dbOpenBankingAccounts,
+          obAccounts: obAccounts,
+        })
+      ),
+    },
   };
 };
 

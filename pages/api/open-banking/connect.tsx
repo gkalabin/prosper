@@ -9,7 +9,7 @@ async function handle(
 ) {
   const code = req.query.code as string;
   // TODO: use proper hostname
-  const redirectURI = `http://127.0.0.1:3000/api/open-banking/connect`;
+  const redirectURI = `${process.env.NEXTAUTH_URL}api/open-banking/connect`;
 
   if (!code) {
     const connectingBankId = parseInt(req.query.bankId as string, 10);
