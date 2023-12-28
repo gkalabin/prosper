@@ -41,12 +41,13 @@ export const FormInputs = (props: {
     values: { amount, vendor, isShared, fromBankAccountId, mode },
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
+  const transactionsForMode = transactions.filter(
+    (x) => formModeForTransaction(x) == mode
+  );
   const now = new Date();
-  const recentTransactionsForMode = transactions
-    .filter((x) => formModeForTransaction(x) == mode)
-    .filter(
-      (x) => differenceInMonths(now, x.timestamp) < SUGGESTIONS_WINDOW_MONTHS
-    );
+  const recentTransactionsForMode = transactionsForMode.filter(
+    (x) => differenceInMonths(now, x.timestamp) < SUGGESTIONS_WINDOW_MONTHS
+  );
 
   useEffect(() => {
     // If amount is $0.05, round half of it to the closest cent.
@@ -77,11 +78,16 @@ export const FormInputs = (props: {
     }
   }, [setFieldValue, mostFrequentPayer]);
 
-  const [mostFrequentCategory] = uniqMostFrequent(
-    recentTransactionsForMode
-      .filter((x) => !vendor || (x.hasVendor() && x.vendor() == vendor))
-      .map((x) => x.category)
+  const vendorFilter = (x: Transaction): boolean =>
+    !vendor || (x.hasVendor() && x.vendor() == vendor);
+  let [mostFrequentCategory] = uniqMostFrequent(
+    recentTransactionsForMode.filter(vendorFilter).map((x) => x.category)
   );
+  if (!mostFrequentCategory) {
+    [mostFrequentCategory] = uniqMostFrequent(
+      transactionsForMode.filter(vendorFilter).map((x) => x.category)
+    );
+  }
   useEffect(() => {
     if (mostFrequentCategory) {
       setFieldValue("categoryId", mostFrequentCategory.id());
