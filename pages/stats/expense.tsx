@@ -1,8 +1,8 @@
 import { DurationSelector } from "components/DurationSelector";
 import { undoTailwindInputStyles } from "components/forms/Select";
 import {
-    isFullyConfigured,
-    NotConfiguredYet
+  isFullyConfigured,
+  NotConfiguredYet,
 } from "components/NotConfiguredYet";
 import { DebugTable } from "components/stats/DebugTable";
 import { StatsPageLayout } from "components/StatsPageLayout";
@@ -12,8 +12,8 @@ import { EChartsOption } from "echarts";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
-    AllDatabaseDataContextProvider,
-    useAllDatabaseDataContext
+  AllDatabaseDataContextProvider,
+  useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { LAST_6_MONTHS } from "lib/Interval";
@@ -24,7 +24,7 @@ import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import Select from "react-select";
 
-export function IncomeCharts(props: { transactions: Transaction[] }) {
+export function ExpenseCharts(props: { transactions: Transaction[] }) {
   const [showDebugTable, setShowDebugTable] = useState(false);
   const displayCurrency = useDisplayCurrency();
   const { exchange, categories } = useAllDatabaseDataContext();
@@ -33,23 +33,25 @@ export function IncomeCharts(props: { transactions: Transaction[] }) {
     currency: displayCurrency,
   });
 
-  const incomeTransactions = props.transactions.filter((t) => t.isIncome());
-  const moneyIn: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
+  const transactions = props.transactions.filter(
+    (t) => t.isPersonalExpense() || t.isThirdPartyExpense()
+  );
+  const moneyOut: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
   const byCategoryIdAndMonth = new Map<
     number,
     Map<number, AmountWithCurrency>
   >();
   const monthsIndex: { [firstOfMonthEpoch: number]: boolean } = {};
-  for (const t of incomeTransactions) {
+  for (const t of transactions) {
     const ts = startOfMonth(t.timestamp).getTime();
     monthsIndex[ts] = true;
-    moneyIn[ts] ??= zero;
+    moneyOut[ts] ??= zero;
     const exchanged = exchange.exchange(
-      t.amount(),
+      t.amountOwnShare(),
       displayCurrency,
       t.timestamp
     );
-    moneyIn[ts] = moneyIn[ts].add(exchanged);
+    moneyOut[ts] = moneyOut[ts].add(exchanged);
     const categorySeries = byCategoryIdAndMonth.get(t.category.id) ?? new Map();
     const current = categorySeries.get(ts) ?? zero;
     categorySeries.set(ts, exchanged.add(current));
@@ -60,7 +62,7 @@ export function IncomeCharts(props: { transactions: Transaction[] }) {
     .map((x) => +x)
     .sort();
   months.forEach((m) => {
-    moneyIn[m] ??= zero;
+    moneyOut[m] ??= zero;
     [...byCategoryIdAndMonth.values()].forEach((v) => {
       v.set(m, v.get(m) ?? zero);
     });
@@ -94,7 +96,7 @@ export function IncomeCharts(props: { transactions: Transaction[] }) {
             <h2 className="my-2 text-2xl font-medium leading-5">
               Income transactions
             </h2>
-            <DebugTable transactions={incomeTransactions} />
+            <DebugTable transactions={transactions} />
             <ButtonLink onClick={() => setShowDebugTable(false)}>
               Hide debug table
             </ButtonLink>
@@ -109,7 +111,7 @@ export function IncomeCharts(props: { transactions: Transaction[] }) {
       <ReactEcharts
         option={Object.assign({}, defaultChartOptions, {
           title: {
-            text: "Total money in",
+            text: "Total money out",
           },
           legend: {
             orient: "horizontal",
@@ -120,7 +122,7 @@ export function IncomeCharts(props: { transactions: Transaction[] }) {
             {
               type: "bar",
               name: "Money In",
-              data: months.map((m) => Math.round(moneyIn[m].dollar())),
+              data: months.map((m) => Math.round(moneyOut[m].dollar())),
               itemStyle: {
                 color: "#15803d",
               },
@@ -133,10 +135,11 @@ export function IncomeCharts(props: { transactions: Transaction[] }) {
           title: {
             text: "By category",
           },
-          legend: {
-            orient: "horizontal",
-            bottom: 10,
-            top: "bottom",
+          tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+              type: 'shadow'
+            }
           },
           series: [...byCategoryIdAndMonth.entries()].map(
             ([categoryId, series]) => ({
@@ -186,7 +189,7 @@ function PageContent() {
           onChange={(x) => setExcludeCategories(x.map((x) => x.value))}
         />
       </div>
-      <IncomeCharts transactions={filteredTransactions} />
+      <ExpenseCharts transactions={filteredTransactions} />
     </StatsPageLayout>
   );
 }
