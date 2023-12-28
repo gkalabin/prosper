@@ -161,6 +161,11 @@ model Stock {
   exchange     String
   ticker       String
   currencyCode String
+  // Weirdly enough, quotes for the same stock can be different in different providers.
+  // For example, Vanguard FTSE GLobal All Cap price in Yahoo Finance[0] is different from the price in Vanguard and FT[1] by a factor of 100.
+  // 0: https://finance.yahoo.com/quote/0P00018XAR.L/history (price per share is about £17000)
+  // 1: https://markets.ft.com/data/funds/tearsheet/historical?s=GB00BD3RZ582:GBP (price per share is around £170)
+  multiplier   Float         @default(1)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   BankAccount  BankAccount[]
