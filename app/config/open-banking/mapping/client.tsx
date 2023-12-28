@@ -1,93 +1,39 @@
+"use client";
 import {
   Bank as DBBank,
   BankAccount as DBBankAccount,
   Stock as DBStock,
   ExternalAccountMapping,
 } from "@prisma/client";
-import Layout from "components/Layout";
 import { Select } from "components/forms/Select";
 import { ButtonFormPrimary } from "components/ui/buttons";
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
-import { DB } from "lib/db";
 import { accountUnit } from "lib/model/BankAccount";
-import { fetchAccounts } from "lib/openbanking/fetchall";
+import { Unit, isCurrency } from "lib/model/Unit";
 import { AccountDetails } from "lib/openbanking/interface";
-import { GetServerSideProps, InferGetServerSidePropsType } from "next";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "pages/api/auth/[...nextauth]";
 import { AccountMappingRequest } from "pages/api/open-banking/mapping";
 import { useState } from "react";
 
-export const getServerSideProps: GetServerSideProps<{
-  dbBank: DBBank;
-  dbBankAccounts: DBBankAccount[];
-  dbStocks: DBStock[];
-  dbMapping: ExternalAccountMapping[];
-  externalAccounts: AccountDetails[];
-}> = async ({ query, req, res }) => {
-  const session = await getServerSession(req, res, authOptions);
-  if (!session) {
-    return {
-      redirect: {
-        destination: "/",
-        permanent: false,
-      },
-    };
+function UnitName({ unit }: { unit: Unit }) {
+  if (isCurrency(unit)) {
+    return <>{unit.code()}</>;
   }
-  const userId = +session.user.id;
-  const db = new DB({ userId });
-  const bankId = parseInt(query.bankId as string, 10);
-  if (!bankId) {
-    return {
-      notFound: true,
-    };
-  }
-  const [bank] = await db.bankFindMany({
-    where: {
-      id: bankId,
-    },
-  });
-  if (!bank) {
-    return {
-      notFound: true,
-    };
-  }
-  const externalAccounts = await fetchAccounts(db, bankId);
-  if (externalAccounts == null) {
-    return {
-      notFound: true,
-    };
-  }
-  const internalAccounts = await db.bankAccountFindMany({
-    where: {
-      bankId,
-    },
-  });
-  const data = {
-    dbBank: bank,
-    dbBankAccounts: internalAccounts,
-    dbStocks: await db.stocksFindMany(),
-    dbMapping: await db.externalAccountMappingFindMany({
-      where: {
-        internalAccountId: {
-          in: internalAccounts.map((x) => x.id),
-        },
-      },
-    }),
-    externalAccounts,
-  };
-  return {
-    props: JSON.parse(JSON.stringify(data)),
-  };
-};
+  return <>{unit.ticker}</>;
+}
 
-export default function Page({
+export function OpenBankingMappingConfigPage({
   dbBank,
   dbBankAccounts,
   dbMapping: dbMappingInitial,
   dbStocks,
   externalAccounts,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+}: {
+  dbBank: DBBank;
+  dbBankAccounts: DBBankAccount[];
+  dbMapping: ExternalAccountMapping[];
+  dbStocks: DBStock[];
+  externalAccounts: AccountDetails[];
+}) {
   const [requestInFlight, setRequestInFlight] = useState(false);
   const [apiError, setApiError] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
@@ -141,7 +87,7 @@ export default function Page({
     setRequestInFlight(false);
   };
   return (
-    <Layout>
+    <>
       {statusMessage && <span className="text-green-500">{statusMessage}</span>}
       {externalAccounts.map((external) => (
         <div key={external.externalAccountId}>
@@ -160,7 +106,8 @@ export default function Page({
             {accountsForBank.map((ba) => (
               <option key={ba.id} value={ba.id}>
                 <>
-                  {bank.name} {ba.name} ({accountUnit(ba, stocks)})
+                  {bank.name} {ba.name} (
+                  <UnitName unit={accountUnit(ba, stocks)} />)
                 </>
               </option>
             ))}
@@ -175,6 +122,6 @@ export default function Page({
       >
         {requestInFlight ? "Saving…" : "Save"}
       </ButtonFormPrimary>
-    </Layout>
+    </>
   );
 }
