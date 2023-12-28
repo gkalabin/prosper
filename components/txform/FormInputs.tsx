@@ -16,7 +16,10 @@ import { ButtonLink } from "components/ui/buttons";
 import { differenceInMonths, isBefore } from "date-fns";
 import { useFormikContext } from "formik";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { useAllDatabaseDataContext } from "lib/ClientSideModel";
+import {
+  useAllDatabaseDataContext,
+  useDisplayBankAccounts,
+} from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
 import { Tag } from "lib/model/Tag";
 import { Transaction } from "lib/model/Transaction";
@@ -129,7 +132,9 @@ export const FormInputs = (props: {
       const account = banks
         .flatMap((b) => b.accounts)
         .find((a) => a.id == fromBankAccountId);
-      setFieldValue("isShared", account.isJoint());
+      if (account) {
+        setFieldValue("isShared", account.isJoint());
+      }
     }
   }, [mode, setFieldValue, banks, fromBankAccountId, props.transaction]);
   useEffect(() => {
@@ -273,7 +278,8 @@ const ExternalExpenseForm = () => {
 };
 
 const TransferForm = ({ transaction }: { transaction: Transaction }) => {
-  const { bankAccounts, exchange } = useAllDatabaseDataContext();
+  const { exchange } = useAllDatabaseDataContext();
+  const bankAccounts = useDisplayBankAccounts();
   const {
     values: { fromBankAccountId, toBankAccountId, amount },
     setFieldValue,

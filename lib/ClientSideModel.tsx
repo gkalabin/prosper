@@ -173,7 +173,6 @@ export type AllClientDataModel = {
   transactions: Transaction[];
   categories: Category[];
   banks: Bank[];
-  bankAccounts: BankAccount[];
   currencies: Currencies;
   trips: Trip[];
   tags: Tag[];
@@ -200,6 +199,10 @@ export const AllDatabaseDataContextProvider = (props: {
 };
 export const useAllDatabaseDataContext = () => {
   return useContext(AllDatabaseDataContext);
+};
+export const useDisplayBankAccounts = () => {
+  const { banks } = useAllDatabaseDataContext();
+  return banks.flatMap((x) => x.accounts).filter((x) => !x.isArchived());
 };
 
 export const banksModelFromDatabaseData = (
@@ -278,7 +281,6 @@ export const modelFromDatabaseData = (
 
   return {
     banks,
-    bankAccounts,
     currencies,
     categories,
     trips,

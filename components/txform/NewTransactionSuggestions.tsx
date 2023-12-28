@@ -3,7 +3,10 @@ import classNames from "classnames";
 import { ButtonLink } from "components/ui/buttons";
 import { format } from "date-fns";
 import { useFormikContext } from "formik";
-import { useAllDatabaseDataContext } from "lib/ClientSideModel";
+import {
+  useAllDatabaseDataContext,
+  useDisplayBankAccounts,
+} from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
 import { BankAccount } from "lib/model/BankAccount";
 import { Transaction } from "lib/model/Transaction";
@@ -69,7 +72,8 @@ const NonEmptyNewTransactionSuggestions = (props: {
   onItemClick: (t: TransactionPrototype) => void;
 }) => {
   const { usedPrototypes, newPrototypes } = useOpenBankingDataContext();
-  const { transactions, banks } = useAllDatabaseDataContext();
+  const { transactions } = useAllDatabaseDataContext();
+  const bankAccounts = useDisplayBankAccounts();
   const withdrawalsOrDeposits = fillMostCommonDescriptions({
     transactions,
     newPrototypes,
@@ -94,13 +98,9 @@ const NonEmptyNewTransactionSuggestions = (props: {
         break;
     }
   });
-  const accountsWithData = banks
-    .flatMap((x) => x.accounts)
-    .filter((a) => protosByAccountId.get(a.id)?.length)
-    .sort(
-      (a, b) =>
-        protosByAccountId.get(b.id).length - protosByAccountId.get(a.id).length
-    );
+  const accountsWithData = bankAccounts.filter(
+    (a) => protosByAccountId.get(a.id)?.length
+  );
   const [activeAccount, setActiveAccount] = useState(
     !accountsWithData.length ? null : accountsWithData[0]
   );
@@ -127,8 +127,7 @@ const NonEmptyNewTransactionSuggestions = (props: {
                 onClick={() => setActiveAccount(account)}
                 disabled={account.id == activeAccount.id}
               >
-                {account.bank.name}: {account.name} (
-                {protosByAccountId.get(account.id).length})
+                {account.bank.name}: {account.name}
               </ButtonLink>
             </div>
           ))}
@@ -208,7 +207,8 @@ function SuggestionItem({
 }) {
   const { isSubmitting } = useFormikContext();
   const { usedPrototypes } = useOpenBankingDataContext();
-  const { bankAccounts, transactions } = useAllDatabaseDataContext();
+  const { transactions } = useAllDatabaseDataContext();
+  const bankAccounts = useDisplayBankAccounts();
   const singleOpProto = singleOperationProto(proto, bankAccount);
   const usedProto = usedPrototypes.find((p) =>
     proto.type != "transfer"
@@ -233,10 +233,8 @@ function SuggestionItem({
       : proto.deposit.internalAccountId;
   const otherAccount = bankAccounts.find((a) => a.id == otherAccountId);
   return (
-    <div>
-      <div
-        className={classNames("flex px-2 py-1", { "bg-gray-100": isActive })}
-      >
+    <div className={classNames({ "bg-gray-100": isActive })}>
+      <div className="flex px-2 py-1">
         <div
           className={classNames("flex grow cursor-pointer", {
             "text-slate-500": isActive,
@@ -268,13 +266,11 @@ function SuggestionItem({
           </div>
         </div>
       </div>
-      <div>
-        {usedTransaction && (
-          <div className="ml-2 text-xs text-gray-600">
-            Recorded as <i>{usedTransaction.summary()}</i>
-          </div>
-        )}
-      </div>
+      {usedTransaction && (
+        <div className="ml-2 text-xs text-gray-600">
+          Recorded as <i>{usedTransaction.summary()}</i>
+        </div>
+      )}
     </div>
   );
 }

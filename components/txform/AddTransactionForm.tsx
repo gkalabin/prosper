@@ -8,7 +8,10 @@ import {
 } from "components/ui/buttons";
 import { format, startOfDay } from "date-fns";
 import { Form, Formik, FormikHelpers } from "formik";
-import { useAllDatabaseDataContext } from "lib/ClientSideModel";
+import {
+  useAllDatabaseDataContext,
+  useDisplayBankAccounts,
+} from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
 import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
@@ -166,8 +169,8 @@ export const AddTransactionForm = (props: {
   const initialMode = props.transaction
     ? formModeForTransaction(props.transaction)
     : FormMode.PERSONAL;
-  const { transactions, bankAccounts, categories, currencies } =
-    useAllDatabaseDataContext();
+  const { transactions, categories, currencies } = useAllDatabaseDataContext();
+  const bankAccounts = useDisplayBankAccounts();
   const defaultAccountFrom =
     mostUsedAccountFrom(transactions) ?? bankAccounts[0];
   const defaultAccountTo = mostUsedAccountTo(transactions) ?? bankAccounts[0];
