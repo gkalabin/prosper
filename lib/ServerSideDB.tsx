@@ -55,7 +55,7 @@ Date.prototype.toJSON = function(){
   return this.getTime();
 };
 
-const jsonEncodingHacks = (key: string, value: any) => {
+const jsonEncodingHacks = (key: string, value) => {
   if (typeof value === "bigint") {
     if (value > Number.MAX_SAFE_INTEGER) {
       throw new Error(`Number ${value} is too big to serialize as JSON`);

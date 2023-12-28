@@ -1,23 +1,30 @@
 import { Transaction as DBTransaction } from "@prisma/client";
 import Layout from "components/Layout";
-import { AddTransactionForm } from "components/transactions/AddTransactionForm";
 import { TransactionsList } from "components/transactions/TransactionsList";
-import { modelFromDatabaseData } from "lib/ClientSideModel";
-import { AllDatabaseData, loadAllDatabaseData } from "lib/ServerSideDB";
-import { GetStaticProps } from "next";
-import React, { useState } from "react";
+import { AddTransactionForm } from "components/txform/AddTransactionForm";
+import {
+  CurrencyContextProvider,
+  modelFromDatabaseData,
+} from "lib/ClientSideModel";
+import { AllDatabaseData, allDbDataProps } from "lib/ServerSideDB";
+import { GetServerSideProps, InferGetServerSidePropsType } from "next";
+import { useState } from "react";
 
-export const getStaticProps: GetStaticProps = async () => {
-  const allData = await loadAllDatabaseData();
-  return {
-    props: JSON.parse(JSON.stringify(allData)),
-  };
-};
+export const getServerSideProps: GetServerSideProps<AllDatabaseData> =
+  allDbDataProps;
 
-const TransactionsPage: React.FC<AllDatabaseData> = (props) => {
+export default function TransactionsPage(
+  dbData: InferGetServerSidePropsType<typeof getServerSideProps>
+) {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
-  const [dbData, setDbData] = useState(props);
-  const model = modelFromDatabaseData(dbData);
+  const [dbDataState, setDbData] = useState(dbData);
+  const { categories, banks, transactions } =
+    modelFromDatabaseData(dbDataState);
+  const personalTransactions = transactions.filter(
+    (t) => !t.isThirdPartyExpense()
+  );
+  const [displayTransactions, setDisplayTransactions] =
+    useState(personalTransactions);
 
   const addTransaction = (added: DBTransaction) => {
     setDbData((old) => {
@@ -38,36 +45,59 @@ const TransactionsPage: React.FC<AllDatabaseData> = (props) => {
   };
 
   return (
-    <Layout>
-      {!showAddTransactionForm && (
-        <div className="flex justify-end">
-          <button
-            className="mb-4 rounded-md bg-indigo-600 px-4 py-1.5 text-base font-medium leading-7 text-white shadow-sm hover:bg-indigo-700 hover:ring-indigo-700"
-            onClick={() => setShowAddTransactionForm(true)}
-          >
-            New Transaction
-          </button>
-        </div>
-      )}
-      {showAddTransactionForm && (
-        <div className="">
-          <AddTransactionForm
-            onAdded={addTransaction}
-            categories={model.categories}
-            banks={model.banks}
-            onClose={() => setShowAddTransactionForm(false)}
-          />
-        </div>
-      )}
+    <Layout
+      subheader={[
+        {
+          title: "Personal",
+          onSelected: () => {
+            setDisplayTransactions(personalTransactions);
+          },
+        },
+        {
+          title: "External",
+          onSelected: () => {
+            setDisplayTransactions(
+              transactions.filter((x) => x.isThirdPartyExpense())
+            );
+          },
+        },
+        {
+          title: "All",
+          onSelected: () => {
+            setDisplayTransactions(transactions);
+          },
+        },
+      ]}
+    >
+      <CurrencyContextProvider init={dbData.dbCurrencies}>
+        {!showAddTransactionForm && (
+          <div className="flex justify-end">
+            <button
+              className="mb-4 rounded-md bg-indigo-600 px-4 py-1.5 text-base font-medium leading-7 text-white shadow-sm hover:bg-indigo-700 hover:ring-indigo-700"
+              onClick={() => setShowAddTransactionForm(true)}
+            >
+              New Transaction
+            </button>
+          </div>
+        )}
+        {showAddTransactionForm && (
+          <div className="">
+            <AddTransactionForm
+              onAdded={addTransaction}
+              categories={categories}
+              banks={banks}
+              onClose={() => setShowAddTransactionForm(false)}
+            />
+          </div>
+        )}
 
-      <TransactionsList
-        categories={model.categories}
-        banks={model.banks}
-        transactions={model.transactions}
-        onTransactionUpdated={updateTransaction}
-      />
+        <TransactionsList
+          categories={categories}
+          banks={banks}
+          transactions={displayTransactions}
+          onTransactionUpdated={updateTransaction}
+        />
+      </CurrencyContextProvider>
     </Layout>
   );
-};
-
-export default TransactionsPage;
+}

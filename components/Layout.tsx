@@ -1,13 +1,14 @@
 import Header from "components/Header";
 import React, { ReactNode } from "react";
+import SubHeader, { SubHeaderItem } from "components/SubHeader";
 
-type Props = {
+const Layout = (props: {
   children: ReactNode;
-};
-
-const Layout: React.FC<Props> = (props) => (
+  subheader?: SubHeaderItem[];
+}) => (
   <div>
     <Header />
+    {props.subheader && <SubHeader items={props.subheader} />}
     <div className="flex justify-center">
       <div className="sm:w-2/3">
         <div className="px-8 py-4">{props.children}</div>

@@ -1,10 +1,11 @@
 import { Bank as DBBank, BankAccount as DBBankAccount } from "@prisma/client";
-import { Currencies, Currency, ExchangeRates } from "lib/ClientSideModel";
+import {
+  Currencies,
+  Currency,
+  ExchangeRates,
+  StockQuotes,
+} from "lib/ClientSideModel";
 import { Transaction } from "lib/model/Transaction";
-
-export const bankAccountsFlatList = (banks: Bank[]): BankAccount[] => {
-  return banks.flatMap((b) => b.accounts);
-};
 
 export class Bank {
   readonly id: number;
@@ -13,27 +14,38 @@ export class Bank {
   readonly accounts: BankAccount[];
   readonly dbValue: DBBank;
   private readonly exchangeRates?: ExchangeRates;
+  private readonly stockQuotes?: StockQuotes;
 
-  public constructor(init: DBBank, er?: ExchangeRates) {
+  public constructor(init: DBBank, er?: ExchangeRates, sq?: StockQuotes) {
     this.dbValue = init;
     this.id = init.id;
     this.name = init.name;
     this.displayOrder = init.displayOrder;
     this.accounts = [];
     this.exchangeRates = er;
+    this.stockQuotes = sq;
   }
 
-  balance(currency: Currency) {
+  balance(targetCurrency: Currency) {
     if (!this.exchangeRates) {
       throw new Error("No exchange rates set");
     }
     let balance = 0;
+    const now = new Date();
     this.accounts.forEach((x) => {
+      let amount = x.balance();
+      let currency = x.currency;
+      if (currency.isStock()) {
+        const { amount: exchangedAmount, currency: exchangedCurrency } =
+          this.stockQuotes.exchange(currency, now, amount);
+        amount = exchangedAmount;
+        currency = exchangedCurrency;
+      }
       balance += this.exchangeRates.exchange(
-        x.currency,
         currency,
-        new Date(),
-        x.balance()
+        targetCurrency,
+        now,
+        amount
       );
     });
     return balance;

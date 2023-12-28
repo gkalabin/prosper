@@ -1,7 +1,7 @@
 import { Transaction as DBTransaction } from "@prisma/client";
 import { Amount } from "components/Amount";
 import Layout from "components/Layout";
-import { AddTransactionForm } from "components/transactions/AddTransactionForm";
+import { AddTransactionForm } from "components/txform/FormTransactionTypeSelector";
 import { TransactionsList } from "components/transactions/TransactionsList";
 import {
   Currencies,
@@ -12,7 +12,7 @@ import { useDisplayCurrency } from "lib/displaySettings";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { AllDatabaseData, allDbDataProps } from "lib/ServerSideDB";
-import { GetStaticProps, InferGetStaticPropsType } from "next";
+import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import React, { useState } from "react";
 
 type BankAccountListItemProps = {
@@ -117,10 +117,11 @@ const BanksList: React.FC<TransactionsListProps> = (props) => {
   );
 };
 
-export const getStaticProps: GetStaticProps<AllDatabaseData> = allDbDataProps;
+export const getServerSideProps: GetServerSideProps<AllDatabaseData> =
+  allDbDataProps;
 
 export default function OverviewPage(
-  dbData: InferGetStaticPropsType<typeof getStaticProps>
+  dbData: InferGetServerSidePropsType<typeof getServerSideProps>
 ) {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
   const [dbDataState, setDbData] = useState(dbData);

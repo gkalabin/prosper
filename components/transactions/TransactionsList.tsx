@@ -1,6 +1,6 @@
 import { Transaction as DBTransaction } from "@prisma/client";
 import { Amount } from "components/Amount";
-import { AddTransactionForm } from "components/transactions/AddTransactionForm";
+import { AddTransactionForm } from "components/txform/FormTransactionTypeSelector";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Transaction } from "lib/model/Transaction";
