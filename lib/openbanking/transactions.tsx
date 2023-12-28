@@ -52,7 +52,10 @@ export async function fetchOpenBankingTransactions(
 
   const obDataParts = await Promise.all(
     dbTokens.map((x) =>
-      fetchTransactionsForSingleBank(x, accountsByToken[x.id] ?? [])
+      fetchTransactionsForSingleBank(x, accountsByToken[x.id] ?? []).catch((err) => {
+        console.error(`Error fetching transactions for bank ${x.bankId}:`, err);
+        return {};
+      })
     )
   );
   return Object.assign({}, ...obDataParts);

@@ -46,7 +46,10 @@ export async function fetchBalances(db: DB): Promise<IOBBalancesByAccountId> {
 
   const obDataParts = await Promise.all(
     dbTokens.map((x) =>
-      fetchAccountBalancesForSingleBank(x, accountsByToken[x.id] ?? [])
+      fetchAccountBalancesForSingleBank(x, accountsByToken[x.id] ?? []).catch((err) => {
+        console.error(`Error fetching balances for bank ${x.bankId}:`, err);
+        return {};
+      })
     )
   );
   return Object.assign({}, ...obDataParts);
