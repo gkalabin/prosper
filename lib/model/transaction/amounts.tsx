@@ -48,7 +48,7 @@ export function amountAllParties(
   bankAccounts: BankAccount[],
   stocks: Stock[],
   exchange: StockAndCurrencyExchange,
-): AmountWithCurrency {
+): AmountWithCurrency | undefined {
   const unit = transactionUnit(t, bankAccounts, stocks);
   const allParties = new Amount({ amountCents: t.amountCents });
   if (isCurrency(unit)) {
@@ -70,7 +70,7 @@ export function amountOwnShare(
   bankAccounts: BankAccount[],
   stocks: Stock[],
   exchange: StockAndCurrencyExchange,
-): AmountWithCurrency {
+): AmountWithCurrency | undefined {
   const unit = transactionUnit(t, bankAccounts, stocks);
   const ownShare = new Amount({
     amountCents: ownShareAmountCentsIgnoreRefuds(t),

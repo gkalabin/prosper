@@ -97,7 +97,10 @@ export class AmountWithCurrency {
     });
   }
 
-  public subtract(other: AmountWithCurrency): AmountWithCurrency {
+  public subtract(other: AmountWithCurrency|undefined): AmountWithCurrency {
+    if (!other) {
+      return this;
+    }
     this.assertSameCurrency(other);
     return new AmountWithCurrency({
       amountCents: this.amount.subtract(other.amount).cents(),
