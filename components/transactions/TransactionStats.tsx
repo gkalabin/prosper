@@ -1,3 +1,4 @@
+import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
 import {
   ChildCategoryFullAmountChart,
   ChildCategoryOwnShareChart,
@@ -13,6 +14,7 @@ import { differenceInMonths, startOfMonth } from "date-fns";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
+import { Income } from "lib/model/transaction/Income";
 import {
   Expense,
   Transaction,
@@ -22,9 +24,10 @@ import {
   isThirdPartyExpense,
   isTransfer,
 } from "lib/model/transaction/Transaction";
-import { amountOwnShare } from "lib/model/transaction/amounts";
-import { amountAllParties } from "lib/model/transaction/amounts";
-import { Income } from "lib/model/transaction/Income";
+import {
+  amountAllParties,
+  amountOwnShare,
+} from "lib/model/transaction/amounts";
 import { AppendMap } from "lib/util/AppendingMap";
 import { MoneyTimeseries } from "lib/util/Timeseries";
 
@@ -33,7 +36,7 @@ export function TransactionStats(props: {
   transactions: Transaction[];
 }) {
   const transactionsByTimestamp = [...props.transactions].sort(
-    (a, b) => a.timestampEpoch - b.timestampEpoch
+    (a, b) => a.timestampEpoch - b.timestampEpoch,
   );
   return (
     <div className="grid grid-cols-6 gap-6 bg-white p-2 shadow sm:rounded-md sm:p-6">
@@ -108,9 +111,9 @@ function Charts({ transactions }: { transactions: Transaction[] }) {
         duration={duration}
         transactions={transactions}
       />
-      <h1 className="mt-4 mb-1 text-xl font-medium leading-7">Expenses</h1>
+      <h1 className="mb-1 mt-4 text-xl font-medium leading-7">Expenses</h1>
       <ExenseStats transactions={transactions} />
-      <h1 className="mt-4 mb-1 text-xl font-medium leading-7">Income</h1>
+      <h1 className="mb-1 mt-4 text-xl font-medium leading-7">Income</h1>
       <IncomeStats transactions={transactions} />
     </div>
   );
@@ -133,14 +136,15 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
   const netPerMonth = new MoneyTimeseries(displayCurrency);
   const grossPerCategory = new AppendMap<number, AmountWithCurrency>(
     AmountWithCurrency.add,
-    zero
+    zero,
   );
   const netPerCategory = new AppendMap<number, AmountWithCurrency>(
     AmountWithCurrency.add,
-    zero
+    zero,
   );
   const gross: AmountWithCurrency[] = [];
   const net: AmountWithCurrency[] = [];
+  const failedToExchange: Transaction[] = [];
   for (const t of expenses) {
     const ts = startOfMonth(t.timestampEpoch);
     const g = amountAllParties(
@@ -148,15 +152,19 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange
+      exchange,
     );
     const n = amountOwnShare(
       t,
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange
+      exchange,
     );
+    if (!g || !n) {
+      failedToExchange.push(t);
+      continue;
+    }
     gross.push(g);
     net.push(n);
     netPerMonth.append(ts, n);
@@ -170,7 +178,8 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
 
   return (
     <div>
-      <div className="ml-2 mb-2 text-sm text-slate-600">
+      <CurrencyExchangeFailed failedTransactions={failedToExchange} />
+      <div className="mb-2 ml-2 text-sm text-slate-600">
         <div>
           Total: {totalGross.round().format()}(gross) /{" "}
           {totalNet.round().format()}(net)
@@ -234,7 +243,7 @@ function IncomeStats({ transactions }: { transactions: Transaction[] }) {
   const displayCurrency = useDisplayCurrency();
   const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
   const incomeTransactions = transactions.filter((t): t is Income =>
-    isIncome(t)
+    isIncome(t),
   );
   if (!incomeTransactions.length) {
     return <></>;
@@ -249,14 +258,15 @@ function IncomeStats({ transactions }: { transactions: Transaction[] }) {
   const netPerMonth = new MoneyTimeseries(displayCurrency);
   const grossPerCategory = new AppendMap<number, AmountWithCurrency>(
     AmountWithCurrency.add,
-    zero
+    zero,
   );
   const netPerCategory = new AppendMap<number, AmountWithCurrency>(
     AmountWithCurrency.add,
-    zero
+    zero,
   );
   const gross: AmountWithCurrency[] = [];
   const net: AmountWithCurrency[] = [];
+  const failedToExchange: Transaction[] = [];
   for (const t of incomeTransactions) {
     const ts = startOfMonth(t.timestampEpoch);
     const g = amountAllParties(
@@ -264,15 +274,19 @@ function IncomeStats({ transactions }: { transactions: Transaction[] }) {
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange
+      exchange,
     );
     const n = amountOwnShare(
       t,
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange
+      exchange,
     );
+    if (!g || !n) {
+      failedToExchange.push(t);
+      continue;
+    }
     gross.push(g);
     net.push(n);
     netPerMonth.append(ts, n);
@@ -285,7 +299,8 @@ function IncomeStats({ transactions }: { transactions: Transaction[] }) {
   const totalNet = net.reduce((a, b) => a.add(b), zero);
   return (
     <div>
-      <div className="ml-2 mb-2 text-sm text-slate-600">
+      <CurrencyExchangeFailed failedTransactions={failedToExchange} />
+      <div className="mb-2 ml-2 text-sm text-slate-600">
         <div>
           Total: {totalGross.round().format()}(gross) /{" "}
           {totalNet.round().format()}(net)
