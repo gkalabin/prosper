@@ -169,7 +169,7 @@ export class Transaction {
 
   private vendorOrNull() {
     return (
-      firstNonNull3(this.personalExpense, this.thirdPartyExpense, this.income)
+      firstNonNull2(this.personalExpense, this.thirdPartyExpense)
         ?.vendor ?? null
     );
   }
@@ -197,14 +197,14 @@ export class Transaction {
   }
 
   hasPayer() {
-    return this.isThirdPartyExpense();
+    return this.isThirdPartyExpense() || this.isIncome();
   }
 
   payer() {
     if (!this.hasPayer()) {
       throw new Error("Transaction has no payer");
     }
-    return this.thirdPartyExpense.payer;
+    return this.thirdPartyExpense?.payer ?? this.income.payer;
   }
 
   private tripOrNull() {
