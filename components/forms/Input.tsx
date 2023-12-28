@@ -26,8 +26,7 @@ export const TextInputWithLabel = (
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const InputWithLabelUntyped = (props: InputProps & FieldHookConfig<any>) => {
   const [field] = useField(props);
-  const label =
-    props.label || props.name.charAt(0).toUpperCase() + props.name.slice(1);
+  const label = props.label;
   const inputAttributes = props as ClassAttributes<HTMLInputElement>;
   return (
     <>
@@ -61,7 +60,9 @@ export const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => {
   );
 };
 
-export const FormikInput = (props: React.InputHTMLAttributes<HTMLInputElement>) => {
+export const FormikInput = (
+  props: React.InputHTMLAttributes<HTMLInputElement>
+) => {
   const { className, type, id, name, ...otherProps } = props;
   return (
     <Field

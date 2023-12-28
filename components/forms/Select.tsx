@@ -1,6 +1,8 @@
 import classNames from "classnames";
 
-export const Select = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => {
+export const Select = (
+  props: React.SelectHTMLAttributes<HTMLSelectElement>
+) => {
   const { className, ...otherProps } = props;
   return (
     <select
@@ -15,3 +17,12 @@ export const Select = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => 
     </select>
   );
 };
+
+export const undoTailwindInputStyles = () => ({
+  input: (baseStyles) => ({
+    ...baseStyles,
+    input: {
+      boxShadow: "none !important",
+    },
+  }),
+});

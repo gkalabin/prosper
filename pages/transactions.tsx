@@ -1,5 +1,6 @@
 import { FunnelIcon } from "@heroicons/react/24/outline";
 import { FormikInput } from "components/forms/Input";
+import { undoTailwindInputStyles } from "components/forms/Select";
 import Layout from "components/Layout";
 import {
   isFullyConfigured,
@@ -193,6 +194,7 @@ function Filters() {
               Account
             </label>
             <Select
+              styles={undoTailwindInputStyles()}
               options={bankAccountOptions}
               isMulti
               value={accountIds.map((x) => ({
@@ -215,6 +217,7 @@ function Filters() {
               Category
             </label>
             <Select
+              styles={undoTailwindInputStyles()}
               options={categoryOptions}
               isMulti
               value={categoryIds.map((x) => ({
@@ -268,6 +271,7 @@ function Filters() {
               Trip
             </label>
             <Select
+              styles={undoTailwindInputStyles()}
               options={tripOptions}
               value={tripOptions.find((x) => x.value == tripId)}
               onChange={(x) => setFieldValue("tripId", x.value)}
@@ -281,6 +285,7 @@ function Filters() {
               Tags
             </label>
             <Select
+              styles={undoTailwindInputStyles()}
               options={tagNameOptions}
               isMulti
               value={tagNames.map((x) => ({

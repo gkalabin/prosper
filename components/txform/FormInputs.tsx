@@ -1,10 +1,12 @@
 import { Switch } from "@headlessui/react";
 import classNames from "classnames";
 import {
+  FormikInput,
   Input,
   MoneyInputWithLabel,
   TextInputWithLabel,
 } from "components/forms/Input";
+import { undoTailwindInputStyles } from "components/forms/Select";
 import {
   formModeForTransaction,
   mostUsedAccountFrom,
@@ -387,16 +389,20 @@ function Tags() {
   const tagsByFrequency = [...tags].sort(
     (t1, t2) => tagFrequency.get(t2) - tagFrequency.get(t1)
   );
+  const makeOption = (x: string) => ({ label: x, value: x });
   return (
     <div className="col-span-6">
+      <label
+        htmlFor="tagNames"
+        className="block text-sm font-medium text-gray-700"
+      >
+        Tags
+      </label>
       <CreatableSelect
         isMulti
-        options={tagsByFrequency.map((x) => {
-          return { label: x.name(), value: x.name() };
-        })}
-        value={tagNames.map((x) => {
-          return { label: x, value: x };
-        })}
+        styles={undoTailwindInputStyles()}
+        options={tagsByFrequency.map((x) => makeOption(x.name()))}
+        value={tagNames.map((x) => makeOption(x))}
         onChange={(newValue) =>
           setFieldValue(
             "tagNames",
@@ -424,6 +430,7 @@ function ParentTransaction() {
   return (
     <div className="col-span-6">
       <Select
+        styles={undoTailwindInputStyles()}
         options={transactions
           .filter((t) => t.isPersonalExpense())
           .filter((t) => t.accountFrom().id == toBankAccountId)
@@ -469,7 +476,17 @@ function Payer() {
   const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
   return (
     <div className="col-span-6">
-      <TextInputWithLabel name="payer" label="Payer" disabled={isSubmitting} />
+      <label
+        htmlFor="payer"
+        className="block text-sm font-medium text-gray-700"
+      >
+        Payer
+      </label>
+      <FormikInput
+        name="payer"
+        className="block w-full"
+        disabled={isSubmitting}
+      />
     </div>
   );
 }
