@@ -10,16 +10,17 @@ export async function fetchAccounts(
     method: "GET",
     headers: { Authorization: `Bearer ${token.accessToken}` },
   }).then((r) => r.json());
-  return response.accounts?.map(
-    (account: any) =>
+  return (response.accounts ?? []).map(
+    ({ accountUid, defaultCategory, name, currency }) =>
       ({
-        externalAccountId: `${account.accountUid}${categorySeparator}${account.defaultCategory}`,
-        name: `${account.name} (${account.currency})`,
+        externalAccountId: `${accountUid}${categorySeparator}${defaultCategory}`,
+        name: `${name} (${currency})`,
       } as AccountDetails)
   );
 }
 
 export const parseExternalAccountId = (externalAccountId: string) => {
-  const [accountUid, defaultCategory] = externalAccountId.split(categorySeparator);
+  const [accountUid, defaultCategory] =
+    externalAccountId.split(categorySeparator);
   return { accountUid, defaultCategory };
-}
+};
