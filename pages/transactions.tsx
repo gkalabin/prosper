@@ -4,7 +4,7 @@ import { GetStaticProps } from "next";
 import Layout from "../components/Layout";
 import Transaction from "../lib/model/Transaction";
 import Bank from "../lib/model/Bank";
-import Category, { DbCategory, makeCategoryTree } from "../lib/model/Category";
+import { DbCategory, makeCategoryTree } from "../lib/model/Category";
 import { AddTransactionForm } from "../components/AddTransactionForm";
 
 export const getStaticProps: GetStaticProps = async () => {
@@ -73,12 +73,7 @@ const TransactionsPage: React.FC<PageProps> = (props) => {
   const [transactionsUnordered, setTransactionsUnordered] = useState(
     props.transactions
   );
-  const transactions = []
-    .concat(transactionsUnordered)
-    .sort(
-      (b1: Transaction, b2: Transaction) =>
-        b1.timestamp.getTime() - b2.timestamp.getTime()
-    );
+  const transactions = [].concat(transactionsUnordered);
 
   const addTransaction = (added: Transaction) => {
     setTransactionsUnordered((old) => [...old, added]);
