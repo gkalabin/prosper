@@ -10,4 +10,4 @@
 
 -- INSERT INTO Currency (id, name, updatedAt) VALUES (7354, "UNUSED_CURRENCY", CURRENT_TIMESTAMP);
 
-update StockQuote set stockId=1 where stockId is NULL;
+-- update StockQuote set stockId=1 where stockId is NULL;
