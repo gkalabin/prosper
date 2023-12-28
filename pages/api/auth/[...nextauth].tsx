@@ -9,7 +9,6 @@ export const authOptions = {
     async createUser(message) { console.log("[AUTH] createUser:", message)},
     async updateUser(message) { console.log("[AUTH] updateUser:", message)},
     async linkAccount(message) { console.log("[AUTH] linkAccount:", message)},
-    async session(message) { console.log("[AUTH] session:", message)},
   },
   callbacks: {
     jwt({ token, account, user }) {
