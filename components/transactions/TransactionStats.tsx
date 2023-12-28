@@ -1,3 +1,4 @@
+import { TransactionFrequencyChart } from "components/charts/TransactionFrequency";
 import { ButtonFormSecondary } from "components/ui/buttons";
 import {
   differenceInMonths,
@@ -8,7 +9,6 @@ import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import {
-  defaultCountChartOptions,
   defaultMoneyChartOptions,
   defaultPieChartOptions,
 } from "lib/charts";
@@ -93,28 +93,11 @@ function Charts({ transactions }: { transactions: Transaction[] }) {
     transactions[transactions.length - 1],
   ];
   const duration = { start: first.timestamp, end: last.timestamp };
-  const months = eachMonthOfInterval(duration).map((x) => x.getTime());
-  const count = new Map<number, number>(months.map((m) => [m, 0]));
-  for (const t of transactions) {
-    const ts = startOfMonth(t.timestamp).getTime();
-    count.set(ts, (count.get(ts) ?? 0) + 1);
-  }
   return (
     <div className="col-span-6">
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultCountChartOptions(months),
-          title: {
-            text: "Count of transactions",
-          },
-          series: [
-            {
-              type: "bar",
-              data: months.map((m) => count.get(m)),
-            },
-          ],
-        }}
+      <TransactionFrequencyChart
+        duration={duration}
+        transactions={transactions}
       />
       <h1 className="mt-4 mb-1 text-xl font-medium leading-7">Expenses</h1>
       <ExenseStats transactions={transactions} />

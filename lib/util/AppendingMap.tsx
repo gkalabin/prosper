@@ -13,8 +13,12 @@ export class AppendMap<K, V> extends Map<K, V> {
   }
 
   append(k: K, v: V) {
-    const existing = this.get(k) ?? this._zero;
+    const existing = this.getOrZero(k);
     const updated = this._combineFn(existing, v);
     this.set(k, updated);
+  }
+
+  getOrZero(k: K) {
+    return this.get(k) ?? this._zero;
   }
 }
