@@ -33,7 +33,7 @@ async function handle(
 ) {
   const dto = req.body as AddTransactionDTO;
   if (!dto.transactionId) {
-    handleCreate(dto, res);
+    await handleCreate(dto, res);
     return;
   }
   const existingTransactionArgs = Object.assign(

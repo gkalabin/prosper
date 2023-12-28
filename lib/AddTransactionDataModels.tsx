@@ -47,7 +47,7 @@ export type AddTransactionDTO = {
   mode: FormMode;
   transactionId: number;
   description: string;
-  timestamp: Date;
+  timestamp: number;
   amountCents: number;
   categoryId: number;
   personalTransaction?: PersonalTransactionDTO;
@@ -89,7 +89,7 @@ export const formToDTO = (
   const out: AddTransactionDTO = {
     mode: mode,
     transactionId: transaction?.id,
-    timestamp: new Date(form.timestamp),
+    timestamp: new Date(form.timestamp).getTime(),
     amountCents: Math.round(form.amount * 100),
     description: form.description,
     categoryId: form.categoryId,
@@ -125,7 +125,6 @@ export const formToDTO = (
       bankAccountId: form.toBankAccountId,
     };
   }
-  //TODO send ts as int
   return out;
 };
 
@@ -133,7 +132,7 @@ export const transactionDbInput = (
   dto: AddTransactionDTO
 ): Prisma.TransactionCreateInput & Prisma.TransactionUpdateInput => {
   return {
-    timestamp: new Date(dto.timestamp),
+    timestamp: new Date(dto.timestamp).toISOString(),
     description: dto.description,
     amountCents: dto.amountCents,
     category: {

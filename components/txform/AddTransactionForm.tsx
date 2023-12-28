@@ -20,7 +20,7 @@ import {
   format,
   isBefore,
 } from "date-fns";
-import { Formik, FormikHelpers, useFormikContext } from "formik";
+import { Form, Formik, FormikHelpers, useFormikContext } from "formik";
 import {
   AddTransactionFormValues,
   FormMode,
@@ -244,7 +244,7 @@ function makePrototypes(input: {
 
   const transfers = [] as TransactionPrototype[];
   const usedInTransfer = {};
-  const incomePrototypes = prototypes.filter(p => p.amount > 0);
+  const incomePrototypes = prototypes.filter((p) => p.amount > 0);
   for (const to of incomePrototypes) {
     const fromCandidates = prototypes
       .filter(
@@ -415,20 +415,22 @@ export const AddTransactionForm = (props: {
     values: AddTransactionFormValues,
     { setSubmitting }: FormikHelpers<AddTransactionFormValues>
   ) => {
-    try {
-      const body = JSON.stringify(formToDTO(mode, values, props.transaction));
-      const added = await fetch("/api/transaction", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: body,
+    const body = JSON.stringify(formToDTO(mode, values, props.transaction));
+    await fetch("/api/transaction", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: body,
+    })
+      .then(async (added) => {
+        // stop submitting before callback to avoid updating state on an unmounted component
+        setSubmitting(false);
+        props.onAdded(await added.json());
+      })
+      .catch((error) => {
+        setSubmitting(false);
+        console.log(error);
+        setApiError(`Failed to add: ${error}`);
       });
-      setSubmitting(false);
-      props.onAdded(await added.json());
-    } catch (error) {
-      setSubmitting(false);
-      console.log(error);
-      setApiError(`Failed to add: ${error}`);
-    }
   };
 
   const creatingNewTransaction = !props.transaction;
@@ -453,72 +455,74 @@ export const AddTransactionForm = (props: {
     <div>
       <Formik initialValues={initialValues} onSubmit={submitNewTransaction}>
         {({ isSubmitting }) => (
-          <div className="overflow-hidden shadow sm:rounded-md">
-            <div className="bg-white p-2 sm:p-6">
-              <div className="mb-2">
-                <NewTransactionSuggestions
-                  openBankingTransactions={props.openBankingTransactions}
-                  transactionPrototypes={props.transactionPrototypes}
-                  banks={props.banks}
-                  allTransactions={props.allTransactions}
-                  onItemClick={(t) => {
-                    setPrototype(t);
-                    setMode(t.mode);
-                  }}
-                />
+          <Form>
+            <div className="overflow-hidden shadow sm:rounded-md">
+              <div className="bg-white p-2 sm:p-6">
+                <div className="mb-2">
+                  <NewTransactionSuggestions
+                    openBankingTransactions={props.openBankingTransactions}
+                    transactionPrototypes={props.transactionPrototypes}
+                    banks={props.banks}
+                    allTransactions={props.allTransactions}
+                    onItemClick={(t) => {
+                      setPrototype(t);
+                      setMode(t.mode);
+                    }}
+                  />
+                </div>
+
+                <FormTransactionTypeSelector
+                  disabled={isSubmitting}
+                  mode={mode}
+                  setMode={(m) => setMode(m)}
+                >
+                  <FormInputs
+                    transaction={props.transaction}
+                    prototype={prototype}
+                    allTransactions={props.allTransactions}
+                    categories={props.categories}
+                    isAdvancedMode={isAdvancedMode}
+                    banks={props.banks}
+                    mode={mode}
+                  />
+                </FormTransactionTypeSelector>
               </div>
 
-              <FormTransactionTypeSelector
-                disabled={isSubmitting}
-                mode={mode}
-                setMode={(m) => setMode(m)}
-              >
-                <FormInputs
-                  transaction={props.transaction}
-                  prototype={prototype}
-                  allTransactions={props.allTransactions}
-                  categories={props.categories}
-                  isAdvancedMode={isAdvancedMode}
-                  banks={props.banks}
-                  mode={mode}
+              <div className="flex justify-end gap-2 bg-gray-50 px-4 py-3 sm:px-6">
+                {apiError && (
+                  <div className="grow text-left text-red-700">{apiError}</div>
+                )}
+
+                <ButtonFormSecondary
+                  className="self-start"
+                  onClick={() => setAdvancedMode(!isAdvancedMode)}
+                  disabled={isSubmitting}
+                  label="Advanced"
                 />
-              </FormTransactionTypeSelector>
+
+                <ButtonFormSecondary
+                  className="self-start"
+                  onClick={props.onClose}
+                  disabled={isSubmitting}
+                  label="Cancel"
+                />
+
+                <ButtonFormPrimary
+                  className="self-start"
+                  disabled={isSubmitting}
+                  label={
+                    creatingNewTransaction
+                      ? isSubmitting
+                        ? "Adding…"
+                        : "Add"
+                      : isSubmitting
+                      ? "Updating…"
+                      : "Update"
+                  }
+                />
+              </div>
             </div>
-
-            <div className="flex justify-end gap-2 bg-gray-50 px-4 py-3 sm:px-6">
-              {apiError && (
-                <div className="grow text-left text-red-700">{apiError}</div>
-              )}
-
-              <ButtonFormSecondary
-                className="self-start"
-                onClick={() => setAdvancedMode(!isAdvancedMode)}
-                disabled={isSubmitting}
-                label="Advanced"
-              />
-
-              <ButtonFormSecondary
-                className="self-start"
-                onClick={props.onClose}
-                disabled={isSubmitting}
-                label="Cancel"
-              />
-
-              <ButtonFormPrimary
-                className="self-start"
-                disabled={isSubmitting}
-                label={
-                  creatingNewTransaction
-                    ? isSubmitting
-                      ? "Adding…"
-                      : "Add"
-                    : isSubmitting
-                    ? "Updating…"
-                    : "Update"
-                }
-              />
-            </div>
-          </div>
+          </Form>
         )}
       </Formik>
     </div>

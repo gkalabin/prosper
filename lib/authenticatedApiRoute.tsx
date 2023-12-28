@@ -6,7 +6,7 @@ export declare type AuthentiatedApiHandler = (
   userName: string,
   req: NextApiRequest,
   res: NextApiResponse
-) => unknown | Promise<unknown>;
+) => Promise<unknown>;
 
 export function authenticatedApiRoute(
   method: "GET" | "POST" | "PUT",
@@ -25,6 +25,6 @@ export function authenticatedApiRoute(
       return;
     }
 
-    return handler(session.user.name, req, res);
+    return await handler(session.user.name, req, res);
   };
 }
