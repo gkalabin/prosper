@@ -9,13 +9,13 @@ export declare type AuthentiatedApiHandler = (
 ) => unknown | Promise<unknown>;
 
 export function authenticatedApiRoute(
-  method: "POST" | "PUT",
+  method: "GET" | "POST" | "PUT",
   handler: AuthentiatedApiHandler
 ) {
   return async function handle(req: NextApiRequest, res: NextApiResponse) {
     if (req.method != method) {
       res
-        .status(400)
+        .status(405)
         .send(`HTTP ${req.method} method is not supported at this route`);
       return;
     }
