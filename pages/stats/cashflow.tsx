@@ -51,8 +51,9 @@ export function CashflowCharts({ input }: { input: TransactionsStatsInput }) {
     current = current.add(cashflow.month(m));
     cashflowCumulative.append(m, current);
   }
-  const yearsIncomplete = startOfYear(input.interval().start).getTime() != +input.interval().start
-  || startOfYear(input.interval().end).getTime() != +input.interval().end;
+  const yearsIncomplete =
+    startOfYear(input.interval().start).getTime() != +input.interval().start ||
+    startOfYear(input.interval().end).getTime() != +input.interval().end;
   return (
     <>
       <MonthlyChart
@@ -84,7 +85,7 @@ export function CashflowCharts({ input }: { input: TransactionsStatsInput }) {
       />
 
       {yearsIncomplete && (
-        <div className="text-medium text-lg border bg-yellow-300 rounded p-2 text-slate-700">
+        <div className="text-medium rounded border bg-yellow-300 p-2 text-lg text-slate-700">
           Showing data for incomplete years
         </div>
       )}
