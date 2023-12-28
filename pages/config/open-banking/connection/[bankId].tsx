@@ -9,7 +9,7 @@ import Layout from "components/Layout";
 import { ButtonFormPrimary } from "components/ui/buttons";
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
 import { Currencies } from "lib/model/Currency";
-import { maybeRefreshToken } from "lib/openBankingToken";
+import { maybeRefreshToken } from "lib/openbanking/token";
 import prisma from "lib/prisma";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { AccountMappingRequest } from "pages/api/open-banking/account-mapping";

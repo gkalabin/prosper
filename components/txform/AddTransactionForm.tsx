@@ -28,6 +28,7 @@ export type AddTransactionFormProps = {
   categories: Category[];
   transaction?: Transaction;
   allTransactions: Transaction[];
+  obData?: any;
   onAdded: (added: DBTransaction) => void;
   onClose: () => void;
 };
@@ -175,9 +176,56 @@ function mostFrequent<T extends { id: number }>(items: T[]): T {
   return itemById[mostFrequentId];
 }
 
-export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
-  props
-) => {
+const NewTransactionSuggestions = ({
+  obData,
+  banks,
+}: {
+  banks: Bank[];
+  obData: any;
+}) => {
+  console.log(obData);
+  const accountsWithData = banks
+    .flatMap((x) => x.accounts)
+    .filter((x) => !!obData.transactions[x.id]);
+  const obTransactions = Object.fromEntries(
+    Object.entries(obData.transactions).map(([accountId, transactions]) => {
+      const pending = transactions.pending.map((t) =>
+        Object.assign({}, t, {
+          pending: true,
+        })
+      );
+      const settled = transactions.settled.map((t) =>
+        Object.assign({}, t, {
+          pending: false,
+        })
+      );
+      const merged = [...pending, ...settled]
+        .map((t) =>
+          Object.assign(t, {
+            timestamp: new Date(t.timestamp),
+          })
+        )
+        .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+      return [accountId, merged];
+    })
+  );
+  return (
+    <>
+      {accountsWithData.map((account) => (
+        <h1 key={account.id}>
+          {account.bank.name}: {account.name}
+          {obTransactions[account.id].slice(0, 10).map((obTransaction) => (
+            <li key={obTransaction.id}>
+              {obTransaction.timestamp.toISOString()}: {obTransaction.description}
+            </li>
+          ))}
+        </h1>
+      ))}
+    </>
+  );
+};
+
+export const AddTransactionForm = (props: AddTransactionFormProps) => {
   const [apiError, setApiError] = useState("");
   const [mode, setMode] = useState(formModeForTransaction(props.transaction));
   const [isAdvancedMode, setAdvancedMode] = useState(false);
@@ -227,6 +275,11 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
         {({ isSubmitting }) => (
           <div className="overflow-hidden shadow sm:rounded-md">
             <div className="bg-white p-2 sm:p-6">
+              <NewTransactionSuggestions
+                obData={props.obData}
+                banks={props.banks}
+              />
+
               <FormTransactionTypeSelector
                 disabled={isSubmitting}
                 mode={mode}

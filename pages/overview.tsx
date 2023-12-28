@@ -3,20 +3,20 @@ import { Amount } from "components/Amount";
 import Layout from "components/Layout";
 import {
   isFullyConfigured,
-  NotConfiguredYet
+  NotConfiguredYet,
 } from "components/NotConfiguredYet";
 import { TransactionsList } from "components/transactions/TransactionsList";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
 import { ButtonPagePrimary } from "components/ui/buttons";
 import {
   CurrencyContextProvider,
-  modelFromDatabaseData
+  modelFromDatabaseData,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
+import { AllDatabaseData, OpenBankingData } from "lib/model/AllDatabaseDataModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
-import { allDbDataProps } from "lib/ServerSideDB";
+import { allDbDataPropsWithOb } from "lib/ServerSideDB";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import React, { createContext, useContext, useState } from "react";
 
@@ -118,15 +118,16 @@ const BanksList: React.FC<TransactionsListProps> = (props) => {
 
 const ArchivedAccountsShownContext = createContext<boolean>(false);
 
-export const getServerSideProps: GetServerSideProps<AllDatabaseData> =
-  allDbDataProps;
+export const getServerSideProps: GetServerSideProps<AllDatabaseData & OpenBankingData> =
+  allDbDataPropsWithOb;
 
 export default function OverviewPage(
   dbData: InferGetServerSidePropsType<typeof getServerSideProps>
 ) {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
   const [dbDataState, setDbData] = useState(dbData);
-  const { categories, banks, transactions } = modelFromDatabaseData(dbDataState);
+  const { categories, banks, transactions } =
+    modelFromDatabaseData(dbDataState);
   const [archivedShown, setShowArchived] = useState(false);
 
   const addTransaction = (added: DBTransaction) => {
@@ -169,6 +170,7 @@ export default function OverviewPage(
               banks={banks}
               allTransactions={transactions}
               onAdded={addTransaction}
+              obData={dbData.obData}
               onClose={() => setShowAddTransactionForm(false)}
             />
           )}

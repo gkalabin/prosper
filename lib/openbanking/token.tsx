@@ -1,5 +1,5 @@
 import { OpenBankingToken } from "@prisma/client";
-import prisma from "./prisma";
+import prisma from "lib/prisma";
 
 export async function maybeRefreshToken(token: OpenBankingToken) {
   const now = new Date();

@@ -1,6 +1,8 @@
 import { addLatestExchangeRates } from "lib/exchangeRatesBackfill";
+import { fetchBalances } from "lib/openbanking/balance";
 import prisma from "lib/prisma";
 import { addLatestStockQuotes } from "lib/stockQuotesBackfill";
+import { fetchOpenBankingTransactions } from "./openbanking/transactions";
 
 const loadAllDatabaseData = async () => {
   const dbTransactions = await prisma.transaction.findMany({
@@ -44,7 +46,17 @@ export const allDbDataProps = async () => {
     }
   );
   const allData = await loadAllDatabaseData();
-  return {
-    props: JSON.parse(JSON.stringify(allData, jsonEncodingHacks)),
+  const out = {
+    props: allData,
   };
+  return JSON.parse(JSON.stringify(out, jsonEncodingHacks));
+};
+
+export const allDbDataPropsWithOb = async () => {
+  const out = await allDbDataProps();
+  out.props.obData = {
+    balances: await fetchBalances(),
+    transactions: await fetchOpenBankingTransactions(),
+  };
+  return JSON.parse(JSON.stringify(out, jsonEncodingHacks));
 };

@@ -28,3 +28,8 @@ export type AllDatabaseData = {
   dbExchangeRates: ExchangeRate[];
   dbStockQuotes: StockQuote[];
 };
+
+// TODO: move to a separate file
+export type OpenBankingData = {
+  obData: any;
+};
