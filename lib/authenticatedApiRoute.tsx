@@ -9,11 +9,17 @@ export declare type AuthentiatedApiHandler = (
   res: NextApiResponse
 ) => unknown | Promise<unknown>;
 
-export function authenticatedApiRoute(handler: AuthentiatedApiHandler) {
+export function authenticatedApiRoute(method: "POST" | "PUT", handler: AuthentiatedApiHandler) {
   return withIronSessionApiRoute(async function handle(
     req: NextApiRequest,
     res: NextApiResponse
   ) {
+    if (req.method != method) {
+      res
+        .status(400)
+        .send(`HTTP ${req.method} method is not supported at this route`);
+      return;
+    }
     if (!req.session.user?.isLoggedIn) {
       res.status(401).send("not authenticated");
       return;

@@ -6,22 +6,15 @@ import {
   personalExpenseDbInput,
   thirdPartyExpenseDbInput,
   transactionDbInput,
-  transferDbInput
+  transferDbInput,
 } from "lib/AddTransactionDataModels";
+import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
 import prisma from "lib/prisma";
 import { TransactionWithExtensions } from "lib/ServerSideDB";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { User } from "pages/api/user";
 
-export default async function handle(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method != "POST") {
-    res
-      .status(400)
-      .send(`HTTP ${req.method} method is not supported at this route`);
-    return;
-  }
+async function handle(user: User, req: NextApiRequest, res: NextApiResponse) {
   const dto = req.body as AddTransactionDTO;
 
   if (dto.transactionId) {
@@ -125,3 +118,5 @@ function sameExtension(
     (existing.transfer && newData.transferTransaction)
   );
 }
+
+export default authenticatedApiRoute("POST", handle);

@@ -1,29 +1,20 @@
-import { Prisma } from "@prisma/client";
 import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
 import prisma from "lib/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { User } from "pages/api/user";
 
-export default authenticatedApiRoute(async function handle(
-  user: User,
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method === "POST") {
-    const { name, displayOrder } = req.body;
-    const dbArgs: Prisma.BankCreateArgs = {
-      data: { name, displayOrder },
-      include: {
-        accounts: {
-          include: { currency: true },
-        },
+async function handle(user: User, req: NextApiRequest, res: NextApiResponse) {
+  const { name, displayOrder } = req.body;
+  const dbArgs = {
+    data: { name, displayOrder },
+    include: {
+      accounts: {
+        include: { currency: true },
       },
-    };
-    const result = await prisma.bank.create(dbArgs);
-    res.json(result);
-  } else {
-    throw new Error(
-      `The HTTP ${req.method} method is not supported at this route.`
-    );
-  }
-});
+    },
+  };
+  const result = await prisma.bank.create(dbArgs);
+  res.json(result);
+}
+
+export default authenticatedApiRoute("POST", handle);

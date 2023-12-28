@@ -29,12 +29,13 @@ export default function Login() {
   ) {
     setErrorMsg("");
     try {
-      // TODO: don't send password plain text
-      const body = JSON.stringify(values);
       const response = await fetch("/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: body,
+        body: JSON.stringify({
+          login: values.login,
+          password: values.password,
+        }),
       });
       if (response.ok) {
         mutateUser(await response.json());
@@ -55,7 +56,9 @@ export default function Login() {
       <Layout>
         <div className="md:w-2/3">
           <div className="mt-20 flex justify-center">
-          <span>Loading <code>{defaultPage}</code> page…</span>
+            <span>
+              Loading <code>{defaultPage}</code> page…
+            </span>
           </div>
         </div>
       </Layout>
