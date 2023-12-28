@@ -5,10 +5,16 @@ import {
   TrueLayerToken,
 } from "@prisma/client";
 import { DB } from "lib/db";
-import { AccountBalance, IOpenBankingData } from "lib/openbanking/interface";
+import {
+  AccountBalance,
+  AccountDetails,
+  IOpenBankingData,
+} from "lib/openbanking/interface";
+import { fetchAccounts as nordigenFetchAccounts } from "lib/openbanking/nordigen/account";
 import { fetchBalance as nordigenFetchBalance } from "lib/openbanking/nordigen/balance";
 import { maybeRefreshToken as nordigenMaybeRefreshToken } from "lib/openbanking/nordigen/token";
 import { fetchTransactions as nordigenFetchTransactions } from "lib/openbanking/nordigen/transactions";
+import { fetchAccounts as trueLayerFetchAccounts } from "lib/openbanking/truelayer/account";
 import { fetchBalance as trueLayerFetchBalance } from "lib/openbanking/truelayer/balance";
 import { maybeRefreshToken as trueLayerMaybeRefreshToken } from "lib/openbanking/truelayer/token";
 import { fetchTransactions as trueLayerFetchTransactions } from "lib/openbanking/truelayer/transactions";
@@ -92,4 +98,34 @@ function mappingsForToken(
   return mappings.filter((m) =>
     accounts.some((a) => a.id == m.internalAccountId)
   );
+}
+
+export async function fetchAccounts(
+  db: DB,
+  bankId: number
+): Promise<AccountDetails[]> {
+  {
+    const [dbToken] = await db.trueLayerTokenFindMany({
+      where: { bankId },
+    });
+    if (dbToken) {
+      const token = await trueLayerMaybeRefreshToken(dbToken);
+      return await trueLayerFetchAccounts(token);
+    }
+  }
+  {
+    const [dbToken] = await db.nordigenTokenFindMany({
+      where: { bankId },
+    });
+    const requisition = await db.nordigenRequisitionFindFirst({
+      where: {
+        bankId,
+      },
+    });
+    if (requisition && dbToken) {
+      const token = await nordigenMaybeRefreshToken(dbToken);
+      return await nordigenFetchAccounts(token, requisition);
+    }
+  }
+  return null;
 }

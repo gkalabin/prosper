@@ -8,7 +8,7 @@ async function handle(
   res: NextApiResponse
 ) {
   const code = req.query.code as string;
-  const redirectURI = `${process.env.HOST}/api/open-banking/connect`;
+  const redirectURI = `${process.env.HOST}/api/open-banking/truelayer/connect`;
 
   if (!code) {
     const connectingBankId = parseInt(req.query.bankId as string, 10);
@@ -55,7 +55,7 @@ async function handle(
         update: args,
         where: { bankId },
       });
-      res.redirect(`/config/open-banking/connection/${bankId}`);
+      res.redirect(`/config/open-banking/truelayer/connection/${bankId}`);
     })
     .catch((err) => {
       res.status(500).send(`Open banking api error: ${err}`);

@@ -164,10 +164,10 @@ const TrueLayerActions = ({ bank }: { bank: Bank }) => {
   return (
     <div className="space-x-3">
       <span>Connected with TrueLayer</span>
-      <AnchorLink href={`/config/open-banking/connection/${bank.id}`}>
+      <AnchorLink href={`/config/open-banking/mapping?bankId=${bank.id}`}>
         Configure
       </AnchorLink>
-      <AnchorLink href={`/api/open-banking/connect?bankId=${bank.id}`}>
+      <AnchorLink href={`/api/open-banking/truelayer/connect?bankId=${bank.id}`}>
         Reconnect
       </AnchorLink>
     </div>
@@ -178,7 +178,7 @@ const NordigenActions = ({ bank }: { bank: Bank }) => {
   return (
     <div className="space-x-3">
       <span>Connected with Nordigen</span>
-      <AnchorLink href={`/config/open-banking/nordigen/connection/${bank.id}`}>
+      <AnchorLink href={`/config/open-banking/mapping?bankId=${bank.id}`}>
         Configure
       </AnchorLink>
       <AnchorLink
