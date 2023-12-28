@@ -5,10 +5,10 @@ import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
 import {
   Transaction,
-  amountAllParties,
-  amountSent,
   isTransfer,
 } from "lib/model/transaction/Transaction";
+import { amountAllParties } from "lib/model/transaction/amounts";
+import { amountSent } from "lib/model/transaction/Transfer";
 import { isCurrency, isStock } from "lib/model/Unit";
 import { onTransactionChange } from "lib/stateHelpers";
 import { useState } from "react";

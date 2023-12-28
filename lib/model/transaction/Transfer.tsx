@@ -1,8 +1,8 @@
 import { AmountWithUnit } from "lib/AmountWithUnit";
-import { BankAccount, accountUnit } from "lib/model/BankAccount";
-import { Stock } from "../Stock";
 import { assertDefined } from "lib/assert";
 import { TransactionWithExtensionsAndTagIds } from "lib/model/AllDatabaseDataModel";
+import { BankAccount, accountUnit } from "lib/model/BankAccount";
+import { Stock } from "lib/model/Stock";
 
 export type Transfer = {
   kind: "Transfer";
@@ -47,6 +47,7 @@ export function outgoingBankAccount(
   }
   return account;
 }
+
 export function incomingBankAccount(
   t: Transfer,
   bankAccounts: BankAccount[],
@@ -59,6 +60,7 @@ export function incomingBankAccount(
   }
   return account;
 }
+
 export function amountReceived(
   t: Transfer,
   bankAccounts: BankAccount[],
@@ -68,6 +70,19 @@ export function amountReceived(
   const unit = accountUnit(incomingAccount, stocks);
   return new AmountWithUnit({
     amountCents: t.receivedAmountCents,
+    unit,
+  });
+}
+
+export function amountSent(
+  t: Transfer,
+  bankAccounts: BankAccount[],
+  stocks: Stock[],
+): AmountWithUnit {
+  const outgoingAccount = outgoingBankAccount(t, bankAccounts);
+  const unit = accountUnit(outgoingAccount, stocks);
+  return new AmountWithUnit({
+    amountCents: t.sentAmountCents,
     unit,
   });
 }

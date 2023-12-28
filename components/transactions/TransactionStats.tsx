@@ -16,14 +16,14 @@ import { useDisplayCurrency } from "lib/displaySettings";
 import {
   Expense,
   Transaction,
-  amountAllParties,
-  amountOwnShare,
   isExpense,
   isIncome,
   isPersonalExpense,
   isThirdPartyExpense,
   isTransfer,
 } from "lib/model/transaction/Transaction";
+import { amountOwnShare } from "lib/model/transaction/amounts";
+import { amountAllParties } from "lib/model/transaction/amounts";
 import { Income } from "lib/model/transaction/Income";
 import { AppendMap } from "lib/util/AppendingMap";
 import { MoneyTimeseries } from "lib/util/Timeseries";

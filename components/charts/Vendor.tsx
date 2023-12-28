@@ -1,7 +1,8 @@
 import ReactEcharts from "echarts-for-react";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { Expense, amountOwnShare } from "lib/model/transaction/Transaction";
+import { Expense } from "lib/model/transaction/Transaction";
+import { amountOwnShare } from "lib/model/transaction/amounts";
 import { AppendMap, currencyAppendMap } from "lib/util/AppendingMap";
 import { topN, topNAmount } from "lib/util/util";
 

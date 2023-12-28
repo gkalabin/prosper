@@ -17,11 +17,11 @@ import { BankAccount } from "lib/model/BankAccount";
 import { Currency } from "lib/model/Currency";
 import { Stock } from "lib/model/Stock";
 import {
-  amountAllParties,
   Expense,
   isExpense,
   isIncome,
 } from "lib/model/transaction/Transaction";
+import { amountAllParties } from "lib/model/transaction/amounts";
 import { Income } from "lib/model/transaction/Income";
 import { Trip } from "lib/model/Trip";
 

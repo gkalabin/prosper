@@ -27,10 +27,10 @@ import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { transactionIsDescendant } from "lib/model/Category";
 import {
   Expense,
-  amountOwnShare,
   isExpense,
   isIncome,
 } from "lib/model/transaction/Transaction";
+import { amountOwnShare } from "lib/model/transaction/amounts";
 import { Income } from "lib/model/transaction/Income";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
 import { useState } from "react";

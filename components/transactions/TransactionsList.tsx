@@ -8,22 +8,24 @@ import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { fullAccountName } from "lib/model/BankAccount";
 import {
   Transaction,
-  amountSent,
   isExpense,
   isIncome,
   isPersonalExpense,
   isThirdPartyExpense,
   isTransfer,
   otherPartyNameOrNull,
-  ownShareAmountIgnoreRefunds,
-  rawTransactionAmount,
   transactionBankAccount,
   transactionCategory,
   transactionUnit,
 } from "lib/model/transaction/Transaction";
-import { amountReceived } from "lib/model/transaction/Transfer";
-import { incomingBankAccount } from "lib/model/transaction/Transfer";
-import { outgoingBankAccount } from "lib/model/transaction/Transfer";
+import { amountSent } from "lib/model/transaction/Transfer";
+import { ownShareAmountIgnoreRefunds } from "lib/model/transaction/amounts";
+import {
+  amountReceived,
+  incomingBankAccount,
+  outgoingBankAccount,
+} from "lib/model/transaction/Transfer";
+import { paidTotal } from "lib/model/transaction/amounts";
 import { TransactionAPIResponse } from "lib/transactionDbUtils";
 import { useState } from "react";
 
@@ -118,7 +120,10 @@ export const TransactionsListItem = (props: {
             <TransactionTitle t={t} />
           </div>
           <div className="text-xs italic text-gray-600">{t.note}</div>
-          <div className="text-xs text-gray-600" suppressHydrationWarning={true}>
+          <div
+            className="text-xs text-gray-600"
+            suppressHydrationWarning={true}
+          >
             {format(t.timestampEpoch, "yyyy-MM-dd HH:mm")}
           </div>
         </div>
@@ -138,7 +143,9 @@ export const TransactionsListItem = (props: {
       {expanded && (
         <div className="pl-1">
           <div>ID: {t.id}</div>
-          <div suppressHydrationWarning={true}>Time: {new Date(t.timestampEpoch).toISOString()}</div>
+          <div suppressHydrationWarning={true}>
+            Time: {new Date(t.timestampEpoch).toISOString()}
+          </div>
           <div>Type: {t.kind}</div>
           <div>Category: {category.nameWithAncestors()}</div>
           {isExpense(t) && <div>Vendor: {t.vendor}</div>}
@@ -173,7 +180,7 @@ export const TransactionsListItem = (props: {
           {(isExpense(t) || isIncome(t)) && (
             <div>
               Full amount:{" "}
-              {rawTransactionAmount(t, bankAccounts, stocks).format()}
+              {paidTotal(t, bankAccounts, stocks).format()}
             </div>
           )}
           {(isExpense(t) || isIncome(t)) && (

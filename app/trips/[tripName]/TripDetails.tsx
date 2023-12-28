@@ -20,12 +20,12 @@ import {
 import { useDisplayCurrency } from "lib/displaySettings";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import {
-  amountAllParties,
-  amountOwnShare,
   Expense,
   isExpense,
   isIncome,
 } from "lib/model/transaction/Transaction";
+import { amountOwnShare } from "lib/model/transaction/amounts";
+import { amountAllParties } from "lib/model/transaction/amounts";
 import { Income } from "lib/model/transaction/Income";
 import { Trip, tripModelFromDB } from "lib/model/Trip";
 

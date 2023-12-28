@@ -1,7 +1,3 @@
-import { Amount } from "lib/Amount";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { AmountWithUnit } from "lib/AmountWithUnit";
-import { StockAndCurrencyExchange } from "lib/ClientSideModel";
 import { TransactionWithExtensionsAndTagIds } from "lib/model/AllDatabaseDataModel";
 import { BankAccount, accountUnit } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
@@ -9,7 +5,7 @@ import { Currency } from "lib/model/Currency";
 import { Stock } from "lib/model/Stock";
 import { Tag } from "lib/model/Tag";
 import { Trip } from "lib/model/Trip";
-import { Unit, isCurrency, isStock } from "lib/model/Unit";
+import { Unit } from "lib/model/Unit";
 import { Income, incomeModelFromDB } from "lib/model/transaction/Income";
 import {
   PersonalExpense,
@@ -20,7 +16,6 @@ import {
   thirdPartyExpenseModelFromDB,
 } from "lib/model/transaction/ThirdPartyExpense";
 import { Transfer, transferModelFromDB } from "lib/model/transaction/Transfer";
-import { outgoingBankAccount } from "./Transfer";
 
 export type Transaction =
   | PersonalExpense
@@ -48,15 +43,6 @@ export function transactionModelFromDB(
   throw new Error(`Unknown transaction type: ${JSON.stringify(init)}`);
 }
 
-export function ownShareAmountCentsIgnoreRefuds(
-  t: PersonalExpense | ThirdPartyExpense | Income,
-): number {
-  const otherPartiesAmountCents = t.companions
-    .map((c) => c.amountCents)
-    .reduce((a, b) => a + b, 0);
-  return t.amountCents - otherPartiesAmountCents;
-}
-
 export function transactionBankAccount(
   t: PersonalExpense | Income,
   bankAccounts: BankAccount[],
@@ -68,28 +54,6 @@ export function transactionBankAccount(
     );
   }
   return account;
-}
-
-export function rawTransactionAmount(
-  t: PersonalExpense | ThirdPartyExpense | Income,
-  bankAccounts: BankAccount[],
-  stocks: Stock[],
-): AmountWithUnit {
-  return new AmountWithUnit({
-    amountCents: t.amountCents,
-    unit: transactionUnit(t, bankAccounts, stocks),
-  });
-}
-
-export function ownShareAmountIgnoreRefunds(
-  t: PersonalExpense | ThirdPartyExpense | Income,
-  bankAccounts: BankAccount[],
-  stocks: Stock[],
-): AmountWithUnit {
-  return new AmountWithUnit({
-    amountCents: ownShareAmountCentsIgnoreRefuds(t),
-    unit: transactionUnit(t, bankAccounts, stocks),
-  });
 }
 
 export function transactionUnit(
@@ -108,66 +72,6 @@ export function transactionUnit(
       const _exhaustiveCheck: never = t;
       throw new Error(`No unit for ${_exhaustiveCheck}`);
   }
-}
-
-export function amountSent(
-  t: Transfer,
-  bankAccounts: BankAccount[],
-  stocks: Stock[],
-): AmountWithUnit {
-  const outgoingAccount = outgoingBankAccount(t, bankAccounts);
-  const unit = accountUnit(outgoingAccount, stocks);
-  return new AmountWithUnit({
-    amountCents: t.sentAmountCents,
-    unit,
-  });
-}
-
-export function amountAllParties(
-  t: PersonalExpense | ThirdPartyExpense | Income,
-  target: Currency,
-  bankAccounts: BankAccount[],
-  stocks: Stock[],
-  exchange: StockAndCurrencyExchange,
-): AmountWithCurrency {
-  const unit = transactionUnit(t, bankAccounts, stocks);
-  const allParties = new Amount({ amountCents: t.amountCents });
-  if (isCurrency(unit)) {
-    const amount = new AmountWithCurrency({
-      amountCents: allParties.cents(),
-      currency: unit,
-    });
-    return exchange.exchangeCurrency(amount, target, t.timestampEpoch);
-  }
-  if (isStock(unit)) {
-    return exchange.exchangeStock(allParties, unit, target, t.timestampEpoch);
-  }
-  throw new Error(`Unknown unit: ${unit}`);
-}
-
-export function amountOwnShare(
-  t: PersonalExpense | ThirdPartyExpense | Income,
-  target: Currency,
-  bankAccounts: BankAccount[],
-  stocks: Stock[],
-  exchange: StockAndCurrencyExchange,
-): AmountWithCurrency {
-  const unit = transactionUnit(t, bankAccounts, stocks);
-  const ownShare = new Amount({
-    amountCents: ownShareAmountCentsIgnoreRefuds(t),
-  });
-
-  if (isCurrency(unit)) {
-    const amount = new AmountWithCurrency({
-      amountCents: ownShare.cents(),
-      currency: unit,
-    });
-    return exchange.exchangeCurrency(amount, target, t.timestampEpoch);
-  }
-  if (isStock(unit)) {
-    return exchange.exchangeStock(ownShare, unit, target, t.timestampEpoch);
-  }
-  throw new Error(`Unknown unit: ${unit}`);
 }
 
 export function transactionTags(t: Transaction, allTags: Tag[]): Tag[] {

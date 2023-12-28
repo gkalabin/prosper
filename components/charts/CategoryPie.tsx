@@ -5,9 +5,9 @@ import { useDisplayCurrency } from "lib/displaySettings";
 import { mustFindCategory } from "lib/model/Category";
 import {
   Expense,
-  amountAllParties,
-  amountOwnShare,
 } from "lib/model/transaction/Transaction";
+import { amountOwnShare } from "lib/model/transaction/amounts";
+import { amountAllParties } from "lib/model/transaction/amounts";
 import { Income } from "lib/model/transaction/Income";
 import { AppendMap, currencyAppendMap } from "lib/util/AppendingMap";
 import dynamic from "next/dynamic";

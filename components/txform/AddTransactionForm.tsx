@@ -20,11 +20,11 @@ import { Trip } from "lib/model/Trip";
 import {
   Transaction,
   otherPartyNameOrNull,
-  ownShareAmountCentsIgnoreRefuds,
   parentTransactionId,
   transactionTags,
   transactionTrip,
 } from "lib/model/transaction/Transaction";
+import { ownShareAmountCentsIgnoreRefuds } from "lib/model/transaction/amounts";
 import { Income } from "lib/model/transaction/Income";
 import { Transfer } from "lib/model/transaction/Transfer";
 import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
