@@ -22,6 +22,10 @@ export const StatsPageLayout = (props: {
         title: "Monthly",
         path: "/stats/monthly",
       },
+      {
+        title: "Yearly",
+        path: "/stats/yearly",
+      },
     ]}
   >
     {props.children}

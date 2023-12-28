@@ -1,4 +1,9 @@
-import { Interval, eachMonthOfInterval, isWithinInterval } from "date-fns";
+import {
+  Interval,
+  eachMonthOfInterval,
+  eachYearOfInterval,
+  isWithinInterval,
+} from "date-fns";
 import { Transaction } from "lib/model/Transaction";
 
 export class TransactionsStatsInput {
@@ -35,6 +40,10 @@ export class TransactionsStatsInput {
 
   months() {
     return eachMonthOfInterval(this._interval);
+  }
+
+  years() {
+    return eachYearOfInterval(this._interval);
   }
 
   private intervalOnly(ts: Transaction[]) {
