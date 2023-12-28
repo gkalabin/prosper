@@ -549,7 +549,6 @@ const FormInputs = (props: {
   const currencies = useCurrencyContext();
   const {
     values: { amount, vendor, timestamp, isFamilyExpense },
-    touched,
     setFieldValue,
     handleChange,
     isSubmitting,
@@ -558,66 +557,57 @@ const FormInputs = (props: {
   useEffect(() => {
     setFieldValue("ownShareAmount", isFamilyExpense ? amount / 2 : amount);
   }, [amount, isFamilyExpense, setFieldValue]);
-
   useEffect(() => {
     setFieldValue("receivedAmount", amount);
   }, [amount, setFieldValue]);
 
   useEffect(() => {
-    if (!props.transaction && !touched["fromBankAccountId"]) {
-      setFieldValue(
-        "fromBankAccountId",
-        mostUsedAccountFrom(props.mode, props.allTransactions).id
-      );
+    if (!props.prototype) {
+      return;
     }
-    if (!props.transaction && !touched["toBankAccountId"]) {
-      setFieldValue(
-        "toBankAccountId",
-        mostUsedAccountTo(props.mode, props.allTransactions).id
-      );
+    setFieldValue("vendor", props.prototype.vendor);
+    setFieldValue("amount", Math.abs(props.prototype.amount));
+    setFieldValue("timestamp", toDateTimeLocal(props.prototype.timestamp));
+    if (props.prototype.accountFromId) {
+      setFieldValue("fromBankAccountId", props.prototype.accountFromId);
     }
+    if (props.prototype.accountToId) {
+      setFieldValue("toBankAccountId", props.prototype.accountToId);
+    }
+  }, [props.prototype, setFieldValue]);
+
+  useEffect(() => {
+    if (props.transaction || props.prototype) {
+      // Is we are editing transaction, do not autofill from/to bank account, but stick to the one from transaction.
+      // If there is a prototype (suggestion from banking API), do not mess with bank account selector either.
+      return;
+    }
+    setFieldValue(
+      "fromBankAccountId",
+      mostUsedAccountFrom(props.mode, props.allTransactions).id
+    );
+    setFieldValue(
+      "toBankAccountId",
+      mostUsedAccountTo(props.mode, props.allTransactions).id
+    );
   }, [
     props.allTransactions,
     props.mode,
-    props.transaction,
     setFieldValue,
-    touched,
+    props.transaction,
+    props.prototype,
   ]);
 
   useEffect(() => {
-    let newVendor = vendor;
-    if (props.prototype) {
-      newVendor = props.prototype.vendor;
-      setFieldValue("amount", props.prototype.amount);
-      setFieldValue("timestamp", toDateTimeLocal(props.prototype.timestamp));
-      if (props.prototype.accountFromId) {
-        setFieldValue("fromBankAccountId", props.prototype.accountFromId);
-      }
-      if (props.prototype.accountToId) {
-        setFieldValue("toBankAccountId", props.prototype.accountToId);
-      }
-    }
-
     const suggestion = mostUsedCategory(
       props.mode,
       props.allTransactions,
-      newVendor
+      vendor
     );
     if (suggestion) {
       setFieldValue("categoryId", suggestion.id);
     }
-    if (newVendor != vendor && newVendor) {
-      setFieldValue("vendor", newVendor);
-    }
-  }, [
-    amount,
-    vendor,
-    isFamilyExpense,
-    props.allTransactions,
-    props.mode,
-    props.prototype,
-    setFieldValue,
-  ]);
+  }, [vendor, props.allTransactions, props.mode, setFieldValue]);
 
   const vendorFrequency: { [vendor: string]: number } = {};
   props.allTransactions
