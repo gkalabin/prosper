@@ -216,6 +216,7 @@ export const AddTransactionForm = (props: {
         resetValues.fromBankAccountId = values.fromBankAccountId;
         resetValues.toBankAccountId = values.toBankAccountId;
         resetValues.isShared = values.isShared;
+        resetValues.otherPartyName = values.otherPartyName;
         resetForm({ values: resetValues });
         setPrototype(null);
         props.onAddedOrUpdated(await added.json());
