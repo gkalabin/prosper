@@ -1,8 +1,11 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
-import prisma from "../../../../lib/prisma";
+import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
+import prisma from "lib/prisma";
+import { User } from "user";
 
-export default async function handle(
+export default authenticatedApiRoute(async function handle(
+  user: User,
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -23,4 +26,4 @@ export default async function handle(
       `The HTTP ${req.method} method is not supported at this route.`
     );
   }
-}
+});

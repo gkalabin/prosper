@@ -1,4 +1,4 @@
-import { TransactionWithExtensions } from "../ServerSideDB";
+import { TransactionWithExtensions } from "ServerSideDB";
 import { BankAccount } from "./BankAccount";
 import { Category } from "./Category";
 import { Currency } from "./Currency";

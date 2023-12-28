@@ -1,5 +1,5 @@
 import { FieldHookConfig } from "formik";
-import { Bank } from "../../lib/model/BankAccount";
+import { Bank } from "lib/model/BankAccount";
 import { InputProps } from "./InputProps";
 import { SelectNumber } from "./Select";
 

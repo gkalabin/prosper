@@ -1,9 +1,9 @@
 import { Currency as DBCurrency } from "@prisma/client";
 import { GetStaticProps } from "next";
 import React, { useState } from "react";
-import Layout from "../../components/Layout";
-import { Currency, currencyModelFromDB } from "../../lib/model/Currency";
-import prisma from "../../lib/prisma";
+import Layout from "components/Layout";
+import { Currency, currencyModelFromDB } from "lib/model/Currency";
+import prisma from "lib/prisma";
 
 export const getStaticProps: GetStaticProps = async () => {
   return {

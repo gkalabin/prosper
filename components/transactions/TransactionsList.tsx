@@ -1,11 +1,11 @@
 import { Transaction as DBTransaction } from "@prisma/client";
 import React, { useState } from "react";
-import { Bank, BankAccount } from "../../lib/model/BankAccount";
-import { Category } from "../../lib/model/Category";
-import { Currency } from "../../lib/model/Currency";
-import { Transaction } from "../../lib/model/Transaction";
-import { descriptiveDateTime, shortRelativeDate } from "../../lib/TimeHelpers";
-import { Amount } from "../Amount";
+import { Bank, BankAccount } from "lib/model/BankAccount";
+import { Category } from "lib/model/Category";
+import { Currency } from "lib/model/Currency";
+import { Transaction } from "lib/model/Transaction";
+import { descriptiveDateTime, shortRelativeDate } from "lib/TimeHelpers";
+import { Amount } from "Amount";
 import { AddTransactionForm } from "./AddTransactionForm";
 
 const transactionHeadingText = (t: Transaction) => {

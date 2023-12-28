@@ -1,5 +1,5 @@
 import { FieldHookConfig } from "formik";
-import { Category } from "../../lib/model/Category";
+import { Category } from "lib/model/Category";
 import { InputProps } from "./InputProps";
 import { SelectNumber } from "./Select";
 

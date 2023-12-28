@@ -1,7 +1,7 @@
 import Link from "next/link";
 import React, { useState } from "react";
-import { Bank, BankAccount } from "../../../lib/model/BankAccount";
-import { Currency } from "../../../lib/model/Currency";
+import { Bank, BankAccount } from "lib/model/BankAccount";
+import { Currency } from "lib/model/Currency";
 
 type AddBankAccountFormProps = {
   displayOrder: number;

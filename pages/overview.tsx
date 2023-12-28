@@ -3,20 +3,20 @@ import { withIronSessionSsr } from "iron-session/next";
 import { InferGetServerSidePropsType } from "next";
 import Router from "next/router";
 import React, { useState } from "react";
-import { Amount } from "../components/Amount";
-import Layout from "../components/Layout";
-import { AddTransactionForm } from "../components/transactions/AddTransactionForm";
-import { TransactionsList } from "../components/transactions/TransactionsList";
-import { modelFromDatabaseData } from "../lib/ClientSideModel";
+import { Amount } from "components/Amount";
+import Layout from "components/Layout";
+import { AddTransactionForm } from "components/transactions/AddTransactionForm";
+import { TransactionsList } from "components/transactions/TransactionsList";
+import { modelFromDatabaseData } from "lib/ClientSideModel";
 import {
   Bank,
   BankAccount,
   bankAccountBalance,
-} from "../lib/model/BankAccount";
-import { Category } from "../lib/model/Category";
-import { Currency } from "../lib/model/Currency";
-import { AllDatabaseData, loadAllDatabaseData } from "../lib/ServerSideDB";
-import { sessionOptions } from "../lib/session";
+} from "lib/model/BankAccount";
+import { Category } from "lib/model/Category";
+import { Currency } from "lib/model/Currency";
+import { AllDatabaseData, loadAllDatabaseData } from "lib/ServerSideDB";
+import { sessionOptions } from "lib/session";
 import { User } from "./api/user";
 
 type BankAccountListItemProps = {

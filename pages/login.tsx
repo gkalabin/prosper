@@ -1,9 +1,9 @@
 import { Form, Formik, FormikHelpers } from "formik";
 import Router from "next/router";
 import { useState } from "react";
-import { TextInput } from "../components/forms/Input";
-import Layout from "../components/Layout";
-import useUser from "../lib/useUser";
+import { TextInput } from "components/forms/Input";
+import Layout from "components/Layout";
+import useUser from "lib/useUser";
 
 interface LoginFormValues {
   login: string;

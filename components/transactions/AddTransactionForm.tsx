@@ -9,15 +9,15 @@ import {
   FormMode,
   formModeForTransaction,
   formToDTO,
-} from "../../lib/AddTransactionDataModels";
-import { Bank, bankAccountsFlatList } from "../../lib/model/BankAccount";
-import { Category } from "../../lib/model/Category";
-import { Currency } from "../../lib/model/Currency";
-import { Transaction } from "../../lib/model/Transaction";
-import { toDateTimeLocal } from "../../lib/TimeHelpers";
-import { BankAccountSelect } from "../forms/BankAccountSelect";
-import { MoneyInput, TextInput } from "../forms/Input";
-import { SelectNumber } from "../forms/Select";
+} from "lib/AddTransactionDataModels";
+import { Bank, bankAccountsFlatList } from "lib/model/BankAccount";
+import { Category } from "lib/model/Category";
+import { Currency } from "lib/model/Currency";
+import { Transaction } from "lib/model/Transaction";
+import { toDateTimeLocal } from "lib/TimeHelpers";
+import { BankAccountSelect } from "components/forms/BankAccountSelect";
+import { MoneyInput, TextInput } from "components/forms/Input";
+import { SelectNumber } from "components/forms/Select";
 
 type AddTransactionFormProps = {
   banks: Bank[];

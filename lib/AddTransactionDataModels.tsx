@@ -83,7 +83,7 @@ export type IncomeTransactionDTO = {
 export const formToDTO = (
   mode: FormMode,
   form: AddTransactionFormValues,
-  transaction?: Transaction,
+  transaction?: Transaction
 ): AddTransactionDTO => {
   const out: AddTransactionDTO = {
     mode: mode,
@@ -128,83 +128,70 @@ export const formToDTO = (
   return out;
 };
 
-export const dtoToDb = (
+export const transactionDbInput = (
   dto: AddTransactionDTO
-): Prisma.TransactionCreateArgs => {
-  const dbArgs: Prisma.TransactionCreateArgs = {
-    data: {
-      timestamp: new Date(dto.timestamp),
-      description: dto.description,
-      amountCents: dto.amountCents,
-      category: {
-        connect: {
-          id: dto.categoryId,
-        },
+): Prisma.TransactionCreateInput & Prisma.TransactionUpdateInput => {
+  return {
+    timestamp: new Date(dto.timestamp),
+    description: dto.description,
+    amountCents: dto.amountCents,
+    category: {
+      connect: {
+        id: dto.categoryId,
       },
-    },
-    include: {
-      personalExpense: true,
-      thirdPartyExpense: true,
-      transfer: true,
-      income: true,
     },
   };
-  if (dto.mode == FormMode.PERSONAL) {
-    dbArgs.data.personalExpense = {
-      create: {
-        vendor: dto.personalTransaction.vendor,
-        ownShareAmountCents: dto.personalTransaction.ownShareAmountCents,
-        account: {
-          connect: {
-            id: dto.personalTransaction.bankAccountId,
-          },
-        },
+};
+
+export const personalExpenseDbInput = (dto: AddTransactionDTO) => {
+  return {
+    vendor: dto.personalTransaction.vendor,
+    ownShareAmountCents: dto.personalTransaction.ownShareAmountCents,
+    account: {
+      connect: {
+        id: dto.personalTransaction.bankAccountId,
       },
-    };
-  }
-  if (dto.mode == FormMode.EXTERNAL) {
-    dbArgs.data.thirdPartyExpense = {
-      create: {
-        vendor: dto.externalTransaction.vendor,
-        ownShareAmountCents: dto.externalTransaction.ownShareAmountCents,
-        payer: dto.externalTransaction.payer,
-        currency: {
-          connect: {
-            id: dto.externalTransaction.currencyId,
-          },
-        },
+    },
+  };
+};
+
+export const thirdPartyExpenseDbInput = (dto: AddTransactionDTO) => {
+  return {
+    vendor: dto.externalTransaction.vendor,
+    ownShareAmountCents: dto.externalTransaction.ownShareAmountCents,
+    payer: dto.externalTransaction.payer,
+    currency: {
+      connect: {
+        id: dto.externalTransaction.currencyId,
       },
-    };
-  }
-  if (dto.mode == FormMode.TRANSFER) {
-    dbArgs.data.transfer = {
-      create: {
-        receivedAmountCents: dto.transferTransaction.receivedAmountCents,
-        accountFrom: {
-          connect: {
-            id: dto.transferTransaction.fromBankAccountId,
-          },
-        },
-        accountTo: {
-          connect: {
-            id: dto.transferTransaction.toBankAccountId,
-          },
-        },
+    },
+  };
+};
+
+export const transferDbInput = (dto: AddTransactionDTO) => {
+  return {
+    receivedAmountCents: dto.transferTransaction.receivedAmountCents,
+    accountFrom: {
+      connect: {
+        id: dto.transferTransaction.fromBankAccountId,
       },
-    };
-  }
-  if (dto.mode == FormMode.INCOME) {
-    dbArgs.data.income = {
-      create: {
-        vendor: dto.incomeTransaction.vendor,
-        ownShareAmountCents: dto.incomeTransaction.ownShareAmountCents,
-        account: {
-          connect: {
-            id: dto.incomeTransaction.bankAccountId,
-          },
-        },
+    },
+    accountTo: {
+      connect: {
+        id: dto.transferTransaction.toBankAccountId,
       },
-    };
-  }
-  return dbArgs;
+    },
+  };
+};
+
+export const incomeDbInput = (dto: AddTransactionDTO) => {
+  return {
+    vendor: dto.incomeTransaction.vendor,
+    ownShareAmountCents: dto.incomeTransaction.ownShareAmountCents,
+    account: {
+      connect: {
+        id: dto.incomeTransaction.bankAccountId,
+      },
+    },
+  };
 };

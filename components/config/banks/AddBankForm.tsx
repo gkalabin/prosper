@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Bank } from "../../../lib/model/BankAccount";
+import { Bank } from "lib/model/BankAccount";
 
 type AddBankFormProps = {
   displayOrder: number;
