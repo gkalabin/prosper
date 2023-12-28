@@ -1,14 +1,14 @@
-import React from "react";
-import prisma from "../lib/prisma";
 import { GetStaticProps } from "next";
+import React from "react";
 import Layout from "../components/Layout";
-import Transaction from "../lib/model/Transaction";
-import Bank from "../lib/model/Bank";
-import Currency from "../lib/model/Currency";
-import { DbCategory, makeCategoryTree } from "../lib/model/Category";
 import { AddTransactionForm } from "../components/transactions/AddTransactionForm";
 import { makeTransactionInclude } from "../lib/db/transactionInclude";
+import Bank from "../lib/model/Bank";
 import BankAccount from "../lib/model/BankAccount";
+import { DbCategory, makeCategoryTree } from "../lib/model/Category";
+import Currency from "../lib/model/Currency";
+import Transaction from "../lib/model/Transaction";
+import prisma from "../lib/prisma";
 
 export const getStaticProps: GetStaticProps = async () => {
   const transactions = await prisma.transaction.findMany({

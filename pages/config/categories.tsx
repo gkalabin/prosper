@@ -1,13 +1,13 @@
-import React, { useState } from "react";
-import prisma from "../../lib/prisma";
 import { GetStaticProps } from "next";
-import Layout from "../../components/Layout";
+import React, { useState } from "react";
 import AddCategoryForm from "../../components/config/categories/AddCategoryForm";
-import Category, { makeCategoryTree } from "../../lib/model/Category";
 import EditableCategoryListItem from "../../components/config/categories/CategoryListItem";
+import Layout from "../../components/Layout";
+import Category, { makeCategoryTree } from "../../lib/model/Category";
+import prisma from "../../lib/prisma";
 
 type CategoryDbModel = {
-  id: string;
+  id: number;
   name: string;
   parentCategoryId?: number;
   displayOrder: number;

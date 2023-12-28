@@ -7,5 +7,4 @@ type Bank = {
   accounts: BankAccount[];
 };
 
-
 export default Bank;

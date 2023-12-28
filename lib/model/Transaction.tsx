@@ -11,5 +11,4 @@ type Transaction = {
   personalExpense: PersonalExpense;
 };
 
-
 export default Transaction;

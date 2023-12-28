@@ -1,8 +1,8 @@
-import React, { useState } from "react";
-import prisma from "../../lib/prisma";
 import { GetStaticProps } from "next";
+import React, { useState } from "react";
 import Layout from "../../components/Layout";
 import Currency from "../../lib/model/Currency";
+import prisma from "../../lib/prisma";
 
 export const getStaticProps: GetStaticProps = async () => {
   const currencies = await prisma.currency.findMany({});
@@ -159,7 +159,9 @@ const CurrencyName: React.FC<CurrencyNameProps> = (props) => {
     return (
       <div>
         <span className="text-lg">{props.currency.name}</span>
-        <button className="mx-4 px-4 bg-orange-200 rounded-sm" onClick={open}>Edit</button>
+        <button className="mx-4 px-4 bg-orange-200 rounded-sm" onClick={open}>
+          Edit
+        </button>
       </div>
     );
   }
