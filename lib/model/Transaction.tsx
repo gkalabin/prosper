@@ -44,6 +44,7 @@ export class Transaction {
   readonly amountCents: number;
   readonly category: Category;
   private readonly _tags: Tag[];
+  private readonly _parentTransactionId?: number;
 
   private readonly personalExpense?: PersonalExpense;
   private readonly thirdPartyExpense?: ThirdPartyExpense;
@@ -71,6 +72,7 @@ export class Transaction {
     this.category = categoryById[init.categoryId];
     this.exchange = exchange;
     this._tags = init.tags?.length ? init.tags.map(({id}) => tagById.get(id)) : [];
+    this._parentTransactionId = init.transactionToBeRepayedId;
 
     if (init.personalExpense) {
       const bankAccount = bankAccountById[init.personalExpense.accountId];
@@ -123,6 +125,14 @@ export class Transaction {
     return this._tags;
   }
 
+  hasParentTransaction() {
+    return !!this._parentTransactionId;
+  }
+
+  parentTransactionId() {
+    return this._parentTransactionId;
+  }
+
   isFamilyExpense() {
     if (this.isIncome()) {
       return false;
@@ -159,7 +169,7 @@ export class Transaction {
   }
 
   hasVendor() {
-    return !!this.vendorOrNull();
+    return this.vendorOrNull() != null;
   }
 
   vendor() {

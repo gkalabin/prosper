@@ -4,11 +4,14 @@ import {
   differenceInHours,
   differenceInMilliseconds,
   isAfter,
-  isBefore
+  isBefore,
 } from "date-fns";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { Transaction } from "lib/model/Transaction";
-import { IOBTransaction, IOBTransactionsByAccountId } from "lib/openbanking/interface";
+import {
+  IOBTransaction,
+  IOBTransactionsByAccountId,
+} from "lib/openbanking/interface";
 import { shortRelativeDate } from "lib/TimeHelpers";
 import { FormMode } from "lib/transactionCreation";
 import { useEffect, useState } from "react";
@@ -30,9 +33,7 @@ export function makePrototypes(input: {
   openBankingTransactions: IOBTransactionsByAccountId;
   transactionPrototypes: DBTransactionPrototype[];
 }) {
-  const dbTxById = Object.fromEntries(
-    input.transactions.map((t) => [t.id, t])
-  );
+  const dbTxById = Object.fromEntries(input.transactions.map((t) => [t.id, t]));
   const lookupList: { [obDesc: string]: { [dbDesc: string]: number } } = {};
   for (const t of input.transactionPrototypes) {
     const dbTx = dbTxById[t.transactionId];
@@ -128,9 +129,20 @@ export const NewTransactionSuggestions = (props: {
   transactionPrototypes: DBTransactionPrototype[];
   onItemClick: (t: TransactionPrototype) => void;
 }) => {
+  if (!props.openBankingTransactions || !props.transactionPrototypes) {
+    return <></>;
+  }
+  return <NonEmptyNewTransactionSuggestions {...props} />;
+};
+
+const NonEmptyNewTransactionSuggestions = (props: {
+  openBankingTransactions: IOBTransactionsByAccountId;
+  transactionPrototypes: DBTransactionPrototype[];
+  onItemClick: (t: TransactionPrototype) => void;
+}) => {
   const [hideBeforeLatest, setHideBeforeLatest] = useState(true);
-  const [expanded, setExpanded] = useState({} as { [id: string]: boolean; });
-  const [limit, setLimit] = useState({} as { [id: string]: number; });
+  const [expanded, setExpanded] = useState({} as { [id: string]: boolean });
+  const [limit, setLimit] = useState({} as { [id: string]: number });
   const { transactions, banks } = useAllDatabaseDataContext();
   const prototypes = makePrototypes({
     transactions,
@@ -180,7 +192,8 @@ export const NewTransactionSuggestions = (props: {
     .flatMap((x) => x.accounts)
     .filter((a) => protosByAccountId.get(a.id)?.length)
     .sort(
-      (a, b) => protosByAccountId.get(b.id).length - protosByAccountId.get(a.id).length
+      (a, b) =>
+        protosByAccountId.get(b.id).length - protosByAccountId.get(a.id).length
     );
   const [activeAccount, setActiveAccount] = useState(
     !accountsWithData.length ? null : accountsWithData[0]
@@ -244,10 +257,14 @@ export const NewTransactionSuggestions = (props: {
                 </div>
                 <div>
                   <ButtonLink
-                    onClick={() => setExpanded((prev) => Object.assign({}, prev, {
-                      [proto.openBankingTransactionId]: !prev[proto.openBankingTransactionId],
-                    })
-                    )}
+                    onClick={() =>
+                      setExpanded((prev) =>
+                        Object.assign({}, prev, {
+                          [proto.openBankingTransactionId]:
+                            !prev[proto.openBankingTransactionId],
+                        })
+                      )
+                    }
                   >
                     Raw
                   </ButtonLink>
@@ -260,10 +277,13 @@ export const NewTransactionSuggestions = (props: {
           ))}
         <li className="p-2">
           <ButtonLink
-            onClick={() => setLimit((prev) => Object.assign({}, prev, {
-              [activeAccount.id]: (prev[activeAccount.id] ?? 10) + 10,
-            })
-            )}
+            onClick={() =>
+              setLimit((prev) =>
+                Object.assign({}, prev, {
+                  [activeAccount.id]: (prev[activeAccount.id] ?? 10) + 10,
+                })
+              )
+            }
           >
             More
           </ButtonLink>

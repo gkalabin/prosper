@@ -14,7 +14,7 @@ import {
 } from "components/txform/NewTransactionSuggestions";
 import { SelectNumber } from "components/txform/Select";
 import { ButtonFormPrimary, ButtonFormSecondary } from "components/ui/buttons";
-import { format, isBefore } from "date-fns";
+import { differenceInMonths, format, isBefore } from "date-fns";
 import { Form, Formik, FormikHelpers, useFormikContext } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { BankAccount } from "lib/model/BankAccount";
@@ -24,12 +24,14 @@ import { Tag } from "lib/model/Tag";
 import { Transaction } from "lib/model/Transaction";
 import { Trip } from "lib/model/Trip";
 import { IOBTransactionsByAccountId } from "lib/openbanking/interface";
+import { shortRelativeDate } from "lib/TimeHelpers";
 import {
   AddTransactionFormValues,
   FormMode,
   TransactionAPIResponse,
 } from "lib/transactionCreation";
 import { useEffect, useState } from "react";
+import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 
 export const InputRow = (props: {
@@ -95,6 +97,7 @@ function initialValuesForTransaction(
     tripName: t.hasTrip() ? t.trip().name() : "",
     payer: t.hasPayer() ? t.payer() : "",
     tagNames: t.tags().map((x) => x.name()),
+    parentTransactionId: t.hasParentTransaction() ? t.parentTransactionId() : 0,
   };
   if (t.isPersonalExpense() || t.isThirdPartyExpense() || t.isIncome()) {
     defaults.ownShareAmount = t.amountOwnShare().dollar();
@@ -125,6 +128,7 @@ function initialValuesEmpty(
     tripName: "",
     payer: "",
     tagNames: [],
+    parentTransactionId: 0,
   };
 }
 
@@ -323,8 +327,10 @@ const FormInputs = (props: {
       timestamp,
       isFamilyExpense,
       fromBankAccountId,
+      toBankAccountId,
       mode,
       tagNames,
+      parentTransactionId,
     },
     setFieldValue,
     handleChange,
@@ -416,6 +422,10 @@ const FormInputs = (props: {
   const tagsByFrequency = [...tags].sort(
     (t1, t2) => tagFrequency.get(t2) - tagFrequency.get(t1)
   );
+
+  const makeTransactionLabel = (t: Transaction): string =>
+    `${t.amount().format()} ${t.vendor()} ${shortRelativeDate(t.timestamp)}`;
+  const parentTransaction = parentTransactionId ? transactions.find(t => t.id == parentTransactionId) : null;
 
   return (
     <>
@@ -556,6 +566,29 @@ const FormInputs = (props: {
               "tagNames",
               newValue.map((x) => x.value)
             )
+          }
+          isDisabled={isSubmitting}
+        />
+      </InputRow>
+
+      <InputRow mode={mode} modes={[FormMode.INCOME]}>
+        <Select
+          options={transactions
+            .filter((t) => t.isPersonalExpense())
+            .filter((t) => t.accountFrom().id == toBankAccountId)
+            .filter((t) => differenceInMonths(new Date(), t.timestamp) < 3)
+            .map((x) => {
+              return {
+                label: makeTransactionLabel(x),
+                value: x.id,
+              };
+            })}
+          value={{
+            label: parentTransaction ? makeTransactionLabel(parentTransaction) : "None",
+            value: parentTransactionId,
+          }}
+          onChange={(newValue) =>
+            setFieldValue("parentTransactionId", newValue.value)
           }
           isDisabled={isSubmitting}
         />

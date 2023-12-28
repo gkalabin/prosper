@@ -24,6 +24,7 @@ export type AddTransactionFormValues = {
   isFamilyExpense: boolean;
   tripName: string;
   tagNames: string[];
+  parentTransactionId: number;
 };
 
 export type TransactionAPIResponse = {
@@ -52,7 +53,13 @@ type ExtensionDbData =
 const toCents = (x: number): number => Math.round(x * 100);
 
 export const transactionDbInput = (
-  { timestamp, description, amount, categoryId },
+  {
+    timestamp,
+    description,
+    amount,
+    categoryId,
+    parentTransactionId,
+  }: AddTransactionFormValues,
   userId: number
 ): TransactionDbData => {
   return {
@@ -61,6 +68,9 @@ export const transactionDbInput = (
     userId,
     timestamp: new Date(timestamp).toISOString(),
     amountCents: toCents(amount),
+    ...(parentTransactionId && {
+      transactionToBeRepayedId: parentTransactionId,
+    }),
   };
 };
 
