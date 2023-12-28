@@ -31,6 +31,7 @@ export const AddOrEditAccountForm = ({
     name: "",
     currencyId: currencies.all()[0]?.id,
     isJoint: false,
+    isArchived: false,
     initialBalance: 0,
     displayOrder: 100 * bank.accounts.length,
   };
@@ -39,6 +40,7 @@ export const AddOrEditAccountForm = ({
       name: bankAccount.name,
       currencyId: bankAccount.currency.id,
       isJoint: bankAccount.isJoint(),
+      isArchived: bankAccount.isArchived(),
       initialBalance: bankAccount.initialBalanceCents / 100,
       displayOrder: bankAccount.displayOrder,
     };
@@ -104,6 +106,7 @@ export const AddOrEditAccountForm = ({
               name="currencyId"
               disabled={isSubmitting}
               className="w-full"
+              value={values.currencyId}
             >
               {currencies.all().map((x) => (
                 <option key={x.id} value={x.id}>
@@ -126,9 +129,18 @@ export const AddOrEditAccountForm = ({
               htmlFor="isJoint"
               className="text-sm font-medium text-gray-700"
             >
-              Joint account
+              Joint
             </label>
             <FormikInput name="isJoint" type="checkbox" />
+          </div>
+          <div className="flex flex-row items-center gap-3">
+            <label
+              htmlFor="isArchived"
+              className="text-sm font-medium text-gray-700"
+            >
+              Archived
+            </label>
+            <FormikInput name="isArchived" type="checkbox" />
           </div>
           <div className="flex flex-row justify-end gap-2">
             <ButtonFormSecondary onClick={onClose} disabled={isSubmitting}>

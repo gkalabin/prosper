@@ -10,7 +10,7 @@ async function handle(
 ) {
   // Parse input.
   const accountId = parseInt(req.query.id as string);
-  const { name, displayOrder, currencyId } = req.body;
+  const { name, displayOrder, currencyId, isArchived, isJoint, initialBalance } = req.body;
   // Verify user has access.
   const db = new DB({ userId });
   const found = await db.bankAccountFindMany({
@@ -28,6 +28,9 @@ async function handle(
       name,
       displayOrder,
       currencyId,
+      archived: isArchived,
+      joint: isJoint,
+      initialBalanceCents: Math.round(initialBalance * 100),
     },
     where: { id: accountId },
   });
