@@ -73,7 +73,6 @@ export const getServerSideProps: GetServerSideProps<{
   })
     .then((r) => r.json())
     .then((x) => {
-      console.log(x);
       return x.results.map((r) => {
         const oba: OpenBankingAccount = {
           openBankingAccountId: r.account_id,
