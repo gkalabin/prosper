@@ -4,7 +4,7 @@ import { InputProps } from "./InputProps";
 
 export const MoneyInput = (props: InputProps & FieldHookConfig<number>) => {
   return (
-    <InputUntyped {...props} type="number" step="0.01" inputMode="decimal" />
+    <InputUntyped {...props} type="number" step="0.01" inputMode="decimal" onFocus={(e) => e.target.select()} />
   );
 };
 

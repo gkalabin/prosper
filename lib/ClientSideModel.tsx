@@ -51,7 +51,14 @@ export const modelFromDatabaseData = (
     [id: number]: Transaction;
   } = {};
   for (const x of dbData.dbTransactions) {
-    const { id, timestamp, description, amountCents, categoryId } = x;
+    const {
+      id,
+      timestamp,
+      description,
+      amountCents,
+      categoryId,
+      personalExpense,
+    } = x;
     const transactionModel = {
       id: id,
       timestamp: new Date(timestamp),
@@ -63,19 +70,16 @@ export const modelFromDatabaseData = (
       income: null,
       transfer: null,
     };
+    if (personalExpense) {
+      const bankAccount = bankAccountById[personalExpense.accountId];
+      transactionModel.personalExpense = Object.assign({}, personalExpense, {
+        account: bankAccount,
+        dbValue: personalExpense,
+      });
+      bankAccount.transactions.push(transactionModel);
+    }
     transactionById[id] = transactionModel;
   }
-  dbData.dbPersonalExpense.forEach((x) => {
-    const bankAccount = bankAccountById[x.accountId];
-    const m = Object.assign({}, x, {
-      account: bankAccount,
-      dbValue: x,
-    });
-    const transaction = transactionById[x.transactionId];
-    transaction.personalExpense = m;
-    bankAccount.transactions.push(transaction);
-    return m;
-  });
   dbData.dbThirdPartyExpense.forEach((x) => {
     const m = Object.assign({}, x, {
       currency: currencyById[x.currencyId],
@@ -111,7 +115,25 @@ export const modelFromDatabaseData = (
     return m;
   });
 
-  const transactions = Object.values(transactionById).filter((x) => {
+  const transactions = validateTransactionModel(Object.values(transactionById));
+  transactions.sort(compareTransactions);
+  bankAccounts.forEach(ba => ba.transactions.sort(compareTransactions))
+
+  return {
+    banks,
+    bankAccounts,
+    currencies,
+    categories,
+    transactions,
+  };
+};
+
+function compareTransactions(a: Transaction, b: Transaction) {
+  return b.timestamp.getTime() - a.timestamp.getTime();
+}
+
+function validateTransactionModel(transactions: Transaction[]): Transaction[] {
+  return transactions.filter((x) => {
     const extensions = [
       x.personalExpense,
       x.thirdPartyExpense,
@@ -129,14 +151,4 @@ export const modelFromDatabaseData = (
     }
     return true;
   });
-
-  transactions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-
-  return {
-    banks,
-    bankAccounts,
-    currencies,
-    categories,
-    transactions,
-  };
-};
+}

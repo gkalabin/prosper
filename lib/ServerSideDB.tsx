@@ -11,8 +11,15 @@ import {
 } from "@prisma/client";
 import prisma from "./prisma";
 
+export interface TransactionWithExtensions extends Transaction {
+  personalExpense?: PersonalExpense;
+  thirdPartyExpense?: ThirdPartyExpense;
+  transfer?: Transfer;
+  income?: Income;
+}
+
 export type AllDatabaseData = {
-  dbTransactions: Transaction[];
+  dbTransactions: TransactionWithExtensions[];
   dbCategories: Category[];
   dbBanks: Bank[];
   dbBankAccounts: BankAccount[];
@@ -24,7 +31,14 @@ export type AllDatabaseData = {
 };
 
 export const loadAllDatabaseData = async () => {
-  const dbTransactions = await prisma.transaction.findMany();
+  const dbTransactions = await prisma.transaction.findMany({
+    include: {
+      personalExpense: true,
+      thirdPartyExpense: true,
+      transfer: true,
+      income: true,
+    },
+  });
   const transactionIds = dbTransactions.map((t) => t.id);
   const txFilter = {
     where: {

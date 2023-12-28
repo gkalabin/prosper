@@ -118,6 +118,12 @@ export const dtoToDb = (
         },
       },
     },
+    include: {
+      personalExpense: true,
+      thirdPartyExpense: true,
+      transfer: true,
+      income: true,
+    },
   };
   if (dto.mode == FormMode.PERSONAL) {
     dbArgs.data.personalExpense = {

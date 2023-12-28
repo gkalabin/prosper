@@ -93,9 +93,23 @@ const OverviewPage: React.FC<AllDatabaseData> = (props) => {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
   const [dbData, setDbData] = useState(props);
   const model = modelFromDatabaseData(dbData);
+
   const addTransaction = (added: DBTransaction) => {
-    // TODO
-    console.log(added);
+    setDbData((old) => {
+      const newDataCopy = Object.assign({}, old);
+      newDataCopy.dbTransactions = [...old.dbTransactions, added];
+      return newDataCopy;
+    });
+    setShowAddTransactionForm(false);
+  };
+  const updateTransaction = (updated: DBTransaction) => {
+    setDbData((old) => {
+      const newDataCopy = Object.assign({}, old);
+      newDataCopy.dbTransactions = old.dbTransactions.map((t) =>
+        t.id == updated.id ? updated : t
+      );
+      return newDataCopy;
+    });
   };
 
   return (
@@ -115,10 +129,10 @@ const OverviewPage: React.FC<AllDatabaseData> = (props) => {
           {showAddTransactionForm && (
             <div className="">
               <AddTransactionForm
-                onAdded={addTransaction}
                 categories={model.categories}
                 banks={model.banks}
                 currencies={model.currencies}
+                onAdded={addTransaction}
                 onClose={() => setShowAddTransactionForm(false)}
               />
             </div>

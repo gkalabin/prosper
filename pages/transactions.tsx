@@ -20,15 +20,21 @@ const TransactionsPage: React.FC<AllDatabaseData> = (props) => {
   const model = modelFromDatabaseData(dbData);
 
   const addTransaction = (added: DBTransaction) => {
-    console.log(added);
-    // setDbData((old) => [...old, added]);
+    setDbData((old) => {
+      const newDataCopy = Object.assign({}, old);
+      newDataCopy.dbTransactions = [...old.dbTransactions, added];
+      return newDataCopy;
+    });
     setShowAddTransactionForm(false);
   };
   const updateTransaction = (updated: DBTransaction) => {
-    // setDbTransactions((old) =>
-    //   old.map((t) => (t.id == updated.id ? updated : t))
-    // );
-    console.log(updated);
+    setDbData((old) => {
+      const newDataCopy = Object.assign({}, old);
+      newDataCopy.dbTransactions = old.dbTransactions.map((t) =>
+        t.id == updated.id ? updated : t
+      );
+      return newDataCopy;
+    });
   };
 
   return (
