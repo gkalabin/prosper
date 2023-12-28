@@ -1,7 +1,8 @@
 import prisma from "lib/prisma";
 import { getUserId } from "lib/user";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function PUT(request: Request): Promise<Response> {
+export async function PUT(request: NextRequest): Promise<Response> {
   const userId = await getUserId();
   // Parse input.
   const { displayCurrencyCode, excludeCategoryIdsInStats } =
@@ -14,5 +15,5 @@ export async function PUT(request: Request): Promise<Response> {
     },
     where: { userId },
   });
-  return Response.json(result);
+  return NextResponse.json(result);
 }
