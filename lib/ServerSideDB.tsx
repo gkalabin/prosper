@@ -38,7 +38,11 @@ const jsonEncodingHacks = (key: string, value) => {
 };
 
 export const allDbDataProps = async () => {
-  await Promise.all([addLatestExchangeRates(), addLatestStockQuotes()]);
+  await Promise.all([addLatestExchangeRates(), addLatestStockQuotes()]).catch(
+    (reason) => {
+      console.warn("Failed to update rates", reason);
+    }
+  );
   const allData = await loadAllDatabaseData();
   return {
     props: JSON.parse(JSON.stringify(allData, jsonEncodingHacks)),
