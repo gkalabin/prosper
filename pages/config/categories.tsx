@@ -73,7 +73,7 @@ const EditableCategoryListItem = ({
                 category.isRoot() && "text-xl font-medium",
                 category.depth() == 1 && "text-lg",
                 category.depth() > 1 && "text-base font-light",
-                "align-middle"
+                "ml-2 align-middle"
               )}
             >
               {showEditForm && "Editing "}
