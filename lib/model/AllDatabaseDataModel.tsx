@@ -17,10 +17,10 @@ import {
 } from "@prisma/client";
 
 export interface TransactionWithExtensions extends Transaction {
-  personalExpense?: PersonalExpense;
-  thirdPartyExpense?: ThirdPartyExpense;
-  transfer?: Transfer;
-  income?: Income;
+  personalExpense: PersonalExpense | null;
+  thirdPartyExpense: ThirdPartyExpense | null;
+  transfer: Transfer | null;
+  income: Income | null;
 }
 
 export interface TransactionWithExtensionsAndTagIds

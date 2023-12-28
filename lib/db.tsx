@@ -1,5 +1,8 @@
 import { Prisma } from "@prisma/client";
-import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
+import {
+  AllDatabaseData,
+  TransactionWithExtensionsAndTagIds,
+} from "lib/model/AllDatabaseDataModel";
 import { Currency } from "lib/model/Currency";
 import prisma from "lib/prisma";
 import { includeExtensionsAndTags } from "lib/transactionDbUtils";
@@ -17,7 +20,7 @@ export class DB {
     const session = await getServerSession(
       context.req,
       context.res,
-      authOptions
+      authOptions,
     );
     if (!session) {
       throw new Error("No session");
@@ -26,12 +29,30 @@ export class DB {
   }
 
   transactionFindMany<T extends Prisma.TransactionFindManyArgs>(
-    args?: Prisma.SelectSubset<T, Prisma.TransactionFindManyArgs>
+    args?: Prisma.SelectSubset<T, Prisma.TransactionFindManyArgs>,
   ): Prisma.PrismaPromise<Array<Prisma.TransactionGetPayload<T>>> {
     return prisma.transaction.findMany(this.whereUser(args));
   }
-  transactionFindFirst(args?: Prisma.TransactionFindFirstArgs) {
-    return prisma.transaction.findFirst(this.whereUser(args));
+  transactionById(
+    id: number,
+  ): Promise<TransactionWithExtensionsAndTagIds | null> {
+    return prisma.transaction.findFirst({
+      where: {
+        id,
+        userId: this.userId,
+      },
+      include: {
+        personalExpense: true,
+        thirdPartyExpense: true,
+        transfer: true,
+        income: true,
+        tags: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
   }
   transactionPrototypeFindMany(args?: Prisma.TransactionPrototypeFindManyArgs) {
     return prisma.transactionPrototype.findMany(this.whereUser(args));
@@ -78,14 +99,14 @@ export class DB {
     return prisma.starlingToken.findMany(this.whereUser(args));
   }
   externalAccountMappingFindMany(
-    args?: Prisma.ExternalAccountMappingFindManyArgs
+    args?: Prisma.ExternalAccountMappingFindManyArgs,
   ) {
     return prisma.externalAccountMapping.findMany(this.whereUser(args));
   }
 
   async getOrCreateDbDisplaySettings() {
     const [existing] = await prisma.displaySettings.findMany(
-      this.whereUser({})
+      this.whereUser({}),
     );
     if (existing) {
       return existing;
@@ -116,14 +137,13 @@ export class DB {
   }
 }
 
-
 export async function fetchAllDatabaseData(db: DB): Promise<AllDatabaseData> {
   const data = {} as AllDatabaseData;
   await Promise.all(
     [
       async () =>
         (data.dbTransactions = await db.transactionFindMany(
-          includeExtensionsAndTags
+          includeExtensionsAndTags,
         )),
       async () => (data.dbBanks = await db.bankFindMany()),
       async () => (data.dbTrips = await db.tripFindMany()),
@@ -138,7 +158,7 @@ export async function fetchAllDatabaseData(db: DB): Promise<AllDatabaseData> {
       async () =>
         (data.dbTransactionPrototypes =
           await db.transactionPrototypeFindMany()),
-    ].map((f) => f())
+    ].map((f) => f()),
   );
   return data;
-};
+}

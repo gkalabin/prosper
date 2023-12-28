@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { DB } from "lib/db";
 import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
 import prisma from "lib/prisma";
@@ -27,9 +28,7 @@ export async function PUT(
   const { form } = (await request.json()) as TransactionAPIRequest;
   const userId = await getUserId();
   const db = new DB({ userId });
-  const existing = await db.transactionFindFirst(
-    Object.assign({ where: { id: transactionId } }, includeExtensionsAndTags),
-  );
+  const existing = await db.transactionById(transactionId);
   if (!existing) {
     return new Response(`Not authenticated`, { status: 401 });
   }
@@ -66,7 +65,7 @@ export async function PUT(
 }
 
 async function deleteExistingTransaction(
-  tx,
+  tx: Prisma.TransactionClient,
   existing: TransactionWithExtensions,
 ) {
   const whereTransaction = {
