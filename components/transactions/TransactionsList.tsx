@@ -118,7 +118,7 @@ export const TransactionsListItem = (props: {
             <TransactionTitle t={t} />
           </div>
           <div className="text-xs italic text-gray-600">{t.note}</div>
-          <div className="text-xs text-gray-600">
+          <div className="text-xs text-gray-600" suppressHydrationWarning={true}>
             {format(t.timestampEpoch, "yyyy-MM-dd HH:mm")}
           </div>
         </div>
@@ -138,7 +138,7 @@ export const TransactionsListItem = (props: {
       {expanded && (
         <div className="pl-1">
           <div>ID: {t.id}</div>
-          <div>Time: {new Date(t.timestampEpoch).toISOString()}</div>
+          <div suppressHydrationWarning={true}>Time: {new Date(t.timestampEpoch).toISOString()}</div>
           <div>Type: {t.kind}</div>
           <div>Category: {category.nameWithAncestors()}</div>
           {isExpense(t) && <div>Vendor: {t.vendor}</div>}
