@@ -144,7 +144,6 @@ export default function OverviewPage(
       newDataCopy.dbTransactions = [...old.dbTransactions, added];
       return newDataCopy;
     });
-    setShowAddTransactionForm(false);
   };
   const updateTransaction = (updated: DBTransaction) => {
     setDbData((oldDbData) => {

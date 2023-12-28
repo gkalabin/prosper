@@ -387,8 +387,8 @@ const NewTransactionSuggestions = (props: {
         <div className="px-2 pb-1 text-xs text-slate-600">
           {hideBeforeLatest && (
             <span>
-              Hidden {totalHidden} suggestions because there are more
-              recent recorded transactions.{" "}
+              Hidden {totalHidden} suggestions because there are more recent
+              recorded transactions.{" "}
               <ButtonLink onClick={() => setHideBeforeLatest(false)}>
                 Show them anyway.
               </ButtonLink>
@@ -470,10 +470,28 @@ export const AddTransactionForm = (props: {
   const [isAdvancedMode, setAdvancedMode] = useState(false);
   const [prototype, setPrototype] = useState<TransactionPrototype>(null);
   const currencies = useCurrencyContext();
+  const creatingNewTransaction = !props.transaction;
+  const defaultAccountFrom = mostUsedAccountFrom(mode, props.allTransactions);
+  const defaultAccountTo = mostUsedAccountTo(mode, props.allTransactions);
+  const defaultCategory = props.categories[0];
+  const defaultCurrency = currencies.all()[0];
+  const initialValuesForEmptyForm = initialValuesEmpty(
+    defaultAccountFrom,
+    defaultAccountTo,
+    defaultCategory,
+    defaultCurrency
+  );
+  const initialValues = !props.transaction
+    ? initialValuesForEmptyForm
+    : initialValuesForTransaction(
+        props.transaction,
+        defaultAccountFrom,
+        defaultAccountTo
+      );
 
   const submitNewTransaction = async (
     values: AddTransactionFormValues,
-    { setSubmitting }: FormikHelpers<AddTransactionFormValues>
+    { setSubmitting, resetForm }: FormikHelpers<AddTransactionFormValues>
   ) => {
     const body = JSON.stringify(formToDTO(mode, values, props.transaction));
     await fetch("/api/transaction", {
@@ -484,6 +502,8 @@ export const AddTransactionForm = (props: {
       .then(async (added) => {
         // stop submitting before callback to avoid updating state on an unmounted component
         setSubmitting(false);
+        resetForm({ values: initialValuesForEmptyForm });
+        setPrototype(null);
         props.onAdded(await added.json());
       })
       .catch((error) => {
@@ -492,24 +512,6 @@ export const AddTransactionForm = (props: {
         setApiError(`Failed to add: ${error}`);
       });
   };
-
-  const creatingNewTransaction = !props.transaction;
-  const defaultAccountFrom = mostUsedAccountFrom(mode, props.allTransactions);
-  const defaultAccountTo = mostUsedAccountTo(mode, props.allTransactions);
-  const defaultCategory = props.categories[0];
-  const defaultCurrency = currencies.all()[0];
-  const initialValues = !props.transaction
-    ? initialValuesEmpty(
-        defaultAccountFrom,
-        defaultAccountTo,
-        defaultCategory,
-        defaultCurrency
-      )
-    : initialValuesForTransaction(
-        props.transaction,
-        defaultAccountFrom,
-        defaultAccountTo
-      );
 
   return (
     <div>
@@ -669,7 +671,9 @@ const FormInputs = (props: {
 
   useEffect(() => {
     if (props.mode == FormMode.PERSONAL) {
-      const account = props.banks.flatMap(b => b.accounts).find(a => a.id == fromBankAccountId)
+      const account = props.banks
+        .flatMap((b) => b.accounts)
+        .find((a) => a.id == fromBankAccountId);
       setFieldValue("isFamilyExpense", account.isJoint());
     }
   }, [props.mode, setFieldValue, props.banks, fromBankAccountId]);
