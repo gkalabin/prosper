@@ -20,6 +20,7 @@ import {
   differenceInHours,
   differenceInMilliseconds,
   format,
+  isAfter,
   isBefore,
 } from "date-fns";
 import { Form, Formik, FormikHelpers, useFormikContext } from "formik";
@@ -302,49 +303,106 @@ const NewTransactionSuggestions = (props: {
   allTransactions: Transaction[];
   onItemClick: (t: TransactionPrototype) => void;
 }) => {
+  const [hideBeforeLatest, setHideBeforeLatest] = useState(true);
+  const [expanded, setExpanded] = useState({} as { [id: string]: boolean });
+  const [limit, setLimit] = useState({} as { [id: string]: number });
   const prototypes = makePrototypes({
     allTransactions: props.allTransactions,
     openBankingTransactions: props.openBankingTransactions,
     transactionPrototypes: props.transactionPrototypes,
   });
+  const protosByAccountId = new Map<number, TransactionPrototype[]>();
+  prototypes.forEach((p) => {
+    const append = (accountId: number) => {
+      if (!accountId) {
+        return;
+      }
+      const ps = protosByAccountId.get(accountId) ?? [];
+      protosByAccountId.set(accountId, [...ps, p]);
+    };
+    append(p.accountFromId);
+    append(p.accountToId);
+  });
+  const latestTxByAccountId = new Map<number, Date>();
+  props.allTransactions.forEach((t) => {
+    const updateIfNewer = (accountId: number) => {
+      const latest = latestTxByAccountId.get(accountId);
+      if (!latest || isBefore(latest, t.timestamp)) {
+        latestTxByAccountId.set(accountId, t.timestamp);
+      }
+    };
+    if (t.hasAccountFrom()) {
+      updateIfNewer(t.accountFrom().id);
+    }
+    if (t.hasAccountTo()) {
+      updateIfNewer(t.accountTo().id);
+    }
+  });
+  let totalHidden = 0;
+  if (hideBeforeLatest) {
+    for (const [accountId, latest] of latestTxByAccountId.entries()) {
+      const ps = protosByAccountId.get(accountId) ?? [];
+      if (!ps.length) {
+        continue;
+      }
+      const filtered = ps.filter((p) => isAfter(p.timestamp, latest));
+      protosByAccountId.set(accountId, filtered);
+      totalHidden += ps.length - filtered.length;
+    }
+  }
   const accountsWithData = props.banks
     .flatMap((x) => x.accounts)
-    .filter((a) =>
-      prototypes.find((p) => p.accountFromId == a.id || p.accountToId == a.id)
+    .filter((a) => protosByAccountId.get(a.id)?.length)
+    .sort(
+      (a, b) =>
+        protosByAccountId.get(b.id).length - protosByAccountId.get(a.id).length
     );
-  const protosByAccountId = Object.fromEntries(
-    accountsWithData.map((a) => {
-      const protos = prototypes.filter(
-        (p) => p.accountFromId == a.id || p.accountToId == a.id
-      );
-      return [a.id, protos];
-    })
-  );
-  accountsWithData.sort(
-    (a, b) => protosByAccountId[b.id].length - protosByAccountId[a.id].length
-  );
   const [activeAccount, setActiveAccount] = useState(
     !accountsWithData.length ? null : accountsWithData[0]
   );
-  const [expanded, setExpanded] = useState({} as { [id: string]: boolean });
-  const [limit, setLimit] = useState({} as { [id: string]: number });
-  const protosToDisplay = protosByAccountId[activeAccount?.id];
+  const protosToDisplay = protosByAccountId.get(activeAccount?.id);
+  useEffect(() => {
+    if (!protosToDisplay?.length && accountsWithData.length) {
+      setActiveAccount(accountsWithData[0]);
+    }
+  }, [accountsWithData, protosToDisplay, hideBeforeLatest]);
   if (!accountsWithData.length) {
     return <></>;
   }
   return (
     <div className="divide-y divide-gray-200 rounded border border-gray-200">
-      <div className="flex gap-2 p-2">
-        {accountsWithData.map((account) => (
-          <ButtonLink
-            key={account.id}
-            onClick={() => setActiveAccount(account)}
-            disabled={account.id == activeAccount.id}
-          >
-            {account.bank.name}: {account.name} (
-            {protosByAccountId[account.id].length})
-          </ButtonLink>
-        ))}
+      <div>
+        <div className="flex gap-2 p-2">
+          {accountsWithData.map((account) => (
+            <ButtonLink
+              key={account.id}
+              onClick={() => setActiveAccount(account)}
+              disabled={account.id == activeAccount.id}
+            >
+              {account.bank.name}: {account.name} (
+              {protosByAccountId.get(account.id).length})
+            </ButtonLink>
+          ))}
+        </div>
+        <div className="px-2 pb-1 text-xs text-slate-600">
+          {hideBeforeLatest && (
+            <span>
+              Hidden {totalHidden} suggestions because there are more
+              recent recorded transactions.{" "}
+              <ButtonLink onClick={() => setHideBeforeLatest(false)}>
+                Show them anyway.
+              </ButtonLink>
+            </span>
+          )}
+          {!hideBeforeLatest && (
+            <span>
+              Showing all suggestions.{" "}
+              <ButtonLink onClick={() => setHideBeforeLatest(true)}>
+                Hide irrelevant.
+              </ButtonLink>
+            </span>
+          )}
+        </div>
       </div>
       <ul className="divide-y divide-gray-200">
         {protosToDisplay

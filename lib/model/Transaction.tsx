@@ -120,6 +120,14 @@ export class Transaction {
     return Math.abs(this.amountCents - 2 * ownShareAmountCents) <= 1;
   }
 
+  hasAccountFrom() {
+    return this.isPersonalExpense() || this.isTransfer();
+  }
+
+  hasAccountTo() {
+    return this.isIncome() || this.isTransfer();
+  }
+
   accountFrom() {
     return this.personalExpense?.account ?? this.transfer?.accountFrom;
   }
