@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import CategoryProps from "./CategoryProps";
+import Category from "../../../lib/model/Category";
 
 type CreateCategoryFormProps = {
   onCreated: Function;
-  allCategories: CategoryProps[];
+  allCategories: Category[];
 };
 
 const CreateCategoryForm: React.FC<CreateCategoryFormProps> = (props) => {
@@ -40,7 +40,7 @@ const CreateCategoryForm: React.FC<CreateCategoryFormProps> = (props) => {
         parentCategoryId,
         displayOrder: props.allCategories.length * 100,
       };
-      const newCategory = await fetch("/api/category", {
+      const newCategory = await fetch("/api/config/category", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),

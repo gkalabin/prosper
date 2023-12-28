@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import prisma from "../lib/prisma";
+import prisma from "../../lib/prisma";
 import { GetStaticProps } from "next";
-import Layout from "../components/Layout";
-import CreateCategoryForm from "../components/categories/CreateCategoryForm";
-import CategoryProps from "../components/categories/CategoryProps";
-import EditableCategoryListItem from "../components/categories/EditableCategoryListItem";
+import Layout from "../../components/Layout";
+import CreateCategoryForm from "../../components/config/categories/CreateCategoryForm";
+import Category from "../../lib/model/Category";
+import EditableCategoryListItem from "../../components/config/categories/EditableCategoryListItem";
 
 type CategoryDbModel = {
   id: string;
@@ -14,21 +14,16 @@ type CategoryDbModel = {
 };
 export const getStaticProps: GetStaticProps = async () => {
   const categories = await prisma.category.findMany({});
-  console.debug("Categories from DB", categories);
-
   return {
     props: { dbCategories: JSON.parse(JSON.stringify(categories)) },
   };
 };
 
 type CategoriesListProps = {
-  categories: CategoryProps[];
-  allCategories: CategoryProps[];
+  categories: Category[];
+  allCategories: Category[];
   onCategoryUpdated: Function;
   depth: number;
-};
-type PageProps = {
-  dbCategories: CategoryDbModel[];
 };
 
 const CategoriesList: React.FC<CategoriesListProps> = (props) => {
@@ -59,13 +54,16 @@ const CategoriesList: React.FC<CategoriesListProps> = (props) => {
   );
 };
 
+type PageProps = {
+  dbCategories: CategoryDbModel[];
+};
 const CategoriesPage: React.FC<PageProps> = (props) => {
   const [dbCategories, setDbCategories] = useState(props.dbCategories);
   const uiCategories = dbCategories.map((c) =>
     Object.assign({}, c, {
       nameWithAncestors: c.name,
       isRoot: !c.parentCategoryId,
-      children: [] as CategoryProps[],
+      children: [] as Category[],
     })
   );
   const categoryById = Object.fromEntries(uiCategories.map((c) => [c.id, c]));
@@ -75,7 +73,7 @@ const CategoriesPage: React.FC<PageProps> = (props) => {
     }
     let parent = categoryById[c.parentCategoryId];
     parent.children.push(c);
-    let ancestorNames = [c.name];
+    const ancestorNames = [c.name];
     while (parent) {
       ancestorNames.push(parent.name);
       if (!parent.parentCategoryId) {
@@ -89,11 +87,8 @@ const CategoriesPage: React.FC<PageProps> = (props) => {
   uiCategories.forEach((c) =>
     c.children.sort((c1, c2) => c1.displayOrder - c2.displayOrder)
   );
-  let allCategoriesFlat = [] as CategoryProps[];
-  const collectCategories = (
-    subtree: CategoryProps[],
-    output: CategoryProps[]
-  ) => {
+  const allCategoriesFlat = [] as Category[];
+  const collectCategories = (subtree: Category[], output: Category[]) => {
     if (subtree.length == 0) {
       return;
     }
@@ -106,11 +101,9 @@ const CategoriesPage: React.FC<PageProps> = (props) => {
   collectCategories(rootCategories, allCategoriesFlat);
 
   const addNewCategory = (added: CategoryDbModel) => {
-    console.debug("addNewCategory", added);
     setDbCategories((old) => [...old, added]);
   };
   const updateCategory = (updated: CategoryDbModel) => {
-    console.debug("updateCategory", updated);
     setDbCategories((old) =>
       old.map((c) => (c.id == updated.id ? updated : c))
     );

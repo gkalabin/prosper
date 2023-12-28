@@ -1,11 +1,11 @@
-type CategoryProps = {
+type Category = {
   id: string;
   name: string;
   nameWithAncestors: string;
   isRoot: boolean;
   displayOrder: number;
   parentCategoryId?: number;
-  children: CategoryProps[];
+  children: Category[];
 };
 
-export default CategoryProps;
+export default Category;

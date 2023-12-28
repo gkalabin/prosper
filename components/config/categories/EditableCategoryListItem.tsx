@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import CategoryProps from "./CategoryProps";
+import Category from "../../../lib/model/Category";
 
 type EditableCategoryListItemProps = {
-  category: CategoryProps;
-  categories: CategoryProps[];
+  category: Category;
+  categories: Category[];
   onUpdated: Function;
   depth: number;
 };
@@ -46,7 +46,7 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
         parentCategoryId,
         displayOrder,
       };
-      const response = await fetch(`/api/category/${props.category.id}`, {
+      const response = await fetch(`/api/config/category/${props.category.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
