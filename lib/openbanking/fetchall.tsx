@@ -37,17 +37,17 @@ class Provider<T extends Token> {
     readonly refreshToken: (db: DB, token: T) => Promise<T>,
     readonly fetchBalance: (
       token: T,
-      mapping: ExternalAccountMapping
+      mapping: ExternalAccountMapping,
     ) => Promise<AccountBalance>,
     readonly fetchTransactions: (
       token: T,
-      mapping: ExternalAccountMapping
+      mapping: ExternalAccountMapping,
     ) => Promise<Transaction[]>,
     readonly fetchAccounts: (
       token: T,
       db: DB,
-      bankId: number
-    ) => Promise<AccountDetails[]>
+      bankId: number,
+    ) => Promise<AccountDetails[]>,
   ) {}
 }
 
@@ -58,7 +58,7 @@ const providers: Provider<Token>[] = [
     trueLayerRefreshToken,
     trueLayerFetchBalance,
     trueLayerFetchTransactions,
-    trueLayerFetchAccounts
+    trueLayerFetchAccounts,
   ),
   new Provider<NordigenToken>(
     "Nordigen",
@@ -66,14 +66,17 @@ const providers: Provider<Token>[] = [
     nordigenRefreshToken,
     nordigenFetchBalance,
     nordigenFetchTransactions,
-    async (token: NordigenToken, db: DB, bankId: number) => {
+    async (token: NordigenToken, db: DB, bankId: number): Promise<AccountDetails[]> => {
       const requisition = await db.nordigenRequisitionFindFirst({
         where: {
           bankId,
         },
       });
+      if (!requisition) {
+        return [];
+      }
       return await nordigenFetchAccounts(token, requisition);
-    }
+    },
   ),
   new Provider<StarlingToken>(
     "Starling",
@@ -81,7 +84,7 @@ const providers: Provider<Token>[] = [
     async (db: DB, t: StarlingToken) => t,
     starlingFetchBalance,
     starlingFetchTransactions,
-    starlingFetchAccounts
+    starlingFetchAccounts,
   ),
 ];
 
@@ -93,7 +96,7 @@ export async function getExpirations(db: DB): Promise<ConnectionExpiration[]> {
       ...dbTokens.map((t) => ({
         bankId: t.bankId,
         expirationEpoch: t.refreshValidUntil.getTime(),
-      }))
+      })),
     );
   }
   return result;
@@ -103,17 +106,17 @@ export async function fetchBalances(db: DB): Promise<AccountBalance[]> {
   return await genericFetch(
     db,
     (p: Provider<Token>, t: Token, m: ExternalAccountMapping) =>
-      p.fetchBalance(t, m)
+      p.fetchBalance(t, m),
   );
 }
 
 export async function fetchTransactions(
-  db: DB
+  db: DB,
 ): Promise<WithdrawalOrDepositPrototype[]> {
   const transactions = await genericFetch(
     db,
     (p: Provider<Token>, t: Token, m: ExternalAccountMapping) =>
-      p.fetchTransactions(t, m)
+      p.fetchTransactions(t, m),
   );
   return transactions.flat().map(fromOpenBankingTransaction);
 }
@@ -139,7 +142,7 @@ async function fetchTokensFromDB(db: DB): Promise<ProviderToken<Token>[]> {
 
 async function refreshTokens(
   db: DB,
-  maybeStaleTokens: ProviderToken<Token>[]
+  maybeStaleTokens: ProviderToken<Token>[],
 ): Promise<ProviderToken<Token>[]> {
   const now = new Date();
   const refreshes = maybeStaleTokens.map(async (pt) => {
@@ -151,19 +154,45 @@ async function refreshTokens(
       pt.token = await provider.refreshToken(db, token);
       return pt;
     } catch (err) {
-      console.warn(
+      throw new Error(
         `Refreshing ${provider.name} token for bank id ${token.bankId} failed`,
-        err
+        { cause: err },
       );
-      return null;
     }
   });
-  return (await Promise.all(refreshes)).filter((x) => x);
+  const completedRefreshes = await Promise.allSettled(refreshes);
+  logErrors(completedRefreshes);
+  return allSuccessful(completedRefreshes);
+}
+
+function notEmpty<T>(value: T | null | undefined): value is T {
+  if (value === null || value === undefined) {
+    return false;
+  }
+  // This assignment makes compile-time check that the value is T.
+  const exhaustivenessCheck: T = value;
+  // This return should always be true, it is here only to prevent unused variable.
+  return !!exhaustivenessCheck;
+}
+
+function allSuccessful<T>(ps: PromiseSettledResult<Awaited<T>>[]): T[] {
+  return ps
+    .map((r) => (r.status == "fulfilled" ? r.value : null))
+    .filter(notEmpty);
+}
+
+function logErrors(ps: PromiseSettledResult<Awaited<unknown>>[]): void {
+  ps.forEach((t) => {
+    if (t.status == "fulfilled") {
+      return;
+    }
+    console.warn(t.reason);
+  });
 }
 
 async function genericFetch<D>(
   db: DB,
-  fn: (p: Provider<Token>, t: Token, m: ExternalAccountMapping) => Promise<D>
+  fn: (p: Provider<Token>, t: Token, m: ExternalAccountMapping) => Promise<D>,
 ): Promise<D[]> {
   const maybeStaleTokens = await fetchTokensFromDB(db);
   const freshTokens = await refreshTokens(db, maybeStaleTokens);
@@ -174,30 +203,31 @@ async function genericFetch<D>(
   const fetches: Promise<D>[] = [];
   for (const { provider, token } of freshTokens) {
     const tokenAccounts = new Set(
-      bankAccounts.filter((a) => a.bankId == token.bankId).map((a) => a.id)
+      bankAccounts.filter((a) => a.bankId == token.bankId).map((a) => a.id),
     );
     const tokenMappings = allMappings.filter((m) =>
-      tokenAccounts.has(m.internalAccountId)
+      tokenAccounts.has(m.internalAccountId),
     );
     const tokenFetches = tokenMappings.map(async (m) => {
       try {
         return await fn(provider, token, m);
       } catch (err) {
-        console.warn(
+        throw new Error(
           `Failed to fetch ${provider.name} for bank ${token.bankId} and account ${m.internalAccountId}`,
-          err
+          { cause: err },
         );
-        return null;
       }
     });
     fetches.push(...tokenFetches);
   }
-  return (await Promise.all(fetches)).filter((x) => x);
+  const completedFetches = await Promise.allSettled(fetches);
+  logErrors(completedFetches);
+  return allSuccessful(completedFetches);
 }
 
-export async function fetchAccounts(
+export async function fetchAccountsForBank(
   db: DB,
-  bankId: number
+  bankId: number,
 ): Promise<AccountDetails[]> {
   for (const provider of providers) {
     const dbTokens = await provider.fetchTokens(db);
@@ -208,6 +238,5 @@ export async function fetchAccounts(
     const freshToken = await provider.refreshToken(db, token);
     return await provider.fetchAccounts(freshToken, db, bankId);
   }
-  console.warn("No accounts found", bankId);
-  return null;
+  return [];
 }

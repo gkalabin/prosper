@@ -21,10 +21,14 @@ export function intParamOrFirst(
   return i;
 }
 
-export function intParam(param: string): number | undefined {
+export function intParam(param: string | null): number | null {
+  if (!param) {
+    // TODO: test '0'
+    return null;
+  }
   const i = parseInt(param, 10);
   if (isNaN(i)) {
-    return undefined;
+    return null;
   }
   return i;
 }
