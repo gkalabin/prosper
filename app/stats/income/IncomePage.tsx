@@ -13,12 +13,15 @@ import { YearlyOwnShare } from "components/charts/YearlySum";
 import { differenceInYears, startOfMonth } from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
+import { defaultMonthlyMoneyChart, legend } from "lib/charts";
 import {
   AllDatabaseDataContextProvider,
-  useAllDatabaseDataContext
+  useAllDatabaseDataContext,
 } from "lib/context/AllDatabaseDataContext";
-import { defaultMonthlyMoneyChart, legend } from "lib/charts";
-import { useDisplayCurrency } from "lib/displaySettings";
+import {
+  useDisplayCurrency,
+  useDisplaySettingsContext,
+} from "lib/context/DisplaySettingsContext";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { transactionIsDescendant } from "lib/model/Category";
 import { Transaction } from "lib/model/transaction/Transaction";
@@ -102,8 +105,8 @@ export function IncomeCharts({ input }: { input: TransactionsStatsInput }) {
 
 function NonEmptyPageContent() {
   const [duration, setDuration] = useState(LAST_6_MONTHS);
-  const { transactions, categories, displaySettings } =
-    useAllDatabaseDataContext();
+  const { transactions, categories } = useAllDatabaseDataContext();
+  const { displaySettings } = useDisplaySettingsContext();
   const [excludeCategories, setExcludeCategories] = useState(
     displaySettings.excludeCategoryIdsInStats(),
   );

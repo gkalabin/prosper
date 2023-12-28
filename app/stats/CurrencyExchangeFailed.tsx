@@ -2,7 +2,7 @@
 import { ButtonLink } from "components/ui/buttons";
 import { format } from "date-fns";
 import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
-import { useDisplayCurrency } from "lib/displaySettings";
+import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
 import { fullAccountName } from "lib/model/BankAccount";
 import {
   Transaction,

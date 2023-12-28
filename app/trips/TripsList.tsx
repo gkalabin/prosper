@@ -6,11 +6,12 @@ import {
 } from "components/NotConfiguredYet";
 import { AnchorLink } from "components/ui/anchors";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
+import { StockAndCurrencyExchange } from "lib/ClientSideModel";
 import {
-  StockAndCurrencyExchange,
-} from "lib/ClientSideModel";
-import { AllDatabaseDataContextProvider, useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
-import { useDisplayCurrency } from "lib/displaySettings";
+  AllDatabaseDataContextProvider,
+  useAllDatabaseDataContext,
+} from "lib/context/AllDatabaseDataContext";
+import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { BankAccount } from "lib/model/BankAccount";
 import { Currency } from "lib/model/Currency";

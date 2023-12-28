@@ -1,11 +1,5 @@
 import { DisplaySettings as DBDisplaySettings } from "@prisma/client";
-import { useAllDatabaseDataContext } from "./context/AllDatabaseDataContext";
 import { Currency } from "lib/model/Currency";
-
-export const useDisplayCurrency = (): Currency => {
-  const { displaySettings } = useAllDatabaseDataContext();
-  return displaySettings.displayCurrency();
-};
 
 export class DisplaySettings {
   private readonly _displayCurrency: Currency;

@@ -7,7 +7,7 @@ import {
 } from "lib/ClientSideModel";
 import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { defaultYearlyMoneyChart } from "lib/charts";
-import { useDisplayCurrency } from "lib/displaySettings";
+import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
 import { BankAccount } from "lib/model/BankAccount";
 import { Currency } from "lib/model/Currency";
 import { Stock } from "lib/model/Stock";

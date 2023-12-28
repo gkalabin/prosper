@@ -11,7 +11,7 @@ import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
 } from "lib/context/AllDatabaseDataContext";
-import { useDisplayCurrency } from "lib/displaySettings";
+import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import {
   accountsForBank,

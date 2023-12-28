@@ -22,9 +22,12 @@ import { ButtonLink } from "components/ui/buttons";
 import { format, isSameYear } from "date-fns";
 import {
   AllDatabaseDataContextProvider,
-  useAllDatabaseDataContext
+  useAllDatabaseDataContext,
 } from "lib/context/AllDatabaseDataContext";
-import { useDisplayCurrency } from "lib/displaySettings";
+import {
+  useDisplayCurrency,
+  useDisplaySettingsContext,
+} from "lib/context/DisplaySettingsContext";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { transactionIsDescendant } from "lib/model/Category";
 import { Income } from "lib/model/transaction/Income";
@@ -191,8 +194,8 @@ export function YearlyStats({ input }: { input: TransactionsStatsInput }) {
 }
 
 function NonEmptyPageContent() {
-  const { transactions, categories, displaySettings } =
-    useAllDatabaseDataContext();
+  const { transactions, categories } = useAllDatabaseDataContext();
+  const { displaySettings } = useDisplaySettingsContext();
   const [excludeCategories, setExcludeCategories] = useState(
     displaySettings.excludeCategoryIdsInStats(),
   );

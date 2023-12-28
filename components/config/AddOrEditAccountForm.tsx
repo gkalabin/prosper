@@ -7,7 +7,7 @@ import {
   ButtonFormSecondary,
 } from "components/ui/buttons";
 import { Form, Formik, useFormikContext } from "formik";
-import { useDisplayCurrency } from "lib/displaySettings";
+import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Currency } from "lib/model/Currency";
 import { Stock } from "lib/model/Stock";

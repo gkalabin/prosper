@@ -9,8 +9,6 @@ import {
 import { addDays, closestTo, isBefore, startOfDay } from "date-fns";
 import { Amount } from "lib/Amount";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
-import { DisplaySettings } from "lib/displaySettings";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import {
   Bank,
@@ -232,13 +230,7 @@ export type AllClientDataModel = {
   trips: Trip[];
   tags: Tag[];
   exchange: StockAndCurrencyExchange;
-  displaySettings: DisplaySettings;
   transactionPrototypes: TransactionPrototype[];
-};
-
-export const useDisplayBankAccounts = () => {
-  const { bankAccounts } = useAllDatabaseDataContext();
-  return bankAccounts.filter((x) => !x.archived);
 };
 
 function mustBank(bank: Bank | undefined, message: string): Bank {
@@ -300,7 +292,6 @@ export const modelFromDatabaseData = (
   const transactions: Transaction[] = dbData.dbTransactions
     .map(transactionModelFromDB)
     .sort(compareTransactions);
-  const displaySettings = new DisplaySettings(dbData.dbDisplaySettings);
   return {
     banks,
     bankAccounts,
@@ -310,7 +301,6 @@ export const modelFromDatabaseData = (
     tags,
     transactions,
     exchange,
-    displaySettings,
     transactionPrototypes: dbData.dbTransactionPrototypes,
   };
 };

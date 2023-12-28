@@ -13,7 +13,7 @@ import { ButtonFormSecondary } from "components/ui/buttons";
 import { differenceInMonths, startOfMonth } from "date-fns";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
-import { useDisplayCurrency } from "lib/displaySettings";
+import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
 import { Income } from "lib/model/transaction/Income";
 import {
   Expense,

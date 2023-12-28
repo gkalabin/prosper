@@ -1,4 +1,5 @@
 import { AllClientDataModel, modelFromDatabaseData } from "lib/ClientSideModel";
+import { DisplaySettingsContextProvider } from "lib/context/DisplaySettingsContext";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { Setter } from "lib/stateHelpers";
 import { createContext, useContext, useState } from "react";
@@ -20,9 +21,13 @@ export const AllDatabaseDataContextProvider = (props: {
   const [dbDataState, setDbData] = useState(props.dbData);
   const model = modelFromDatabaseData(dbDataState);
   return (
-    <AllDatabaseDataContext.Provider value={{ ...model, setDbData }}>
-      {props.children}
-    </AllDatabaseDataContext.Provider>
+    <DisplaySettingsContextProvider
+      initialDbSettings={props.dbData.dbDisplaySettings}
+    >
+      <AllDatabaseDataContext.Provider value={{ ...model, setDbData }}>
+        {props.children}
+      </AllDatabaseDataContext.Provider>
+    </DisplaySettingsContextProvider>
   );
 };
 

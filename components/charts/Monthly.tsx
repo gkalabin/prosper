@@ -1,7 +1,7 @@
 import { Interval, eachMonthOfInterval } from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { defaultMonthlyMoneyChart } from "lib/charts";
-import { useDisplayCurrency } from "lib/displaySettings";
+import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
 import { MoneyTimeseries } from "lib/util/Timeseries";
 
 export function MonthlyChart({

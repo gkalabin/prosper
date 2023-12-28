@@ -19,7 +19,7 @@ import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext
 } from "lib/context/AllDatabaseDataContext";
-import { useDisplayCurrency } from "lib/displaySettings";
+import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { Trip, tripModelFromDB } from "lib/model/Trip";
 import { Income } from "lib/model/transaction/Income";

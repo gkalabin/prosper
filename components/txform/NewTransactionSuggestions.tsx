@@ -4,9 +4,7 @@ import classNames from "classnames";
 import { ButtonLink } from "components/ui/buttons";
 import { format } from "date-fns";
 import { useFormikContext } from "formik";
-import {
-  useDisplayBankAccounts,
-} from "lib/ClientSideModel";
+import { useDisplayBankAccounts } from "lib/model/AllDatabaseDataModel";
 import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { uniqMostFrequent } from "lib/collections";
 import {

@@ -1,8 +1,6 @@
 import { LabelledInputProps } from "components/forms/Input";
 import { SelectNumber } from "components/txform/Select";
-import {
-  useDisplayBankAccounts,
-} from "lib/ClientSideModel";
+import { useDisplayBankAccounts } from "lib/model/AllDatabaseDataModel";
 import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { fullAccountName } from "lib/model/BankAccount";
 

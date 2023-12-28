@@ -3,7 +3,7 @@ import { Interval } from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { defaultMonthlyMoneyChart, monthlyData } from "lib/charts";
-import { useDisplayCurrency } from "lib/displaySettings";
+import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
 import { Income } from "lib/model/transaction/Income";
 import { Expense, Transaction } from "lib/model/transaction/Transaction";
 import { amountOwnShare } from "lib/model/transaction/amounts";

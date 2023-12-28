@@ -14,9 +14,12 @@ import { startOfMonth, startOfYear } from "date-fns";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
   AllDatabaseDataContextProvider,
-  useAllDatabaseDataContext
+  useAllDatabaseDataContext,
 } from "lib/context/AllDatabaseDataContext";
-import { useDisplayCurrency } from "lib/displaySettings";
+import {
+  useDisplayCurrency,
+  useDisplaySettingsContext,
+} from "lib/context/DisplaySettingsContext";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { transactionIsDescendant } from "lib/model/Category";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
@@ -126,8 +129,8 @@ export function CashflowCharts({ input }: { input: TransactionsStatsInput }) {
 
 function NonEmptyPageContent() {
   const [duration, setDuration] = useState(LAST_6_MONTHS);
-  const { transactions, categories, displaySettings } =
-    useAllDatabaseDataContext();
+  const { transactions, categories } = useAllDatabaseDataContext();
+  const { displaySettings } = useDisplaySettingsContext();
   const [excludeCategories, setExcludeCategories] = useState(
     displaySettings.excludeCategoryIdsInStats(),
   );
