@@ -1,4 +1,4 @@
-import { Amount } from "lib/ClientSideModel";
+import { Amount } from "lib/Amount";
 
 export type IOpenBankingData = {
   openBankingData: {

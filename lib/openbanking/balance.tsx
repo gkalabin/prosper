@@ -1,5 +1,5 @@
 import { OpenBankingAccount, OpenBankingToken } from "@prisma/client";
-import { Amount } from "lib/ClientSideModel";
+import { Amount } from "lib/Amount";
 import { DB } from "lib/db";
 import { IOBBalancesByAccountId } from "lib/openbanking/interface";
 import { maybeRefreshToken } from "lib/openbanking/token";

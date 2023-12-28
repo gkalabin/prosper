@@ -1,8 +1,8 @@
 import { Bank as DBBank, BankAccount as DBBankAccount } from "@prisma/client";
 import {
-  AmountWithCurrency,
   StockAndCurrencyExchange,
 } from "lib/ClientSideModel";
+import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
   Currencies,
   Currency

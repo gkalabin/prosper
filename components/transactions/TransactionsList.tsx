@@ -1,5 +1,5 @@
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
-import { AmountWithCurrency } from "lib/ClientSideModel";
+import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { BankAccount } from "lib/model/BankAccount";
 import { Transaction } from "lib/model/Transaction";
 import { descriptiveDateTime, shortRelativeDate } from "lib/TimeHelpers";

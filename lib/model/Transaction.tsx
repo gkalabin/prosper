@@ -1,8 +1,5 @@
-import { startOfMonth } from "date-fns";
-import {
-  AmountWithCurrency,
-  StockAndCurrencyExchange,
-} from "lib/ClientSideModel";
+import { AmountWithCurrency } from "lib/AmountWithCurrency";
+import { StockAndCurrencyExchange } from "lib/ClientSideModel";
 import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
 import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
@@ -218,10 +215,6 @@ export class Transaction {
       amountCents: this.amountCents,
       currency: this.currency(),
     });
-  }
-
-  monthEpoch() {
-    return startOfMonth(this.timestamp).getTime();
   }
 
   currency() {
