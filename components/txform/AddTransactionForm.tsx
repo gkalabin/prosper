@@ -1,60 +1,32 @@
-import { Switch } from "@headlessui/react";
 import { TransactionPrototype as DBTransactionPrototype } from "@prisma/client";
-import classNames from "classnames";
-import {
-  Input,
-  MoneyInputWithLabel,
-  TextInputWithLabel,
-} from "components/forms/Input";
-import { BankAccountSelect } from "components/txform/BankAccountSelect";
 import { FormTransactionTypeSelector } from "components/txform/FormTransactionTypeSelector";
 import {
   NewTransactionSuggestions,
   TransactionPrototype,
 } from "components/txform/NewTransactionSuggestions";
-import { SelectNumber } from "components/txform/Select";
 import { ButtonFormPrimary, ButtonFormSecondary } from "components/ui/buttons";
-import { differenceInMonths, format, isBefore } from "date-fns";
-import { Form, Formik, FormikHelpers, useFormikContext } from "formik";
+import { format } from "date-fns";
+import { Form, Formik, FormikHelpers } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
-import { Tag } from "lib/model/Tag";
 import { Transaction } from "lib/model/Transaction";
-import { Trip } from "lib/model/Trip";
 import { IOBTransactionsByAccountId } from "lib/openbanking/interface";
-import { shortRelativeDate } from "lib/TimeHelpers";
 import {
   AddTransactionFormValues,
   FormMode,
   TransactionAPIResponse,
 } from "lib/transactionCreation";
-import { useEffect, useState } from "react";
-import Select from "react-select";
-import CreatableSelect from "react-select/creatable";
-
-export const InputRow = (props: {
-  mode?: FormMode;
-  modes?: FormMode[];
-  children: JSX.Element | JSX.Element[];
-}) => {
-  const field = (
-    // To make 2 columns: <div className="col-span-6 sm:col-span-3">
-    <div className="col-span-6">{props.children}</div>
-  );
-  if (!props.modes || props.modes.includes(props.mode)) {
-    return field;
-  }
-  return <></>;
-};
+import { useState } from "react";
+import { FormInputs } from "./FormInputs";
 
 export function toDateTimeLocal(d: Date) {
   // 2022-12-19T18:05:59
   return format(d, "yyyy-MM-dd'T'HH:mm");
 }
 
-const formModeForTransaction = (t: Transaction) => {
+export const formModeForTransaction = (t: Transaction) => {
   if (!t) {
     throw new Error("No transaction provided");
   }
@@ -132,14 +104,14 @@ function initialValuesEmpty(
   };
 }
 
-function mostUsedAccountFrom(txs: Transaction[]): BankAccount {
+export function mostUsedAccountFrom(txs: Transaction[]): BankAccount {
   const accounts = txs
     .filter((x) => x.hasAccountFrom())
     .map((x) => x.accountFrom());
   return mostFrequent(accounts);
 }
 
-function mostUsedAccountTo(txs: Transaction[]): BankAccount {
+export function mostUsedAccountTo(txs: Transaction[]): BankAccount {
   const accounts = txs
     .filter((x) => x.hasAccountTo())
     .map((x) => x.accountTo());
@@ -153,7 +125,7 @@ function mostUsedCurrency(txs: Transaction[]): Currency {
   return mostFrequent(currencies);
 }
 
-function mostUsedCategory(txs: Transaction[], vendor: string): Category {
+export function mostUsedCategory(txs: Transaction[], vendor: string): Category {
   const categories = txs
     .filter((x) => (vendor ? x.hasVendor() && x.vendor() == vendor : true))
     .map((x) => x.category);
@@ -310,360 +282,5 @@ export const AddTransactionForm = (props: {
         )}
       </Formik>
     </div>
-  );
-};
-
-const FormInputs = (props: {
-  transaction: Transaction;
-  isAdvancedMode: boolean;
-  prototype: TransactionPrototype;
-}) => {
-  const { transactions, currencies, categories, banks, trips, tags } =
-    useAllDatabaseDataContext();
-  const {
-    values: {
-      amount,
-      vendor,
-      timestamp,
-      isFamilyExpense,
-      fromBankAccountId,
-      toBankAccountId,
-      mode,
-      tagNames,
-      parentTransactionId,
-    },
-    setFieldValue,
-    handleChange,
-    isSubmitting,
-  } = useFormikContext<AddTransactionFormValues>();
-
-  useEffect(() => {
-    setFieldValue("ownShareAmount", isFamilyExpense ? amount / 2 : amount);
-  }, [amount, isFamilyExpense, setFieldValue]);
-  useEffect(() => {
-    setFieldValue("receivedAmount", amount);
-  }, [amount, setFieldValue]);
-
-  useEffect(() => {
-    if (!props.prototype) {
-      return;
-    }
-    setFieldValue("vendor", props.prototype.vendor);
-    setFieldValue("amount", Math.abs(props.prototype.amount));
-    setFieldValue("timestamp", toDateTimeLocal(props.prototype.timestamp));
-    if (props.prototype.accountFromId) {
-      setFieldValue("fromBankAccountId", props.prototype.accountFromId);
-    }
-    if (props.prototype.accountToId) {
-      setFieldValue("toBankAccountId", props.prototype.accountToId);
-    }
-  }, [props.prototype, setFieldValue]);
-
-  useEffect(() => {
-    if (props.transaction || props.prototype) {
-      // Is we are editing transaction, do not autofill from/to bank account, but stick to the one from transaction.
-      // If there is a prototype (suggestion from banking API), do not mess with bank account selector either.
-      return;
-    }
-    setFieldValue("fromBankAccountId", mostUsedAccountFrom(transactions).id);
-    setFieldValue("toBankAccountId", mostUsedAccountTo(transactions).id);
-  }, [transactions, mode, setFieldValue, props.transaction, props.prototype]);
-
-  useEffect(() => {
-    const suggestion = mostUsedCategory(transactions, vendor);
-    if (suggestion) {
-      setFieldValue("categoryId", suggestion.id);
-    }
-  }, [vendor, transactions, mode, setFieldValue]);
-
-  useEffect(() => {
-    if (mode == FormMode.PERSONAL) {
-      const account = banks
-        .flatMap((b) => b.accounts)
-        .find((a) => a.id == fromBankAccountId);
-      setFieldValue("isFamilyExpense", account.isJoint());
-    }
-  }, [mode, setFieldValue, banks, fromBankAccountId]);
-
-  const transactionsForMode = transactions.filter(
-    (x) => formModeForTransaction(x) == mode
-  );
-  const vendorFrequency = new Map<string, number>();
-  transactionsForMode
-    .filter((x) => x.hasVendor())
-    .map((x) => x.vendor())
-    .forEach((x) => vendorFrequency.set(x, (vendorFrequency.get(x) ?? 0) + 1));
-  const vendors = [...vendorFrequency.entries()]
-    .filter(([_vendor, frequency]) => frequency > 1)
-    .sort(([_v1, f1], [_v2, f2]) => f2 - f1)
-    .map(([vendor]) => vendor);
-
-  const transactionsWithTrips = transactionsForMode.filter((x) => x.hasTrip());
-  const tripIds = [...new Set(transactionsWithTrips.map((x) => x.trip().id()))];
-  const tripLastUsageDate = new Map<number, Date>();
-  transactionsWithTrips.forEach((x) => {
-    const trip = x.trip().id();
-    const existing = tripLastUsageDate.get(trip);
-    if (!existing || isBefore(existing, x.timestamp)) {
-      tripLastUsageDate.set(trip, x.timestamp);
-    }
-  });
-  const tripById = new Map<number, Trip>(trips.map((x) => [x.id(), x]));
-  const tripNames = tripIds
-    .sort((t1, t2) =>
-      isBefore(tripLastUsageDate.get(t1), tripLastUsageDate.get(t2)) ? 1 : -1
-    )
-    .map((x) => tripById.get(x).name());
-
-  const tagFrequency = new Map<Tag, number>(tags.map((x) => [x, 0]));
-  transactions
-    .flatMap((x) => x.tags())
-    .forEach((x) => tagFrequency.set(x, (tagFrequency.get(x) ?? 0) + 1));
-  const tagsByFrequency = [...tags].sort(
-    (t1, t2) => tagFrequency.get(t2) - tagFrequency.get(t1)
-  );
-
-  const makeTransactionLabel = (t: Transaction): string =>
-    `${t.amount().format()} ${t.vendor()} ${shortRelativeDate(t.timestamp)}`;
-  const parentTransaction = parentTransactionId ? transactions.find(t => t.id == parentTransactionId) : null;
-
-  return (
-    <>
-      <InputRow>
-        <MoneyInputWithLabel
-          name="amount"
-          label="Amount"
-          disabled={isSubmitting}
-        />
-      </InputRow>
-
-      <InputRow
-        mode={mode}
-        modes={
-          props.isAdvancedMode
-            ? [FormMode.PERSONAL, FormMode.EXTERNAL, FormMode.INCOME]
-            : []
-        }
-      >
-        <MoneyInputWithLabel
-          name="ownShareAmount"
-          label="Own share amount"
-          disabled={isSubmitting}
-        />
-      </InputRow>
-
-      <InputRow
-        mode={mode}
-        modes={[FormMode.PERSONAL, FormMode.EXTERNAL, FormMode.INCOME]}
-      >
-        <Switch.Group>
-          <div className="flex items-center">
-            <div className="flex">
-              <Switch
-                checked={isFamilyExpense}
-                onChange={() => {
-                  setFieldValue("isFamilyExpense", !isFamilyExpense);
-                }}
-                className={classNames(
-                  isFamilyExpense ? "bg-indigo-700" : "bg-gray-200",
-                  isSubmitting ? "opacity-30" : "",
-                  "relative inline-flex h-6 w-11 items-center rounded-full"
-                )}
-                disabled={isSubmitting}
-              >
-                <span
-                  className={`${
-                    isFamilyExpense ? "translate-x-6" : "translate-x-1"
-                  } inline-block h-4 w-4 transform rounded-full bg-white transition`}
-                />
-              </Switch>
-            </div>
-            <div className="ml-4 text-sm">
-              <Switch.Label className="font-medium text-gray-700">
-                Shared transaction
-              </Switch.Label>
-              <p className="text-gray-500">
-                Set the own amount to be 50% of the total.
-              </p>
-            </div>
-          </div>
-        </Switch.Group>
-      </InputRow>
-
-      <InputRow
-        mode={mode}
-        modes={props.isAdvancedMode ? [FormMode.TRANSFER] : []}
-      >
-        <MoneyInputWithLabel
-          name="receivedAmount"
-          label="Received"
-          disabled={isSubmitting}
-        />
-      </InputRow>
-
-      {/* TODO: verify that datetime-local is processed correctly with regards to timezones */}
-      <InputRow mode={mode}>
-        <label
-          htmlFor="timestamp"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Time
-        </label>
-        <Input
-          type="datetime-local"
-          name="timestamp"
-          id="timestamp"
-          disabled={isSubmitting}
-          className="mt-1 block w-full"
-          value={timestamp}
-          onChange={handleChange}
-        />
-      </InputRow>
-
-      <InputRow
-        mode={mode}
-        modes={[FormMode.PERSONAL, FormMode.EXTERNAL, FormMode.INCOME]}
-      >
-        <TextInputWithLabel
-          name="vendor"
-          label="Vendor"
-          list="vendors"
-          disabled={isSubmitting}
-        />
-        <datalist id="vendors">
-          {vendors.map((v) => (
-            <option key={v} value={v} />
-          ))}
-        </datalist>
-      </InputRow>
-
-      <InputRow
-        mode={mode}
-        modes={
-          props.isAdvancedMode
-            ? [FormMode.PERSONAL, FormMode.EXTERNAL]
-            : [FormMode.TRANSFER]
-        }
-      >
-        <TextInputWithLabel
-          name="description"
-          label="Description"
-          disabled={isSubmitting}
-        />
-      </InputRow>
-
-      <InputRow mode={mode}>
-        <CreatableSelect
-          isMulti
-          options={tagsByFrequency.map((x) => {
-            return { label: x.name(), value: x.name() };
-          })}
-          value={tagNames.map((x) => {
-            return { label: x, value: x };
-          })}
-          onChange={(newValue) =>
-            setFieldValue(
-              "tagNames",
-              newValue.map((x) => x.value)
-            )
-          }
-          isDisabled={isSubmitting}
-        />
-      </InputRow>
-
-      <InputRow mode={mode} modes={[FormMode.INCOME]}>
-        <Select
-          options={transactions
-            .filter((t) => t.isPersonalExpense())
-            .filter((t) => t.accountFrom().id == toBankAccountId)
-            .filter((t) => differenceInMonths(new Date(), t.timestamp) < 3)
-            .map((x) => {
-              return {
-                label: makeTransactionLabel(x),
-                value: x.id,
-              };
-            })}
-          value={{
-            label: parentTransaction ? makeTransactionLabel(parentTransaction) : "None",
-            value: parentTransactionId,
-          }}
-          onChange={(newValue) =>
-            setFieldValue("parentTransactionId", newValue.value)
-          }
-          isDisabled={isSubmitting}
-        />
-      </InputRow>
-
-      <InputRow mode={mode}>
-        <SelectNumber
-          name="categoryId"
-          label="Category"
-          disabled={isSubmitting}
-        >
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.nameWithAncestors}
-            </option>
-          ))}
-        </SelectNumber>
-      </InputRow>
-
-      <InputRow mode={mode} modes={[FormMode.EXTERNAL]}>
-        <TextInputWithLabel
-          name="payer"
-          label="Payer"
-          disabled={isSubmitting}
-        />
-      </InputRow>
-
-      <InputRow mode={mode} modes={[FormMode.TRANSFER, FormMode.PERSONAL]}>
-        <BankAccountSelect
-          name="fromBankAccountId"
-          label="Account From"
-          disabled={isSubmitting}
-        />
-      </InputRow>
-
-      <InputRow mode={mode} modes={[FormMode.TRANSFER, FormMode.INCOME]}>
-        <BankAccountSelect
-          name="toBankAccountId"
-          label="Account To"
-          disabled={isSubmitting}
-        />
-      </InputRow>
-
-      <InputRow mode={mode} modes={[FormMode.EXTERNAL]}>
-        <SelectNumber
-          name="currencyId"
-          label="Currency"
-          disabled={isSubmitting}
-        >
-          {currencies.all().map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </SelectNumber>
-      </InputRow>
-
-      <InputRow
-        mode={mode}
-        modes={
-          props.isAdvancedMode ? [FormMode.PERSONAL, FormMode.EXTERNAL] : []
-        }
-      >
-        <TextInputWithLabel
-          name="tripName"
-          label="Trip"
-          list="trips"
-          disabled={isSubmitting}
-        />
-        <datalist id="trips">
-          {tripNames.map((v) => (
-            <option key={v} value={v} />
-          ))}
-        </datalist>
-      </InputRow>
-    </>
   );
 };
