@@ -1,3 +1,13 @@
+import { AmountWithCurrency } from "lib/AmountWithCurrency";
+import { Currency } from "lib/model/Currency";
+
+export function currencyAppendMap<T>(c: Currency) {
+  return new AppendMap<T, AmountWithCurrency>(
+    AmountWithCurrency.add,
+    AmountWithCurrency.zero(c)
+  );
+}
+
 export class AppendMap<K, V> extends Map<K, V> {
   private readonly _combineFn: (x: V, y: V) => V;
   private readonly _zero: V;

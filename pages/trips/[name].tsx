@@ -1,13 +1,17 @@
+import {
+  ChildCategoryFullAmountChart,
+  ChildCategoryOwnShareChart,
+} from "components/charts/CategoryPieChart";
 import Layout from "components/Layout";
 import {
   isFullyConfigured,
   NotConfiguredYet,
 } from "components/NotConfiguredYet";
-import { SortableTransactionsList } from "components/transactions/SortableTransactionsList";
+import {
+  SortableTransactionsList,
+  SortingMode,
+} from "components/transactions/SortableTransactionsList";
 import { AnchorLink } from "components/ui/buttons";
-import ReactEcharts from "echarts-for-react";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { defaultPieChartOptions } from "lib/charts";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -47,16 +51,8 @@ function PageLayout() {
   );
 }
 
-enum SortingMode {
-  DATE_ASC,
-  DATE_DESC,
-  AMOUNT_ASC,
-  AMOUNT_DESC,
-}
-
 function TripDetails(props: { trip: Trip }) {
-  const { transactions: allTransactions, categories } =
-    useAllDatabaseDataContext();
+  const { transactions: allTransactions } = useAllDatabaseDataContext();
   const currency = useDisplayCurrency();
   const transactions = allTransactions
     .filter((tx) => tx.hasTrip())
@@ -68,20 +64,6 @@ function TripDetails(props: { trip: Trip }) {
   const ownAmount = transactions
     .map((t) => t.amountOwnShare(currency))
     .reduce((a, b) => a.add(b));
-
-  const grossPerCategory = new Map<number, AmountWithCurrency>();
-  const netPerCategory = new Map<number, AmountWithCurrency>();
-  for (const t of transactions) {
-    const cid = t.category.id();
-    grossPerCategory.set(
-      cid,
-      t.amountAllParties(currency).add(grossPerCategory.get(cid))
-    );
-    netPerCategory.set(
-      cid,
-      t.amountOwnShare(currency).add(netPerCategory.get(cid))
-    );
-  }
 
   return (
     <div>
@@ -95,43 +77,8 @@ function TripDetails(props: { trip: Trip }) {
 
       <h2 className="mt-4 text-xl leading-7">Expenses by category</h2>
 
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultPieChartOptions(),
-          title: {
-            text: "Gross",
-          },
-          series: [
-            {
-              type: "pie",
-              data: [...grossPerCategory.entries()].map(([cid, amount]) => ({
-                name: categories.find((c) => c.id() == cid).nameWithAncestors(),
-                value: amount.dollar(),
-              })),
-            },
-          ],
-        }}
-      />
-
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultPieChartOptions(),
-          title: {
-            text: "Net",
-          },
-          series: [
-            {
-              type: "pie",
-              data: [...netPerCategory.entries()].map(([cid, amount]) => ({
-                name: categories.find((c) => c.id() == cid).nameWithAncestors(),
-                value: amount.dollar(),
-              })),
-            },
-          ],
-        }}
-      />
+      <ChildCategoryFullAmountChart title="Gross" transactions={transactions} />
+      <ChildCategoryOwnShareChart title="Net" transactions={transactions} />
 
       <h2 className="mt-4 text-xl leading-7">
         Transactions ({transactions.length})
