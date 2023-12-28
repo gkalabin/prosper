@@ -29,9 +29,7 @@ async function handle(
       id: requisition.id,
     },
   });
-  return res.redirect(
-    `/config/open-banking/nordigen/mapping?bankId=${bank.id}`
-  );
+  return res.redirect(`/config/open-banking/mapping?bankId=${bank.id}`);
 }
 
 export default authenticatedApiRoute("GET", handle);

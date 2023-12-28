@@ -33,23 +33,12 @@ async function handle(
     const tokenResponse = await response.json();
     const now = new Date();
     const args = {
-      accessToken: tokenResponse.access_token,
-      refreshToken: tokenResponse.refresh_token,
       access: tokenResponse.access_token,
       accessValidUntil: new Date(
         now.getTime() + tokenResponse.expires_in * 1000
       ).toISOString(),
       refresh: tokenResponse.refresh_token,
       refreshValidUntil: new Date(
-        // 90 days in the future
-        now.getTime() + 90 * 24 * 60 * 60 * 1000
-      ).toISOString(),
-      tokenCreatedAt: now.toISOString(),
-      tokenValidUntil: new Date(
-        now.getTime() + tokenResponse.expires_in * 1000
-      ).toISOString(),
-      connectionCreatedAt: now.toISOString(),
-      connectionValidUntil: new Date(
         // 90 days in the future
         now.getTime() + 90 * 24 * 60 * 60 * 1000
       ).toISOString(),
