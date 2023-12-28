@@ -282,7 +282,7 @@ function NonEmptyPageContent() {
   );
 }
 
-export function PageContent({ dbData }: { dbData: AllDatabaseData }) {
+export function ExpensePage({ dbData }: { dbData: AllDatabaseData }) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }

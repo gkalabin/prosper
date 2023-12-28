@@ -137,7 +137,7 @@ function NonEmptyPageContent() {
   );
 }
 
-export function IncomeStatsPage({ dbData }: { dbData: AllDatabaseData }) {
+export function IncomePage({ dbData }: { dbData: AllDatabaseData }) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }
