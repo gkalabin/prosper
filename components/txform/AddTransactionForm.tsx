@@ -398,7 +398,7 @@ const FormInputs = (props: {
       <InputRow
         currentMode={props.mode}
         currentlyAdvanced={props.isAdvancedMode}
-        advancedModes={[FormMode.PERSONAL, FormMode.EXTERNAL, FormMode.INCOME]}
+        allModes={[FormMode.PERSONAL, FormMode.EXTERNAL, FormMode.INCOME]}
       >
         <Switch.Group>
           <div className="flex items-center">
