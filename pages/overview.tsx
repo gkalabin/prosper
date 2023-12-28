@@ -104,7 +104,7 @@ const BanksListItem = ({ bank }: { bank: Bank }) => {
           {bank.name}
           <span className="ml-2">{bank.balance(displayCurrency).format()}</span>
         </div>
-        {expiration && (
+        {expiration && (expiresInDays < 7) && (
           <div className="text-sm font-light text-gray-700">
             OpenBanking connection{" "}
             {(expiresInDays > 0 && (
