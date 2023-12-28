@@ -1,11 +1,12 @@
+import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
 import { Interval } from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { defaultMonthlyMoneyChart, monthlyData } from "lib/charts";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { Expense } from "lib/model/transaction/Transaction";
-import { amountOwnShare } from "lib/model/transaction/amounts";
 import { Income } from "lib/model/transaction/Income";
+import { Expense, Transaction } from "lib/model/transaction/Transaction";
+import { amountOwnShare } from "lib/model/transaction/amounts";
 import { MoneyTimeseries } from "lib/util/Timeseries";
 import { runningAverage } from "lib/util/util";
 
@@ -18,23 +19,34 @@ export function RunningAverageOwnShare(props: {
   const displayCurrency = useDisplayCurrency();
   const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
   const net = new MoneyTimeseries(displayCurrency);
+  // TODO: validate that transactions can be exchanged on the page level
+  // and only pass down the exchangeable ones as displaying the same
+  // warning for each chart is noisy.
+  const failedToExchange: Transaction[] = [];
   for (const t of props.transactions) {
     const amount = amountOwnShare(
       t,
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange
+      exchange,
     );
+    if (!amount) {
+      failedToExchange.push(t);
+      continue;
+    }
     net.append(t.timestampEpoch, amount);
   }
   return (
-    <RunningAverageAmounts
-      timeseries={net}
-      duration={props.duration}
-      maxWindowLength={props.maxWindowLength}
-      title={props.title}
-    />
+    <>
+      <CurrencyExchangeFailed failedTransactions={failedToExchange} />
+      <RunningAverageAmounts
+        timeseries={net}
+        duration={props.duration}
+        maxWindowLength={props.maxWindowLength}
+        title={props.title}
+      />
+    </>
   );
 }
 
@@ -47,7 +59,7 @@ export function RunningAverageAmounts(props: {
   const displayCurrency = useDisplayCurrency();
   const averages = runningAverage(
     props.timeseries.monthlyMap(),
-    props.maxWindowLength
+    props.maxWindowLength,
   );
   return (
     <ReactEcharts
