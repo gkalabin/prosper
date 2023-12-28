@@ -3,8 +3,10 @@ import {
   BankAccount,
   Category,
   Currency,
+  ExchangeRate,
   Income,
   PersonalExpense,
+  StockQuote,
   ThirdPartyExpense,
   Transaction,
   Transfer
@@ -24,6 +26,8 @@ export type AllDatabaseData = {
   dbBanks: Bank[];
   dbBankAccounts: BankAccount[];
   dbCurrencies: Currency[];
+  dbExchangeRates: ExchangeRate[];
+  dbStockQuotes: StockQuote[];
 };
 
 export const loadAllDatabaseData = async () => {
@@ -42,5 +46,7 @@ export const loadAllDatabaseData = async () => {
     dbBankAccounts: await prisma.bankAccount.findMany(),
     dbCurrencies: await prisma.currency.findMany(),
     dbCategories: await prisma.category.findMany(),
+    dbExchangeRates: await prisma.exchangeRate.findMany(),
+    dbStockQuotes: await prisma.stockQuote.findMany(),
   };
 };

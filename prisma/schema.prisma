@@ -147,6 +147,9 @@ model Currency {
   updatedAt         DateTime            @updatedAt
   ThirdPartyExpense ThirdPartyExpense[]
   BankAccount       BankAccount[]
+  ExchangeRatesFrom ExchangeRate[]      @relation("RatesFrom")
+  ExchangeRatesTo   ExchangeRate[]      @relation("RatesTo")
+  StockQuote        StockQuote[]
 }
 
 model Category {
@@ -194,6 +197,30 @@ model User {
   // Bank      Bank[]
 }
 
+model ExchangeRate {
+  id             Int      @id @default(autoincrement())
+  currencyFrom   Currency @relation("RatesFrom", fields: [currencyFromId], references: [id])
+  currencyFromId Int
+  currencyTo     Currency @relation("RatesTo", fields: [currencyToId], references: [id])
+  currencyToId   Int
+  rateTimestamp  DateTime
+  rateNanos      BigInt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model StockQuote {
+  id             Int      @id @default(autoincrement())
+  currency       Currency @relation(fields: [currencyId], references: [id])
+  currencyId     Int
+  exchange       String
+  ticker         String
+  quoteTimestamp DateTime
+  value          Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
 model OpenBankingToken {
   id     String @id @default(uuid())
   bank   Bank   @relation(fields: [bankId], references: [id])
@@ -211,8 +238,8 @@ model OpenBankingToken {
   tokenValidUntil      DateTime
   connectionCreatedAt  DateTime
   connectionValidUntil DateTime
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime             @updatedAt
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 model OpenBankingAccount {
