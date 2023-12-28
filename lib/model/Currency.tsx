@@ -4,10 +4,26 @@ export const NANOS_MULTIPLIER = 1000000000;
 
 const formatters = {
   // TODO: generalise
-  EUR: new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR" }),
-  RUB: new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB" }),
-  GBP: new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP" }),
-  USD: new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }),
+  EUR: (options?: Intl.NumberFormatOptions) =>
+    new Intl.NumberFormat(
+      "nl-NL",
+      Object.assign({ style: "currency", currency: "EUR" }, options)
+    ),
+  RUB: (options?: Intl.NumberFormatOptions) =>
+    new Intl.NumberFormat(
+      "ru-RU",
+      Object.assign({ style: "currency", currency: "RUB" }, options)
+    ),
+  GBP: (options?: Intl.NumberFormatOptions) =>
+    new Intl.NumberFormat(
+      "en-GB",
+      Object.assign({ style: "currency", currency: "GBP" }, options)
+    ),
+  USD: (options?: Intl.NumberFormatOptions) =>
+    new Intl.NumberFormat(
+      "en-US",
+      Object.assign({ style: "currency", currency: "USD" }, options)
+    ),
 };
 
 export class Currency {
@@ -28,7 +44,6 @@ export class Currency {
     if (!this.isStock()) {
       throw new Error(`Currency ${this.name} is not stock`);
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_unused, ticker] = this.name.split(":");
     return ticker;
   }
@@ -39,12 +54,12 @@ export class Currency {
     const [exchange] = this.name.split(":");
     return exchange;
   }
-  format(amountDollar: number) {
+  format(amountDollar: number, options?: Intl.NumberFormatOptions) {
     // TODO: move stocks into a separate type
     if (this.isStock()) {
       return `${amountDollar} ${this.name}`;
     }
-    const formatter = formatters[this.name];
+    const formatter = formatters[this.name](options);
     if (!formatter) {
       throw new Error(`Unknown formatter for currency ${this.name}`);
     }

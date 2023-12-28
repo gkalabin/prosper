@@ -1,15 +1,17 @@
-import { Switch } from "@headlessui/react";
 import { DurationSelector } from "components/DurationSelector";
+import { undoTailwindInputStyles } from "components/forms/Select";
 import Layout from "components/Layout";
 import {
   isFullyConfigured,
   NotConfiguredYet,
 } from "components/NotConfiguredYet";
-import { EChartOption } from "echarts";
+import { ButtonLink } from "components/ui/buttons";
+import { format, startOfMonth } from "date-fns";
+import { EChartsOption } from "echarts";
 import ReactEcharts from "echarts-for-react";
+import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
   AllDatabaseDataContextProvider,
-  AmountWithCurrency,
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
@@ -19,11 +21,12 @@ import { allDbDataProps } from "lib/ServerSideDB";
 import { formatMonth } from "lib/TimeHelpers";
 import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
+import Select from "react-select";
 
 export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
+  const [showDebugTable, setShowDebugTable] = useState(false);
   const displayCurrency = useDisplayCurrency();
   const { exchange } = useAllDatabaseDataContext();
-  const [includeTransfersInDelta, setIncludeTransfersInDelta] = useState(false);
   const zero = new AmountWithCurrency({
     amountCents: 0,
     currency: displayCurrency,
@@ -35,15 +38,15 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
   const moneyOut: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
   const moneyIn: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
   const delta: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
+  const cumulativeDelta: { [firstOfMonthEpoch: number]: AmountWithCurrency } =
+    {};
   const monthsIndex: { [firstOfMonthEpoch: number]: boolean } = {};
   for (const t of nonThirdPartyTransactions) {
-    const ts = t.monthEpoch();
+    const ts = startOfMonth(t.timestamp).getTime();
     monthsIndex[ts] = true;
-
     moneyIn[ts] ??= zero;
     moneyOut[ts] ??= zero;
     delta[ts] ??= zero;
-
     if (t.isPersonalExpense()) {
       const exchanged = exchange.exchange(
         t.amount(),
@@ -62,15 +65,6 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
       moneyIn[ts] = moneyIn[ts].add(exchanged);
       delta[ts] = delta[ts].add(exchanged);
     }
-    if (includeTransfersInDelta && t.isTransfer()) {
-      const send = exchange.exchange(t.amount(), displayCurrency, t.timestamp);
-      const received = exchange.exchange(
-        t.amountReceived(),
-        displayCurrency,
-        t.timestamp
-      );
-      delta[ts] = delta[ts].subtract(send).add(received);
-    }
   }
 
   const months = Object.keys(monthsIndex)
@@ -79,104 +73,268 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
   months.forEach((m) => {
     moneyIn[m] ??= zero;
     moneyOut[m] ??= zero;
+    delta[m] ??= zero;
+    cumulativeDelta[m] ??= zero;
   });
+  let currentDeltaSum = zero;
+  for (const ts of Object.keys(monthsIndex).sort()) {
+    currentDeltaSum = currentDeltaSum.add(delta[ts] ?? zero);
+    cumulativeDelta[ts] = currentDeltaSum;
+  }
 
-  const inOutOptions: EChartOption = {
-    title: {
-      text: "Money In/Out",
+  const currencyFormatter = (value) =>
+    displayCurrency.format(value, { maximumFractionDigits: 0 });
+  const defaultChartOptions: EChartsOption = {
+    grid: {
+      containLabel: true,
     },
-    tooltip: {},
-    legend: {
-      orient: "horizontal",
-      bottom: 10,
-      top: "bottom",
+    tooltip: {
+      formatter: (params) => {
+        const { name, value } = params;
+        return `${name}: ${currencyFormatter(value)}`;
+      },
     },
     xAxis: {
       data: months.map((x) => formatMonth(x)),
     },
-    yAxis: {},
-    series: [
-      {
-        type: "bar",
-        name: "Money In",
-        data: months.map((m) => Math.round(moneyIn[m].dollar())),
-        itemStyle: {
-          color: "#15803d",
-        },
+    yAxis: {
+      axisLabel: {
+        formatter: currencyFormatter,
       },
-      {
-        type: "bar",
-        name: "Money Out",
-        data: months.map((m) => Math.round(moneyOut[m].dollar())),
-        itemStyle: {
-          color: "#b91c1c",
-        },
-      },
-    ],
-  };
-  const deltaOptions: EChartOption = {
-    tooltip: {},
-    xAxis: {
-      data: months.map((x) => formatMonth(x)),
     },
-    yAxis: {},
-    series: [
-      {
-        type: "bar",
-        name: "Delta",
-        data: months.map((m) => Math.round(delta[m].dollar())),
-      },
-    ],
   };
 
   return (
     <>
-      <ReactEcharts option={inOutOptions} />
+      <ReactEcharts
+        option={Object.assign({}, defaultChartOptions, {
+          title: {
+            text: "Money In vs Money Out",
+          },
+          legend: {
+            orient: "horizontal",
+            bottom: 10,
+            top: "bottom",
+          },
+          series: [
+            {
+              type: "bar",
+              name: "Money In",
+              data: months.map((m) => Math.round(moneyIn[m].dollar())),
+              itemStyle: {
+                color: "#15803d",
+              },
+            },
+            {
+              type: "bar",
+              name: "Money Out",
+              data: months.map((m) => Math.round(moneyOut[m].dollar())),
+              itemStyle: {
+                color: "#b91c1c",
+              },
+            },
+          ],
+        })}
+      />
 
-      <div className="flex flex-col gap-2 rounded border p-1 shadow-sm">
-        <h1 className="mt-2 text-center text-lg">Delta: in-out</h1>
-        <Switch.Group>
-          <div className="flex items-center">
-            <div className="flex">
-              <Switch
-                checked={includeTransfersInDelta}
-                onChange={() =>
-                  setIncludeTransfersInDelta(!includeTransfersInDelta)
-                }
-                className={`${
-                  includeTransfersInDelta ? "bg-indigo-700" : "bg-gray-200"
-                } relative inline-flex h-6 w-11 items-center rounded-full`}
-              >
-                <span
-                  className={`${
-                    includeTransfersInDelta ? "translate-x-6" : "translate-x-1"
-                  } inline-block h-4 w-4 transform rounded-full bg-white transition`}
-                />
-              </Switch>
-            </div>
-            <div className="ml-4 text-sm">
-              <Switch.Label className="font-medium text-gray-700">
-                Include transfers
-              </Switch.Label>
-              <p className="text-gray-500">
-                Include sent minus received amount for transfers in total.
-                Relevant for currency exchanges.
-              </p>
-            </div>
-          </div>
-        </Switch.Group>
-
-        <ReactEcharts option={deltaOptions} />
+      <div className="m-4">
+        {showDebugTable && (
+          <>
+            <ButtonLink onClick={() => setShowDebugTable(false)}>
+              Hide debug table
+            </ButtonLink>
+            <IncomeExpenseDebugTable transactions={nonThirdPartyTransactions} />
+            <ButtonLink onClick={() => setShowDebugTable(false)}>
+              Hide debug table
+            </ButtonLink>
+          </>
+        )}
+        {!showDebugTable && (
+          <ButtonLink onClick={() => setShowDebugTable(true)}>
+            Show debug table
+          </ButtonLink>
+        )}
       </div>
+
+      <ReactEcharts
+        option={Object.assign({}, defaultChartOptions, {
+          title: {
+            text: "Delta (difference between money in and money out)",
+          },
+          series: [
+            {
+              type: "bar",
+              name: "Delta",
+              data: months.map((m) => Math.round(delta[m].dollar())),
+            },
+          ],
+        })}
+      />
+
+      <ReactEcharts
+        option={Object.assign({}, defaultChartOptions, {
+          title: {
+            text: "Cumulative delta",
+          },
+          series: [
+            {
+              type: "bar",
+              name: "Delta",
+              data: months.map((m) => Math.round(cumulativeDelta[m].dollar())),
+            },
+          ],
+        })}
+      />
+    </>
+  );
+}
+
+function IncomeExpenseDebugTable(props: { transactions: Transaction[] }) {
+  return (
+    <>
+      <h2 className="my-2 text-2xl font-medium leading-5">Income</h2>
+      <DebugTable
+        transactions={props.transactions.filter((x) => x.isIncome())}
+      />
+
+      <h2 className="my-2 text-2xl font-medium leading-5">Expense</h2>
+      <DebugTable
+        transactions={props.transactions.filter((x) => x.isPersonalExpense())}
+      />
+    </>
+  );
+}
+
+function DebugTable(props: { transactions: Transaction[] }) {
+  const displayCurrency = useDisplayCurrency();
+  const { exchange } = useAllDatabaseDataContext();
+  const zero = new AmountWithCurrency({
+    amountCents: 0,
+    currency: displayCurrency,
+  });
+  const transactionsSortedByMonthAndAmount = [...props.transactions].sort(
+    (a, b) => {
+      const aTs = startOfMonth(a.timestamp).getTime();
+      const bTs = startOfMonth(b.timestamp).getTime();
+      if (aTs != bTs) {
+        return bTs - aTs;
+      }
+      const exchangedA = exchange.exchange(
+        a.amount(),
+        displayCurrency,
+        a.timestamp
+      );
+      const exchangedB = exchange.exchange(
+        b.amount(),
+        displayCurrency,
+        b.timestamp
+      );
+      return exchangedB.dollar() - exchangedA.dollar();
+    }
+  );
+  const rows = [];
+  let cumulativeAmount = zero;
+  const TD = (props: React.TdHTMLAttributes<HTMLTableCellElement>) => (
+    <td className="border p-2" {...props}>
+      {props.children}
+    </td>
+  );
+  let previousMonth = new Date(0);
+  let transactionsShown = 0;
+  let aggregateSum = zero;
+  let aggregateCount = 0;
+  let aggregateMin = zero;
+  let aggregateMax = zero;
+  for (const t of transactionsSortedByMonthAndAmount) {
+    const exchanged = exchange.exchange(
+      t.amount(),
+      displayCurrency,
+      t.timestamp
+    );
+    if (startOfMonth(t.timestamp).getTime() != previousMonth.getTime()) {
+      if (aggregateCount > 0) {
+        rows.push(
+          <tr>
+            <TD>&nbsp;</TD>
+            <TD>
+              {aggregateCount} transactions ranging from {aggregateMin.format()}{" "}
+              to {aggregateMax.format()}
+            </TD>
+            <TD>{aggregateSum.format()}</TD>
+            <TD>{cumulativeAmount.format()}</TD>
+          </tr>
+        );
+      }
+
+      previousMonth = startOfMonth(t.timestamp);
+      cumulativeAmount = zero;
+      aggregateCount = 0;
+      aggregateSum = zero;
+      aggregateMin = zero;
+      aggregateMax = zero;
+      transactionsShown = 0;
+      rows.push(
+        <tr>
+          <TD colSpan={4} className="p-2 text-center text-lg font-medium">
+            {format(t.timestamp, "MMMM yyyy")}
+          </TD>
+        </tr>
+      );
+    }
+    cumulativeAmount = cumulativeAmount.add(exchanged);
+    if (transactionsShown < 15) {
+      rows.push(
+        <tr key={t.id}>
+          <TD>{format(t.timestamp, "yyyy-MM-dd")}</TD>
+          <TD>
+            {t.hasVendor() ? t.vendor() : ""}{" "}
+            <span className="italic">{t.description}</span>
+          </TD>
+          <TD>{exchanged.format()}</TD>
+          <TD>{cumulativeAmount.format()}</TD>
+        </tr>
+      );
+      transactionsShown++;
+    } else {
+      aggregateSum = aggregateSum.add(exchanged);
+      aggregateCount++;
+      if (aggregateMin.cents() == 0 || exchanged.lessThan(aggregateMin)) {
+        aggregateMin = exchanged;
+      }
+      if (aggregateMax.lessThan(exchanged)) {
+        aggregateMax = exchanged;
+      }
+    }
+  }
+  return (
+    <>
+      <table className="table-auto border-collapse border">
+        <thead>
+          <TD>Date</TD>
+          <TD>Vendor</TD>
+          <TD>Amount</TD>
+          <TD>Amount cumulative</TD>
+        </thead>
+        <tbody>{rows}</tbody>
+      </table>
     </>
   );
 }
 
 function InOutPageContent() {
   const [duration, setDuration] = useState(LAST_6_MONTHS);
-  const { transactions } = useAllDatabaseDataContext();
-  const transactionsForDuration = transactions.filter((t) =>
-    duration.includes(t.timestamp)
+  const [excludeCategories, setExcludeCategories] = useState([]);
+  const { transactions, categories } = useAllDatabaseDataContext();
+
+  const categoryOptions = categories.map((a) => ({
+    value: a.id,
+    label: a.nameWithAncestors,
+  }));
+
+  const filteredTransactions = transactions.filter(
+    (t) =>
+      duration.includes(t.timestamp) &&
+      !excludeCategories.includes(t.category.id)
   );
   return (
     <Layout
@@ -193,7 +351,26 @@ function InOutPageContent() {
     >
       <DurationSelector duration={duration} onChange={setDuration} />
 
-      <MoneyInMoneyOut transactions={transactionsForDuration} />
+      <div className="mb-4">
+        <label
+          htmlFor="categoryIds"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Categories to exclude
+        </label>
+        <Select
+          styles={undoTailwindInputStyles()}
+          options={categoryOptions}
+          isMulti
+          value={excludeCategories.map((x) => ({
+            label: categoryOptions.find((c) => c.value == x).label,
+            value: x,
+          }))}
+          onChange={(x) => setExcludeCategories(x.map((x) => x.value))}
+        />
+      </div>
+
+      <MoneyInMoneyOut transactions={filteredTransactions} />
     </Layout>
   );
 }
