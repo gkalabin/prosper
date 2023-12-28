@@ -11,8 +11,8 @@ import {
 } from "components/txform/FormInputs";
 import { differenceInMonths } from "date-fns";
 import { useFormikContext } from "formik";
-import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { uniqMostFrequent } from "lib/collections";
+import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { accountUnit } from "lib/model/BankAccount";
 import { TransactionFormValues } from "lib/model/forms/TransactionFormValues";
 import { Transaction, isTransfer } from "lib/model/transaction/Transaction";
@@ -76,8 +76,10 @@ export const FormTransfer = ({
     setFieldValue("toBankAccountId", deposit.internalAccountId);
   }, [prototype, setFieldValue]);
 
-  const fromAccount = bankAccounts.find((a) => a.id == fromBankAccountId);
-  const toAccount = bankAccounts.find((a) => a.id == toBankAccountId);
+  const fromAccount =
+    bankAccounts.find((a) => a.id == fromBankAccountId) ?? bankAccounts[0];
+  const toAccount =
+    bankAccounts.find((a) => a.id == toBankAccountId) ?? bankAccounts[0];
   const showReceivedAmount =
     accountUnit(fromAccount, stocks) != accountUnit(toAccount, stocks);
   useReceivedAmountEffect(showReceivedAmount, transaction, prototype);
@@ -104,8 +106,8 @@ export const FormTransfer = ({
 };
 function useReceivedAmountEffect(
   showReceivedAmount: boolean,
-  transaction: Transaction,
-  prototype: TransactionPrototype,
+  transaction: Transaction | null,
+  prototype: TransactionPrototype | null,
 ) {
   const {
     values: { amount },
