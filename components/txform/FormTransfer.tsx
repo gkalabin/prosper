@@ -18,9 +18,9 @@ import { uniqMostFrequent } from "lib/collections";
 import { accountUnit } from "lib/model/BankAccount";
 import {
   Transaction,
-  Transfer,
   isTransfer,
 } from "lib/model/transaction/Transaction";
+import { Transfer } from "lib/model/transaction/Transfer";
 import { AddTransactionFormValues } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect } from "react";

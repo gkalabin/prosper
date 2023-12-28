@@ -18,17 +18,17 @@ import { Currency } from "lib/model/Currency";
 import { Tag } from "lib/model/Tag";
 import { Trip } from "lib/model/Trip";
 import {
-  Income,
-  PersonalExpense,
-  ThirdPartyExpense,
   Transaction,
-  Transfer,
   otherPartyNameOrNull,
   ownShareAmountCentsIgnoreRefuds,
   parentTransactionId,
   transactionTags,
   transactionTrip,
 } from "lib/model/transaction/Transaction";
+import { Income } from "lib/model/transaction/Income";
+import { Transfer } from "lib/model/transaction/Transfer";
+import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
+import { PersonalExpense } from "lib/model/transaction/PersonalExpense";
 import {
   AddTransactionFormValues,
   FormMode,

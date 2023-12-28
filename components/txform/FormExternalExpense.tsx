@@ -17,11 +17,11 @@ import { useFormikContext } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
 import {
-  ThirdPartyExpense,
   Transaction,
   isThirdPartyExpense,
   otherPartyNameOrNull,
 } from "lib/model/transaction/Transaction";
+import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
 import { AddTransactionFormValues } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect, useState } from "react";

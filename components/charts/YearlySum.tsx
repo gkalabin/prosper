@@ -5,10 +5,10 @@ import { defaultYearlyMoneyChart } from "lib/charts";
 import { useDisplayCurrency } from "lib/displaySettings";
 import {
   Expense,
-  Income,
   amountAllParties,
   amountOwnShare,
 } from "lib/model/transaction/Transaction";
+import { Income } from "lib/model/transaction/Income";
 import { MoneyTimeseries } from "lib/util/Timeseries";
 
 export function YearlyOwnShare({

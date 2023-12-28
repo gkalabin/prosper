@@ -25,11 +25,11 @@ import {
 import { Currency } from "lib/model/Currency";
 import { Stock } from "lib/model/Stock";
 import {
-  Income,
-  PersonalExpense,
   Transaction,
-  Transfer,
 } from "lib/model/transaction/Transaction";
+import { Income } from "lib/model/transaction/Income";
+import { Transfer } from "lib/model/transaction/Transfer";
+import { PersonalExpense } from "lib/model/transaction/PersonalExpense";
 import { isCurrency, isStock } from "lib/model/Unit";
 import {
   useOpenBankingBalances,

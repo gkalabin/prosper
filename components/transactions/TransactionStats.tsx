@@ -15,7 +15,6 @@ import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
 import {
   Expense,
-  Income,
   Transaction,
   amountAllParties,
   amountOwnShare,
@@ -25,6 +24,7 @@ import {
   isThirdPartyExpense,
   isTransfer,
 } from "lib/model/transaction/Transaction";
+import { Income } from "lib/model/transaction/Income";
 import { AppendMap } from "lib/util/AppendingMap";
 import { MoneyTimeseries } from "lib/util/Timeseries";
 

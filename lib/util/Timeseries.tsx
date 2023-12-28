@@ -4,7 +4,8 @@ import { StockAndCurrencyExchange } from "lib/ClientSideModel";
 import { BankAccount } from "lib/model/BankAccount";
 import { Currency } from "lib/model/Currency";
 import { Stock } from "lib/model/Stock";
-import { Expense, Income, amountOwnShare } from "lib/model/transaction/Transaction";
+import { Expense, amountOwnShare } from "lib/model/transaction/Transaction";
+import { Income } from "lib/model/transaction/Income";
 import { AppendMap } from "lib/util/AppendingMap";
 import { percentile } from "lib/util/util";
 

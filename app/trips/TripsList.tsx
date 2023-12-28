@@ -19,10 +19,10 @@ import { Stock } from "lib/model/Stock";
 import {
   amountAllParties,
   Expense,
-  Income,
   isExpense,
   isIncome,
 } from "lib/model/transaction/Transaction";
+import { Income } from "lib/model/transaction/Income";
 import { Trip } from "lib/model/Trip";
 
 const amountSum = (

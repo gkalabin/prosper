@@ -20,9 +20,6 @@ import { uniqMostFrequent } from "lib/collections";
 import { Currency } from "lib/model/Currency";
 import { Trip } from "lib/model/Trip";
 import {
-  Income,
-  PersonalExpense,
-  ThirdPartyExpense,
   Transaction,
   formatAmount,
   isIncome,
@@ -30,6 +27,9 @@ import {
   isThirdPartyExpense,
   otherPartyNameOrNull,
 } from "lib/model/transaction/Transaction";
+import { Income } from "lib/model/transaction/Income";
+import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
+import { PersonalExpense } from "lib/model/transaction/PersonalExpense";
 import { AddTransactionFormValues, FormMode } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect } from "react";

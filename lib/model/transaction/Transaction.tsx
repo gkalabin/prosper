@@ -2,81 +2,35 @@ import { Amount } from "lib/Amount";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { AmountWithUnit } from "lib/AmountWithUnit";
 import { StockAndCurrencyExchange } from "lib/ClientSideModel";
+import { TransactionWithExtensionsAndTagIds } from "lib/model/AllDatabaseDataModel";
+import { BankAccount, accountUnit } from "lib/model/BankAccount";
+import { Category } from "lib/model/Category";
+import { Currency } from "lib/model/Currency";
 import { Stock } from "lib/model/Stock";
 import { Tag } from "lib/model/Tag";
 import { Trip } from "lib/model/Trip";
-import { TransactionWithExtensionsAndTagIds } from "../AllDatabaseDataModel";
-import { BankAccount, accountUnit } from "../BankAccount";
-import { Category } from "../Category";
-import { Currency } from "../Currency";
-import { Unit, isCurrency, isStock } from "../Unit";
+import { Unit, isCurrency, isStock } from "lib/model/Unit";
+import { Income } from "lib/model/transaction/Income";
+import { PersonalExpense } from "lib/model/transaction/PersonalExpense";
+import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
+import { Transfer } from "lib/model/transaction/Transfer";
+import { outgoingBankAccount } from "./Transfer";
 
 export type TransactionCompanion = {
   name: string;
   amountCents: number;
 };
 
-export type PersonalExpense = {
-  kind: "PersonalExpense";
-  id: number;
-  timestampEpoch: number;
-  vendor: string;
-  amountCents: number;
-  companions: TransactionCompanion[];
-  note: string;
-  accountId: number;
-  categoryId: number;
-  tagsIds: number[];
-  tripId?: number;
-  refundGroupTransactionIds: number[];
-};
+export type Transaction =
+  | PersonalExpense
+  | ThirdPartyExpense
+  | Transfer
+  | Income;
 
-export type ThirdPartyExpense = {
-  kind: "ThirdPartyExpense";
-  id: number;
-  timestampEpoch: number;
-  payer: string;
-  vendor: string;
-  amountCents: number;
-  currencyCode: string;
-  ownShareCents: number;
-  companions: TransactionCompanion[];
-  note: string;
-  categoryId: number;
-  tagsIds: number[];
-  tripId?: number;
-};
-
-export type Transfer = {
-  kind: "Transfer";
-  id: number;
-  timestampEpoch: number;
-  fromAccountId: number;
-  toAccountId: number;
-  sentAmountCents: number;
-  receivedAmountCents: number;
-  note: string;
-  categoryId: number;
-  tagsIds: number[];
-};
-
-export type Income = {
-  kind: "Income";
-  id: number;
-  timestampEpoch: number;
-  payer: string;
-  amountCents: number;
-  companions: TransactionCompanion[];
-  note: string;
-  accountId: number;
-  categoryId: number;
-  tagsIds: number[];
-  tripId?: number;
-  refundGroupTransactionIds: number[];
-};
+export type Expense = PersonalExpense | ThirdPartyExpense;
 
 export function transactionModelFromDB(
-  init: TransactionWithExtensionsAndTagIds
+  init: TransactionWithExtensionsAndTagIds,
 ): Transaction {
   if (init.personalExpense) {
     const companions = [];
@@ -171,16 +125,8 @@ export function transactionModelFromDB(
   throw new Error(`Unknown transaction type: ${JSON.stringify(init)}`);
 }
 
-export type Transaction =
-  | PersonalExpense
-  | ThirdPartyExpense
-  | Transfer
-  | Income;
-
-export type Expense = PersonalExpense | ThirdPartyExpense;
-
 export function ownShareAmountCentsIgnoreRefuds(
-  t: PersonalExpense | ThirdPartyExpense | Income
+  t: PersonalExpense | ThirdPartyExpense | Income,
 ): number {
   const otherPartiesAmountCents = t.companions
     .map((c) => c.amountCents)
@@ -188,40 +134,14 @@ export function ownShareAmountCentsIgnoreRefuds(
   return t.amountCents - otherPartiesAmountCents;
 }
 
-export function outgoingBankAccount(
-  t: Transfer,
-  bankAccounts: BankAccount[]
-): BankAccount {
-  const account = bankAccounts.find((a) => a.id == t.fromAccountId);
-  if (!account) {
-    throw new Error(
-      `Cannot find account ${t.fromAccountId} for transaction ${t.id}`
-    );
-  }
-  return account;
-}
-
-export function incomingBankAccount(
-  t: Transfer,
-  bankAccounts: BankAccount[]
-): BankAccount {
-  const account = bankAccounts.find((a) => a.id == t.toAccountId);
-  if (!account) {
-    throw new Error(
-      `Cannot find account ${t.toAccountId} for transaction ${t.id}`
-    );
-  }
-  return account;
-}
-
 export function transactionBankAccount(
   t: PersonalExpense | Income,
-  bankAccounts: BankAccount[]
+  bankAccounts: BankAccount[],
 ): BankAccount {
   const account = bankAccounts.find((a) => a.id == t.accountId);
   if (!account) {
     throw new Error(
-      `Cannot find account ${t.accountId} for transaction ${t.id}`
+      `Cannot find account ${t.accountId} for transaction ${t.id}`,
     );
   }
   return account;
@@ -230,7 +150,7 @@ export function transactionBankAccount(
 export function rawTransactionAmount(
   t: PersonalExpense | ThirdPartyExpense | Income,
   bankAccounts: BankAccount[],
-  stocks: Stock[]
+  stocks: Stock[],
 ): AmountWithUnit {
   return new AmountWithUnit({
     amountCents: t.amountCents,
@@ -241,7 +161,7 @@ export function rawTransactionAmount(
 export function ownShareAmountIgnoreRefunds(
   t: PersonalExpense | ThirdPartyExpense | Income,
   bankAccounts: BankAccount[],
-  stocks: Stock[]
+  stocks: Stock[],
 ): AmountWithUnit {
   return new AmountWithUnit({
     amountCents: ownShareAmountCentsIgnoreRefuds(t),
@@ -252,7 +172,7 @@ export function ownShareAmountIgnoreRefunds(
 export function transactionUnit(
   t: PersonalExpense | ThirdPartyExpense | Income,
   bankAccounts: BankAccount[],
-  stocks: Stock[]
+  stocks: Stock[],
 ): Unit {
   switch (t.kind) {
     case "PersonalExpense":
@@ -270,7 +190,7 @@ export function transactionUnit(
 export function amountSent(
   t: Transfer,
   bankAccounts: BankAccount[],
-  stocks: Stock[]
+  stocks: Stock[],
 ): AmountWithUnit {
   const outgoingAccount = outgoingBankAccount(t, bankAccounts);
   const unit = accountUnit(outgoingAccount, stocks);
@@ -280,25 +200,12 @@ export function amountSent(
   });
 }
 
-export function amountReceived(
-  t: Transfer,
-  bankAccounts: BankAccount[],
-  stocks: Stock[]
-): AmountWithUnit {
-  const incomingAccount = incomingBankAccount(t, bankAccounts);
-  const unit = accountUnit(incomingAccount, stocks);
-  return new AmountWithUnit({
-    amountCents: t.receivedAmountCents,
-    unit,
-  });
-}
-
 export function amountAllParties(
   t: PersonalExpense | ThirdPartyExpense | Income,
   target: Currency,
   bankAccounts: BankAccount[],
   stocks: Stock[],
-  exchange: StockAndCurrencyExchange
+  exchange: StockAndCurrencyExchange,
 ): AmountWithCurrency {
   const unit = transactionUnit(t, bankAccounts, stocks);
   const allParties = new Amount({ amountCents: t.amountCents });
@@ -320,7 +227,7 @@ export function amountOwnShare(
   target: Currency,
   bankAccounts: BankAccount[],
   stocks: Stock[],
-  exchange: StockAndCurrencyExchange
+  exchange: StockAndCurrencyExchange,
 ): AmountWithCurrency {
   const unit = transactionUnit(t, bankAccounts, stocks);
   const ownShare = new Amount({
@@ -346,7 +253,7 @@ export function transactionTags(t: Transaction, allTags: Tag[]): Tag[] {
 
 export function transactionTrip(
   t: PersonalExpense | ThirdPartyExpense | Income,
-  allTrips: Trip[]
+  allTrips: Trip[],
 ): Trip | null {
   return allTrips.find((trip) => trip.id == t.tripId);
 }
@@ -365,7 +272,7 @@ export function isThirdPartyExpense(t: Transaction): t is ThirdPartyExpense {
 }
 
 export function isExpense(
-  t: Transaction
+  t: Transaction,
 ): t is PersonalExpense | ThirdPartyExpense {
   return isPersonalExpense(t) || isThirdPartyExpense(t);
 }
@@ -380,7 +287,7 @@ export function isIncome(t: Transaction): t is Income {
 
 export function formatAmount(
   t: PersonalExpense,
-  bankAccounts: BankAccount[]
+  bankAccounts: BankAccount[],
 ): string {
   const account = bankAccounts.find((a) => a.id == t.accountId);
   const currency = Currency.findByCode(account.currencyCode);
@@ -399,12 +306,12 @@ export function otherPartyNameOrNull(t: Transaction): string | null {
 
 export function transactionCategory(
   t: Transaction,
-  allCategories: Category[]
+  allCategories: Category[],
 ): Category {
   const c = allCategories.find((c) => c.id() == t.categoryId);
   if (!c) {
     throw new Error(
-      `Cannot find category ${t.categoryId} for transaction ${t.id}`
+      `Cannot find category ${t.categoryId} for transaction ${t.id}`,
     );
   }
   return c;

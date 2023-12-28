@@ -23,10 +23,10 @@ import {
   amountAllParties,
   amountOwnShare,
   Expense,
-  Income,
   isExpense,
   isIncome,
 } from "lib/model/transaction/Transaction";
+import { Income } from "lib/model/transaction/Income";
 import { Trip, tripModelFromDB } from "lib/model/Trip";
 
 function NonEmptyTripDetails(props: { trip: Trip }) {

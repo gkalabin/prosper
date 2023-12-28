@@ -19,11 +19,11 @@ import { useFormikContext } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
 import {
-  Income,
   Transaction,
   isIncome,
   otherPartyNameOrNull,
 } from "lib/model/transaction/Transaction";
+import { Income } from "lib/model/transaction/Income";
 import { AddTransactionFormValues } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect, useState } from "react";

@@ -20,13 +20,13 @@ import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
 import { Category as CategoryModel } from "lib/model/Category";
 import {
-  PersonalExpense,
-  ThirdPartyExpense,
   Transaction,
   isExpense,
   isPersonalExpense,
   otherPartyNameOrNull,
 } from "lib/model/transaction/Transaction";
+import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
+import { PersonalExpense } from "lib/model/transaction/PersonalExpense";
 import { AddTransactionFormValues, FormMode } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect, useMemo, useState } from "react";

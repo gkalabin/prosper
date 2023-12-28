@@ -6,11 +6,11 @@ import {
 } from "date-fns";
 import {
   Expense,
-  Income,
   Transaction,
   isExpense,
   isIncome,
 } from "lib/model/transaction/Transaction";
+import { Income } from "lib/model/transaction/Income";
 
 export class TransactionsStatsInput {
   constructor(

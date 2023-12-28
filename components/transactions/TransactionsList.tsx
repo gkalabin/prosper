@@ -8,22 +8,22 @@ import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { fullAccountName } from "lib/model/BankAccount";
 import {
   Transaction,
-  amountReceived,
   amountSent,
-  incomingBankAccount,
   isExpense,
   isIncome,
   isPersonalExpense,
   isThirdPartyExpense,
   isTransfer,
   otherPartyNameOrNull,
-  outgoingBankAccount,
   ownShareAmountIgnoreRefunds,
   rawTransactionAmount,
   transactionBankAccount,
   transactionCategory,
   transactionUnit,
 } from "lib/model/transaction/Transaction";
+import { amountReceived } from "lib/model/transaction/Transfer";
+import { incomingBankAccount } from "lib/model/transaction/Transfer";
+import { outgoingBankAccount } from "lib/model/transaction/Transfer";
 import { TransactionAPIResponse } from "lib/transactionDbUtils";
 import { useState } from "react";
 
