@@ -19,7 +19,7 @@ import { allDbDataPropsWithOb } from "lib/ServerSideDB";
 import { onTransactionChange } from "lib/stateHelpers";
 import { TransactionAPIResponse } from "lib/transactionCreation";
 import { InferGetServerSidePropsType } from "next";
-import { createContext, useContext, useState } from "react";
+import { useState } from "react";
 
 const BankAccountListItem = (props: {
   account: BankAccount;
@@ -81,7 +81,6 @@ const BanksList = (props: {
 }) => {
   const { banks } = useAllDatabaseDataContext();
   const displayCurrency = useDisplayCurrency();
-  const showArchivedAccounts = useContext(ArchivedAccountsShownContext);
   return (
     <div className="flex-1 rounded border border-gray-200">
       <div className="flex flex-col divide-y divide-gray-200">
@@ -96,15 +95,15 @@ const BanksList = (props: {
 
             <div className="divide-y divide-gray-200">
               {bank.accounts
-                .filter((a) => showArchivedAccounts || !a.isArchived())
+                .filter((a) => !a.isArchived())
                 .map((account) => (
-                  <BankAccountListItem
-                    key={account.id}
-                    account={account}
-                    openBankingBalance={props.openBankingBalances[account.id]}
-                    onTransactionUpdated={props.onTransactionUpdated}
-                  />
-                ))}
+                <BankAccountListItem
+                  key={account.id}
+                  account={account}
+                  openBankingBalance={props.openBankingBalances[account.id]}
+                  onTransactionUpdated={props.onTransactionUpdated}
+                />
+              ))}
             </div>
           </div>
         ))}
@@ -113,16 +112,12 @@ const BanksList = (props: {
   );
 };
 
-const ArchivedAccountsShownContext = createContext<boolean>(false);
-
 export const getServerSideProps = allDbDataPropsWithOb;
-
 export default function OverviewPage(
   dbData: InferGetServerSidePropsType<typeof getServerSideProps>
 ) {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
   const [dbDataState, setDbData] = useState(dbData);
-  const [archivedShown, setShowArchived] = useState(false);
 
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
@@ -150,17 +145,10 @@ export default function OverviewPage(
             />
           )}
         </div>
-        <div className="mb-4 flex justify-end">
-          <ButtonPagePrimary onClick={() => setShowArchived(!archivedShown)}>
-            {archivedShown ? "Hide archived" : "Show archived"}
-          </ButtonPagePrimary>
-        </div>
-        <ArchivedAccountsShownContext.Provider value={archivedShown}>
-          <BanksList
-            onTransactionUpdated={onTransactionChange(setDbData)}
-            openBankingBalances={dbData.openBankingData.balances}
-          />
-        </ArchivedAccountsShownContext.Provider>
+        <BanksList
+          onTransactionUpdated={onTransactionChange(setDbData)}
+          openBankingBalances={dbData.openBankingData.balances}
+        />
       </AllDatabaseDataContextProvider>
     </Layout>
   );
