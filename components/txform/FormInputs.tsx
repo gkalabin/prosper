@@ -6,116 +6,36 @@ import {
   TextInputWithLabel,
 } from "components/forms/Input";
 import { undoTailwindInputStyles } from "components/forms/Select";
-import {
-  formModeForTransaction,
-  toDateTimeLocal,
-} from "components/txform/AddTransactionForm";
+import { formModeForTransaction } from "components/txform/AddTransactionForm";
 import { BankAccountSelect } from "components/txform/BankAccountSelect";
+import { ExternalExpenseForm } from "components/txform/ExternalExpenseForm";
+import { IncomeForm } from "components/txform/IncomeForm";
+import { PersonalExpenseForm } from "components/txform/PersonalExpenseForm";
 import { SelectNumber } from "components/txform/Select";
-import { ButtonLink } from "components/ui/buttons";
+import { TransferForm } from "components/txform/TransferForm";
 import { differenceInMonths, isBefore } from "date-fns";
 import { useFormikContext } from "formik";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import {
-  useAllDatabaseDataContext,
-  useDisplayBankAccounts,
-} from "lib/ClientSideModel";
+import { useAllDatabaseDataContext } from "lib/ClientSideModel";
+import { shortRelativeDate } from "lib/TimeHelpers";
 import { uniqMostFrequent } from "lib/collections";
 import { Tag } from "lib/model/Tag";
 import { Transaction } from "lib/model/Transaction";
 import { Trip } from "lib/model/Trip";
-import { shortRelativeDate } from "lib/TimeHelpers";
 import { AddTransactionFormValues, FormMode } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
-
-const SUGGESTIONS_WINDOW_MONTHS = 6;
 
 export const FormInputs = (props: {
   transaction: Transaction;
   prototype: TransactionPrototype;
 }) => {
-  const { transactions, banks } = useAllDatabaseDataContext();
   const {
-    values: {
-      vendor,
-      isShared,
-      fromBankAccountId,
-      mode,
-      amount,
-      description,
-      payer,
-    },
+    values: { mode },
     setFieldValue,
     resetForm,
   } = useFormikContext<AddTransactionFormValues>();
-  const transactionsForMode = transactions.filter(
-    (x) => formModeForTransaction(x) == mode
-  );
-  const now = new Date();
-  const recentTransactionsForMode = transactionsForMode.filter(
-    (x) => differenceInMonths(now, x.timestamp) < SUGGESTIONS_WINDOW_MONTHS
-  );
-
-  const [mostFrequentOtherParty] = uniqMostFrequent(
-    recentTransactionsForMode
-      .filter((x) => x.hasOtherParty())
-      .map((x) => x.otherParty())
-  );
-  useEffect(() => {
-    if (props.transaction) {
-      return;
-    }
-    if (isShared && mostFrequentOtherParty) {
-      setFieldValue("otherPartyName", mostFrequentOtherParty);
-    }
-    if (!isShared) {
-      setFieldValue("otherPartyName", "");
-    }
-  }, [isShared, setFieldValue, mostFrequentOtherParty, props.transaction]);
-
-  const [mostFrequentPayer] = uniqMostFrequent(
-    recentTransactionsForMode.filter((x) => x.hasPayer()).map((x) => x.payer())
-  );
-  useEffect(() => {
-    if (props.transaction) {
-      return;
-    }
-    if (mostFrequentPayer) {
-      setFieldValue("payer", mostFrequentPayer);
-    }
-  }, [setFieldValue, mostFrequentPayer, props.transaction]);
-
-  const transactionFilter = (x: Transaction): boolean => {
-    if (mode == FormMode.PERSONAL || mode == FormMode.EXTERNAL) {
-      return !vendor || (x.hasVendor() && x.vendor() == vendor);
-    }
-    if (mode == FormMode.TRANSFER) {
-      return !description || x.description == description;
-    }
-    if (mode == FormMode.INCOME) {
-      return !payer || (x.hasPayer() && x.payer() == payer);
-    }
-    throw new Error("Unknown mode: " + mode);
-  };
-  let [mostFrequentCategory] = uniqMostFrequent(
-    recentTransactionsForMode.filter(transactionFilter).map((x) => x.category)
-  );
-  if (!mostFrequentCategory) {
-    [mostFrequentCategory] = uniqMostFrequent(
-      transactionsForMode.filter(transactionFilter).map((x) => x.category)
-    );
-  }
-  useEffect(() => {
-    if (props.transaction) {
-      return;
-    }
-    if (mostFrequentCategory) {
-      setFieldValue("categoryId", mostFrequentCategory.id());
-    }
-  }, [setFieldValue, mostFrequentCategory, props.transaction]);
 
   useEffect(() => {
     const proto = props.prototype;
@@ -123,298 +43,26 @@ export const FormInputs = (props: {
       return;
     }
     resetForm();
-    const singleOpProto = proto.type == "transfer" ? proto.deposit : proto;
-    setFieldValue("amount", singleOpProto.absoluteAmountCents / 100);
-    setFieldValue("timestamp", toDateTimeLocal(singleOpProto.timestampEpoch));
     if (proto.type == "deposit") {
       setFieldValue("mode", FormMode.INCOME);
-      setFieldValue("payer", proto.description);
-      setFieldValue("toBankAccountId", proto.internalAccountId);
     } else if (proto.type == "withdrawal") {
       setFieldValue("mode", FormMode.PERSONAL);
-      setFieldValue("vendor", proto.description);
-      setFieldValue("fromBankAccountId", proto.internalAccountId);
     } else if (proto.type == "transfer") {
       setFieldValue("mode", FormMode.TRANSFER);
-      setFieldValue("description", singleOpProto.description);
-      setFieldValue("fromBankAccountId", proto.withdrawal.internalAccountId);
-      setFieldValue("toBankAccountId", proto.withdrawal.internalAccountId);
     }
   }, [props.prototype, resetForm, setFieldValue]);
 
-  useEffect(() => {
-    if (props.transaction) {
-      return;
-    }
-    if (mode == FormMode.PERSONAL) {
-      const account = banks
-        .flatMap((b) => b.accounts)
-        .find((a) => a.id == fromBankAccountId);
-      if (account) {
-        setFieldValue("isShared", account.isJoint());
-      }
-    }
-  }, [mode, setFieldValue, banks, fromBankAccountId, props.transaction]);
-  useEffect(() => {
-    if (!isShared) {
-      setFieldValue("ownShareAmount", amount);
-      return;
-    }
-    let newAmount = amount / 2;
-    if (
-      props.transaction &&
-      !props.transaction.amount().isZero() &&
-      !props.transaction.amountOwnShare().isZero()
-    ) {
-      const transactionRatio =
-        props.transaction.amountOwnShare().cents() /
-        props.transaction.amount().cents();
-      newAmount = transactionRatio * amount;
-    }
-    // Round new amount to the closest cent.
-    const newAmountRounded = Math.round(100 * newAmount) / 100;
-    setFieldValue("ownShareAmount", newAmountRounded);
-  }, [amount, isShared, setFieldValue, props.transaction]);
-
   return (
     <>
-      {mode == FormMode.PERSONAL && <PersonalExpenseForm />}
-      {mode == FormMode.EXTERNAL && <ExternalExpenseForm />}
-      {mode == FormMode.TRANSFER && (
-        <TransferForm transaction={props.transaction} />
-      )}
-      {mode == FormMode.INCOME && <IncomeForm />}
+      {mode == FormMode.PERSONAL && <PersonalExpenseForm {...props} />}
+      {mode == FormMode.EXTERNAL && <ExternalExpenseForm {...props} />}
+      {mode == FormMode.TRANSFER && <TransferForm {...props} />}
+      {mode == FormMode.INCOME && <IncomeForm {...props} />}
     </>
   );
 };
 
-const PersonalExpenseForm = () => {
-  const {
-    values: { isShared, tripName, description },
-    setFieldValue,
-  } = useFormikContext<AddTransactionFormValues>();
-  const [showNote, setShowNote] = useState(!!description);
-  const [showTrip, setShowTrip] = useState(!!tripName);
-  return (
-    <>
-      <Timestamp />
-      <AccountFrom />
-      <div className="col-span-3 flex">
-        <IsShared />
-      </div>
-      {isShared && (
-        <div className="col-span-3">
-          <OtherPartyName />
-        </div>
-      )}
-      <div className={classNames(isShared ? "col-span-3" : "col-span-6")}>
-        <MoneyInputWithLabel name="amount" label="Amount" />
-      </div>
-      {isShared && (
-        <div className="col-span-3">
-          <OwnShareAmount />
-        </div>
-      )}
-      <Vendor />
-      <Tags />
-      <Category />
-      <div className="col-span-6 text-xs">
-        Add a{" "}
-        <ButtonLink
-          onClick={() => {
-            setShowNote(!showNote);
-            setFieldValue("description", "");
-          }}
-        >
-          note
-        </ButtonLink>{" "}
-        to this transaction or link it to a{" "}
-        <ButtonLink
-          onClick={() => {
-            setShowTrip(!showTrip);
-            setFieldValue("tripName", "");
-          }}
-        >
-          trip
-        </ButtonLink>
-        .
-      </div>
-      {showTrip && <Trips />}
-      {showNote && <Description />}
-    </>
-  );
-};
-
-const ExternalExpenseForm = () => {
-  const { setFieldValue } = useFormikContext<AddTransactionFormValues>();
-  const [showNote, setShowNote] = useState(false);
-  const [showTrip, setShowTrip] = useState(false);
-  return (
-    <>
-      <Timestamp />
-      <div className="col-span-3 flex">
-        <IsShared />
-      </div>
-      <div className="col-span-3">
-        <Payer />
-      </div>
-      <div className="col-span-3">
-        <MoneyInputWithLabel name="amount" label="Amount" />
-      </div>
-      <div className="col-span-3">
-        <OwnShareAmount />
-      </div>
-      <Vendor />
-      <Tags />
-      <Category />
-      <Currencies />
-      <div className="col-span-6 text-xs">
-        Add a{" "}
-        <ButtonLink
-          onClick={() => {
-            setShowNote(!showNote);
-            setFieldValue("description", "");
-          }}
-        >
-          note
-        </ButtonLink>{" "}
-        to this transaction or link it to a{" "}
-        <ButtonLink
-          onClick={() => {
-            setShowTrip(!showTrip);
-            setFieldValue("tripName", "");
-          }}
-        >
-          trip
-        </ButtonLink>
-        .
-      </div>
-      {showTrip && <Trips />}
-      {showNote && <Description />}
-    </>
-  );
-};
-
-const TransferForm = ({ transaction }: { transaction: Transaction }) => {
-  const { exchange } = useAllDatabaseDataContext();
-  const bankAccounts = useDisplayBankAccounts();
-  const {
-    values: { fromBankAccountId, toBankAccountId, amount },
-    setFieldValue,
-  } = useFormikContext<AddTransactionFormValues>();
-  const fromAccount = bankAccounts.find((a) => a.id == fromBankAccountId);
-  const toAccount = bankAccounts.find((a) => a.id == toBankAccountId);
-  const showReceivedAmount = fromAccount.currency.id != toAccount.currency.id;
-  useEffect(() => {
-    if (transaction && transaction.amount().dollar() == amount) {
-      setFieldValue("receivedAmount", transaction.amountReceived().dollar());
-      return;
-    }
-    if (!showReceivedAmount) {
-      setFieldValue("receivedAmount", amount);
-      return;
-    }
-    const now = new Date();
-    const exchanged = exchange.exchange(
-      new AmountWithCurrency({
-        amountCents: Math.round(amount * 100),
-        currency: fromAccount.currency,
-      }),
-      toAccount.currency,
-      now
-    );
-    setFieldValue("receivedAmount", exchanged.dollar());
-  }, [
-    exchange,
-    amount,
-    setFieldValue,
-    showReceivedAmount,
-    fromAccount.currency,
-    toAccount.currency,
-    transaction,
-  ]);
-  return (
-    <>
-      <Timestamp />
-      <AccountFrom />
-      <AccountTo />
-      <div
-        className={classNames(showReceivedAmount ? "col-span-3" : "col-span-6")}
-      >
-        <MoneyInputWithLabel name="amount" label="Amount" />
-      </div>
-      {showReceivedAmount && (
-        <div className="col-span-3">
-          <MoneyInputWithLabel name="receivedAmount" label="Received" />
-        </div>
-      )}
-      <Description />
-      <Tags />
-      <Category />
-    </>
-  );
-};
-
-const IncomeForm = () => {
-  const {
-    values: { isShared },
-    setFieldValue,
-  } = useFormikContext<AddTransactionFormValues>();
-  const [showParent, setShowParent] = useState(false);
-  const [showNote, setShowNote] = useState(false);
-  return (
-    <>
-      <Timestamp />
-      <AccountTo />
-      <div className="col-span-3 flex">
-        <IsShared />
-      </div>
-      {isShared && (
-        <div className="col-span-3">
-          <OtherPartyName />
-        </div>
-      )}
-      <div className={classNames(isShared ? "col-span-3" : "col-span-6")}>
-        <MoneyInputWithLabel name="amount" label="Amount" />
-      </div>
-      {isShared && (
-        <div className="col-span-3">
-          <OwnShareAmount />
-        </div>
-      )}
-      <div className="col-span-6">
-        <Payer />
-      </div>
-      <Tags />
-      <Category />
-      <div className="col-span-6 text-xs">
-        Add a{" "}
-        <ButtonLink
-          onClick={() => {
-            setShowNote(!showNote);
-            setFieldValue("description", "");
-          }}
-        >
-          note
-        </ButtonLink>{" "}
-        or{" "}
-        <ButtonLink
-          onClick={() => {
-            setShowParent(!showParent);
-            setFieldValue("parentTransactionId", 0);
-          }}
-        >
-          link the transaction this is the refund for
-        </ButtonLink>
-        .
-      </div>
-      {showParent && <ParentTransaction />}
-      {showNote && <Description />}
-    </>
-  );
-};
-
-const Trips = () => {
+export const Trips = () => {
   const { transactions, trips } = useAllDatabaseDataContext();
   const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
   const transactionsWithTrips = transactions.filter((x) => x.hasTrip());
@@ -450,11 +98,11 @@ const Trips = () => {
   );
 };
 
-function OwnShareAmount() {
+export function OwnShareAmount() {
   return <MoneyInputWithLabel name="ownShareAmount" label="Own share amount" />;
 }
 
-function IsShared() {
+export function IsShared() {
   const {
     values: { isShared },
     isSubmitting,
@@ -493,7 +141,7 @@ function IsShared() {
   );
 }
 
-function Timestamp() {
+export function Timestamp() {
   const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
   return (
     <div className="col-span-6">
@@ -513,7 +161,7 @@ function Timestamp() {
   );
 }
 
-function Vendor() {
+export function Vendor() {
   const {
     values: { mode },
   } = useFormikContext<AddTransactionFormValues>();
@@ -536,7 +184,7 @@ function Vendor() {
   );
 }
 
-function Description() {
+export function Description() {
   const {
     values: { mode },
     isSubmitting,
@@ -572,7 +220,7 @@ function Description() {
   );
 }
 
-function Tags() {
+export function Tags() {
   const {
     values: { tagNames },
     isSubmitting,
@@ -612,7 +260,7 @@ function Tags() {
   );
 }
 
-function ParentTransaction() {
+export function ParentTransaction() {
   const {
     values: { toBankAccountId, parentTransactionId },
     isSubmitting,
@@ -657,7 +305,7 @@ function ParentTransaction() {
   );
 }
 
-function Category() {
+export function Category() {
   const {
     isSubmitting,
     setFieldValue,
@@ -690,7 +338,7 @@ function Category() {
   );
 }
 
-function Payer() {
+export function Payer() {
   const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
   const { transactions } = useAllDatabaseDataContext();
   const payerFrequency = new Map<string, number>();
@@ -724,7 +372,7 @@ function Payer() {
   );
 }
 
-function OtherPartyName() {
+export function OtherPartyName() {
   const { transactions } = useAllDatabaseDataContext();
   const frequency = new Map<string, number>();
   transactions
@@ -756,7 +404,7 @@ function OtherPartyName() {
   );
 }
 
-function AccountFrom() {
+export function AccountFrom() {
   const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
   return (
     <div className="col-span-6">
@@ -769,7 +417,7 @@ function AccountFrom() {
   );
 }
 
-function AccountTo() {
+export function AccountTo() {
   const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
   return (
     <div className="col-span-6">
@@ -782,7 +430,7 @@ function AccountTo() {
   );
 }
 
-function Currencies() {
+export function Currencies() {
   const { currencies } = useAllDatabaseDataContext();
   const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
   return (
