@@ -1,5 +1,5 @@
 import { FormInputs } from "components/txform/FormInputs";
-import { FormTransactionTypeSelector } from "components/txform/FormTransactionTypeSelector";
+import { FormTypeSelect } from "components/txform/FormTypeSelect";
 import { NewTransactionSuggestions } from "components/txform/NewTransactionSuggestions";
 import {
   AddOrUpdateButtonText,
@@ -242,7 +242,7 @@ export const AddTransactionForm = (props: {
             )}
 
             <div className="grid grid-cols-6 gap-x-6 gap-y-3">
-              <FormTransactionTypeSelector />
+              <FormTypeSelect />
               <FormInputs
                 transaction={props.transaction}
                 prototype={prototype}

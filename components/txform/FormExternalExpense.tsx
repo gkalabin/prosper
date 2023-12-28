@@ -1,17 +1,15 @@
-import classNames from "classnames";
 import { MoneyInputWithLabel } from "components/forms/Input";
-import { toDateTimeLocal } from "components/txform/AddTransactionForm";
 import {
-  AccountTo,
   Category,
+  Currencies,
   Description,
   IsShared,
-  OtherPartyName,
   OwnShareAmount,
-  ParentTransaction,
   Payer,
   Tags,
   Timestamp,
+  Trips,
+  Vendor,
 } from "components/txform/FormInputs";
 import { ButtonLink } from "components/ui/buttons";
 import { differenceInMonths } from "date-fns";
@@ -25,26 +23,27 @@ import { useEffect, useState } from "react";
 
 const SUGGESTIONS_WINDOW_MONTHS = 6;
 
-export const IncomeForm = ({
+export const FormExternalExpense = ({
   transaction,
-  prototype,
 }: {
   transaction: Transaction;
   prototype: TransactionPrototype;
 }) => {
-  const { transactions, banks } = useAllDatabaseDataContext();
+  const { transactions } = useAllDatabaseDataContext();
   const {
-    values: { isShared, fromBankAccountId, mode, amount, payer },
+    values: { vendor, isShared, amount, description },
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
-  const incomeTransactions = transactions.filter((x) => x.isIncome());
+  const transactionsForMode = transactions.filter((x) =>
+    x.isThirdPartyExpense()
+  );
   const now = new Date();
-  const recentIncomeTransactions = incomeTransactions.filter(
+  const recentTransactionsForMode = transactionsForMode.filter(
     (x) => differenceInMonths(now, x.timestamp) < SUGGESTIONS_WINDOW_MONTHS
   );
 
   const [mostFrequentOtherParty] = uniqMostFrequent(
-    recentIncomeTransactions
+    recentTransactionsForMode
       .filter((x) => x.hasOtherParty())
       .map((x) => x.otherParty())
   );
@@ -60,14 +59,26 @@ export const IncomeForm = ({
     }
   }, [isShared, setFieldValue, mostFrequentOtherParty, transaction]);
 
+  const [mostFrequentPayer] = uniqMostFrequent(
+    recentTransactionsForMode.filter((x) => x.hasPayer()).map((x) => x.payer())
+  );
+  useEffect(() => {
+    if (transaction) {
+      return;
+    }
+    if (mostFrequentPayer) {
+      setFieldValue("payer", mostFrequentPayer);
+    }
+  }, [setFieldValue, mostFrequentPayer, transaction]);
+
   let [mostFrequentCategory] = uniqMostFrequent(
-    recentIncomeTransactions
-      .filter((x) => !payer || (x.hasPayer() && x.payer() == payer))
+    recentTransactionsForMode
+      .filter((x) => !vendor || (x.hasVendor() && x.vendor() == vendor))
       .map((x) => x.category)
   );
   if (!mostFrequentCategory) {
     [mostFrequentCategory] = uniqMostFrequent(
-      incomeTransactions.map((x) => x.category)
+      transactionsForMode.map((x) => x.category)
     );
   }
   useEffect(() => {
@@ -79,29 +90,6 @@ export const IncomeForm = ({
     }
   }, [setFieldValue, mostFrequentCategory, transaction]);
 
-  useEffect(() => {
-    const proto = prototype;
-    if (!proto) {
-      return;
-    }
-    const singleOpProto = proto.type == "transfer" ? proto.deposit : proto;
-    setFieldValue("amount", singleOpProto.absoluteAmountCents / 100);
-    setFieldValue("timestamp", toDateTimeLocal(singleOpProto.timestampEpoch));
-    setFieldValue("payer", singleOpProto.description);
-    setFieldValue("toBankAccountId", singleOpProto.internalAccountId);
-  }, [prototype, setFieldValue]);
-
-  useEffect(() => {
-    if (transaction) {
-      return;
-    }
-    const account = banks
-      .flatMap((b) => b.accounts)
-      .find((a) => a.id == fromBankAccountId);
-    if (account) {
-      setFieldValue("isShared", account.isJoint());
-    }
-  }, [mode, setFieldValue, banks, fromBankAccountId, transaction]);
   useEffect(() => {
     if (!isShared) {
       setFieldValue("ownShareAmount", amount);
@@ -122,33 +110,27 @@ export const IncomeForm = ({
     setFieldValue("ownShareAmount", newAmountRounded);
   }, [amount, isShared, setFieldValue, transaction]);
 
-  const [showParent, setShowParent] = useState(false);
-  const [showNote, setShowNote] = useState(false);
+  const [showNote, setShowNote] = useState(!!description);
+  const [showTrip, setShowTrip] = useState(false);
   return (
     <>
       <Timestamp />
-      <AccountTo />
       <div className="col-span-3 flex">
         <IsShared />
       </div>
-      {isShared && (
-        <div className="col-span-3">
-          <OtherPartyName />
-        </div>
-      )}
-      <div className={classNames(isShared ? "col-span-3" : "col-span-6")}>
-        <MoneyInputWithLabel name="amount" label="Amount" />
-      </div>
-      {isShared && (
-        <div className="col-span-3">
-          <OwnShareAmount />
-        </div>
-      )}
-      <div className="col-span-6">
+      <div className="col-span-3">
         <Payer />
       </div>
+      <div className="col-span-3">
+        <MoneyInputWithLabel name="amount" label="Amount" />
+      </div>
+      <div className="col-span-3">
+        <OwnShareAmount />
+      </div>
+      <Vendor />
       <Tags />
       <Category />
+      <Currencies />
       <div className="col-span-6 text-xs">
         Add a{" "}
         <ButtonLink
@@ -159,18 +141,18 @@ export const IncomeForm = ({
         >
           note
         </ButtonLink>{" "}
-        or{" "}
+        to this transaction or link it to a{" "}
         <ButtonLink
           onClick={() => {
-            setShowParent(!showParent);
-            setFieldValue("parentTransactionId", 0);
+            setShowTrip(!showTrip);
+            setFieldValue("tripName", "");
           }}
         >
-          link the transaction this is the refund for
+          trip
         </ButtonLink>
         .
       </div>
-      {showParent && <ParentTransaction />}
+      {showTrip && <Trips />}
       {showNote && <Description />}
     </>
   );

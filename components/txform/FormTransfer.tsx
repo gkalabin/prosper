@@ -25,7 +25,7 @@ import { useEffect } from "react";
 
 const SUGGESTIONS_WINDOW_MONTHS = 6;
 
-export const TransferForm = ({
+export const FormTransfer = ({
   transaction,
   prototype,
 }: {

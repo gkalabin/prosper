@@ -8,11 +8,11 @@ import {
 import { undoTailwindInputStyles } from "components/forms/Select";
 import { formModeForTransaction } from "components/txform/AddTransactionForm";
 import { BankAccountSelect } from "components/txform/BankAccountSelect";
-import { ExternalExpenseForm } from "components/txform/ExternalExpenseForm";
-import { IncomeForm } from "components/txform/IncomeForm";
-import { PersonalExpenseForm } from "components/txform/PersonalExpenseForm";
+import { FormExternalExpense } from "components/txform/FormExternalExpense";
+import { FormIncome } from "components/txform/FormIncome";
+import { FormPersonalExpense } from "components/txform/FormPersonalExpense";
+import { FormTransfer } from "components/txform/FormTransfer";
 import { SelectNumber } from "components/txform/Select";
-import { TransferForm } from "components/txform/TransferForm";
 import { differenceInMonths, isBefore } from "date-fns";
 import { useFormikContext } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
@@ -54,10 +54,10 @@ export const FormInputs = (props: {
 
   return (
     <>
-      {mode == FormMode.PERSONAL && <PersonalExpenseForm {...props} />}
-      {mode == FormMode.EXTERNAL && <ExternalExpenseForm {...props} />}
-      {mode == FormMode.TRANSFER && <TransferForm {...props} />}
-      {mode == FormMode.INCOME && <IncomeForm {...props} />}
+      {mode == FormMode.PERSONAL && <FormPersonalExpense {...props} />}
+      {mode == FormMode.EXTERNAL && <FormExternalExpense {...props} />}
+      {mode == FormMode.TRANSFER && <FormTransfer {...props} />}
+      {mode == FormMode.INCOME && <FormIncome {...props} />}
     </>
   );
 };

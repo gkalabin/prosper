@@ -1,11 +1,16 @@
+import classNames from "classnames";
 import { MoneyInputWithLabel } from "components/forms/Input";
 import {
+  formModeForTransaction,
+  toDateTimeLocal,
+} from "components/txform/AddTransactionForm";
+import {
+  AccountFrom,
   Category,
-  Currencies,
   Description,
   IsShared,
+  OtherPartyName,
   OwnShareAmount,
-  Payer,
   Tags,
   Timestamp,
   Trips,
@@ -17,25 +22,34 @@ import { useFormikContext } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
 import { Transaction } from "lib/model/Transaction";
-import { AddTransactionFormValues } from "lib/transactionDbUtils";
+import { AddTransactionFormValues, FormMode } from "lib/transactionDbUtils";
 import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
 import { useEffect, useState } from "react";
 
 const SUGGESTIONS_WINDOW_MONTHS = 6;
 
-export const ExternalExpenseForm = ({
+export const FormPersonalExpense = ({
   transaction,
+  prototype,
 }: {
   transaction: Transaction;
   prototype: TransactionPrototype;
 }) => {
-  const { transactions } = useAllDatabaseDataContext();
+  const { transactions, banks } = useAllDatabaseDataContext();
   const {
-    values: { vendor, isShared, amount, description },
+    values: {
+      isShared,
+      tripName,
+      description,
+      fromBankAccountId,
+      mode,
+      amount,
+      vendor,
+    },
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
-  const transactionsForMode = transactions.filter((x) =>
-    x.isThirdPartyExpense()
+  const transactionsForMode = transactions.filter(
+    (x) => formModeForTransaction(x) == mode
   );
   const now = new Date();
   const recentTransactionsForMode = transactionsForMode.filter(
@@ -59,18 +73,6 @@ export const ExternalExpenseForm = ({
     }
   }, [isShared, setFieldValue, mostFrequentOtherParty, transaction]);
 
-  const [mostFrequentPayer] = uniqMostFrequent(
-    recentTransactionsForMode.filter((x) => x.hasPayer()).map((x) => x.payer())
-  );
-  useEffect(() => {
-    if (transaction) {
-      return;
-    }
-    if (mostFrequentPayer) {
-      setFieldValue("payer", mostFrequentPayer);
-    }
-  }, [setFieldValue, mostFrequentPayer, transaction]);
-
   let [mostFrequentCategory] = uniqMostFrequent(
     recentTransactionsForMode
       .filter((x) => !vendor || (x.hasVendor() && x.vendor() == vendor))
@@ -90,6 +92,31 @@ export const ExternalExpenseForm = ({
     }
   }, [setFieldValue, mostFrequentCategory, transaction]);
 
+  useEffect(() => {
+    const proto = prototype;
+    if (!proto) {
+      return;
+    }
+    const singleOpProto = proto.type == "transfer" ? proto.withdrawal : proto;
+    setFieldValue("amount", singleOpProto.absoluteAmountCents / 100);
+    setFieldValue("timestamp", toDateTimeLocal(singleOpProto.timestampEpoch));
+    setFieldValue("vendor", singleOpProto.description);
+    setFieldValue("fromBankAccountId", singleOpProto.internalAccountId);
+  }, [prototype, setFieldValue]);
+
+  useEffect(() => {
+    if (transaction) {
+      return;
+    }
+    if (mode == FormMode.PERSONAL) {
+      const account = banks
+        .flatMap((b) => b.accounts)
+        .find((a) => a.id == fromBankAccountId);
+      if (account) {
+        setFieldValue("isShared", account.isJoint());
+      }
+    }
+  }, [mode, setFieldValue, banks, fromBankAccountId, transaction]);
   useEffect(() => {
     if (!isShared) {
       setFieldValue("ownShareAmount", amount);
@@ -111,26 +138,30 @@ export const ExternalExpenseForm = ({
   }, [amount, isShared, setFieldValue, transaction]);
 
   const [showNote, setShowNote] = useState(!!description);
-  const [showTrip, setShowTrip] = useState(false);
+  const [showTrip, setShowTrip] = useState(!!tripName);
   return (
     <>
       <Timestamp />
+      <AccountFrom />
       <div className="col-span-3 flex">
         <IsShared />
       </div>
-      <div className="col-span-3">
-        <Payer />
-      </div>
-      <div className="col-span-3">
+      {isShared && (
+        <div className="col-span-3">
+          <OtherPartyName />
+        </div>
+      )}
+      <div className={classNames(isShared ? "col-span-3" : "col-span-6")}>
         <MoneyInputWithLabel name="amount" label="Amount" />
       </div>
-      <div className="col-span-3">
-        <OwnShareAmount />
-      </div>
+      {isShared && (
+        <div className="col-span-3">
+          <OwnShareAmount />
+        </div>
+      )}
       <Vendor />
       <Tags />
       <Category />
-      <Currencies />
       <div className="col-span-6 text-xs">
         Add a{" "}
         <ButtonLink

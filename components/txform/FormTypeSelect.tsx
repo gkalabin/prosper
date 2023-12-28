@@ -26,7 +26,7 @@ const Button = (
   );
 };
 
-export const FormTransactionTypeSelector = () => {
+export const FormTypeSelect = () => {
   const {
     values: { mode },
     setFieldValue,
