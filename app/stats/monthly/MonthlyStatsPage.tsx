@@ -1,3 +1,8 @@
+"use client";
+import {
+  NotConfiguredYet,
+  isFullyConfigured,
+} from "components/NotConfiguredYet";
 import {
   ChildCategoryOwnShareChart,
   TopLevelCategoryOwnShareChart,
@@ -8,126 +13,158 @@ import {
 } from "components/charts/Vendor";
 import { undoTailwindInputStyles } from "components/forms/Select";
 import {
-  isFullyConfigured,
-  NotConfiguredYet,
-} from "components/NotConfiguredYet";
-import { StatsPageLayout } from "components/StatsPageLayout";
-import {
   SortableTransactionsList,
   SortingMode,
 } from "components/transactions/SortableTransactionsList";
 import { ButtonLink } from "components/ui/buttons";
-import { format, isSameYear } from "date-fns";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
+import { addMonths, format, isSameMonth } from "date-fns";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
+import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { transactionIsDescendant } from "lib/model/Category";
 import {
-  amountOwnShare,
   Expense,
   Income,
+  amountOwnShare,
   isExpense,
   isIncome,
 } from "lib/model/Transaction";
-import { allDbDataProps } from "lib/ServerSideDB";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
-import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import Select from "react-select";
 
-function Navigation({
-  years,
+export function MonthsNavigationItem({
+  m,
+  active,
+  showYear: forceShowYear,
+  onClick,
+}: {
+  m: Date;
+  active: Date;
+  showYear?: boolean;
+  onClick: (d: Date) => void;
+}) {
+  const isActive = isSameMonth(m, active);
+  const monthOnly = format(m, "MMM");
+  const monthAndYear = format(m, "MMM yyyy");
+  if (isActive) {
+    return <span className="font-medium text-slate-700">{monthAndYear}</span>;
+  }
+  const showYear = forceShowYear || monthOnly === "Jan" || monthOnly === "Dec";
+  return (
+    <ButtonLink onClick={() => onClick(m)}>
+      {showYear ? monthAndYear : monthOnly}
+    </ButtonLink>
+  );
+}
+
+export function MonthsNavigation({
+  months,
   active,
   setActive,
 }: {
-  years: Date[];
+  months: Date[];
   active: Date;
   setActive: (d: Date) => void;
 }) {
+  const [leftMonthsCollapsed, setLeftMonthsCollapsed] = useState(true);
+  const [rightMonthsCollapsed, setRightMonthsCollapsed] = useState(true);
+  const [first, last] = [months[0], months[months.length - 1]];
+  const monthIndex = months.findIndex((m) => m.getTime() === active.getTime());
+  const windowMonths = 1;
+  const displayMonths = months.slice(
+    leftMonthsCollapsed ? Math.max(0, monthIndex - windowMonths) : 0,
+    rightMonthsCollapsed
+      ? Math.min(months.length, monthIndex + windowMonths + 1)
+      : months.length,
+  );
+  const [firstDisplay, lastDisplay] = [
+    displayMonths[0],
+    displayMonths[displayMonths.length - 1],
+  ];
   return (
     <>
       <div className="space-x-2">
-        {years.map((y) => (
-          <span key={y.getTime()}>
-            {(isSameYear(active, y) && (
-              <span className="font-medium text-slate-700">
-                {format(y, "yyyy")}
-              </span>
-            )) || (
-              <ButtonLink onClick={() => setActive(y)}>
-                {format(y, "yyyy")}
+        {!isSameMonth(first, firstDisplay) && (
+          <>
+            <MonthsNavigationItem
+              m={first}
+              active={active}
+              onClick={setActive}
+              showYear={true}
+            />
+            {!isSameMonth(addMonths(first, 1), firstDisplay) && (
+              <ButtonLink onClick={() => setLeftMonthsCollapsed(false)}>
+                &hellip;
               </ButtonLink>
             )}
-          </span>
+          </>
+        )}
+        {displayMonths.map((m) => (
+          <MonthsNavigationItem
+            key={m.getTime()}
+            m={m}
+            active={active}
+            onClick={setActive}
+          />
         ))}
+        {!isSameMonth(last, lastDisplay) && (
+          <>
+            {!isSameMonth(addMonths(last, -1), lastDisplay) && (
+              <ButtonLink onClick={() => setRightMonthsCollapsed(false)}>
+                &hellip;
+              </ButtonLink>
+            )}
+            <MonthsNavigationItem
+              m={last}
+              active={active}
+              onClick={setActive}
+              showYear={true}
+            />
+          </>
+        )}
       </div>
     </>
   );
 }
 
-export function VendorStats({
-  input,
-  year,
-}: {
-  input: TransactionsStatsInput;
-  year: Date;
-}) {
+export function MonthlyStats({ input }: { input: TransactionsStatsInput }) {
+  const months = input.months();
+  const [month, setMonth] = useState(months[months.length - 1]);
   const transactions = input
     .transactionsAllTime()
-    .filter((t) => isSameYear(year, t.timestampEpoch));
-  const expenses = transactions.filter((t): t is Expense => isExpense(t));
-  return (
-    <div>
-      <h1 className="text-xl font-medium leading-7">Vendors</h1>
-      <TopNVendorsMostSpent transactions={expenses} title="Most spent" n={10} />
-      <TopNVendorsMostTransactions
-        transactions={expenses}
-        title="Most transactions"
-        n={10}
-      />
-    </div>
-  );
-}
-
-export function YearlyStats({ input }: { input: TransactionsStatsInput }) {
-  const years = input.years();
-  const [year, setYear] = useState(years[years.length - 1]);
-  const transactions = input
-    .transactionsAllTime()
-    .filter((t) => isSameYear(year, t.timestampEpoch));
+    .filter((t) => isSameMonth(month, t.timestampEpoch));
   const expenses = transactions.filter((t): t is Expense => isExpense(t));
   const income = transactions.filter((t): t is Income => isIncome(t));
   const displayCurrency = useDisplayCurrency();
   const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
-  const zero = AmountWithCurrency.zero(displayCurrency);
   const totalExpense = expenses
     .map((t) =>
-      amountOwnShare(t, displayCurrency, bankAccounts, stocks, exchange)
+      amountOwnShare(t, displayCurrency, bankAccounts, stocks, exchange),
     )
-    .reduce((p, c) => c.add(p), zero);
+    .reduce((p, c) => c.add(p));
   const totalIncome = income
     .map((t) =>
-      amountOwnShare(t, displayCurrency, bankAccounts, stocks, exchange)
+      amountOwnShare(t, displayCurrency, bankAccounts, stocks, exchange),
     )
-    .reduce((p, c) => c.add(p), zero);
+    .reduce((p, c) => c.add(p));
+
   const expenseIncomeRatio = totalIncome.isZero()
     ? Infinity
     : totalExpense.dollar() / totalIncome.dollar();
-  const tripsTotal = expenses
-    .filter((t) => t.tripId)
-    .map((t) =>
-      amountOwnShare(t, displayCurrency, bankAccounts, stocks, exchange)
-    )
-    .reduce((p, c) => c.add(p), zero);
 
   return (
     <>
       <div>
         <div className="my-3">
-          <Navigation years={years} active={year} setActive={setYear} />
+          <MonthsNavigation
+            months={months}
+            active={month}
+            setActive={setMonth}
+          />
         </div>
         <div className="space-y-4">
           <ul className="text-lg">
@@ -137,7 +174,6 @@ export function YearlyStats({ input }: { input: TransactionsStatsInput }) {
               Delta: {totalIncome.subtract(totalExpense).round().format()}
             </li>
             <li>Spent/received: {Math.round(expenseIncomeRatio * 100)}%</li>
-            <li>Trips: {tripsTotal.round().format()}</li>
           </ul>
 
           <div>
@@ -171,9 +207,8 @@ export function YearlyStats({ input }: { input: TransactionsStatsInput }) {
               initialSorting={SortingMode.AMOUNT_DESC}
             />
           </div>
-
           <div>
-            <VendorStats input={input} year={year} />
+            <VendorStats input={input} month={month} />
           </div>
         </div>
       </div>
@@ -181,11 +216,35 @@ export function YearlyStats({ input }: { input: TransactionsStatsInput }) {
   );
 }
 
-function PageContent() {
+export function VendorStats({
+  input,
+  month,
+}: {
+  input: TransactionsStatsInput;
+  month: Date;
+}) {
+  const transactions = input
+    .transactionsAllTime()
+    .filter((t) => isSameMonth(month, t.timestampEpoch));
+  const expenses = transactions.filter((t): t is Expense => isExpense(t));
+  return (
+    <div>
+      <h1 className="text-xl font-medium leading-7">Vendors</h1>
+      <TopNVendorsMostSpent transactions={expenses} title="Most spent" n={10} />
+      <TopNVendorsMostTransactions
+        transactions={expenses}
+        title="Most transactions"
+        n={10}
+      />
+    </div>
+  );
+}
+
+function NonEmptyPageContent() {
   const { transactions, categories, displaySettings } =
     useAllDatabaseDataContext();
   const [excludeCategories, setExcludeCategories] = useState(
-    displaySettings.excludeCategoryIdsInStats()
+    displaySettings.excludeCategoryIdsInStats(),
   );
   const categoryOptions = categories.map((a) => ({
     value: a.id(),
@@ -194,8 +253,8 @@ function PageContent() {
   const filteredTransactions = transactions.filter(
     (t) =>
       !excludeCategories.some((cid) =>
-        transactionIsDescendant(t, cid, categories)
-      )
+        transactionIsDescendant(t, cid, categories),
+      ),
   );
   const durations = transactions
     .map((t) => t.timestampEpoch)
@@ -205,7 +264,7 @@ function PageContent() {
     end: durations[durations.length - 1],
   });
   return (
-    <StatsPageLayout>
+    <>
       <div className="mb-4">
         <label
           htmlFor="categoryIds"
@@ -225,21 +284,18 @@ function PageContent() {
           onChange={(x) => setExcludeCategories(x.map((x) => x.value))}
         />
       </div>
-      <YearlyStats input={input} />
-    </StatsPageLayout>
+      <MonthlyStats input={input} />
+    </>
   );
 }
 
-export const getServerSideProps = allDbDataProps;
-export default function MaybeEmptyPage(
-  dbData: InferGetServerSidePropsType<typeof getServerSideProps>
-) {
+export function MonthlyStatsPage({ dbData }: { dbData: AllDatabaseData }) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }
   return (
     <AllDatabaseDataContextProvider dbData={dbData}>
-      <PageContent />
+      <NonEmptyPageContent />
     </AllDatabaseDataContextProvider>
   );
 }
