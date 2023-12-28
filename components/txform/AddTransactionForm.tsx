@@ -30,11 +30,15 @@ import {
   formModeForTransaction,
   formToDTO,
 } from "lib/AddTransactionDataModels";
-import { useAllDatabaseDataContext, useCurrencyContext } from "lib/ClientSideModel";
+import {
+  useAllDatabaseDataContext,
+  useCurrencyContext,
+} from "lib/ClientSideModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
 import { Transaction } from "lib/model/Transaction";
+import { Trip } from "lib/model/Trip";
 import {
   IOBTransaction,
   IOBTransactionsByAccountId,
@@ -69,10 +73,9 @@ function initialValuesForTransaction(
   defaultAccountTo: BankAccount
 ): AddTransactionFormValues {
   const defaults: AddTransactionFormValues = {
-    // 2022-12-19T18:05:59
     timestamp: toDateTimeLocal(t.timestamp),
-    vendor: t.vendor(),
     description: t.description,
+    vendor: "",
     amount: t.amount().dollar(),
     ownShareAmount: t.amount().dollar(),
     receivedAmount: t.amount().dollar(),
@@ -81,7 +84,11 @@ function initialValuesForTransaction(
     categoryId: t.category.id,
     currencyId: t.currency().id,
     isFamilyExpense: t.isFamilyExpense(),
+    tripName: t.hasTrip() ? t.trip().name() : "",
   };
+  if (t.hasVendor()) {
+    defaults.vendor = t.vendor();
+  }
   if (t.isTransfer()) {
     defaults.receivedAmount = t.amountReceived().dollar();
   }
@@ -110,6 +117,7 @@ function initialValuesEmpty(
     categoryId: defaultCategory.id,
     currencyId: defaultCurrency.id,
     isFamilyExpense: false,
+    tripName: "",
   };
 }
 
@@ -147,6 +155,7 @@ function mostUsedCategory(
           return false;
       }
     })
+    .filter((x) => x.hasVendor())
     .filter((x) => vendor == "" || x.vendor() == vendor)
     .map((x) => x.category)
     .filter((x) => !!x);
@@ -545,10 +554,7 @@ export const AddTransactionForm = (props: {
                   <FormInputs
                     transaction={props.transaction}
                     prototype={prototype}
-                    allTransactions={props.allTransactions}
-                    categories={props.categories}
                     isAdvancedMode={isAdvancedMode}
-                    banks={props.banks}
                     mode={mode}
                   />
                 </FormTransactionTypeSelector>
@@ -599,14 +605,12 @@ export const AddTransactionForm = (props: {
 
 const FormInputs = (props: {
   transaction: Transaction;
-  allTransactions: Transaction[];
-  categories: Category[];
   isAdvancedMode: boolean;
-  banks: Bank[];
   mode: FormMode;
   prototype: TransactionPrototype;
 }) => {
-  const currencies = useCurrencyContext();
+  const { transactions, currencies, categories, banks, trips } =
+    useAllDatabaseDataContext();
   const {
     values: { amount, vendor, timestamp, isFamilyExpense, fromBankAccountId },
     setFieldValue,
@@ -644,14 +648,14 @@ const FormInputs = (props: {
     }
     setFieldValue(
       "fromBankAccountId",
-      mostUsedAccountFrom(props.mode, props.allTransactions).id
+      mostUsedAccountFrom(props.mode, transactions).id
     );
     setFieldValue(
       "toBankAccountId",
-      mostUsedAccountTo(props.mode, props.allTransactions).id
+      mostUsedAccountTo(props.mode, transactions).id
     );
   }, [
-    props.allTransactions,
+    transactions,
     props.mode,
     setFieldValue,
     props.transaction,
@@ -659,48 +663,61 @@ const FormInputs = (props: {
   ]);
 
   useEffect(() => {
-    const suggestion = mostUsedCategory(
-      props.mode,
-      props.allTransactions,
-      vendor
-    );
+    const suggestion = mostUsedCategory(props.mode, transactions, vendor);
     if (suggestion) {
       setFieldValue("categoryId", suggestion.id);
     }
-  }, [vendor, props.allTransactions, props.mode, setFieldValue]);
+  }, [vendor, transactions, props.mode, setFieldValue]);
 
   useEffect(() => {
     if (props.mode == FormMode.PERSONAL) {
-      const account = props.banks
+      const account = banks
         .flatMap((b) => b.accounts)
         .find((a) => a.id == fromBankAccountId);
       setFieldValue("isFamilyExpense", account.isJoint());
     }
-  }, [props.mode, setFieldValue, props.banks, fromBankAccountId]);
+  }, [props.mode, setFieldValue, banks, fromBankAccountId]);
 
-  const vendorFrequency: { [vendor: string]: number } = {};
-  props.allTransactions
-    .filter((x) => {
-      switch (props.mode) {
-        case FormMode.PERSONAL:
-          return x.isPersonalExpense();
-        case FormMode.INCOME:
-          return x.isIncome();
-        case FormMode.EXTERNAL:
-          return x.isThirdPartyExpense();
-        default:
-          return false;
-      }
-    })
+  const transactionsForMode = transactions.filter((x) => {
+    switch (props.mode) {
+      case FormMode.PERSONAL:
+        return x.isPersonalExpense();
+      case FormMode.INCOME:
+        return x.isIncome();
+      case FormMode.EXTERNAL:
+        return x.isThirdPartyExpense();
+      case FormMode.TRANSFER:
+        return x.isTransfer();
+      default:
+        return false;
+    }
+  });
+  const vendorFrequency = new Map<string, number>();
+  transactionsForMode
+    .filter((x) => x.hasVendor())
     .map((x) => x.vendor())
-    .forEach((x) => (vendorFrequency[x] = (vendorFrequency[x] ?? 0) + 1));
-  const vendors = Object.entries(vendorFrequency)
-    .filter((x) => x[1] > 1)
-    .sort((a, b) => b[1] - a[1])
-    .map((x) => x[0]);
+    .forEach((x) => vendorFrequency.set(x, (vendorFrequency.get(x) ?? 0) + 1));
+  const vendors = [...vendorFrequency.entries()]
+    .filter(([_vendor, frequency]) => frequency > 1)
+    .sort(([_v1, f1], [_v2, f2]) => f2 - f1)
+    .map(([vendor]) => vendor);
 
-  const {trips} = useAllDatabaseDataContext();
-  const tripIds = Object.fromEntries(trips.map(x => [x.id, 1]))
+  const transactionsWithTrips = transactionsForMode.filter((x) => x.hasTrip());
+  const tripIds = [...new Set(transactionsWithTrips.map((x) => x.trip().id()))];
+  const tripLastUsageDate = new Map<number, Date>();
+  transactionsWithTrips.forEach((x) => {
+    const trip = x.trip().id();
+    const existing = tripLastUsageDate.get(trip);
+    if (!existing || isBefore(existing, x.timestamp)) {
+      tripLastUsageDate.set(trip, x.timestamp);
+    }
+  });
+  const tripById = new Map<number, Trip>(trips.map((x) => [x.id(), x]));
+  const tripNames = tripIds
+    .sort((t1, t2) =>
+      isBefore(tripLastUsageDate.get(t1), tripLastUsageDate.get(t2)) ? 1 : -1
+    )
+    .map((x) => tripById.get(x).name());
 
   return (
     <>
@@ -833,7 +850,7 @@ const FormInputs = (props: {
           label="Category"
           disabled={isSubmitting}
         >
-          {props.categories.map((c) => (
+          {categories.map((c) => (
             <option key={c.id} value={c.id}>
               {c.nameWithAncestors}
             </option>
@@ -856,7 +873,7 @@ const FormInputs = (props: {
         <BankAccountSelect
           name="fromBankAccountId"
           label="Account From"
-          banks={props.banks}
+          banks={banks}
           disabled={isSubmitting}
         />
       </InputRow>
@@ -865,7 +882,7 @@ const FormInputs = (props: {
         <BankAccountSelect
           name="toBankAccountId"
           label="Account To"
-          banks={props.banks}
+          banks={banks}
           disabled={isSubmitting}
         />
       </InputRow>
@@ -884,14 +901,23 @@ const FormInputs = (props: {
         </SelectNumber>
       </InputRow>
 
-      <InputRow mode={props.mode} modes={props.isAdvancedMode
-            ? [FormMode.PERSONAL, FormMode.EXTERNAL]
-            : []}>
+      <InputRow
+        mode={props.mode}
+        modes={
+          props.isAdvancedMode ? [FormMode.PERSONAL, FormMode.EXTERNAL] : []
+        }
+      >
         <TextInputWithLabel
-          name="tripId"
+          name="tripName"
           label="Trip"
+          list="trips"
           disabled={isSubmitting}
         />
+        <datalist id="trips">
+          {tripNames.map((v) => (
+            <option key={v} value={v} />
+          ))}
+        </datalist>
       </InputRow>
     </>
   );

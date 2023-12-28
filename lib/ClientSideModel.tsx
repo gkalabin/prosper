@@ -391,18 +391,19 @@ export const modelFromDatabaseData = (
     [id: number]: BankAccount;
   } = Object.fromEntries(bankAccounts.map((x) => [x.id, x]));
 
+  const trips = dbData.dbTrips.map((x) => new Trip(x));
+  const tripById = new Map<number, Trip>(trips.map(x => [x.id(), x]));
+  const tags = dbData.dbTags.map((x) => new Tag(x));
+
   const transactions: Transaction[] = dbData.dbTransactions
     .map(
       (t) =>
-        new Transaction(t, categoryById, bankAccountById, currencies, exchange)
+        new Transaction(t, categoryById, bankAccountById, tripById, currencies, exchange)
     )
     .filter((x) => x.valid());
 
   transactions.sort(compareTransactions);
   bankAccounts.forEach((ba) => ba.transactions.sort(compareTransactions));
-
-  const trips = dbData.dbTrips.map((x) => new Trip(x));
-  const tags = dbData.dbTags.map((x) => new Tag(x));
 
   return {
     banks,

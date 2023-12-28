@@ -41,6 +41,7 @@ export type AddTransactionFormValues = {
   currencyId?: number;
   receivedAmount?: number;
   isFamilyExpense: boolean;
+  tripName: string;
 };
 
 export type AddTransactionDTO = {
@@ -60,6 +61,7 @@ export type PersonalTransactionDTO = {
   vendor: string;
   ownShareAmountCents: number;
   bankAccountId: number;
+  tripName: string;
 };
 
 export type ExternalTransactionDTO = {
@@ -67,6 +69,7 @@ export type ExternalTransactionDTO = {
   payer: string;
   ownShareAmountCents: number;
   currencyId: number;
+  tripName: string;
 };
 
 export type TransferTransactionDTO = {
@@ -101,6 +104,7 @@ export const formToDTO = (
       vendor: form.vendor,
       ownShareAmountCents: ownShareCents,
       bankAccountId: form.fromBankAccountId,
+      tripName: form.tripName || null,
     };
   }
   if (mode == FormMode.EXTERNAL) {
@@ -109,6 +113,7 @@ export const formToDTO = (
       vendor: form.vendor,
       payer: form.payer,
       currencyId: form.currencyId,
+      tripName: form.tripName || null,
     };
   }
   if (mode == FormMode.TRANSFER) {
@@ -131,99 +136,62 @@ export const formToDTO = (
 export const transactionDbInput = (
   dto: AddTransactionDTO,
   userId: number
-): Prisma.TransactionCreateInput & Prisma.TransactionUpdateInput => {
+): Prisma.TransactionUncheckedCreateInput &
+  Prisma.TransactionUncheckedUpdateInput => {
   return {
     timestamp: new Date(dto.timestamp).toISOString(),
     description: dto.description,
     amountCents: dto.amountCents,
-    category: {
-      connect: {
-        id: dto.categoryId,
-      },
-    },
-    user: {
-      connect: {
-        id: userId,
-      },
-    },
+    categoryId: dto.categoryId,
+    userId,
   };
 };
 
 export const personalExpenseDbInput = (
-  dto: AddTransactionDTO,
+  { personalTransaction }: AddTransactionDTO,
   userId: number
-) => {
+): Prisma.PersonalExpenseUncheckedCreateWithoutTransactionInput => {
   return {
-    vendor: dto.personalTransaction.vendor,
-    ownShareAmountCents: dto.personalTransaction.ownShareAmountCents,
-    account: {
-      connect: {
-        id: dto.personalTransaction.bankAccountId,
-      },
-    },
-    user: {
-      connect: {
-        id: userId,
-      },
-    },
+    vendor: personalTransaction.vendor,
+    ownShareAmountCents: personalTransaction.ownShareAmountCents,
+    accountId: personalTransaction.bankAccountId,
+    userId,
   };
 };
 
 export const thirdPartyExpenseDbInput = (
+  { externalTransaction }: AddTransactionDTO,
+  userId: number
+): Prisma.ThirdPartyExpenseUncheckedCreateWithoutTransactionInput => {
+  return {
+    vendor: externalTransaction.vendor,
+    ownShareAmountCents: externalTransaction.ownShareAmountCents,
+    payer: externalTransaction.payer,
+    currencyId: externalTransaction.currencyId,
+    userId,
+  };
+};
+
+export const transferDbInput = (
   dto: AddTransactionDTO,
   userId: number
-) => {
-  return {
-    vendor: dto.externalTransaction.vendor,
-    ownShareAmountCents: dto.externalTransaction.ownShareAmountCents,
-    payer: dto.externalTransaction.payer,
-    currency: {
-      connect: {
-        id: dto.externalTransaction.currencyId,
-      },
-    },
-    user: {
-      connect: {
-        id: userId,
-      },
-    },
-  };
-};
-
-export const transferDbInput = (dto: AddTransactionDTO, userId: number) => {
+): Prisma.TransferUncheckedCreateWithoutTransactionInput => {
   return {
     receivedAmountCents: dto.transferTransaction.receivedAmountCents,
-    accountFrom: {
-      connect: {
-        id: dto.transferTransaction.fromBankAccountId,
-      },
-    },
-    accountTo: {
-      connect: {
-        id: dto.transferTransaction.toBankAccountId,
-      },
-    },
-    user: {
-      connect: {
-        id: userId,
-      },
-    },
+    accountFromId: dto.transferTransaction.fromBankAccountId,
+    accountToId: dto.transferTransaction.toBankAccountId,
+    userId,
   };
 };
 
-export const incomeDbInput = (dto: AddTransactionDTO, userId: number) => {
+export const incomeDbInput = (
+  dto: AddTransactionDTO,
+  userId: number
+): Prisma.IncomeUncheckedCreateWithoutTransactionInput => {
   return {
     vendor: dto.incomeTransaction.vendor,
     ownShareAmountCents: dto.incomeTransaction.ownShareAmountCents,
-    account: {
-      connect: {
-        id: dto.incomeTransaction.bankAccountId,
-      },
-    },
-    user: {
-      connect: {
-        id: userId,
-      },
-    },
+    accountId: dto.incomeTransaction.bankAccountId,
+    userId,
   };
 };

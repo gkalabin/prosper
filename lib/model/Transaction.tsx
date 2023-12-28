@@ -4,12 +4,13 @@ import { TransactionWithExtensions } from "lib/model/AllDatabaseDataModel";
 import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currencies, Currency } from "lib/model/Currency";
-// import { assert } from "console";
+import { Trip } from "lib/model/Trip";
 
 export type PersonalExpense = {
   vendor: string;
   ownShareAmountCents: number;
   account: BankAccount;
+  trip?: Trip;
 };
 
 export type Income = {
@@ -29,7 +30,7 @@ export type ThirdPartyExpense = {
   ownShareAmountCents: number;
   currency: Currency;
   payer: string;
-  // TODO: trip
+  trip?: Trip;
 };
 
 export class Transaction {
@@ -52,6 +53,7 @@ export class Transaction {
     init: TransactionWithExtensions,
     categoryById: { [id: number]: Category },
     bankAccountById: { [id: number]: BankAccount },
+    tripById: Map<number, Trip>,
     currencies: Currencies,
     exchange: StockAndCurrencyExchange
   ) {
@@ -67,6 +69,7 @@ export class Transaction {
       const bankAccount = bankAccountById[init.personalExpense.accountId];
       this.personalExpense = Object.assign({}, init.personalExpense, {
         account: bankAccount,
+        trip: tripById.get(init.personalExpense.tripId),
       });
       bankAccount.transactions.push(this);
     }
@@ -74,6 +77,7 @@ export class Transaction {
     if (init.thirdPartyExpense) {
       this.thirdPartyExpense = Object.assign({}, init.thirdPartyExpense, {
         currency: currencies.findById(init.thirdPartyExpense.currencyId),
+        trip: tripById.get(init.thirdPartyExpense.tripId),
       });
     }
     if (init.transfer) {
@@ -112,7 +116,7 @@ export class Transaction {
     if (this.isIncome()) {
       return false;
     }
-    const ownShareAmountCents = firstNonNull(
+    const ownShareAmountCents = firstNonNull3(
       this.personalExpense,
       this.thirdPartyExpense,
       this.income
@@ -136,20 +140,41 @@ export class Transaction {
     return this.income?.account ?? this.transfer?.accountTo;
   }
 
-  hasVendor() {
-    return !!firstNonNull(
+  private vendorOrNull() {
+    return firstNonNull3(
       this.personalExpense,
       this.thirdPartyExpense,
       this.income
-    );
+    )?.vendor ?? null;
+  }
+
+  hasVendor() {
+    return !!this.vendorOrNull();
   }
 
   vendor() {
-    return firstNonNull(
+    if (!this.hasVendor()) {
+      throw new Error("Treansaction has no vendor");
+    }
+    return this.vendorOrNull();
+  }
+
+  private tripOrNull() {
+    return firstNonNull2(
       this.personalExpense,
-      this.thirdPartyExpense,
-      this.income
-    )?.vendor;
+      this.thirdPartyExpense
+    )?.trip ?? null;
+  }
+
+  hasTrip() {
+    return !!this.tripOrNull();
+  }
+
+  trip() {
+    if (!this.hasTrip()) {
+      throw new Error("Treansaction has no trip");
+    }
+    return this.tripOrNull();
   }
 
   amount() {
@@ -182,7 +207,7 @@ export class Transaction {
   }
 
   amountOwnShare() {
-    const extension = firstNonNull(
+    const extension = firstNonNull3(
       this.personalExpense,
       this.thirdPartyExpense,
       this.income
@@ -270,6 +295,10 @@ export class Transaction {
   }
 }
 
-function firstNonNull(a: PersonalExpense, b: ThirdPartyExpense, c: Income) {
+function firstNonNull2<T1, T2>(a: T1, b: T2): T1 | T2 {
+  return a ?? b;
+}
+
+function firstNonNull3<T1, T2, T3>(a: T1, b: T2, c: T3): T1 | T2 | T3 {
   return a ?? b ?? c;
 }
