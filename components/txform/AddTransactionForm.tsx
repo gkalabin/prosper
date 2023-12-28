@@ -30,7 +30,7 @@ import {
   formModeForTransaction,
   formToDTO,
 } from "lib/AddTransactionDataModels";
-import { useCurrencyContext } from "lib/ClientSideModel";
+import { useAllDatabaseDataContext, useCurrencyContext } from "lib/ClientSideModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
@@ -698,6 +698,9 @@ const FormInputs = (props: {
     .filter((x) => x[1] > 1)
     .sort((a, b) => b[1] - a[1])
     .map((x) => x[0]);
+
+  const {trips} = useAllDatabaseDataContext();
+  const tripIds = Object.fromEntries(trips.map(x => [x.id, 1]))
 
   return (
     <>

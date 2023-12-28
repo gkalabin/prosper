@@ -8,6 +8,7 @@ import { TransactionsList } from "components/transactions/TransactionsList";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
 import { ButtonPagePrimary } from "components/ui/buttons";
 import {
+  AllDatabaseDataContextProvider,
   Amount,
   CurrencyContextProvider,
   modelFromDatabaseData,
@@ -128,8 +129,8 @@ export default function OverviewPage(
 ) {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
   const [dbDataState, setDbData] = useState(dbData);
-  const { categories, banks, transactions } =
-    modelFromDatabaseData(dbDataState);
+  const model = modelFromDatabaseData(dbDataState);
+  const { categories, banks, transactions } = model;
   const [archivedShown, setShowArchived] = useState(false);
 
   const addTransaction = (added: DBTransaction) => {
@@ -155,44 +156,46 @@ export default function OverviewPage(
 
   return (
     <Layout>
-      <CurrencyContextProvider init={dbData.dbCurrencies}>
-        <div className="mb-4">
-          {!showAddTransactionForm && (
-            <div className="flex justify-end">
-              <ButtonPagePrimary
-                onClick={() => setShowAddTransactionForm(true)}
-                label="New Transaction"
+      <AllDatabaseDataContextProvider init={model}>
+        <CurrencyContextProvider init={dbData.dbCurrencies}>
+          <div className="mb-4">
+            {!showAddTransactionForm && (
+              <div className="flex justify-end">
+                <ButtonPagePrimary
+                  onClick={() => setShowAddTransactionForm(true)}
+                  label="New Transaction"
+                />
+              </div>
+            )}
+            {showAddTransactionForm && (
+              <AddTransactionForm
+                categories={categories}
+                banks={banks}
+                allTransactions={transactions}
+                onAdded={addTransaction}
+                openBankingTransactions={dbData.openBankingData.transactions}
+                transactionPrototypes={dbData.dbTransactionPrototypes}
+                onClose={() => setShowAddTransactionForm(false)}
               />
-            </div>
-          )}
-          {showAddTransactionForm && (
-            <AddTransactionForm
-              categories={categories}
-              banks={banks}
-              allTransactions={transactions}
-              onAdded={addTransaction}
-              openBankingTransactions={dbData.openBankingData.transactions}
-              transactionPrototypes={dbData.dbTransactionPrototypes}
-              onClose={() => setShowAddTransactionForm(false)}
+            )}
+          </div>
+          <div className="flex justify-end">
+            <ButtonPagePrimary
+              className="mb-4"
+              onClick={() => setShowArchived(!archivedShown)}
+              label={archivedShown ? "Hide archived" : "Show archived"}
             />
-          )}
-        </div>
-        <div className="flex justify-end">
-          <ButtonPagePrimary
-            className="mb-4"
-            onClick={() => setShowArchived(!archivedShown)}
-            label={archivedShown ? "Hide archived" : "Show archived"}
-          />
-        </div>
-        <ArchivedAccountsShownContext.Provider value={archivedShown}>
-          <BanksList
-            banks={banks}
-            categories={categories}
-            onTransactionUpdated={updateTransaction}
-            openBankingBalances={dbData.openBankingData.balances}
-          />
-        </ArchivedAccountsShownContext.Provider>
-      </CurrencyContextProvider>
+          </div>
+          <ArchivedAccountsShownContext.Provider value={archivedShown}>
+            <BanksList
+              banks={banks}
+              categories={categories}
+              onTransactionUpdated={updateTransaction}
+              openBankingBalances={dbData.openBankingData.balances}
+            />
+          </ArchivedAccountsShownContext.Provider>
+        </CurrencyContextProvider>
+      </AllDatabaseDataContextProvider>
     </Layout>
   );
 }

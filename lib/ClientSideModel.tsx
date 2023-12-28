@@ -10,8 +10,10 @@ import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category, categoryModelFromDB } from "lib/model/Category";
 import { Transaction } from "lib/model/Transaction";
+import { Trip } from "lib/model/Trip";
+import { Tag } from "lib/model/Tag";
 import { createContext, useContext } from "react";
-import { Currencies, Currency, NANOS_MULTIPLIER } from "./model/Currency";
+import { Currencies, Currency, NANOS_MULTIPLIER } from "lib/model/Currency";
 
 const CurrencyContext = createContext<Currencies>(null);
 export const CurrencyContextProvider = (props: {
@@ -323,7 +325,24 @@ export type AllClientDataModel = {
   banks: Bank[];
   bankAccounts: BankAccount[];
   currencies: Currencies;
+  trips: Trip[];
+  tags: Tag[];
   exchange: StockAndCurrencyExchange;
+};
+
+const AllDatabaseDataContext = createContext<AllClientDataModel>(null);
+export const AllDatabaseDataContextProvider = (props: {
+  init: AllClientDataModel;
+  children: JSX.Element | JSX.Element[];
+}) => {
+  return (
+    <AllDatabaseDataContext.Provider value={props.init}>
+      {props.children}
+    </AllDatabaseDataContext.Provider>
+  );
+};
+export const useAllDatabaseDataContext = () => {
+  return useContext(AllDatabaseDataContext);
 };
 
 export const banksModelFromDatabaseData = (
@@ -382,11 +401,16 @@ export const modelFromDatabaseData = (
   transactions.sort(compareTransactions);
   bankAccounts.forEach((ba) => ba.transactions.sort(compareTransactions));
 
+  const trips = dbData.dbTrips.map((x) => new Trip(x));
+  const tags = dbData.dbTags.map((x) => new Tag(x));
+
   return {
     banks,
     bankAccounts,
     currencies,
     categories,
+    trips,
+    tags,
     transactions,
     exchange,
   };

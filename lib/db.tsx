@@ -31,6 +31,12 @@ export class DB {
   transactionPrototypeFindMany(args?: Prisma.TransactionPrototypeFindManyArgs) {
     return prisma.transactionPrototype.findMany(this.whereUser(args));
   }
+  tripFindMany(args?: Prisma.TripFindManyArgs) {
+    return prisma.trip.findMany(this.whereUser(args));
+  }
+  tagFindMany(args?: Prisma.TagFindManyArgs) {
+    return prisma.tag.findMany(this.whereUser(args));
+  }
   bankUpdate(args?: Prisma.BankUpdateArgs) {
     return prisma.bank.update(args);
   }

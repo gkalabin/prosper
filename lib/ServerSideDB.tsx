@@ -22,6 +22,8 @@ const fetchAllDatabaseData = async (db: DB): Promise<AllDatabaseData> => {
   return {
     dbTransactions,
     dbBanks: await db.bankFindMany(),
+    dbTrips: await db.tripFindMany(),
+    dbTags: await db.tagFindMany(),
     dbBankAccounts: await db.bankAccountFindMany(),
     dbCurrencies: await db.currencyFindMany(),
     dbCategories: await db.categoryFindMany(),
