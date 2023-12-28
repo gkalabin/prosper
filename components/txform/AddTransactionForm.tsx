@@ -207,7 +207,7 @@ export const AddTransactionForm = (props: {
       .then(async (added) => {
         // stop submitting before callback to avoid updating state on an unmounted component
         setSubmitting(false);
-        const resetValues = {...initialValuesForEmptyForm};
+        const resetValues = { ...initialValuesForEmptyForm };
         resetValues.mode = values.mode;
         resetValues.timestamp = values.timestamp;
         resetForm({ values: resetValues });
@@ -224,7 +224,7 @@ export const AddTransactionForm = (props: {
   return (
     <div>
       <Formik initialValues={initialValues} onSubmit={submitNewTransaction}>
-        {({ isSubmitting, setFieldValue, values }) => (
+        {({ isSubmitting, setFieldValue }) => (
           <Form>
             <div className="overflow-hidden shadow sm:rounded-md">
               <div className="bg-white p-2 sm:p-6">
@@ -243,17 +243,14 @@ export const AddTransactionForm = (props: {
                   </div>
                 )}
 
-                <FormTransactionTypeSelector
-                  disabled={isSubmitting}
-                  mode={values.mode}
-                  setMode={(m) => setFieldValue("mode", m)}
-                >
+                <div className="grid grid-cols-6 gap-x-6 gap-y-3">
+                  <FormTransactionTypeSelector disabled={isSubmitting} />
                   <FormInputs
                     transaction={props.transaction}
                     prototype={prototype}
                     isAdvancedMode={isAdvancedMode}
                   />
-                </FormTransactionTypeSelector>
+                </div>
               </div>
 
               {apiError && (

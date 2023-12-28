@@ -1,5 +1,6 @@
 import classNames from "classnames";
-import { FormMode } from "lib/transactionDbUtils";
+import { useFormikContext } from "formik";
+import { AddTransactionFormValues, FormMode } from "lib/transactionDbUtils";
 
 const Button = (
   props: React.ButtonHTMLAttributes<HTMLButtonElement> & { active: boolean }
@@ -25,52 +26,47 @@ const Button = (
   );
 };
 
-export const FormTransactionTypeSelector = (props: {
-  disabled: boolean;
-  children: JSX.Element | JSX.Element[];
-  mode: FormMode;
-  setMode: (newMode: FormMode) => void;
-}) => {
+export const FormTransactionTypeSelector = (props: { disabled: boolean }) => {
+  const {
+    values: { mode },
+    setFieldValue,
+  } = useFormikContext<AddTransactionFormValues>();
   return (
-    <div className="grid grid-cols-6 gap-x-6 gap-y-3">
-      <div className="col-span-6 flex justify-center">
-        <div className="rounded-md shadow-sm">
-          <Button
-            className={classNames("rounded-l-lg border")}
-            onClick={() => props.setMode(FormMode.PERSONAL)}
-            active={props.mode == FormMode.PERSONAL}
-            disabled={props.disabled}
-          >
-            Personal
-          </Button>
-          <Button
-            className={classNames("border-t border-b border-r")}
-            onClick={() => props.setMode(FormMode.EXTERNAL)}
-            active={props.mode == FormMode.EXTERNAL}
-            disabled={props.disabled}
-          >
-            External
-          </Button>
-          <Button
-            className={classNames("border-t border-b border-r")}
-            onClick={() => props.setMode(FormMode.TRANSFER)}
-            active={props.mode == FormMode.TRANSFER}
-            disabled={props.disabled}
-          >
-            Transfer
-          </Button>
-          <Button
-            className={classNames("rounded-r-md border")}
-            onClick={() => props.setMode(FormMode.INCOME)}
-            active={props.mode == FormMode.INCOME}
-            disabled={props.disabled}
-          >
-            Income
-          </Button>
-        </div>
+    <div className="col-span-6 flex justify-center">
+      <div className="rounded-md shadow-sm">
+        <Button
+          className={classNames("rounded-l-lg border")}
+          onClick={() => setFieldValue("mode", FormMode.PERSONAL)}
+          active={mode == FormMode.PERSONAL}
+          disabled={props.disabled}
+        >
+          Personal
+        </Button>
+        <Button
+          className={classNames("border-t border-b border-r")}
+          onClick={() => setFieldValue("mode", FormMode.EXTERNAL)}
+          active={mode == FormMode.EXTERNAL}
+          disabled={props.disabled}
+        >
+          External
+        </Button>
+        <Button
+          className={classNames("border-t border-b border-r")}
+          onClick={() => setFieldValue("mode", FormMode.TRANSFER)}
+          active={mode == FormMode.TRANSFER}
+          disabled={props.disabled}
+        >
+          Transfer
+        </Button>
+        <Button
+          className={classNames("rounded-r-md border")}
+          onClick={() => setFieldValue("mode", FormMode.INCOME)}
+          active={mode == FormMode.INCOME}
+          disabled={props.disabled}
+        >
+          Income
+        </Button>
       </div>
-
-      {props.children}
     </div>
   );
 };
