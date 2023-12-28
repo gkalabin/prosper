@@ -5,14 +5,11 @@ import {
   UserCircleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { useSession, signOut, signIn } from "next-auth/react";
+import classNames from "classnames";
+import { signIn, signOut, useSession } from "next-auth/react";
 import Link, { LinkProps } from "next/link";
 import { useRouter } from "next/router";
 import React, { forwardRef, Fragment, HTMLProps } from "react";
-
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(" ");
-}
 
 // https://headlessui.com/react/menu#integrating-with-next-js
 const LinkWithForwarding = forwardRef<
