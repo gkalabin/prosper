@@ -2,55 +2,70 @@ import { BankAccount as DBBankAccount } from "@prisma/client";
 import { FormikInput, FormikMoneyInput } from "components/forms/Input";
 import { SelectNumber } from "components/forms/Select";
 import {
+  AddOrUpdateButtonText,
   ButtonFormPrimary,
   ButtonFormSecondary,
-  ButtonLink,
 } from "components/ui/buttons";
 import { Form, Formik } from "formik";
-import { Bank } from "lib/model/BankAccount";
+import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Currencies } from "lib/model/Currency";
 import Link from "next/link";
 import { useState } from "react";
 
-export const AddBankAccountForm = (props: {
-  displayOrder: number;
+export const AddOrEditBankAccountForm = ({
+  bank,
+  bankAccount,
+  currencies,
+  onAddedOrUpdated,
+  onClose,
+}: {
+  bankAccount?: BankAccount;
   bank: Bank;
   currencies: Currencies;
   onAddedOrUpdated: (x: DBBankAccount) => void;
+  onClose: () => void;
 }) => {
-  const [formDisplayed, setFormDisplayed] = useState(false);
   const [apiError, setApiError] = useState("");
-  const initialValues = {
+  const addingNewAccount = !bankAccount;
+  let initialValues = {
     name: "",
-    currencyId: props.currencies.all()[0]?.id,
+    currencyId: currencies.all()[0]?.id,
     isJoint: false,
     initialBalance: 0,
+    displayOrder: 100 * bank.accounts.length,
   };
+  if (bankAccount) {
+    initialValues = {
+      name: bankAccount.name,
+      currencyId: bankAccount.currency.id,
+      isJoint: bankAccount.isJoint(),
+      initialBalance: bankAccount.initialBalanceCents / 100,
+      displayOrder: bankAccount.displayOrder,
+    };
+  }
 
-  const handleSubmit = async ({ name, currencyId, isJoint, initialBalance }) => {
+  const handleSubmit = async (values) => {
     setApiError("");
     try {
       const body = {
-        name,
-        currencyId,
-        isJoint,
-        initialBalance,
-        displayOrder: props.displayOrder,
-        bankId: props.bank.id,
+        ...values,
+        bankId: bank.id,
       };
-      const added = await fetch("/api/config/bank-account", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      props.onAddedOrUpdated(await added.json());
-      setFormDisplayed(false);
+      const added = await fetch(
+        `/api/config/bank-account/${addingNewAccount ? "" : bankAccount.id}`,
+        {
+          method: addingNewAccount ? "POST" : "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
+      onAddedOrUpdated(await added.json());
     } catch (error) {
       setApiError(`Failed to add: ${error}`);
     }
   };
 
-  if (!props.currencies.all().length) {
+  if (!currencies.all().length) {
     return (
       <>
         To add a bank account, first{" "}
@@ -60,19 +75,14 @@ export const AddBankAccountForm = (props: {
       </>
     );
   }
-  if (!formDisplayed) {
-    return (
-      <ButtonLink onClick={() => setFormDisplayed(true)}>
-        Add Bank Account
-      </ButtonLink>
-    );
-  }
   return (
     <Formik initialValues={initialValues} onSubmit={handleSubmit}>
       {({ isSubmitting, values }) => (
         <Form className="flex max-w-xs flex-col gap-2 px-4 pb-6 pt-2">
           <h3 className="mb-2 text-xl font-medium leading-5">
-            Add New Bank Account
+            {addingNewAccount
+              ? "Add New Bank Account"
+              : `Edit ${bankAccount.name}`}
           </h3>
           <div>
             <label
@@ -81,12 +91,7 @@ export const AddBankAccountForm = (props: {
             >
               Account Name
             </label>
-            <FormikInput
-              autoFocus
-              name="name"
-              disabled={isSubmitting}
-              className="w-full"
-            />
+            <FormikInput autoFocus name="name" className="w-full" />
           </div>
           <div>
             <label
@@ -100,7 +105,7 @@ export const AddBankAccountForm = (props: {
               disabled={isSubmitting}
               className="w-full"
             >
-              {props.currencies.all().map((x) => (
+              {currencies.all().map((x) => (
                 <option key={x.id} value={x.id}>
                   {x.name}
                 </option>
@@ -114,37 +119,23 @@ export const AddBankAccountForm = (props: {
             >
               Initial balance
             </label>
-            <FormikMoneyInput
-              name="initialBalance"
-              disabled={isSubmitting}
-              className="w-full"
-            />
+            <FormikMoneyInput name="initialBalance" className="w-full" />
           </div>
-          <div className="flex flex-row gap-3 items-center">
+          <div className="flex flex-row items-center gap-3">
             <label
               htmlFor="isJoint"
               className="text-sm font-medium text-gray-700"
             >
               Joint account
             </label>
-            <FormikInput
-              name="isJoint"
-              disabled={isSubmitting}
-              type="checkbox"
-            />
+            <FormikInput name="isJoint" type="checkbox" />
           </div>
           <div className="flex flex-row justify-end gap-2">
-            <ButtonFormSecondary
-              onClick={() => setFormDisplayed(false)}
-              disabled={isSubmitting}
-            >
+            <ButtonFormSecondary onClick={onClose} disabled={isSubmitting}>
               Cancel
             </ButtonFormSecondary>
-            <ButtonFormPrimary
-              disabled={!values.name || isSubmitting}
-              type="submit"
-            >
-              {isSubmitting ? "Adding…" : "Add"}
+            <ButtonFormPrimary disabled={!values.name} type="submit">
+              <AddOrUpdateButtonText add={!bankAccount} />
             </ButtonFormPrimary>
           </div>
 

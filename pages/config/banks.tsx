@@ -4,9 +4,8 @@ import {
   Currency as DBCurrency,
   OpenBankingToken as DBOpenBankingToken,
 } from "@prisma/client";
-import { AddBankAccountForm } from "components/config/banks/AddBankAccountForm";
+import { AddOrEditBankAccountForm } from "components/config/banks/AddOrEditBankAccountForm";
 import { AddBankForm } from "components/config/banks/AddBankForm";
-import BankAccountListItem from "components/config/banks/BankAccountListItem";
 import { ConfigPageLayout } from "components/ConfigPageLayout";
 import { Input } from "components/forms/Input";
 import {
@@ -132,39 +131,68 @@ const BanksList = (props: {
   if (!props.banks) {
     return <div>No banks found.</div>;
   }
-  const obTokensByBankId = Object.fromEntries(
-    props.openBankingTokens.map((t) => [t.bankId, t])
-  );
   return (
     <div className="flex-1 rounded border border-gray-200">
       <div className="flex flex-col divide-y divide-gray-200">
         {props.banks.map((bank) => (
-          <div key={bank.id}>
-            <BankName
-              bank={bank}
-              openBankingToken={obTokensByBankId[bank.id]}
-              onUpdated={props.onBankUpdated}
-            />
-            <div className="space-y-1 px-4">
-              <AccountsList
-                bank={bank}
-                accounts={bank.accounts}
-                currencies={props.currencies}
-                onBankAccountAddedOrUpdated={props.onBankAccountAddedOrUpdated}
-              />
-              <AddBankAccountForm
-                bank={bank}
-                currencies={props.currencies}
-                displayOrder={bank.accounts.length * 100}
-                onAddedOrUpdated={props.onBankAccountAddedOrUpdated}
-              />
-            </div>
-          </div>
+          <BanksListItem
+            key={bank.id}
+            bank={bank}
+            openBankingToken={props.openBankingTokens.find(
+              (t) => t.bankId == bank.id
+            )}
+            currencies={props.currencies}
+            onBankUpdated={props.onBankUpdated}
+            onBankAccountAddedOrUpdated={props.onBankAccountAddedOrUpdated}
+          />
         ))}
       </div>
     </div>
   );
 };
+
+function BanksListItem({
+  bank,
+  openBankingToken,
+  onBankUpdated,
+  onBankAccountAddedOrUpdated,
+  currencies,
+}) {
+  const [formDisplayed, setFormDisplayed] = useState(false);
+  return (
+    <div>
+      <BankName
+        bank={bank}
+        openBankingToken={openBankingToken}
+        onUpdated={onBankUpdated}
+      />
+      <div className="space-y-1 px-4">
+        <AccountsList
+          bank={bank}
+          accounts={bank.accounts}
+          currencies={currencies}
+          onBankAccountAddedOrUpdated={onBankAccountAddedOrUpdated}
+        />
+        {!formDisplayed && (
+          <ButtonLink onClick={() => setFormDisplayed(true)}>
+            Add Bank Account
+          </ButtonLink>
+        )}
+        {formDisplayed && (
+          <AddOrEditBankAccountForm
+            bank={bank}
+            currencies={currencies}
+            onAddedOrUpdated={(x) => {
+              setFormDisplayed(false);
+              onBankAccountAddedOrUpdated(x);
+            }}
+            onClose={() => setFormDisplayed(false)}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
 
 const AccountsList = (props: {
   bank: Bank;
@@ -178,7 +206,7 @@ const AccountsList = (props: {
   return (
     <>
       {props.accounts.map((account) => (
-        <BankAccountListItem
+        <AccountListItem
           key={account.id}
           bank={props.bank}
           account={account}
@@ -186,6 +214,39 @@ const AccountsList = (props: {
           onUpdated={props.onBankAccountAddedOrUpdated}
         />
       ))}
+    </>
+  );
+};
+
+const AccountListItem = (props: {
+  bank: Bank;
+  account: BankAccount;
+  currencies: Currencies;
+  onUpdated: (updated: DBBankAccount) => void;
+}) => {
+  const [formDisplayed, setFormDisplayed] = useState(false);
+  return (
+    <>
+      <div>
+        <span className="text-lg">{props.account.name}</span>
+        {!formDisplayed && (
+          <ButtonLink className="ml-2" onClick={() => setFormDisplayed(true)}>Edit</ButtonLink>
+        )}
+      </div>
+      {formDisplayed && (
+        <div className="ml-2">
+          <AddOrEditBankAccountForm
+            bank={props.bank}
+            bankAccount={props.account}
+            currencies={props.currencies}
+            onAddedOrUpdated={(x) => {
+              setFormDisplayed(false);
+              props.onUpdated(x);
+            }}
+            onClose={() => setFormDisplayed(false)}
+          />
+        </div>
+      )}
     </>
   );
 };
