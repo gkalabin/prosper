@@ -35,7 +35,7 @@ export function runningAverage(
     }
     const sum = AmountWithCurrency.sum(window, currency);
     const avg = new AmountWithCurrency({
-      amountCents: sum.cents() / window.length,
+      amountCents: Math.round(sum.cents() / window.length),
       currency,
     });
     averages.set(month, avg);

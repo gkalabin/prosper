@@ -7,11 +7,7 @@ import {
   NotConfiguredYet,
 } from "components/NotConfiguredYet";
 import { StatsPageLayout } from "components/StatsPageLayout";
-import {
-  eachMonthOfInterval,
-  Interval,
-  startOfMonth
-} from "date-fns";
+import { eachMonthOfInterval, Interval, startOfMonth } from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
@@ -80,7 +76,7 @@ export function ExpenseCharts({ input }: { input: TransactionsStatsInput }) {
       <ReactEcharts
         notMerge
         option={{
-          ...defaultMonthlyMoneyChart(displayCurrency, months),
+          ...defaultMonthlyMoneyChart(displayCurrency, input.interval()),
           ...stackedBarChartTooltip(displayCurrency),
           ...legend(),
           title: {
@@ -99,7 +95,7 @@ export function ExpenseCharts({ input }: { input: TransactionsStatsInput }) {
       <ReactEcharts
         notMerge
         option={{
-          ...defaultMonthlyMoneyChart(displayCurrency, months),
+          ...defaultMonthlyMoneyChart(displayCurrency, input.interval()),
           ...stackedBarChartTooltip(displayCurrency),
           title: {
             text: "By bottom level category",
@@ -184,7 +180,7 @@ export function ExpenseByCategory(props: {
       <ReactEcharts
         notMerge
         option={{
-          ...defaultMonthlyMoneyChart(displayCurrency, months),
+          ...defaultMonthlyMoneyChart(displayCurrency, props.duration),
           ...stackedBarChartTooltip(displayCurrency),
           title: {
             text: props.category.nameWithAncestors(),

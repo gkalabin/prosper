@@ -17,7 +17,27 @@ export function RunningAverageOwnShare(props: {
   for (const t of props.transactions) {
     net.append(t.timestamp, t.amountOwnShare(displayCurrency));
   }
-  const averages = runningAverage(net.monthlyMap(), props.maxWindowLength);
+  return (
+    <RunningAverageAmounts
+      timeseries={net}
+      duration={props.duration}
+      maxWindowLength={props.maxWindowLength}
+      title={props.title}
+    />
+  );
+}
+
+export function RunningAverageAmounts(props: {
+  timeseries: MoneyTimeseries;
+  duration: Interval;
+  maxWindowLength: number;
+  title: string;
+}) {
+  const displayCurrency = useDisplayCurrency();
+  const averages = runningAverage(
+    props.timeseries.monthlyMap(),
+    props.maxWindowLength
+  );
   return (
     <ReactEcharts
       notMerge

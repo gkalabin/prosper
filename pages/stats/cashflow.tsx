@@ -1,3 +1,5 @@
+import { MonthlyOwnShare } from "components/charts/MonthlySum";
+import { RunningAverageAmounts } from "components/charts/RunningAverage";
 import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
 import { undoTailwindInputStyles } from "components/forms/Select";
 import {
@@ -5,7 +7,7 @@ import {
   NotConfiguredYet,
 } from "components/NotConfiguredYet";
 import { StatsPageLayout } from "components/StatsPageLayout";
-import { eachMonthOfInterval, isWithinInterval, startOfMonth } from "date-fns";
+import { startOfMonth } from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { defaultMonthlyMoneyChart } from "lib/charts";
@@ -14,58 +16,46 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
-import { Transaction } from "lib/model/Transaction";
 import { allDbDataProps } from "lib/ServerSideDB";
+import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
+import { MoneyTimeseries } from "lib/util/Timeseries";
 import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import Select from "react-select";
 
-export function CashflowCharts({
-  transactions,
-  duration,
-}: {
-  transactions: Transaction[];
-  duration: Interval;
-}) {
+export function CashflowCharts({ input }: { input: TransactionsStatsInput }) {
   const displayCurrency = useDisplayCurrency();
   const zero = AmountWithCurrency.zero(displayCurrency);
-  const months = eachMonthOfInterval(duration).map((x) => x.getTime());
-  const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
-
-  const moneyOut = new Map<number, AmountWithCurrency>(zeroes);
-  transactions
-    .filter((t) => t.isPersonalExpense() || t.isThirdPartyExpense())
-    .forEach((t) => {
-      const exchanged = t.amountOwnShare(displayCurrency);
-      const ts = startOfMonth(t.timestamp).getTime();
-      moneyOut.set(ts, moneyOut.get(ts).add(exchanged));
-    });
-
-  const moneyIn = new Map<number, AmountWithCurrency>(zeroes);
-  transactions
-    .filter((t) => t.isIncome())
-    .forEach((t) => {
-      const exchanged = t.amountOwnShare(displayCurrency);
-      const ts = startOfMonth(t.timestamp).getTime();
-      moneyIn.set(ts, moneyIn.get(ts).add(exchanged));
-    });
-
-  const cashflow = new Map<number, AmountWithCurrency>(
-    months.map((m) => [m, moneyIn.get(m).subtract(moneyOut.get(m))])
+  // collect monthly in/out amounts
+  const moneyOut = new MoneyTimeseries(displayCurrency);
+  moneyOut.appendOwnShare(...input.expensesAllTime());
+  const moneyIn = new MoneyTimeseries(displayCurrency);
+  moneyIn.appendOwnShare(...input.incomeAllTime());
+  // calculate cashflow for each month
+  const dataMonthsIndex = new Set<number>(
+    [...input.expensesAllTime(), ...input.incomeAllTime()].map((t) =>
+      startOfMonth(t.timestamp).getTime()
+    )
   );
+  const dataMonths = [...dataMonthsIndex.keys()].sort();
+  const cashflow = new MoneyTimeseries(displayCurrency);
+  dataMonths.forEach((m) =>
+    cashflow.append(m, moneyIn.month(m).subtract(moneyOut.month(m)))
+  );
+  // calculate cumulative cashflow for display months only
+  const displayMonths = input.months().map((x) => x.getTime());
+  const cashflowCumulative = new MoneyTimeseries(displayCurrency);
   let current = zero;
-  const cashflowCumulative = new Map<number, AmountWithCurrency>(zeroes);
-  for (const m of months) {
-    current = current.add(cashflow.get(m));
-    cashflowCumulative.set(m, current);
+  for (const m of displayMonths) {
+    current = current.add(cashflow.month(m));
+    cashflowCumulative.append(m, current);
   }
-
   return (
     <>
       <ReactEcharts
         notMerge
         option={{
-          ...defaultMonthlyMoneyChart(displayCurrency, duration),
+          ...defaultMonthlyMoneyChart(displayCurrency, input.interval()),
           title: {
             text: "Cashflow",
           },
@@ -73,7 +63,7 @@ export function CashflowCharts({
             {
               type: "bar",
               name: "Money in vs out",
-              data: months.map((m) => cashflow.get(m).dollar()),
+              data: cashflow.monthRoundDollars(displayMonths),
             },
           ],
         }}
@@ -81,7 +71,7 @@ export function CashflowCharts({
       <ReactEcharts
         notMerge
         option={{
-          ...defaultMonthlyMoneyChart(displayCurrency, duration),
+          ...defaultMonthlyMoneyChart(displayCurrency, input.interval()),
           title: {
             text: "Cashflow (cumulative)",
           },
@@ -89,42 +79,26 @@ export function CashflowCharts({
             {
               type: "line",
               name: "Money in vs out (cumulative)",
-              data: months.map((m) => cashflowCumulative.get(m).dollar()),
+              data: cashflowCumulative.monthRoundDollars(displayMonths),
             },
           ],
         }}
       />
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultMonthlyMoneyChart(displayCurrency, duration),
-          title: {
-            text: "Money out",
-          },
-          series: [
-            {
-              type: "bar",
-              name: "Money Out",
-              data: months.map((m) => moneyOut.get(m).dollar()),
-            },
-          ],
-        }}
+      <RunningAverageAmounts
+        title="Cashflow running average (over 12 months)"
+        timeseries={cashflow}
+        duration={input.interval()}
+        maxWindowLength={12}
       />
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultMonthlyMoneyChart(displayCurrency, duration),
-          title: {
-            text: "Money In",
-          },
-          series: [
-            {
-              type: "bar",
-              name: "Money In",
-              data: months.map((m) => moneyIn.get(m).dollar()),
-            },
-          ],
-        }}
+      <MonthlyOwnShare
+        title="Money out"
+        transactions={input.expenses()}
+        duration={input.interval()}
+      />
+      <MonthlyOwnShare
+        title="Money in"
+        transactions={input.income()}
+        duration={input.interval()}
       />
     </>
   );
@@ -143,11 +117,11 @@ function PageContent() {
   }));
   const filteredTransactions = transactions.filter(
     (t) =>
-      isWithinInterval(t.timestamp, duration) &&
       !excludeCategories.some(
         (cid) => t.category.id() == cid || t.category.childOf(cid)
       )
   );
+  const input = new TransactionsStatsInput(filteredTransactions, duration);
   return (
     <StatsPageLayout>
       <DurationSelector duration={duration} onChange={setDuration} />
@@ -170,7 +144,7 @@ function PageContent() {
           onChange={(x) => setExcludeCategories(x.map((x) => x.value))}
         />
       </div>
-      <CashflowCharts transactions={filteredTransactions} duration={duration} />
+      <CashflowCharts input={input} />
     </StatsPageLayout>
   );
 }
