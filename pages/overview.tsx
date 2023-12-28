@@ -20,7 +20,7 @@ import {
 } from "lib/openbanking/context";
 import { allDbDataPropsWithOb } from "lib/ServerSideDB";
 import { onTransactionChange } from "lib/stateHelpers";
-import { TransactionAPIResponse } from "lib/transactionCreation";
+import { TransactionAPIResponse } from "lib/transactionDbUtils";
 import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 

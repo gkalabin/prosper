@@ -14,7 +14,7 @@ import {
   IOBTransactionsByAccountId,
 } from "lib/openbanking/interface";
 import { shortRelativeDate } from "lib/TimeHelpers";
-import { FormMode } from "lib/transactionCreation";
+import { FormMode } from "lib/transactionDbUtils";
 import { useEffect, useState } from "react";
 
 export type TransactionPrototype = {

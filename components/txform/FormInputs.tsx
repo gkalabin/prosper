@@ -24,7 +24,7 @@ import { Tag } from "lib/model/Tag";
 import { Transaction } from "lib/model/Transaction";
 import { Trip } from "lib/model/Trip";
 import { shortRelativeDate } from "lib/TimeHelpers";
-import { AddTransactionFormValues, FormMode } from "lib/transactionCreation";
+import { AddTransactionFormValues, FormMode } from "lib/transactionDbUtils";
 import { useEffect } from "react";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";

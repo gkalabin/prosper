@@ -9,7 +9,7 @@ import {
   writeTags,
   writeTrip,
   writeUsedOpenBankingTransactions,
-} from "lib/transactionCreation";
+} from "lib/transactionDbUtils";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 async function handle(

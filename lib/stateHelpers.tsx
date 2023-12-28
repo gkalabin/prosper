@@ -1,6 +1,6 @@
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { IOpenBankingData } from "lib/openbanking/interface";
-import { TransactionAPIResponse } from "lib/transactionCreation";
+import { TransactionAPIResponse } from "lib/transactionDbUtils";
 import { SetStateAction } from "react";
 
 export function onTransactionChange(

@@ -1,21 +1,27 @@
 import classNames from "classnames";
-import { FormMode } from "lib/transactionCreation";
+import { FormMode } from "lib/transactionDbUtils";
 
-const Button = (props: React.ButtonHTMLAttributes<HTMLButtonElement> & { active: boolean }) => {
+const Button = (
+  props: React.ButtonHTMLAttributes<HTMLButtonElement> & { active: boolean }
+) => {
   const { className, active, ...rest } = props;
-  return (<button
-    type="button"
-    className={classNames(
-      className,
-      props.disabled ? "opacity-30" : "hover:bg-gray-100 hover:text-indigo-700 dark:hover:bg-gray-600 dark:hover:text-white",
-      props.active ? "text-indigo-700" : "text-gray-900",
-      "border border-gray-200 bg-white py-1 px-2 text-sm font-medium focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:text-white",
-    )}
-    {...rest}
-  >
-    {props.children}
-  </button>);
-}
+  return (
+    <button
+      type="button"
+      className={classNames(
+        className,
+        props.disabled
+          ? "opacity-30"
+          : "hover:bg-gray-100 hover:text-indigo-700 dark:hover:bg-gray-600 dark:hover:text-white",
+        props.active ? "text-indigo-700" : "text-gray-900",
+        "border border-gray-200 bg-white py-1 px-2 text-sm font-medium focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:text-white"
+      )}
+      {...rest}
+    >
+      {props.children}
+    </button>
+  );
+};
 
 export const FormTransactionTypeSelector = (props: {
   disabled: boolean;
@@ -28,9 +34,7 @@ export const FormTransactionTypeSelector = (props: {
       <div className="col-span-6 flex justify-center">
         <div className="rounded-md shadow-sm">
           <Button
-            className={classNames(
-              "rounded-l-lg border",
-            )}
+            className={classNames("rounded-l-lg border")}
             onClick={() => props.setMode(FormMode.PERSONAL)}
             active={props.mode == FormMode.PERSONAL}
             disabled={props.disabled}
@@ -38,9 +42,7 @@ export const FormTransactionTypeSelector = (props: {
             Personal
           </Button>
           <Button
-            className={classNames(
-              "border-t border-b border-r",
-            )}
+            className={classNames("border-t border-b border-r")}
             onClick={() => props.setMode(FormMode.EXTERNAL)}
             active={props.mode == FormMode.EXTERNAL}
             disabled={props.disabled}
@@ -48,9 +50,7 @@ export const FormTransactionTypeSelector = (props: {
             External
           </Button>
           <Button
-            className={classNames(
-              "border-t border-b border-r",
-            )}
+            className={classNames("border-t border-b border-r")}
             onClick={() => props.setMode(FormMode.TRANSFER)}
             active={props.mode == FormMode.TRANSFER}
             disabled={props.disabled}
@@ -58,9 +58,7 @@ export const FormTransactionTypeSelector = (props: {
             Transfer
           </Button>
           <Button
-            className={classNames(
-              "rounded-r-md border",
-            )}
+            className={classNames("rounded-r-md border")}
             onClick={() => props.setMode(FormMode.INCOME)}
             active={props.mode == FormMode.INCOME}
             disabled={props.disabled}

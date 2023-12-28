@@ -3,7 +3,7 @@ import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { BankAccount } from "lib/model/BankAccount";
 import { Transaction } from "lib/model/Transaction";
 import { descriptiveDateTime, shortRelativeDate } from "lib/TimeHelpers";
-import { TransactionAPIResponse } from "lib/transactionCreation";
+import { TransactionAPIResponse } from "lib/transactionDbUtils";
 import { useState } from "react";
 
 const transactionHeadingText = (t: Transaction) => {

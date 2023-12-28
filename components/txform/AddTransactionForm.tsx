@@ -1,7 +1,7 @@
 import { FormTransactionTypeSelector } from "components/txform/FormTransactionTypeSelector";
 import {
   NewTransactionSuggestions,
-  TransactionPrototype
+  TransactionPrototype,
 } from "components/txform/NewTransactionSuggestions";
 import { ButtonFormPrimary, ButtonFormSecondary } from "components/ui/buttons";
 import { format } from "date-fns";
@@ -15,8 +15,8 @@ import {
   AddTransactionFormValues,
   FormMode,
   TransactionAPIRequest,
-  TransactionAPIResponse
-} from "lib/transactionCreation";
+  TransactionAPIResponse,
+} from "lib/transactionDbUtils";
 import { useState } from "react";
 import { FormInputs } from "./FormInputs";
 
