@@ -176,11 +176,11 @@ export default function TransactionsPage(
       subheader={[
         {
           title: "Income/Expense",
-          path: "/overview",
+          path: "/stats/in-out",
         },
         {
           title: "Month drilldown",
-          path: "/overview",
+          path: "/stats/monthly",
         },
       ]}
     >
