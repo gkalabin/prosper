@@ -5,13 +5,13 @@ import {
   Stock as DBStock,
   ExternalAccountMapping,
 } from "@prisma/client";
+import { AccountMappingRequest } from "app/api/open-banking/mapping/route";
 import { Select } from "components/forms/Select";
 import { ButtonFormPrimary } from "components/ui/buttons";
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
 import { accountUnit } from "lib/model/BankAccount";
 import { Unit, isCurrency } from "lib/model/Unit";
 import { AccountDetails } from "lib/openbanking/interface";
-import { AccountMappingRequest } from "pages/api/open-banking/mapping";
 import { useState } from "react";
 
 function UnitName({ unit }: { unit: Unit }) {
