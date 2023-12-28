@@ -119,7 +119,6 @@ model BankAccount {
   // UI configuration
   displayOrder Int     @default(0)
   archived     Boolean @default(false)
-  liquid       Boolean @default(true)
 
   // Joint accounts are owned by 2 people and personal value of such accounts is half of the balance.
   joint Boolean @default(false)

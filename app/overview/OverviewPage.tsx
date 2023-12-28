@@ -24,9 +24,7 @@ import {
 } from "lib/model/BankAccount";
 import { Currency } from "lib/model/Currency";
 import { Stock } from "lib/model/Stock";
-import {
-  Transaction,
-} from "lib/model/transaction/Transaction";
+import { Transaction } from "lib/model/transaction/Transaction";
 import { Income } from "lib/model/transaction/Income";
 import { Transfer } from "lib/model/transaction/Transfer";
 import { PersonalExpense } from "lib/model/transaction/PersonalExpense";
@@ -263,8 +261,8 @@ function NonEmptyPageContent() {
     transactions,
     stocks,
   );
-  const totalLiquid = accountsSum(
-    bankAccounts.filter((a) => a.liquid),
+  const totalCash = accountsSum(
+    bankAccounts.filter((a) => isCurrency(accountUnit(a, stocks))),
     displayCurrency,
     exchange,
     transactions,
@@ -282,9 +280,9 @@ function NonEmptyPageContent() {
         </h2>
         <div className="grid grid-cols-2">
           <span className="pl-3 text-lg font-medium">Cash</span>{" "}
-          {totalLiquid.format()}
+          {totalCash.format()}
           <span className="pl-3 text-lg font-medium">Equity</span>{" "}
-          {total.subtract(totalLiquid).format()}
+          {total.subtract(totalCash).format()}
         </div>
       </div>
       <div className="mb-4">

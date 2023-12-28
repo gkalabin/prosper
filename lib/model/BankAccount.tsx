@@ -35,7 +35,6 @@ export type BankAccount = {
   displayOrder: number;
   archived: boolean;
   joint: boolean;
-  liquid: boolean;
 };
 
 export function bankAccountModelFromDB(init: DBBankAccount): BankAccount {
@@ -49,7 +48,6 @@ export function bankAccountModelFromDB(init: DBBankAccount): BankAccount {
     displayOrder: init.displayOrder,
     archived: init.archived,
     joint: init.joint,
-    liquid: init.liquid,
   };
 }
 
