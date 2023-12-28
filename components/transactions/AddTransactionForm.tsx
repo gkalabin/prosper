@@ -9,7 +9,7 @@ import {
   AddTransactionFormValues,
   FormMode,
   formModeForTransaction,
-  formToDTO
+  formToDTO,
 } from "lib/AddTransactionDataModels";
 import { Bank, bankAccountsFlatList } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
@@ -130,6 +130,8 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
     }
   };
 
+  const creatingNewTransaction = !props.transaction;
+
   const now = new Date();
 
   const initialValues = {
@@ -137,8 +139,10 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
     vendor: props.transaction?.vendor() ?? "",
     description: props.transaction?.description ?? "",
     amount: props.transaction?.amount() ?? 0,
-    ownShareAmount: props.transaction?.amountOwnShare() ?? 0,
-    receivedAmount: props.transaction?.amountReceived() ?? 0,
+    ownShareAmount:
+      props.transaction?.amountOwnShare() ?? props.transaction?.amount() ?? 0,
+    receivedAmount:
+      props.transaction?.amountReceived() ?? props.transaction?.amount() ?? 0,
     fromBankAccountId: (props.transaction?.accountFrom() ?? bankAccountsList[0])
       .id,
     toBankAccountId: (props.transaction?.accountTo() ?? bankAccountsList[0]).id,
@@ -373,7 +377,13 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
                   disabled={isSubmitting}
                   className="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
-                  {isSubmitting ? "Adding…" : "Add"}
+                  {creatingNewTransaction
+                    ? isSubmitting
+                      ? "Adding…"
+                      : "Add"
+                    : isSubmitting
+                    ? "Updating…"
+                    : "Update"}
                 </button>
               </div>
             </div>

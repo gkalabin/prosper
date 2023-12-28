@@ -186,7 +186,7 @@ export const TransactionsList: React.FC<TransactionsListProps> = (props) => {
   return (
     <>
       <div className="flex-1 rounded border border-gray-200">
-        <ul role="list" className="flex flex-col divide-y divide-gray-200">
+        <ul className="flex flex-col divide-y divide-gray-200">
           {displayTransactions.map((t) => (
             <TransactionsListItem
               key={t.id}
@@ -200,16 +200,23 @@ export const TransactionsList: React.FC<TransactionsListProps> = (props) => {
               }
             />
           ))}
+          <li className="bg-slate-50 p-2 text-center text-lg font-medium">
+            Show
+            <button
+              onClick={() => setDisplayLimit(displayLimit + 10)}
+              className=" ml-2 mr-1 text-indigo-600 hover:text-indigo-500"
+            >
+              10
+            </button>
+            <button
+              onClick={() => setDisplayLimit(displayLimit + 100)}
+              className=" ml-1 mr-2 text-indigo-600 hover:text-indigo-500"
+            >
+              100
+            </button>
+            more
+          </li>
         </ul>
-      </div>
-
-      <div>
-        <button onClick={() => setDisplayLimit(displayLimit + 10)}>
-          Show 10 more
-        </button>
-        <button onClick={() => setDisplayLimit(displayLimit + 100)}>
-          Show 100 more
-        </button>
       </div>
     </>
   );
