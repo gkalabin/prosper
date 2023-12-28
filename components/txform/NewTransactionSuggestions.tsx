@@ -7,6 +7,7 @@ import {
   isAfter,
   isBefore,
 } from "date-fns";
+import { useFormikContext } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { Transaction } from "lib/model/Transaction";
 import { useOpenBankingDataContext } from "lib/openbanking/context";
@@ -293,6 +294,7 @@ function SuggestionItem({
   onClick: (t: TransactionPrototype) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const { isSubmitting } = useFormikContext();
   return (
     <li>
       <div className={classNames("flex p-2", isActive ? "bg-gray-100" : "")}>
@@ -301,7 +303,12 @@ function SuggestionItem({
             "grow cursor-pointer",
             isActive ? "text-slate-500" : ""
           )}
-          onClick={() => onClick(proto)}
+          onClick={() => {
+            if (isSubmitting) {
+              return;
+            }
+            onClick(proto);
+          }}
         >
           {proto.amount} {proto.vendor} {shortRelativeDate(proto.timestamp)}
         </div>

@@ -6,8 +6,8 @@ import {
 } from "components/txform/NewTransactionSuggestions";
 import {
   AddOrUpdateButtonText,
-  ButtonFormPrimary,
-  ButtonFormSecondary,
+  FormikButtonFormPrimary,
+  FormikButtonFormSecondary,
 } from "components/ui/buttons";
 import { format, startOfDay } from "date-fns";
 import { Form, Formik, FormikHelpers } from "formik";
@@ -235,60 +235,43 @@ export const AddTransactionForm = (props: {
   return (
     <div>
       <Formik initialValues={initialValues} onSubmit={submitNewTransaction}>
-        {({ isSubmitting, setFieldValue }) => (
-          <Form>
-            <div className="overflow-hidden shadow sm:rounded-md">
-              <div className="bg-white p-2 sm:p-6">
-                {creatingNewTransaction && (
-                  <div className="mb-2">
-                    <NewTransactionSuggestions
-                      onItemClick={(t) => {
-                        if (isSubmitting) {
-                          // The form is disabled while being submitted, so do not change it through suggestions either.
-                          return;
-                        }
-                        setPrototype(t);
-                        setFieldValue("mode", t.mode);
-                      }}
-                    />
-                  </div>
-                )}
-
-                <div className="grid grid-cols-6 gap-x-6 gap-y-3">
-                  <FormTransactionTypeSelector disabled={isSubmitting} />
-                  <FormInputs
-                    transaction={props.transaction}
-                    prototype={prototype}
-                  />
-                </div>
-              </div>
-
-              {apiError && (
-                <div className="bg-gray-50 px-4 pt-3 text-left text-red-700 sm:px-6">
-                  <span className="font-bold">Error: </span> {apiError}
+        <Form>
+          <div className="overflow-hidden shadow sm:rounded-md">
+            <div className="bg-white p-2 sm:p-6">
+              {creatingNewTransaction && (
+                <div className="mb-2">
+                  <NewTransactionSuggestions onItemClick={setPrototype} />
                 </div>
               )}
 
-              <div className="flex justify-end gap-2 bg-gray-50 px-4 py-3 sm:px-6">
-                <ButtonFormSecondary
-                  className="self-start"
-                  onClick={props.onClose}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </ButtonFormSecondary>
-
-                <ButtonFormPrimary
-                  className="self-start"
-                  disabled={isSubmitting}
-                  type="submit"
-                >
-                  <AddOrUpdateButtonText add={creatingNewTransaction} />
-                </ButtonFormPrimary>
+              <div className="grid grid-cols-6 gap-x-6 gap-y-3">
+                <FormTransactionTypeSelector />
+                <FormInputs
+                  transaction={props.transaction}
+                  prototype={prototype}
+                />
               </div>
             </div>
-          </Form>
-        )}
+
+            {apiError && (
+              <div className="bg-gray-50 px-4 pt-3 text-left text-red-700 sm:px-6">
+                <span className="font-bold">Error: </span> {apiError}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 bg-gray-50 px-4 py-3 sm:px-6">
+              <FormikButtonFormSecondary
+                className="self-start"
+                onClick={props.onClose}
+              >
+                Cancel
+              </FormikButtonFormSecondary>
+              <FormikButtonFormPrimary className="self-start" type="submit">
+                <AddOrUpdateButtonText add={creatingNewTransaction} />
+              </FormikButtonFormPrimary>
+            </div>
+          </div>
+        </Form>
       </Formik>
     </div>
   );

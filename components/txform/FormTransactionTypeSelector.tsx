@@ -26,10 +26,11 @@ const Button = (
   );
 };
 
-export const FormTransactionTypeSelector = (props: { disabled: boolean }) => {
+export const FormTransactionTypeSelector = () => {
   const {
     values: { mode },
     setFieldValue,
+    isSubmitting
   } = useFormikContext<AddTransactionFormValues>();
   return (
     <div className="col-span-6 flex justify-center">
@@ -38,7 +39,7 @@ export const FormTransactionTypeSelector = (props: { disabled: boolean }) => {
           className={classNames("rounded-l-lg border")}
           onClick={() => setFieldValue("mode", FormMode.PERSONAL)}
           active={mode == FormMode.PERSONAL}
-          disabled={props.disabled}
+          disabled={isSubmitting}
         >
           Personal
         </Button>
@@ -46,7 +47,7 @@ export const FormTransactionTypeSelector = (props: { disabled: boolean }) => {
           className={classNames("border-t border-b border-r")}
           onClick={() => setFieldValue("mode", FormMode.EXTERNAL)}
           active={mode == FormMode.EXTERNAL}
-          disabled={props.disabled}
+          disabled={isSubmitting}
         >
           External
         </Button>
@@ -54,7 +55,7 @@ export const FormTransactionTypeSelector = (props: { disabled: boolean }) => {
           className={classNames("border-t border-b border-r")}
           onClick={() => setFieldValue("mode", FormMode.TRANSFER)}
           active={mode == FormMode.TRANSFER}
-          disabled={props.disabled}
+          disabled={isSubmitting}
         >
           Transfer
         </Button>
@@ -62,7 +63,7 @@ export const FormTransactionTypeSelector = (props: { disabled: boolean }) => {
           className={classNames("rounded-r-md border")}
           onClick={() => setFieldValue("mode", FormMode.INCOME)}
           active={mode == FormMode.INCOME}
-          disabled={props.disabled}
+          disabled={isSubmitting}
         >
           Income
         </Button>

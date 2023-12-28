@@ -36,7 +36,7 @@ export const FormInputs = (props: {
 }) => {
   const { transactions, banks } = useAllDatabaseDataContext();
   const {
-    values: { amount, vendor, isShared, fromBankAccountId, mode },
+    values: { vendor, isShared, fromBankAccountId, mode },
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
   const transactionsForMode = transactions.filter(
@@ -46,12 +46,6 @@ export const FormInputs = (props: {
   const recentTransactionsForMode = transactionsForMode.filter(
     (x) => differenceInMonths(now, x.timestamp) < SUGGESTIONS_WINDOW_MONTHS
   );
-
-  useEffect(() => {
-    // If amount is $0.05, round half of it to the closest cent.
-    const halfAmount = Math.round(100 * (amount / 2)) / 100;
-    setFieldValue("ownShareAmount", isShared ? halfAmount : amount);
-  }, [amount, isShared, setFieldValue]);
 
   const [mostFrequentOtherParty] = uniqMostFrequent(
     recentTransactionsForMode
@@ -96,6 +90,7 @@ export const FormInputs = (props: {
     if (!props.prototype) {
       return;
     }
+    setFieldValue("mode", props.prototype.mode);
     if (props.prototype.mode == FormMode.TRANSFER) {
       setFieldValue("description", props.prototype.vendor);
     } else {
@@ -154,7 +149,7 @@ const PersonalExpenseForm = () => {
       </div>
       {isShared && (
         <div className="col-span-3">
-          <MoneyInputWithLabel name="ownShareAmount" label="Own share amount" />
+          <OwnShareAmount />
         </div>
       )}
       <Vendor />
@@ -204,7 +199,7 @@ const ExternalExpenseForm = () => {
         <MoneyInputWithLabel name="amount" label="Amount" />
       </div>
       <div className="col-span-3">
-        <MoneyInputWithLabel name="ownShareAmount" label="Own share amount" />
+        <OwnShareAmount />
       </div>
       <Vendor />
       <Tags />
@@ -315,7 +310,7 @@ const IncomeForm = () => {
       </div>
       {isShared && (
         <div className="col-span-3">
-          <MoneyInputWithLabel name="ownShareAmount" label="Own share amount" />
+          <OwnShareAmount />
         </div>
       )}
       <div className="col-span-6">
@@ -385,6 +380,19 @@ const Trips = () => {
     </div>
   );
 };
+
+function OwnShareAmount() {
+  const {
+    values: { amount, isShared },
+    setFieldValue,
+  } = useFormikContext<AddTransactionFormValues>();
+  useEffect(() => {
+    // If amount is $0.05, round half of it to the closest cent.
+    const halfAmount = Math.round(100 * (amount / 2)) / 100;
+    setFieldValue("ownShareAmount", isShared ? halfAmount : amount);
+  }, [amount, isShared, setFieldValue]);
+  return <MoneyInputWithLabel name="ownShareAmount" label="Own share amount" />;
+}
 
 function IsShared() {
   const {

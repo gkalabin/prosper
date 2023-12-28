@@ -88,6 +88,14 @@ export const ButtonPagePrimary = (
   );
 };
 
+export const FormikButtonFormPrimary = (
+  props: React.ButtonHTMLAttributes<HTMLButtonElement>
+) => {
+  const { isSubmitting } = useFormikContext();
+  const { disabled, ...rest } = props;
+  return <ButtonFormPrimary disabled={isSubmitting || disabled} {...rest} />;
+};
+
 export const ButtonFormPrimary = (
   props: React.ButtonHTMLAttributes<HTMLButtonElement>
 ) => {
@@ -104,6 +112,14 @@ export const ButtonFormPrimary = (
       {props.children}
     </button>
   );
+};
+
+export const FormikButtonFormSecondary = (
+  props: React.ButtonHTMLAttributes<HTMLButtonElement>
+) => {
+  const { isSubmitting } = useFormikContext();
+  const { disabled, ...rest } = props;
+  return <ButtonFormSecondary disabled={isSubmitting || disabled} {...rest} />;
 };
 
 export const ButtonFormSecondary = (
