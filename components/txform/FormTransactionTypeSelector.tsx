@@ -1,11 +1,9 @@
 import classNames from "classnames";
 import { FormMode } from "lib/AddTransactionDataModels";
-import { Transaction } from "lib/model/Transaction";
 
 export const FormTransactionTypeSelector = (props: {
-  transaction: Transaction;
   disabled: boolean;
-  children: JSX.Element[];
+  children: JSX.Element | JSX.Element[];
   mode: FormMode;
   setMode: (newMode: FormMode) => void;
 }) => {
