@@ -11,7 +11,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   if (!bankId) {
     return new Response(`bankId must be an integer`, { status: 400 });
   }
-  const token = (await request.formData()).get("token").toString();
+  const token = (await request.formData()).get("token")?.toString();
   if (!token) {
     return new Response(`token is required`, { status: 400 });
   }
