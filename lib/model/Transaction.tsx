@@ -169,8 +169,8 @@ export class Transaction {
 
   private vendorOrNull() {
     return (
-      firstNonNull2(this.personalExpense, this.thirdPartyExpense)
-        ?.vendor ?? null
+      firstNonNull2(this.personalExpense, this.thirdPartyExpense)?.vendor ??
+      null
     );
   }
 
