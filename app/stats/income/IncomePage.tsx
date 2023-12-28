@@ -1,28 +1,27 @@
 "use client";
+import { ExcludedCategoriesSelector } from "app/stats/ExcludedCategoriesSelector";
+import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
+import {
+  NotConfiguredYet,
+  isFullyConfigured,
+} from "components/NotConfiguredYet";
 import { MonthlyOwnShare } from "components/charts/MonthlySum";
 import { RunningAverageOwnShare } from "components/charts/RunningAverage";
 import { YearlyOwnShare } from "components/charts/YearlySum";
-import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
-import { undoTailwindInputStyles } from "components/forms/Select";
-import {
-  isFullyConfigured,
-  NotConfiguredYet,
-} from "components/NotConfiguredYet";
 import { differenceInYears, startOfMonth } from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { defaultMonthlyMoneyChart, legend } from "lib/charts";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
+import { defaultMonthlyMoneyChart, legend } from "lib/charts";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { transactionIsDescendant } from "lib/model/Category";
 import { amountOwnShare } from "lib/model/transaction/amounts";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
 import { useState } from "react";
-import Select from "react-select";
 
 export function IncomeCharts({ input }: { input: TransactionsStatsInput }) {
   const displayCurrency = useDisplayCurrency();
@@ -99,10 +98,6 @@ function NonEmptyPageContent() {
   const [excludeCategories, setExcludeCategories] = useState(
     displaySettings.excludeCategoryIdsInStats(),
   );
-  const categoryOptions = categories.map((a) => ({
-    value: a.id(),
-    label: a.nameWithAncestors(),
-  }));
   const filteredTransactions = transactions.filter(
     (t) =>
       !excludeCategories.some((cid) =>
@@ -111,29 +106,16 @@ function NonEmptyPageContent() {
   );
   const input = new TransactionsStatsInput(filteredTransactions, duration);
   return (
-    <>
-      <DurationSelector duration={duration} onChange={setDuration} />
-      <div className="mb-4">
-        <label
-          htmlFor="categoryIds"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Categories to exclude
-        </label>
-        <Select
-          instanceId={"categoryIds"}
-          styles={undoTailwindInputStyles()}
-          options={categoryOptions}
-          isMulti
-          value={excludeCategories.map((x) => ({
-            label: categoryOptions.find((c) => c.value == x).label,
-            value: x,
-          }))}
-          onChange={(x) => setExcludeCategories(x.map((x) => x.value))}
-        />
+    <div className="space-y-4">
+      <div className="w-full max-w-sm">
+        <DurationSelector duration={duration} onChange={setDuration} />
       </div>
+      <ExcludedCategoriesSelector
+        excludedIds={excludeCategories}
+        setExcludedIds={setExcludeCategories}
+      />
       <IncomeCharts input={input} />
-    </>
+    </div>
   );
 }
 

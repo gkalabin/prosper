@@ -1,4 +1,9 @@
 "use client";
+import { ExcludedCategoriesSelector } from "app/stats/ExcludedCategoriesSelector";
+import {
+  NotConfiguredYet,
+  isFullyConfigured,
+} from "components/NotConfiguredYet";
 import {
   ChildCategoryOwnShareChart,
   TopLevelCategoryOwnShareChart,
@@ -7,11 +12,6 @@ import {
   TopNVendorsMostSpent,
   TopNVendorsMostTransactions,
 } from "components/charts/Vendor";
-import { undoTailwindInputStyles } from "components/forms/Select";
-import {
-  isFullyConfigured,
-  NotConfiguredYet,
-} from "components/NotConfiguredYet";
 import {
   SortableTransactionsList,
   SortingMode,
@@ -26,16 +26,15 @@ import {
 import { useDisplayCurrency } from "lib/displaySettings";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { transactionIsDescendant } from "lib/model/Category";
+import { Income } from "lib/model/transaction/Income";
 import {
   Expense,
   isExpense,
   isIncome,
 } from "lib/model/transaction/Transaction";
 import { amountOwnShare } from "lib/model/transaction/amounts";
-import { Income } from "lib/model/transaction/Income";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
 import { useState } from "react";
-import Select from "react-select";
 
 function Navigation({
   years,
@@ -186,10 +185,6 @@ function NonEmptyPageContent() {
   const [excludeCategories, setExcludeCategories] = useState(
     displaySettings.excludeCategoryIdsInStats(),
   );
-  const categoryOptions = categories.map((a) => ({
-    value: a.id(),
-    label: a.nameWithAncestors(),
-  }));
   const filteredTransactions = transactions.filter(
     (t) =>
       !excludeCategories.some((cid) =>
@@ -204,28 +199,13 @@ function NonEmptyPageContent() {
     end: durations[durations.length - 1],
   });
   return (
-    <>
-      <div className="mb-4">
-        <label
-          htmlFor="categoryIds"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Categories to exclude
-        </label>
-        <Select
-          instanceId={"categoryIds"}
-          styles={undoTailwindInputStyles()}
-          options={categoryOptions}
-          isMulti
-          value={excludeCategories.map((x) => ({
-            label: categoryOptions.find((c) => c.value == x).label,
-            value: x,
-          }))}
-          onChange={(x) => setExcludeCategories(x.map((x) => x.value))}
-        />
-      </div>
+    <div className="space-y-4">
+      <ExcludedCategoriesSelector
+        excludedIds={excludeCategories}
+        setExcludedIds={setExcludeCategories}
+      />
       <YearlyStats input={input} />
-    </>
+    </div>
   );
 }
 

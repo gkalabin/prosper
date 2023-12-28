@@ -1,15 +1,15 @@
 "use client";
+import { ExcludedCategoriesSelector } from "app/stats/ExcludedCategoriesSelector";
+import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
+import {
+  NotConfiguredYet,
+  isFullyConfigured,
+} from "components/NotConfiguredYet";
 import { MonthlyChart } from "components/charts/Monthly";
 import { MonthlyOwnShare } from "components/charts/MonthlySum";
 import { RunningAverageAmounts } from "components/charts/RunningAverage";
 import { YearlyChart } from "components/charts/Yearly";
 import { YearlyOwnShare } from "components/charts/YearlySum";
-import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
-import { undoTailwindInputStyles } from "components/forms/Select";
-import {
-  isFullyConfigured,
-  NotConfiguredYet,
-} from "components/NotConfiguredYet";
 import { startOfMonth, startOfYear } from "date-fns";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
@@ -22,7 +22,6 @@ import { transactionIsDescendant } from "lib/model/Category";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
 import { MoneyTimeseries } from "lib/util/Timeseries";
 import { useState } from "react";
-import Select from "react-select";
 
 export function CashflowCharts({ input }: { input: TransactionsStatsInput }) {
   const displayCurrency = useDisplayCurrency();
@@ -132,10 +131,6 @@ function NonEmptyPageContent() {
   const [excludeCategories, setExcludeCategories] = useState(
     displaySettings.excludeCategoryIdsInStats(),
   );
-  const categoryOptions = categories.map((a) => ({
-    value: a.id(),
-    label: a.nameWithAncestors(),
-  }));
   const filteredTransactions = transactions.filter(
     (t) =>
       !excludeCategories.some((cid) =>
@@ -144,29 +139,16 @@ function NonEmptyPageContent() {
   );
   const input = new TransactionsStatsInput(filteredTransactions, duration);
   return (
-    <>
-      <DurationSelector duration={duration} onChange={setDuration} />
-      <div className="mb-4">
-        <label
-          htmlFor="categoryIds"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Categories to exclude
-        </label>
-        <Select
-          instanceId="excludeCategories"
-          styles={undoTailwindInputStyles()}
-          options={categoryOptions}
-          isMulti
-          value={excludeCategories.map((x) => ({
-            label: categoryOptions.find((c) => c.value == x).label,
-            value: x,
-          }))}
-          onChange={(x) => setExcludeCategories(x.map((x) => x.value))}
-        />
+    <div className="space-y-4">
+      <div className="w-full max-w-sm">
+        <DurationSelector duration={duration} onChange={setDuration} />
       </div>
+      <ExcludedCategoriesSelector
+        excludedIds={excludeCategories}
+        setExcludedIds={setExcludeCategories}
+      />
       <CashflowCharts input={input} />
-    </>
+    </div>
   );
 }
 
