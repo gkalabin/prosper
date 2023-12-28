@@ -126,10 +126,19 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
   const [showForm, setShowForm] = useState(false);
   const [updateInProgress, setUpdateInProgress] = useState(false);
 
-  const closeForm = () => {
+  const resetForm = () => {
     setName(props.category.name);
     setDisplayOrder(props.category.displayOrder);
     setParentId(props.category.parentCategoryId);
+  };
+
+  const openForm = () => {
+    resetForm()
+    setShowForm(true);
+  };
+
+  const closeForm = () => {
+    resetForm();
     setShowForm(false);
   };
 
@@ -165,7 +174,7 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
       <>
         {categoryName}
         <small>displayOrder {props.category.displayOrder}</small>
-        <button onClick={(e) => setShowForm(true)}>Edit</button>
+        <button onClick={(e) => openForm()}>Edit</button>
       </>
     );
   }
