@@ -12,9 +12,11 @@ const Button = (
         className,
         props.disabled
           ? "opacity-30"
-          : "hover:bg-gray-100 hover:text-indigo-700 dark:hover:bg-gray-600 dark:hover:text-white",
-        props.active ? "text-indigo-700" : "text-gray-900",
-        "border border-gray-200 bg-white py-1 px-2 text-sm font-medium focus:z-10 focus:text-indigo-700 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:focus:text-white"
+          : "hover:bg-gray-100 focus:bg-gray-100 dark:hover:bg-gray-600 dark:focus:bg-gray-600",
+        props.active
+          ? "text-indigo-700 dark:text-indigo-200"
+          : "text-gray-900 dark:text-white",
+        "border border-gray-200 bg-white py-1 px-2 text-sm font-medium focus:z-10 dark:border-gray-600 dark:bg-gray-700"
       )}
       {...rest}
     >
