@@ -42,7 +42,7 @@ const CategoriesList: React.FC<CategoriesListProps> = (props) => {
           <EditableCategoryListItem
             category={category}
             categories={props.allCategories}
-            onCategoryUpdated={props.onCategoryUpdated}
+            onUpdated={props.onCategoryUpdated}
             depth={props.depth}
           />
           {category.children && (
@@ -126,7 +126,7 @@ const CategoriesPage: React.FC<PageProps> = (props) => {
       />
       <CreateCategoryForm
         allCategories={allCategoriesFlat}
-        onNewCategoryCreated={addNewCategory}
+        onCreated={addNewCategory}
       />
     </Layout>
   );
