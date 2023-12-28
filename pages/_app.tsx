@@ -1,19 +1,30 @@
-import { AppProps } from "next/app";
-import { SWRConfig } from "swr";
+import { SessionProvider, useSession } from "next-auth/react";
 import "styles/global.css";
 
-const App = ({ Component, pageProps }: AppProps) => {
+export default function App({
+  Component,
+  pageProps: { session, ...pageProps },
+}) {
   return (
-    <SWRConfig
-      value={{
-        refreshInterval: 500,
-        fetcher: (resource, init) =>
-          fetch(resource, init).then((res) => res.json()),
-      }}
-    >
-      <Component {...pageProps} />
-    </SWRConfig>
+    <SessionProvider session={session}>
+      {Component.noAuthenticationRequired ? (
+        <AuthOnly>
+          <Component {...pageProps} />
+        </AuthOnly>
+      ) : (
+        <Component {...pageProps} />
+      )}
+    </SessionProvider>
   );
-};
+}
 
-export default App;
+function AuthOnly({ children }) {
+  // if `{ required: true }` is supplied, `status` can only be "loading" or "authenticated"
+  const { status } = useSession({ required: true });
+
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
+
+  return children;
+}

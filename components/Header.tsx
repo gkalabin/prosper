@@ -3,8 +3,9 @@ import {
   BanknotesIcon,
   Bars3Icon,
   UserCircleIcon,
-  XMarkIcon
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
+import { useSession, signOut, signIn } from "next-auth/react";
 import Link, { LinkProps } from "next/link";
 import { useRouter } from "next/router";
 import React, { forwardRef, Fragment, HTMLProps } from "react";
@@ -27,9 +28,10 @@ const LinkWithForwarding = forwardRef<
     </Link>
   );
 });
-LinkWithForwarding.displayName = "MyLink";
+LinkWithForwarding.displayName = "LinkWithForwarding";
 
 const Header: React.FC = () => {
+  const { data: session } = useSession();
   const router = useRouter();
   const isActive = ({ href }) => {
     return router.pathname == href;
@@ -72,7 +74,7 @@ const Header: React.FC = () => {
                           isActive(item)
                             ? "bg-gray-900 text-white"
                             : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                          "px-3 py-2 rounded-md text-sm font-medium"
+                          "rounded-md px-3 py-2 text-sm font-medium"
                         )}
                         aria-current={isActive(item) ? "page" : undefined}
                       >
@@ -114,19 +116,43 @@ const Header: React.FC = () => {
                           </LinkWithForwarding>
                         )}
                       </Menu.Item>
-                      <Menu.Item>
-                        {({ active }) => (
-                          <LinkWithForwarding
-                            href="/api/logout"
-                            className={classNames(
-                              active ? "bg-gray-100" : "",
-                              "block px-4 py-2 text-sm text-gray-700"
-                            )}
-                          >
-                            Sign Out
-                          </LinkWithForwarding>
-                        )}
-                      </Menu.Item>
+
+                      {!session?.user?.name && (
+                        <Menu.Item>
+                          {({ active }) => (
+                            <a
+                              onClick={() => signIn()}
+                              className={classNames(
+                                active ? "bg-gray-100" : "",
+                                "block cursor-pointer px-4 py-2 text-sm text-gray-700"
+                              )}
+                            >
+                              Sign In
+                            </a>
+                          )}
+                        </Menu.Item>
+                      )}
+
+                      {session?.user?.name && (
+                        <Menu.Item>
+                          {({ active }) => (
+                            <>
+                              <span className="block px-4 py-2 text-sm text-gray-700">
+                                Signed in as <i>{session.user.name}</i>
+                              </span>
+                              <a
+                                onClick={() => signOut()}
+                                className={classNames(
+                                  active ? "bg-gray-100" : "",
+                                  "block cursor-pointer py-2 pl-6 pr-4 text-sm text-gray-700"
+                                )}
+                              >
+                                Sign Out
+                              </a>
+                            </>
+                          )}
+                        </Menu.Item>
+                      )}
                     </Menu.Items>
                   </Transition>
                 </Menu>
@@ -145,7 +171,7 @@ const Header: React.FC = () => {
                       isActive(item)
                         ? "bg-gray-900 text-white"
                         : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                      "block px-3 py-2 rounded-md text-base font-medium"
+                      "block rounded-md px-3 py-2 text-base font-medium"
                     )}
                     aria-current={isActive(item) ? "page" : undefined}
                   >

@@ -3,21 +3,15 @@ import { Amount } from "components/Amount";
 import Layout from "components/Layout";
 import { AddTransactionForm } from "components/transactions/AddTransactionForm";
 import { TransactionsList } from "components/transactions/TransactionsList";
-import { withIronSessionSsr } from "iron-session/next";
 import { modelFromDatabaseData } from "lib/ClientSideModel";
-import {
-  Bank,
-  BankAccount,
-  bankAccountBalance
-} from "lib/model/BankAccount";
+import { Bank, BankAccount, bankAccountBalance } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
 import { AllDatabaseData, loadAllDatabaseData } from "lib/ServerSideDB";
-import { sessionOptions } from "lib/session";
-import { InferGetServerSidePropsType } from "next";
-import Router from "next/router";
+import {
+  GetStaticProps, InferGetStaticPropsType
+} from "next";
 import React, { useState } from "react";
-import { User } from "./api/user";
 
 type BankAccountListItemProps = {
   banks: Bank[];
@@ -111,46 +105,20 @@ const BanksList: React.FC<TransactionsListProps> = (props) => {
   );
 };
 
-export const getServerSideProps = withIronSessionSsr<{
-  user: User;
+export const getStaticProps: GetStaticProps<{
   dbData?: AllDatabaseData;
-}>(async function ({ req, res }) {
-  const user = req.session.user;
-
-  if (user === undefined) {
-    res.setHeader("location", "/login");
-    res.statusCode = 302;
-    res.end();
-    return {
-      props: {
-        user: { isLoggedIn: false, login: "" } as User,
-      },
-    };
-  }
+}> = async () => {
   const allData = await loadAllDatabaseData();
-
   return {
     props: {
-      user: req.session.user,
       dbData: JSON.parse(JSON.stringify(allData)),
     },
   };
-}, sessionOptions);
+};
 
-export default function OverviewPageWrapper({
-  user,
+export default function OverviewPage({
   dbData,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  if (!user?.isLoggedIn) {
-    Router.push("/login");
-    return <></>;
-  }
-  return <OverviewPage dbData={dbData} user={user} />;
-}
-
-function OverviewPage({
-  dbData,
-}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+}: InferGetStaticPropsType<typeof getStaticProps>) {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
   const [dbDataState, setDbData] = useState(dbData);
   const model = modelFromDatabaseData(dbDataState);

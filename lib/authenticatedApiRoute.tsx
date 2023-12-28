@@ -2,6 +2,8 @@ import { withIronSessionApiRoute } from "iron-session/next";
 import { sessionOptions } from "lib/session";
 import { NextApiRequest, NextApiResponse } from "next";
 import { User } from "pages/api/user";
+import { unstable_getServerSession } from "next-auth/next"
+import { authOptions } from "pages/api/auth/[...nextauth]"
 
 export declare type AuthentiatedApiHandler = (
   user: User,
@@ -14,6 +16,18 @@ export function authenticatedApiRoute(method: "POST" | "PUT", handler: Authentia
     req: NextApiRequest,
     res: NextApiResponse
   ) {
+    const session = await unstable_getServerSession(req, res, authOptions)
+  if (session) {
+    res.send({
+      content:
+        "This is protected content. You can access this content because you are signed in.",
+    })
+  } else {
+    res.send({
+      error: "You must be signed in to view the protected content on this page.",
+    })
+  }
+  
     if (req.method != method) {
       res
         .status(400)

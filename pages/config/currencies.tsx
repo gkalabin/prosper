@@ -2,18 +2,8 @@ import { Currency as DBCurrency } from "@prisma/client";
 import Layout from "components/Layout";
 import { Currency, currencyModelFromDB } from "lib/model/Currency";
 import prisma from "lib/prisma";
-import { GetStaticProps } from "next";
+import { GetStaticProps, InferGetStaticPropsType } from "next";
 import React, { useState } from "react";
-
-export const getStaticProps: GetStaticProps = async () => {
-  return {
-    props: JSON.parse(
-      JSON.stringify({
-        dbCurrencies: await prisma.currency.findMany(),
-      })
-    ),
-  };
-};
 
 type CurrenciesListProps = {
   currencies: Currency[];
@@ -186,10 +176,20 @@ const CurrencyName: React.FC<CurrencyNameProps> = (props) => {
   );
 };
 
-type PageProps = {
+export const getStaticProps: GetStaticProps<{
   dbCurrencies: DBCurrency[];
+}> = async () => {
+  const c = await prisma.currency.findMany();
+  return {
+    props: {
+      dbCurrencies: JSON.parse(JSON.stringify(c)),
+    },
+  };
 };
-const CurrenciesPage: React.FC<PageProps> = (props) => {
+
+export default function CurrenciesPage(
+  props: InferGetStaticPropsType<typeof getStaticProps>
+) {
   const [dbCurrencies, setDbCurrencies] = useState(props.dbCurrencies);
   const currencies = currencyModelFromDB(dbCurrencies);
 
@@ -208,6 +208,4 @@ const CurrenciesPage: React.FC<PageProps> = (props) => {
       <AddCurrencyForm onAdded={addCurrency} />
     </Layout>
   );
-};
-
-export default CurrenciesPage;
+}
