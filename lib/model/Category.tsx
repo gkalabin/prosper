@@ -1,5 +1,5 @@
 export type Category = {
-  id: string;
+  id: number;
   name: string;
   nameWithAncestors: string;
   isRoot: boolean;
@@ -10,7 +10,7 @@ export type Category = {
 };
 
 export type DbCategory = {
-  id: string;
+  id: number;
   name: string;
   parentCategoryId?: number;
   displayOrder: number;
