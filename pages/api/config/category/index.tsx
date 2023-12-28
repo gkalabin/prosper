@@ -2,9 +2,12 @@ import { Prisma } from "@prisma/client";
 import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
 import prisma from "lib/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { User } from "pages/api/user";
 
-async function handle(user: User, req: NextApiRequest, res: NextApiResponse) {
+async function handle(
+  userName: string,
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   const { name, parentCategoryId, displayOrder } = req.body;
   const dbArgs: Prisma.CategoryCreateArgs = {
     data: { name, displayOrder },

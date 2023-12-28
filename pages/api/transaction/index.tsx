@@ -12,9 +12,12 @@ import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
 import prisma from "lib/prisma";
 import { TransactionWithExtensions } from "lib/ServerSideDB";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { User } from "pages/api/user";
 
-async function handle(user: User, req: NextApiRequest, res: NextApiResponse) {
+async function handle(
+  userName: string,
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   const dto = req.body as AddTransactionDTO;
 
   if (dto.transactionId) {
