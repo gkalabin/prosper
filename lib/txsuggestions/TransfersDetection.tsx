@@ -1,12 +1,15 @@
-import { differenceInHours, differenceInMilliseconds } from "date-fns";
 import {
+  differenceInHours,
+  differenceInMilliseconds,
+  differenceInMinutes,
+} from "date-fns";
+import {
+  DepositPrototype,
   TransactionPrototype,
   TransferPrototype,
   WithdrawalOrDepositPrototype,
   WithdrawalPrototype,
 } from "lib/txsuggestions/TransactionPrototype";
-
-const MAX_TRANSFER_WINDOW_HOURS = 2;
 
 export function combineTransfers(
   prototypes: WithdrawalOrDepositPrototype[]
@@ -23,8 +26,7 @@ export function combineTransfers(
           withdrawal.type == "withdrawal" &&
           deposit.absoluteAmountCents == withdrawal.absoluteAmountCents &&
           deposit.internalAccountId != withdrawal.internalAccountId &&
-          differenceInHours(deposit.timestampEpoch, withdrawal.timestampEpoch) <
-            MAX_TRANSFER_WINDOW_HOURS
+          closeInTime(deposit, withdrawal)
       )
       // sort, so the closest to `to` transfer comes first
       .sort(
@@ -74,4 +76,12 @@ export function combineTransfers(
     ...transfers,
     ...prototypes.filter((x) => !usedInTransfer.has(x.externalTransactionId)),
   ];
+}
+function closeInTime(d: DepositPrototype, w: WithdrawalPrototype): boolean {
+  if (w.timestampEpoch <= d.timestampEpoch) {
+    // Money taken before deposited, allow 2h delta for any bank delays
+    return differenceInHours(d.timestampEpoch, w.timestampEpoch) < 2;
+  }
+  // Do not trust banks to have precise clocks: allow small window of deposits happening before withdrawals.
+  return differenceInMinutes(w.timestampEpoch, d.timestampEpoch) < 1;
 }
