@@ -40,21 +40,12 @@ export const SubHeader = (props: { items: SubHeaderItem[] }) => {
 
   return (
     <nav className="bg-gray-600">
-      <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
-        <div className="relative flex h-12 items-center justify-between">
-          <div className="flex flex-1 items-stretch justify-start">
-            <div className="flex space-x-4">
-              {props.items.map((item) => (
-                <Button
-                  key={item.title}
-                  item={item}
-                  active={active}
-                  onClick={handleClick}
-                />
-              ))}
-            </div>
+      <div className="space-x-2 sm:space-x-4 mx-auto max-w-7xl px-2 py-3 sm:px-6 lg:px-8">
+        {props.items.map((item) => (
+          <div key={item.title} className="inline-block my-1">
+            <Button item={item} active={active} onClick={handleClick} />
           </div>
-        </div>
+        ))}
       </div>
     </nav>
   );
@@ -99,15 +90,15 @@ function ButtonContent({
   isActive: boolean;
 }) {
   return (
-    <span
+    <div
       className={classNames(
         isActive
           ? "bg-gray-800 text-white"
           : "text-gray-300 hover:bg-gray-700 hover:text-white",
-        "rounded-md px-3 py-2 text-sm font-medium"
+        "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium"
       )}
     >
       {text}
-    </span>
+    </div>
   );
 }
