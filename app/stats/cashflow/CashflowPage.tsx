@@ -1,3 +1,4 @@
+"use client";
 import { MonthlyChart } from "components/charts/Monthly";
 import { MonthlyOwnShare } from "components/charts/MonthlySum";
 import { RunningAverageAmounts } from "components/charts/RunningAverage";
@@ -9,7 +10,6 @@ import {
   isFullyConfigured,
   NotConfiguredYet,
 } from "components/NotConfiguredYet";
-import { StatsPageLayout } from "components/StatsPageLayout";
 import { startOfMonth, startOfYear } from "date-fns";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
@@ -17,11 +17,10 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
+import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { transactionIsDescendant } from "lib/model/Category";
-import { allDbDataProps } from "lib/ServerSideDB";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
 import { MoneyTimeseries } from "lib/util/Timeseries";
-import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import Select from "react-select";
 
@@ -35,25 +34,25 @@ export function CashflowCharts({ input }: { input: TransactionsStatsInput }) {
     bankAccounts,
     stocks,
     exchange,
-    ...input.expensesAllTime()
+    ...input.expensesAllTime(),
   );
   const moneyIn = new MoneyTimeseries(displayCurrency);
   moneyIn.appendOwnShare(
     bankAccounts,
     stocks,
     exchange,
-    ...input.incomeAllTime()
+    ...input.incomeAllTime(),
   );
   // calculate cashflow for each month
   const dataMonthsIndex = new Set<number>(
     [...input.expensesAllTime(), ...input.incomeAllTime()].map((t) =>
-      startOfMonth(t.timestampEpoch).getTime()
-    )
+      startOfMonth(t.timestampEpoch).getTime(),
+    ),
   );
   const dataMonths = [...dataMonthsIndex.keys()].sort();
   const cashflow = new MoneyTimeseries(displayCurrency);
   dataMonths.forEach((m) =>
-    cashflow.append(m, moneyIn.month(m).subtract(moneyOut.month(m)))
+    cashflow.append(m, moneyIn.month(m).subtract(moneyOut.month(m))),
   );
   // calculate cumulative cashflow for display months only
   const displayMonths = input.months().map((x) => x.getTime());
@@ -126,12 +125,12 @@ export function CashflowCharts({ input }: { input: TransactionsStatsInput }) {
   );
 }
 
-function PageContent() {
+function NonEmptyPageContent() {
   const [duration, setDuration] = useState(LAST_6_MONTHS);
   const { transactions, categories, displaySettings } =
     useAllDatabaseDataContext();
   const [excludeCategories, setExcludeCategories] = useState(
-    displaySettings.excludeCategoryIdsInStats()
+    displaySettings.excludeCategoryIdsInStats(),
   );
   const categoryOptions = categories.map((a) => ({
     value: a.id(),
@@ -140,12 +139,12 @@ function PageContent() {
   const filteredTransactions = transactions.filter(
     (t) =>
       !excludeCategories.some((cid) =>
-        transactionIsDescendant(t, cid, categories)
-      )
+        transactionIsDescendant(t, cid, categories),
+      ),
   );
   const input = new TransactionsStatsInput(filteredTransactions, duration);
   return (
-    <StatsPageLayout>
+    <>
       <DurationSelector duration={duration} onChange={setDuration} />
       <div className="mb-4">
         <label
@@ -167,20 +166,17 @@ function PageContent() {
         />
       </div>
       <CashflowCharts input={input} />
-    </StatsPageLayout>
+    </>
   );
 }
 
-export const getServerSideProps = allDbDataProps;
-export default function MaybeEmptyPage(
-  dbData: InferGetServerSidePropsType<typeof getServerSideProps>
-) {
+export function CashflowPage({ dbData }: { dbData: AllDatabaseData }) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }
   return (
     <AllDatabaseDataContextProvider dbData={dbData}>
-      <PageContent />
+      <NonEmptyPageContent />
     </AllDatabaseDataContextProvider>
   );
 }
