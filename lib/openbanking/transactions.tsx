@@ -117,19 +117,27 @@ function findMissing(t: IOBTransaction): IOBTransaction {
       transaction_type,
       transaction_category,
       transaction_classification,
+      merchant_name,
       settled,
       ...rest
     } = t;
-    if (rest && limit > 0) {
+    if (Object.keys(rest).length && limit > 0) {
       console.log("diff", JSON.stringify(rest, null, 2));
       limit--;
     }
   }
 
   {
-    const { provider_category, transaction_type, provider_id, ...rest } =
-      t.meta;
-    if (rest && limit > 0) {
+    const {
+      provider_category,
+      transaction_type,
+      provider_id,
+      provider_merchant_name,
+      counter_party_preferred_name,
+      user_comments,
+      ...rest
+    } = t.meta;
+    if (Object.keys(rest).length && limit > 0) {
       console.log("diff meta", JSON.stringify(rest, null, 2));
       limit--;
     }

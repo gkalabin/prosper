@@ -13,11 +13,15 @@ export interface IOBTransaction {
   transaction_id: string;
   provider_transaction_id: string;
   normalised_provider_transaction_id: string;
+  merchant_name: string;
   running_balance: { currency: string; amount: number };
   meta: {
     provider_category: string;
     transaction_type: string;
     provider_id: string;
+    provider_merchant_name: string;
+    counter_party_preferred_name: string;
+    user_comments: string;
   };
   timestamp: string;
   transaction_type: string;
