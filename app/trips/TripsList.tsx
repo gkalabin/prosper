@@ -1,10 +1,10 @@
+"use client";
 import classNames from "classnames";
-import Layout from "components/Layout";
 import {
   isFullyConfigured,
   NotConfiguredYet,
 } from "components/NotConfiguredYet";
-import { AnchorLink } from "components/ui/buttons";
+import { AnchorLink } from "components/ui/anchors";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
   AllDatabaseDataContextProvider,
@@ -12,6 +12,7 @@ import {
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
+import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { BankAccount } from "lib/model/BankAccount";
 import { Currency } from "lib/model/Currency";
 import { Stock } from "lib/model/Stock";
@@ -23,46 +24,22 @@ import {
   isIncome,
 } from "lib/model/Transaction";
 import { Trip } from "lib/model/Trip";
-import { allDbDataProps } from "lib/ServerSideDB";
-import { InferGetServerSidePropsType } from "next";
-
-export const getServerSideProps = allDbDataProps;
-export default function Page(
-  dbData: InferGetServerSidePropsType<typeof getServerSideProps>
-) {
-  if (!isFullyConfigured(dbData)) {
-    return <NotConfiguredYet />;
-  }
-  return (
-    <AllDatabaseDataContextProvider dbData={dbData}>
-      <PageLayout />
-    </AllDatabaseDataContextProvider>
-  );
-}
 
 const amountSum = (
   txs: (Expense | Income)[],
   displayCurrency: Currency,
   bankAccounts: BankAccount[],
   stocks: Stock[],
-  exchange: StockAndCurrencyExchange
+  exchange: StockAndCurrencyExchange,
 ): AmountWithCurrency => {
   return txs
     .map((t) =>
-      amountAllParties(t, displayCurrency, bankAccounts, stocks, exchange)
+      amountAllParties(t, displayCurrency, bankAccounts, stocks, exchange),
     )
     .reduce((a, b) => a.add(b));
 };
 
-function PageLayout() {
-  return (
-    <Layout>
-      <TripsList />
-    </Layout>
-  );
-}
-
-function TripsList() {
+function NonEmptyTripsList() {
   const { trips, transactions, bankAccounts, stocks, exchange } =
     useAllDatabaseDataContext();
   const displayCurrency = useDisplayCurrency();
@@ -73,7 +50,7 @@ function TripsList() {
     trips.map((t) => [
       t.id,
       travelTransactions.filter((tx) => tx.tripId == t.id),
-    ])
+    ]),
   );
   const tripEpoch = (trip: Trip): number => {
     const txs = travelTransactions
@@ -92,9 +69,9 @@ function TripsList() {
         displayCurrency,
         bankAccounts,
         stocks,
-        exchange
+        exchange,
       ),
-    ])
+    ]),
   );
   const totals = [...totalByTrip.values()]
     .map((x) => x.dollar())
@@ -135,5 +112,16 @@ function TripsList() {
         </div>
       ))}
     </>
+  );
+}
+
+export function TripsList({ dbData }: { dbData: AllDatabaseData }) {
+  if (!isFullyConfigured(dbData)) {
+    return <NotConfiguredYet />;
+  }
+  return (
+    <AllDatabaseDataContextProvider dbData={dbData}>
+      <NonEmptyTripsList />
+    </AllDatabaseDataContextProvider>
   );
 }
