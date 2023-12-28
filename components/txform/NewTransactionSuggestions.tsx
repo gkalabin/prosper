@@ -18,6 +18,7 @@ import { shortRelativeDate } from "lib/TimeHelpers";
 import { FormMode } from "lib/transactionDbUtils";
 import { useEffect, useState } from "react";
 
+// TODO: convert this to class, so equals logic can be absracted away
 export type TransactionPrototype = {
   amount: number;
   vendor: string;
@@ -259,15 +260,8 @@ function SuggestionsList(props: {
   const [limit, setLimit] = useState(10);
   const [activeItem, setActiveItem] = useState(null as TransactionPrototype);
   const onItemClick = (proto: TransactionPrototype) => {
-    const isActive =
-      proto?.openBankingTransactionId != activeItem?.openBankingTransactionId;
-    if (isActive) {
-      setActiveItem(proto);
-      props.onItemClick(proto);
-    } else {
-      setActiveItem(null);
-      props.onItemClick(null);
-    }
+    setActiveItem(proto);
+    props.onItemClick(proto);
   };
   return (
     <ul className="divide-y divide-gray-200">
@@ -276,8 +270,8 @@ function SuggestionsList(props: {
           key={proto.openBankingTransactionId}
           proto={proto}
           isActive={
-            proto.openBankingTransactionId ==
-            activeItem.openBankingTransactionId
+            proto?.openBankingTransactionId ==
+            activeItem?.openBankingTransactionId
           }
           onClick={onItemClick}
         />
