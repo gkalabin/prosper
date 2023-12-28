@@ -33,28 +33,18 @@ export type AddTransactionFormProps = {
 };
 
 export const InputRow = (props: {
-  currentMode: FormMode;
-  currentlyAdvanced: boolean;
-  advancedModes?: FormMode[];
-  allModes?: FormMode[];
+  mode?: FormMode;
+  modes?: FormMode[];
   children: JSX.Element | JSX.Element[];
 }) => {
   const field = (
     // To make 2 columns: <div className="col-span-6 sm:col-span-3">
     <div className="col-span-6">{props.children}</div>
   );
-  if (!props.advancedModes && !props.allModes) {
+  if (!props.modes || props.modes.includes(props.mode)) {
     return field;
   }
-
-  return (
-    <>
-      {((props.advancedModes?.includes(props.currentMode) &&
-        props.currentlyAdvanced) ||
-        props.allModes?.includes(props.currentMode)) &&
-        field}
-    </>
-  );
+  return <></>;
 };
 
 export function toDateTimeLocal(d: Date) {
@@ -380,25 +370,24 @@ const FormInputs = (props: {
 
   return (
     <>
-      <InputRow
-        currentMode={props.mode}
-        currentlyAdvanced={props.isAdvancedMode}
-      >
+      <InputRow>
         <MoneyInputWithLabel name="amount" label="Amount" />
       </InputRow>
 
       <InputRow
-        currentMode={props.mode}
-        currentlyAdvanced={props.isAdvancedMode}
-        advancedModes={[FormMode.PERSONAL, FormMode.EXTERNAL, FormMode.INCOME]}
+        mode={props.mode}
+        modes={
+          props.isAdvancedMode
+            ? [FormMode.PERSONAL, FormMode.EXTERNAL, FormMode.INCOME]
+            : []
+        }
       >
         <MoneyInputWithLabel name="ownShareAmount" label="Own share amount" />
       </InputRow>
 
       <InputRow
-        currentMode={props.mode}
-        currentlyAdvanced={props.isAdvancedMode}
-        allModes={[FormMode.PERSONAL, FormMode.EXTERNAL, FormMode.INCOME]}
+        mode={props.mode}
+        modes={[FormMode.PERSONAL, FormMode.EXTERNAL, FormMode.INCOME]}
       >
         <Switch.Group>
           <div className="flex items-center">
@@ -432,18 +421,14 @@ const FormInputs = (props: {
       </InputRow>
 
       <InputRow
-        currentMode={props.mode}
-        currentlyAdvanced={props.isAdvancedMode}
-        advancedModes={[FormMode.TRANSFER]}
+        mode={props.mode}
+        modes={props.isAdvancedMode ? [FormMode.TRANSFER] : []}
       >
         <MoneyInputWithLabel name="receivedAmount" label="Received" />
       </InputRow>
 
       {/* TODO: verify that datetime-local is processed correctly with regards to timezones */}
-      <InputRow
-        currentMode={props.mode}
-        currentlyAdvanced={props.isAdvancedMode}
-      >
+      <InputRow mode={props.mode}>
         <label
           htmlFor="timestamp"
           className="block text-sm font-medium text-gray-700"
@@ -461,41 +446,29 @@ const FormInputs = (props: {
       </InputRow>
 
       <InputRow
-        currentMode={props.mode}
-        currentlyAdvanced={props.isAdvancedMode}
-        allModes={[FormMode.PERSONAL, FormMode.EXTERNAL, FormMode.INCOME]}
+        mode={props.mode}
+        modes={[FormMode.PERSONAL, FormMode.EXTERNAL, FormMode.INCOME]}
       >
-        <TextInputWithLabel
-          name="vendor"
-          label="Vendor"
-          list="vendors"
-          onBlur={(e: { target: { value: string } }) => {
-            setFieldValue("vendor", e.target.value);
-            console.log(e.target.value);
-          }}
-        />
+        <TextInputWithLabel name="vendor" label="Vendor" list="vendors" />
         <datalist id="vendors">
-          (
           {vendors.map((v) => (
             <option key={v} value={v} />
           ))}
-          )
         </datalist>
       </InputRow>
 
       <InputRow
-        currentMode={props.mode}
-        currentlyAdvanced={props.isAdvancedMode}
-        advancedModes={[FormMode.PERSONAL, FormMode.EXTERNAL]}
-        allModes={[FormMode.TRANSFER]}
+        mode={props.mode}
+        modes={
+          props.isAdvancedMode
+            ? [FormMode.PERSONAL, FormMode.EXTERNAL]
+            : [FormMode.TRANSFER]
+        }
       >
         <TextInputWithLabel name="description" label="Description" />
       </InputRow>
 
-      <InputRow
-        currentMode={props.mode}
-        currentlyAdvanced={props.isAdvancedMode}
-      >
+      <InputRow mode={props.mode}>
         <SelectNumber name="categoryId" label="Category">
           {props.categories.map((c) => (
             <option key={c.id} value={c.id}>
@@ -505,18 +478,13 @@ const FormInputs = (props: {
         </SelectNumber>
       </InputRow>
 
-      <InputRow
-        currentMode={props.mode}
-        currentlyAdvanced={props.isAdvancedMode}
-        allModes={[FormMode.EXTERNAL]}
-      >
+      <InputRow mode={props.mode} modes={[FormMode.EXTERNAL]}>
         <TextInputWithLabel name="payer" label="Payer" />
       </InputRow>
 
       <InputRow
-        currentMode={props.mode}
-        currentlyAdvanced={props.isAdvancedMode}
-        allModes={[FormMode.TRANSFER, FormMode.PERSONAL]}
+        mode={props.mode}
+        modes={[FormMode.TRANSFER, FormMode.PERSONAL]}
       >
         <BankAccountSelect
           name="fromBankAccountId"
@@ -525,11 +493,7 @@ const FormInputs = (props: {
         />
       </InputRow>
 
-      <InputRow
-        currentMode={props.mode}
-        currentlyAdvanced={props.isAdvancedMode}
-        allModes={[FormMode.TRANSFER, FormMode.INCOME]}
-      >
+      <InputRow mode={props.mode} modes={[FormMode.TRANSFER, FormMode.INCOME]}>
         <BankAccountSelect
           name="toBankAccountId"
           label="Account To"
@@ -537,11 +501,7 @@ const FormInputs = (props: {
         />
       </InputRow>
 
-      <InputRow
-        currentMode={props.mode}
-        currentlyAdvanced={props.isAdvancedMode}
-        allModes={[FormMode.EXTERNAL]}
-      >
+      <InputRow mode={props.mode} modes={[FormMode.EXTERNAL]}>
         <SelectNumber name="currencyId" label="Currency">
           {currencies.all().map((c) => (
             <option key={c.id} value={c.id}>
