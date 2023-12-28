@@ -20,3 +20,11 @@ export function intParamOrFirst(
   }
   return i;
 }
+
+export function intParam(param: string): number | undefined {
+  const i = parseInt(param, 10);
+  if (isNaN(i)) {
+    return undefined;
+  }
+  return i;
+}
