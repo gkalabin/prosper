@@ -15,7 +15,11 @@ import {
 } from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { defaultChartOptions, stackedBarChartTooltip } from "lib/charts";
+import {
+  defaultChartOptions,
+  legend,
+  stackedBarChartTooltip,
+} from "lib/charts";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -96,13 +100,9 @@ export function ExpenseCharts(props: {
         notMerge
         option={{
           ...defaultChartOptions(displayCurrency, months),
+          ...legend(),
           title: {
             text: "Total money out",
-          },
-          legend: {
-            orient: "horizontal",
-            bottom: 10,
-            top: "bottom",
           },
           series: [
             {
@@ -121,13 +121,9 @@ export function ExpenseCharts(props: {
         option={{
           ...defaultChartOptions(displayCurrency, months),
           ...stackedBarChartTooltip(displayCurrency),
+          ...legend(),
           title: {
             text: "By top level category",
-          },
-          legend: {
-            orient: "horizontal",
-            bottom: 10,
-            top: "bottom",
           },
           series: [...byRootCategoryIdAndMonth.entries()].map(
             ([categoryId, series]) => ({

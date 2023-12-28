@@ -10,7 +10,7 @@ import { ButtonLink } from "components/ui/buttons";
 import { eachMonthOfInterval, isWithinInterval, startOfMonth } from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { defaultChartOptions } from "lib/charts";
+import { defaultChartOptions, legend } from "lib/charts";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -76,13 +76,9 @@ export function IncomeCharts(props: {
         notMerge
         option={{
           ...defaultChartOptions(displayCurrency, months),
+          ...legend(),
           title: {
             text: "Total money in",
-          },
-          legend: {
-            orient: "horizontal",
-            bottom: 10,
-            top: "bottom",
           },
           series: [
             {
@@ -100,13 +96,9 @@ export function IncomeCharts(props: {
         notMerge
         option={{
           ...defaultChartOptions(displayCurrency, months),
+          ...legend(),
           title: {
             text: "By category",
-          },
-          legend: {
-            orient: "horizontal",
-            bottom: 10,
-            top: "bottom",
           },
           series: [...byCategoryIdAndMonth.entries()].map(
             ([categoryId, series]) => ({

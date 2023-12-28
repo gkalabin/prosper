@@ -97,7 +97,7 @@ export function CashflowCharts({
       <ReactEcharts
         notMerge
         option={{
-          ...defaultChartOptions,
+          ...defaultChartOptions(displayCurrency, months),
           title: {
             text: "Money out",
           },
@@ -113,7 +113,7 @@ export function CashflowCharts({
       <ReactEcharts
         notMerge
         option={{
-          ...defaultChartOptions,
+          ...defaultChartOptions(displayCurrency, months),
           title: {
             text: "Money In",
           },

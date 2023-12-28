@@ -14,6 +14,16 @@ export function stackedBarChartTooltip(c: Currency): EChartsOption {
   };
 }
 
+export function legend(): EChartsOption {
+  return {
+    legend: {
+      orient: "horizontal",
+      bottom: 10,
+      top: "bottom",
+    },
+  };
+}
+
 function stackedBarChartTooltipFormatter(c: Currency) {
   const formatter = currencyFormatter(c);
   return (params) => {

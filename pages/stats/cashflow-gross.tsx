@@ -7,10 +7,10 @@ import {
 import { DebugTable } from "components/stats/DebugTable";
 import { StatsPageLayout } from "components/StatsPageLayout";
 import { ButtonLink } from "components/ui/buttons";
-import { isWithinInterval, startOfMonth } from "date-fns";
+import { eachMonthOfInterval, isWithinInterval, startOfMonth } from "date-fns";
 import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { defaultChartOptions } from "lib/charts";
+import { defaultChartOptions, legend } from "lib/charts";
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -22,60 +22,41 @@ import { InferGetServerSidePropsType } from "next";
 import { useState } from "react";
 import Select from "react-select";
 
-export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
+export function MoneyInMoneyOut(props: {
+  transactions: Transaction[];
+  duration: Interval;
+}) {
   const [showDebugTable, setShowDebugTable] = useState(false);
   const displayCurrency = useDisplayCurrency();
-  const { exchange } = useAllDatabaseDataContext();
   const zero = AmountWithCurrency.zero(displayCurrency);
+  const months = eachMonthOfInterval(props.duration).map((x) => x.getTime());
+  const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
 
   const nonThirdPartyTransactions = props.transactions.filter(
     (t) => !t.isThirdPartyExpense()
   );
-  const moneyOut: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
-  const moneyIn: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
-  const delta: { [firstOfMonthEpoch: number]: AmountWithCurrency } = {};
-  const cumulativeDelta: { [firstOfMonthEpoch: number]: AmountWithCurrency } =
-    {};
-  const monthsIndex: { [firstOfMonthEpoch: number]: boolean } = {};
+  const moneyOut = new Map<number, AmountWithCurrency>(zeroes);
+  const moneyIn = new Map<number, AmountWithCurrency>(zeroes);
+  const delta = new Map<number, AmountWithCurrency>(zeroes);
   for (const t of nonThirdPartyTransactions) {
     const ts = startOfMonth(t.timestamp).getTime();
-    monthsIndex[ts] = true;
-    moneyIn[ts] ??= zero;
-    moneyOut[ts] ??= zero;
-    delta[ts] ??= zero;
     if (t.isPersonalExpense()) {
-      const exchanged = exchange.exchange(
-        t.amount(),
-        displayCurrency,
-        t.timestamp
-      );
-      moneyOut[ts] = moneyOut[ts].add(exchanged);
-      delta[ts] = delta[ts].subtract(exchanged);
+      const exchanged = t.amountAllParties(displayCurrency);
+      moneyOut.set(ts, moneyOut.get(ts).add(exchanged));
+      delta.set(ts, delta.get(ts).subtract(exchanged));
     }
     if (t.isIncome()) {
-      const exchanged = exchange.exchange(
-        t.amount(),
-        displayCurrency,
-        t.timestamp
-      );
-      moneyIn[ts] = moneyIn[ts].add(exchanged);
-      delta[ts] = delta[ts].add(exchanged);
+      const exchanged = t.amountAllParties(displayCurrency);
+      moneyIn.set(ts, moneyIn.get(ts).add(exchanged));
+      delta.set(ts, delta.get(ts).add(exchanged));
     }
   }
 
-  const months = Object.keys(monthsIndex)
-    .map((x) => +x)
-    .sort();
-  months.forEach((m) => {
-    moneyIn[m] ??= zero;
-    moneyOut[m] ??= zero;
-    delta[m] ??= zero;
-    cumulativeDelta[m] ??= zero;
-  });
-  let currentDeltaSum = zero;
-  for (const ts of Object.keys(monthsIndex).sort()) {
-    currentDeltaSum = currentDeltaSum.add(delta[ts] ?? zero);
-    cumulativeDelta[ts] = currentDeltaSum;
+  let current = zero;
+  const cumulativeDelta = new Map<number, AmountWithCurrency>(zeroes);
+  for (const m of months) {
+    current = current.add(delta.get(m));
+    cumulativeDelta.set(m, current);
   }
 
   return (
@@ -83,19 +64,15 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
       <ReactEcharts
         option={{
           ...defaultChartOptions(displayCurrency, months),
+          ...legend(),
           title: {
             text: "Money In vs Money Out",
-          },
-          legend: {
-            orient: "horizontal",
-            bottom: 10,
-            top: "bottom",
           },
           series: [
             {
               type: "bar",
               name: "Money In",
-              data: months.map((m) => Math.round(moneyIn[m].dollar())),
+              data: months.map((m) => Math.round(moneyIn.get(m).dollar())),
               itemStyle: {
                 color: "#15803d",
               },
@@ -103,7 +80,7 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
             {
               type: "bar",
               name: "Money Out",
-              data: months.map((m) => Math.round(moneyOut[m].dollar())),
+              data: months.map((m) => Math.round(moneyOut.get(m).dollar())),
               itemStyle: {
                 color: "#b91c1c",
               },
@@ -141,7 +118,7 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
             {
               type: "bar",
               name: "Delta",
-              data: months.map((m) => Math.round(delta[m].dollar())),
+              data: months.map((m) => Math.round(delta.get(m).dollar())),
             },
           ],
         }}
@@ -157,7 +134,9 @@ export function MoneyInMoneyOut(props: { transactions: Transaction[] }) {
             {
               type: "bar",
               name: "Delta",
-              data: months.map((m) => Math.round(cumulativeDelta[m].dollar())),
+              data: months.map((m) =>
+                Math.round(cumulativeDelta.get(m).dollar())
+              ),
             },
           ],
         }}
@@ -221,7 +200,10 @@ function InOutPageContent() {
           onChange={(x) => setExcludeCategories(x.map((x) => x.value))}
         />
       </div>
-      <MoneyInMoneyOut transactions={filteredTransactions} />
+      <MoneyInMoneyOut
+        transactions={filteredTransactions}
+        duration={duration}
+      />
     </StatsPageLayout>
   );
 }
