@@ -289,7 +289,7 @@ function SuggestionItem({
               "text-green-900": singleOpProto.type == "deposit",
             })}
           >
-            {bankAccount.currency.format(
+            {bankAccount.unit().format(
               singleOpProto.absoluteAmountCents / 100
             )}
           </div>

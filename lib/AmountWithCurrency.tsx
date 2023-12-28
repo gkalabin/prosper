@@ -126,9 +126,9 @@ export class AmountWithCurrency {
   }
 
   private assertSameCurrency(a: AmountWithCurrency) {
-    if (a.currency.id != this.currency.id) {
+    if (a.currency.code() != this.currency.code()) {
       throw new Error(
-        `Impossible to add ${a.currency.name} and ${this.currency.name}`
+        `Impossible to add ${a.currency.code()} and ${this.currency.code()}`
       );
     }
   }

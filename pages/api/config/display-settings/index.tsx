@@ -8,11 +8,11 @@ async function handle(
   res: NextApiResponse
 ) {
   // Parse input.
-  const { displayCurrencyId, excludeCategoryIdsInStats } = req.body;
+  const { displayCurrencyCode, excludeCategoryIdsInStats } = req.body;
   // Perform update.
   const result = await prisma.displaySettings.update({
     data: {
-      displayCurrencyId,
+      displayCurrencyCode,
       excludeCategoryIdsInStats: excludeCategoryIdsInStats.join(","),
     },
     where: { userId },

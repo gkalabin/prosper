@@ -22,7 +22,8 @@ export const Select = (
 export const FormikSelect = (
   props: React.SelectHTMLAttributes<HTMLSelectElement>
 ) => {
-  const { className, id, name, ...otherProps } = props;
+  const { className, id, name, disabled, ...otherProps } = props;
+  const { isSubmitting } = useFormikContext();
   return (
     <Field
       {...otherProps}
@@ -34,6 +35,7 @@ export const FormikSelect = (
         props.disabled ? "opacity-30" : "",
         "rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
       )}
+      disabled={isSubmitting || disabled}
     >
       {props.children}
     </Field>

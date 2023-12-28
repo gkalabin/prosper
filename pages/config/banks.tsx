@@ -1,10 +1,10 @@
 import {
   Bank as DBBank,
   BankAccount as DBBankAccount,
-  Currency as DBCurrency,
   NordigenToken as DBNordigenToken,
-  TrueLayerToken as DBTrueLayerToken,
   StarlingToken as DBStarlingToken,
+  Stock as DBStock,
+  TrueLayerToken as DBTrueLayerToken,
 } from "@prisma/client";
 import { ConfigPageLayout } from "components/ConfigPageLayout";
 import { AddOrEditAccountForm } from "components/config/AddOrEditAccountForm";
@@ -17,7 +17,7 @@ import {
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
 import { DB } from "lib/db";
 import { Bank, BankAccount } from "lib/model/BankAccount";
-import { Currencies } from "lib/model/Currency";
+import { Stock } from "lib/model/Stock";
 import { updateState } from "lib/stateHelpers";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { getServerSession } from "next-auth/next";
@@ -26,7 +26,7 @@ import { useState } from "react";
 
 const BanksList = (props: {
   banks: Bank[];
-  currencies: Currencies;
+  stocks: Stock[];
   trueLayerTokens: DBTrueLayerToken[];
   nordigenTokens: DBNordigenToken[];
   starlingTokens: DBStarlingToken[];
@@ -42,12 +42,12 @@ const BanksList = (props: {
         <BanksListItem
           key={bank.id}
           bank={bank}
+          stocks={props.stocks}
           trueLayerToken={props.trueLayerTokens.find(
             (t) => t.bankId == bank.id
           )}
           nordigenToken={props.nordigenTokens.find((t) => t.bankId == bank.id)}
           starlingToken={props.starlingTokens.find((t) => t.bankId == bank.id)}
-          currencies={props.currencies}
           onBankUpdated={props.onBankUpdated}
           onAccountAddedOrUpdated={props.onAccountAddedOrUpdated}
         />
@@ -58,7 +58,7 @@ const BanksList = (props: {
 
 function BanksListItem({
   bank,
-  currencies,
+  stocks,
   trueLayerToken,
   nordigenToken,
   starlingToken,
@@ -66,7 +66,7 @@ function BanksListItem({
   onAccountAddedOrUpdated,
 }: {
   bank: Bank;
-  currencies: Currencies;
+  stocks: Stock[];
   trueLayerToken: DBTrueLayerToken;
   nordigenToken: DBNordigenToken;
   starlingToken: DBStarlingToken;
@@ -117,7 +117,7 @@ function BanksListItem({
         <AccountsList
           bank={bank}
           accounts={bank.accounts}
-          currencies={currencies}
+          stocks={stocks}
           onAccountUpdated={onAccountAddedOrUpdated}
         />
         {!newAccountFormDisplayed && (
@@ -128,7 +128,7 @@ function BanksListItem({
         {newAccountFormDisplayed && (
           <AddOrEditAccountForm
             bank={bank}
-            currencies={currencies}
+            stocks={stocks}
             onAddedOrUpdated={(x) => {
               setNewAccountFormDisplayed(false);
               onAccountAddedOrUpdated(x);
@@ -189,9 +189,7 @@ const TrueLayerActions = ({ bank }: { bank: Bank }) => {
       <AnchorLink href={`/config/open-banking/mapping?bankId=${bank.id}`}>
         Configure
       </AnchorLink>
-      <AnchorLink
-        href={`/api/open-banking/reconnect?bankId=${bank.id}`}
-      >
+      <AnchorLink href={`/api/open-banking/reconnect?bankId=${bank.id}`}>
         Reconnect
       </AnchorLink>
     </div>
@@ -205,9 +203,7 @@ const NordigenActions = ({ bank }: { bank: Bank }) => {
       <AnchorLink href={`/config/open-banking/mapping?bankId=${bank.id}`}>
         Configure
       </AnchorLink>
-      <AnchorLink
-        href={`/api/open-banking/reconnect?bankId=${bank.id}`}
-      >
+      <AnchorLink href={`/api/open-banking/reconnect?bankId=${bank.id}`}>
         Reconnect
       </AnchorLink>
     </div>
@@ -229,7 +225,7 @@ const StarlingActions = ({ bank }: { bank: Bank }) => {
 const AccountsList = (props: {
   bank: Bank;
   accounts: BankAccount[];
-  currencies: Currencies;
+  stocks: Stock[];
   onAccountUpdated: (updated: DBBankAccount) => void;
 }) => {
   if (!props.accounts) {
@@ -242,7 +238,7 @@ const AccountsList = (props: {
           key={account.id}
           bank={props.bank}
           account={account}
-          currencies={props.currencies}
+          stocks={props.stocks}
           onUpdated={props.onAccountUpdated}
         />
       ))}
@@ -253,7 +249,7 @@ const AccountsList = (props: {
 const AccountListItem = (props: {
   bank: Bank;
   account: BankAccount;
-  currencies: Currencies;
+  stocks: Stock[];
   onUpdated: (updated: DBBankAccount) => void;
 }) => {
   const [formDisplayed, setFormDisplayed] = useState(false);
@@ -272,7 +268,7 @@ const AccountListItem = (props: {
           <AddOrEditAccountForm
             bank={props.bank}
             bankAccount={props.account}
-            currencies={props.currencies}
+            stocks={props.stocks}
             onAddedOrUpdated={(x) => {
               setFormDisplayed(false);
               props.onUpdated(x);
@@ -289,7 +285,7 @@ export const getServerSideProps: GetServerSideProps<{
   data?: {
     dbBanks: DBBank[];
     dbBankAccounts: DBBankAccount[];
-    dbCurrencies: DBCurrency[];
+    dbStocks: DBStock[];
     dbTrueLayerTokens: DBTrueLayerToken[];
     dbNordigenTokens: DBNordigenToken[];
     dbStarlingTokens: DBStarlingToken[];
@@ -300,7 +296,7 @@ export const getServerSideProps: GetServerSideProps<{
     return { props: {} };
   }
   const db = await DB.fromContext(context);
-  const dbCurrencies = await db.currencyFindMany();
+  const dbStocks = await db.stocksFindMany();
   const dbBanks = await db.bankFindMany();
   const whereBankId = {
     where: {
@@ -319,7 +315,7 @@ export const getServerSideProps: GetServerSideProps<{
     data: {
       dbBanks,
       dbBankAccounts,
-      dbCurrencies,
+      dbStocks,
       dbTrueLayerTokens,
       dbNordigenTokens,
       dbStarlingTokens,
@@ -334,7 +330,7 @@ export default function BanksPage({
   data: {
     dbBanks: dbBanksInitial,
     dbBankAccounts: dbBankAccountsInitial,
-    dbCurrencies,
+    dbStocks,
     dbTrueLayerTokens,
     dbNordigenTokens,
     dbStarlingTokens,
@@ -345,21 +341,20 @@ export default function BanksPage({
   const onBankAddedOrUpdated = updateState(setDbBanks);
   const [formDisplayed, setFormDisplayed] = useState(false);
 
-  const currencies = new Currencies(dbCurrencies);
-  const [banks] = banksModelFromDatabaseData(
+  const [banks, _, stocks] = banksModelFromDatabaseData(
     dbBanks,
     dbBankAccounts,
-    currencies
+    dbStocks
   );
 
   return (
     <ConfigPageLayout>
       <BanksList
         banks={banks}
+        stocks={stocks}
         trueLayerTokens={dbTrueLayerTokens}
         nordigenTokens={dbNordigenTokens}
         starlingTokens={dbStarlingTokens}
-        currencies={currencies}
         onBankUpdated={updateState(setDbBanks)}
         onAccountAddedOrUpdated={updateState(setDbBankAccounts)}
       />

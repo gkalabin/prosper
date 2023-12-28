@@ -1,6 +1,5 @@
 import {
   Category as DBCategory,
-  Currency as DBCurrency,
   DisplaySettings as DBDisplaySettings,
 } from "@prisma/client";
 import { ConfigPageLayout } from "components/ConfigPageLayout";
@@ -10,7 +9,7 @@ import { Form, Formik } from "formik";
 import { DB } from "lib/db";
 import { DisplaySettings } from "lib/displaySettings";
 import { Category, categoryModelFromDB } from "lib/model/Category";
-import { Currencies } from "lib/model/Currency";
+import { Currency } from "lib/model/Currency";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "pages/api/auth/[...nextauth]";
@@ -19,12 +18,10 @@ import Select from "react-select";
 
 function DispalySettings({
   displaySettings,
-  currencies,
   categories,
   onSettingsUpdated,
 }: {
   displaySettings?: DisplaySettings;
-  currencies: Currencies;
   categories: Category[];
   onSettingsUpdated: (updated: DBDisplaySettings) => void;
 }) {
@@ -54,7 +51,7 @@ function DispalySettings({
     label: a.nameWithAncestors(),
   }));
   const initialValues = {
-    displayCurrencyId: displaySettings.displayCurrency().id,
+    displayCurrencyCode: displaySettings.displayCurrency().code(),
     excludeCategoryIdsInStats: displaySettings.excludeCategoryIdsInStats(),
   };
   return (
@@ -66,20 +63,20 @@ function DispalySettings({
           )}
           <div>
             <label
-              htmlFor="displayCurrencyId"
+              htmlFor="displayCurrencyCode"
               className="block text-sm font-medium text-gray-700"
             >
               Display currency
             </label>
             <SelectNumber
-              name="displayCurrencyId"
+              name="displayCurrencyCode"
               disabled={isSubmitting}
               className="w-full"
-              value={values.displayCurrencyId}
+              value={values.displayCurrencyCode}
             >
-              {currencies.all().map((x) => (
-                <option key={x.id} value={x.id}>
-                  {x.name}
+              {Currency.all().map((x) => (
+                <option key={x.code()} value={x.code()}>
+                  {x.code()}
                 </option>
               ))}
             </SelectNumber>
@@ -123,7 +120,6 @@ function DispalySettings({
 export const getServerSideProps: GetServerSideProps<{
   data?: {
     dbDisplaySettings: DBDisplaySettings;
-    dbCurrencies: DBCurrency[];
     dbCategories: DBCategory[];
   };
 }> = async (context) => {
@@ -134,11 +130,10 @@ export const getServerSideProps: GetServerSideProps<{
   const userId = +session.user.id;
   const db = new DB({ userId });
   const dbDisplaySettings = await db.getOrCreateDbDisplaySettings();
-  const dbCurrencies = await db.currencyFindMany();
   const dbCategories = await db.categoryFindMany();
   const props = {
     session,
-    data: { dbDisplaySettings, dbCurrencies, dbCategories, userId },
+    data: { dbDisplaySettings, dbCategories, userId },
   };
   return {
     props: JSON.parse(JSON.stringify(props)),
@@ -146,18 +141,13 @@ export const getServerSideProps: GetServerSideProps<{
 };
 
 const Page = ({
-  data: {
-    dbDisplaySettings: initialDbDisplaySettings,
-    dbCurrencies,
-    dbCategories,
-  },
+  data: { dbDisplaySettings: initialDbDisplaySettings, dbCategories },
 }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
   const [dbDisplaySettings, setDisplaySettings] = useState(
     initialDbDisplaySettings
   );
   const categories = categoryModelFromDB(dbCategories);
-  const currencies = new Currencies(dbCurrencies);
-  const displaySettings = new DisplaySettings(dbDisplaySettings, currencies);
+  const displaySettings = new DisplaySettings(dbDisplaySettings);
 
   return (
     <ConfigPageLayout>
@@ -165,7 +155,6 @@ const Page = ({
       <DispalySettings
         displaySettings={displaySettings}
         onSettingsUpdated={setDisplaySettings}
-        currencies={currencies}
         categories={categories}
       />
     </ConfigPageLayout>

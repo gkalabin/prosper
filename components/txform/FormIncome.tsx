@@ -110,12 +110,11 @@ export const FormIncome = ({
     let newAmount = amount / 2;
     if (
       transaction &&
-      !transaction.amount().isZero() &&
-      !transaction.amountOwnShare(transaction.currency()).isZero()
+      !transaction.amt().isZero() &&
+      !transaction.amtOwnShare().isZero()
     ) {
       const transactionRatio =
-        transaction.amountOwnShare(transaction.currency()).cents() /
-        transaction.amount().cents();
+        transaction.amtOwnShare().cents() / transaction.amt().cents();
       newAmount = transactionRatio * amount;
     }
     // Round new amount to the closest cent.

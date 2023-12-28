@@ -1,5 +1,6 @@
 import {
   Bank as DBBank,
+  Stock as DBStock,
   BankAccount as DBBankAccount,
   ExchangeRate as DBExchangeRate,
   StockQuote as DBStockQuote,
@@ -11,11 +12,13 @@ import { DisplaySettings } from "lib/displaySettings";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Category, categoryModelFromDB } from "lib/model/Category";
-import { Currencies, Currency, NANOS_MULTIPLIER } from "lib/model/Currency";
+import { Currency, NANOS_MULTIPLIER } from "lib/model/Currency";
+import { Stock } from "lib/model/Stock";
 import { Tag } from "lib/model/Tag";
 import { Transaction } from "lib/model/Transaction";
 import { Trip } from "lib/model/Trip";
 import { createContext, useContext, useState } from "react";
+import { Amount } from "./Amount";
 
 export class StockAndCurrencyExchange {
   private readonly exchangeRates?: ExchangeRates;
@@ -26,16 +29,22 @@ export class StockAndCurrencyExchange {
     this.stockQuotes = sq;
   }
 
-  exchange(
+  exchangeCurrency(
     a: AmountWithCurrency,
     target: Currency,
     when: Date
   ): AmountWithCurrency {
-    let from = a;
-    if (a.getCurrency().isStock()) {
-      from = this.stockQuotes.exchange(from, when);
-    }
-    return this.exchangeRates.exchange(from, target, when);
+    return this.exchangeRates.exchange(a, target, when);
+  }
+
+  exchangeStock(
+    a: Amount,
+    stock: Stock,
+    target: Currency,
+    when: Date
+  ): AmountWithCurrency {
+    const exchangeCurrencyAmount = this.stockQuotes.exchange(a, stock, when);
+    return this.exchangeRates.exchange(exchangeCurrencyAmount, target, when);
   }
 }
 
@@ -57,8 +66,8 @@ const backfillMissingDates = (ratesByDate: { [epoch: number]: number }) => {
 
 export class ExchangeRates {
   private readonly rates: {
-    [currencyIdFrom: number]: {
-      [currencyIdTo: number]: {
+    [currencyCodeFrom: number]: {
+      [currencyCodeTo: number]: {
         [epoch: number]: number;
       };
     };
@@ -67,11 +76,11 @@ export class ExchangeRates {
   public constructor(init: DBExchangeRate[]) {
     this.rates = {};
     for (const r of init) {
-      const { currencyFromId: fromId, currencyToId: toId } = r;
-      this.rates[fromId] ??= {};
-      this.rates[fromId][toId] ??= {};
+      const { currencyCodeFrom: from, currencyCodeTo: to } = r;
+      this.rates[from] ??= {};
+      this.rates[from][to] ??= {};
       const date = startOfDay(new Date(r.rateTimestamp));
-      this.rates[fromId][toId][date.getTime()] = +r.rateNanos.toString();
+      this.rates[from][to][date.getTime()] = +r.rateNanos.toString();
     }
     for (const from of Object.keys(this.rates)) {
       for (const to of Object.keys(this.rates[from])) {
@@ -85,13 +94,8 @@ export class ExchangeRates {
     target: Currency,
     when: Date
   ): AmountWithCurrency {
-    if (a.getCurrency().id == target.id) {
+    if (a.getCurrency().code() == target.code()) {
       return a;
-    }
-    if (a.getCurrency().isStock() || target.isStock()) {
-      throw new Error(
-        `Exchange ${a.getCurrency().name} -> ${target.name} is impossible`
-      );
     }
     const rateNanos = this.findRate(a.getCurrency(), target, when);
     return new AmountWithCurrency({
@@ -102,7 +106,7 @@ export class ExchangeRates {
 
   private findRate(from: Currency, to: Currency, when: Date) {
     const whenDay = startOfDay(when);
-    const ratesHistory = this.rates[from.id][to.id];
+    const ratesHistory = this.rates[from.code()][to.code()];
     const rate = ratesHistory[whenDay.getTime()];
     if (rate) {
       return rate;
@@ -110,7 +114,7 @@ export class ExchangeRates {
     const allTimestamps = Object.keys(ratesHistory).map((x) => +x);
     const closestTimestamp = closestTo(when, allTimestamps);
     console.warn(
-      `Approximating ${from.name}→${to.name} rate for ${when} with ${closestTimestamp}`
+      `Approximating ${from.code()}→${to.code()} rate for ${when} with ${closestTimestamp}`
     );
     return ratesHistory[closestTimestamp.getTime()];
   }
@@ -118,45 +122,35 @@ export class ExchangeRates {
 
 export class StockQuotes {
   private readonly quotes: {
-    [stockName: number]: {
+    [stockId: number]: {
       [epoch: number]: number;
     };
   };
-  private readonly currencyByStock: {
-    [stockName: number]: Currency;
-  };
 
-  public constructor(init: DBStockQuote[], currencies: Currencies) {
+  public constructor(init: DBStockQuote[]) {
     this.quotes = {};
-    this.currencyByStock = {};
     for (const r of init) {
-      const { currencyId, ticker, exchange, value } = r;
-      const stockName = `${exchange}:${ticker}`;
-      this.currencyByStock[stockName] = currencies.findById(currencyId);
+      const { stockId, value } = r;
       const date = startOfDay(new Date(r.quoteTimestamp));
-      this.quotes[stockName] ??= {};
-      this.quotes[stockName][date.getTime()] = value;
+      this.quotes[stockId] ??= {};
+      this.quotes[stockId][date.getTime()] = value;
     }
     for (const stockName of Object.keys(this.quotes)) {
       backfillMissingDates(this.quotes[stockName]);
     }
   }
 
-  exchange(a: AmountWithCurrency, when: Date): AmountWithCurrency {
-    const c = a.getCurrency();
-    if (!c.isStock()) {
-      throw new Error(`Currency ${c.name} is not stock`);
-    }
-    const quoteCents = this.findQuote(c.name, when);
+  exchange(a: Amount, stock: Stock, when: Date): AmountWithCurrency {
+    const pricePerShareCents = this.findQuote(stock, when);
     return new AmountWithCurrency({
-      amountCents: Math.round(a.dollar() * quoteCents),
-      currency: this.currencyByStock[c.name],
+      amountCents: Math.round(a.dollar() * pricePerShareCents),
+      currency: stock.currency(),
     });
   }
 
-  private findQuote(name: string, when: Date) {
+  private findQuote(stock: Stock, when: Date): number {
     const whenDay = startOfDay(when);
-    const quotesForStock = this.quotes[name];
+    const quotesForStock = this.quotes[stock.id()];
     const quote = quotesForStock[whenDay.getTime()];
     if (quote) {
       return quote;
@@ -164,7 +158,7 @@ export class StockQuotes {
     const allTimestamps = Object.keys(quotesForStock).map((x) => +x);
     const closestTimestamp = closestTo(when, allTimestamps);
     console.warn(
-      `Approximating ${name} quote for ${when} with ${closestTimestamp}`
+      `Approximating ${stock.ticker} quote for ${when} with ${closestTimestamp}`
     );
     return quotesForStock[closestTimestamp.getTime()];
   }
@@ -174,7 +168,6 @@ export type AllClientDataModel = {
   transactions: Transaction[];
   categories: Category[];
   banks: Bank[];
-  currencies: Currencies;
   trips: Trip[];
   tags: Tag[];
   exchange: StockAndCurrencyExchange;
@@ -210,22 +203,22 @@ export const useDisplayBankAccounts = () => {
 export const banksModelFromDatabaseData = (
   dbBanks: DBBank[],
   dbBankAccounts: DBBankAccount[],
-  currencies: Currencies,
-  exchange?: StockAndCurrencyExchange
-): [Bank[], BankAccount[]] => {
-  const banks = dbBanks.map((b) => new Bank(b, exchange));
+  dbStocks: DBStock[]
+): [Bank[], BankAccount[], Stock[]] => {
+  const banks = dbBanks.map((b) => new Bank(b));
+  const stocks = dbStocks.map((s) => new Stock(s));
   const bankById: {
     [id: number]: Bank;
   } = Object.fromEntries(banks.map((x) => [x.id, x]));
   const bankAccounts = dbBankAccounts.map(
-    (x) => new BankAccount(x, bankById, currencies)
+    (x) => new BankAccount(x, bankById, stocks)
   );
   bankAccounts.forEach((x) => x.bank.accounts.push(x));
   banks.sort((a, b) => a.displayOrder - b.displayOrder);
   banks.forEach((b) =>
     b.accounts.sort((a, b) => a.displayOrder - b.displayOrder)
   );
-  return [banks, bankAccounts];
+  return [banks, bankAccounts, stocks];
 };
 
 export const modelFromDatabaseData = (
@@ -236,16 +229,14 @@ export const modelFromDatabaseData = (
     [id: number]: Category;
   } = Object.fromEntries(categories.map((c) => [c.id(), c]));
 
-  const currencies = new Currencies(dbData.dbCurrencies);
   const exchangeRates = new ExchangeRates(dbData.dbExchangeRates);
-  const stockQuotes = new StockQuotes(dbData.dbStockQuotes, currencies);
+  const stockQuotes = new StockQuotes(dbData.dbStockQuotes);
   const exchange = new StockAndCurrencyExchange(exchangeRates, stockQuotes);
 
   const [banks, bankAccounts] = banksModelFromDatabaseData(
     dbData.dbBanks,
     dbData.dbBankAccounts,
-    currencies,
-    exchange
+    dbData.dbStocks
   );
   const bankAccountById: {
     [id: number]: BankAccount;
@@ -265,7 +256,6 @@ export const modelFromDatabaseData = (
           bankAccountById,
           tripById,
           tagById,
-          currencies,
           exchange
         )
     )
@@ -274,14 +264,10 @@ export const modelFromDatabaseData = (
   transactions.sort(compareTransactions);
   bankAccounts.forEach((ba) => ba.transactions.sort(compareTransactions));
 
-  const displaySettings = new DisplaySettings(
-    dbData.dbDisplaySettings,
-    currencies
-  );
+  const displaySettings = new DisplaySettings(dbData.dbDisplaySettings);
 
   return {
     banks,
-    currencies,
     categories,
     trips,
     tags,

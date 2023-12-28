@@ -13,6 +13,7 @@ import {
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { Currency } from "lib/model/Currency";
+import { Stock } from "lib/model/Stock";
 import { Transaction } from "lib/model/Transaction";
 import { Trip } from "lib/model/Trip";
 import { allDbDataProps } from "lib/ServerSideDB";
@@ -39,7 +40,26 @@ const amountSum = (
 ): AmountWithCurrency => {
   return txs
     .filter((t) => !t.isTransfer() && !t.isIncome())
-    .map((t) => exchange.exchange(t.amount(), currency, t.timestamp))
+    .map((t) => {
+      const u = t.unit();
+      if (u instanceof Currency) {
+        const amount = new AmountWithCurrency({
+          amountCents: t.amt().cents(),
+          currency: u,
+        });
+        return exchange.exchangeCurrency(amount, currency, t.timestamp);
+      }
+      if (u instanceof Stock) {
+        const sharesValue = exchange.exchangeStock(
+          t.amt(),
+          u,
+          currency,
+          t.timestamp
+        );
+        return exchange.exchangeCurrency(sharesValue, currency, t.timestamp);
+      }
+      throw new Error(`Unknown unit type: ${u} for transaction ${t.id}`);
+    })
     .reduce((a, b) => a.add(b));
 };
 
@@ -53,7 +73,7 @@ function PageLayout() {
 
 function TripsList() {
   const { trips, transactions, exchange } = useAllDatabaseDataContext();
-  const currency = useDisplayCurrency();
+  const displayCurrency = useDisplayCurrency();
   const transactionsByTripId = new Map<number, Transaction[]>(
     trips.map((t) => [
       t.id(),
@@ -74,7 +94,7 @@ function TripsList() {
   const totalByTrip = new Map<number, AmountWithCurrency>(
     trips.map((t) => [
       t.id(),
-      amountSum(transactionsByTripId.get(t.id()), currency, exchange),
+      amountSum(transactionsByTripId.get(t.id()), displayCurrency, exchange),
     ])
   );
   const totals = [...totalByTrip.values()]

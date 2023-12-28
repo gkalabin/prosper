@@ -5,19 +5,19 @@ import {
   MoneyInputWithLabel,
   TextInputWithLabel,
 } from "components/forms/Input";
-import { undoTailwindInputStyles } from "components/forms/Select";
+import { FormikSelect, undoTailwindInputStyles } from "components/forms/Select";
 import { formModeForTransaction } from "components/txform/AddTransactionForm";
 import { BankAccountSelect } from "components/txform/BankAccountSelect";
 import { FormExternalExpense } from "components/txform/FormExternalExpense";
 import { FormIncome } from "components/txform/FormIncome";
 import { FormPersonalExpense } from "components/txform/FormPersonalExpense";
 import { FormTransfer } from "components/txform/FormTransfer";
-import { SelectNumber } from "components/txform/Select";
 import { differenceInMonths, isBefore } from "date-fns";
 import { useFormikContext } from "formik";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { shortRelativeDate } from "lib/TimeHelpers";
 import { uniqMostFrequent } from "lib/collections";
+import { Currency } from "lib/model/Currency";
 import { Tag } from "lib/model/Tag";
 import { Transaction } from "lib/model/Transaction";
 import { Trip } from "lib/model/Trip";
@@ -438,17 +438,21 @@ export function AccountTo() {
 }
 
 export function Currencies() {
-  const { currencies } = useAllDatabaseDataContext();
-  const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
   return (
     <div className="col-span-6">
-      <SelectNumber name="currencyId" label="Currency" disabled={isSubmitting}>
-        {currencies.all().map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
+      <label
+        htmlFor="currencyCode"
+        className="block text-sm font-medium text-gray-700"
+      >
+        Currency
+      </label>
+      <FormikSelect name="currencyCode">
+        {Currency.all().map((c) => (
+          <option key={c.code()} value={c.code()}>
+            {c.code()}
           </option>
         ))}
-      </SelectNumber>
+      </FormikSelect>
     </div>
   );
 }

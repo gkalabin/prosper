@@ -80,11 +80,7 @@ export function useFilteredTransactions() {
     if (t.hasOtherParty() && t.otherParty().includes(lowerCaseSearch)) {
       return true;
     }
-    if (
-      t.amount().dollar() == +freeTextSearch ||
-      (!t.isTransfer() &&
-        t.amountOwnShare(t.currency()).dollar() == +freeTextSearch)
-    ) {
+    if (t.amt().dollar() == +freeTextSearch) {
       return true;
     }
     if (new RegExp(`\\b${t.id}\\b`).test(freeTextSearch)) {

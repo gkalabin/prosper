@@ -13,6 +13,7 @@ import {
   useDisplayBankAccounts,
 } from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
+import { useDisplayCurrency } from "lib/displaySettings";
 import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
@@ -53,7 +54,8 @@ function initialValuesForTransaction(
   t: Transaction,
   mode: FormMode,
   defaultAccountFrom: BankAccount,
-  defaultAccountTo: BankAccount
+  defaultAccountTo: BankAccount,
+  displayCurrency: Currency
 ): AddTransactionFormValues {
   const defaults: AddTransactionFormValues = {
     mode,
@@ -61,15 +63,17 @@ function initialValuesForTransaction(
     description: t.description,
     vendor: t.hasVendor() ? t.vendor() : "",
     otherPartyName: t.hasOtherParty() ? t.otherParty() : "",
-    amount: t.amount().dollar(),
-    ownShareAmount: t.amount().dollar(),
+    amount: t.amt().dollar(),
+    ownShareAmount: t.amtOwnShare().dollar(),
     receivedAmount: t.isTransfer()
       ? t.amountReceived().dollar()
-      : t.amount().dollar(),
+      : t.amt().dollar(),
     fromBankAccountId: (t.accountFrom() ?? defaultAccountFrom).id,
     toBankAccountId: (t.accountTo() ?? defaultAccountTo).id,
     categoryId: t.category.id(),
-    currencyId: t.currency().id,
+    currencyCode: t.isThirdPartyExpense()
+      ? t.currency().code()
+      : displayCurrency.code(),
     isShared: t.isShared(),
     tripName: t.hasTrip() ? t.trip().name() : "",
     payer: t.hasPayer() ? t.payer() : "",
@@ -77,7 +81,7 @@ function initialValuesForTransaction(
     parentTransactionId: t.hasParentTransaction() ? t.parentTransactionId() : 0,
   };
   if (t.isPersonalExpense() || t.isThirdPartyExpense() || t.isIncome()) {
-    defaults.ownShareAmount = t.amountOwnShare(t.currency()).dollar();
+    defaults.ownShareAmount = t.amtOwnShare().dollar();
   }
   return defaults;
 }
@@ -87,7 +91,7 @@ function initialValuesEmpty(
   defaultAccountFrom: BankAccount,
   defaultAccountTo: BankAccount,
   defaultCategory: Category,
-  defaultCurrency: Currency
+  displayCurrency: Currency
 ): AddTransactionFormValues {
   const today = startOfDay(new Date());
   return {
@@ -102,7 +106,7 @@ function initialValuesEmpty(
     fromBankAccountId: defaultAccountFrom.id,
     toBankAccountId: defaultAccountTo.id,
     categoryId: defaultCategory.id(),
-    currencyId: defaultCurrency.id,
+    currencyCode: displayCurrency.code(),
     isShared: false,
     tripName: "",
     payer: "",
@@ -123,13 +127,6 @@ export function mostUsedAccountTo(txs: Transaction[]): BankAccount {
     .filter((x) => x.hasAccountTo())
     .map((x) => x.accountTo());
   return mostFrequent(accounts);
-}
-
-function mostUsedCurrency(txs: Transaction[]): Currency {
-  const currencies = txs
-    .filter((x) => x.isThirdPartyExpense())
-    .map((x) => x.currency());
-  return mostFrequent(currencies);
 }
 
 export function mostUsedCategory(txs: Transaction[], vendor: string): Category {
@@ -168,19 +165,19 @@ export const AddTransactionForm = (props: {
   const initialMode = props.transaction
     ? formModeForTransaction(props.transaction)
     : FormMode.PERSONAL;
-  const { transactions, categories, currencies } = useAllDatabaseDataContext();
+  const { transactions, categories } = useAllDatabaseDataContext();
   const bankAccounts = useDisplayBankAccounts();
   const defaultAccountFrom =
     mostUsedAccountFrom(transactions) ?? bankAccounts[0];
   const defaultAccountTo = mostUsedAccountTo(transactions) ?? bankAccounts[0];
   const defaultCategory = mostUsedCategory(transactions, "") ?? categories[0];
-  const defaultCurrency = mostUsedCurrency(transactions) ?? currencies.all()[0];
+  const displayCurrency = useDisplayCurrency();
   const initialValuesForEmptyForm = initialValuesEmpty(
     initialMode,
     defaultAccountFrom,
     defaultAccountTo,
     defaultCategory,
-    defaultCurrency
+    displayCurrency
   );
   const initialValues = !props.transaction
     ? initialValuesForEmptyForm
@@ -188,7 +185,8 @@ export const AddTransactionForm = (props: {
         props.transaction,
         initialMode,
         defaultAccountFrom,
-        defaultAccountTo
+        defaultAccountTo,
+        displayCurrency
       );
 
   const submitNewTransaction = async (

@@ -84,7 +84,7 @@ export const TransactionsListItem = (props: {
           })}
         >
           {t.isIncome() ? "+" : ""}
-          {t.amount().format()}
+          {t.amountWithUnit().format()}
         </div>
         <div className="self-center">
           {!expanded && <ChevronRightIcon className="inline h-4 w-4" />}
@@ -118,7 +118,7 @@ export const TransactionsListItem = (props: {
           {(t.isPersonalExpense() ||
             t.isThirdPartyExpense() ||
             t.isIncome()) && (
-            <div>Own share: {t.amountOwnShare(t.currency()).format()}</div>
+            <div>Own share: {t.amtOwnShare().format()}</div>
           )}
           {t.isTransfer() && <div>Sent: {t.amount().format()}</div>}
           {t.isTransfer() && <div>Received: {t.amountReceived().format()}</div>}

@@ -59,6 +59,10 @@ export class Amount {
     return this.amountCents < 0;
   }
 
+  public isRound() {
+    return this.amountCents % 100 == 0;
+  }
+
   public format(): string {
     return this.dollar().toFixed(2);
   }

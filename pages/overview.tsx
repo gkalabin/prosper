@@ -8,12 +8,16 @@ import { AddTransactionForm } from "components/txform/AddTransactionForm";
 import { AnchorLink, ButtonPagePrimary } from "components/ui/buttons";
 import { differenceInDays } from "date-fns";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
+import { AmountWithUnit } from "lib/AmountWithUnit";
 import {
   AllDatabaseDataContextProvider,
+  StockAndCurrencyExchange,
   useAllDatabaseDataContext,
 } from "lib/ClientSideModel";
 import { useDisplayCurrency } from "lib/displaySettings";
 import { Bank, BankAccount } from "lib/model/BankAccount";
+import { Currency } from "lib/model/Currency";
+import { Stock } from "lib/model/Stock";
 import {
   useOpenBankingBalances,
   useOpenBankingExpirations,
@@ -33,9 +37,9 @@ const BankAccountListItem = (props: { account: BankAccount }) => {
     (b) => b.internalAccountId === props.account.id
   );
   if (obBalance) {
-    const obAmount = new AmountWithCurrency({
+    const obAmount = new AmountWithUnit({
       amountCents: obBalance.balanceCents,
-      currency: props.account.currency,
+      unit: props.account.unit(),
     });
     const delta = props.account.balance().subtract(obAmount);
     if (delta.isZero()) {
@@ -90,6 +94,7 @@ const BanksList = ({ banks }: { banks: Bank[] }) => {
 
 const BanksListItem = ({ bank }: { bank: Bank }) => {
   const displayCurrency = useDisplayCurrency();
+  const { exchange } = useAllDatabaseDataContext();
   const { expirations } = useOpenBankingExpirations();
   const expiration = expirations?.find(
     (e) => e.bankId == bank.id
@@ -102,9 +107,11 @@ const BanksListItem = ({ bank }: { bank: Bank }) => {
       <div className="border-b bg-indigo-200 p-2">
         <div className="text-xl font-medium text-gray-900">
           {bank.name}
-          <span className="ml-2">{bank.balance(displayCurrency).format()}</span>
+          <span className="ml-2">
+            {accountsSum(bank.accounts, displayCurrency, exchange).format()}
+          </span>
         </div>
-        {expiration && (expiresInDays < 7) && (
+        {expiration && expiresInDays < 7 && (
           <div className="text-sm font-light text-gray-700">
             OpenBanking connection{" "}
             {(expiresInDays > 0 && (
@@ -135,29 +142,54 @@ const BanksListItem = ({ bank }: { bank: Bank }) => {
   );
 };
 
+function accountsSum(
+  accounts: BankAccount[],
+  targetCurrency: Currency,
+  exchange: StockAndCurrencyExchange
+): AmountWithCurrency {
+  let sum = AmountWithCurrency.zero(targetCurrency);
+  const now = new Date();
+  accounts.forEach((x) => {
+    const b = x.balance();
+    const unit = b.getUnit();
+    if (unit instanceof Currency) {
+      const delta = exchange.exchangeCurrency(
+        new AmountWithCurrency({
+          amountCents: b.cents(),
+          currency: unit,
+        }),
+        targetCurrency,
+        now
+      );
+      sum = sum.add(delta);
+    } else if (unit instanceof Stock) {
+      const sharesValue = exchange.exchangeStock(
+        b.getAmount(),
+        unit,
+        targetCurrency,
+        now
+      );
+      const delta = exchange.exchangeCurrency(sharesValue, targetCurrency, now);
+      sum = sum.add(delta);
+    } else {
+      throw new Error(`Unknown unit: ${unit} for ${x.id}`);
+    }
+  });
+  return sum;
+}
+
 function OverviewPageContent() {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
   const displayCurrency = useDisplayCurrency();
   const { banks, exchange, setDbData } = useAllDatabaseDataContext();
 
   const accounts = banks.flatMap((b) => b.accounts);
-  const now = new Date();
-  const zero = new AmountWithCurrency({
-    amountCents: 0,
-    currency: displayCurrency,
-  });
-  const total = accounts.reduce(
-    (acc, account) =>
-      acc.add(exchange.exchange(account.balance(), displayCurrency, now)),
-    zero
+  const total = accountsSum(accounts, displayCurrency, exchange);
+  const totalLiquid = accountsSum(
+    accounts.filter((a) => a.isLiquid()),
+    displayCurrency,
+    exchange
   );
-  const totalLiquid = accounts
-    .filter((a) => a.isLiquid())
-    .reduce(
-      (acc, account) =>
-        acc.add(exchange.exchange(account.balance(), displayCurrency, now)),
-      zero
-    );
   const { isError: obBalancesError, isLoading: obBalancesLoading } =
     useOpenBankingBalances();
   // Just trigger the loading of transactions, so they are cached for later.

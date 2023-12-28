@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import prisma from "lib/prisma";
+import {Currency} from "lib/model/Currency";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "pages/api/auth/[...nextauth]";
 
@@ -58,6 +59,9 @@ export class DB {
   stockQuoteFindMany(args?: Prisma.StockQuoteFindManyArgs) {
     return prisma.stockQuote.findMany(args);
   }
+  stocksFindMany(args?: Prisma.StockFindManyArgs) {
+    return prisma.stock.findMany(args);
+  }
   exchangeRateFindMany(args?: Prisma.ExchangeRateFindManyArgs) {
     return prisma.exchangeRate.findMany(args);
   }
@@ -87,13 +91,10 @@ export class DB {
     if (existing) {
       return existing;
     }
-    const currencies = await this.currencyFindMany();
-    if (!currencies.length) {
-      throw new Error("Cannot create display settings without currencies");
-    }
     const created = await prisma.displaySettings.create({
       data: {
-        displayCurrencyId: currencies[0].id,
+        displayCurrencyId: 7354,
+        displayCurrencyCode: Currency.USD.code(),
         excludeCategoryIdsInStats: "",
         userId: this.userId,
       },

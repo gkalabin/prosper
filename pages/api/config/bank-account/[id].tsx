@@ -1,7 +1,9 @@
+import { CreateBankAccountRequest } from "lib/model/api/BankAccountForm";
 import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
 import { DB } from "lib/db";
 import prisma from "lib/prisma";
 import type { NextApiRequest, NextApiResponse } from "next";
+import { fillUnitData } from "pages/api/config/bank-account/index";
 
 async function handle(
   userId: number,
@@ -10,7 +12,8 @@ async function handle(
 ) {
   // Parse input.
   const accountId = parseInt(req.query.id as string);
-  const { name, displayOrder, currencyId, isArchived, isJoint, initialBalance } = req.body;
+  const { name, displayOrder, unit, isArchived, isJoint, initialBalance } =
+    req.body as CreateBankAccountRequest;
   // Verify user has access.
   const db = new DB({ userId });
   const found = await db.bankAccountFindMany({
@@ -23,15 +26,16 @@ async function handle(
     return;
   }
   // Perform update.
+  const data = {
+    name,
+    displayOrder,
+    archived: isArchived,
+    joint: isJoint,
+    initialBalanceCents: Math.round(initialBalance * 100),
+  };
+  await fillUnitData(unit, data);
   const result = await prisma.bankAccount.update({
-    data: {
-      name,
-      displayOrder,
-      currencyId,
-      archived: isArchived,
-      joint: isJoint,
-      initialBalanceCents: Math.round(initialBalance * 100),
-    },
+    data: data,
     where: { id: accountId },
   });
   res.json(result);

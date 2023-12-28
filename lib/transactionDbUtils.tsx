@@ -29,7 +29,7 @@ export type AddTransactionFormValues = {
   fromBankAccountId: number;
   toBankAccountId: number;
   payer: string;
-  currencyId: number;
+  currencyCode: string;
   receivedAmount: number;
   isShared: boolean;
   tripName: string;
@@ -127,13 +127,14 @@ const extensionConfigByMode = new Map<
       mode: FormMode.EXTERNAL,
       extensionDbField: "thirdPartyExpense",
       formToDbData: (
-        { vendor, ownShareAmount, payer, currencyId },
+        { vendor, ownShareAmount, payer, currencyCode },
         userId: number
       ) => {
         return {
           vendor,
           payer,
-          currencyId,
+          currencyId: 7354,
+          currencyCode,
           userId,
           ownShareAmountCents: toCents(ownShareAmount),
         };

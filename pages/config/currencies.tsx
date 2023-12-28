@@ -1,7 +1,7 @@
 import { Currency as DBCurrency } from "@prisma/client";
 import { ConfigPageLayout } from "components/ConfigPageLayout";
 import { DB } from "lib/db";
-import { Currencies, Currency } from "lib/model/Currency";
+import { Currencies, CurrencyOld } from "lib/model/Currency";
 import { updateState } from "lib/stateHelpers";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { getServerSession } from "next-auth/next";
@@ -95,7 +95,7 @@ const AddCurrencyForm = (props: { onAdded: (added: DBCurrency) => void }) => {
 };
 
 const CurrencyName = (props: {
-  currency: Currency;
+  currency: CurrencyOld;
   onUpdated: (updated: DBCurrency) => void;
 }) => {
   const [name, setName] = useState(props.currency.name);

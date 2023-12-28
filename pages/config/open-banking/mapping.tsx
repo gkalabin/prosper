@@ -1,7 +1,7 @@
 import {
   Bank as DBBank,
   BankAccount as DBBankAccount,
-  Currency as DBCurrency,
+  Stock as DBStock,
   ExternalAccountMapping,
 } from "@prisma/client";
 import Layout from "components/Layout";
@@ -9,7 +9,6 @@ import { Select } from "components/forms/Select";
 import { ButtonFormPrimary } from "components/ui/buttons";
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
 import { DB } from "lib/db";
-import { Currencies } from "lib/model/Currency";
 import { fetchAccounts } from "lib/openbanking/fetchall";
 import { AccountDetails } from "lib/openbanking/interface";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
@@ -21,7 +20,7 @@ import { useState } from "react";
 export const getServerSideProps: GetServerSideProps<{
   dbBank: DBBank;
   dbBankAccounts: DBBankAccount[];
-  dbCurrencies: DBCurrency[];
+  dbStocks: DBStock[];
   dbMapping: ExternalAccountMapping[];
   externalAccounts: AccountDetails[];
 }> = async ({ query, req, res }) => {
@@ -66,7 +65,7 @@ export const getServerSideProps: GetServerSideProps<{
   const data = {
     dbBank: bank,
     dbBankAccounts: internalAccounts,
-    dbCurrencies: await db.currencyFindMany(),
+    dbStocks: await db.stocksFindMany(),
     dbMapping: await db.externalAccountMappingFindMany({
       where: {
         internalAccountId: {
@@ -85,17 +84,16 @@ export default function Page({
   dbBank,
   dbBankAccounts,
   dbMapping: dbMappingInitial,
-  dbCurrencies,
+  dbStocks,
   externalAccounts,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [requestInFlight, setRequestInFlight] = useState(false);
   const [apiError, setApiError] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
-  const currencies = new Currencies(dbCurrencies);
   const [[bank]] = banksModelFromDatabaseData(
     [dbBank],
     dbBankAccounts,
-    currencies
+    dbStocks
   );
   const [dbMapping, setDbMapping] = useState(dbMappingInitial);
   const initialMapping = Object.fromEntries(
@@ -159,7 +157,7 @@ export default function Page({
             <option value="0">None</option>
             {bank.accounts.map((ba) => (
               <option key={ba.id} value={ba.id}>
-                {bank.name} {ba.name} ({ba.currency.name})
+                {bank.name} {ba.name} ({ba.unit()})
               </option>
             ))}
           </Select>

@@ -25,6 +25,7 @@ const fetchAllDatabaseData = async (db: DB): Promise<AllDatabaseData> => {
         (data.dbDisplaySettings = await db.getOrCreateDbDisplaySettings()),
       async () => (data.dbExchangeRates = await db.exchangeRateFindMany()),
       async () => (data.dbStockQuotes = await db.stockQuoteFindMany()),
+      async () => (data.dbStocks = await db.stocksFindMany()),
       async () =>
         (data.dbTransactionPrototypes =
           await db.transactionPrototypeFindMany()),

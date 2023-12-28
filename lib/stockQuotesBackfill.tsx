@@ -1,8 +1,8 @@
-import { addDays, differenceInHours, isSameDay, startOfDay } from "date-fns";
+import { addDays, differenceInHours, format, isSameDay } from "date-fns";
+import { Stock } from "lib/model/Stock";
+import prisma from "lib/prisma";
 import yahooFinance from "yahoo-finance2";
 import { HistoricalRowHistory } from "yahoo-finance2/dist/esm/src/modules/historical";
-import { Currencies, Currency } from "./model/Currency";
-import prisma from "./prisma";
 
 const UPDATE_FREQUENCY_HOURS = 6;
 
@@ -11,15 +11,17 @@ export async function fetchQuotes({
   stock,
 }: {
   startDate: Date;
-  stock: Currency;
+  stock: Stock;
 }) {
   const r = await yahooFinance.historical(
     stock.ticker(),
     {
-      period1: startOfDay(startDate),
+      period1: format(startDate, "yyyy-MM-dd"),
       interval: "1d",
     },
-    { devel: false }
+    {
+      devel: false,
+    }
   );
   return r;
 }
@@ -27,29 +29,23 @@ export async function fetchQuotes({
 export async function addLatestStockQuotes() {
   const timingLabel = "Stock quotes backfill " + new Date().getTime();
   console.time(timingLabel);
-  const currencies = new Currencies(await prisma.currency.findMany());
-  if (currencies.empty()) {
-    console.timeEnd(timingLabel);
-    return;
-  }
-  const USD = currencies.findByName("USD");
-  for (const stock of currencies.all()) {
-    await backfill(stock, USD);
+  const dbStocks = await prisma.stock.findMany();
+  const stocks = dbStocks.map((x) => new Stock(x));
+  for (const stock of stocks) {
+    await backfill(stock);
   }
   console.timeEnd(timingLabel);
 }
 
-async function backfill(stock: Currency, USD: Currency) {
-  if (!stock.isStock()) {
-    return;
-  }
+async function backfill(stock: Stock) {
   const now = new Date();
-  const apiModelToDb = (x: HistoricalRowHistory, currencyId: number) => {
+  const apiModelToDb = (x: HistoricalRowHistory) => {
     return {
-      currencyId: currencyId,
-      value: Math.round(x.close * 100),
+      currencyId: 7354,
+      currencyCode: stock.currency().code(),
       ticker: stock.ticker(),
       exchange: stock.exchange(),
+      value: Math.round(x.close * 100),
       quoteTimestamp: x.date.toISOString(),
     };
   };
@@ -69,12 +65,12 @@ async function backfill(stock: Currency, USD: Currency) {
   });
 
   if (!latest) {
-    console.warn("%s: no history", stock.name);
+    console.warn("%s: no history", stock.ticker());
     const fetched = await fetchQuotes({ stock, startDate: now });
     if (fetched?.length != 1) {
       console.warn(
         "%s: found %d rates on %s, want 1, ignoring",
-        stock.name,
+        stock.ticker(),
         fetched?.length,
         now.toDateString()
       );
@@ -82,7 +78,7 @@ async function backfill(stock: Currency, USD: Currency) {
     }
     // TODO: provide currency for stock when creating stock, not using USD below.
     await prisma.stockQuote.create({
-      data: apiModelToDb(fetched[0], USD.id),
+      data: apiModelToDb(fetched[0]),
     });
     return;
   }
@@ -94,7 +90,7 @@ async function backfill(stock: Currency, USD: Currency) {
     if (ageHours < UPDATE_FREQUENCY_HOURS) {
       console.warn(
         "%s: rate for %s is still fresh, updated %d hours ago on %s",
-        stock.name,
+        stock.ticker(),
         latest.quoteTimestamp.toDateString(),
         ageHours,
         latest.updatedAt
@@ -103,7 +99,7 @@ async function backfill(stock: Currency, USD: Currency) {
     }
     console.log(
       "%s: updating today's (%s) quote as it's %d hours old",
-      stock.name,
+      stock.ticker(),
       latest.quoteTimestamp.toDateString(),
       ageHours
     );
@@ -111,14 +107,15 @@ async function backfill(stock: Currency, USD: Currency) {
     if (fetched?.length != 1) {
       console.warn(
         "%s: found %d rates on %s, want 1, ignoring",
-        stock.name,
+        stock.ticker(),
         fetched?.length,
-        now.toDateString()
+        now.toDateString(),
+        fetched
       );
       return;
     }
     await prisma.stockQuote.create({
-      data: apiModelToDb(fetched[0], latest.currencyId),
+      data: apiModelToDb(fetched[0]),
     });
     return;
   }
@@ -130,7 +127,7 @@ async function backfill(stock: Currency, USD: Currency) {
     // When the timestamp was updated on a later date, it's up to date, so not reupdate it.
     console.log(
       "%s: latest rate from %s was updated on %s, skipping additional update",
-      stock.name,
+      stock.ticker(),
       latest.quoteTimestamp.toDateString(),
       latest.updatedAt.toDateString()
     );
@@ -139,7 +136,7 @@ async function backfill(stock: Currency, USD: Currency) {
 
   console.log(
     "%s: fetching from %s",
-    stock.name,
+    stock.ticker(),
     startDate.toDateString(),
     now.toDateString()
   );
@@ -151,11 +148,11 @@ async function backfill(stock: Currency, USD: Currency) {
   if (toUpdate) {
     console.log(
       "%s: updating quote for %s",
-      stock.name,
+      stock.ticker(),
       toUpdate.date.toDateString()
     );
     await prisma.stockQuote.update({
-      data: apiModelToDb(toUpdate, latest.currencyId),
+      data: apiModelToDb(toUpdate),
       where: {
         id: latest.id,
       },
@@ -165,9 +162,9 @@ async function backfill(stock: Currency, USD: Currency) {
     (x) => !isSameDay(x.date, latest.quoteTimestamp)
   );
   if (toInsert) {
-    console.log("%s: inserting %d entries", stock.name, toInsert.length);
+    console.log("%s: inserting %d entries", stock.ticker(), toInsert.length);
     await prisma.stockQuote.createMany({
-      data: toInsert.map((x) => apiModelToDb(x, latest.currencyId)),
+      data: toInsert.map((x) => apiModelToDb(x)),
     });
   }
 }

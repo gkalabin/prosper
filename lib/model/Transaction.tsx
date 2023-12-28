@@ -1,12 +1,16 @@
+import { Amount } from "lib/Amount";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
+import { AmountWithUnit } from "lib/AmountWithUnit";
 import { StockAndCurrencyExchange } from "lib/ClientSideModel";
 import { TransactionWithExtensionsAndTagIds } from "lib/model/AllDatabaseDataModel";
 import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
-import { Currencies, Currency } from "lib/model/Currency";
+import { Currency } from "lib/model/Currency";
+import { Stock } from "lib/model/Stock";
 import { Tag } from "lib/model/Tag";
 import { TransactionType } from "lib/model/TransactionType";
 import { Trip } from "lib/model/Trip";
+import { Unit } from "lib/model/Unit";
 
 export type PersonalExpense = {
   vendor: string;
@@ -61,7 +65,6 @@ export class Transaction {
     bankAccountById: { [id: number]: BankAccount },
     tripById: Map<number, Trip>,
     tagById: Map<number, Tag>,
-    currencies: Currencies,
     exchange: StockAndCurrencyExchange
   ) {
     this.dbValue = init;
@@ -89,7 +92,7 @@ export class Transaction {
     if (init.thirdPartyExpense) {
       this.thirdPartyExpense = {
         ...init.thirdPartyExpense,
-        currency: currencies.findById(init.thirdPartyExpense.currencyId),
+        currency: Currency.findByCode(init.thirdPartyExpense.currencyCode),
         trip: tripById.get(init.thirdPartyExpense.tripId),
       };
     }
@@ -236,25 +239,79 @@ export class Transaction {
     return this.tripOrNull();
   }
 
+  /**
+   * @deprecated
+   */
   amount() {
-    return new AmountWithCurrency({
+    return new AmountWithUnit({
       amountCents: this.amountCents,
-      currency: this.currency(),
+      unit: this.unit(),
     });
   }
 
-  currency() {
+  amountWithUnit(): AmountWithUnit {
+    return new AmountWithUnit({
+      amountCents: this.amountCents,
+      unit: this.unit(),
+    });
+  }
+
+  amt(): Amount {
+    return new Amount({
+      amountCents: this.amountCents,
+    });
+  }
+
+  amtOwnShare(): Amount {
+    if (this.isTransfer()) {
+      throw new Error("Transfer has no own share");
+    }
+    const ext = this.personalExpense ?? this.thirdPartyExpense ?? this.income;
+    if (!ext) {
+      throw new Error("no extension found");
+    }
+    return new Amount({
+      amountCents: (
+        this.personalExpense ??
+        this.thirdPartyExpense ??
+        this.income
+      ).ownShareAmountCents,
+    });
+  }
+
+  unit(): Unit {
     if (this.personalExpense) {
-      return this.personalExpense.account.currency;
+      return this.personalExpense.account.unit();
     }
     if (this.thirdPartyExpense) {
       return this.thirdPartyExpense.currency;
     }
     if (this.transfer) {
-      return this.transfer.accountFrom.currency;
+      return this.transfer.accountFrom.unit();
     }
     if (this.income) {
-      return this.income.account.currency;
+      return this.income.account.unit();
+    }
+    throw new Error(
+      `No currency found for transaction: ${JSON.stringify(this, undefined, 2)}`
+    );
+  }
+
+  /**
+   * @deprecated
+   */
+  currency() {
+    if (this.personalExpense) {
+      return this.personalExpense.account.currency();
+    }
+    if (this.thirdPartyExpense) {
+      return this.thirdPartyExpense.currency;
+    }
+    if (this.transfer) {
+      return this.transfer.accountFrom.currency();
+    }
+    if (this.income) {
+      return this.income.account.currency();
     }
     throw new Error(
       `No currency found for transaction: ${JSON.stringify(this, undefined, 2)}`
@@ -262,39 +319,65 @@ export class Transaction {
   }
 
   amountAllParties(currency: Currency) {
-    const amount = new AmountWithCurrency({
-      amountCents: this.amountCents,
-      currency: this.currency(),
-    });
-    if (!currency || currency.id == this.currency().id) {
-      return amount;
+    const unit = this.unit();
+    if (unit instanceof Currency && unit.code() == currency.code()) {
+      return new AmountWithCurrency({
+        amountCents: this.amountCents,
+        currency,
+      });
     }
-    return this.exchange.exchange(amount, currency, this.timestamp);
+    if (unit instanceof Currency) {
+      const amount = new AmountWithCurrency({
+        amountCents: this.amountCents,
+        currency,
+      });
+      return this.exchange.exchangeCurrency(amount, currency, this.timestamp);
+    }
+    if (unit instanceof Stock) {
+      const a = this.exchange.exchangeStock(
+        this.amt(),
+        unit,
+        currency,
+        this.timestamp
+      );
+      return this.exchange.exchangeCurrency(a, currency, this.timestamp);
+    }
+    throw new Error(`Unknown unit: ${unit}`);
   }
 
   amountOwnShare(currency: Currency) {
-    const extension = firstNonNull3(
-      this.personalExpense,
-      this.thirdPartyExpense,
-      this.income
-    );
-    if (!extension) {
-      throw new Error("no extension found");
+    const unit = this.unit();
+    const amt = this.amtOwnShare();
+
+    if (unit instanceof Currency && unit.code() == currency.code()) {
+      return new AmountWithCurrency({
+        amountCents: amt.cents(),
+        currency,
+      });
     }
-    const amount = new AmountWithCurrency({
-      amountCents: extension.ownShareAmountCents,
-      currency: this.currency(),
-    });
-    if (!currency || currency.id == this.currency().id) {
-      return amount;
+    if (unit instanceof Currency) {
+      const amount = new AmountWithCurrency({
+        amountCents: amt.cents(),
+        currency: unit,
+      });
+      return this.exchange.exchangeCurrency(amount, currency, this.timestamp);
     }
-    return this.exchange.exchange(amount, currency, this.timestamp);
+    if (unit instanceof Stock) {
+      const a = this.exchange.exchangeStock(
+        amt,
+        unit,
+        currency,
+        this.timestamp
+      );
+      return this.exchange.exchangeCurrency(a, currency, this.timestamp);
+    }
+    throw new Error(`Unknown unit: ${unit}`);
   }
 
-  amountReceived() {
-    return new AmountWithCurrency({
+  amountReceived(): AmountWithUnit {
+    return new AmountWithUnit({
       amountCents: this.transfer.receivedAmountCents,
-      currency: this.transfer.accountTo.currency,
+      unit: this.transfer.accountTo.unit(),
     });
   }
 
@@ -310,11 +393,9 @@ export class Transaction {
       return this.amountCents;
     }
     const transfer = this.transfer;
-    // assert(transfer)
     if (transfer.accountFrom.id == ba.id) {
       return -this.amountCents;
     }
-    // assert(transfer.accountTo.id == ba.id)
     return transfer.receivedAmountCents;
   }
 

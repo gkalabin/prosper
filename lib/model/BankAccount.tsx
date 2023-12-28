@@ -1,45 +1,21 @@
 import { Bank as DBBank, BankAccount as DBBankAccount } from "@prisma/client";
-import {
-  StockAndCurrencyExchange,
-} from "lib/ClientSideModel";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import {
-  Currencies,
-  Currency
-} from "lib/model/Currency";
+import { AmountWithUnit } from "lib/AmountWithUnit";
+import { Currency } from "lib/model/Currency";
+import { Stock } from "lib/model/Stock";
 import { Transaction } from "lib/model/Transaction";
+import { Unit } from "lib/model/Unit";
 
 export class Bank {
   readonly id: number;
   readonly name: string;
   readonly displayOrder: number;
   readonly accounts: BankAccount[];
-  readonly dbValue: DBBank;
-  private readonly exchange?: StockAndCurrencyExchange;
 
-  public constructor(init: DBBank, exchange?: StockAndCurrencyExchange) {
-    this.dbValue = init;
+  public constructor(init: DBBank) {
     this.id = init.id;
     this.name = init.name;
     this.displayOrder = init.displayOrder;
     this.accounts = [];
-    this.exchange = exchange;
-  }
-
-  balance(targetCurrency: Currency): AmountWithCurrency {
-    if (!this.exchange) {
-      throw new Error("No exchange rates set");
-    }
-    let bankBalance = new AmountWithCurrency({
-      amountCents: 0,
-      currency: targetCurrency,
-    });
-    const now = new Date();
-    this.accounts.forEach((x) => {
-      const delta = this.exchange.exchange(x.balance(), targetCurrency, now);
-      bankBalance = bankBalance.add(delta);
-    });
-    return bankBalance;
   }
 }
 
@@ -47,7 +23,8 @@ export class BankAccount {
   readonly id: number;
   readonly name: string;
   readonly initialBalanceCents: number;
-  readonly currency: Currency;
+  readonly _currency?: Currency;
+  readonly _stock?: Stock;
   readonly displayOrder: number;
   readonly bank: Bank;
   readonly transactions: Transaction[];
@@ -57,16 +34,40 @@ export class BankAccount {
   public constructor(
     init: DBBankAccount,
     bankById: { [id: number]: Bank },
-    currencies: Currencies
+    stocks: Stock[]
   ) {
     this.dbValue = init;
     this.id = init.id;
     this.name = init.name;
     this.initialBalanceCents = init.initialBalanceCents;
-    this.currency = currencies.findById(init.currencyId);
+    this._currency =
+      init.currencyCode && Currency.findByCode(init.currencyCode);
+    this._stock = init.stockId && stocks.find((s) => s.id() == init.stockId);
     this.displayOrder = init.displayOrder;
     this.bank = bankById[init.bankId];
     this.transactions = [];
+  }
+
+  hasStock(): boolean {
+    return !!this._stock;
+  }
+
+  stock(): Stock {
+    if (!this._stock) {
+      throw new Error(`BankAccount ${this.name} does not have a stock`);
+    }
+    return this._stock;
+  }
+
+  hasCurrency(): boolean {
+    return !!this._currency;
+  }
+
+  currency(): Currency {
+    if (!this._currency) {
+      throw new Error(`BankAccount ${this.name} does not have a currency`);
+    }
+    return this._currency;
   }
 
   isArchived() {
@@ -81,15 +82,25 @@ export class BankAccount {
     return this.dbValue.liquid;
   }
 
-  balance(): AmountWithCurrency {
+  unit(): Unit {
+    if (this.hasStock()) {
+      return this.stock();
+    }
+    if (this.hasCurrency()) {
+      return this.currency();
+    }
+    throw new Error(`BankAccount ${this.id} has no unit`);
+  }
+
+  balance(): AmountWithUnit {
     let balance = this.initialBalanceCents;
     this.transactions.forEach((t) => {
       const amount = t.amountSignedCents(this);
       balance += amount;
     });
-    return new AmountWithCurrency({
+    return new AmountWithUnit({
       amountCents: balance,
-      currency: this.currency,
+      unit: this.unit(),
     });
   }
 }

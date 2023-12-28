@@ -11,7 +11,6 @@ import {
 } from "components/txform/FormInputs";
 import { differenceInMonths } from "date-fns";
 import { useFormikContext } from "formik";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
   useAllDatabaseDataContext,
   useDisplayBankAccounts,
@@ -79,7 +78,8 @@ export const FormTransfer = ({
 
   const fromAccount = bankAccounts.find((a) => a.id == fromBankAccountId);
   const toAccount = bankAccounts.find((a) => a.id == toBankAccountId);
-  const showReceivedAmount = fromAccount.currency.id != toAccount.currency.id;
+  const showReceivedAmount =
+    fromAccount.currency().code() != toAccount.currency().code();
   useReceivedAmountEffect(
     fromAccount,
     toAccount,
@@ -113,9 +113,8 @@ function useReceivedAmountEffect(
   toAccount: BankAccount,
   showReceivedAmount: boolean,
   transaction: Transaction,
-  prototype: TransactionPrototype,
+  prototype: TransactionPrototype
 ) {
-  const { exchange } = useAllDatabaseDataContext();
   const {
     values: { amount },
     setFieldValue,
@@ -136,25 +135,15 @@ function useReceivedAmountEffect(
       }
       return;
     }
-    const now = new Date();
-    const exchanged = exchange.exchange(
-      new AmountWithCurrency({
-        amountCents: Math.round(amount * 100),
-        currency: fromAccount.currency,
-      }),
-      toAccount.currency,
-      now
-    );
-    setFieldValue("receivedAmount", exchanged.dollar());
+    setFieldValue("receivedAmount", amount);
   }, [
-    exchange,
     amount,
     setFieldValue,
     showReceivedAmount,
     fromAccount.currency,
     toAccount.currency,
     transaction,
-    prototype
+    prototype,
   ]);
   return showReceivedAmount;
 }

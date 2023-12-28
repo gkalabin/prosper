@@ -27,6 +27,42 @@ const formatters = {
 };
 
 export class Currency {
+  static USD = new Currency("USD");
+
+  private static readonly currencies = [
+    new Currency("RUB"),
+    Currency.USD,
+    new Currency("EUR"),
+    new Currency("GBP"),
+  ];
+
+  static findByCode(code: string) {
+    return Currency.currencies.find((c) => c.name == code);
+  }
+
+  static all(): Currency[] {
+    return [...Currency.currencies];
+  }
+
+  constructor(private readonly name: string) {}
+
+  code() {
+    return this.name;
+  }
+
+  format(amountDollar: number, options?: Intl.NumberFormatOptions) {
+    const formatter = formatters[this.name](options);
+    if (!formatter) {
+      throw new Error(`Unknown formatter for currency ${this.name}`);
+    }
+    return formatter.format(amountDollar);
+  }
+}
+
+/**
+ * @deprecated
+ */
+export class CurrencyOld {
   readonly id: number;
   readonly name: string;
   readonly dbValue: DBCurrency;
@@ -67,14 +103,17 @@ export class Currency {
   }
 }
 
+/**
+ * @deprecated
+ */
 export class Currencies {
-  private readonly currencies: Currency[];
+  private readonly currencies: CurrencyOld[];
   private readonly byId: {
-    [id: number]: Currency;
+    [id: number]: CurrencyOld;
   };
 
   public constructor(init: DBCurrency[]) {
-    this.currencies = init.map((x) => new Currency(x));
+    this.currencies = init.map((x) => new CurrencyOld(x));
     this.byId = Object.fromEntries(this.currencies.map((x) => [x.id, x]));
   }
 

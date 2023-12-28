@@ -69,6 +69,8 @@ model ThirdPartyExpense {
   // extension specific fields
   currency            Currency    @relation(fields: [currencyId], references: [id])
   currencyId          Int
+  // TODO: remove default value
+  currencyCode        String      @default("")
   // system fields
   user                User        @relation(fields: [userId], references: [id])
   userId              Int
@@ -109,12 +111,16 @@ model Transfer {
 }
 
 model BankAccount {
-  id         Int      @id @default(autoincrement())
-  name       String
-  bank       Bank     @relation(fields: [bankId], references: [id])
-  bankId     Int
-  currency   Currency @relation(fields: [currencyId], references: [id])
-  currencyId Int
+  id           Int       @id @default(autoincrement())
+  name         String
+  bank         Bank      @relation(fields: [bankId], references: [id])
+  bankId       Int
+  currency     Currency? @relation(fields: [currencyId], references: [id])
+  currencyId   Int?
+  // TODO: remove default value
+  currencyCode String?
+  stock        Stock?    @relation(fields: [stockId], references: [id])
+  stockId      Int?
 
   // UI configuration
   displayOrder Int     @default(0)
@@ -168,6 +174,18 @@ model Currency {
   DisplaySettings   DisplaySettings[]
 }
 
+model Stock {
+  id           Int           @id @default(autoincrement())
+  name         String
+  exchange     String
+  ticker       String
+  currencyCode String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  BankAccount  BankAccount[]
+  StockQuote   StockQuote[]
+}
+
 model Category {
   id           Int    @id @default(autoincrement())
   name         String
@@ -213,6 +231,8 @@ model Trip {
 model DisplaySettings {
   currency                  Currency @relation(fields: [displayCurrencyId], references: [id])
   displayCurrencyId         Int
+  // TODO: remove default value
+  displayCurrencyCode       String   @default("")
   excludeCategoryIdsInStats String
   user                      User     @relation(fields: [userId], references: [id])
   userId                    Int      @unique
@@ -246,21 +266,30 @@ model User {
 }
 
 model ExchangeRate {
-  id             Int      @id @default(autoincrement())
-  currencyFrom   Currency @relation("RatesFrom", fields: [currencyFromId], references: [id])
-  currencyFromId Int
-  currencyTo     Currency @relation("RatesTo", fields: [currencyToId], references: [id])
-  currencyToId   Int
-  rateTimestamp  DateTime
-  rateNanos      BigInt
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id               Int      @id @default(autoincrement())
+  currencyFrom     Currency @relation("RatesFrom", fields: [currencyFromId], references: [id])
+  currencyFromId   Int
+  currencyTo       Currency @relation("RatesTo", fields: [currencyToId], references: [id])
+  currencyToId     Int
+  // TODO: remove default value
+  currencyCodeFrom String   @default("")
+  // TODO: remove default value
+  currencyCodeTo   String   @default("")
+  rateTimestamp    DateTime
+  rateNanos        BigInt
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 }
 
 model StockQuote {
   id             Int      @id @default(autoincrement())
+  // TODO: remove everything related to currency
   currency       Currency @relation(fields: [currencyId], references: [id])
   currencyId     Int
+  currencyCode   String   @default("")
+  // TODO: make stockId required
+  stock          Stock?   @relation(fields: [stockId], references: [id])
+  stockId        Int?
   exchange       String
   ticker         String
   quoteTimestamp DateTime

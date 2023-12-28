@@ -29,9 +29,9 @@ export function runningAverage(
     const amountCurrency = amount.getCurrency();
     if (!currency) {
       currency = amountCurrency;
-    } else if (currency.id != amountCurrency.id) {
+    } else if (currency.code() != amountCurrency.code()) {
       throw new Error(
-        `Cannot sum over different currencies, got ${currency.name} and ${amountCurrency.name}`
+        `Cannot sum over different currencies, got ${currency.code()} and ${amountCurrency.code()}`
       );
     }
     const sum = AmountWithCurrency.sum(window, currency);

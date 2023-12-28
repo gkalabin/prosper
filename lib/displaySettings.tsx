@@ -1,8 +1,8 @@
 import { DisplaySettings as DBDisplaySettings } from "@prisma/client";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
-import { Currencies, Currency } from "lib/model/Currency";
+import { Currency } from "lib/model/Currency";
 
-export const useDisplayCurrency = () => {
+export const useDisplayCurrency = (): Currency => {
   const { displaySettings } = useAllDatabaseDataContext();
   return displaySettings.displayCurrency();
 };
@@ -10,17 +10,15 @@ export const useDisplayCurrency = () => {
 export class DisplaySettings {
   private readonly _displayCurrency: Currency;
   private readonly _excludeCategoryIdsInStats: number[];
-  private readonly _dbValue: DBDisplaySettings;
 
-  public constructor(init: DBDisplaySettings, currencies: Currencies) {
-    this._dbValue = init;
-    this._displayCurrency = currencies.findById(init.displayCurrencyId);
+  public constructor(init: DBDisplaySettings) {
+    this._displayCurrency = Currency.findByCode(init.displayCurrencyCode);
     this._excludeCategoryIdsInStats = init.excludeCategoryIdsInStats
       .split(",")
       .map((x) => +x)
       .filter((x) => x);
   }
-  displayCurrency() {
+  displayCurrency(): Currency {
     return this._displayCurrency;
   }
   excludeCategoryIdsInStats() {
