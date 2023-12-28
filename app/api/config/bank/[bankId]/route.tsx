@@ -1,4 +1,5 @@
 import { DB } from "lib/db";
+import { UpdateBankRequest } from "lib/model/forms/BankFormValues";
 import { getUserId } from "lib/user";
 import { intParam } from "lib/util/searchParams";
 import { NextRequest, NextResponse } from "next/server";
@@ -11,7 +12,7 @@ export async function PUT(
   if (!bankId) {
     return new Response(`bankId must be an integer`, { status: 400 });
   }
-  const { name, displayOrder } = await request.json();
+  const { name, displayOrder } = (await request.json()) as UpdateBankRequest;
   const userId = await getUserId();
   // Verify user has access.
   const db = new DB({ userId });
