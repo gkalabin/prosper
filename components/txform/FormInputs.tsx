@@ -342,7 +342,6 @@ function Vendor() {
     .map((x) => x.vendor())
     .forEach((x) => vendorFrequency.set(x, (vendorFrequency.get(x) ?? 0) + 1));
   const vendors = [...vendorFrequency.entries()]
-    .filter(([_vendor, frequency]) => frequency > 1)
     .sort(([_v1, f1], [_v2, f2]) => f2 - f1)
     .map(([vendor]) => vendor);
   return (
@@ -363,14 +362,37 @@ function Vendor() {
 }
 
 function Description() {
-  const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
+  const {
+    values: { mode },
+    isSubmitting,
+  } = useFormikContext<AddTransactionFormValues>();
+  const { transactions } = useAllDatabaseDataContext();
+  const transactionsForMode = transactions.filter(
+    (x) => formModeForTransaction(x) == mode
+  );
+  const descriptionFrequency = new Map<string, number>();
+  transactionsForMode
+    .map((x) => x.description)
+    .filter((x) => !!x)
+    .forEach((x) =>
+      descriptionFrequency.set(x, (descriptionFrequency.get(x) ?? 0) + 1)
+    );
+  const descriptions = [...descriptionFrequency.entries()]
+    .sort(([_v1, f1], [_v2, f2]) => f2 - f1)
+    .map(([description]) => description);
   return (
     <div className="col-span-6">
       <TextInputWithLabel
         name="description"
         label="Description"
+        list="descriptions"
         disabled={isSubmitting}
       />
+      <datalist id="descriptions">
+        {descriptions.map((v) => (
+          <option key={v} value={v} />
+        ))}
+      </datalist>
     </div>
   );
 }
@@ -478,6 +500,15 @@ function Category() {
 
 function Payer() {
   const { isSubmitting } = useFormikContext<AddTransactionFormValues>();
+  const { transactions } = useAllDatabaseDataContext();
+  const payerFrequency = new Map<string, number>();
+  transactions
+    .filter((x) => x.hasPayer())
+    .map((x) => x.payer())
+    .forEach((x) => payerFrequency.set(x, (payerFrequency.get(x) ?? 0) + 1));
+  const payers = [...payerFrequency.entries()]
+    .sort(([_v1, f1], [_v2, f2]) => f2 - f1)
+    .map(([value]) => value);
   return (
     <div className="col-span-6">
       <label
@@ -488,9 +519,15 @@ function Payer() {
       </label>
       <FormikInput
         name="payer"
+        list="payers"
         className="block w-full"
         disabled={isSubmitting}
       />
+      <datalist id="payers">
+        {payers.map((v) => (
+          <option key={v} value={v} />
+        ))}
+      </datalist>
     </div>
   );
 }
