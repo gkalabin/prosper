@@ -12,8 +12,7 @@ import {
 import { differenceInMonths } from "date-fns";
 import { useFormikContext } from "formik";
 import {
-  useAllDatabaseDataContext,
-  useDisplayBankAccounts,
+  useAllDatabaseDataContext
 } from "lib/ClientSideModel";
 import { uniqMostFrequent } from "lib/collections";
 import { accountUnit } from "lib/model/BankAccount";
@@ -35,12 +34,11 @@ export const FormTransfer = ({
   transaction: Transaction;
   prototype: TransactionPrototype;
 }) => {
-  const { transactions, stocks } = useAllDatabaseDataContext();
+  const { transactions, stocks, bankAccounts } = useAllDatabaseDataContext();
   const {
     values: { description, fromBankAccountId, toBankAccountId },
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
-  const bankAccounts = useDisplayBankAccounts();
 
   const transfers = transactions.filter((x): x is Transfer => isTransfer(x));
   const now = new Date();
