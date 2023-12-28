@@ -1,5 +1,4 @@
 import { Prisma } from "@prisma/client";
-import { Transaction } from "lib/model/Transaction";
 
 export enum FormMode {
   PERSONAL,
@@ -25,153 +24,65 @@ export type AddTransactionFormValues = {
   tripName: string;
 };
 
-export type AddTransactionDTO = {
-  mode: FormMode;
-  transactionId: number;
-  description: string;
-  timestamp: number;
-  amountCents: number;
-  categoryId: number;
-  personalTransaction?: PersonalTransactionDTO;
-  externalTransaction?: ExternalTransactionDTO;
-  transferTransaction?: TransferTransactionDTO;
-  incomeTransaction?: IncomeTransactionDTO;
-};
-
-export type PersonalTransactionDTO = {
-  vendor: string;
-  ownShareAmountCents: number;
-  bankAccountId: number;
-  tripName: string;
-};
-
-export type ExternalTransactionDTO = {
-  vendor: string;
-  payer: string;
-  ownShareAmountCents: number;
-  currencyId: number;
-  tripName: string;
-};
-
-export type TransferTransactionDTO = {
-  receivedAmountCents: number;
-  fromBankAccountId: number;
-  toBankAccountId: number;
-};
-
-export type IncomeTransactionDTO = {
-  vendor: string;
-  ownShareAmountCents: number;
-  bankAccountId: number;
-};
-
-export const formToDTO = (
-  form: AddTransactionFormValues,
-  transaction?: Transaction
-): AddTransactionDTO => {
-  const out: AddTransactionDTO = {
-    mode: form.mode,
-    transactionId: transaction?.id,
-    timestamp: new Date(form.timestamp).getTime(),
-    amountCents: Math.round(form.amount * 100),
-    description: form.description,
-    categoryId: form.categoryId,
-  };
-
-  const ownShareCents = Math.round(form.ownShareAmount * 100);
-  if (form.mode == FormMode.PERSONAL) {
-    out.personalTransaction = {
-      vendor: form.vendor,
-      ownShareAmountCents: ownShareCents,
-      bankAccountId: form.fromBankAccountId,
-      tripName: form.tripName || null,
-    };
-  }
-  if (form.mode == FormMode.EXTERNAL) {
-    out.externalTransaction = {
-      ownShareAmountCents: ownShareCents,
-      vendor: form.vendor,
-      payer: form.payer,
-      currencyId: form.currencyId,
-      tripName: form.tripName || null,
-    };
-  }
-  if (form.mode == FormMode.TRANSFER) {
-    out.transferTransaction = {
-      receivedAmountCents: Math.round(form.receivedAmount * 100),
-      fromBankAccountId: form.fromBankAccountId,
-      toBankAccountId: form.toBankAccountId,
-    };
-  }
-  if (form.mode == FormMode.INCOME) {
-    out.incomeTransaction = {
-      vendor: form.vendor,
-      ownShareAmountCents: ownShareCents,
-      bankAccountId: form.toBankAccountId,
-    };
-  }
-  return out;
-};
-
 export const transactionDbInput = (
-  dto: AddTransactionDTO,
+  form: AddTransactionFormValues,
   userId: number
 ): Prisma.TransactionUncheckedCreateInput &
   Prisma.TransactionUncheckedUpdateInput => {
   return {
-    timestamp: new Date(dto.timestamp).toISOString(),
-    description: dto.description,
-    amountCents: dto.amountCents,
-    categoryId: dto.categoryId,
+    timestamp: new Date(form.timestamp).toISOString(),
+    description: form.description,
+    amountCents: Math.round(form.amount * 100),
+    categoryId: form.categoryId,
     userId,
   };
 };
 
 export const personalExpenseDbInput = (
-  { personalTransaction }: AddTransactionDTO,
+  form: AddTransactionFormValues,
   userId: number
 ): Prisma.PersonalExpenseUncheckedCreateWithoutTransactionInput => {
   return {
-    vendor: personalTransaction.vendor,
-    ownShareAmountCents: personalTransaction.ownShareAmountCents,
-    accountId: personalTransaction.bankAccountId,
+    vendor: form.vendor,
+    ownShareAmountCents: Math.round(form.ownShareAmount * 100),
+    accountId: form.fromBankAccountId,
     userId,
   };
 };
 
 export const thirdPartyExpenseDbInput = (
-  { externalTransaction }: AddTransactionDTO,
+  form: AddTransactionFormValues,
   userId: number
 ): Prisma.ThirdPartyExpenseUncheckedCreateWithoutTransactionInput => {
   return {
-    vendor: externalTransaction.vendor,
-    ownShareAmountCents: externalTransaction.ownShareAmountCents,
-    payer: externalTransaction.payer,
-    currencyId: externalTransaction.currencyId,
+    vendor: form.vendor,
+    ownShareAmountCents: Math.round(form.ownShareAmount * 100),
+    payer: form.payer,
+    currencyId: form.currencyId,
     userId,
   };
 };
 
 export const transferDbInput = (
-  dto: AddTransactionDTO,
+  form: AddTransactionFormValues,
   userId: number
 ): Prisma.TransferUncheckedCreateWithoutTransactionInput => {
   return {
-    receivedAmountCents: dto.transferTransaction.receivedAmountCents,
-    accountFromId: dto.transferTransaction.fromBankAccountId,
-    accountToId: dto.transferTransaction.toBankAccountId,
+    receivedAmountCents: Math.round(form.receivedAmount * 100),
+    accountFromId: form.fromBankAccountId,
+    accountToId: form.toBankAccountId,
     userId,
   };
 };
 
 export const incomeDbInput = (
-  dto: AddTransactionDTO,
+  form: AddTransactionFormValues,
   userId: number
 ): Prisma.IncomeUncheckedCreateWithoutTransactionInput => {
   return {
-    vendor: dto.incomeTransaction.vendor,
-    ownShareAmountCents: dto.incomeTransaction.ownShareAmountCents,
-    accountId: dto.incomeTransaction.bankAccountId,
+    vendor: form.vendor,
+    ownShareAmountCents: Math.round(form.ownShareAmount * 100),
+    accountId: form.toBankAccountId,
     userId,
   };
 };

@@ -27,7 +27,6 @@ import { Form, Formik, FormikHelpers, useFormikContext } from "formik";
 import {
   AddTransactionFormValues,
   FormMode,
-  formToDTO,
 } from "lib/AddTransactionDataModels";
 import {
   useAllDatabaseDataContext,
@@ -535,11 +534,10 @@ export const AddTransactionForm = (props: {
     values: AddTransactionFormValues,
     { setSubmitting, resetForm }: FormikHelpers<AddTransactionFormValues>
   ) => {
-    const body = JSON.stringify(formToDTO(values, props.transaction));
-    await fetch("/api/transaction", {
+    await fetch(`/api/transaction/${props.transaction?.id ?? ""}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: body,
+      body: JSON.stringify(values),
     })
       .then(async (added) => {
         // stop submitting before callback to avoid updating state on an unmounted component
