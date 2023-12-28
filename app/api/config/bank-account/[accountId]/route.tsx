@@ -1,0 +1,44 @@
+import { fillUnitData } from "../fillUnitData";
+import { DB } from "lib/db";
+import { CreateBankAccountRequest } from "lib/model/api/BankAccountForm";
+import prisma from "lib/prisma";
+import { getUserId } from "lib/user";
+import { intParam } from "lib/util/searchParams";
+import { NextRequest, NextResponse } from "next/server";
+
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { accountId: string } },
+): Promise<Response> {
+  const accountId = intParam(params.accountId);
+  if (!accountId) {
+    return new Response(`accountId must be an integer`, { status: 400 });
+  }
+  const { name, displayOrder, unit, isArchived, isJoint, initialBalance } =
+    (await request.json()) as CreateBankAccountRequest;
+  const userId = await getUserId();
+  // Verify user has access.
+  const db = new DB({ userId });
+  const found = await db.bankAccountFindMany({
+    where: {
+      id: accountId,
+    },
+  });
+  if (!found?.length) {
+    return new Response(`Not authenticated`, { status: 401 });
+  }
+  // Perform update.
+  const data = {
+    name,
+    displayOrder,
+    archived: isArchived,
+    joint: isJoint,
+    initialBalanceCents: Math.round(initialBalance * 100),
+  };
+  await fillUnitData(unit, data);
+  const result = await prisma.bankAccount.update({
+    data: data,
+    where: { id: accountId },
+  });
+  return NextResponse.json(result);
+}

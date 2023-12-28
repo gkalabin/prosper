@@ -1,44 +1,15 @@
 import { Prisma } from "@prisma/client";
-import { authenticatedApiRoute } from "lib/authenticatedApiRoute";
 import { Currency } from "lib/model/Currency";
-import {
-  CreateBankAccountRequest,
-  UnitApiModel,
-} from "lib/model/api/BankAccountForm";
+import { UnitApiModel } from "lib/model/api/BankAccountForm";
 import prisma from "lib/prisma";
-import type { NextApiRequest, NextApiResponse } from "next";
 import yahooFinance from "yahoo-finance2";
 import { Quote } from "yahoo-finance2/dist/esm/src/modules/quote";
-
-async function handle(
-  userId: number,
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const { name, displayOrder, bankId, unit, isJoint, initialBalance } =
-    req.body as CreateBankAccountRequest;
-  const data: Prisma.BankAccountUncheckedCreateInput = {
-    name,
-    displayOrder,
-    bankId,
-    userId,
-    joint: isJoint,
-    initialBalanceCents: Math.round(initialBalance * 100),
-  };
-  await fillUnitData(unit, data);
-  const result = await prisma.bankAccount.create({
-    data: data,
-  });
-  res.json(result);
-}
-
-export default authenticatedApiRoute("POST", handle);
 
 export async function fillUnitData(
   unit: UnitApiModel,
   data:
     | Prisma.BankAccountUncheckedCreateInput
-    | Prisma.BankAccountUncheckedUpdateInput
+    | Prisma.BankAccountUncheckedUpdateInput,
 ): Promise<void> {
   if (unit.kind === "currency") {
     data.currencyCode = unit.currencyCode;
@@ -67,7 +38,7 @@ export async function fillUnitData(
   const currency = Currency.findByCode(quote.currency.toUpperCase());
   if (!currency) {
     throw new Error(
-      `could not find currency '${quote.currency}' when creating stock ${unit.ticker}`
+      `could not find currency '${quote.currency}' when creating stock ${unit.ticker}`,
     );
   }
   const newStock = await prisma.stock.create({
@@ -75,7 +46,7 @@ export async function fillUnitData(
       exchange: quote.exchange,
       ticker: quote.symbol,
       currencyCode: currency.code(),
-      name: (quote.longName ?? quote.shortName) ?? quote.symbol,
+      name: quote.longName ?? quote.shortName ?? quote.symbol,
     },
   });
   data.stockId = newStock.id;
