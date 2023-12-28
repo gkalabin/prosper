@@ -30,6 +30,7 @@ import {
 } from "lib/model/transaction/amounts";
 import { AppendMap } from "lib/util/AppendingMap";
 import { MoneyTimeseries } from "lib/util/Timeseries";
+import { capitalize } from "lib/util/util";
 
 export function TransactionStats(props: {
   onClose: () => void;
@@ -119,17 +120,22 @@ function Charts({ transactions }: { transactions: Transaction[] }) {
   );
 }
 
-function ExenseStats({ transactions }: { transactions: Transaction[] }) {
+function IncomeOrExenseStats({
+  transactions,
+}: {
+  transactions: (Income | Expense)[];
+}) {
   const displayCurrency = useDisplayCurrency();
   const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
-  const expenses = transactions.filter((t): t is Expense => isExpense(t));
-  if (!expenses.length) {
+  if (!transactions.length) {
     return <></>;
   }
   const [first, last] = [
     transactions[0],
     transactions[transactions.length - 1],
   ];
+  const spentOrReceived = first.kind == "Income" ? "income" : "expense";
+  const spentOrReceivedCapital = capitalize(spentOrReceived);
   const duration = { start: first.timestampEpoch, end: last.timestampEpoch };
   const zero = AmountWithCurrency.zero(displayCurrency);
   const grossPerMonth = new MoneyTimeseries(displayCurrency);
@@ -145,7 +151,7 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
   const gross: AmountWithCurrency[] = [];
   const net: AmountWithCurrency[] = [];
   const failedToExchange: Transaction[] = [];
-  for (const t of expenses) {
+  for (const t of transactions) {
     const ts = startOfMonth(t.timestampEpoch);
     const g = amountAllParties(
       t,
@@ -208,154 +214,43 @@ function ExenseStats({ transactions }: { transactions: Transaction[] }) {
         </div>
       </div>
       <YearlyAllParties
-        transactions={expenses}
-        title="Money spent gross (all parties)"
+        transactions={transactions}
+        title={`Money ${spentOrReceived} gross (all parties)`}
         duration={duration}
       />
       <YearlyOwnShare
-        transactions={expenses}
-        title="Money spent net (own share)"
+        transactions={transactions}
+        title={`"Money ${spentOrReceived} net (own share)"`}
         duration={duration}
       />
       <MonthlyAllParties
-        transactions={expenses}
-        title="Money spent gross (all parties)"
+        transactions={transactions}
+        title={`"Money ${spentOrReceived} gross (all parties)"`}
         duration={duration}
       />
       <MonthlyOwnShare
-        transactions={expenses}
-        title="Money spent net (own share)"
+        transactions={transactions}
+        title={`"Money ${spentOrReceived} net (own share)"`}
         duration={duration}
       />
       <ChildCategoryFullAmountChart
-        transactions={expenses}
-        title="Expenses by category gross (all parties)"
+        transactions={transactions}
+        title={`"${spentOrReceivedCapital} by category gross (all parties)"`}
       />
       <ChildCategoryOwnShareChart
-        transactions={expenses}
-        title="Expenses by category net (own share)"
+        transactions={transactions}
+        title={`"${spentOrReceivedCapital} by category net (own share)"`}
       />
     </div>
   );
 }
 
+function ExenseStats({ transactions }: { transactions: Transaction[] }) {
+  const expenses = transactions.filter((t): t is Expense => isExpense(t));
+  return <IncomeOrExenseStats transactions={expenses} />;
+}
+
 function IncomeStats({ transactions }: { transactions: Transaction[] }) {
-  const displayCurrency = useDisplayCurrency();
-  const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
-  const incomeTransactions = transactions.filter((t): t is Income =>
-    isIncome(t),
-  );
-  if (!incomeTransactions.length) {
-    return <></>;
-  }
-  const [first, last] = [
-    transactions[0],
-    transactions[transactions.length - 1],
-  ];
-  const duration = { start: first.timestampEpoch, end: last.timestampEpoch };
-  const zero = AmountWithCurrency.zero(displayCurrency);
-  const grossPerMonth = new MoneyTimeseries(displayCurrency);
-  const netPerMonth = new MoneyTimeseries(displayCurrency);
-  const grossPerCategory = new AppendMap<number, AmountWithCurrency>(
-    AmountWithCurrency.add,
-    zero,
-  );
-  const netPerCategory = new AppendMap<number, AmountWithCurrency>(
-    AmountWithCurrency.add,
-    zero,
-  );
-  const gross: AmountWithCurrency[] = [];
-  const net: AmountWithCurrency[] = [];
-  const failedToExchange: Transaction[] = [];
-  for (const t of incomeTransactions) {
-    const ts = startOfMonth(t.timestampEpoch);
-    const g = amountAllParties(
-      t,
-      displayCurrency,
-      bankAccounts,
-      stocks,
-      exchange,
-    );
-    const n = amountOwnShare(
-      t,
-      displayCurrency,
-      bankAccounts,
-      stocks,
-      exchange,
-    );
-    if (!g || !n) {
-      failedToExchange.push(t);
-      continue;
-    }
-    gross.push(g);
-    net.push(n);
-    netPerMonth.append(ts, n);
-    grossPerMonth.append(ts, g);
-    const cid = t.categoryId;
-    grossPerCategory.append(cid, g);
-    netPerCategory.append(cid, n);
-  }
-  const totalGross = gross.reduce((a, b) => a.add(b), zero);
-  const totalNet = net.reduce((a, b) => a.add(b), zero);
-  return (
-    <div>
-      <CurrencyExchangeFailed failedTransactions={failedToExchange} />
-      <div className="mb-2 ml-2 text-sm text-slate-600">
-        <div>
-          Total: {totalGross.round().format()}(gross) /{" "}
-          {totalNet.round().format()}(net)
-        </div>
-        <div>
-          Own share percent:{" "}
-          {Math.round((100 * totalNet.cents()) / totalGross.cents())}%
-        </div>
-        <div>
-          Monthly percentiles (gross):
-          <div className="ml-1 text-xs">
-            {grossPerMonth.monthlyPercentile(25).round().format()} (p25) /{" "}
-            {grossPerMonth.monthlyPercentile(50).round().format()} (p50) /{" "}
-            {grossPerMonth.monthlyPercentile(75).round().format()} (p75) /{" "}
-            {grossPerMonth.monthlyPercentile(100).round().format()} (max)
-          </div>
-        </div>
-        <div>
-          Monthly percentiles (net):
-          <div className="ml-1 text-xs">
-            {netPerMonth.monthlyPercentile(25).round().format()} (p25) /{" "}
-            {netPerMonth.monthlyPercentile(50).round().format()} (p50) /{" "}
-            {netPerMonth.monthlyPercentile(75).round().format()} (p75) /{" "}
-            {netPerMonth.monthlyPercentile(100).round().format()} (max)
-          </div>
-        </div>
-      </div>
-      <MonthlyAllParties
-        transactions={incomeTransactions}
-        title="Money received gross (all parties)"
-        duration={duration}
-      />
-      <MonthlyOwnShare
-        transactions={incomeTransactions}
-        title="Money received net (own share)"
-        duration={duration}
-      />
-      <YearlyAllParties
-        transactions={incomeTransactions}
-        title="Money received gross (all parties)"
-        duration={duration}
-      />
-      <YearlyOwnShare
-        transactions={incomeTransactions}
-        title="Money received net (own share)"
-        duration={duration}
-      />
-      <ChildCategoryFullAmountChart
-        transactions={incomeTransactions}
-        title="Income by category gross (all parties)"
-      />
-      <ChildCategoryOwnShareChart
-        transactions={incomeTransactions}
-        title="Income by category net (own share)"
-      />
-    </div>
-  );
+  const income = transactions.filter((t): t is Income => isIncome(t));
+  return <IncomeOrExenseStats transactions={income} />;
 }
