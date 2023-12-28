@@ -17,6 +17,7 @@ import { BankAccount } from "lib/model/BankAccount";
 import { Category } from "lib/model/Category";
 import { Currency } from "lib/model/Currency";
 import { Transaction } from "lib/model/Transaction";
+import { TransactionType } from "lib/model/TransactionType";
 import {
   AddTransactionFormValues,
   FormMode,
@@ -35,17 +36,15 @@ export const formModeForTransaction = (t: Transaction) => {
   if (!t) {
     throw new Error("No transaction provided");
   }
-  if (t.isPersonalExpense()) {
-    return FormMode.PERSONAL;
-  }
-  if (t.isThirdPartyExpense()) {
-    return FormMode.EXTERNAL;
-  }
-  if (t.isTransfer()) {
-    return FormMode.TRANSFER;
-  }
-  if (t.isIncome()) {
-    return FormMode.INCOME;
+  switch (t.type()) {
+    case TransactionType.PERSONAL:
+      return FormMode.PERSONAL;
+    case TransactionType.EXTERNAL:
+      return FormMode.EXTERNAL;
+    case TransactionType.TRANSFER:
+      return FormMode.TRANSFER;
+    case TransactionType.INCOME:
+      return FormMode.INCOME;
   }
   throw new Error(`Unknown transaction type for ${t}`);
 };
@@ -237,7 +236,10 @@ export const AddTransactionForm = (props: {
           <div className="bg-white p-2 sm:p-6">
             {creatingNewTransaction && (
               <div className="mb-2">
-                <NewTransactionSuggestions activePrototype={prototype} onItemClick={setPrototype} />
+                <NewTransactionSuggestions
+                  activePrototype={prototype}
+                  onItemClick={setPrototype}
+                />
               </div>
             )}
 

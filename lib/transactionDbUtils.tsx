@@ -10,7 +10,6 @@ import {
   WithdrawalOrDepositPrototype,
 } from "lib/txsuggestions/TransactionPrototype";
 
-/** @deprecated */
 export enum FormMode {
   PERSONAL,
   EXTERNAL,

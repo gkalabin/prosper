@@ -1,10 +1,7 @@
 import classNames from "classnames";
 import { MoneyInputWithLabel } from "components/forms/Input";
 import { undoTailwindInputStyles } from "components/forms/Select";
-import {
-  formModeForTransaction,
-  toDateTimeLocal,
-} from "components/txform/AddTransactionForm";
+import { toDateTimeLocal } from "components/txform/AddTransactionForm";
 import {
   AccountFrom,
   Description,
@@ -50,9 +47,7 @@ export const FormPersonalExpense = ({
     },
     setFieldValue,
   } = useFormikContext<AddTransactionFormValues>();
-  const transactionsForMode = transactions.filter(
-    (x) => formModeForTransaction(x) == mode
-  );
+  const transactionsForMode = transactions.filter((x) => x.isPersonalExpense());
   const now = new Date();
   const recentTransactionsForMode = transactionsForMode.filter(
     (x) => differenceInMonths(now, x.timestamp) < SUGGESTIONS_WINDOW_MONTHS
