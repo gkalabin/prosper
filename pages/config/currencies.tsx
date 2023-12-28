@@ -18,7 +18,7 @@ export const getStaticProps: GetStaticProps = async () => {
 
 type CurrenciesListProps = {
   currencies: Currency[];
-  onUpdated: Function;
+  onUpdated: (updated: Currency) => void;
 };
 const CurrenciesList: React.FC<CurrenciesListProps> = (props) => {
   if (!props.currencies?.length) {
@@ -28,17 +28,17 @@ const CurrenciesList: React.FC<CurrenciesListProps> = (props) => {
     <div className="space-y-1 px-4">
       {props.currencies.map((x) => (
         <div key={x.id}>
-          <EditableCurrencyName currency={x} onUpdated={props.onUpdated} />
+          <CurrencyName currency={x} onUpdated={props.onUpdated} />
         </div>
       ))}
     </div>
   );
 };
-type CreateCurrencyFormProps = {
-  onCreated: Function;
+type AddCurrencyFormProps = {
+  onAdded: (added: Currency) => void;
 };
 
-const CreateCurrencyForm: React.FC<CreateCurrencyFormProps> = (props) => {
+const AddCurrencyForm: React.FC<AddCurrencyFormProps> = (props) => {
   const [name, setName] = useState("");
   const [formDisplayed, setFormDisplayed] = useState(false);
   const [requestInFlight, setRequestInFlight] = useState(false);
@@ -64,7 +64,7 @@ const CreateCurrencyForm: React.FC<CreateCurrencyFormProps> = (props) => {
     setApiError("");
     setRequestInFlight(true);
     try {
-      const created = await fetch("/api/config/currency", {
+      const added = await fetch("/api/config/currency", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -72,9 +72,9 @@ const CreateCurrencyForm: React.FC<CreateCurrencyFormProps> = (props) => {
         }),
       });
       close();
-      props.onCreated(await created.json());
+      props.onAdded(await added.json());
     } catch (error) {
-      setApiError(`Failed to create: ${error}`);
+      setApiError(`Failed to add: ${error}`);
     }
     setRequestInFlight(false);
   };
@@ -99,19 +99,19 @@ const CreateCurrencyForm: React.FC<CreateCurrencyFormProps> = (props) => {
       <input
         disabled={!name || requestInFlight}
         type="submit"
-        value={requestInFlight ? "Creating…" : "Create"}
+        value={requestInFlight ? "Adding…" : "Add"}
       />
       {apiError && <span>{apiError}</span>}
     </form>
   );
 };
 
-type EditableCurrencyNameProps = {
+type CurrencyNameProps = {
   currency: Currency;
-  onUpdated: Function;
+  onUpdated: (updated: Currency) => void;
 };
 
-const EditableCurrencyName: React.FC<EditableCurrencyNameProps> = (props) => {
+const CurrencyName: React.FC<CurrencyNameProps> = (props) => {
   const [name, setName] = useState(props.currency.name);
   const [formDisplayed, setFormDisplayed] = useState(false);
   const [apiError, setApiError] = useState("");
@@ -201,7 +201,7 @@ const CurrenciesPage: React.FC<PageProps> = (props) => {
   return (
     <Layout>
       <CurrenciesList currencies={currencies} onUpdated={updateCurrency} />
-      <CreateCurrencyForm onCreated={addCurrency} />
+      <AddCurrencyForm onAdded={addCurrency} />
     </Layout>
   );
 };

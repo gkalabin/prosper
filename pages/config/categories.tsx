@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import prisma from "../../lib/prisma";
 import { GetStaticProps } from "next";
 import Layout from "../../components/Layout";
-import CreateCategoryForm from "../../components/config/categories/CreateCategoryForm";
+import AddCategoryForm from "../../components/config/categories/AddCategoryForm";
 import Category from "../../lib/model/Category";
-import EditableCategoryListItem from "../../components/config/categories/EditableCategoryListItem";
+import EditableCategoryListItem from "../../components/config/categories/CategoryListItem";
 
 type CategoryDbModel = {
   id: string;
@@ -22,7 +22,7 @@ export const getStaticProps: GetStaticProps = async () => {
 type CategoriesListProps = {
   categories: Category[];
   allCategories: Category[];
-  onCategoryUpdated: Function;
+  onCategoryUpdated: (updated: Category) => void;
   depth: number;
 };
 
@@ -117,9 +117,9 @@ const CategoriesPage: React.FC<PageProps> = (props) => {
         onCategoryUpdated={updateCategory}
         depth={0}
       />
-      <CreateCategoryForm
+      <AddCategoryForm
         allCategories={allCategoriesFlat}
-        onCreated={addNewCategory}
+        onAdded={addNewCategory}
       />
     </Layout>
   );

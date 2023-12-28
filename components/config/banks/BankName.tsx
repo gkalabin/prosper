@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import Bank from "../../../lib/model/Bank";
 
-type EditableBankNameProps = {
+type BankNameProps = {
   bank: Bank;
-  onUpdated: Function;
+  onUpdated: (bank: Bank) => void;
 };
 
-const EditableBankName: React.FC<EditableBankNameProps> = (
+const BankName: React.FC<BankNameProps> = (
   props
 ) => {
   const [name, setName] = useState(props.bank.name);
@@ -91,4 +91,4 @@ const EditableBankName: React.FC<EditableBankNameProps> = (
   );
 };
 
-export default EditableBankName;
+export default BankName;

@@ -10,7 +10,7 @@ export default async function handle(
   if (req.method === "PUT") {
     const { name, parentCategoryId, displayOrder } = req.body;
 
-    let dbArgs: Prisma.CategoryUpdateArgs = {
+    const dbArgs: Prisma.CategoryUpdateArgs = {
       data: { name, displayOrder },
       where: { id: categoryId },
     };
@@ -18,7 +18,6 @@ export default async function handle(
       dbArgs.data.parentCategory = { connect: { id: parentCategoryId } };
     }
     const result = await prisma.category.update(dbArgs);
-    console.debug("UpdateCategory", result);
     res.json(result);
   } else {
     throw new Error(

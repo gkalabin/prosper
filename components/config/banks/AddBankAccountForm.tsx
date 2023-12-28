@@ -1,21 +1,26 @@
 import React, { useState } from "react";
-import Category from "../../../lib/model/Category";
+import Link from "next/link";
+import Bank from "../../../lib/model/Bank";
+import BankAccount from "../../../lib/model/BankAccount";
+import Currency from "../../../lib/model/Currency";
 
-type CreateCategoryFormProps = {
-  onCreated: Function;
-  allCategories: Category[];
+type AddBankAccountFormProps = {
+  displayOrder: number;
+  bank: Bank;
+  currencies: Currency[];
+  onAdded: (bank: Bank, added: BankAccount) => void;
 };
 
-const CreateCategoryForm: React.FC<CreateCategoryFormProps> = (props) => {
+const AddBankAccountForm: React.FC<AddBankAccountFormProps> = (props) => {
   const [name, setName] = useState("");
-  const [parentId, setParentId] = useState(0);
+  const [currencyId, setCurrencyId] = useState(props.currencies[0]?.id);
   const [formDisplayed, setFormDisplayed] = useState(false);
   const [requestInFlight, setRequestInFlight] = useState(false);
   const [apiError, setApiError] = useState("");
 
   const reset = () => {
     setName("");
-    setParentId(0);
+    setCurrencyId(props.currencies[0]?.id);
     setApiError("");
   };
 
@@ -33,32 +38,41 @@ const CreateCategoryForm: React.FC<CreateCategoryFormProps> = (props) => {
     e.preventDefault();
     setApiError("");
     setRequestInFlight(true);
-    const parentCategoryId = parentId ? +parentId : null;
     try {
       const body = {
         name,
-        parentCategoryId,
-        displayOrder: props.allCategories.length * 100,
+        currencyId,
+        displayOrder: props.displayOrder,
+        bankId: props.bank.id,
       };
-      const newCategory = await fetch("/api/config/category", {
+      const added = await fetch("/api/config/bank-account", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
       close();
-      props.onCreated(await newCategory.json());
+      props.onAdded(props.bank, await added.json());
     } catch (error) {
-      setApiError(`Failed to create new category: ${error}`);
+      setApiError(`Failed to add: ${error}`);
     }
     setRequestInFlight(false);
   };
 
+  if (!props.currencies?.length) {
+    return (
+      <>
+        To add a bank account, first{" "}
+        <Link href="/config/currencies">
+          <a>add a currency.</a>
+        </Link>
+      </>
+    );
+  }
   if (!formDisplayed) {
-    return <button onClick={open}>New category</button>;
+    return <button onClick={open}>New Bank Account</button>;
   }
   return (
     <form onSubmit={handleSubmit}>
-      <h3>New Category</h3>
       <input
         autoFocus
         onChange={(e) => setName(e.target.value)}
@@ -68,13 +82,13 @@ const CreateCategoryForm: React.FC<CreateCategoryFormProps> = (props) => {
         value={name}
       />
       <select
-        onChange={(e) => setParentId(+e.target.value)}
+        onChange={(e) => setCurrencyId(+e.target.value)}
         disabled={requestInFlight}
+        value={currencyId}
       >
-        <option value="">No parent</option>
-        {props.allCategories.map((category) => (
-          <option key={category.id} value={category.id}>
-            {category.nameWithAncestors}
+        {props.currencies.map((x) => (
+          <option key={x.id} value={x.id}>
+            {x.name}
           </option>
         ))}
       </select>
@@ -84,11 +98,11 @@ const CreateCategoryForm: React.FC<CreateCategoryFormProps> = (props) => {
       <input
         disabled={!name || requestInFlight}
         type="submit"
-        value={requestInFlight ? "Creating…" : "Create"}
+        value={requestInFlight ? "Adding…" : "Add"}
       />
       {apiError && <span>{apiError}</span>}
     </form>
   );
 };
 
-export default CreateCategoryForm;
+export default AddBankAccountForm;

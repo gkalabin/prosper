@@ -4,7 +4,7 @@ import Category from "../../../lib/model/Category";
 type EditableCategoryListItemProps = {
   category: Category;
   categories: Category[];
-  onUpdated: Function;
+  onUpdated: (updated: Category) => void;
   depth: number;
 };
 

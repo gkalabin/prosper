@@ -1,10 +1,14 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../../../../lib/prisma";
+import type { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handle(req, res) {
+export default async function handle(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
   if (req.method === "POST") {
     const { name, parentCategoryId, displayOrder } = req.body;
-    let dbArgs: Prisma.CategoryCreateArgs = {
+    const dbArgs: Prisma.CategoryCreateArgs = {
       data: { name, displayOrder },
     };
     if (parentCategoryId) {

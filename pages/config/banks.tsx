@@ -2,13 +2,13 @@ import React, { useState } from "react";
 import prisma from "../../lib/prisma";
 import { GetStaticProps } from "next";
 import Layout from "../../components/Layout";
-import CreateBankForm from "../../components/config/banks/CreateBankForm";
+import AddBankForm from "../../components/config/banks/AddBankForm";
 import Bank from "../../lib/model/Bank";
 import BankAccount from "../../lib/model/BankAccount";
 import Currency from "../../lib/model/Currency";
-import EditableBankName from "../../components/config/banks/EditableBankName";
-import CreateBankAccountForm from "../../components/config/banks/CreateBankAccountForm";
-import EditableBankAccountListItem from "../../components/config/banks/EditableBankAccountListItem";
+import BankName from "../../components/config/banks/BankName";
+import AddBankAccountForm from "../../components/config/banks/AddBankAccountForm";
+import BankAccountListItem from "../../components/config/banks/BankAccountListItem";
 
 export const getStaticProps: GetStaticProps = async () => {
   const banks = await prisma.bank.findMany({
@@ -45,7 +45,7 @@ const BanksList: React.FC<BanksListProps> = (props) => {
     <div className="space-y-1 px-4">
       {props.banks.map((bank) => (
         <div key={bank.id}>
-          <EditableBankName bank={bank} onUpdated={props.onBankUpdated} />
+          <BankName bank={bank} onUpdated={props.onBankUpdated} />
           <div className="space-y-1 px-4">
             <AccountsList
               bank={bank}
@@ -53,11 +53,11 @@ const BanksList: React.FC<BanksListProps> = (props) => {
               currencies={props.currencies}
               onBankAccountUpdated={props.onBankAccountUpdated}
             />
-            <CreateBankAccountForm
+            <AddBankAccountForm
               bank={bank}
               currencies={props.currencies}
               displayOrder={bank.accounts.length * 100}
-              onCreated={props.onBankAccountAdded}
+              onAdded={props.onBankAccountAdded}
             />
           </div>
         </div>
@@ -79,7 +79,7 @@ const AccountsList: React.FC<AccountsListProps> = (props) => {
   return (
     <>
       {props.accounts.map((account) => (
-        <EditableBankAccountListItem
+        <BankAccountListItem
           key={account.id}
           bank={props.bank}
           account={account}
@@ -143,7 +143,7 @@ const BanksPage: React.FC<PageProps> = (props) => {
         onBankAccountAdded={addBankAccount}
         onBankAccountUpdated={updateBankAccount}
       />
-      <CreateBankForm displayOrder={banks.length * 100} onCreated={addBank} />
+      <AddBankForm displayOrder={banks.length * 100} onAdded={addBank} />
     </Layout>
   );
 };

@@ -3,16 +3,14 @@ import Bank from "../../../lib/model/Bank";
 import BankAccount from "../../../lib/model/BankAccount";
 import Currency from "../../../lib/model/Currency";
 
-type EditableBankAccountListItemProps = {
+type BankAccountListItemProps = {
   bank: Bank;
   account: BankAccount;
   currencies: Currency[];
   onUpdated: (bank: Bank, updated: BankAccount) => void;
 };
 
-const EditableBankAccountListItem: React.FC<
-  EditableBankAccountListItemProps
-> = (props) => {
+const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
   const [name, setName] = useState(props.account.name);
   const [displayOrder, setDisplayOrder] = useState(props.account.displayOrder);
   const [currencyId, setCurrencyId] = useState(props.account.currency.id);
@@ -116,4 +114,4 @@ const EditableBankAccountListItem: React.FC<
   );
 };
 
-export default EditableBankAccountListItem;
+export default BankAccountListItem;

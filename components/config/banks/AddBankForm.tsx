@@ -1,11 +1,12 @@
 import React, { useState } from "react";
+import Bank from "../../../lib/model/Bank";
 
-type CreateBankFormProps = {
-  displayOrder: number,
-  onCreated: Function;
+type AddBankFormProps = {
+  displayOrder: number;
+  onAdded: (added: Bank) => void;
 };
 
-const CreateBankForm: React.FC<CreateBankFormProps> = (props) => {
+const AddBankForm: React.FC<AddBankFormProps> = (props) => {
   const [name, setName] = useState("");
   const [formDisplayed, setFormDisplayed] = useState(false);
   const [requestInFlight, setRequestInFlight] = useState(false);
@@ -35,15 +36,15 @@ const CreateBankForm: React.FC<CreateBankFormProps> = (props) => {
         name,
         displayOrder: props.displayOrder,
       };
-      const created = await fetch("/api/config/bank", {
+      const added = await fetch("/api/config/bank", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
       close();
-      props.onCreated(await created.json());
+      props.onAdded(await added.json());
     } catch (error) {
-      setApiError(`Failed to create: ${error}`);
+      setApiError(`Failed to add: ${error}`);
     }
     setRequestInFlight(false);
   };
@@ -68,11 +69,11 @@ const CreateBankForm: React.FC<CreateBankFormProps> = (props) => {
       <input
         disabled={!name || requestInFlight}
         type="submit"
-        value={requestInFlight ? "Creating…" : "Create"}
+        value={requestInFlight ? "Adding…" : "Add"}
       />
       {apiError && <span>{apiError}</span>}
     </form>
   );
 };
 
-export default CreateBankForm;
+export default AddBankForm;
