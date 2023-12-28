@@ -1,4 +1,3 @@
-import ReactEcharts from "echarts-for-react";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { useAllDatabaseDataContext } from "lib/ClientSideModel";
 import { defaultPieChartOptions } from "lib/charts";
@@ -11,6 +10,9 @@ import {
   amountOwnShare,
 } from "lib/model/Transaction";
 import { AppendMap, currencyAppendMap } from "lib/util/AppendingMap";
+import dynamic from "next/dynamic";
+
+const ReactEcharts = dynamic(() => import("echarts-for-react"), { ssr: false });
 
 export function TopLevelCategoryOwnShareChart({
   transactions,
