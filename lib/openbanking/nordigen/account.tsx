@@ -5,6 +5,10 @@ export async function fetchAccounts(
   token: NordigenToken,
   requisition: NordigenRequisition
 ): Promise<AccountDetails[]> {
+  if (!requisition) {
+    console.warn("No requisition provided", requisition);
+    return [];
+  }
   const response = await fetch(
     `https://ob.nordigen.com/api/v2/requisitions/${requisition.requisitionId}/`,
     {

@@ -22,80 +22,100 @@ import { fetchAccounts as trueLayerFetchAccounts } from "lib/openbanking/truelay
 import { fetchBalance as trueLayerFetchBalance } from "lib/openbanking/truelayer/balance";
 import { maybeRefreshToken as trueLayerMaybeRefreshToken } from "lib/openbanking/truelayer/token";
 import { fetchTransactions as trueLayerFetchTransactions } from "lib/openbanking/truelayer/transactions";
-import { WithdrawalOrDepositPrototype } from "lib/txsuggestions/TransactionPrototype";
+import {
+  WithdrawalOrDepositPrototype,
+  fromOpenBankingTransaction,
+} from "lib/txsuggestions/TransactionPrototype";
+
+type Token = TrueLayerToken | NordigenToken | StarlingToken;
+
+class Provider<T = Token> {
+  constructor(
+    readonly fetchTokens: (db: DB) => Promise<T[]>,
+    readonly refreshToken: (token: T) => Promise<T>,
+    readonly fetchBalance: (
+      token: T,
+      mapping: ExternalAccountMapping
+    ) => Promise<AccountBalance>,
+    readonly fetchTransactions: (
+      token: T,
+      mapping: ExternalAccountMapping
+    ) => Promise<Transaction[]>,
+    readonly fetchAccounts: (
+      token: T,
+      db: DB,
+      bankId: number
+    ) => Promise<AccountDetails[]>
+  ) {}
+}
+
+const providers: Provider[] = [
+  new Provider<TrueLayerToken>(
+    async (db: DB) => await db.trueLayerTokenFindMany(),
+    trueLayerMaybeRefreshToken,
+    trueLayerFetchBalance,
+    trueLayerFetchTransactions,
+    trueLayerFetchAccounts
+  ),
+  new Provider<NordigenToken>(
+    async (db: DB) => await db.nordigenTokenFindMany(),
+    nordigenMaybeRefreshToken,
+    nordigenFetchBalance,
+    nordigenFetchTransactions,
+    async (token: NordigenToken, db: DB, bankId: number) => {
+      const requisition = await db.nordigenRequisitionFindFirst({
+        where: {
+          bankId,
+        },
+      });
+      return await nordigenFetchAccounts(token, requisition);
+    }
+  ),
+  new Provider<StarlingToken>(
+    async (db: DB) => await db.starlingTokenFindMany(),
+    async (t: StarlingToken) => t,
+    starlingFetchBalance,
+    starlingFetchTransactions,
+    starlingFetchAccounts
+  ),
+];
 
 // TODO: the next two functions are very similar, we should reduce logic duplication.
 export async function fetchBalances(db: DB): Promise<AccountBalance[]> {
-  const internalBankAccounts = await db.bankAccountFindMany();
-  const mappings = await db.externalAccountMappingFindMany();
-  const fetches: Promise<AccountBalance>[] = [];
-  {
-    const dbTokens = await db.trueLayerTokenFindMany();
-    const tokens = await Promise.all(dbTokens.map(trueLayerMaybeRefreshToken));
-    const trueLayerFetches = tokens.flatMap((token) =>
-      mappingsForToken(token, internalBankAccounts, mappings).map((m) =>
-        trueLayerFetchBalance(token, m)
-      )
-    );
-    fetches.push(...trueLayerFetches);
-  }
-  {
-    const dbTokens = await db.nordigenTokenFindMany();
-    const tokens = await Promise.all(dbTokens.map(nordigenMaybeRefreshToken));
-    const nordigenFetches = tokens.flatMap((token) =>
-      mappingsForToken(token, internalBankAccounts, mappings).map((m) =>
-        nordigenFetchBalance(token, m)
-      )
-    );
-    fetches.push(...nordigenFetches);
-  }
-  {
-    const dbTokens = await db.starlingTokenFindMany();
-    const starlingFetches = dbTokens.flatMap((token) =>
-      mappingsForToken(token, internalBankAccounts, mappings).map((m) =>
-        starlingFetchBalance(token, m)
-      )
-    );
-    fetches.push(...starlingFetches);
-  }
-  const balances = await Promise.all(fetches);
-  return balances.flat().filter((x) => !!x);
+  return await genericFetch(
+    db,
+    (p: Provider<Token>, t: Token, m: ExternalAccountMapping) =>
+      p.fetchBalance(t, m)
+  );
 }
 
 export async function fetchTransactions(
   db: DB
 ): Promise<WithdrawalOrDepositPrototype[]> {
+  const transactions = await genericFetch(
+    db,
+    (p: Provider<Token>, t: Token, m: ExternalAccountMapping) =>
+      p.fetchTransactions(t, m)
+  );
+  return transactions.flat().map(fromOpenBankingTransaction);
+}
+
+async function genericFetch<D>(
+  db: DB,
+  fn: (p: Provider<Token>, t: Token, m: ExternalAccountMapping) => Promise<D>
+): Promise<D[]> {
   const internalBankAccounts = await db.bankAccountFindMany();
   const mappings = await db.externalAccountMappingFindMany();
-  const fetches: Promise<Transaction[]>[] = [];
-  {
-    const dbTokens = await db.trueLayerTokenFindMany();
-    const tokens = await Promise.all(dbTokens.map(trueLayerMaybeRefreshToken));
-    const trueLayerFetches = tokens.flatMap((token) =>
+  const fetches: Promise<D>[] = [];
+  for (const provider of providers) {
+    const dbTokens = await provider.fetchTokens(db);
+    const tokens = await Promise.all(dbTokens.map(provider.refreshToken));
+    const providerFetches = tokens.flatMap((token) =>
       mappingsForToken(token, internalBankAccounts, mappings).map((m) =>
-        trueLayerFetchTransactions(token, m)
+        fn(provider, token, m)
       )
     );
-    fetches.push(...trueLayerFetches);
-  }
-  {
-    const dbTokens = await db.nordigenTokenFindMany();
-    const tokens = await Promise.all(dbTokens.map(nordigenMaybeRefreshToken));
-    const nordigenFetches = tokens.flatMap((token) =>
-      mappingsForToken(token, internalBankAccounts, mappings).map((m) =>
-        nordigenFetchTransactions(token, m)
-      )
-    );
-    fetches.push(...nordigenFetches);
-  }
-  {
-    const dbTokens = await db.starlingTokenFindMany();
-    const starlingFetches = dbTokens.flatMap((token) =>
-      mappingsForToken(token, internalBankAccounts, mappings).map((m) =>
-        starlingFetchTransactions(token, m)
-      )
-    );
-    fetches.push(...starlingFetches);
+    fetches.push(...providerFetches);
   }
   const fetchesWithErrorHandling = fetches.map(async (f) => {
     try {
@@ -106,21 +126,7 @@ export async function fetchTransactions(
     }
   });
   const transactions = await Promise.all(fetchesWithErrorHandling);
-  return transactions
-    .flat()
-    .filter((x) => !!x)
-    .map(
-      (t): WithdrawalOrDepositPrototype => ({
-        type:
-          t.amountCents > 0 ? ("deposit" as const) : ("withdrawal" as const),
-        timestampEpoch: new Date(t.timestamp).getTime(),
-        description: t.description,
-        originalDescription: t.description,
-        externalTransactionId: t.externalTransactionId,
-        absoluteAmountCents: Math.abs(t.amountCents),
-        internalAccountId: t.internalAccountId,
-      })
-    );
+  return transactions.flat().filter((x) => !!x);
 }
 
 function mappingsForToken(
@@ -138,36 +144,15 @@ export async function fetchAccounts(
   db: DB,
   bankId: number
 ): Promise<AccountDetails[]> {
-  {
-    const [dbToken] = await db.trueLayerTokenFindMany({
-      where: { bankId },
-    });
-    if (dbToken) {
-      const token = await trueLayerMaybeRefreshToken(dbToken);
-      return await trueLayerFetchAccounts(token);
+  for (const provider of providers) {
+    const dbTokens = await provider.fetchTokens(db);
+    const token = dbTokens.find((t) => t.bankId == bankId);
+    if (!token) {
+      continue;
     }
+    const freshToken = await provider.refreshToken(token);
+    return await provider.fetchAccounts(freshToken, db, bankId);
   }
-  {
-    const [dbToken] = await db.nordigenTokenFindMany({
-      where: { bankId },
-    });
-    const requisition = await db.nordigenRequisitionFindFirst({
-      where: {
-        bankId,
-      },
-    });
-    if (requisition && dbToken) {
-      const token = await nordigenMaybeRefreshToken(dbToken);
-      return await nordigenFetchAccounts(token, requisition);
-    }
-  }
-  {
-    const [dbToken] = await db.starlingTokenFindMany({
-      where: { bankId },
-    });
-    if (dbToken) {
-      return await starlingFetchAccounts(dbToken);
-    }
-  }
+  console.warn("No accounts found", bankId);
   return null;
 }
