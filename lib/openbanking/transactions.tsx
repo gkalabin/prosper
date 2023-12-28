@@ -74,9 +74,9 @@ async function fetchTransactionsForSingleBank(
     transactionsByAccountId[account.bankAccountId] ??= [];
     const out = transactionsByAccountId[account.bankAccountId];
     const append = (arg: { settled: boolean; results: IOBTransaction[] }) => {
-      const newEntries = arg.results
-        .map((t: IOBTransaction) => Object.assign(t, { settled: arg.settled }))
-        .map(findMissing);
+      const newEntries = arg.results.map((t: IOBTransaction) =>
+        Object.assign(t, { settled: arg.settled })
+      );
       out.push(...newEntries);
     };
     fetches.push(
@@ -98,49 +98,4 @@ async function fetchTransactionsForSingleBank(
     })
   );
   return transactionsByAccountIdSorted;
-}
-
-let limit = 3;
-
-function findMissing(t: IOBTransaction): IOBTransaction {
-  {
-    const {
-      meta,
-      amount,
-      currency,
-      description,
-      transaction_id,
-      provider_transaction_id,
-      normalised_provider_transaction_id,
-      running_balance,
-      timestamp,
-      transaction_type,
-      transaction_category,
-      transaction_classification,
-      merchant_name,
-      settled,
-      ...rest
-    } = t;
-    if (Object.keys(rest).length && limit > 0) {
-      console.log("diff", JSON.stringify(rest, null, 2));
-      limit--;
-    }
-  }
-
-  {
-    const {
-      provider_category,
-      transaction_type,
-      provider_id,
-      provider_merchant_name,
-      counter_party_preferred_name,
-      user_comments,
-      ...rest
-    } = t.meta;
-    if (Object.keys(rest).length && limit > 0) {
-      console.log("diff meta", JSON.stringify(rest, null, 2));
-      limit--;
-    }
-  }
-  return t;
 }
