@@ -1,12 +1,12 @@
 import { Prisma } from "@prisma/client";
 import { Currency } from "lib/model/Currency";
-import { UnitApiModel } from "lib/model/api/BankAccountForm";
+import { AccountUnitFormValue } from "lib/model/forms/BankAccountFormValues";
 import prisma from "lib/prisma";
 import yahooFinance from "yahoo-finance2";
 import { Quote } from "yahoo-finance2/dist/esm/src/modules/quote";
 
 export async function fillUnitData(
-  unit: UnitApiModel,
+  unit: AccountUnitFormValue,
   data:
     | Prisma.BankAccountUncheckedCreateInput
     | Prisma.BankAccountUncheckedUpdateInput,

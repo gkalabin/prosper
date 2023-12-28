@@ -8,15 +8,15 @@ import {
 } from "components/ui/buttons";
 import { Form, Formik, useFormikContext } from "formik";
 import { useDisplayCurrency } from "lib/displaySettings";
-import {
-  BankAccountApiModel,
-  CurrencyApiModel,
-  StockApiModel,
-  UnitApiModel,
-} from "lib/model/api/BankAccountForm";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import { Currency } from "lib/model/Currency";
 import { Stock } from "lib/model/Stock";
+import {
+  AccountUnitFormValue,
+  BankAccountFormValues,
+  CurrencyFormValue,
+  StockFormValue,
+} from "lib/model/forms/BankAccountFormValues";
 import { useEffect, useState } from "react";
 import Async from "react-select/async";
 
@@ -44,7 +44,7 @@ export const AddOrEditAccountForm = ({
     bankAccount,
   );
 
-  const handleSubmit = async (values: BankAccountApiModel) => {
+  const handleSubmit = async (values: BankAccountFormValues) => {
     setApiError("");
     try {
       const body = {
@@ -141,7 +141,7 @@ export const AddOrEditAccountForm = ({
   );
 };
 
-function useDefaultUnitValue(): UnitApiModel {
+function useDefaultUnitValue(): AccountUnitFormValue {
   const displayCurrency = useDisplayCurrency();
   return { kind: "currency", currencyCode: displayCurrency.code() };
 }
@@ -151,7 +151,7 @@ function useInitialFormValues(
   bankAccounts: BankAccount[],
   stocks: Stock[],
   bankAccount?: BankAccount,
-): BankAccountApiModel {
+): BankAccountFormValues {
   const defaultUnit = useDefaultUnitValue();
   if (!bankAccount) {
     return {
@@ -165,7 +165,7 @@ function useInitialFormValues(
     };
   }
 
-  let unit: UnitApiModel;
+  let unit: AccountUnitFormValue;
   if (bankAccount.stockId) {
     const stock = stocks.find((s) => s.id === bankAccount.stockId);
     if (!stock) {
@@ -200,11 +200,11 @@ function useInitialFormValues(
 }
 
 type UnitSelectOption = {
-  value: UnitApiModel;
+  value: AccountUnitFormValue;
   label: string;
 };
 
-function labelFor(unit: UnitApiModel) {
+function labelFor(unit: AccountUnitFormValue) {
   if (unit.kind === "currency") {
     return unit.currencyCode;
   } else if (unit.kind === "stock") {
@@ -214,7 +214,7 @@ function labelFor(unit: UnitApiModel) {
   }
 }
 
-function unitToOption(u: UnitApiModel): UnitSelectOption {
+function unitToOption(u: AccountUnitFormValue): UnitSelectOption {
   return {
     label: labelFor(u),
     value: u,
@@ -226,13 +226,13 @@ export function UnitSelect({ stocks }: { stocks: Stock[] }) {
     values: { unit },
     isSubmitting,
     setFieldValue,
-  } = useFormikContext<BankAccountApiModel>();
-  const currencies: CurrencyApiModel[] = Currency.all().map((x) => ({
+  } = useFormikContext<BankAccountFormValues>();
+  const currencies: CurrencyFormValue[] = Currency.all().map((x) => ({
     kind: "currency",
     currencyCode: x.code(),
   }));
   const initialStocks = stocks.map(
-    (s): StockApiModel => ({
+    (s): StockFormValue => ({
       kind: "stock",
       ticker: s.ticker,
       exchange: s.exchange,
@@ -259,7 +259,7 @@ export function UnitSelect({ stocks }: { stocks: Stock[] }) {
   ) => {
     setLoadOptionsDebounced({
       cb: async () => {
-        const newOptions: UnitApiModel[] = currencies.filter((c) =>
+        const newOptions: AccountUnitFormValue[] = currencies.filter((c) =>
           c.currencyCode.toLowerCase().includes(inputValue.toLowerCase()),
         );
         try {
@@ -267,7 +267,7 @@ export function UnitSelect({ stocks }: { stocks: Stock[] }) {
             method: "GET",
             headers: { "Content-Type": "application/json" },
           });
-          const stocks: StockApiModel[] = await r.json();
+          const stocks: StockFormValue[] = await r.json();
           newOptions.push(...stocks);
         } catch (error) {
           setLoadingError(`Failed to load stocks: ${error}`);

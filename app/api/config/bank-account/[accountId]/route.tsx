@@ -1,6 +1,6 @@
 import { fillUnitData } from "../fillUnitData";
 import { DB } from "lib/db";
-import { CreateBankAccountRequest } from "lib/model/api/BankAccountForm";
+import { CreateBankAccountRequest } from "lib/model/forms/BankAccountFormValues";
 import prisma from "lib/prisma";
 import { getUserId } from "lib/user";
 import { intParam } from "lib/util/searchParams";

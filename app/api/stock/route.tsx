@@ -1,4 +1,4 @@
-import { StockApiModel } from "lib/model/api/BankAccountForm";
+import { StockFormValue } from "lib/model/forms/BankAccountFormValues";
 import { getUserId } from "lib/user";
 import { NextRequest, NextResponse } from "next/server";
 import yahooFinance from "yahoo-finance2";
@@ -13,11 +13,11 @@ export async function GET(request: NextRequest): Promise<Response> {
     return new Response(`query 'q' cannot be empty`, { status: 400 });
   }
   const found: SearchResult = await yahooFinance.search(q, { newsCount: 0 });
-  const stocks: StockApiModel[] = found.quotes
+  const stocks: StockFormValue[] = found.quotes
     // Remove currencies as there is an internal list of currencies in the Currency class.
     .filter((x) => x.quoteType !== "CURRENCY")
     .map(
-      (x): StockApiModel => ({
+      (x): StockFormValue => ({
         kind: "stock",
         exchange: x.exchange,
         ticker: x.symbol,

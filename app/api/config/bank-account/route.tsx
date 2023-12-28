@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { fillUnitData } from "app/api/config/bank-account/fillUnitData";
-import { CreateBankAccountRequest } from "lib/model/api/BankAccountForm";
+import { CreateBankAccountRequest } from "lib/model/forms/BankAccountFormValues";
 import prisma from "lib/prisma";
 import { getUserId } from "lib/user";
 import { NextRequest, NextResponse } from "next/server";
