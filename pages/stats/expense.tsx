@@ -100,6 +100,35 @@ export function ExpenseCharts(props: { transactions: Transaction[] }) {
     },
   };
 
+  const tooltipFormatterStackedBarChart = (params) => {
+    if (params.length === 0) {
+      return "No data";
+    }
+    const rows = params
+      .filter((p) => p.value !== 0)
+      .sort((a, b) => b.value - a.value)
+      .map((p) => {
+        return `
+        <div class="flex gap-2">
+          <div class="grow">
+            ${p.marker} ${p.seriesName}
+          </div>
+          <div class="font-medium">
+            ${currencyFormatter(p.value)}
+          </div>
+        </div>
+        `;
+      })
+      .join("\n");
+    const out = `
+      <div>
+        <span class="text-lg">
+          ${params[0].axisValueLabel}
+        </span>
+        ${rows}
+      </div>`;
+    return out;
+  };
   return (
     <>
       <div className="m-4">
@@ -124,7 +153,9 @@ export function ExpenseCharts(props: { transactions: Transaction[] }) {
         )}
       </div>
       <ReactEcharts
-        option={Object.assign({}, defaultChartOptions, {
+        notMerge
+        option={{
+          ...defaultChartOptions,
           title: {
             text: "Total money out",
           },
@@ -136,17 +167,19 @@ export function ExpenseCharts(props: { transactions: Transaction[] }) {
           series: [
             {
               type: "bar",
-              name: "Money In",
+              name: "Money Out",
               data: months.map((m) => Math.round(moneyOut[m].dollar())),
               itemStyle: {
                 color: "#15803d",
               },
             },
           ],
-        })}
+        }}
       />
       <ReactEcharts
-        option={Object.assign({}, defaultChartOptions, {
+        notMerge
+        option={{
+          ...defaultChartOptions,
           title: {
             text: "By top level category",
           },
@@ -160,6 +193,7 @@ export function ExpenseCharts(props: { transactions: Transaction[] }) {
             axisPointer: {
               type: "shadow",
             },
+            formatter: tooltipFormatterStackedBarChart,
           },
           series: [...byRootCategoryIdAndMonth.entries()].map(
             ([categoryId, series]) => ({
@@ -169,10 +203,12 @@ export function ExpenseCharts(props: { transactions: Transaction[] }) {
               data: months.map((m) => Math.round(series.get(m).dollar())),
             })
           ),
-        })}
+        }}
       />
       <ReactEcharts
-        option={Object.assign({}, defaultChartOptions, {
+        notMerge
+        option={{
+          ...defaultChartOptions,
           title: {
             text: "By category",
           },
@@ -181,16 +217,19 @@ export function ExpenseCharts(props: { transactions: Transaction[] }) {
             axisPointer: {
               type: "shadow",
             },
+            formatter: tooltipFormatterStackedBarChart,
           },
           series: [...byCategoryIdAndMonth.entries()].map(
             ([categoryId, series]) => ({
               type: "bar",
               stack: "moneyIn",
-              name: categories.find((c) => c.id() === categoryId).name(),
+              name: categories
+                .find((c) => c.id() === categoryId)
+                .nameWithAncestors(),
               data: months.map((m) => Math.round(series.get(m).dollar())),
             })
           ),
-        })}
+        }}
       />
     </>
   );
@@ -207,7 +246,9 @@ function PageContent() {
   const filteredTransactions = transactions.filter(
     (t) =>
       duration.includes(t.timestamp) &&
-      !excludeCategories.includes(t.category.id())
+      !excludeCategories.some(
+        (cid) => t.category.id() == cid || t.category.childOf(cid)
+      )
   );
   return (
     <StatsPageLayout>
@@ -220,6 +261,7 @@ function PageContent() {
           Categories to exclude
         </label>
         <Select
+          instanceId="excludeCategories"
           styles={undoTailwindInputStyles()}
           options={categoryOptions}
           isMulti
