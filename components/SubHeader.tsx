@@ -40,7 +40,7 @@ export const SubHeader = (props: { items: SubHeaderItem[] }) => {
 
   return (
     <nav className="bg-gray-600">
-      <div className="space-x-2 sm:space-x-4 mx-auto max-w-7xl px-2 py-3 sm:px-6 lg:px-8">
+      <div className="space-x-2 sm:space-x-4 mx-auto max-w-7xl px-2 py-1 sm:px-6 lg:px-8">
         {props.items.map((item) => (
           <div key={item.title} className="inline-block my-1">
             <Button item={item} active={active} onClick={handleClick} />
