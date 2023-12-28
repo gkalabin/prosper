@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import prisma from "../lib/prisma";
 import { GetStaticProps } from "next";
 import Layout from "../components/Layout";
@@ -8,7 +8,7 @@ import Currency from "../lib/model/Currency";
 import { DbCategory, makeCategoryTree } from "../lib/model/Category";
 import { AddTransactionForm } from "../components/transactions/AddTransactionForm";
 import { makeTransactionInclude } from "../lib/db/transactionInclude";
-import { TransactionsList } from "../components/transactions/TransactionsList";
+import BankAccount from "../lib/model/BankAccount";
 
 export const getStaticProps: GetStaticProps = async () => {
   const transactions = await prisma.transaction.findMany({
@@ -33,21 +33,44 @@ export const getStaticProps: GetStaticProps = async () => {
   };
 };
 
-type TransactionsListItemProps = {
-  transaction: Transaction;
-  onUpdated: (transaction: Transaction) => void;
+type BankAccountListItemProps = {
+  account: BankAccount;
 };
-export const TransactionsListItem: React.FC<TransactionsListItemProps> = (props) => {
-  const raw = JSON.stringify(props.transaction, null, 2);
-  const [showRawDetails, setShowRawDetails] = useState(false);
+const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
   return (
     <div>
-      {props.transaction.description}{" "}
-      <a onClick={() => setShowRawDetails((prev) => !prev)}>
-        {(showRawDetails && <>hide</>) || <>show</>} raw transaction
-      </a>
-      {showRawDetails && <pre>{raw}</pre>}
+      <h6>{props.account.name}</h6>
     </div>
+  );
+};
+
+type BankListItemProps = {
+  bank: Bank;
+};
+const BankListItem: React.FC<BankListItemProps> = (props) => {
+  return (
+    <div>
+      <h4>{props.bank.name}</h4>
+      {props.bank.accounts.map((a) => (
+        <BankAccountListItem key={a.id} account={a} />
+      ))}
+    </div>
+  );
+};
+
+type TransactionsListProps = {
+  banks: Bank[];
+};
+const BanksList: React.FC<TransactionsListProps> = (props) => {
+  if (!props.banks?.length) {
+    return <div>No banks.</div>;
+  }
+  return (
+    <>
+      {props.banks.map((b) => (
+        <BankListItem key={b.id} bank={b} />
+      ))}
+    </>
   );
 };
 
@@ -57,19 +80,10 @@ type PageProps = {
   banks: Bank[];
   currencies: Currency[];
 };
-const TransactionsPage: React.FC<PageProps> = (props) => {
-  const [transactionsUnordered, setTransactionsUnordered] = useState(
-    props.transactions
-  );
-  const transactions = [].concat(transactionsUnordered);
-
+const OverviewPage: React.FC<PageProps> = (props) => {
   const addTransaction = (added: Transaction) => {
-    setTransactionsUnordered((old) => [...old, added]);
-  };
-  const updateTransaction = (updated: Transaction) => {
-    setTransactionsUnordered((old) =>
-      old.map((t) => (t.id == updated.id ? updated : t))
-    );
+    // TODO
+    console.log(added);
   };
 
   return (
@@ -80,12 +94,9 @@ const TransactionsPage: React.FC<PageProps> = (props) => {
         banks={props.banks}
         currencies={props.currencies}
       />
-      <TransactionsList
-        transactions={transactions}
-        onTransactionUpdated={updateTransaction}
-      />
+      <BanksList banks={props.banks} />
     </Layout>
   );
 };
 
-export default TransactionsPage;
+export default OverviewPage;

@@ -14,6 +14,7 @@ import { Button } from "../forms/Button";
 import { CategorySelect } from "../forms/CategorySelect";
 import { MoneyInput, TextInput } from "../forms/Input";
 import CurrencySelect from "../forms/CurrencySelect";
+import Link from "next/link";
 
 type AddTransactionFormProps = {
   banks: Bank[];
@@ -142,6 +143,23 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
     setFormDisplayed(false);
   };
 
+  if (!props.categories?.length || !props.banks?.length) {
+    return (
+      <div>
+        To create transactions, you need to have at least one:
+        {!props.categories?.length && (
+          <li>
+            <Link href="/config/categories">category</Link>
+          </li>
+        )}
+        {!props.banks?.length && (
+          <li>
+            <Link href="/config/banks">bank</Link>
+          </li>
+        )}
+      </div>
+    );
+  }
   if (!formDisplayed) {
     return <button onClick={open}>New Transaction</button>;
   }
@@ -155,6 +173,7 @@ export const AddTransactionForm: React.FC<AddTransactionFormProps> = (
           amount: 0,
           ownShareAmount: 0,
           receivedAmount: 0,
+          // TODO: fix, use bank account
           fromBankAccountId: props.banks[0].id,
           toBankAccountId: props.banks[0].id,
           categoryId: props.categories[0].id,
