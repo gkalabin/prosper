@@ -2,7 +2,7 @@ import {
   Bank as DBBank,
   BankAccount as DBBankAccount,
   Currency as DBCurrency,
-  ExternalAccountMapping as DBExternalAccountMapping,
+  ExternalAccountMapping,
 } from "@prisma/client";
 import { ConfigPageLayout } from "components/ConfigPageLayout";
 import { Select } from "components/forms/Select";
@@ -10,35 +10,34 @@ import { ButtonFormPrimary } from "components/ui/buttons";
 import { banksModelFromDatabaseData } from "lib/ClientSideModel";
 import { DB } from "lib/db";
 import { Currencies } from "lib/model/Currency";
-import { maybeRefreshToken } from "lib/openbanking/truelayer/token";
+import { getOrCreateToken } from "lib/openbanking/nordigen/token";
+import {
+  AccountDetails,
+  fetchAccounts,
+} from "lib/openbanking/nordigen/accountDetails";
 import { GetServerSideProps, InferGetServerSidePropsType } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "pages/api/auth/[...nextauth]";
 import { AccountMappingRequest } from "pages/api/open-banking/account-mapping";
 import { useState } from "react";
 
-interface OpenBankingAccount {
-  openBankingAccountId: string;
-  displayName: string;
-  currency: string;
-  providerDisplayName: string;
-  providerId: string;
-}
-
 export const getServerSideProps: GetServerSideProps<{
-  data?: {
-    dbBank: DBBank;
-    dbBankAccounts: DBBankAccount[];
-    dbCurrencies: DBCurrency[];
-    dbMapping: DBExternalAccountMapping[];
-    obAccounts: OpenBankingAccount[];
-  };
-}> = async ({ params, req, res }) => {
+  dbBank: DBBank;
+  dbBankAccounts: DBBankAccount[];
+  dbCurrencies: DBCurrency[];
+  dbMapping: ExternalAccountMapping[];
+  nordigenAccounts: AccountDetails[];
+}> = async ({ query, req, res }) => {
   const session = await getServerSession(req, res, authOptions);
   if (!session) {
-    return { props: {} };
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false,
+      },
+    };
   }
-  const bankId = parseInt(params.bankId as string, 10);
+  const bankId = parseInt(query.bankId as string, 10);
   const userId = +session.user.id;
   const db = new DB({ userId });
   const [bank] = await db.bankFindMany({
@@ -51,62 +50,48 @@ export const getServerSideProps: GetServerSideProps<{
       notFound: true,
     };
   }
-  const bankAccounts = await db.bankAccountFindMany({
-    where: { bankId },
-  });
-  const currencies = await db.currencyFindMany();
-  const dbMapping = await db.externalAccountMappingFindMany({
+  const requisition = await db.nordigenRequisitionFindFirst({
     where: {
-      internalAccountId: {
-        in: bankAccounts.map((x) => x.id),
-      },
+      bankId,
     },
   });
-
-  const [dbToken] = await db.openBankingTokenFindMany({
-    where: { bankId },
+  if (!requisition) {
+    return {
+      notFound: true,
+    };
+  }
+  const token = await getOrCreateToken(db, bankId);
+  const nordigenAccounts = await fetchAccounts(token, requisition);
+  const dbBankAccounts = await db.bankAccountFindMany({
+    where: {
+      bankId,
+    },
   });
-  const token = await maybeRefreshToken(dbToken);
-  const obAccounts = await fetch(`https://api.truelayer.com/data/v1/accounts`, {
-    method: "GET",
-    headers: { Authorization: `Bearer ${token.accessToken}` },
-  })
-    .then((r) => r.json())
-    .then((x) => {
-      return x.results.map((r) => {
-        const oba: OpenBankingAccount = {
-          openBankingAccountId: r.account_id,
-          displayName: r.display_name,
-          currency: r.currency,
-          providerDisplayName: r.provider.display_name,
-          providerId: r.provider.provider_id,
-        };
-        return oba;
-      });
-    });
   return {
-    props: {
-      data: JSON.parse(
-        JSON.stringify({
-          dbBank: bank,
-          dbBankAccounts: bankAccounts,
-          dbCurrencies: currencies,
-          dbMapping,
-          obAccounts: obAccounts,
-        })
-      ),
-    },
+    props: JSON.parse(
+      JSON.stringify({
+        dbBank: bank,
+        dbBankAccounts: dbBankAccounts,
+        dbCurrencies: await db.currencyFindMany(),
+        dbMapping: await db.externalAccountMappingFindMany({
+          where: {
+            internalAccountId: {
+              in: dbBankAccounts.map((x) => x.id),
+            },
+          },
+        }),
+        nordigenAccounts,
+      })
+    ),
   };
 };
 
-export default function ConnectBanksPage({
-  data: {
-    dbBank,
-    dbBankAccounts,
-    dbCurrencies,
-    dbMapping: dbMappingInitial,
-    obAccounts,
-  },
+export default function Page({
+  dbBank,
+  dbBankAccounts,
+  dbMapping: dbMappingInitial,
+  dbCurrencies,
+  nordigenAccounts,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [requestInFlight, setRequestInFlight] = useState(false);
   const [apiError, setApiError] = useState("");
@@ -123,10 +108,7 @@ export default function ConnectBanksPage({
   );
   const [mapping, setMapping] = useState(
     Object.fromEntries(
-      obAccounts.map((a) => [
-        a.openBankingAccountId,
-        initialMapping[a.openBankingAccountId] ?? -1,
-      ])
+      nordigenAccounts.map((a) => [a.id, initialMapping[a.id] ?? -1])
     )
   );
 
@@ -160,35 +142,30 @@ export default function ConnectBanksPage({
     }
     setRequestInFlight(false);
   };
-
   return (
     <ConfigPageLayout>
       {statusMessage && <span className="text-green-500">{statusMessage}</span>}
-      {obAccounts.map((oba) => (
-        <>
-          <div key={oba.openBankingAccountId}>
-            {oba.providerDisplayName} {oba.displayName} ({oba.currency})
-            connected with
-            <Select
-              disabled={requestInFlight}
-              value={mapping[oba.openBankingAccountId]}
-              onChange={(e) =>
-                setMapping((old) =>
-                  Object.assign({}, old, {
-                    [oba.openBankingAccountId]: +e.target.value,
-                  })
-                )
-              }
-            >
-              <option value="0">None</option>
-              {bank.accounts.map((ba) => (
-                <option key={ba.id} value={ba.id}>
-                  {bank.name} {ba.name}
-                </option>
-              ))}
-            </Select>
-          </div>
-        </>
+      {nordigenAccounts.map((nordigenAccount) => (
+        <div key={nordigenAccount.id}>
+          Nordigen account {nordigenAccount.name} connected with
+          <Select
+            disabled={requestInFlight}
+            value={mapping[nordigenAccount.id]}
+            onChange={(e) =>
+              setMapping((old) => ({
+                ...old,
+                [nordigenAccount.id]: +e.target.value,
+              }))
+            }
+          >
+            <option value="0">None</option>
+            {bank.accounts.map((ba) => (
+              <option key={ba.id} value={ba.id}>
+                {bank.name} {ba.name}
+              </option>
+            ))}
+          </Select>
+        </div>
       ))}
       {apiError && <span className="text-red-500">{apiError}</span>}
       <ButtonFormPrimary

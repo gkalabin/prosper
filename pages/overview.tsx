@@ -6,7 +6,6 @@ import {
 import { TransactionsList } from "components/transactions/TransactionsList";
 import { AddTransactionForm } from "components/txform/AddTransactionForm";
 import { ButtonPagePrimary } from "components/ui/buttons";
-import { Amount } from "lib/Amount";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import {
   AllDatabaseDataContextProvider,
@@ -29,15 +28,18 @@ const BankAccountListItem = (props: {
   onTransactionUpdated: (response: TransactionAPIResponse) => void;
 }) => {
   const [showTransactionList, setShowTransactionList] = useState(false);
-
   let balanceText = <span>{props.account.balance().format()}</span>;
-  const { balances: openBankingBalances } = useOpenBankingDataContext();
-  if (openBankingBalances && openBankingBalances[props.account.id]) {
-    const delta = props.account
-      .balance()
-      .getAmountWithoutCurrency()
-      .subtract(openBankingBalances[props.account.id]);
-    if (delta.equals(Amount.ZERO)) {
+  const { balances } = useOpenBankingDataContext();
+  const obBalance = balances.find(
+    (b) => b.internalAccountId === props.account.id
+  );
+  if (obBalance) {
+    const obAmount = new AmountWithCurrency({
+      amountCents: obBalance.balanceCents,
+      currency: props.account.currency,
+    });
+    const delta = props.account.balance().subtract(obAmount);
+    if (delta.isZero()) {
       balanceText = (
         <span className="text-green-600">
           {props.account.balance().format()}
@@ -50,7 +52,7 @@ const BankAccountListItem = (props: {
             {props.account.balance().format()}
           </span>{" "}
           {delta.abs().format()} unaccounted{" "}
-          {delta.lessThan(Amount.ZERO) ? "income" : "expense"}
+          {delta.isNegative() ? "income" : "expense"}
         </>
       );
     }

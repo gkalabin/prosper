@@ -71,6 +71,23 @@ export const AnchorLink = (
   );
 };
 
+export const ExternalAnchorLink = (
+  props: React.AnchorHTMLAttributes<HTMLAnchorElement>
+) => {
+  const { className, ...rest } = props;
+  return (
+    <a
+      className={classNames(
+        className,
+        "font-medium text-indigo-600 hover:text-indigo-500"
+      )}
+      {...rest}
+    >
+      {props.children}
+    </a>
+  );
+};
+
 export const ButtonPagePrimary = (
   props: React.ButtonHTMLAttributes<HTMLButtonElement>
 ) => {

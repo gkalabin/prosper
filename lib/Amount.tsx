@@ -51,6 +51,14 @@ export class Amount {
     return this.amountCents === 0;
   }
 
+  public isPositive() {
+    return this.amountCents > 0;
+  }
+
+  public isNegative() {
+    return this.amountCents < 0;
+  }
+
   public format(): string {
     return this.dollar().toFixed(2);
   }

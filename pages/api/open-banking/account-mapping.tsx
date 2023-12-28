@@ -6,9 +6,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 export interface AccountMappingRequest {
   bankId: number;
   mapping: {
-    id?: string;
-    bankAccountId: number;
-    openBankingAccountId: string;
+    internalAccountId: number;
+    externalAccountId: string;
   }[];
 }
 
@@ -18,69 +17,41 @@ async function handle(
   res: NextApiResponse
 ) {
   const input: AccountMappingRequest = req.body;
-  const { bankId, mapping } = input;
-  const idsToModify = mapping.filter((x) => !!x.id).map((x) => x.id);
+  const { bankId, mapping: mappingRaw } = input;
   const db = new DB({ userId });
-  if (!(await hasAccess(db, idsToModify))) {
-    res.status(401).send(`Not authenticated`);
-    return;
+  const [bank] = await db.bankFindMany({ where: { id: bankId } });
+  if (!bank) {
+    return res.status(404).json({ message: "Bank not found" });
   }
-  for (const oba of mapping) {
-    if (!oba.id) {
-      if (!oba.bankAccountId || !oba.openBankingAccountId) {
-        continue;
-      }
-      await prisma.openBankingAccount.create({
-        data: {
-          openBankingAccountId: oba.openBankingAccountId,
-          bankAccountId: oba.bankAccountId,
-          userId,
-        },
-      });
-      continue;
-    }
-    if (!oba.bankAccountId || !oba.openBankingAccountId) {
-      await prisma.openBankingAccount.delete({
-        where: {
-          id: oba.id,
-        },
-      });
-      continue;
-    }
-    await prisma.openBankingAccount.update({
+  const dbAccounts = await db.bankAccountFindMany({ where: { bankId } });
+  const mapping = mappingRaw.filter((m) =>
+    dbAccounts.some((a) => a.id === m.internalAccountId)
+  );
+  const result = await prisma.$transaction(async (tx) => {
+    await tx.externalAccountMapping.deleteMany({
       where: {
-        id: oba.id,
-      },
-      data: {
-        openBankingAccountId: oba.openBankingAccountId,
-        bankAccountId: oba.bankAccountId,
+        internalAccountId: {
+          in: dbAccounts.map((x) => x.id),
+        },
       },
     });
-  }
-
-  const dbAccounts = await db.bankAccountFindMany({ where: { bankId } });
-  const result = await db.openBankingAccountFindMany({
-    where: {
-      bankAccountId: {
-        in: dbAccounts.map((x) => x.id),
+    await tx.externalAccountMapping.createMany({
+      data: mapping.map((m) => ({
+        externalAccountId: m.externalAccountId,
+        internalAccountId: m.internalAccountId,
+        userId,
+      })),
+    });
+    return await tx.externalAccountMapping.findMany({
+      where: {
+        internalAccountId: {
+          in: dbAccounts.map((x) => x.id),
+        },
+        userId,
       },
-    },
+    });
   });
-  res.json(result);
-}
-
-async function hasAccess(db: DB, obaIds: string[]): Promise<boolean> {
-  if (!obaIds.length) {
-    return true;
-  }
-  const found = await db.openBankingAccountFindMany({
-    where: {
-      id: {
-        in: obaIds,
-      },
-    },
-  });
-  return found.length == obaIds.length;
+  return res.json(result);
 }
 
 export default authenticatedApiRoute("POST", handle);

@@ -33,8 +33,26 @@ export class AmountWithCurrency {
     return this.amount.dollar();
   }
 
+  public abs() {
+    if (this.amount.isNegative()) {
+      return new AmountWithCurrency({
+        amountCents: this.amount.abs().cents(),
+        currency: this.currency,
+      });
+    }
+    return this;
+  }
+
   public isZero() {
     return this.amount.isZero();
+  }
+
+  public isPositive() {
+    return this.amount.isPositive();
+  }
+
+  public isNegative() {
+    return this.amount.isNegative();
   }
 
   public add(other: AmountWithCurrency): AmountWithCurrency {

@@ -2,6 +2,7 @@ import {
   Bank as DBBank,
   BankAccount as DBBankAccount,
   Currency as DBCurrency,
+  NordigenToken as DBNordigenToken,
   OpenBankingToken as DBOpenBankingToken,
 } from "@prisma/client";
 import { ConfigPageLayout } from "components/ConfigPageLayout";
@@ -25,7 +26,8 @@ import { useState } from "react";
 const BanksList = (props: {
   banks: Bank[];
   currencies: Currencies;
-  openBankingTokens: DBOpenBankingToken[];
+  trueLayerTokens: DBOpenBankingToken[];
+  nordigenTokens: DBNordigenToken[];
   onBankUpdated: (updated: DBBank) => void;
   onAccountAddedOrUpdated: (x: DBBankAccount) => void;
 }) => {
@@ -38,9 +40,10 @@ const BanksList = (props: {
         <BanksListItem
           key={bank.id}
           bank={bank}
-          openBankingToken={props.openBankingTokens.find(
+          trueLayerToken={props.trueLayerTokens.find(
             (t) => t.bankId == bank.id
           )}
+          nordigenToken={props.nordigenTokens.find((t) => t.bankId == bank.id)}
           currencies={props.currencies}
           onBankUpdated={props.onBankUpdated}
           onAccountAddedOrUpdated={props.onAccountAddedOrUpdated}
@@ -52,7 +55,8 @@ const BanksList = (props: {
 
 function BanksListItem({
   bank,
-  openBankingToken,
+  trueLayerToken,
+  nordigenToken,
   onBankUpdated,
   onAccountAddedOrUpdated,
   currencies,
@@ -73,41 +77,11 @@ function BanksListItem({
               </ButtonLink>
             )}
           </div>
-          <div className="text-sm text-gray-600">
-            {!editBankFormDisplayed && !openBankingToken && (
-              <div className="space-x-3">
-                {openBankingToken && (
-                  <AnchorLink
-                    href={`/config/open-banking/connection/${bank.id}`}
-                  >
-                    OpenBanking
-                  </AnchorLink>
-                )}
-                <AnchorLink
-                  href={`/api/open-banking/connect?bankId=${bank.id}`}
-                >
-                  Connect with TrueLayer Banking API
-                </AnchorLink>
-              </div>
-            )}
-            {!editBankFormDisplayed && openBankingToken && (
-              <div className="space-x-3">
-                <span>Connected with TrueLayer Banking API</span>
-                {openBankingToken && (
-                  <AnchorLink
-                    href={`/config/open-banking/connection/${bank.id}`}
-                  >
-                    Edit connection
-                  </AnchorLink>
-                )}
-                <AnchorLink
-                  href={`/api/open-banking/connect?bankId=${bank.id}`}
-                >
-                  Reconnect
-                </AnchorLink>
-              </div>
-            )}
-          </div>
+          {!editBankFormDisplayed && (
+            <div className="text-sm text-gray-600">
+              <BankConnections {...{ trueLayerToken, nordigenToken, bank }} />
+            </div>
+          )}
         </div>
 
         {editBankFormDisplayed && (
@@ -152,6 +126,69 @@ function BanksListItem({
     </div>
   );
 }
+
+const BankConnections = ({
+  trueLayerToken,
+  nordigenToken,
+  bank,
+}: {
+  trueLayerToken: DBOpenBankingToken;
+  nordigenToken: DBNordigenToken;
+  bank: Bank;
+}) => {
+  if (!trueLayerToken && !nordigenToken) {
+    return (
+      <div>
+        Connect with{" "}
+        <AnchorLink href={`/api/open-banking/connect?bankId=${bank.id}`}>
+          TrueLayer (UK)
+        </AnchorLink>{" "}
+        or{" "}
+        <AnchorLink
+          href={`/config/open-banking/nordigen/connect?bankId=${bank.id}`}
+        >
+          Nordigen (EU+UK)
+        </AnchorLink>
+      </div>
+    );
+  }
+  return (
+    <>
+      {trueLayerToken && <TrueLayerActions bank={bank} />}
+      {nordigenToken && <NordigenActions bank={bank} />}
+    </>
+  );
+};
+
+const TrueLayerActions = ({ bank }: { bank: Bank }) => {
+  return (
+    <div className="space-x-3">
+      <span>Connected with TrueLayer</span>
+      <AnchorLink href={`/config/open-banking/connection/${bank.id}`}>
+        Configure
+      </AnchorLink>
+      <AnchorLink href={`/api/open-banking/connect?bankId=${bank.id}`}>
+        Reconnect
+      </AnchorLink>
+    </div>
+  );
+};
+
+const NordigenActions = ({ bank }: { bank: Bank }) => {
+  return (
+    <div className="space-x-3">
+      <span>Connected with Nordigen</span>
+      <AnchorLink href={`/config/open-banking/nordigen/connection/${bank.id}`}>
+        Configure
+      </AnchorLink>
+      <AnchorLink
+        href={`/api/open-banking/nordigen/reconnect?bankId=${bank.id}`}
+      >
+        Reconnect
+      </AnchorLink>
+    </div>
+  );
+};
 
 const AccountsList = (props: {
   bank: Bank;
@@ -217,7 +254,8 @@ export const getServerSideProps: GetServerSideProps<{
     dbBanks: DBBank[];
     dbBankAccounts: DBBankAccount[];
     dbCurrencies: DBCurrency[];
-    dbOpenBankingTokens: DBOpenBankingToken[];
+    dbTrueLayerTokens: DBOpenBankingToken[];
+    dbNordigenTokens: DBNordigenToken[];
   };
 }> = async (context) => {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -234,7 +272,14 @@ export const getServerSideProps: GetServerSideProps<{
     },
   });
   const dbCurrencies = await db.currencyFindMany();
-  const dbOpenBankingTokens = await db.openBankingTokenFindMany({
+  const dbTrueLayerTokens = await db.openBankingTokenFindMany({
+    where: {
+      bankId: {
+        in: dbBanks.map((x) => x.id),
+      },
+    },
+  });
+  const dbNordigenTokens = await db.nordigenTokenFindMany({
     where: {
       bankId: {
         in: dbBanks.map((x) => x.id),
@@ -248,7 +293,8 @@ export const getServerSideProps: GetServerSideProps<{
       dbBanks,
       dbBankAccounts,
       dbCurrencies,
-      dbOpenBankingTokens,
+      dbTrueLayerTokens,
+      dbNordigenTokens,
     },
   };
   return {
@@ -261,7 +307,8 @@ export default function BanksPage({
     dbBanks: dbBanksInitial,
     dbBankAccounts: dbBankAccountsInitial,
     dbCurrencies,
-    dbOpenBankingTokens,
+    dbTrueLayerTokens,
+    dbNordigenTokens,
   },
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [dbBanks, setDbBanks] = useState(dbBanksInitial);
@@ -280,7 +327,8 @@ export default function BanksPage({
     <ConfigPageLayout>
       <BanksList
         banks={banks}
-        openBankingTokens={dbOpenBankingTokens}
+        trueLayerTokens={dbTrueLayerTokens}
+        nordigenTokens={dbNordigenTokens}
         currencies={currencies}
         onBankUpdated={updateState(setDbBanks)}
         onAccountAddedOrUpdated={updateState(setDbBankAccounts)}

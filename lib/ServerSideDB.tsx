@@ -1,9 +1,8 @@
 import { DB } from "lib/db";
 import { addLatestExchangeRates } from "lib/exchangeRatesBackfill";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
-import { fetchBalances } from "lib/openbanking/balance";
+import { fetchOpenBankingData } from "lib/openbanking/fetchall";
 import { IOpenBankingData } from "lib/openbanking/interface";
-import { fetchOpenBankingTransactions } from "lib/openbanking/transactions";
 import { addLatestStockQuotes } from "lib/stockQuotesBackfill";
 import { GetServerSideProps } from "next";
 import { getServerSession } from "next-auth/next";
@@ -34,14 +33,6 @@ const fetchAllDatabaseData = async (db: DB): Promise<AllDatabaseData> => {
     dbDisplaySettings: await db.getOrCreateDbDisplaySettings(),
     dbExchangeRates: await db.exchangeRateFindMany(),
     dbStockQuotes: await db.stockQuoteFindMany(),
-  };
-};
-
-const fetchOpenBankingData = async (db: DB): Promise<IOpenBankingData> => {
-  return {
-    balances: await fetchBalances(db),
-    newPrototypes: await fetchOpenBankingTransactions(db),
-    usedPrototypes: await db.transactionPrototypeFindMany(),
   };
 };
 
