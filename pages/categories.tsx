@@ -124,16 +124,18 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
   const [displayOrder, setDisplayOrder] = useState(props.category.displayOrder);
   const [parentId, setParentId] = useState(props.category.parentCategoryId);
   const [showForm, setShowForm] = useState(false);
+  const [updateError, setUpdateError] = useState("");
   const [updateInProgress, setUpdateInProgress] = useState(false);
 
   const resetForm = () => {
     setName(props.category.name);
     setDisplayOrder(props.category.displayOrder);
     setParentId(props.category.parentCategoryId);
+    setUpdateError("");
   };
 
   const openForm = () => {
-    resetForm()
+    resetForm();
     setShowForm(true);
   };
 
@@ -144,6 +146,7 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
 
   const submitData = async (e: React.SyntheticEvent) => {
     e.preventDefault();
+    setUpdateError("");
     setUpdateInProgress(true);
     const parentCategoryId = parentId ? +parentId : null;
     try {
@@ -160,7 +163,7 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
       closeForm();
       props.onCategoryUpdated(await response.json());
     } catch (error) {
-      console.error(error);
+      setUpdateError(`Failed to update: ${error}`);
     }
     setUpdateInProgress(false);
   };
@@ -184,17 +187,20 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
         onChange={(e) => setName(e.target.value)}
         placeholder="Name"
         type="text"
+        disabled={updateInProgress}
         value={name}
       />
       <input
         onChange={(e) => setDisplayOrder(+e.target.value)}
         placeholder="Display order"
         type="number"
+        disabled={updateInProgress}
         value={displayOrder}
       />
       <select
         onChange={(e) => setParentId(+e.target.value)}
         value={props.category.parentCategoryId}
+        disabled={updateInProgress}
       >
         <option value="">No parent</option>
         {props.categories.map((category) => (
@@ -203,12 +209,15 @@ const EditableCategoryListItem: React.FC<EditableCategoryListItemProps> = (
           </option>
         ))}
       </select>
-      <button onClick={closeForm}>Cancel</button>
+      <button onClick={closeForm} disabled={updateInProgress}>
+        Cancel
+      </button>
       <input
         disabled={!name || updateInProgress}
         type="submit"
         value={updateInProgress ? "Updating…" : "Update"}
       />
+      {updateError && <span>{updateError}</span>}
     </form>
   );
 };
