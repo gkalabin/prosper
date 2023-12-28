@@ -56,7 +56,7 @@ export function OpenBankingMappingConfigPage({
     ),
   );
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setApiError("");
     setStatusMessage("");

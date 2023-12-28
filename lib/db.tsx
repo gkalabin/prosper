@@ -5,9 +5,6 @@ import {
 } from "lib/model/AllDatabaseDataModel";
 import { Currency } from "lib/model/Currency";
 import prisma from "lib/prisma";
-import { includeExtensionsAndTags } from "lib/transactionDbUtils";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "pages/api/auth/[...nextauth]";
 
 export class DB {
   private readonly userId: number;
@@ -16,22 +13,24 @@ export class DB {
     this.userId = userId;
   }
 
-  static async fromContext(context) {
-    const session = await getServerSession(
-      context.req,
-      context.res,
-      authOptions,
-    );
-    if (!session) {
-      throw new Error("No session");
-    }
-    return new DB({ userId: +session.user.id });
-  }
-
-  transactionFindMany<T extends Prisma.TransactionFindManyArgs>(
-    args?: Prisma.SelectSubset<T, Prisma.TransactionFindManyArgs>,
-  ): Prisma.PrismaPromise<Array<Prisma.TransactionGetPayload<T>>> {
-    return prisma.transaction.findMany(this.whereUser(args));
+  transactionFindAll(): Promise<TransactionWithExtensionsAndTagIds[]> {
+    return prisma.transaction.findMany({
+      where: {
+        userId: this.userId,
+      },
+      include: {
+        personalExpense: true,
+        thirdPartyExpense: true,
+        transfer: true,
+        income: true,
+        tags: {
+          select: {
+            id: true,
+          },
+        },
+      },
+      // ...args
+    });
   }
   transactionById(
     id: number,
@@ -55,25 +54,25 @@ export class DB {
     });
   }
   transactionPrototypeFindMany(args?: Prisma.TransactionPrototypeFindManyArgs) {
-    return prisma.transactionPrototype.findMany(this.whereUser(args));
+    return prisma.transactionPrototype.findMany(this.whereUser(args ?? {}));
   }
   tripFindMany(args?: Prisma.TripFindManyArgs) {
-    return prisma.trip.findMany(this.whereUser(args));
+    return prisma.trip.findMany(this.whereUser(args ?? {}));
   }
   tagFindMany(args?: Prisma.TagFindManyArgs) {
-    return prisma.tag.findMany(this.whereUser(args));
+    return prisma.tag.findMany(this.whereUser(args ?? {}));
   }
-  bankUpdate(args?: Prisma.BankUpdateArgs) {
+  bankUpdate(args: Prisma.BankUpdateArgs) {
     return prisma.bank.update(args);
   }
   bankFindMany(args?: Prisma.BankFindManyArgs) {
-    return prisma.bank.findMany(this.whereUser(args));
+    return prisma.bank.findMany(this.whereUser(args ?? {}));
   }
   bankAccountFindMany(args?: Prisma.BankAccountFindManyArgs) {
-    return prisma.bankAccount.findMany(this.whereUser(args));
+    return prisma.bankAccount.findMany(this.whereUser(args ?? {}));
   }
   categoryFindMany(args?: Prisma.CategoryFindManyArgs) {
-    return prisma.category.findMany(this.whereUser(args));
+    return prisma.category.findMany(this.whereUser(args ?? {}));
   }
 
   stockQuoteFindMany(args?: Prisma.StockQuoteFindManyArgs) {
@@ -87,21 +86,21 @@ export class DB {
   }
 
   trueLayerTokenFindMany(args?: Prisma.TrueLayerTokenFindManyArgs) {
-    return prisma.trueLayerToken.findMany(this.whereUser(args));
+    return prisma.trueLayerToken.findMany(this.whereUser(args ?? {}));
   }
   nordigenTokenFindMany(args?: Prisma.NordigenTokenFindFirstArgs) {
-    return prisma.nordigenToken.findMany(this.whereUser(args));
+    return prisma.nordigenToken.findMany(this.whereUser(args ?? {}));
   }
   nordigenRequisitionFindFirst(args?: Prisma.NordigenRequisitionFindFirstArgs) {
-    return prisma.nordigenRequisition.findFirst(this.whereUser(args));
+    return prisma.nordigenRequisition.findFirst(this.whereUser(args ?? {}));
   }
   starlingTokenFindMany(args?: Prisma.StarlingTokenFindFirstArgs) {
-    return prisma.starlingToken.findMany(this.whereUser(args));
+    return prisma.starlingToken.findMany(this.whereUser(args ?? {}));
   }
   externalAccountMappingFindMany(
     args?: Prisma.ExternalAccountMappingFindManyArgs,
   ) {
-    return prisma.externalAccountMapping.findMany(this.whereUser(args));
+    return prisma.externalAccountMapping.findMany(this.whereUser(args ?? {}));
   }
 
   async getOrCreateDbDisplaySettings() {
@@ -125,8 +124,7 @@ export class DB {
     return this.userId;
   }
 
-  // TODO: add types
-  private whereUser(args) {
+  private whereUser<T extends UserIdFilter>(args: T): T {
     const copy = { ...args };
     copy.where = { ...copy.where };
     if (copy.where.userId) {
@@ -137,14 +135,13 @@ export class DB {
   }
 }
 
+type UserIdFilter = { where?: { userId?: number | Prisma.IntFilter<string> } };
+
 export async function fetchAllDatabaseData(db: DB): Promise<AllDatabaseData> {
   const data = {} as AllDatabaseData;
   await Promise.all(
     [
-      async () =>
-        (data.dbTransactions = await db.transactionFindMany(
-          includeExtensionsAndTags,
-        )),
+      async () => (data.dbTransactions = await db.transactionFindAll()),
       async () => (data.dbBanks = await db.bankFindMany()),
       async () => (data.dbTrips = await db.tripFindMany()),
       async () => (data.dbTags = await db.tagFindMany()),

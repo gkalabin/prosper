@@ -13,7 +13,16 @@ export const metadata: Metadata = {
   title: "Nordigen Connect - Prosper",
 };
 
-async function getData(userId: number, bankId: number, country: string|undefined) {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  const bankId = intParamOrFirst(searchParams["bankId"]);
+  if (!bankId) {
+    return notFound();
+  }
+  const userId = await getUserId();
   const db = new DB({ userId });
   const [dbBank] = await db.bankFindMany({
     where: {
@@ -23,8 +32,9 @@ async function getData(userId: number, bankId: number, country: string|undefined
   if (!dbBank) {
     return notFound();
   }
+  const country = paramOrFirst(searchParams["country"]);
   if (!country) {
-    return { dbBank };
+    return <CountriesSelector dbBank={dbBank} />;
   }
   if (!NORDIGEN_COUNTRIES.find((c) => c.code === country)) {
     return notFound();
@@ -38,32 +48,15 @@ async function getData(userId: number, bankId: number, country: string|undefined
     },
   );
   const institutions: Institution[] = await institutionsResponse.json();
-  institutions.sort((a, b) => a.name.localeCompare(b.name));
-  return { dbBank, institutions };
-}
-
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
-}) {
-  const bankId = intParamOrFirst(searchParams["bankId"]);
-  if (!bankId) {
+  if (!institutions) {
     return notFound();
   }
-  const userId = await getUserId();
-  const country = paramOrFirst(searchParams["country"]);
-  const { dbBank, institutions } = await getData(userId, bankId, country);
+  institutions.sort((a, b) => a.name.localeCompare(b.name));
   return (
-    <>
-      {!institutions && <CountriesSelector dbBank={dbBank} />}
-      {!!institutions && (
-        <InstitutionSelector
-          dbBank={dbBank}
-          institutions={institutions}
-          countryCode={country}
-        />
-      )}
-    </>
+    <InstitutionSelector
+      dbBank={dbBank}
+      institutions={institutions}
+      countryCode={country}
+    />
   );
 }

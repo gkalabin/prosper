@@ -81,7 +81,7 @@ export const transactionDbInput = (
     categoryId,
     parentTransactionId,
   }: AddTransactionFormValues,
-  userId: number
+  userId: number,
 ): TransactionDbData => {
   return {
     description,
@@ -102,7 +102,7 @@ const extensionConfigByMode = new Map<
     extensionDbField: string;
     formToDbData: (
       form: AddTransactionFormValues,
-      userId: number
+      userId: number,
     ) => ExtensionDbData;
   }
 >(
@@ -111,8 +111,13 @@ const extensionConfigByMode = new Map<
       mode: FormMode.PERSONAL,
       extensionDbField: "personalExpense",
       formToDbData: (
-        { vendor, ownShareAmount, fromBankAccountId, otherPartyName },
-        userId: number
+        {
+          vendor,
+          ownShareAmount,
+          fromBankAccountId,
+          otherPartyName,
+        }: AddTransactionFormValues,
+        userId: number,
       ) => {
         return {
           vendor,
@@ -127,8 +132,13 @@ const extensionConfigByMode = new Map<
       mode: FormMode.EXTERNAL,
       extensionDbField: "thirdPartyExpense",
       formToDbData: (
-        { vendor, ownShareAmount, payer, currencyCode },
-        userId: number
+        {
+          vendor,
+          ownShareAmount,
+          payer,
+          currencyCode,
+        }: AddTransactionFormValues,
+        userId: number,
       ) => {
         return {
           vendor,
@@ -143,8 +153,12 @@ const extensionConfigByMode = new Map<
       mode: FormMode.TRANSFER,
       extensionDbField: "transfer",
       formToDbData: (
-        { receivedAmount, fromBankAccountId, toBankAccountId },
-        userId: number
+        {
+          receivedAmount,
+          fromBankAccountId,
+          toBankAccountId,
+        }: AddTransactionFormValues,
+        userId: number,
       ) => {
         return {
           userId,
@@ -158,8 +172,13 @@ const extensionConfigByMode = new Map<
       mode: FormMode.INCOME,
       extensionDbField: "income",
       formToDbData: (
-        { payer, otherPartyName, ownShareAmount, toBankAccountId },
-        userId: number
+        {
+          payer,
+          otherPartyName,
+          ownShareAmount,
+          toBankAccountId,
+        }: AddTransactionFormValues,
+        userId: number,
       ) => {
         return {
           payer,
@@ -170,7 +189,7 @@ const extensionConfigByMode = new Map<
         };
       },
     },
-  ].map((x) => [x.mode, x])
+  ].map((x) => [x.mode, x]),
 );
 
 export async function writeTags({
@@ -182,7 +201,7 @@ export async function writeTags({
   form: AddTransactionFormValues;
   userId: number;
   data: TransactionDbData;
-  tx;
+  tx: Prisma.TransactionClient;
 }): Promise<{ createdTags: Tag[] }> {
   if (!form.tagNames?.length) {
     return { createdTags: [] };
@@ -198,7 +217,7 @@ export async function writeTags({
   const foundByName = new Map<string, Tag>(found.map((x) => [x.name, x]));
   const newTagNames = form.tagNames.filter((x) => !foundByName.has(x));
   const createdTags = await Promise.all(
-    newTagNames.map((name) => tx.tag.create({ data: { name, userId } }))
+    newTagNames.map((name) => tx.tag.create({ data: { name, userId } })),
   );
   data.tags = {
     connect: [...found, ...createdTags].map((x) => {
@@ -217,8 +236,8 @@ export async function writeTrip({
   form: AddTransactionFormValues;
   userId: number;
   data: TransactionDbData;
-  tx;
-}): Promise<Trip> {
+  tx: Prisma.TransactionClient;
+}): Promise<Trip | null> {
   if (![FormMode.PERSONAL, FormMode.EXTERNAL].includes(form.mode)) {
     return null;
   }
@@ -252,7 +271,7 @@ export async function writeUsedPrototypes({
   usedPrototype: TransactionPrototype;
   createdTransactionId: number;
   userId: number;
-  tx;
+  tx: Prisma.TransactionClient;
 }): Promise<{ createdPrototypes: DBTransactionPrototype[] }> {
   if (!usedPrototype) {
     return { createdPrototypes: [] };
