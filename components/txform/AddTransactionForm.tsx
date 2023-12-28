@@ -14,7 +14,12 @@ import {
   ButtonFormSecondary,
   ButtonLink,
 } from "components/ui/buttons";
-import { differenceInHours, format } from "date-fns";
+import {
+  differenceInHours,
+  differenceInMilliseconds,
+  format,
+  isBefore,
+} from "date-fns";
 import { Formik, FormikHelpers, useFormikContext } from "formik";
 import {
   AddTransactionFormValues,
@@ -239,35 +244,40 @@ function makePrototypes(input: {
 
   const transfers = [] as TransactionPrototype[];
   const usedInTransfer = {};
-  for (const to of prototypes) {
-    if (to.amount < 0) {
+  const incomePrototypes = prototypes.filter(p => p.amount > 0);
+  for (const to of incomePrototypes) {
+    const fromCandidates = prototypes
+      .filter(
+        (from) =>
+          Math.abs(from.amount + to.amount) < 0.01 &&
+          isBefore(from.timestamp, to.timestamp) &&
+          differenceInHours(to.timestamp, from.timestamp) < 2 &&
+          from.accountFromId != to.accountToId
+      )
+      // sort, so the closest to `to` transfer comes first
+      .sort(
+        (f1, f2) =>
+          differenceInMilliseconds(to.timestamp, f1.timestamp) -
+          differenceInMilliseconds(to.timestamp, f2.timestamp)
+      );
+    if (!fromCandidates.length) {
       continue;
     }
-    for (const from of prototypes) {
-      if (Math.abs(from.amount + to.amount) >= 0.01) {
-        continue;
-      }
-      if (Math.abs(differenceInHours(from.timestamp, to.timestamp)) > 3) {
-        continue;
-      }
-      if (from.accountFromId == to.accountToId) {
-        continue;
-      }
-      const transfer = {
-        amount: to.amount,
-        timestamp: from.timestamp,
-        vendor: from.vendor,
-        mode: FormMode.TRANSFER,
-        accountFromId: from.accountFromId,
-        accountToId: to.accountToId,
-        openBankingTransactionId: from.openBankingTransactionId,
-        openBankingTransaction: from.openBankingTransaction,
-        openBankingTransaction2: to.openBankingTransaction,
-      };
-      transfers.push(transfer);
-      usedInTransfer[from.openBankingTransactionId] = true;
-      usedInTransfer[to.openBankingTransactionId] = true;
-    }
+    const from = fromCandidates[0];
+    const transfer = {
+      amount: to.amount,
+      timestamp: from.timestamp,
+      vendor: from.vendor,
+      mode: FormMode.TRANSFER,
+      accountFromId: from.accountFromId,
+      accountToId: to.accountToId,
+      openBankingTransactionId: from.openBankingTransactionId,
+      openBankingTransaction: from.openBankingTransaction,
+      openBankingTransaction2: to.openBankingTransaction,
+    };
+    transfers.push(transfer);
+    usedInTransfer[from.openBankingTransactionId] = true;
+    usedInTransfer[to.openBankingTransactionId] = true;
   }
 
   const usedInTransaction = Object.fromEntries(
@@ -451,7 +461,10 @@ export const AddTransactionForm = (props: {
                   transactionPrototypes={props.transactionPrototypes}
                   banks={props.banks}
                   allTransactions={props.allTransactions}
-                  onItemClick={(t) => setPrototype(t)}
+                  onItemClick={(t) => {
+                    setPrototype(t);
+                    setMode(t.mode);
+                  }}
                 />
               </div>
 
@@ -560,21 +573,38 @@ const FormInputs = (props: {
   ]);
 
   useEffect(() => {
+    let newVendor = vendor;
+    if (props.prototype) {
+      newVendor = props.prototype.vendor;
+      setFieldValue("amount", props.prototype.amount);
+      setFieldValue("timestamp", toDateTimeLocal(props.prototype.timestamp));
+      if (props.prototype.accountFromId) {
+        setFieldValue("fromBankAccountId", props.prototype.accountFromId);
+      }
+      if (props.prototype.accountToId) {
+        setFieldValue("toBankAccountId", props.prototype.accountToId);
+      }
+    }
+
     const suggestion = mostUsedCategory(
       props.mode,
       props.allTransactions,
-      vendor
+      newVendor
     );
     if (suggestion) {
       setFieldValue("categoryId", suggestion.id);
     }
+    if (newVendor != vendor && newVendor) {
+      setFieldValue("vendor", newVendor);
+    }
   }, [
-    dirty,
+    amount,
+    vendor,
+    isFamilyExpense,
     props.allTransactions,
     props.mode,
+    props.prototype,
     setFieldValue,
-    touched,
-    vendor,
   ]);
 
   const vendorFrequency: { [vendor: string]: number } = {};

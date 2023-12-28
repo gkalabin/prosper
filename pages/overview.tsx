@@ -51,7 +51,7 @@ const BankAccountListItem = (props: {
           <span className="text-red-600">
             {props.account.balance().format()}
           </span>{" "}
-          {delta.format()} unaccounted{" "}
+          {delta.abs().format()} unaccounted{" "}
           {delta.lessThan(Amount.ZERO) ? "income" : "expense"}
         </>
       );

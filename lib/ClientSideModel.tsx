@@ -132,6 +132,15 @@ export class Amount {
     return this.amountCents / 100;
   }
 
+  public abs(): Amount {
+    if (this.amountCents >= 0) {
+      return this;
+    }
+    return new Amount({
+      amountCents: -this.amountCents,
+    });
+  }
+
   public add(a: Amount): Amount {
     return new Amount({
       amountCents: this.amountCents + a.amountCents,
