@@ -34,7 +34,15 @@ export class Currency {
     new Currency("GBP"),
   ];
 
-  static findByCode(code: string) {
+  static mustFindByCode(code: string): Currency {
+    const found = Currency.currencies.find((c) => c.name == code);
+    if (!found) {
+      throw new Error(`Cannot find currency '${code}'`);
+    }
+    return found;
+  }
+
+  static findByCode(code: string): Currency|undefined {
     return Currency.currencies.find((c) => c.name == code);
   }
 

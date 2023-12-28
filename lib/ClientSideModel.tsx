@@ -50,6 +50,9 @@ export class StockAndCurrencyExchange {
     when: Date | number
   ): AmountWithCurrency | undefined {
     const exchangeCurrencyAmount = this.stockQuotes.exchange(a, stock, when);
+    if (!exchangeCurrencyAmount) {
+      return undefined;
+    }
     return this.exchangeRates.exchange(exchangeCurrencyAmount, target, when);
   }
 }
@@ -91,10 +94,12 @@ export class ExchangeRates {
         this.ratesByCurrencyCode.get(from)?.get(to) ?? new Map();
       const date = startOfDay(new Date(r.rateTimestamp));
       timeseries.set(date.getTime(), +r.rateNanos.toString());
-      if (!this.ratesByCurrencyCode.has(from)) {
-        this.ratesByCurrencyCode.set(from, new Map());
+      let fromRates = this.ratesByCurrencyCode.get(from);
+      if (!fromRates) {
+        fromRates = new Map();
+        this.ratesByCurrencyCode.set(from, fromRates);
       }
-      this.ratesByCurrencyCode.get(from).set(to, timeseries);
+      fromRates.set(to, timeseries);
     }
     for (const from of this.ratesByCurrencyCode.values()) {
       for (const rates of from.values()) {
@@ -129,15 +134,14 @@ export class ExchangeRates {
     to: Currency,
     when: Date | number
   ): number | undefined {
-    if (
-      !this.ratesByCurrencyCode.has(from.code()) ||
-      !this.ratesByCurrencyCode.get(from.code()).has(to.code())
-    ) {
+    const ratesFrom = this.ratesByCurrencyCode.get(from.code());
+    if (!ratesFrom) {
       return undefined;
     }
-    const ratesHistory = this.ratesByCurrencyCode
-      .get(from.code())
-      .get(to.code());
+    const ratesHistory = ratesFrom.get(to.code());
+    if (!ratesHistory) {
+      return undefined;
+    }
     const whenDay = startOfDay(when);
     const rate = ratesHistory.get(whenDay.getTime());
     if (rate) {
@@ -174,27 +178,40 @@ export class StockQuotes {
     }
   }
 
-  exchange(a: Amount, stock: Stock, when: Date | number): AmountWithCurrency {
-    const currency = Currency.findByCode(stock.currencyCode);
+  exchange(
+    a: Amount,
+    stock: Stock,
+    when: Date | number
+  ): AmountWithCurrency | undefined {
+    const currency = Currency.mustFindByCode(stock.currencyCode);
     if (a.isZero()) {
       return AmountWithCurrency.zero(currency);
     }
     const pricePerShareCents = this.findQuote(stock, when);
+    if (!pricePerShareCents) {
+      return undefined;
+    }
     return new AmountWithCurrency({
       amountCents: Math.round(a.dollar() * pricePerShareCents),
       currency,
     });
   }
 
-  private findQuote(stock: Stock, when: Date | number): number {
+  private findQuote(stock: Stock, when: Date | number): number | undefined {
     const whenDay = startOfDay(when);
     const quotesForStock = this.quotesByStockId.get(stock.id);
+    if (!quotesForStock) {
+      return undefined;
+    }
     const quote = quotesForStock.get(whenDay.getTime());
     if (quote) {
       return quote;
     }
     const allTimestamps = [...quotesForStock.keys()];
     const closestTimestamp = closestTo(when, allTimestamps);
+    if (!closestTimestamp) {
+      return undefined;
+    }
     console.warn(
       `Approximating ${stock.ticker} quote for ${when} with ${closestTimestamp}`
     );
@@ -219,7 +236,11 @@ const AllDatabaseDataContext = createContext<
   AllClientDataModel & {
     setDbData: Setter<AllDatabaseData>;
   }
->(null);
+>(
+  null as unknown as AllClientDataModel & {
+    setDbData: Setter<AllDatabaseData>;
+  }
+);
 export const AllDatabaseDataContextProvider = (props: {
   dbData: AllDatabaseData;
   children: JSX.Element | JSX.Element[];
@@ -240,6 +261,13 @@ export const useDisplayBankAccounts = () => {
   return bankAccounts.filter((x) => !x.archived);
 };
 
+function mustBank(bank: Bank | undefined, message: string): Bank {
+  if (!bank) {
+    throw new Error(`Cannot find bank: ${message}`);
+  }
+  return bank;
+}
+
 export const banksModelFromDatabaseData = (
   dbBanks: DBBank[],
   dbBankAccounts: DBBankAccount[],
@@ -253,11 +281,17 @@ export const banksModelFromDatabaseData = (
   // Sort bank accounts by display order, but taking precedence of the bank display order.
   const bankById = new Map<number, Bank>(banks.map((b) => [b.id, b]));
   const bankByBankAccountId = new Map<number, Bank>(
-    bankAccounts.map((ba) => [ba.id, bankById.get(ba.bankId)])
+    bankAccounts.map((ba) => {
+      const bank = mustBank(
+        bankById.get(ba.bankId),
+        `Bank ${ba.bankId} for account ${ba.id}`
+      );
+      return [ba.id, bank];
+    })
   );
   bankAccounts.sort((a, b) => {
-    const bankA = bankByBankAccountId.get(a.id);
-    const bankB = bankByBankAccountId.get(b.id);
+    const bankA = mustBank(bankByBankAccountId.get(a.id), `Bank ${a.id}`);
+    const bankB = mustBank(bankByBankAccountId.get(b.id), `Bank ${b.id}`);
     if (bankA.displayOrder != bankB.displayOrder) {
       return bankA.displayOrder - bankB.displayOrder;
     }
