@@ -2,10 +2,9 @@ import {
   Bank as DBBank,
   BankAccount as DBBankAccount,
   Currency as DBCurrency,
-  OpenBankingAccount as DBOpenBankingAccount,
   OpenBankingToken as DBOpenBankingToken,
 } from "@prisma/client";
-import AddBankAccountForm from "components/config/banks/AddBankAccountForm";
+import { AddBankAccountForm } from "components/config/banks/AddBankAccountForm";
 import { AddBankForm } from "components/config/banks/AddBankForm";
 import BankAccountListItem from "components/config/banks/BankAccountListItem";
 import { ConfigPageLayout } from "components/ConfigPageLayout";
@@ -78,32 +77,20 @@ const BankName = (props: {
   if (!formDisplayed) {
     return (
       <div className="border-b bg-indigo-200 p-2 text-gray-900">
-        <h1 className="inline-block text-xl font-medium">{props.bank.name}</h1>
-        <small
-          className="px-1 text-xs text-gray-500"
-          title="Lower order items show first."
-        >
-          order {props.bank.displayOrder}
-        </small>
-
-        <ButtonLink className="text-sm" onClick={open}>
-          Edit
-        </ButtonLink>
-        {props.openBankingToken && (
-          <span>
-            Connected on {props.openBankingToken.connectionCreatedAt}.
+        <div className="flex items-center gap-3">
+          <h1 className="grow text-xl font-medium">{props.bank.name}</h1>
+          <ButtonLink onClick={open}>Edit</ButtonLink>
+          {props.openBankingToken && (
             <AnchorLink
-              className="ml-1"
               href={`/config/open-banking/connection/${props.bank.id}`}
-              label="Edit connection"
+              label="OpenBanking"
             />
-          </span>
-        )}
-        <AnchorLink
-          className="ml-1"
-          href={`/api/open-banking/connect?bankId=${props.bank.id}`}
-          label={props.openBankingToken ? "Reconnect" : "Connect"}
-        />
+          )}
+          <AnchorLink
+            href={`/api/open-banking/connect?bankId=${props.bank.id}`}
+            label={props.openBankingToken ? "Reconnect" : "Connect"}
+          />
+        </div>
       </div>
     );
   }
@@ -139,10 +126,8 @@ const BanksList = (props: {
   banks: Bank[];
   currencies: Currencies;
   openBankingTokens: DBOpenBankingToken[];
-  openBankingAccounts: DBOpenBankingAccount[];
   onBankUpdated: (updated: DBBank) => void;
-  onBankAccountAdded: (added: DBBankAccount) => void;
-  onBankAccountUpdated: (updated: DBBankAccount) => void;
+  onBankAccountAddedOrUpdated: (x: DBBankAccount) => void;
 }) => {
   if (!props.banks) {
     return <div>No banks found.</div>;
@@ -165,13 +150,13 @@ const BanksList = (props: {
                 bank={bank}
                 accounts={bank.accounts}
                 currencies={props.currencies}
-                onBankAccountUpdated={props.onBankAccountUpdated}
+                onBankAccountAddedOrUpdated={props.onBankAccountAddedOrUpdated}
               />
               <AddBankAccountForm
                 bank={bank}
                 currencies={props.currencies}
                 displayOrder={bank.accounts.length * 100}
-                onAdded={props.onBankAccountAdded}
+                onAddedOrUpdated={props.onBankAccountAddedOrUpdated}
               />
             </div>
           </div>
@@ -185,10 +170,10 @@ const AccountsList = (props: {
   bank: Bank;
   accounts: BankAccount[];
   currencies: Currencies;
-  onBankAccountUpdated: (updated: DBBankAccount) => void;
+  onBankAccountAddedOrUpdated: (updated: DBBankAccount) => void;
 }) => {
   if (!props.accounts) {
-    return <div>No accounts found.</div>;
+    return <div>No accounts.</div>;
   }
   return (
     <>
@@ -198,7 +183,7 @@ const AccountsList = (props: {
           bank={props.bank}
           account={account}
           currencies={props.currencies}
-          onUpdated={props.onBankAccountUpdated}
+          onUpdated={props.onBankAccountAddedOrUpdated}
         />
       ))}
     </>
@@ -210,7 +195,6 @@ export const getServerSideProps: GetServerSideProps<{
     dbBanks: DBBank[];
     dbBankAccounts: DBBankAccount[];
     dbCurrencies: DBCurrency[];
-    dbOpenBankingAccounts: DBOpenBankingAccount[];
     dbOpenBankingTokens: DBOpenBankingToken[];
   };
 }> = async (context) => {
@@ -219,43 +203,34 @@ export const getServerSideProps: GetServerSideProps<{
     return { props: {} };
   }
   const db = await DB.fromContext(context);
-  const banks = await db.bankFindMany();
-  const bankAccounts = await db.bankAccountFindMany({
+  const dbBanks = await db.bankFindMany();
+  const dbBankAccounts = await db.bankAccountFindMany({
     where: {
       bankId: {
-        in: banks.map((x) => x.id),
+        in: dbBanks.map((x) => x.id),
       },
     },
   });
-  const currencies = await db.currencyFindMany();
-
+  const dbCurrencies = await db.currencyFindMany();
   const dbOpenBankingTokens = await db.openBankingTokenFindMany({
     where: {
       bankId: {
-        in: banks.map((x) => x.id),
-      },
-    },
-  });
-  const dbOpenBankingAccounts = await db.openBankingAccountFindMany({
-    where: {
-      bankAccountId: {
-        in: bankAccounts.map((x) => x.id),
+        in: dbBanks.map((x) => x.id),
       },
     },
   });
 
-  return {
-    props: {
-      data: {
-        dbBanks: JSON.parse(JSON.stringify(banks)),
-        dbBankAccounts: JSON.parse(JSON.stringify(bankAccounts)),
-        dbCurrencies: JSON.parse(JSON.stringify(currencies)),
-        dbOpenBankingTokens: JSON.parse(JSON.stringify(dbOpenBankingTokens)),
-        dbOpenBankingAccounts: JSON.parse(
-          JSON.stringify(dbOpenBankingAccounts)
-        ),
-      },
+  const props = {
+    session,
+    data: {
+      dbBanks,
+      dbBankAccounts,
+      dbCurrencies,
+      dbOpenBankingTokens,
     },
+  };
+  return {
+    props: JSON.parse(JSON.stringify(props)),
   };
 };
 
@@ -265,7 +240,6 @@ export default function BanksPage({
     dbBankAccounts: dbBankAccountsInitial,
     dbCurrencies,
     dbOpenBankingTokens,
-    dbOpenBankingAccounts,
   },
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [dbBanks, setDbBanks] = useState(dbBanksInitial);
@@ -283,11 +257,9 @@ export default function BanksPage({
       <BanksList
         banks={banks}
         openBankingTokens={dbOpenBankingTokens}
-        openBankingAccounts={dbOpenBankingAccounts}
         currencies={currencies}
         onBankUpdated={updateState(setDbBanks)}
-        onBankAccountAdded={updateState(setDbBankAccounts)}
-        onBankAccountUpdated={updateState(setDbBankAccounts)}
+        onBankAccountAddedOrUpdated={updateState(setDbBankAccounts)}
       />
 
       <div className="mt-4 rounded-md border p-2">

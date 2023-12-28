@@ -1,45 +1,40 @@
 import { BankAccount as DBBankAccount } from "@prisma/client";
-import { Currencies } from "lib/model/Currency";
+import { FormikInput, FormikMoneyInput } from "components/forms/Input";
+import { SelectNumber } from "components/forms/Select";
+import {
+  ButtonFormPrimary,
+  ButtonFormSecondary,
+  ButtonLink,
+} from "components/ui/buttons";
+import { Form, Formik } from "formik";
 import { Bank } from "lib/model/BankAccount";
+import { Currencies } from "lib/model/Currency";
 import Link from "next/link";
-import React, { useState } from "react";
+import { useState } from "react";
 
-const AddBankAccountForm = (props: {
+export const AddBankAccountForm = (props: {
   displayOrder: number;
   bank: Bank;
   currencies: Currencies;
-  onAdded: (added: DBBankAccount) => void;
+  onAddedOrUpdated: (x: DBBankAccount) => void;
 }) => {
-  const [name, setName] = useState("");
-  const [currencyId, setCurrencyId] = useState(props.currencies.all()[0]?.id);
   const [formDisplayed, setFormDisplayed] = useState(false);
-  const [requestInFlight, setRequestInFlight] = useState(false);
   const [apiError, setApiError] = useState("");
+  const initialValues = {
+    name: "",
+    currencyId: props.currencies.all()[0]?.id,
+    isJoint: false,
+    initialBalance: 0,
+  };
 
-  const reset = () => {
-    setName("");
-    setCurrencyId(props.currencies.all()[0]?.id);
+  const handleSubmit = async ({ name, currencyId, isJoint, initialBalance }) => {
     setApiError("");
-  };
-
-  const open = () => {
-    reset();
-    setFormDisplayed(true);
-  };
-
-  const close = () => {
-    reset();
-    setFormDisplayed(false);
-  };
-
-  const handleSubmit = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    setApiError("");
-    setRequestInFlight(true);
     try {
       const body = {
         name,
         currencyId,
+        isJoint,
+        initialBalance,
         displayOrder: props.displayOrder,
         bankId: props.bank.id,
       };
@@ -48,12 +43,11 @@ const AddBankAccountForm = (props: {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      close();
-      props.onAdded(await added.json());
+      props.onAddedOrUpdated(await added.json());
+      setFormDisplayed(false);
     } catch (error) {
       setApiError(`Failed to add: ${error}`);
     }
-    setRequestInFlight(false);
   };
 
   if (!props.currencies.all().length) {
@@ -67,40 +61,96 @@ const AddBankAccountForm = (props: {
     );
   }
   if (!formDisplayed) {
-    return <button onClick={open}>New Bank Account</button>;
+    return (
+      <ButtonLink onClick={() => setFormDisplayed(true)}>
+        Add Bank Account
+      </ButtonLink>
+    );
   }
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        autoFocus
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Name"
-        disabled={requestInFlight}
-        type="text"
-        value={name}
-      />
-      <select
-        onChange={(e) => setCurrencyId(+e.target.value)}
-        disabled={requestInFlight}
-        value={currencyId}
-      >
-        {props.currencies.all().map((x) => (
-          <option key={x.id} value={x.id}>
-            {x.name}
-          </option>
-        ))}
-      </select>
-      <button onClick={close} disabled={requestInFlight}>
-        Cancel
-      </button>
-      <input
-        disabled={!name || requestInFlight}
-        type="submit"
-        value={requestInFlight ? "Adding…" : "Add"}
-      />
-      {apiError && <span>{apiError}</span>}
-    </form>
+    <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+      {({ isSubmitting, values }) => (
+        <Form className="flex max-w-xs flex-col gap-2 px-4 pb-6 pt-2">
+          <h3 className="mb-2 text-xl font-medium leading-5">
+            Add New Bank Account
+          </h3>
+          <div>
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Account Name
+            </label>
+            <FormikInput
+              autoFocus
+              name="name"
+              disabled={isSubmitting}
+              className="w-full"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="currencyId"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Account currency
+            </label>
+            <SelectNumber
+              name="currencyId"
+              disabled={isSubmitting}
+              className="w-full"
+            >
+              {props.currencies.all().map((x) => (
+                <option key={x.id} value={x.id}>
+                  {x.name}
+                </option>
+              ))}
+            </SelectNumber>
+          </div>
+          <div>
+            <label
+              htmlFor="initialBalance"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Initial balance
+            </label>
+            <FormikMoneyInput
+              name="initialBalance"
+              disabled={isSubmitting}
+              className="w-full"
+            />
+          </div>
+          <div className="flex flex-row gap-3 items-center">
+            <label
+              htmlFor="isJoint"
+              className="text-sm font-medium text-gray-700"
+            >
+              Joint account
+            </label>
+            <FormikInput
+              name="isJoint"
+              disabled={isSubmitting}
+              type="checkbox"
+            />
+          </div>
+          <div className="flex flex-row justify-end gap-2">
+            <ButtonFormSecondary
+              onClick={() => setFormDisplayed(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </ButtonFormSecondary>
+            <ButtonFormPrimary
+              disabled={!values.name || isSubmitting}
+              type="submit"
+            >
+              {isSubmitting ? "Adding…" : "Add"}
+            </ButtonFormPrimary>
+          </div>
+
+          <div>{apiError && <span>{apiError}</span>}</div>
+        </Form>
+      )}
+    </Formik>
   );
 };
-
-export default AddBankAccountForm;

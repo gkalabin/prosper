@@ -7,14 +7,17 @@ async function handle(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const { name, displayOrder, bankId, currencyId } = req.body;
+  const { name, displayOrder, bankId, currencyId, isJoint, initialBalance } =
+    req.body;
   const result = await prisma.bankAccount.create({
     data: {
       name,
       displayOrder,
-      bank: { connect: { id: bankId } },
-      currency: { connect: { id: currencyId } },
-      user: { connect: { id: userId } },
+      bankId,
+      currencyId,
+      userId,
+      joint: isJoint,
+      initialBalanceCents: Math.round(initialBalance * 100),
     },
   });
   res.json(result);

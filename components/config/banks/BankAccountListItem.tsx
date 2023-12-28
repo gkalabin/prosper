@@ -3,14 +3,12 @@ import { Currencies } from "lib/model/Currency";
 import { Bank, BankAccount } from "lib/model/BankAccount";
 import React, { useState } from "react";
 
-type BankAccountListItemProps = {
+const BankAccountListItem = (props: {
   bank: Bank;
   account: BankAccount;
   currencies: Currencies;
   onUpdated: (updated: DBBankAccount) => void;
-};
-
-const BankAccountListItem: React.FC<BankAccountListItemProps> = (props) => {
+}) => {
   const [name, setName] = useState(props.account.name);
   const [displayOrder, setDisplayOrder] = useState(props.account.displayOrder);
   const [currencyId, setCurrencyId] = useState(props.account.currency.id);

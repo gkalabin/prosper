@@ -6,20 +6,17 @@ import { ClassAttributes } from "react";
 export const MoneyInputWithLabel = (
   props: InputProps & FieldHookConfig<number>
 ) => {
-  const { setFieldValue } = useFormikContext();
+  const inputAttributes = props as ClassAttributes<HTMLInputElement>;
   return (
-    <InputWithLabelUntyped
-      {...props}
-      type="text"
-      step="0.01"
-      inputMode="decimal"
-      onFocus={(e) => e.target.select()}
-      onChange={(e) => {
-        // When locale set to NL for the example, the decimal separator is a comma.
-        // TODO: try using making AddTransactionFormValues a class with a method providing number value for the text.
-        setFieldValue(props.name, e.target.value.replace(/,/g, "."));
-      }}
-    />
+    <>
+      <label
+        htmlFor={props.name}
+        className="block text-sm font-medium text-gray-700"
+      >
+        {props.label}
+      </label>
+      <FormikMoneyInput {...inputAttributes} className="block w-full" />
+    </>
   );
 };
 
@@ -84,6 +81,26 @@ export const FormikInput = (
         props.disabled ? "opacity-30" : "",
         "rounded-md border border-gray-300 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
       )}
+    />
+  );
+};
+
+export const FormikMoneyInput = (
+  props: React.InputHTMLAttributes<HTMLInputElement>
+) => {
+  const { setFieldValue } = useFormikContext();
+  return (
+    <FormikInput
+      {...props}
+      type="text"
+      step="0.01"
+      inputMode="decimal"
+      onFocus={(e) => e.target.select()}
+      onChange={(e) => {
+        // When locale set to NL for the example, the decimal separator is a comma.
+        // TODO: try using making AddTransactionFormValues a class with a method providing number value for the text.
+        setFieldValue(props.name, e.target.value.replace(/,/g, "."));
+      }}
     />
   );
 };

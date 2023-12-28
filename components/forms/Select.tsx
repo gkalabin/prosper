@@ -1,4 +1,5 @@
 import classNames from "classnames";
+import { useFormikContext } from "formik";
 
 export const Select = (
   props: React.SelectHTMLAttributes<HTMLSelectElement>
@@ -15,6 +16,20 @@ export const Select = (
     >
       {props.children}
     </select>
+  );
+};
+
+export const SelectNumber = (
+  props: React.SelectHTMLAttributes<HTMLSelectElement>
+) => {
+  const { setFieldValue } = useFormikContext();
+  return (
+    <Select
+      {...props}
+      onChange={(e: { target: { value: string } }) => {
+        setFieldValue(props.name, parseInt(e.target.value));
+      }}
+    />
   );
 };
 
