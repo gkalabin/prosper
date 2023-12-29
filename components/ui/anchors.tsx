@@ -9,7 +9,7 @@ export const AnchorUnstyled = forwardRef<
 >((props, ref) => {
   const { children, href, ...rest } = props;
   return (
-    <Link href={href} ref={ref} {...rest}>
+    <Link href={href ?? ""} ref={ref} {...rest}>
       {children}
     </Link>
   );
