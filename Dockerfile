@@ -15,6 +15,8 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Make sure not to expose the .env file with real secrets.
+RUN echo "" > .env
 RUN npx prisma generate
 RUN npm run build
 
