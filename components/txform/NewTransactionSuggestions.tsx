@@ -4,9 +4,10 @@ import classNames from "classnames";
 import { ButtonLink } from "components/ui/buttons";
 import { format } from "date-fns";
 import { useFormikContext } from "formik";
-import { useDisplayBankAccounts } from "lib/model/AllDatabaseDataModel";
-import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
+import { assertDefined } from "lib/assert";
 import { uniqMostFrequent } from "lib/collections";
+import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
+import { useDisplayBankAccounts } from "lib/model/AllDatabaseDataModel";
 import {
   Bank,
   BankAccount,
@@ -20,6 +21,10 @@ import {
   isIncome,
   otherPartyNameOrNull,
 } from "lib/model/transaction/Transaction";
+import {
+  incomingBankAccount,
+  outgoingBankAccount,
+} from "lib/model/transaction/Transfer";
 import { useOpenBankingTransactions } from "lib/openbanking/context";
 import {
   TransactionPrototype,
@@ -131,13 +136,14 @@ const NonEmptyNewTransactionSuggestions = (props: {
   const [activeAccount, setActiveAccount] = useState(
     !accountsWithData.length ? null : accountsWithData[0],
   );
-  const activeAccountProtos = protosByAccountId.get(activeAccount?.id);
+  const activeAccountProtos =
+    protosByAccountId.get(activeAccount?.id ?? -1) ?? [];
   useEffect(() => {
-    if (!activeAccountProtos?.length && accountsWithData.length) {
+    if (!activeAccountProtos.length && accountsWithData.length) {
       setActiveAccount(accountsWithData[0]);
     }
-  }, [accountsWithData, activeAccountProtos]);
-  if (!accountsWithData.length) {
+  }, [accountsWithData, activeAccountProtos.length]);
+  if (!accountsWithData.length || !activeAccount) {
     return <></>;
   }
   return (
@@ -152,7 +158,7 @@ const NonEmptyNewTransactionSuggestions = (props: {
             <div key={account.id} className="ml-2 inline-block">
               <ButtonLink
                 onClick={() => setActiveAccount(account)}
-                disabled={account.id == activeAccount.id}
+                disabled={account.id == activeAccount?.id}
               >
                 {fullAccountName(account, banks)}
               </ButtonLink>
@@ -174,7 +180,7 @@ const NonEmptyNewTransactionSuggestions = (props: {
 function SuggestionsList(props: {
   items: TransactionPrototype[];
   bankAccount: BankAccount;
-  activePrototype: TransactionPrototype;
+  activePrototype: TransactionPrototype | null;
   onItemClick: (t: TransactionPrototype) => void;
 }) {
   const items = props.items.sort(
@@ -184,7 +190,10 @@ function SuggestionsList(props: {
   );
   const [limit, setLimit] = useState(5);
   const displayItems = items.slice(0, limit);
-  const sameProto = (a: TransactionPrototype, b: TransactionPrototype) => {
+  const sameProto = (
+    a: TransactionPrototype | null,
+    b: TransactionPrototype | null,
+  ): boolean => {
     if (!a || !b) {
       return false;
     }
@@ -251,8 +260,8 @@ function summary(
         otherPartyNameOrNull(t) ? "split with " + otherPartyNameOrNull(t) : ""
       }`;
     case "Transfer":
-      const from = bankAccounts.find((a) => a.id == t.fromAccountId);
-      const to = bankAccounts.find((a) => a.id == t.toAccountId);
+      const from = outgoingBankAccount(t, bankAccounts);
+      const to = incomingBankAccount(t, bankAccounts);
       return `${fullAccountName(from, banks)} → ${fullAccountName(to, banks)}`;
     default:
       const _exhaustiveCheck: never = t;
@@ -297,6 +306,7 @@ function SuggestionItem({
       ? proto.withdrawal.internalAccountId
       : proto.deposit.internalAccountId;
   const otherAccount = bankAccounts.find((a) => a.id == otherAccountId);
+  assertDefined(otherAccount);
   const unit = accountUnit(bankAccount, stocks);
   return (
     <div className={classNames({ "bg-gray-100": isActive })}>
