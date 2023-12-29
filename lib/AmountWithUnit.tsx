@@ -125,6 +125,7 @@ export class AmountWithUnit {
     if (isCurrency(this.unit)) {
       return formatCurrency(this.unit, this.amount.dollar(), opts);
     }
+    throw new Error(`Unknown unit type of ${this.unit}`);
   }
 
   public toString() {
