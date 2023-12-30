@@ -23,7 +23,9 @@ export async function fetchTransactions(
     .then((x) => decode({ response: x, accountId: mapping.internalAccountId }));
 }
 
-function decode(arg: { accountId: number; response }): Transaction[] {
+// TODO: define the interface for the external API response.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function decode(arg: { accountId: number; response: any; }): Transaction[] {
   const { feedItems } = arg.response;
   if (feedItems?.length === 0) {
     return [];
@@ -32,7 +34,9 @@ function decode(arg: { accountId: number; response }): Transaction[] {
     console.warn("Starling transactions error", arg.response);
     return [];
   }
-  return feedItems.map((t) => {
+  // TODO: define the interface for the external API response.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return feedItems.map((t: any) => {
     const {
       amount,
       direction,

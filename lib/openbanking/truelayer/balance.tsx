@@ -14,7 +14,7 @@ export async function fetchBalance(
   const x = await r.json();
   if (!x.results?.length) {
     console.warn("No balance found", x);
-    return;
+    throw new Error(`No balance found for ${mapping.externalAccountId}`);
   }
   // fields are: available, current, overdraft
   //   current - for some banks includes non settled amount

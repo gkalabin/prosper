@@ -20,7 +20,9 @@ export async function fetchAccounts(
     console.warn("No accounts found for requisition", requisition, response);
     return [];
   }
-  const fetches = response.accounts.map((aid) =>
+  // TODO: define the interface for the external API response.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fetches = response.accounts.map((aid: any) =>
     fetch(`https://ob.nordigen.com/api/v2/accounts/${aid}/details/`, {
       method: "GET",
       headers: { Authorization: `Bearer ${token.access}` },

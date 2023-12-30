@@ -4,7 +4,7 @@ import { parseExternalAccountId } from "lib/openbanking/starling/account";
 
 export async function fetchBalance(
   token: StarlingToken,
-  mapping: ExternalAccountMapping
+  mapping: ExternalAccountMapping,
 ): Promise<AccountBalance> {
   const { accountUid } = parseExternalAccountId(mapping.externalAccountId);
   return await fetch(
@@ -12,7 +12,7 @@ export async function fetchBalance(
     {
       method: "GET",
       headers: { Authorization: `Bearer ${token.access}` },
-    }
+    },
   )
     .then((r) => r.json())
     .then((r) => {
@@ -24,8 +24,8 @@ export async function fetchBalance(
       }
       console.warn(
         "No balance found for Starling bank",
-        JSON.stringify(r, null, 2)
+        JSON.stringify(r, null, 2),
       );
-      return;
+      throw new Error(`No balance found for ${mapping.externalAccountId}`);
     });
 }
