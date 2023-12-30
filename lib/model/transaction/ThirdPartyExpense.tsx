@@ -1,5 +1,5 @@
 import { TransactionType } from "@prisma/client";
-import { assert } from "lib/assert";
+import { assert, assertDefined } from "lib/assert";
 import { TransactionWithTagIds } from "lib/model/AllDatabaseDataModel";
 import { TransactionCompanion } from "lib/model/transaction/TransactionCompanion";
 
@@ -16,19 +16,24 @@ export type ThirdPartyExpense = {
   note: string;
   categoryId: number;
   tagsIds: number[];
-  tripId?: number;
+  tripId: number | null;
 };
 
 export function thirdPartyExpenseModelFromDB(
   init: TransactionWithTagIds,
 ): ThirdPartyExpense {
   assert(init.transactionType == TransactionType.THIRD_PARTY_EXPENSE);
+  assertDefined(init.payerOutgoingAmountCents);
+  assertDefined(init.ownShareAmountCents);
+  assertDefined(init.payer);
   const companions = [
     {
       name: init.payer,
       amountCents: init.payerOutgoingAmountCents - init.ownShareAmountCents,
     },
   ];
+  assertDefined(init.vendor);
+  assertDefined(init.currencyCode);
   return {
     kind: "ThirdPartyExpense",
     id: init.id,

@@ -1,5 +1,5 @@
 import { TransactionType } from "@prisma/client";
-import { assert } from "lib/assert";
+import { assert, assertDefined } from "lib/assert";
 import { TransactionWithTagIds } from "lib/model/AllDatabaseDataModel";
 import { TransactionCompanion } from "lib/model/transaction/TransactionCompanion";
 
@@ -14,7 +14,7 @@ export type PersonalExpense = {
   accountId: number;
   categoryId: number;
   tagsIds: number[];
-  tripId?: number;
+  tripId: number | null;
   refundGroupTransactionIds: number[];
 };
 
@@ -24,6 +24,9 @@ export function personalExpenseModelFromDB(
   assert(init.transactionType == TransactionType.PERSONAL_EXPENSE);
   const companions = [];
   if (init.ownShareAmountCents != init.outgoingAmountCents) {
+    assertDefined(init.incomingAmountCents);
+    assertDefined(init.ownShareAmountCents);
+    assertDefined(init.otherPartyName);
     companions.push({
       name: init.otherPartyName,
       amountCents: init.amountCents - init.ownShareAmountCents,
@@ -31,6 +34,8 @@ export function personalExpenseModelFromDB(
   }
   // TODO: fill for expenses.
   const refundGroupTransactionIds: number[] = [];
+  assertDefined(init.vendor);
+  assertDefined(init.outgoingAccountId);
   return {
     kind: "PersonalExpense",
     id: init.id,

@@ -1,8 +1,13 @@
 import { TransactionType } from "@prisma/client";
 import { AmountWithUnit } from "lib/AmountWithUnit";
-import { assert } from "lib/assert";
+import { assert, assertDefined } from "lib/assert";
 import { TransactionWithTagIds } from "lib/model/AllDatabaseDataModel";
-import { Bank, BankAccount, accountBank, accountUnit } from "lib/model/BankAccount";
+import {
+  Bank,
+  BankAccount,
+  accountBank,
+  accountUnit,
+} from "lib/model/BankAccount";
 import { Stock } from "lib/model/Stock";
 
 export type Transfer = {
@@ -20,6 +25,10 @@ export type Transfer = {
 
 export function transferModelFromDB(init: TransactionWithTagIds): Transfer {
   assert(init.transactionType == TransactionType.TRANSFER);
+  assertDefined(init.outgoingAccountId);
+  assertDefined(init.incomingAccountId);
+  assertDefined(init.outgoingAmountCents);
+  assertDefined(init.incomingAmountCents);
   return {
     kind: "Transfer",
     id: init.id,
@@ -51,7 +60,6 @@ export function incomingBank(
   const account = incomingBankAccount(t, bankAccounts);
   return accountBank(account, banks);
 }
-
 
 export function outgoingBankAccount(
   t: Transfer,

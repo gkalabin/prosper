@@ -1,5 +1,5 @@
 import { TransactionType } from "@prisma/client";
-import { assert } from "lib/assert";
+import { assert, assertDefined } from "lib/assert";
 import { TransactionWithTagIds } from "lib/model/AllDatabaseDataModel";
 import { TransactionCompanion } from "lib/model/transaction/TransactionCompanion";
 
@@ -20,8 +20,11 @@ export type Income = {
 
 export function incomeModelFromDB(init: TransactionWithTagIds): Income {
   assert(init.transactionType == TransactionType.INCOME);
-  const companions = [];
+  const companions: TransactionCompanion[] = [];
   if (init.ownShareAmountCents != init.incomingAmountCents) {
+    assertDefined(init.incomingAmountCents);
+    assertDefined(init.ownShareAmountCents);
+    assertDefined(init.otherPartyName);
     companions.push({
       name: init.otherPartyName,
       amountCents: init.incomingAmountCents - init.ownShareAmountCents,
@@ -31,6 +34,8 @@ export function incomeModelFromDB(init: TransactionWithTagIds): Income {
   if (init.transactionToBeRepayedId) {
     refundGroupTransactionIds.push(init.transactionToBeRepayedId);
   }
+  assertDefined(init.payer);
+  assertDefined(init.incomingAccountId);
   return {
     kind: "Income",
     id: init.id,
