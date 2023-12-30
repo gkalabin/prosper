@@ -1,29 +1,5 @@
 export const NANOS_MULTIPLIER = 1000000000;
 
-const formatters = {
-  // TODO: generalise
-  EUR: (options?: Intl.NumberFormatOptions) =>
-    new Intl.NumberFormat(
-      "nl-NL",
-      Object.assign({ style: "currency", currency: "EUR" }, options)
-    ),
-  RUB: (options?: Intl.NumberFormatOptions) =>
-    new Intl.NumberFormat(
-      "ru-RU",
-      Object.assign({ style: "currency", currency: "RUB" }, options)
-    ),
-  GBP: (options?: Intl.NumberFormatOptions) =>
-    new Intl.NumberFormat(
-      "en-GB",
-      Object.assign({ style: "currency", currency: "GBP" }, options)
-    ),
-  USD: (options?: Intl.NumberFormatOptions) =>
-    new Intl.NumberFormat(
-      "en-US",
-      Object.assign({ style: "currency", currency: "USD" }, options)
-    ),
-};
-
 export class Currency {
   static USD = new Currency("USD");
 
@@ -42,7 +18,7 @@ export class Currency {
     return found;
   }
 
-  static findByCode(code: string): Currency|undefined {
+  static findByCode(code: string): Currency | undefined {
     return Currency.currencies.find((c) => c.name == code);
   }
 
@@ -61,15 +37,30 @@ export class Currency {
   }
 }
 
+const CURRENCY_TO_LOCALE: Map<string, string> = new Map([
+  // TODO: use client's locale or provide a way to override it.
+  ["EUR", "nl-NL"],
+  ["RUB", "ru-RU"],
+  ["GBP", "en-GB"],
+  ["USD", "en-US"],
+  ["KZT", "kk-KZ"],
+  ["CNY", "zh-CN"],
+  ["JPY", "ja-JP"],
+  ["KRW", "ko-KR"],
+  ["HKD", "zh-HK"],
+]);
+
 export function formatCurrency(
   currency: Currency,
   amountDollar: number,
-  options?: Intl.NumberFormatOptions
+  options?: Intl.NumberFormatOptions,
 ) {
   const code = currency.code();
-  const formatter = formatters[code](options);
-  if (!formatter) {
-    throw new Error(`Unknown formatter for currency ${code}`);
-  }
+  const locale = CURRENCY_TO_LOCALE.get(code);
+  const formatter = new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: code,
+    ...options,
+  });
   return formatter.format(amountDollar);
 }
