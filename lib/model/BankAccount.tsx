@@ -30,8 +30,8 @@ export type BankAccount = {
   name: string;
   bankId: number;
   initialBalanceCents: number;
-  currencyCode?: string;
-  stockId?: number;
+  currencyCode: string | null;
+  stockId?: number | null;
   displayOrder: number;
   archived: boolean;
   joint: boolean;
@@ -53,7 +53,7 @@ export function bankAccountModelFromDB(init: DBBankAccount): BankAccount {
 
 export function accountUnit(account: BankAccount, stocks: Stock[]): Unit {
   if (account.currencyCode) {
-    return Currency.findByCode(account.currencyCode);
+    return Currency.mustFindByCode(account.currencyCode);
   }
   if (account.stockId) {
     const stock = stocks.find((s) => s.id == account.stockId);
