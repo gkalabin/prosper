@@ -1,4 +1,5 @@
 "use client";
+import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
 import { ExcludedCategoriesSelector } from "app/stats/ExcludedCategoriesSelector";
 import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
 import {
@@ -22,6 +23,8 @@ import {
 } from "lib/context/DisplaySettingsContext";
 import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
 import { transactionIsDescendant } from "lib/model/Category";
+import { Transaction } from "lib/model/transaction/Transaction";
+import { amountOwnShare } from "lib/model/transaction/amounts";
 import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
 import { MoneyTimeseries } from "lib/util/Timeseries";
 import { useState } from "react";
@@ -30,21 +33,38 @@ export function CashflowCharts({ input }: { input: TransactionsStatsInput }) {
   const displayCurrency = useDisplayCurrency();
   const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
   const zero = AmountWithCurrency.zero(displayCurrency);
+  const failedToExchange: Transaction[] = [];
   // collect monthly in/out amounts
   const moneyOut = new MoneyTimeseries(displayCurrency);
-  moneyOut.appendOwnShare(
-    bankAccounts,
-    stocks,
-    exchange,
-    ...input.expensesAllTime(),
-  );
+  for (const t of input.expensesAllTime()) {
+    const exchanged = amountOwnShare(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange,
+    );
+    if (!exchanged) {
+      failedToExchange.push(t);
+      continue;
+    }
+    moneyOut.append(t.timestampEpoch, exchanged);
+  }
   const moneyIn = new MoneyTimeseries(displayCurrency);
-  moneyIn.appendOwnShare(
-    bankAccounts,
-    stocks,
-    exchange,
-    ...input.incomeAllTime(),
-  );
+  for (const t of input.incomeAllTime()) {
+    const exchanged = amountOwnShare(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange,
+    );
+    if (!exchanged) {
+      failedToExchange.push(t);
+      continue;
+    }
+    moneyIn.append(t.timestampEpoch, exchanged);
+  }
   // calculate cashflow for each month
   const dataMonthsIndex = new Set<number>(
     [...input.expensesAllTime(), ...input.incomeAllTime()].map((t) =>
@@ -69,6 +89,8 @@ export function CashflowCharts({ input }: { input: TransactionsStatsInput }) {
     startOfYear(input.interval().end).getTime() != +input.interval().end;
   return (
     <>
+      <CurrencyExchangeFailed failedTransactions={failedToExchange} />
+
       <MonthlyChart
         data={cashflow}
         duration={input.interval()}

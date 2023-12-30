@@ -1,12 +1,6 @@
 import { startOfMonth, startOfYear } from "date-fns";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { StockAndCurrencyExchange } from "lib/ClientSideModel";
-import { BankAccount } from "lib/model/BankAccount";
 import { Currency } from "lib/model/Currency";
-import { Stock } from "lib/model/Stock";
-import { Expense } from "lib/model/transaction/Transaction";
-import { amountOwnShare } from "lib/model/transaction/amounts";
-import { Income } from "lib/model/transaction/Income";
 import { AppendMap } from "lib/util/AppendingMap";
 import { percentile } from "lib/util/util";
 
@@ -50,24 +44,6 @@ export class Timeseries<T> {
 export class MoneyTimeseries extends Timeseries<AmountWithCurrency> {
   constructor(private readonly _currency: Currency) {
     super(AmountWithCurrency.add, AmountWithCurrency.zero(_currency));
-  }
-
-  appendOwnShare(
-    bankAccounts: BankAccount[],
-    stocks: Stock[],
-    exchange: StockAndCurrencyExchange,
-    ...ts: (Expense | Income)[]
-  ) {
-    ts.forEach((t) => {
-      const amount = amountOwnShare(
-        t,
-        this._currency,
-        bankAccounts,
-        stocks,
-        exchange
-      );
-      this.append(t.timestampEpoch, amount);
-    });
   }
 
   monthlyPercentile(p: number) {
