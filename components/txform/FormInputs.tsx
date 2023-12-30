@@ -14,9 +14,9 @@ import { FormPersonalExpense } from "components/txform/FormPersonalExpense";
 import { FormTransfer } from "components/txform/FormTransfer";
 import { differenceInMonths, isBefore } from "date-fns";
 import { useFormikContext } from "formik";
-import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { shortRelativeDate } from "lib/TimeHelpers";
 import { uniqMostFrequent } from "lib/collections";
+import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { Currency } from "lib/model/Currency";
 import { Trip } from "lib/model/Trip";
 import {
@@ -282,14 +282,14 @@ export function ParentTransaction() {
     isSubmitting,
     setFieldValue,
   } = useFormikContext<TransactionFormValues>();
-  const { transactions, bankAccounts } = useAllDatabaseDataContext();
+  const { transactions, bankAccounts, stocks } = useAllDatabaseDataContext();
   const parentTransaction = parentTransactionId
     ? transactions.find((t) => t.id == parentTransactionId)
     : null;
   const parentExpense =
     parentTransaction?.kind == "PersonalExpense" ? parentTransaction : null;
   const makeTransactionLabel = (t: PersonalExpense): string =>
-    `${formatAmount(t, bankAccounts)} ${t.vendor} ${shortRelativeDate(
+    `${formatAmount(t, bankAccounts, stocks)} ${t.vendor} ${shortRelativeDate(
       t.timestampEpoch,
     )}`;
   const makeOption = (t: PersonalExpense) => ({

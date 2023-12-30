@@ -11,7 +11,7 @@ import { Currency } from "lib/model/Currency";
 import { Stock } from "lib/model/Stock";
 import { Tag } from "lib/model/Tag";
 import { Trip } from "lib/model/Trip";
-import { Unit } from "lib/model/Unit";
+import { Unit, formatUnit } from "lib/model/Unit";
 import { Income, incomeModelFromDB } from "lib/model/transaction/Income";
 import {
   PersonalExpense,
@@ -109,7 +109,7 @@ export function transactionTrip(
   t: PersonalExpense | ThirdPartyExpense | Income,
   allTrips: Trip[],
 ): Trip | null {
-  return allTrips.find((trip) => trip.id == t.tripId);
+  return allTrips.find((trip) => trip.id == t.tripId) ?? null;
 }
 
 // @deprecated
@@ -142,10 +142,11 @@ export function isIncome(t: Transaction): t is Income {
 export function formatAmount(
   t: PersonalExpense,
   bankAccounts: BankAccount[],
+  stocks: Stock[],
 ): string {
-  const account = bankAccounts.find((a) => a.id == t.accountId);
-  const currency = Currency.findByCode(account.currencyCode);
-  return currency.format(t.amountCents / 100);
+  const account = transactionBankAccount(t, bankAccounts);
+  const unit = accountUnit(account, stocks);
+  return formatUnit(unit, t.amountCents / 100);
 }
 
 export function otherPartyNameOrNull(t: Transaction): string | null {

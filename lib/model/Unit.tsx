@@ -6,15 +6,14 @@ export type Unit = Stock | Currency;
 export function formatUnit(
   unit: Unit,
   amountDollar: number,
-  options?: Intl.NumberFormatOptions
+  options?: Intl.NumberFormatOptions,
 ): string {
   const stock: Stock = unit as Stock;
   if (stock?.currencyCode) {
     return formatStock(stock, amountDollar, options);
   }
-  const currency: Currency = unit as Currency;
-  if (currency.code) {
-    return currency.format(amountDollar, options);
+  if (unit instanceof Currency) {
+    return unit.format(amountDollar, options);
   }
   throw new Error("Unknown unit");
 }
