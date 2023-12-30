@@ -5,6 +5,8 @@ import {
   format,
 } from "date-fns";
 import { EChartsOption } from "echarts";
+import { TooltipComponentOption } from "echarts/components";
+import { CallbackDataParams } from "echarts/types/dist/shared";
 import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { formatMonth } from "lib/TimeHelpers";
 import { Currency } from "lib/model/Currency";
@@ -31,15 +33,32 @@ export function legend(): EChartsOption {
   };
 }
 
-function stackedBarChartTooltipFormatter(c: Currency) {
-  const formatter = currencyFormatter(c);
-  return (params) => {
+type TooltipFormatterCallback = Exclude<
+  NonNullable<TooltipComponentOption["formatter"]>,
+  string
+>;
+type SingleTooltipFormatterParams = CallbackDataParams & {
+  axisValueLabel?: string;
+};
+
+type ToolTipFormatterParams =
+  | SingleTooltipFormatterParams
+  | Array<SingleTooltipFormatterParams>;
+
+function stackedBarChartTooltipFormatter(
+  c: Currency,
+): TooltipFormatterCallback {
+  return (params: ToolTipFormatterParams) => {
+    if (!Array.isArray(params)) {
+      throw new Error(`Stacked bar should have params array, got ${params}`);
+    }
+    console.log(params);
     if (params.length === 0) {
       return "No data";
     }
     const rows = params
-      .filter((p) => p.value !== 0)
-      .sort((a, b) => b.value - a.value)
+      .sort((a, b) => mustBeNumber(b.value) - mustBeNumber(a.value))
+      .filter((p) => p.value != 0)
       .map((p) => {
         return `
         <div class="flex gap-2">
@@ -47,7 +66,7 @@ function stackedBarChartTooltipFormatter(c: Currency) {
             ${p.marker} ${p.seriesName}
           </div>
           <div class="font-medium">
-            ${formatter(p.value)}
+            ${mustFormatCurrency(c, p.value)}
           </div>
         </div>
         `;
@@ -64,9 +83,23 @@ function stackedBarChartTooltipFormatter(c: Currency) {
   };
 }
 
+function mustBeNumber(v: unknown): number {
+  if (typeof v === "number") {
+    return v;
+  }
+  throw new Error(`Unexpected value ${v}`);
+}
+
+function mustFormatCurrency(c: Currency, v: unknown): string {
+  if (typeof v === "number") {
+    return currencyFormatter(c)(v);
+  }
+  throw new Error(`Unexpected value ${v}`);
+}
+
 export function defaultMonthlyMoneyChart(
   c: Currency,
-  interval: Interval
+  interval: Interval,
 ): EChartsOption {
   const months = eachMonthOfInterval(interval).map((x) => x.getTime());
   return {
@@ -79,7 +112,7 @@ export function defaultMonthlyMoneyChart(
 
 export function defaultYearlyMoneyChart(
   c: Currency,
-  interval: Interval
+  interval: Interval,
 ): EChartsOption {
   const years = eachYearOfInterval(interval).map((x) => x.getTime());
   return {
@@ -105,7 +138,7 @@ export function defaultMoneyChart(c: Currency): EChartsOption {
 }
 
 export function defaultCountChartOptions(
-  months: number[] | Date[]
+  months: number[] | Date[],
 ): EChartsOption {
   return {
     grid: {
@@ -129,12 +162,12 @@ export function defaultPieChartOptions(): EChartsOption {
 }
 
 export function currencyFormatter(c: Currency) {
-  return (v) => c.format(v, { maximumFractionDigits: 0 });
+  return (v: number) => c.format(v, { maximumFractionDigits: 0 });
 }
 
 export function monthlyData(
   interval: Interval,
-  timeseries: Map<number, AmountWithCurrency>
+  timeseries: Map<number, AmountWithCurrency>,
 ) {
   const months = eachMonthOfInterval(interval).map((x) => x.getTime());
   return makeData(months, timeseries);
@@ -142,7 +175,7 @@ export function monthlyData(
 
 export function makeData(
   time: number[],
-  timeseries: Map<number, AmountWithCurrency>
+  timeseries: Map<number, AmountWithCurrency>,
 ) {
   return time.map((m) => timeseries.get(m)?.round()?.dollar() ?? 0);
 }
