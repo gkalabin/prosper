@@ -6,7 +6,7 @@ export class DisplaySettings {
   private readonly _excludeCategoryIdsInStats: number[];
 
   public constructor(init: DBDisplaySettings) {
-    this._displayCurrency = Currency.findByCode(init.displayCurrencyCode);
+    this._displayCurrency = Currency.mustFindByCode(init.displayCurrencyCode);
     this._excludeCategoryIdsInStats = init.excludeCategoryIdsInStats
       .split(",")
       .map((x) => +x)
