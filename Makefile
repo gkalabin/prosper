@@ -13,8 +13,8 @@ dockerpull:
 
 # On Linux we can use --net=host to access host's network from inside the container.
 # Inside .env file we can use localhost as a host for DATABASE_URL.
-.PHONY: dockerrun
-dockerrun:
+.PHONY: prodrun
+prodrun: dockerpull
 	docker run --rm -v $(PWD)/.env:/app/.env --net=host gkalabin/prosper
 
 # On MacOS docker containers run inside a VM, so --net=host doesn't work and
