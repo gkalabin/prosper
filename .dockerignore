@@ -1,3 +1,4 @@
 .antlr
 .env
 .vscode
+node_modules

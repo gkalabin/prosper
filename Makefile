@@ -7,6 +7,10 @@ dockerbuild:
 release: dockerbuild
 	docker push gkalabin/prosper
 
+.PHONY: pull
+pull:
+	docker pull gkalabin/prosper
+
 # On Linux we can use --net=host to access host's network from inside the container.
 # Inside .env file we can use localhost as a host for DATABASE_URL.
 .PHONY: dockerrun
