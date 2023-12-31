@@ -24,7 +24,7 @@ export function personalExpenseModelFromDB(
   assert(init.transactionType == TransactionType.PERSONAL_EXPENSE);
   const companions = [];
   if (init.ownShareAmountCents != init.outgoingAmountCents) {
-    assertDefined(init.incomingAmountCents);
+    assertDefined(init.amountCents);
     assertDefined(init.ownShareAmountCents);
     assertDefined(init.otherPartyName);
     companions.push({
