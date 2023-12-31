@@ -7,8 +7,8 @@ dockerbuild:
 release: dockerbuild
 	docker push gkalabin/prosper
 
-.PHONY: pull
-pull:
+.PHONY: dockerpull
+dockerpull:
 	docker pull gkalabin/prosper
 
 # On Linux we can use --net=host to access host's network from inside the container.
