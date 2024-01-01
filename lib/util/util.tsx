@@ -2,13 +2,22 @@ import { AmountWithCurrency } from "lib/AmountWithCurrency";
 import { Currency } from "lib/model/Currency";
 import { AppendMap } from "lib/util/AppendingMap";
 
-export function percentile(data: AmountWithCurrency[], p: number) {
-  if (p < 0 || p > 100 || p != Math.round(p)) {
+export function percentile(
+  data: AmountWithCurrency[],
+  p: number,
+): AmountWithCurrency {
+  if (p < 0 || p > 100 || !Number.isInteger(p)) {
     throw new Error(`Invalid percentile '${p}'`);
   }
+  if (!data?.length) {
+    throw new Error(`Cannot calculate percentile of empty data`);
+  }
+  if (p == 0) {
+    return data[0];
+  }
   const amounts = [...data].sort((a, b) => a.cents() - b.cents());
-  const position = Math.round((amounts.length * p) / 100);
-  return amounts[position - 1];
+  const position = Math.ceil((data.length * p) / 100) - 1;
+  return amounts[position];
 }
 
 export function runningAverage(
