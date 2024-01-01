@@ -4,7 +4,6 @@ import classNames from "classnames";
 import { ButtonLink } from "components/ui/buttons";
 import { format } from "date-fns";
 import { useFormikContext } from "formik";
-import { assertDefined } from "lib/assert";
 import { uniqMostFrequent } from "lib/collections";
 import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
 import { useDisplayBankAccounts } from "lib/model/AllDatabaseDataModel";
@@ -306,7 +305,6 @@ function SuggestionItem({
       ? proto.withdrawal.internalAccountId
       : proto.deposit.internalAccountId;
   const otherAccount = bankAccounts.find((a) => a.id == otherAccountId);
-  assertDefined(otherAccount);
   const unit = accountUnit(bankAccount, stocks);
   return (
     <div className={classNames({ "bg-gray-100": isActive })}>
@@ -320,7 +318,7 @@ function SuggestionItem({
         >
           <div className="grow">
             <div>{singleOpProto.description}</div>
-            {proto.type == "transfer" && (
+            {proto.type == "transfer" && otherAccount && (
               <div className="text-xs italic text-gray-600">
                 Transfer {singleOpProto.type == "deposit" ? "from" : "to"}{" "}
                 {fullAccountName(otherAccount, banks)}
