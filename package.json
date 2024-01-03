@@ -6,11 +6,18 @@
     "dev": "next",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
     "test": "jest --watch",
-    "fmt": "prettier --write ."
+    "fmt": "prettier --write .",
+    "lint:fmt": "prettier --check .",
+    "lint:eslint": "eslint --ext .js,.jsx,.ts,.tsx . --max-warnings=0",
+    "lint:ts": "tsc --noEmit",
+    "lint": "npm run lint:eslint && npm run lint:ts && npm run lint:fmt"
   },
-  "keywords": [],
+  "keywords": [
+    "expense tracking",
+    "personal finance",
+    "spending tracker"
+  ],
   "author": "Gregory Kalabin",
   "license": "MIT",
   "prettier": {
