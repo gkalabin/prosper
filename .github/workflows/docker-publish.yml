@@ -4,6 +4,10 @@ on:
   push:
     branches: ['main']
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
 jobs:
   push_to_registry:
     name: Build and Push Docker image to Docker Hub
