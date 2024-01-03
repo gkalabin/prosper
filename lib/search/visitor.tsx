@@ -104,6 +104,9 @@ export class TransactionSearchQueryVisitor extends QueryVisitor<TransactionIds> 
     if (ctx.fieldCompareExpr()) {
       return this.visitFieldCompareExpr(ctx.fieldCompareExpr());
     }
+    if (ctx.groupingExpr()) {
+      return this.visitQuery(ctx.groupingExpr().query());
+    }
     throw new Error(`Unknown clause: ${ctx.getText()}`);
   };
 

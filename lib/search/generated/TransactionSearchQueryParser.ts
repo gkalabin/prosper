@@ -136,7 +136,7 @@ export default class TransactionSearchQueryParser extends Parser {
 				this.state = 34;
 				this._errHandler.sync(this);
 				_la = this._input.LA(1);
-			} while ((((_la) & ~0x1F) === 0 && ((1 << _la) & 24584) !== 0));
+			} while ((((_la) & ~0x1F) === 0 && ((1 << _la) & 24616) !== 0));
 			}
 		}
 		catch (re) {
@@ -303,7 +303,7 @@ export default class TransactionSearchQueryParser extends Parser {
 		let localctx: ClauseContext = new ClauseContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 12, TransactionSearchQueryParser.RULE_clause);
 		try {
-			this.state = 62;
+			this.state = 63;
 			this._errHandler.sync(this);
 			switch ( this._interp.adaptivePredict(this._input, 4, this._ctx) ) {
 			case 1:
@@ -325,6 +325,13 @@ export default class TransactionSearchQueryParser extends Parser {
 				{
 				this.state = 61;
 				this.term();
+				}
+				break;
+			case 4:
+				this.enterOuterAlt(localctx, 4);
+				{
+				this.state = 62;
+				this.groupingExpr();
 				}
 				break;
 			}
@@ -351,9 +358,9 @@ export default class TransactionSearchQueryParser extends Parser {
 		try {
 			this.enterOuterAlt(localctx, 1);
 			{
-			this.state = 64;
-			this.fieldName();
 			this.state = 65;
+			this.fieldName();
+			this.state = 66;
 			_la = this._input.LA(1);
 			if(!(_la===7 || _la===8)) {
 			this._errHandler.recoverInline(this);
@@ -362,7 +369,7 @@ export default class TransactionSearchQueryParser extends Parser {
 				this._errHandler.reportMatch(this);
 			    this.consume();
 			}
-			this.state = 66;
+			this.state = 67;
 			this.term();
 			}
 		}
@@ -387,11 +394,11 @@ export default class TransactionSearchQueryParser extends Parser {
 		try {
 			this.enterOuterAlt(localctx, 1);
 			{
-			this.state = 68;
-			this.fieldName();
 			this.state = 69;
-			this.compareOp();
+			this.fieldName();
 			this.state = 70;
+			this.compareOp();
+			this.state = 71;
 			this.match(TransactionSearchQueryParser.TERM);
 			}
 		}
@@ -417,7 +424,7 @@ export default class TransactionSearchQueryParser extends Parser {
 		try {
 			this.enterOuterAlt(localctx, 1);
 			{
-			this.state = 72;
+			this.state = 73;
 			_la = this._input.LA(1);
 			if(!((((_la) & ~0x1F) === 0 && ((1 << _la) & 7680) !== 0))) {
 			this._errHandler.recoverInline(this);
@@ -447,20 +454,20 @@ export default class TransactionSearchQueryParser extends Parser {
 		let localctx: TermContext = new TermContext(this, this._ctx, this.state);
 		this.enterRule(localctx, 20, TransactionSearchQueryParser.RULE_term);
 		try {
-			this.state = 76;
+			this.state = 77;
 			this._errHandler.sync(this);
 			switch (this._input.LA(1)) {
 			case 13:
 				this.enterOuterAlt(localctx, 1);
 				{
-				this.state = 74;
+				this.state = 75;
 				this.quotedTerm();
 				}
 				break;
 			case 14:
 				this.enterOuterAlt(localctx, 2);
 				{
-				this.state = 75;
+				this.state = 76;
 				this.match(TransactionSearchQueryParser.TERM);
 				}
 				break;
@@ -489,11 +496,11 @@ export default class TransactionSearchQueryParser extends Parser {
 		try {
 			this.enterOuterAlt(localctx, 1);
 			{
-			this.state = 78;
-			this.match(TransactionSearchQueryParser.LPAREN);
 			this.state = 79;
-			this.query();
+			this.match(TransactionSearchQueryParser.LPAREN);
 			this.state = 80;
+			this.query();
+			this.state = 81;
 			this.match(TransactionSearchQueryParser.RPAREN);
 			}
 		}
@@ -518,7 +525,7 @@ export default class TransactionSearchQueryParser extends Parser {
 		try {
 			this.enterOuterAlt(localctx, 1);
 			{
-			this.state = 82;
+			this.state = 83;
 			this.match(TransactionSearchQueryParser.TERM);
 			}
 		}
@@ -543,7 +550,7 @@ export default class TransactionSearchQueryParser extends Parser {
 		try {
 			this.enterOuterAlt(localctx, 1);
 			{
-			this.state = 84;
+			this.state = 85;
 			this.match(TransactionSearchQueryParser.QUOTED);
 			}
 		}
@@ -562,30 +569,30 @@ export default class TransactionSearchQueryParser extends Parser {
 		return localctx;
 	}
 
-	public static readonly _serializedATN: number[] = [4,1,16,87,2,0,7,0,2,
+	public static readonly _serializedATN: number[] = [4,1,16,88,2,0,7,0,2,
 	1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,6,2,7,7,7,2,8,7,8,2,9,7,9,2,
 	10,7,10,2,11,7,11,2,12,7,12,2,13,7,13,1,0,1,0,1,0,1,1,4,1,33,8,1,11,1,12,
 	1,34,1,2,1,2,1,2,5,2,40,8,2,10,2,12,2,43,9,2,1,3,1,3,1,3,5,3,48,8,3,10,
-	3,12,3,51,9,3,1,4,3,4,54,8,4,1,4,1,4,1,5,1,5,1,6,1,6,1,6,3,6,63,8,6,1,7,
-	1,7,1,7,1,7,1,8,1,8,1,8,1,8,1,9,1,9,1,10,1,10,3,10,77,8,10,1,11,1,11,1,
-	11,1,11,1,12,1,12,1,13,1,13,1,13,0,0,14,0,2,4,6,8,10,12,14,16,18,20,22,
-	24,26,0,2,1,0,7,8,1,0,9,12,79,0,28,1,0,0,0,2,32,1,0,0,0,4,36,1,0,0,0,6,
-	44,1,0,0,0,8,53,1,0,0,0,10,57,1,0,0,0,12,62,1,0,0,0,14,64,1,0,0,0,16,68,
-	1,0,0,0,18,72,1,0,0,0,20,76,1,0,0,0,22,78,1,0,0,0,24,82,1,0,0,0,26,84,1,
+	3,12,3,51,9,3,1,4,3,4,54,8,4,1,4,1,4,1,5,1,5,1,6,1,6,1,6,1,6,3,6,64,8,6,
+	1,7,1,7,1,7,1,7,1,8,1,8,1,8,1,8,1,9,1,9,1,10,1,10,3,10,78,8,10,1,11,1,11,
+	1,11,1,11,1,12,1,12,1,13,1,13,1,13,0,0,14,0,2,4,6,8,10,12,14,16,18,20,22,
+	24,26,0,2,1,0,7,8,1,0,9,12,81,0,28,1,0,0,0,2,32,1,0,0,0,4,36,1,0,0,0,6,
+	44,1,0,0,0,8,53,1,0,0,0,10,57,1,0,0,0,12,63,1,0,0,0,14,65,1,0,0,0,16,69,
+	1,0,0,0,18,73,1,0,0,0,20,77,1,0,0,0,22,79,1,0,0,0,24,83,1,0,0,0,26,85,1,
 	0,0,0,28,29,3,2,1,0,29,30,5,0,0,1,30,1,1,0,0,0,31,33,3,4,2,0,32,31,1,0,
 	0,0,33,34,1,0,0,0,34,32,1,0,0,0,34,35,1,0,0,0,35,3,1,0,0,0,36,41,3,6,3,
 	0,37,38,5,2,0,0,38,40,3,6,3,0,39,37,1,0,0,0,40,43,1,0,0,0,41,39,1,0,0,0,
 	41,42,1,0,0,0,42,5,1,0,0,0,43,41,1,0,0,0,44,49,3,8,4,0,45,46,5,1,0,0,46,
 	48,3,8,4,0,47,45,1,0,0,0,48,51,1,0,0,0,49,47,1,0,0,0,49,50,1,0,0,0,50,7,
 	1,0,0,0,51,49,1,0,0,0,52,54,3,10,5,0,53,52,1,0,0,0,53,54,1,0,0,0,54,55,
-	1,0,0,0,55,56,3,12,6,0,56,9,1,0,0,0,57,58,5,3,0,0,58,11,1,0,0,0,59,63,3,
-	16,8,0,60,63,3,14,7,0,61,63,3,20,10,0,62,59,1,0,0,0,62,60,1,0,0,0,62,61,
-	1,0,0,0,63,13,1,0,0,0,64,65,3,24,12,0,65,66,7,0,0,0,66,67,3,20,10,0,67,
-	15,1,0,0,0,68,69,3,24,12,0,69,70,3,18,9,0,70,71,5,14,0,0,71,17,1,0,0,0,
-	72,73,7,1,0,0,73,19,1,0,0,0,74,77,3,26,13,0,75,77,5,14,0,0,76,74,1,0,0,
-	0,76,75,1,0,0,0,77,21,1,0,0,0,78,79,5,5,0,0,79,80,3,2,1,0,80,81,5,6,0,0,
-	81,23,1,0,0,0,82,83,5,14,0,0,83,25,1,0,0,0,84,85,5,13,0,0,85,27,1,0,0,0,
-	6,34,41,49,53,62,76];
+	1,0,0,0,55,56,3,12,6,0,56,9,1,0,0,0,57,58,5,3,0,0,58,11,1,0,0,0,59,64,3,
+	16,8,0,60,64,3,14,7,0,61,64,3,20,10,0,62,64,3,22,11,0,63,59,1,0,0,0,63,
+	60,1,0,0,0,63,61,1,0,0,0,63,62,1,0,0,0,64,13,1,0,0,0,65,66,3,24,12,0,66,
+	67,7,0,0,0,67,68,3,20,10,0,68,15,1,0,0,0,69,70,3,24,12,0,70,71,3,18,9,0,
+	71,72,5,14,0,0,72,17,1,0,0,0,73,74,7,1,0,0,74,19,1,0,0,0,75,78,3,26,13,
+	0,76,78,5,14,0,0,77,75,1,0,0,0,77,76,1,0,0,0,78,21,1,0,0,0,79,80,5,5,0,
+	0,80,81,3,2,1,0,81,82,5,6,0,0,82,23,1,0,0,0,83,84,5,14,0,0,84,25,1,0,0,
+	0,85,86,5,13,0,0,86,27,1,0,0,0,6,34,41,49,53,63,77];
 
 	private static __ATN: ATN;
 	public static get _ATN(): ATN {
@@ -773,6 +780,9 @@ export class ClauseContext extends ParserRuleContext {
 	}
 	public term(): TermContext {
 		return this.getTypedRuleContext(TermContext, 0) as TermContext;
+	}
+	public groupingExpr(): GroupingExprContext {
+		return this.getTypedRuleContext(GroupingExprContext, 0) as GroupingExprContext;
 	}
     public get ruleIndex(): number {
     	return TransactionSearchQueryParser.RULE_clause;

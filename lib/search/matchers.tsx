@@ -1,4 +1,4 @@
-import {format} from 'date-fns';
+import {format, isAfter, isBefore, isSameDay, parse} from 'date-fns';
 import {Bank, BankAccount} from 'lib/model/BankAccount';
 import {Category} from 'lib/model/Category';
 import {Tag} from 'lib/model/Tag';
@@ -87,7 +87,7 @@ export function matchField(
   if (includesIgnoreCase(fieldName, ['otherParty', 'splitWith'])) {
     return matchOtherParty(t, term, c);
   }
-  if (includesIgnoreCase(fieldName, ['amount', 'amt'])) {
+  if (includesIgnoreCase(fieldName, ['amount', 'amt', 'price'])) {
     return matchAmount(t, term);
   }
   if (includesIgnoreCase(fieldName, ['id'])) {
@@ -128,7 +128,7 @@ export function compareField(
   op: ComparisonOperator,
   term: string
 ): boolean {
-  if (includesIgnoreCase(fieldName, ['amount', 'amt'])) {
+  if (includesIgnoreCase(fieldName, ['amount', 'amt', 'price'])) {
     return compareAmount(t, term, op);
   }
   if (includesIgnoreCase(fieldName, ['date', 'd'])) {
@@ -390,18 +390,20 @@ function compareDate(
   term: string,
   op: ComparisonOperator
 ): boolean {
-  if (!term.match(/^\d{4}-\d{2}-\d{2}$/)) {
-    return false;
-  }
+  const txDate = new Date(t.timestampEpoch);
+  const termDate = parse(term, 'yyyy-MM-dd', new Date());
   switch (op) {
     case ComparisonOperator.LessThan:
-      return format(t.timestampEpoch, 'yyyy-MM-dd') < term;
+      return isBefore(txDate, termDate);
     case ComparisonOperator.LessThanOrEqual:
-      return format(t.timestampEpoch, 'yyyy-MM-dd') <= term;
+      return isSameDay(txDate, termDate) || isBefore(txDate, termDate);
     case ComparisonOperator.GreaterThan:
-      return format(t.timestampEpoch, 'yyyy-MM-dd') > term;
+      // Currently only date values are supported, so when user types date>2022-01-01
+      // they want the date to be 2022-01-02 and after,
+      // they don't mean midnight of the provided date.
+      return !isSameDay(txDate, termDate) && isAfter(txDate, termDate);
     case ComparisonOperator.GreaterThanOrEqual:
-      return format(t.timestampEpoch, 'yyyy-MM-dd') >= term;
+      return isSameDay(txDate, termDate) || isAfter(txDate, termDate);
   }
 }
 

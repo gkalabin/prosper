@@ -146,29 +146,22 @@ export function useFilteredTransactions(): {
     tags,
     setFieldValue,
   ]);
+  const searchParams = {
+    query,
+    transactions,
+    banks,
+    bankAccounts,
+    categories,
+    trips,
+    tags,
+  };
 
   try {
-    const results = search(
-      query,
-      transactions,
-      banks,
-      bankAccounts,
-      categories,
-      trips,
-      tags
-    );
+    const results = search(searchParams);
     return {results};
   } catch (e) {
     if (e instanceof QuerySyntaxError) {
-      const fallbackResults = fallbackSearch(
-        query,
-        transactions,
-        banks,
-        bankAccounts,
-        categories,
-        trips,
-        tags
-      );
+      const fallbackResults = fallbackSearch(searchParams);
       return {results: fallbackResults, error: e};
     } else {
       throw e;

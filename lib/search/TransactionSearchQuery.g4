@@ -17,7 +17,7 @@ modClause: modifier? clause;
 
 modifier: NOT;
 
-clause: fieldCompareExpr | fieldMatchExpr | term;
+clause: fieldCompareExpr | fieldMatchExpr | term | groupingExpr;
 
 fieldMatchExpr: fieldName ( OP_COLON | OP_EQUAL) term;
 
