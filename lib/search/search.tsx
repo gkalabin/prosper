@@ -43,15 +43,25 @@ class ErrorsCollector extends ErrorListener<never> {
   }
 }
 
-export function search(
-  query: string,
-  transactions: Transaction[],
-  banks: Bank[],
-  bankAccounts: BankAccount[],
-  categories: Category[],
-  trips: Trip[],
-  tags: Tag[],
-): Transaction[] {
+export type SearchParams = {
+  query: string;
+  transactions: Transaction[];
+  banks: Bank[];
+  bankAccounts: BankAccount[];
+  categories: Category[];
+  trips: Trip[];
+  tags: Tag[];
+};
+
+export function search({
+  query,
+  transactions,
+  banks,
+  bankAccounts,
+  categories,
+  trips,
+  tags,
+}: SearchParams): Transaction[] {
   if (!query || !query.trim()) {
     return transactions;
   }
@@ -85,15 +95,15 @@ export function search(
   return transactions.filter((t) => matchSet.has(t.id));
 }
 
-export function fallbackSearch(
-  query: string,
-  transactions: Transaction[],
-  banks: Bank[],
-  bankAccounts: BankAccount[],
-  categories: Category[],
-  trips: Trip[],
-  tags: Tag[],
-): Transaction[] {
+export function fallbackSearch({
+  query,
+  transactions,
+  banks,
+  bankAccounts,
+  categories,
+  trips,
+  tags,
+}: SearchParams): Transaction[] {
   if (!query || !query.trim()) {
     return transactions;
   }
