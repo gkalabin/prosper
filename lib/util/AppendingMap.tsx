@@ -1,5 +1,5 @@
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { Currency } from "lib/model/Currency";
+import {AmountWithCurrency} from 'lib/AmountWithCurrency';
+import {Currency} from 'lib/model/Currency';
 
 export function currencyAppendMap<T>(c: Currency) {
   return new AppendMap<T, AmountWithCurrency>(

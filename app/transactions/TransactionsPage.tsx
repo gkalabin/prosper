@@ -1,32 +1,29 @@
-"use client";
-import { ChartPieIcon, FunnelIcon } from "@heroicons/react/24/outline";
-import {
-  NotConfiguredYet,
-  isFullyConfigured,
-} from "components/NotConfiguredYet";
+'use client';
+import {ChartPieIcon, FunnelIcon} from '@heroicons/react/24/outline';
+import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
 import {
   SearchForAnythingInput,
   TransactionFiltersForm,
   initialTransactionFilters,
   useFilteredTransactions,
-} from "components/transactions/TransactionFilters";
-import { TransactionStats } from "components/transactions/TransactionStats";
-import { TransactionsList } from "components/transactions/TransactionsList";
-import { ButtonPagePrimary } from "components/ui/buttons";
-import { Formik } from "formik";
+} from 'components/transactions/TransactionFilters';
+import {TransactionStats} from 'components/transactions/TransactionStats';
+import {TransactionsList} from 'components/transactions/TransactionsList';
+import {ButtonPagePrimary} from 'components/ui/buttons';
+import {Formik} from 'formik';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
-} from "lib/context/AllDatabaseDataContext";
-import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
-import { onTransactionChange } from "lib/stateHelpers";
-import { useState } from "react";
+} from 'lib/context/AllDatabaseDataContext';
+import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
+import {onTransactionChange} from 'lib/stateHelpers';
+import {useState} from 'react';
 
 function NonEmptyPageContent() {
   const [showFiltersForm, setShowFiltersForm] = useState(false);
   const [showStats, setShowStats] = useState(false);
-  const { results: filteredTransactions, error } = useFilteredTransactions();
-  const { setDbData } = useAllDatabaseDataContext();
+  const {results: filteredTransactions, error} = useFilteredTransactions();
+  const {setDbData} = useAllDatabaseDataContext();
   return (
     <div className="space-y-4">
       <div className="flex justify-end gap-4">
@@ -47,7 +44,7 @@ function NonEmptyPageContent() {
         {error && (
           <div className="text-red-500">
             {error.message}:
-            {error.getErrors().map((e) => (
+            {error.getErrors().map(e => (
               <div key={e} className="ml-2">
                 {e}
               </div>
@@ -69,7 +66,7 @@ function NonEmptyPageContent() {
   );
 }
 
-export function TransactionsPage({ dbData }: { dbData: AllDatabaseData }) {
+export function TransactionsPage({dbData}: {dbData: AllDatabaseData}) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }

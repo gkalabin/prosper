@@ -1,30 +1,27 @@
-"use client";
-import classNames from "classnames";
-import {
-  isFullyConfigured,
-  NotConfiguredYet,
-} from "components/NotConfiguredYet";
-import { AnchorLink } from "components/ui/anchors";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { StockAndCurrencyExchange } from "lib/ClientSideModel";
+'use client';
+import classNames from 'classnames';
+import {isFullyConfigured, NotConfiguredYet} from 'components/NotConfiguredYet';
+import {AnchorLink} from 'components/ui/anchors';
+import {AmountWithCurrency} from 'lib/AmountWithCurrency';
+import {StockAndCurrencyExchange} from 'lib/ClientSideModel';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
-} from "lib/context/AllDatabaseDataContext";
-import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
-import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
-import { BankAccount } from "lib/model/BankAccount";
-import { Currency } from "lib/model/Currency";
-import { Stock } from "lib/model/Stock";
-import { amountAllParties } from "lib/model/transaction/amounts";
-import { Income } from "lib/model/transaction/Income";
+} from 'lib/context/AllDatabaseDataContext';
+import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
+import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
+import {BankAccount} from 'lib/model/BankAccount';
+import {Currency} from 'lib/model/Currency';
+import {Stock} from 'lib/model/Stock';
+import {amountAllParties} from 'lib/model/transaction/amounts';
+import {Income} from 'lib/model/transaction/Income';
 import {
   Expense,
   isExpense,
   isIncome,
   Transaction,
-} from "lib/model/transaction/Transaction";
-import { Trip } from "lib/model/Trip";
+} from 'lib/model/transaction/Transaction';
+import {Trip} from 'lib/model/Trip';
 
 function tripTotalSpend(
   tripId: number,
@@ -32,7 +29,7 @@ function tripTotalSpend(
   displayCurrency: Currency,
   bankAccounts: BankAccount[],
   stocks: Stock[],
-  exchange: StockAndCurrencyExchange,
+  exchange: StockAndCurrencyExchange
 ): AmountWithCurrency | undefined {
   let total = AmountWithCurrency.zero(displayCurrency);
   for (const t of allTransactions) {
@@ -47,7 +44,7 @@ function tripTotalSpend(
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange,
+      exchange
     );
     if (!amount) {
       return undefined;
@@ -63,8 +60,8 @@ function tripTotalSpend(
   return total;
 }
 
-function TripTotal({ trip }: { trip: Trip }) {
-  const { transactions, bankAccounts, stocks, exchange } =
+function TripTotal({trip}: {trip: Trip}) {
+  const {transactions, bankAccounts, stocks, exchange} =
     useAllDatabaseDataContext();
   const displayCurrency = useDisplayCurrency();
   const total = tripTotalSpend(
@@ -73,7 +70,7 @@ function TripTotal({ trip }: { trip: Trip }) {
     displayCurrency,
     bankAccounts,
     stocks,
-    exchange,
+    exchange
   );
   if (!total) {
     return <span className="text-sm">Cannot calculate total money spend</span>;
@@ -82,15 +79,15 @@ function TripTotal({ trip }: { trip: Trip }) {
 }
 
 function NonEmptyTripsList() {
-  const { trips, transactions, bankAccounts, stocks, exchange } =
+  const {trips, transactions, bankAccounts, stocks, exchange} =
     useAllDatabaseDataContext();
   const displayCurrency = useDisplayCurrency();
   const travelTransactions = transactions
     .filter((tx): tx is Expense | Income => isExpense(tx) || isIncome(tx))
-    .filter((tx) => tx.tripId);
+    .filter(tx => tx.tripId);
   const tripEpoch = (trip: Trip): number => {
     const txs = travelTransactions
-      .filter((x) => x.tripId == trip.id)
+      .filter(x => x.tripId == trip.id)
       .sort((a, b) => b.timestampEpoch - a.timestampEpoch);
     if (!txs.length) {
       return new Date().getTime();
@@ -98,7 +95,7 @@ function NonEmptyTripsList() {
     return txs[0].timestampEpoch;
   };
   const totalByTrip = new Map<number, AmountWithCurrency | undefined>(
-    trips.map((t) => [
+    trips.map(t => [
       t.id,
       tripTotalSpend(
         t.id,
@@ -106,29 +103,29 @@ function NonEmptyTripsList() {
         displayCurrency,
         bankAccounts,
         stocks,
-        exchange,
+        exchange
       ),
-    ]),
+    ])
   );
   const totals = [...totalByTrip.values()]
-    .map((x) => x?.dollar() ?? 0)
+    .map(x => x?.dollar() ?? 0)
     .sort((a, b) => a - b);
   const [p25, p50, p75] = [
     totals.length / 4,
     totals.length / 2,
     (3 * totals.length) / 4,
-  ].map((i) => totals[Math.round(i)]);
+  ].map(i => totals[Math.round(i)]);
   const p25Trips = [...totalByTrip.entries()]
     .filter(([_, total]) => total && total.dollar() < p25)
     .map(([id]) => id);
   const p50Trips = [...totalByTrip.entries()]
     .filter(
-      ([_, total]) => total && p25 <= total.dollar() && total.dollar() < p50,
+      ([_, total]) => total && p25 <= total.dollar() && total.dollar() < p50
     )
     .map(([id]) => id);
   const p75Trips = [...totalByTrip.entries()]
     .filter(
-      ([_, total]) => total && p50 <= total.dollar() && total.dollar() < p75,
+      ([_, total]) => total && p50 <= total.dollar() && total.dollar() < p75
     )
     .map(([id]) => id);
   const p100Trips = [...totalByTrip.entries()]
@@ -137,14 +134,14 @@ function NonEmptyTripsList() {
   const tripsByTs = [...trips].sort((t1, t2) => tripEpoch(t2) - tripEpoch(t1));
   return (
     <>
-      {tripsByTs.map((t) => (
+      {tripsByTs.map(t => (
         <div
           key={t.id}
           className={classNames({
-            "text-xl leading-7": p100Trips.includes(t.id),
-            "text-lg leading-7": p75Trips.includes(t.id),
-            "text-base leading-7": p50Trips.includes(t.id),
-            "text-sm leading-7": p25Trips.includes(t.id),
+            'text-xl leading-7': p100Trips.includes(t.id),
+            'text-lg leading-7': p75Trips.includes(t.id),
+            'text-base leading-7': p50Trips.includes(t.id),
+            'text-sm leading-7': p25Trips.includes(t.id),
           })}
         >
           <AnchorLink href={`/trips/${t.name}`}>
@@ -156,7 +153,7 @@ function NonEmptyTripsList() {
   );
 }
 
-export function TripsList({ dbData }: { dbData: AllDatabaseData }) {
+export function TripsList({dbData}: {dbData: AllDatabaseData}) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }

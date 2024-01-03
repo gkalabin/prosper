@@ -1,28 +1,28 @@
-import { TransactionType } from "@prisma/client";
-import { TransactionWithTagIds } from "lib/model/AllDatabaseDataModel";
+import {TransactionType} from '@prisma/client';
+import {TransactionWithTagIds} from 'lib/model/AllDatabaseDataModel';
 import {
   Bank,
   BankAccount,
   accountBank,
   accountUnit,
-} from "lib/model/BankAccount";
-import { Category } from "lib/model/Category";
-import { Currency } from "lib/model/Currency";
-import { Stock } from "lib/model/Stock";
-import { Tag } from "lib/model/Tag";
-import { Trip } from "lib/model/Trip";
-import { Unit, formatUnit } from "lib/model/Unit";
-import { Income, incomeModelFromDB } from "lib/model/transaction/Income";
+} from 'lib/model/BankAccount';
+import {Category} from 'lib/model/Category';
+import {Currency} from 'lib/model/Currency';
+import {Stock} from 'lib/model/Stock';
+import {Tag} from 'lib/model/Tag';
+import {Trip} from 'lib/model/Trip';
+import {Unit, formatUnit} from 'lib/model/Unit';
+import {Income, incomeModelFromDB} from 'lib/model/transaction/Income';
 import {
   PersonalExpense,
   personalExpenseModelFromDB,
-} from "lib/model/transaction/PersonalExpense";
+} from 'lib/model/transaction/PersonalExpense';
 import {
   ThirdPartyExpense,
   thirdPartyExpenseModelFromDB,
-} from "lib/model/transaction/ThirdPartyExpense";
-import { Transfer, transferModelFromDB } from "lib/model/transaction/Transfer";
-import { notEmpty } from "lib/util/util";
+} from 'lib/model/transaction/ThirdPartyExpense';
+import {Transfer, transferModelFromDB} from 'lib/model/transaction/Transfer';
+import {notEmpty} from 'lib/util/util';
 
 export type Transaction =
   | PersonalExpense
@@ -37,7 +37,7 @@ export type TransactionWithTrip = (Expense | Income) & {
 };
 
 export function transactionModelFromDB(
-  init: TransactionWithTagIds,
+  init: TransactionWithTagIds
 ): Transaction {
   if (init.transactionType == TransactionType.PERSONAL_EXPENSE) {
     return personalExpenseModelFromDB(init);
@@ -56,12 +56,12 @@ export function transactionModelFromDB(
 
 export function transactionBankAccount(
   t: PersonalExpense | Income,
-  bankAccounts: BankAccount[],
+  bankAccounts: BankAccount[]
 ): BankAccount {
-  const account = bankAccounts.find((a) => a.id == t.accountId);
+  const account = bankAccounts.find(a => a.id == t.accountId);
   if (!account) {
     throw new Error(
-      `Cannot find account ${t.accountId} for transaction ${t.id}`,
+      `Cannot find account ${t.accountId} for transaction ${t.id}`
     );
   }
   return account;
@@ -70,7 +70,7 @@ export function transactionBankAccount(
 export function transactionBank(
   t: PersonalExpense | Income,
   banks: Bank[],
-  bankAccounts: BankAccount[],
+  bankAccounts: BankAccount[]
 ): Bank {
   const account = transactionBankAccount(t, bankAccounts);
   return accountBank(account, banks);
@@ -79,14 +79,14 @@ export function transactionBank(
 export function transactionUnit(
   t: PersonalExpense | ThirdPartyExpense | Income,
   bankAccounts: BankAccount[],
-  stocks: Stock[],
+  stocks: Stock[]
 ): Unit {
   switch (t.kind) {
-    case "PersonalExpense":
-    case "Income":
+    case 'PersonalExpense':
+    case 'Income':
       const account = transactionBankAccount(t, bankAccounts);
       return accountUnit(account, stocks);
-    case "ThirdPartyExpense":
+    case 'ThirdPartyExpense':
       return Currency.mustFindByCode(t.currencyCode);
     default:
       const _exhaustiveCheck: never = t;
@@ -96,7 +96,7 @@ export function transactionUnit(
 
 export function transactionTags(t: Transaction, allTags: Tag[]): Tag[] {
   const findTag = (tagId: number) => {
-    const found = allTags.find((tag) => tag.id == tagId);
+    const found = allTags.find(tag => tag.id == tagId);
     if (!found) {
       console.error(`Cannot find tag ${tagId} for transaction ${t.id}`);
     }
@@ -107,42 +107,42 @@ export function transactionTags(t: Transaction, allTags: Tag[]): Tag[] {
 
 export function transactionTrip(
   t: PersonalExpense | ThirdPartyExpense | Income,
-  allTrips: Trip[],
+  allTrips: Trip[]
 ): Trip | null {
-  return allTrips.find((trip) => trip.id == t.tripId) ?? null;
+  return allTrips.find(trip => trip.id == t.tripId) ?? null;
 }
 
 // @deprecated
 export function parentTransactionId(t: Income): number | null {
-  return t.refundGroupTransactionIds.filter((id) => id != t.id)[0] ?? null;
+  return t.refundGroupTransactionIds.filter(id => id != t.id)[0] ?? null;
 }
 
 export function isPersonalExpense(t: Transaction): t is PersonalExpense {
-  return t.kind === "PersonalExpense";
+  return t.kind === 'PersonalExpense';
 }
 
 export function isThirdPartyExpense(t: Transaction): t is ThirdPartyExpense {
-  return t.kind === "ThirdPartyExpense";
+  return t.kind === 'ThirdPartyExpense';
 }
 
 export function isExpense(
-  t: Transaction,
+  t: Transaction
 ): t is PersonalExpense | ThirdPartyExpense {
   return isPersonalExpense(t) || isThirdPartyExpense(t);
 }
 
 export function isTransfer(t: Transaction): t is Transfer {
-  return t.kind === "Transfer";
+  return t.kind === 'Transfer';
 }
 
 export function isIncome(t: Transaction): t is Income {
-  return t.kind === "Income";
+  return t.kind === 'Income';
 }
 
 export function formatAmount(
   t: PersonalExpense,
   bankAccounts: BankAccount[],
-  stocks: Stock[],
+  stocks: Stock[]
 ): string {
   const account = transactionBankAccount(t, bankAccounts);
   const unit = accountUnit(account, stocks);
@@ -150,7 +150,7 @@ export function formatAmount(
 }
 
 export function otherPartyNameOrNull(t: Transaction): string | null {
-  if (t.kind == "Transfer") {
+  if (t.kind == 'Transfer') {
     return null;
   }
   return otherPartyName(t);
@@ -165,12 +165,12 @@ export function otherPartyName(t: Expense | Income): string | null {
 
 export function transactionCategory(
   t: Transaction,
-  allCategories: Category[],
+  allCategories: Category[]
 ): Category {
-  const c = allCategories.find((c) => c.id() == t.categoryId);
+  const c = allCategories.find(c => c.id() == t.categoryId);
   if (!c) {
     throw new Error(
-      `Cannot find category ${t.categoryId} for transaction ${t.id}`,
+      `Cannot find category ${t.categoryId} for transaction ${t.id}`
     );
   }
   return c;

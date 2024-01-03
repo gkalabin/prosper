@@ -1,25 +1,20 @@
-import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import {
-  StockAndCurrencyExchange,
-} from "lib/ClientSideModel";
-import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
-import { defaultPieChartOptions } from "lib/charts";
-import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
-import { BankAccount } from "lib/model/BankAccount";
-import { Category, mustFindCategory } from "lib/model/Category";
-import { Currency } from "lib/model/Currency";
-import { Stock } from "lib/model/Stock";
-import { Income } from "lib/model/transaction/Income";
-import { Expense, Transaction } from "lib/model/transaction/Transaction";
-import {
-  amountAllParties,
-  amountOwnShare,
-} from "lib/model/transaction/amounts";
-import { AppendMap, currencyAppendMap } from "lib/util/AppendingMap";
-import dynamic from "next/dynamic";
+import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
+import {AmountWithCurrency} from 'lib/AmountWithCurrency';
+import {StockAndCurrencyExchange} from 'lib/ClientSideModel';
+import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {defaultPieChartOptions} from 'lib/charts';
+import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
+import {BankAccount} from 'lib/model/BankAccount';
+import {Category, mustFindCategory} from 'lib/model/Category';
+import {Currency} from 'lib/model/Currency';
+import {Stock} from 'lib/model/Stock';
+import {Income} from 'lib/model/transaction/Income';
+import {Expense, Transaction} from 'lib/model/transaction/Transaction';
+import {amountAllParties, amountOwnShare} from 'lib/model/transaction/amounts';
+import {AppendMap, currencyAppendMap} from 'lib/util/AppendingMap';
+import dynamic from 'next/dynamic';
 
-const ReactEcharts = dynamic(() => import("echarts-for-react"), { ssr: false });
+const ReactEcharts = dynamic(() => import('echarts-for-react'), {ssr: false});
 
 export function TopLevelCategoryOwnShareChart({
   transactions,
@@ -133,17 +128,17 @@ function ByCategoryChart({
     target: Currency,
     bankAccounts: BankAccount[],
     stocks: Stock[],
-    exchange: StockAndCurrencyExchange,
+    exchange: StockAndCurrencyExchange
   ) => AmountWithCurrency | undefined;
 }) {
-  const { categories, bankAccounts, stocks, exchange } =
+  const {categories, bankAccounts, stocks, exchange} =
     useAllDatabaseDataContext();
   const displayCurrency = useDisplayCurrency();
   const failedToExchange: Transaction[] = [];
   const groupFn = (t: Transaction): number => categoryFn(t, categories);
   const amountFnWithModel = (
     t: Expense | Income,
-    currency: Currency,
+    currency: Currency
   ): AmountWithCurrency => {
     const amount = amountFn(t, currency, bankAccounts, stocks, exchange);
     if (!amount) {
@@ -170,7 +165,7 @@ function ByCategoryChart({
           },
           series: [
             {
-              type: "pie",
+              type: 'pie',
               data: [...data.entries()].map(([cid, amount]) => ({
                 name: mustFindCategory(cid, categories).nameWithAncestors(),
                 value: amount.dollar(),

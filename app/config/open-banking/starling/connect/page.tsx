@@ -1,16 +1,16 @@
-import { ConnectForm } from "app/config/open-banking/starling/connect/ConnectForm";
-import { DB } from "lib/db";
-import { getUserId } from "lib/user";
-import { intParamOrFirst } from "lib/util/searchParams";
-import { Metadata } from "next";
-import { notFound } from "next/navigation";
+import {ConnectForm} from 'app/config/open-banking/starling/connect/ConnectForm';
+import {DB} from 'lib/db';
+import {getUserId} from 'lib/user';
+import {intParamOrFirst} from 'lib/util/searchParams';
+import {Metadata} from 'next';
+import {notFound} from 'next/navigation';
 
 export const metadata: Metadata = {
-  title: "Starling Connect - Prosper",
+  title: 'Starling Connect - Prosper',
 };
 
 async function getData(userId: number, bankId: number) {
-  const db = new DB({ userId });
+  const db = new DB({userId});
   const [dbBank] = await db.bankFindMany({
     where: {
       id: bankId,
@@ -19,19 +19,19 @@ async function getData(userId: number, bankId: number) {
   if (!dbBank) {
     return notFound();
   }
-  return { dbBank };
+  return {dbBank};
 }
 
 export default async function Page({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: {[key: string]: string | string[] | undefined};
 }) {
-  const bankId = intParamOrFirst(searchParams["bankId"]);
+  const bankId = intParamOrFirst(searchParams['bankId']);
   if (!bankId) {
     return notFound();
   }
   const userId = await getUserId();
-  const { dbBank } = await getData(userId, bankId);
+  const {dbBank} = await getData(userId, bankId);
   return <ConnectForm dbBank={dbBank} />;
 }

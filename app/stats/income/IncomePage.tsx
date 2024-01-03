@@ -1,41 +1,38 @@
-"use client";
-import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
-import { ExcludedCategoriesSelector } from "app/stats/ExcludedCategoriesSelector";
-import { categoryNameById, dollarsRounded } from "app/stats/modelHelpers";
-import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
-import {
-  NotConfiguredYet,
-  isFullyConfigured,
-} from "components/NotConfiguredYet";
-import { MonthlyOwnShare } from "components/charts/MonthlySum";
-import { RunningAverageOwnShare } from "components/charts/RunningAverage";
-import { YearlyOwnShare } from "components/charts/YearlySum";
-import { differenceInYears, startOfMonth } from "date-fns";
-import ReactEcharts from "echarts-for-react";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { defaultMonthlyMoneyChart, legend } from "lib/charts";
+'use client';
+import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
+import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
+import {categoryNameById, dollarsRounded} from 'app/stats/modelHelpers';
+import {DurationSelector, LAST_6_MONTHS} from 'components/DurationSelector';
+import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
+import {MonthlyOwnShare} from 'components/charts/MonthlySum';
+import {RunningAverageOwnShare} from 'components/charts/RunningAverage';
+import {YearlyOwnShare} from 'components/charts/YearlySum';
+import {differenceInYears, startOfMonth} from 'date-fns';
+import ReactEcharts from 'echarts-for-react';
+import {AmountWithCurrency} from 'lib/AmountWithCurrency';
+import {defaultMonthlyMoneyChart, legend} from 'lib/charts';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
-} from "lib/context/AllDatabaseDataContext";
+} from 'lib/context/AllDatabaseDataContext';
 import {
   useDisplayCurrency,
   useDisplaySettingsContext,
-} from "lib/context/DisplaySettingsContext";
-import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
-import { transactionIsDescendant } from "lib/model/Category";
-import { Transaction } from "lib/model/transaction/Transaction";
-import { amountOwnShare } from "lib/model/transaction/amounts";
-import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
-import { useState } from "react";
+} from 'lib/context/DisplaySettingsContext';
+import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
+import {transactionIsDescendant} from 'lib/model/Category';
+import {Transaction} from 'lib/model/transaction/Transaction';
+import {amountOwnShare} from 'lib/model/transaction/amounts';
+import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
+import {useState} from 'react';
 
-export function IncomeCharts({ input }: { input: TransactionsStatsInput }) {
+export function IncomeCharts({input}: {input: TransactionsStatsInput}) {
   const displayCurrency = useDisplayCurrency();
-  const { categories, bankAccounts, stocks, exchange } =
+  const {categories, bankAccounts, stocks, exchange} =
     useAllDatabaseDataContext();
   const zero = AmountWithCurrency.zero(displayCurrency);
-  const months = input.months().map((x) => x.getTime());
-  const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
+  const months = input.months().map(x => x.getTime());
+  const zeroes: [number, AmountWithCurrency][] = months.map(m => [m, zero]);
   const byCategoryIdAndMonth = new Map<
     number,
     Map<number, AmountWithCurrency>
@@ -48,7 +45,7 @@ export function IncomeCharts({ input }: { input: TransactionsStatsInput }) {
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange,
+      exchange
     );
     if (!exchanged) {
       failedToExchange.push(t);
@@ -87,15 +84,15 @@ export function IncomeCharts({ input }: { input: TransactionsStatsInput }) {
           ...defaultMonthlyMoneyChart(displayCurrency, input.interval()),
           ...legend(),
           title: {
-            text: "By category",
+            text: 'By category',
           },
           series: [...byCategoryIdAndMonth.entries()].map(
             ([categoryId, series]) => ({
-              type: "bar",
-              stack: "moneyIn",
+              type: 'bar',
+              stack: 'moneyIn',
               name: categoryNameById(categoryId, categories),
-              data: months.map((m) => dollarsRounded(series.get(m))),
-            }),
+              data: months.map(m => dollarsRounded(series.get(m))),
+            })
           ),
         }}
       />
@@ -105,16 +102,16 @@ export function IncomeCharts({ input }: { input: TransactionsStatsInput }) {
 
 function NonEmptyPageContent() {
   const [duration, setDuration] = useState(LAST_6_MONTHS);
-  const { transactions, categories } = useAllDatabaseDataContext();
-  const { displaySettings } = useDisplaySettingsContext();
+  const {transactions, categories} = useAllDatabaseDataContext();
+  const {displaySettings} = useDisplaySettingsContext();
   const [excludeCategories, setExcludeCategories] = useState(
-    displaySettings.excludeCategoryIdsInStats(),
+    displaySettings.excludeCategoryIdsInStats()
   );
   const filteredTransactions = transactions.filter(
-    (t) =>
-      !excludeCategories.some((cid) =>
-        transactionIsDescendant(t, cid, categories),
-      ),
+    t =>
+      !excludeCategories.some(cid =>
+        transactionIsDescendant(t, cid, categories)
+      )
   );
   const input = new TransactionsStatsInput(filteredTransactions, duration);
   return (
@@ -131,7 +128,7 @@ function NonEmptyPageContent() {
   );
 }
 
-export function IncomePage({ dbData }: { dbData: AllDatabaseData }) {
+export function IncomePage({dbData}: {dbData: AllDatabaseData}) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }

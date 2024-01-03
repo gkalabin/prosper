@@ -1,8 +1,8 @@
-import { Stock as DBStock } from "@prisma/client";
-import { addDays, differenceInHours, format, isSameDay } from "date-fns";
-import prisma from "lib/prisma";
-import yahooFinance from "yahoo-finance2";
-import { HistoricalRowHistory } from "yahoo-finance2/dist/esm/src/modules/historical";
+import {Stock as DBStock} from '@prisma/client';
+import {addDays, differenceInHours, format, isSameDay} from 'date-fns';
+import prisma from 'lib/prisma';
+import yahooFinance from 'yahoo-finance2';
+import {HistoricalRowHistory} from 'yahoo-finance2/dist/esm/src/modules/historical';
 
 const UPDATE_FREQUENCY_HOURS = 6;
 const NO_HISTORY_LOOK_BACK_DAYS = 30;
@@ -17,8 +17,8 @@ export async function fetchQuotes({
   const r = await yahooFinance.historical(
     stock.ticker,
     {
-      period1: format(startDate, "yyyy-MM-dd"),
-      interval: "1d",
+      period1: format(startDate, 'yyyy-MM-dd'),
+      interval: '1d',
     },
     {
       devel: false,
@@ -28,22 +28,24 @@ export async function fetchQuotes({
 }
 
 export async function addLatestStockQuotes() {
-  console.log("Starting stock quotes backfill");
-  const timingLabel = "Stock quotes backfill " + new Date().getTime();
+  console.log('Starting stock quotes backfill');
+  const timingLabel = 'Stock quotes backfill ' + new Date().getTime();
   console.time(timingLabel);
   const dbStocks = await prisma.stock.findMany();
-  await Promise.allSettled(dbStocks.map(async (s) => {
-    try {
-      await backfill(s);
-    } catch (err) {
-      console.error("Error backfilling %s", s.ticker, err);
-    }
-  }));
+  await Promise.allSettled(
+    dbStocks.map(async s => {
+      try {
+        await backfill(s);
+      } catch (err) {
+        console.error('Error backfilling %s', s.ticker, err);
+      }
+    })
+  );
   console.timeEnd(timingLabel);
 }
 
 async function backfill(stock: DBStock) {
-  console.log("backfilling %s", stock.ticker)
+  console.log('backfilling %s', stock.ticker);
   const now = new Date();
   const apiModelToDb = (x: HistoricalRowHistory) => {
     return {
@@ -58,21 +60,21 @@ async function backfill(stock: DBStock) {
     },
     orderBy: [
       {
-        quoteTimestamp: "desc",
+        quoteTimestamp: 'desc',
       },
       {
-        updatedAt: "desc",
+        updatedAt: 'desc',
       },
     ],
   });
 
   if (!latest) {
-    console.info("%s: no history", stock.ticker);
+    console.info('%s: no history', stock.ticker);
     const startDate = addDays(now, -NO_HISTORY_LOOK_BACK_DAYS);
-    const fetched = await fetchQuotes({ stock, startDate });
+    const fetched = await fetchQuotes({stock, startDate});
     if (fetched?.length == 0) {
       console.warn(
-        "%s: historical data not found starting on %s",
+        '%s: historical data not found starting on %s',
         stock.ticker,
         startDate.toDateString()
       );
@@ -90,7 +92,7 @@ async function backfill(stock: DBStock) {
     const ageHours = differenceInHours(now, latest.updatedAt);
     if (ageHours < UPDATE_FREQUENCY_HOURS) {
       console.warn(
-        "%s: rate for %s is still fresh, updated %d hours ago on %s",
+        '%s: rate for %s is still fresh, updated %d hours ago on %s',
         stock.ticker,
         latest.quoteTimestamp.toDateString(),
         ageHours,
@@ -104,10 +106,10 @@ async function backfill(stock: DBStock) {
       latest.quoteTimestamp.toDateString(),
       ageHours
     );
-    const fetched = await fetchQuotes({ stock, startDate: now });
+    const fetched = await fetchQuotes({stock, startDate: now});
     if (fetched?.length != 1) {
       console.warn(
-        "%s: found %d rates on %s, want 1, ignoring",
+        '%s: found %d rates on %s, want 1, ignoring',
         stock.ticker,
         fetched?.length,
         now.toDateString(),
@@ -127,7 +129,7 @@ async function backfill(stock: DBStock) {
     // If the latest timestamp was updated on the same day we fetch it one last time to make sure we have the most up to date value.
     // When the timestamp was updated on a later date, it's up to date, so not reupdate it.
     console.log(
-      "%s: latest rate from %s was updated on %s, skipping additional update",
+      '%s: latest rate from %s was updated on %s, skipping additional update',
       stock.ticker,
       latest.quoteTimestamp.toDateString(),
       latest.updatedAt.toDateString()
@@ -136,19 +138,17 @@ async function backfill(stock: DBStock) {
   }
 
   console.log(
-    "%s: fetching from %s",
+    '%s: fetching from %s',
     stock.ticker,
     startDate.toDateString(),
     now.toDateString()
   );
 
-  const fetched = await fetchQuotes({ stock, startDate });
-  const toUpdate = fetched.find((x) =>
-    isSameDay(x.date, latest.quoteTimestamp)
-  );
+  const fetched = await fetchQuotes({stock, startDate});
+  const toUpdate = fetched.find(x => isSameDay(x.date, latest.quoteTimestamp));
   if (toUpdate) {
     console.log(
-      "%s: updating quote for %s",
+      '%s: updating quote for %s',
       stock.ticker,
       toUpdate.date.toDateString()
     );
@@ -160,12 +160,12 @@ async function backfill(stock: DBStock) {
     });
   }
   const toInsert = fetched.filter(
-    (x) => !isSameDay(x.date, latest.quoteTimestamp)
+    x => !isSameDay(x.date, latest.quoteTimestamp)
   );
   if (toInsert) {
-    console.log("%s: inserting %d entries", stock.ticker, toInsert.length);
+    console.log('%s: inserting %d entries', stock.ticker, toInsert.length);
     await prisma.stockQuote.createMany({
-      data: toInsert.map((x) => apiModelToDb(x)),
+      data: toInsert.map(x => apiModelToDb(x)),
     });
   }
 }

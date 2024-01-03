@@ -1,8 +1,8 @@
-import { startOfMonth, startOfYear } from "date-fns";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { Currency } from "lib/model/Currency";
-import { AppendMap } from "lib/util/AppendingMap";
-import { percentile } from "lib/util/util";
+import {startOfMonth, startOfYear} from 'date-fns';
+import {AmountWithCurrency} from 'lib/AmountWithCurrency';
+import {Currency} from 'lib/model/Currency';
+import {AppendMap} from 'lib/util/AppendingMap';
+import {percentile} from 'lib/util/util';
 
 export class Timeseries<T> {
   private readonly _monthly: AppendMap<number, T>;

@@ -1,22 +1,17 @@
-import {
-  CharStream,
-  CommonTokenStream,
-  ErrorListener,
-  Recognizer,
-} from "antlr4";
-import { Bank, BankAccount } from "lib/model/BankAccount";
-import { Category } from "lib/model/Category";
-import { Tag } from "lib/model/Tag";
-import { Trip } from "lib/model/Trip";
-import { Transaction } from "lib/model/transaction/Transaction";
-import QueryLexer from "lib/search/generated/TransactionSearchQueryLexer";
-import QueryParser from "lib/search/generated/TransactionSearchQueryParser";
-import { CaseMatch, matchAnyField } from "lib/search/matchers";
-import { TransactionSearchQueryVisitor } from "lib/search/visitor";
+import {CharStream, CommonTokenStream, ErrorListener, Recognizer} from 'antlr4';
+import {Bank, BankAccount} from 'lib/model/BankAccount';
+import {Category} from 'lib/model/Category';
+import {Tag} from 'lib/model/Tag';
+import {Trip} from 'lib/model/Trip';
+import {Transaction} from 'lib/model/transaction/Transaction';
+import QueryLexer from 'lib/search/generated/TransactionSearchQueryLexer';
+import QueryParser from 'lib/search/generated/TransactionSearchQueryParser';
+import {CaseMatch, matchAnyField} from 'lib/search/matchers';
+import {TransactionSearchQueryVisitor} from 'lib/search/visitor';
 
 export class QuerySyntaxError extends Error {
   constructor(private errors: string[]) {
-    super("Query syntax error");
+    super('Query syntax error');
     Object.setPrototypeOf(this, QuerySyntaxError.prototype);
   }
 
@@ -37,7 +32,7 @@ class ErrorsCollector extends ErrorListener<never> {
     _offendingSymbol: never,
     _line: number,
     _column: number,
-    msg: string,
+    msg: string
   ): void {
     this.errors.push(msg);
   }
@@ -50,7 +45,7 @@ export function search(
   bankAccounts: BankAccount[],
   categories: Category[],
   trips: Trip[],
-  tags: Tag[],
+  tags: Tag[]
 ): Transaction[] {
   if (!query || !query.trim()) {
     return transactions;
@@ -78,11 +73,11 @@ export function search(
       bankAccounts,
       categories,
       trips,
-      tags,
-    ),
+      tags
+    )
   );
   const matchSet = new Set(matchedIds);
-  return transactions.filter((t) => matchSet.has(t.id));
+  return transactions.filter(t => matchSet.has(t.id));
 }
 
 export function fallbackSearch(
@@ -92,12 +87,12 @@ export function fallbackSearch(
   bankAccounts: BankAccount[],
   categories: Category[],
   trips: Trip[],
-  tags: Tag[],
+  tags: Tag[]
 ): Transaction[] {
   if (!query || !query.trim()) {
     return transactions;
   }
-  return transactions.filter((t) =>
+  return transactions.filter(t =>
     matchAnyField(
       t,
       query,
@@ -106,7 +101,7 @@ export function fallbackSearch(
       bankAccounts,
       categories,
       trips,
-      tags,
-    ),
+      tags
+    )
   );
 }

@@ -3,8 +3,9 @@
 ## Setup
 
 Requirements:
- - nodejs
- - mysql
+
+- nodejs
+- mysql
 
 ### MySQL setup
 

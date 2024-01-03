@@ -1,44 +1,41 @@
-"use client";
-import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
-import { ExcludedCategoriesSelector } from "app/stats/ExcludedCategoriesSelector";
-import { ownShareSum } from "app/stats/modelHelpers";
-import {
-  NotConfiguredYet,
-  isFullyConfigured,
-} from "components/NotConfiguredYet";
+'use client';
+import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
+import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
+import {ownShareSum} from 'app/stats/modelHelpers';
+import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
 import {
   ChildCategoryOwnShareChart,
   TopLevelCategoryOwnShareChart,
-} from "components/charts/CategoryPie";
+} from 'components/charts/CategoryPie';
 import {
   TopNVendorsMostSpent,
   TopNVendorsMostTransactions,
-} from "components/charts/Vendor";
+} from 'components/charts/Vendor';
 import {
   SortableTransactionsList,
   SortingMode,
-} from "components/transactions/SortableTransactionsList";
-import { ButtonLink } from "components/ui/buttons";
-import { addMonths, format, isSameMonth } from "date-fns";
+} from 'components/transactions/SortableTransactionsList';
+import {ButtonLink} from 'components/ui/buttons';
+import {addMonths, format, isSameMonth} from 'date-fns';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
-} from "lib/context/AllDatabaseDataContext";
+} from 'lib/context/AllDatabaseDataContext';
 import {
   useDisplayCurrency,
   useDisplaySettingsContext,
-} from "lib/context/DisplaySettingsContext";
-import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
-import { transactionIsDescendant } from "lib/model/Category";
-import { Income } from "lib/model/transaction/Income";
+} from 'lib/context/DisplaySettingsContext';
+import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
+import {transactionIsDescendant} from 'lib/model/Category';
+import {Income} from 'lib/model/transaction/Income';
 import {
   Expense,
   Transaction,
   isExpense,
   isIncome,
-} from "lib/model/transaction/Transaction";
-import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
-import { useState } from "react";
+} from 'lib/model/transaction/Transaction';
+import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
+import {useState} from 'react';
 
 export function MonthsNavigationItem({
   m,
@@ -52,12 +49,12 @@ export function MonthsNavigationItem({
   onClick: (d: Date) => void;
 }) {
   const isActive = isSameMonth(m, active);
-  const monthOnly = format(m, "MMM");
-  const monthAndYear = format(m, "MMM yyyy");
+  const monthOnly = format(m, 'MMM');
+  const monthAndYear = format(m, 'MMM yyyy');
   if (isActive) {
     return <span className="font-medium text-slate-700">{monthAndYear}</span>;
   }
-  const showYear = forceShowYear || monthOnly === "Jan" || monthOnly === "Dec";
+  const showYear = forceShowYear || monthOnly === 'Jan' || monthOnly === 'Dec';
   return (
     <ButtonLink onClick={() => onClick(m)}>
       {showYear ? monthAndYear : monthOnly}
@@ -77,13 +74,13 @@ export function MonthsNavigation({
   const [leftMonthsCollapsed, setLeftMonthsCollapsed] = useState(true);
   const [rightMonthsCollapsed, setRightMonthsCollapsed] = useState(true);
   const [first, last] = [months[0], months[months.length - 1]];
-  const monthIndex = months.findIndex((m) => m.getTime() === active.getTime());
+  const monthIndex = months.findIndex(m => m.getTime() === active.getTime());
   const windowMonths = 1;
   const displayMonths = months.slice(
     leftMonthsCollapsed ? Math.max(0, monthIndex - windowMonths) : 0,
     rightMonthsCollapsed
       ? Math.min(months.length, monthIndex + windowMonths + 1)
-      : months.length,
+      : months.length
   );
   const [firstDisplay, lastDisplay] = [
     displayMonths[0],
@@ -107,7 +104,7 @@ export function MonthsNavigation({
             )}
           </>
         )}
-        {displayMonths.map((m) => (
+        {displayMonths.map(m => (
           <MonthsNavigationItem
             key={m.getTime()}
             m={m}
@@ -135,16 +132,16 @@ export function MonthsNavigation({
   );
 }
 
-export function MonthlyStats({ input }: { input: TransactionsStatsInput }) {
+export function MonthlyStats({input}: {input: TransactionsStatsInput}) {
   const months = input.months();
   const [month, setMonth] = useState(months[months.length - 1]);
   const transactions = input
     .transactionsAllTime()
-    .filter((t) => isSameMonth(month, t.timestampEpoch));
+    .filter(t => isSameMonth(month, t.timestampEpoch));
   const expenses = transactions.filter((t): t is Expense => isExpense(t));
   const income = transactions.filter((t): t is Income => isIncome(t));
   const displayCurrency = useDisplayCurrency();
-  const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
+  const {bankAccounts, stocks, exchange} = useAllDatabaseDataContext();
   const failedToExchange: Transaction[] = [];
   const totalExpense = ownShareSum(
     expenses,
@@ -152,7 +149,7 @@ export function MonthlyStats({ input }: { input: TransactionsStatsInput }) {
     displayCurrency,
     bankAccounts,
     stocks,
-    exchange,
+    exchange
   );
   const totalIncome = ownShareSum(
     income,
@@ -160,7 +157,7 @@ export function MonthlyStats({ input }: { input: TransactionsStatsInput }) {
     displayCurrency,
     bankAccounts,
     stocks,
-    exchange,
+    exchange
   );
   const expenseIncomeRatio = totalIncome.isZero()
     ? Infinity
@@ -237,7 +234,7 @@ export function VendorStats({
 }) {
   const transactions = input
     .transactionsAllTime()
-    .filter((t) => isSameMonth(month, t.timestampEpoch));
+    .filter(t => isSameMonth(month, t.timestampEpoch));
   const expenses = transactions.filter((t): t is Expense => isExpense(t));
   return (
     <div>
@@ -253,19 +250,19 @@ export function VendorStats({
 }
 
 function NonEmptyPageContent() {
-  const { transactions, categories } = useAllDatabaseDataContext();
-  const { displaySettings } = useDisplaySettingsContext();
+  const {transactions, categories} = useAllDatabaseDataContext();
+  const {displaySettings} = useDisplaySettingsContext();
   const [excludeCategories, setExcludeCategories] = useState(
-    displaySettings.excludeCategoryIdsInStats(),
+    displaySettings.excludeCategoryIdsInStats()
   );
   const filteredTransactions = transactions.filter(
-    (t) =>
-      !excludeCategories.some((cid) =>
-        transactionIsDescendant(t, cid, categories),
-      ),
+    t =>
+      !excludeCategories.some(cid =>
+        transactionIsDescendant(t, cid, categories)
+      )
   );
   const durations = transactions
-    .map((t) => t.timestampEpoch)
+    .map(t => t.timestampEpoch)
     .sort((a, b) => a - b);
   const input = new TransactionsStatsInput(filteredTransactions, {
     start: durations[0],
@@ -282,7 +279,7 @@ function NonEmptyPageContent() {
   );
 }
 
-export function MonthlyStatsPage({ dbData }: { dbData: AllDatabaseData }) {
+export function MonthlyStatsPage({dbData}: {dbData: AllDatabaseData}) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }

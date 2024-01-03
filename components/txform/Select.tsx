@@ -1,10 +1,10 @@
-import { LabelledInputProps } from "components/forms/Input";
-import { Select } from "components/forms/Select";
-import { useField, useFormikContext } from "formik";
-import { capitalize } from "lib/util/util";
+import {LabelledInputProps} from 'components/forms/Input';
+import {Select} from 'components/forms/Select';
+import {useField, useFormikContext} from 'formik';
+import {capitalize} from 'lib/util/util';
 
 const SelectWithLabelUntyped = (
-  props: React.InputHTMLAttributes<HTMLSelectElement> & LabelledInputProps,
+  props: React.InputHTMLAttributes<HTMLSelectElement> & LabelledInputProps
 ) => {
   const [field] = useField(props);
   const label = props.label || capitalize(props.name);
@@ -22,13 +22,13 @@ const SelectWithLabelUntyped = (
 };
 
 export const SelectNumber = (
-  props: React.InputHTMLAttributes<HTMLSelectElement> & LabelledInputProps,
+  props: React.InputHTMLAttributes<HTMLSelectElement> & LabelledInputProps
 ) => {
-  const { setFieldValue } = useFormikContext();
+  const {setFieldValue} = useFormikContext();
   return (
     <SelectWithLabelUntyped
       {...props}
-      onChange={(e: { target: { value: string } }) => {
+      onChange={(e: {target: {value: string}}) => {
         setFieldValue(props.name, parseInt(e.target.value));
       }}
     />

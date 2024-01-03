@@ -1,13 +1,13 @@
-import { Bank as DBBank } from "@prisma/client";
-import { AnchorLink } from "components/ui/anchors";
-import { NORDIGEN_COUNTRIES } from "lib/openbanking/nordigen/countries";
+import {Bank as DBBank} from '@prisma/client';
+import {AnchorLink} from 'components/ui/anchors';
+import {NORDIGEN_COUNTRIES} from 'lib/openbanking/nordigen/countries';
 
-export function CountriesSelector({ dbBank }: { dbBank: DBBank }) {
+export function CountriesSelector({dbBank}: {dbBank: DBBank}) {
   return (
     <>
       Select country:
       {NORDIGEN_COUNTRIES.sort((a, b) => a.name.localeCompare(b.name)).map(
-        ({ code, name }) => (
+        ({code, name}) => (
           <div key={code}>
             <AnchorLink
               href={`/config/open-banking/nordigen/connect?bankId=${dbBank.id}&country=${code}`}
@@ -15,7 +15,7 @@ export function CountriesSelector({ dbBank }: { dbBank: DBBank }) {
               {name}
             </AnchorLink>
           </div>
-        ),
+        )
       )}
     </>
   );

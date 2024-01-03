@@ -1,5 +1,5 @@
-import { ExternalAccountMapping, NordigenToken } from "@prisma/client";
-import { AccountBalance } from "lib/openbanking/interface";
+import {ExternalAccountMapping, NordigenToken} from '@prisma/client';
+import {AccountBalance} from 'lib/openbanking/interface';
 
 export async function fetchBalance(
   token: NordigenToken,
@@ -8,8 +8,8 @@ export async function fetchBalance(
   const response = await fetch(
     `https://ob.nordigen.com/api/v2/accounts/${mapping.externalAccountId}/balances/`,
     {
-      method: "GET",
-      headers: { Authorization: `Bearer ${token.access}` },
+      method: 'GET',
+      headers: {Authorization: `Bearer ${token.access}`},
     }
   );
   if (response.status !== 200) {
@@ -21,8 +21,8 @@ export async function fetchBalance(
   }
   const r = await response.json();
   const balances = r.balances ?? [];
-  for (const { balanceType, balanceAmount } of balances) {
-    if (balanceType === "interimAvailable" || balanceType === "expected") {
+  for (const {balanceType, balanceAmount} of balances) {
+    if (balanceType === 'interimAvailable' || balanceType === 'expected') {
       return {
         balanceCents: Math.round(balanceAmount.amount * 100),
         internalAccountId: mapping.internalAccountId,

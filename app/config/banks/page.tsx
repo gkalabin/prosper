@@ -1,20 +1,20 @@
-import { BanksConfigPage } from "app/config/banks/BanksConfigPage";
-import { DB } from "lib/db";
-import { getUserId } from "lib/user";
-import { Metadata } from "next";
+import {BanksConfigPage} from 'app/config/banks/BanksConfigPage';
+import {DB} from 'lib/db';
+import {getUserId} from 'lib/user';
+import {Metadata} from 'next';
 
 export const metadata: Metadata = {
-  title: "Banks Config - Prosper",
+  title: 'Banks Config - Prosper',
 };
 
 async function getData(userId: number) {
-  const db = new DB({ userId });
+  const db = new DB({userId});
   const dbStocks = await db.stocksFindMany();
   const dbBanks = await db.bankFindMany();
   const whereBankId = {
     where: {
       bankId: {
-        in: dbBanks.map((x) => x.id),
+        in: dbBanks.map(x => x.id),
       },
     },
   };

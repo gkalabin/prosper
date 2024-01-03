@@ -1,19 +1,19 @@
-import { TrueLayerToken } from "@prisma/client";
-import { addDays, addSeconds } from "date-fns";
-import { DB } from "lib/db";
-import prisma from "lib/prisma";
+import {TrueLayerToken} from '@prisma/client';
+import {addDays, addSeconds} from 'date-fns';
+import {DB} from 'lib/db';
+import prisma from 'lib/prisma';
 
 export async function refreshToken(
   db: DB,
-  token: TrueLayerToken,
+  token: TrueLayerToken
 ): Promise<TrueLayerToken> {
   const now = new Date();
   const fetched = await fetch(`https://auth.truelayer.com/connect/token`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({
       refresh_token: token.refresh,
-      grant_type: "refresh_token",
+      grant_type: 'refresh_token',
       client_id: process.env.TRUE_LAYER_CLIENT_ID,
       client_secret: process.env.TRUE_LAYER_CLIENT_SECRET,
     }),
@@ -24,7 +24,7 @@ export async function refreshToken(
         id: token.bankId,
       },
     });
-    const bankName = bank?.name || "unknown bank";
+    const bankName = bank?.name || 'unknown bank';
     let reason = fetched.statusText;
     try {
       const json = await fetched.json();
@@ -32,19 +32,19 @@ export async function refreshToken(
       console.warn(
         `Failed to refresh token for bank ${
           token.bankId
-        } ${bankName}: ${JSON.stringify(json, null, 2)}`,
+        } ${bankName}: ${JSON.stringify(json, null, 2)}`
       );
     } catch (e) {
       // ignore the error and show whatever status we got
       const text = await fetched.text();
       console.warn(
-        `Failed to refresh token for bank ${token.bankId} ${bankName}: ${text}`,
+        `Failed to refresh token for bank ${token.bankId} ${bankName}: ${text}`
       );
     }
     return Promise.reject(`Refresh token for ${bankName} failed: ${reason}`);
   }
   const json = await fetched.json();
-  const { access_token, expires_in, refresh_token } = json;
+  const {access_token, expires_in, refresh_token} = json;
   const newToken = await prisma.trueLayerToken.update({
     data: {
       access: access_token,
@@ -61,12 +61,12 @@ export async function refreshToken(
 
 export async function deleteToken(
   db: DB,
-  token: TrueLayerToken,
+  token: TrueLayerToken
 ): Promise<void> {
   const response = await fetch(`https://auth.truelayer.com/api/delete`, {
-    method: "DELETE",
+    method: 'DELETE',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
       Authorization: `Bearer ${token.access}`,
     },
   });
@@ -80,14 +80,14 @@ export async function deleteToken(
           response.status
         } from TrueLayer while deleting the token for bank ${
           token.bankId
-        }: ${await response.text()}`,
+        }: ${await response.text()}`
       );
     } else {
       const text = await response.text();
       return Promise.reject(
-        `Failed to delete true layer token for bank id ${token.bankId} (code ${response.status}): ${text}`,
+        `Failed to delete true layer token for bank id ${token.bankId} (code ${response.status}): ${text}`
       );
     }
   }
-  await db.trueLayerTokenDelete({ where: { bankId: token.bankId } });
+  await db.trueLayerTokenDelete({where: {bankId: token.bankId}});
 }

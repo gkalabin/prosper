@@ -1,7 +1,7 @@
-"use client";
-import { undoTailwindInputStyles } from "components/forms/Select";
-import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
-import Select from "react-select";
+'use client';
+import {undoTailwindInputStyles} from 'components/forms/Select';
+import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import Select from 'react-select';
 
 export function ExcludedCategoriesSelector({
   excludedIds,
@@ -10,8 +10,8 @@ export function ExcludedCategoriesSelector({
   excludedIds: number[];
   setExcludedIds: (newValue: number[]) => void;
 }) {
-  const { categories } = useAllDatabaseDataContext();
-  const categoryOptions = categories.map((a) => ({
+  const {categories} = useAllDatabaseDataContext();
+  const categoryOptions = categories.map(a => ({
     value: a.id(),
     label: a.nameWithAncestors(),
   }));
@@ -28,11 +28,11 @@ export function ExcludedCategoriesSelector({
         styles={undoTailwindInputStyles()}
         options={categoryOptions}
         isMulti
-        value={excludedIds.map((x) => ({
-          label: categoryOptions.find((c) => c.value == x)?.label ?? "Unknown",
+        value={excludedIds.map(x => ({
+          label: categoryOptions.find(c => c.value == x)?.label ?? 'Unknown',
           value: x,
         }))}
-        onChange={(x) => setExcludedIds(x.map((x) => x.value))}
+        onChange={x => setExcludedIds(x.map(x => x.value))}
       />
     </div>
   );

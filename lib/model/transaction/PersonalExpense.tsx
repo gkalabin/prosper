@@ -1,10 +1,10 @@
-import { TransactionType } from "@prisma/client";
-import { assert, assertDefined } from "lib/assert";
-import { TransactionWithTagIds } from "lib/model/AllDatabaseDataModel";
-import { TransactionCompanion } from "lib/model/transaction/TransactionCompanion";
+import {TransactionType} from '@prisma/client';
+import {assert, assertDefined} from 'lib/assert';
+import {TransactionWithTagIds} from 'lib/model/AllDatabaseDataModel';
+import {TransactionCompanion} from 'lib/model/transaction/TransactionCompanion';
 
 export type PersonalExpense = {
-  kind: "PersonalExpense";
+  kind: 'PersonalExpense';
   id: number;
   timestampEpoch: number;
   vendor: string;
@@ -19,7 +19,7 @@ export type PersonalExpense = {
 };
 
 export function personalExpenseModelFromDB(
-  init: TransactionWithTagIds,
+  init: TransactionWithTagIds
 ): PersonalExpense {
   assert(init.transactionType == TransactionType.PERSONAL_EXPENSE);
   const companions = [];
@@ -37,7 +37,7 @@ export function personalExpenseModelFromDB(
   assertDefined(init.vendor);
   assertDefined(init.outgoingAccountId);
   return {
-    kind: "PersonalExpense",
+    kind: 'PersonalExpense',
     id: init.id,
     timestampEpoch: new Date(init.timestamp).getTime(),
     vendor: init.vendor,
@@ -46,7 +46,7 @@ export function personalExpenseModelFromDB(
     note: init.description,
     accountId: init.outgoingAccountId,
     categoryId: init.categoryId,
-    tagsIds: init.tags.map((t) => t.id),
+    tagsIds: init.tags.map(t => t.id),
     tripId: init.tripId,
     refundGroupTransactionIds: refundGroupTransactionIds,
   };

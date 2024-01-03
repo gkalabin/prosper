@@ -1,12 +1,12 @@
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { StockAndCurrencyExchange } from "lib/ClientSideModel";
-import { BankAccount } from "lib/model/BankAccount";
-import { Category } from "lib/model/Category";
-import { Currency } from "lib/model/Currency";
-import { Stock } from "lib/model/Stock";
-import { Income } from "lib/model/transaction/Income";
-import { Expense, Transaction } from "lib/model/transaction/Transaction";
-import { amountOwnShare } from "lib/model/transaction/amounts";
+import {AmountWithCurrency} from 'lib/AmountWithCurrency';
+import {StockAndCurrencyExchange} from 'lib/ClientSideModel';
+import {BankAccount} from 'lib/model/BankAccount';
+import {Category} from 'lib/model/Category';
+import {Currency} from 'lib/model/Currency';
+import {Stock} from 'lib/model/Stock';
+import {Income} from 'lib/model/transaction/Income';
+import {Expense, Transaction} from 'lib/model/transaction/Transaction';
+import {amountOwnShare} from 'lib/model/transaction/amounts';
 
 export function dollarsRounded(amount: AmountWithCurrency | undefined): number {
   if (!amount) {
@@ -17,11 +17,11 @@ export function dollarsRounded(amount: AmountWithCurrency | undefined): number {
 
 export function categoryNameById(
   categoryId: number,
-  categories: Category[],
+  categories: Category[]
 ): string {
-  const found = categories.find((c) => c.id() === categoryId);
+  const found = categories.find(c => c.id() === categoryId);
   if (!found) {
-    return "Unknown category";
+    return 'Unknown category';
   }
   return found.nameWithAncestors();
 }
@@ -32,7 +32,7 @@ export function ownShareSum(
   displayCurrency: Currency,
   bankAccounts: BankAccount[],
   stocks: Stock[],
-  exchange: StockAndCurrencyExchange,
+  exchange: StockAndCurrencyExchange
 ): AmountWithCurrency {
   let sum = AmountWithCurrency.zero(displayCurrency);
   for (const t of transactions) {
@@ -41,7 +41,7 @@ export function ownShareSum(
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange,
+      exchange
     );
     if (!exchanged) {
       failedToExchange.push(t);

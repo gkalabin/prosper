@@ -1,8 +1,8 @@
-import { format } from "date-fns";
-import { Bank, BankAccount } from "lib/model/BankAccount";
-import { Category } from "lib/model/Category";
-import { Tag } from "lib/model/Tag";
-import { Trip } from "lib/model/Trip";
+import {format} from 'date-fns';
+import {Bank, BankAccount} from 'lib/model/BankAccount';
+import {Category} from 'lib/model/Category';
+import {Tag} from 'lib/model/Tag';
+import {Trip} from 'lib/model/Trip';
 import {
   Transaction,
   isExpense,
@@ -16,14 +16,14 @@ import {
   transactionCategory,
   transactionTags,
   transactionTrip,
-} from "lib/model/transaction/Transaction";
+} from 'lib/model/transaction/Transaction';
 import {
   incomingBank,
   incomingBankAccount,
   outgoingBank,
   outgoingBankAccount,
-} from "lib/model/transaction/Transfer";
-import { parseAmountAsCents } from "lib/util/util";
+} from 'lib/model/transaction/Transfer';
+import {parseAmountAsCents} from 'lib/util/util';
 
 export enum CaseMatch {
   Exact,
@@ -45,7 +45,7 @@ export function matchAnyField(
   bankAccounts: BankAccount[],
   categories: Category[],
   trips: Trip[],
-  tags: Tag[],
+  tags: Tag[]
 ): boolean {
   return (
     matchNote(t, term, c) ||
@@ -73,50 +73,50 @@ export function matchField(
   bankAccounts: BankAccount[],
   categories: Category[],
   trips: Trip[],
-  tags: Tag[],
+  tags: Tag[]
 ): boolean {
-  if (includesIgnoreCase(fieldName, ["note", "description", "d"])) {
+  if (includesIgnoreCase(fieldName, ['note', 'description', 'd'])) {
     return matchNote(t, term, c);
   }
-  if (includesIgnoreCase(fieldName, ["vendor", "payee", "recipient", "v"])) {
+  if (includesIgnoreCase(fieldName, ['vendor', 'payee', 'recipient', 'v'])) {
     return matchVendor(t, term, c);
   }
-  if (includesIgnoreCase(fieldName, ["payer"])) {
+  if (includesIgnoreCase(fieldName, ['payer'])) {
     return matchPayer(t, term, c);
   }
-  if (includesIgnoreCase(fieldName, ["otherParty", "splitWith"])) {
+  if (includesIgnoreCase(fieldName, ['otherParty', 'splitWith'])) {
     return matchOtherParty(t, term, c);
   }
-  if (includesIgnoreCase(fieldName, ["amount", "amt"])) {
+  if (includesIgnoreCase(fieldName, ['amount', 'amt'])) {
     return matchAmount(t, term);
   }
-  if (includesIgnoreCase(fieldName, ["id"])) {
+  if (includesIgnoreCase(fieldName, ['id'])) {
     return matchTransactionId(t, term);
   }
-  if (includesIgnoreCase(fieldName, ["bank", "b"])) {
+  if (includesIgnoreCase(fieldName, ['bank', 'b'])) {
     return (
       matchBankId(t, term, bankAccounts) ||
       matchBank(t, term, c, banks, bankAccounts)
     );
   }
-  if (includesIgnoreCase(fieldName, ["account", "acc"])) {
+  if (includesIgnoreCase(fieldName, ['account', 'acc'])) {
     return (
       matchBankAccountId(t, term) || matchBankAccount(t, term, c, bankAccounts)
     );
   }
-  if (includesIgnoreCase(fieldName, ["category", "c"])) {
+  if (includesIgnoreCase(fieldName, ['category', 'c'])) {
     return matchCategoryId(t, term) || matchCategory(t, term, c, categories);
   }
-  if (includesIgnoreCase(fieldName, ["trip"])) {
+  if (includesIgnoreCase(fieldName, ['trip'])) {
     return matchTripId(t, term) || matchTrip(t, term, c, trips);
   }
-  if (includesIgnoreCase(fieldName, ["tag"])) {
+  if (includesIgnoreCase(fieldName, ['tag'])) {
     return matchTagId(t, term) || matchTag(t, term, c, tags);
   }
-  if (includesIgnoreCase(fieldName, ["date", "d", "on"])) {
+  if (includesIgnoreCase(fieldName, ['date', 'd', 'on'])) {
     return matchDate(t, term);
   }
-  if (includesIgnoreCase(fieldName, ["type", "t"])) {
+  if (includesIgnoreCase(fieldName, ['type', 't'])) {
     return matchType(t, term);
   }
   return false;
@@ -126,12 +126,12 @@ export function compareField(
   t: Transaction,
   fieldName: string,
   op: ComparisonOperator,
-  term: string,
+  term: string
 ): boolean {
-  if (includesIgnoreCase(fieldName, ["amount", "amt"])) {
+  if (includesIgnoreCase(fieldName, ['amount', 'amt'])) {
     return compareAmount(t, term, op);
   }
-  if (includesIgnoreCase(fieldName, ["date", "d"])) {
+  if (includesIgnoreCase(fieldName, ['date', 'd'])) {
     return compareDate(t, term, op);
   }
   return false;
@@ -180,7 +180,7 @@ function matchAmount(t: Transaction, term: string): boolean {
 function compareAmount(
   t: Transaction,
   term: string,
-  op: ComparisonOperator,
+  op: ComparisonOperator
 ): boolean {
   const termCents = parseAmountAsCents(term);
   if (!termCents) {
@@ -227,7 +227,7 @@ function matchBank(
   term: string,
   c: CaseMatch,
   banks: Bank[],
-  bankAccounts: BankAccount[],
+  bankAccounts: BankAccount[]
 ): boolean {
   if (isThirdPartyExpense(t)) {
     return false;
@@ -250,7 +250,7 @@ function matchBank(
 function matchBankId(
   t: Transaction,
   term: string,
-  bankAccounts: BankAccount[],
+  bankAccounts: BankAccount[]
 ): boolean {
   if (isThirdPartyExpense(t)) {
     return false;
@@ -268,7 +268,7 @@ function matchBankAccount(
   t: Transaction,
   term: string,
   c: CaseMatch,
-  bankAccounts: BankAccount[],
+  bankAccounts: BankAccount[]
 ): boolean {
   if (isThirdPartyExpense(t)) {
     return false;
@@ -302,7 +302,7 @@ function matchCategory(
   t: Transaction,
   term: string,
   c: CaseMatch,
-  categories: Category[],
+  categories: Category[]
 ): boolean {
   const category = transactionCategory(t, categories);
   return includes(category.nameWithAncestors(), term, c);
@@ -316,7 +316,7 @@ function matchTrip(
   t: Transaction,
   term: string,
   c: CaseMatch,
-  trips: Trip[],
+  trips: Trip[]
 ): boolean {
   if (isTransfer(t) || !t.tripId) {
     return false;
@@ -339,7 +339,7 @@ function matchTag(
   t: Transaction,
   term: string,
   c: CaseMatch,
-  allTags: Tag[],
+  allTags: Tag[]
 ): boolean {
   const tags = transactionTags(t, allTags);
   for (const t of tags) {
@@ -363,23 +363,23 @@ function matchDate(t: Transaction, term: string): boolean {
   if (!term.match(/^\d{4}-\d{2}-\d{2}$/)) {
     return false;
   }
-  return format(t.timestampEpoch, "yyyy-MM-dd") == term;
+  return format(t.timestampEpoch, 'yyyy-MM-dd') == term;
 }
 
 function matchType(t: Transaction, term: string): boolean {
-  if (includesIgnoreCase(term, ["transfer"])) {
+  if (includesIgnoreCase(term, ['transfer'])) {
     return isTransfer(t);
   }
-  if (includesIgnoreCase(term, ["income"])) {
+  if (includesIgnoreCase(term, ['income'])) {
     return isIncome(t);
   }
-  if (includesIgnoreCase(term, ["expense"])) {
+  if (includesIgnoreCase(term, ['expense'])) {
     return isExpense(t);
   }
-  if (includesIgnoreCase(term, ["personal"])) {
+  if (includesIgnoreCase(term, ['personal'])) {
     return isPersonalExpense(t);
   }
-  if (includesIgnoreCase(term, ["thirdParty", "external"])) {
+  if (includesIgnoreCase(term, ['thirdParty', 'external'])) {
     return isThirdPartyExpense(t);
   }
   return false;
@@ -388,27 +388,27 @@ function matchType(t: Transaction, term: string): boolean {
 function compareDate(
   t: Transaction,
   term: string,
-  op: ComparisonOperator,
+  op: ComparisonOperator
 ): boolean {
   if (!term.match(/^\d{4}-\d{2}-\d{2}$/)) {
     return false;
   }
   switch (op) {
     case ComparisonOperator.LessThan:
-      return format(t.timestampEpoch, "yyyy-MM-dd") < term;
+      return format(t.timestampEpoch, 'yyyy-MM-dd') < term;
     case ComparisonOperator.LessThanOrEqual:
-      return format(t.timestampEpoch, "yyyy-MM-dd") <= term;
+      return format(t.timestampEpoch, 'yyyy-MM-dd') <= term;
     case ComparisonOperator.GreaterThan:
-      return format(t.timestampEpoch, "yyyy-MM-dd") > term;
+      return format(t.timestampEpoch, 'yyyy-MM-dd') > term;
     case ComparisonOperator.GreaterThanOrEqual:
-      return format(t.timestampEpoch, "yyyy-MM-dd") >= term;
+      return format(t.timestampEpoch, 'yyyy-MM-dd') >= term;
   }
 }
 
 function includes(
   fieldValue: string,
   originalTerm: string,
-  c: CaseMatch,
+  c: CaseMatch
 ): boolean {
   if (c == CaseMatch.Exact) {
     return fieldValue.includes(originalTerm);
@@ -418,7 +418,7 @@ function includes(
 }
 
 function includesIgnoreCase(fieldName: string, options: string[]): boolean {
-  return options.map((o) => o.toLowerCase()).includes(fieldName.toLowerCase());
+  return options.map(o => o.toLowerCase()).includes(fieldName.toLowerCase());
 }
 
 function equals(id: number, term: string): boolean {

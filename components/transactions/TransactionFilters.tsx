@@ -1,19 +1,19 @@
-import { FormikInput } from "components/forms/Input";
-import { undoTailwindInputStyles } from "components/forms/Select";
-import { ButtonFormSecondary } from "components/ui/buttons";
-import { format } from "date-fns";
-import { useFormikContext } from "formik";
-import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
-import { fullAccountName } from "lib/model/BankAccount";
-import { Tag } from "lib/model/Tag";
-import { Trip } from "lib/model/Trip";
-import { Transaction } from "lib/model/transaction/Transaction";
-import { QuerySyntaxError, fallbackSearch, search } from "lib/search/search";
-import { notEmpty } from "lib/util/util";
-import { useEffect } from "react";
-import Select from "react-select";
+import {FormikInput} from 'components/forms/Input';
+import {undoTailwindInputStyles} from 'components/forms/Select';
+import {ButtonFormSecondary} from 'components/ui/buttons';
+import {format} from 'date-fns';
+import {useFormikContext} from 'formik';
+import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {fullAccountName} from 'lib/model/BankAccount';
+import {Tag} from 'lib/model/Tag';
+import {Trip} from 'lib/model/Trip';
+import {Transaction} from 'lib/model/transaction/Transaction';
+import {QuerySyntaxError, fallbackSearch, search} from 'lib/search/search';
+import {notEmpty} from 'lib/util/util';
+import {useEffect} from 'react';
+import Select from 'react-select';
 
-type TransactionType = "personal" | "external" | "transfer" | "income";
+type TransactionType = 'personal' | 'external' | 'transfer' | 'income';
 
 export type FiltersFormValues = {
   query: string;
@@ -28,11 +28,11 @@ export type FiltersFormValues = {
   allTagsShouldMatch: boolean;
 };
 export const initialTransactionFilters: FiltersFormValues = {
-  query: "",
+  query: '',
   transactionTypes: [],
-  vendor: "",
-  timeFrom: "",
-  timeTo: "",
+  vendor: '',
+  timeFrom: '',
+  timeTo: '',
   accountIds: [],
   categoryIds: [],
   tripId: undefined,
@@ -45,7 +45,7 @@ function generateQuery({
   trips,
   tags,
 }: {
-  formValues: Omit<FiltersFormValues, "query">;
+  formValues: Omit<FiltersFormValues, 'query'>;
   trips: Trip[];
   tags: Tag[];
 }) {
@@ -62,41 +62,41 @@ function generateQuery({
   } = formValues;
   const parts: string[] = [];
   const appendOR = (...or: (string | undefined)[]) => {
-    const values = or.filter(notEmpty).filter((x) => x.trim().length > 0);
+    const values = or.filter(notEmpty).filter(x => x.trim().length > 0);
     if (values.length > 1) {
-      parts.push(`(${values.join(" OR ")})`);
+      parts.push(`(${values.join(' OR ')})`);
     } else {
       parts.push(...values);
     }
   };
-  appendOR(...transactionTypes.map((tt) => `t:${tt}`));
+  appendOR(...transactionTypes.map(tt => `t:${tt}`));
   appendOR(vendor && `vendor:${vendor}`);
-  appendOR(...accountIds.map((id) => `account:${id}`));
-  appendOR(...categoryIds.map((id) => `c:${id}`));
+  appendOR(...accountIds.map(id => `account:${id}`));
+  appendOR(...categoryIds.map(id => `c:${id}`));
   if (tripId) {
-    const trip = trips.find((t) => t.id == tripId);
+    const trip = trips.find(t => t.id == tripId);
     appendOR(trip && `trip:"${trip.name}"`);
   }
-  appendOR(timeFrom && `date>=${format(new Date(timeFrom), "yyyy-MM-dd")}`);
-  appendOR(timeTo && `date<=${format(new Date(timeTo), "yyyy-MM-dd")}`);
+  appendOR(timeFrom && `date>=${format(new Date(timeFrom), 'yyyy-MM-dd')}`);
+  appendOR(timeTo && `date<=${format(new Date(timeTo), 'yyyy-MM-dd')}`);
   if (tagIds.length > 0) {
     const tagSet = new Set(tagIds);
-    const selectedTags = tags.filter((t) => tagSet.has(t.id));
-    const tagParts = selectedTags.map((t) => `tag:${t.name}`);
+    const selectedTags = tags.filter(t => tagSet.has(t.id));
+    const tagParts = selectedTags.map(t => `tag:${t.name}`);
     if (tagParts.length > 1 && !allTagsShouldMatch) {
-      parts.push(`(${tagParts.join(" OR ")})`);
+      parts.push(`(${tagParts.join(' OR ')})`);
     } else {
       parts.push(...tagParts);
     }
   }
-  return parts.join(" ");
+  return parts.join(' ');
 }
 
 export function useFilteredTransactions(): {
   results: Transaction[];
   error?: QuerySyntaxError;
 } {
-  const { transactions, banks, bankAccounts, categories, trips, tags } =
+  const {transactions, banks, bankAccounts, categories, trips, tags} =
     useAllDatabaseDataContext();
   const {
     values: {
@@ -131,7 +131,7 @@ export function useFilteredTransactions(): {
       trips,
       tags,
     });
-    setFieldValue("query", generated);
+    setFieldValue('query', generated);
   }, [
     transactionTypes,
     vendor,
@@ -155,9 +155,9 @@ export function useFilteredTransactions(): {
       bankAccounts,
       categories,
       trips,
-      tags,
+      tags
     );
-    return { results };
+    return {results};
   } catch (e) {
     if (e instanceof QuerySyntaxError) {
       const fallbackResults = fallbackSearch(
@@ -167,9 +167,9 @@ export function useFilteredTransactions(): {
         bankAccounts,
         categories,
         trips,
-        tags,
+        tags
       );
-      return { results: fallbackResults, error: e };
+      return {results: fallbackResults, error: e};
     } else {
       throw e;
     }
@@ -190,46 +190,45 @@ export function SearchForAnythingInput() {
   );
 }
 
-export function TransactionFiltersForm(props: { onClose: () => void }) {
-  const { banks, bankAccounts, categories, trips, tags } =
+export function TransactionFiltersForm(props: {onClose: () => void}) {
+  const {banks, bankAccounts, categories, trips, tags} =
     useAllDatabaseDataContext();
   const {
-    values: { transactionTypes, accountIds, categoryIds, tripId, tagIds },
+    values: {transactionTypes, accountIds, categoryIds, tripId, tagIds},
     setFieldValue,
   } = useFormikContext<FiltersFormValues>();
-  const bankAccountOptions = bankAccounts.map((a) => ({
+  const bankAccountOptions = bankAccounts.map(a => ({
     value: a.id,
-    label: `${fullAccountName(a, banks)}` + (a.archived ? " (archived)" : ""),
+    label: `${fullAccountName(a, banks)}` + (a.archived ? ' (archived)' : ''),
   }));
   const bankAccountOptionByValue = new Map<
     number,
-    { value: number; label: string }
-  >(bankAccountOptions.map((x) => [x.value, x]));
+    {value: number; label: string}
+  >(bankAccountOptions.map(x => [x.value, x]));
 
-  const categoryOptions = categories.map((a) => ({
+  const categoryOptions = categories.map(a => ({
     value: a.id(),
     label: a.nameWithAncestors(),
   }));
-  const categoryOptionByValue = new Map<
-    number,
-    { value: number; label: string }
-  >(categoryOptions.map((x) => [x.value, x]));
+  const categoryOptionByValue = new Map<number, {value: number; label: string}>(
+    categoryOptions.map(x => [x.value, x])
+  );
 
-  const tripOptions = trips.map((a) => ({
+  const tripOptions = trips.map(a => ({
     value: a.id,
     label: a.name,
   }));
 
-  const tagIdOptions = tags.map((t) => ({
+  const tagIdOptions = tags.map(t => ({
     value: t.id,
     label: t.name,
   }));
 
-  const transactionTypeOptions: { value: TransactionType; label: string }[] = [
-    { value: "personal", label: "Personal" },
-    { value: "external", label: "External" },
-    { value: "transfer", label: "Transfer" },
-    { value: "income", label: "Income" },
+  const transactionTypeOptions: {value: TransactionType; label: string}[] = [
+    {value: 'personal', label: 'Personal'},
+    {value: 'external', label: 'External'},
+    {value: 'transfer', label: 'Transfer'},
+    {value: 'income', label: 'Income'},
   ];
   return (
     <>
@@ -243,20 +242,20 @@ export function TransactionFiltersForm(props: { onClose: () => void }) {
             Transaction types
           </label>
           <Select
-            instanceId={"transactionTypes"}
+            instanceId={'transactionTypes'}
             styles={undoTailwindInputStyles()}
             options={transactionTypeOptions}
             isMulti
-            value={transactionTypes.map((tt) => ({
+            value={transactionTypes.map(tt => ({
               label:
-                transactionTypeOptions.find(({ value }) => value == tt)
-                  ?.label ?? "unknown",
+                transactionTypeOptions.find(({value}) => value == tt)?.label ??
+                'unknown',
               value: tt,
             }))}
-            onChange={(x) =>
+            onChange={x =>
               setFieldValue(
-                "transactionTypes",
-                x.map((x) => x.value),
+                'transactionTypes',
+                x.map(x => x.value)
               )
             }
           />
@@ -281,14 +280,14 @@ export function TransactionFiltersForm(props: { onClose: () => void }) {
             styles={undoTailwindInputStyles()}
             options={bankAccountOptions}
             isMulti
-            value={accountIds.map((x) => ({
-              label: bankAccountOptionByValue.get(x)?.label ?? "unknown",
+            value={accountIds.map(x => ({
+              label: bankAccountOptionByValue.get(x)?.label ?? 'unknown',
               value: x,
             }))}
-            onChange={(x) =>
+            onChange={x =>
               setFieldValue(
-                "accountIds",
-                x.map((x) => x.value),
+                'accountIds',
+                x.map(x => x.value)
               )
             }
           />
@@ -304,14 +303,14 @@ export function TransactionFiltersForm(props: { onClose: () => void }) {
             styles={undoTailwindInputStyles()}
             options={categoryOptions}
             isMulti
-            value={categoryIds.map((x) => ({
-              label: categoryOptionByValue.get(x)?.label ?? "unknown",
+            value={categoryIds.map(x => ({
+              label: categoryOptionByValue.get(x)?.label ?? 'unknown',
               value: x,
             }))}
-            onChange={(x) =>
+            onChange={x =>
               setFieldValue(
-                "categoryIds",
-                x.map((x) => x.value),
+                'categoryIds',
+                x.map(x => x.value)
               )
             }
           />
@@ -344,8 +343,8 @@ export function TransactionFiltersForm(props: { onClose: () => void }) {
           <Select
             styles={undoTailwindInputStyles()}
             options={tripOptions}
-            value={tripOptions.find((x) => x.value == tripId)}
-            onChange={(x) => setFieldValue("tripId", x?.value)}
+            value={tripOptions.find(x => x.value == tripId)}
+            onChange={x => setFieldValue('tripId', x?.value)}
           />
         </div>
         <div className="col-span-6">
@@ -359,14 +358,14 @@ export function TransactionFiltersForm(props: { onClose: () => void }) {
             styles={undoTailwindInputStyles()}
             options={tagIdOptions}
             isMulti
-            value={tagIds.map((x) => ({
-              label: tags.find((t) => t.id == x)?.name ?? "unknown",
+            value={tagIds.map(x => ({
+              label: tags.find(t => t.id == x)?.name ?? 'unknown',
               value: x,
             }))}
-            onChange={(x) =>
+            onChange={x =>
               setFieldValue(
-                "tagIds",
-                x.map((x) => x.value),
+                'tagIds',
+                x.map(x => x.value)
               )
             }
           />

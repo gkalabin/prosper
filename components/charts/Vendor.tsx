@@ -1,11 +1,11 @@
-import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
-import ReactEcharts from "echarts-for-react";
-import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
-import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
-import { Expense, Transaction } from "lib/model/transaction/Transaction";
-import { amountOwnShare } from "lib/model/transaction/amounts";
-import { AppendMap, currencyAppendMap } from "lib/util/AppendingMap";
-import { topN, topNAmount } from "lib/util/util";
+import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
+import ReactEcharts from 'echarts-for-react';
+import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
+import {Expense, Transaction} from 'lib/model/transaction/Transaction';
+import {amountOwnShare} from 'lib/model/transaction/amounts';
+import {AppendMap, currencyAppendMap} from 'lib/util/AppendingMap';
+import {topN, topNAmount} from 'lib/util/util';
 
 export function TopNVendorsMostSpent({
   transactions,
@@ -17,7 +17,7 @@ export function TopNVendorsMostSpent({
   n: number;
 }) {
   const displayCurrency = useDisplayCurrency();
-  const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
+  const {bankAccounts, stocks, exchange} = useAllDatabaseDataContext();
   const sum = currencyAppendMap<string>(displayCurrency);
   // TODO: validate that transactions can be exchanged on the page level
   // and only pass down the exchangeable ones as displaying the same
@@ -29,7 +29,7 @@ export function TopNVendorsMostSpent({
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange,
+      exchange
     );
     if (!amount) {
       failedToExchange.push(t);
@@ -37,7 +37,7 @@ export function TopNVendorsMostSpent({
     }
     sum.append(t.vendor, amount);
   }
-  const topSum = topNAmount(sum, n, (x) => `Other ${x} vendors`);
+  const topSum = topNAmount(sum, n, x => `Other ${x} vendors`);
   return (
     <>
       <CurrencyExchangeFailed failedTransactions={failedToExchange} />
@@ -57,7 +57,7 @@ export function TopNVendorsMostSpent({
           },
           series: [
             {
-              type: "bar",
+              type: 'bar',
               data: topSum.map(([_, sum]) => sum.round().dollar()),
             },
           ],
@@ -80,7 +80,7 @@ export function TopNVendorsMostTransactions({
   for (const t of transactions) {
     count.append(t.vendor, 1);
   }
-  const topCount = topN(count, n, (x) => `Other ${x} vendors`);
+  const topCount = topN(count, n, x => `Other ${x} vendors`);
 
   return (
     <ReactEcharts
@@ -99,7 +99,7 @@ export function TopNVendorsMostTransactions({
         },
         series: [
           {
-            type: "bar",
+            type: 'bar',
             data: topCount.map(([_, sum]) => sum),
           },
         ],

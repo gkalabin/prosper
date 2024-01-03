@@ -1,4 +1,4 @@
-import { MoneyInputWithLabel } from "components/forms/Input";
+import {MoneyInputWithLabel} from 'components/forms/Input';
 import {
   Category,
   Currencies,
@@ -10,21 +10,21 @@ import {
   Timestamp,
   Trips,
   Vendor,
-} from "components/txform/FormInputs";
-import { ButtonLink } from "components/ui/buttons";
-import { differenceInMonths } from "date-fns";
-import { useFormikContext } from "formik";
-import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
-import { uniqMostFrequent } from "lib/collections";
-import { TransactionFormValues } from "lib/model/forms/TransactionFormValues";
-import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
+} from 'components/txform/FormInputs';
+import {ButtonLink} from 'components/ui/buttons';
+import {differenceInMonths} from 'date-fns';
+import {useFormikContext} from 'formik';
+import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {uniqMostFrequent} from 'lib/collections';
+import {TransactionFormValues} from 'lib/model/forms/TransactionFormValues';
+import {ThirdPartyExpense} from 'lib/model/transaction/ThirdPartyExpense';
 import {
   Transaction,
   isThirdPartyExpense,
   otherPartyNameOrNull,
-} from "lib/model/transaction/Transaction";
-import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
-import { useEffect, useState } from "react";
+} from 'lib/model/transaction/Transaction';
+import {TransactionPrototype} from 'lib/txsuggestions/TransactionPrototype';
+import {useEffect, useState} from 'react';
 
 const SUGGESTIONS_WINDOW_MONTHS = 6;
 
@@ -34,57 +34,54 @@ export const FormExternalExpense = ({
   transaction: Transaction | null;
   prototype: TransactionPrototype | null;
 }) => {
-  const { transactions } = useAllDatabaseDataContext();
+  const {transactions} = useAllDatabaseDataContext();
   const {
-    values: { vendor, isShared, amount, description, tripName },
+    values: {vendor, isShared, amount, description, tripName},
     setFieldValue,
   } = useFormikContext<TransactionFormValues>();
   const transactionsForMode = transactions.filter((x): x is ThirdPartyExpense =>
-    isThirdPartyExpense(x),
+    isThirdPartyExpense(x)
   );
   const now = new Date();
   const recentTransactionsForMode = transactionsForMode.filter(
-    (x) =>
-      differenceInMonths(now, x.timestampEpoch) < SUGGESTIONS_WINDOW_MONTHS,
+    x => differenceInMonths(now, x.timestampEpoch) < SUGGESTIONS_WINDOW_MONTHS
   );
 
   const [mostFrequentOtherParty] = uniqMostFrequent(
-    recentTransactionsForMode
-      .map((x) => otherPartyNameOrNull(x))
-      .filter((x) => x),
+    recentTransactionsForMode.map(x => otherPartyNameOrNull(x)).filter(x => x)
   );
   useEffect(() => {
     if (transaction) {
       return;
     }
     if (isShared && mostFrequentOtherParty) {
-      setFieldValue("otherPartyName", mostFrequentOtherParty);
+      setFieldValue('otherPartyName', mostFrequentOtherParty);
     }
     if (!isShared) {
-      setFieldValue("otherPartyName", "");
+      setFieldValue('otherPartyName', '');
     }
   }, [isShared, setFieldValue, mostFrequentOtherParty, transaction]);
 
   const [mostFrequentPayer] = uniqMostFrequent(
-    recentTransactionsForMode.map((x) => x.payer),
+    recentTransactionsForMode.map(x => x.payer)
   );
   useEffect(() => {
     if (transaction) {
       return;
     }
     if (mostFrequentPayer) {
-      setFieldValue("payer", mostFrequentPayer);
+      setFieldValue('payer', mostFrequentPayer);
     }
   }, [setFieldValue, mostFrequentPayer, transaction]);
 
   let [mostFrequentCategoryId] = uniqMostFrequent(
     recentTransactionsForMode
-      .filter((x) => !vendor || x.vendor == vendor)
-      .map((x) => x.categoryId),
+      .filter(x => !vendor || x.vendor == vendor)
+      .map(x => x.categoryId)
   );
   if (!mostFrequentCategoryId) {
     [mostFrequentCategoryId] = uniqMostFrequent(
-      transactionsForMode.map((x) => x.categoryId),
+      transactionsForMode.map(x => x.categoryId)
     );
   }
   useEffect(() => {
@@ -92,19 +89,19 @@ export const FormExternalExpense = ({
       return;
     }
     if (mostFrequentCategoryId) {
-      setFieldValue("categoryId", mostFrequentCategoryId);
+      setFieldValue('categoryId', mostFrequentCategoryId);
     }
   }, [setFieldValue, mostFrequentCategoryId, transaction]);
 
   useEffect(() => {
     if (!isShared) {
-      setFieldValue("ownShareAmount", amount);
+      setFieldValue('ownShareAmount', amount);
       return;
     }
     const newAmount = amount / 2;
     // Round new amount to the closest cent.
     const newAmountRounded = Math.round(100 * newAmount) / 100;
-    setFieldValue("ownShareAmount", newAmountRounded);
+    setFieldValue('ownShareAmount', newAmountRounded);
   }, [amount, isShared, setFieldValue, transaction]);
 
   const [showNote, setShowNote] = useState(!!description);
@@ -129,20 +126,20 @@ export const FormExternalExpense = ({
       <Category />
       <Currencies />
       <div className="col-span-6 text-xs">
-        Add a{" "}
+        Add a{' '}
         <ButtonLink
           onClick={() => {
             setShowNote(!showNote);
-            setFieldValue("description", "");
+            setFieldValue('description', '');
           }}
         >
           note
-        </ButtonLink>{" "}
-        to this transaction or link it to a{" "}
+        </ButtonLink>{' '}
+        to this transaction or link it to a{' '}
         <ButtonLink
           onClick={() => {
             setShowTrip(!showTrip);
-            setFieldValue("tripName", "");
+            setFieldValue('tripName', '');
           }}
         >
           trip

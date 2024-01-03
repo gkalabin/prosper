@@ -1,22 +1,20 @@
-import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
-import { TransactionsList } from "components/transactions/TransactionsList";
-import { ButtonLink } from "components/ui/buttons";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import {
-  StockAndCurrencyExchange,
-} from "lib/ClientSideModel";
-import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
-import { assertDefined } from "lib/assert";
-import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
-import { BankAccount } from "lib/model/BankAccount";
-import { Currency } from "lib/model/Currency";
-import { Stock } from "lib/model/Stock";
-import { isCurrency, isStock } from "lib/model/Unit";
-import { Transaction, isTransfer } from "lib/model/transaction/Transaction";
-import { amountSent } from "lib/model/transaction/Transfer";
-import { amountAllParties } from "lib/model/transaction/amounts";
-import { onTransactionChange } from "lib/stateHelpers";
-import { useState } from "react";
+import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
+import {TransactionsList} from 'components/transactions/TransactionsList';
+import {ButtonLink} from 'components/ui/buttons';
+import {AmountWithCurrency} from 'lib/AmountWithCurrency';
+import {StockAndCurrencyExchange} from 'lib/ClientSideModel';
+import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {assertDefined} from 'lib/assert';
+import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
+import {BankAccount} from 'lib/model/BankAccount';
+import {Currency} from 'lib/model/Currency';
+import {Stock} from 'lib/model/Stock';
+import {isCurrency, isStock} from 'lib/model/Unit';
+import {Transaction, isTransfer} from 'lib/model/transaction/Transaction';
+import {amountSent} from 'lib/model/transaction/Transfer';
+import {amountAllParties} from 'lib/model/transaction/amounts';
+import {onTransactionChange} from 'lib/stateHelpers';
+import {useState} from 'react';
 
 export enum SortingMode {
   DATE_ASC,
@@ -30,7 +28,7 @@ function amount(
   displayCurrency: Currency,
   bankAccounts: BankAccount[],
   stocks: Stock[],
-  exchange: StockAndCurrencyExchange,
+  exchange: StockAndCurrencyExchange
 ): AmountWithCurrency | undefined {
   if (isTransfer(transaction)) {
     const sent = amountSent(transaction, bankAccounts, stocks);
@@ -43,7 +41,7 @@ function amount(
       return exchange.exchangeCurrency(
         amount,
         displayCurrency,
-        transaction.timestampEpoch,
+        transaction.timestampEpoch
       );
     }
     if (isStock(unit)) {
@@ -51,7 +49,7 @@ function amount(
         sent.getAmount(),
         unit,
         displayCurrency,
-        transaction.timestampEpoch,
+        transaction.timestampEpoch
       );
     }
     throw new Error(`Unknown unit: ${unit}`);
@@ -61,7 +59,7 @@ function amount(
     displayCurrency,
     bankAccounts,
     stocks,
-    exchange,
+    exchange
   );
 }
 
@@ -71,9 +69,9 @@ export const SortableTransactionsList = (props: {
   initialSorting?: SortingMode;
 }) => {
   const [sorting, setSorting] = useState(
-    props.initialSorting ?? SortingMode.DATE_ASC,
+    props.initialSorting ?? SortingMode.DATE_ASC
   );
-  const { setDbData, bankAccounts, stocks, exchange } =
+  const {setDbData, bankAccounts, stocks, exchange} =
     useAllDatabaseDataContext();
   const displayCurrency = useDisplayCurrency();
   if (!props.transactions?.length) {
@@ -86,15 +84,15 @@ export const SortableTransactionsList = (props: {
     const transactionsWithAmount: Array<{
       t: Transaction;
       a: AmountWithCurrency | undefined;
-    }> = sortedTransactions.map((t) => ({
+    }> = sortedTransactions.map(t => ({
       t,
       a: amount(t, displayCurrency, bankAccounts, stocks, exchange),
     }));
     failedToExchange.push(
-      ...transactionsWithAmount.filter((x) => !x.a).map((x) => x.t),
+      ...transactionsWithAmount.filter(x => !x.a).map(x => x.t)
     );
     sortedTransactions = transactionsWithAmount
-      .filter((x) => !!x.a)
+      .filter(x => !!x.a)
       .sort((x, y) => {
         assertDefined(x.a);
         assertDefined(y.a);
@@ -105,7 +103,7 @@ export const SortableTransactionsList = (props: {
             return y.a.cents() - x.a.cents();
         }
       })
-      .map((x) => x.t);
+      .map(x => x.t);
   } else {
     sortedTransactions = [...props.transactions].sort((a, b) => {
       switch (sorting) {
@@ -114,7 +112,7 @@ export const SortableTransactionsList = (props: {
         case SortingMode.DATE_DESC:
           return b.timestampEpoch - a.timestampEpoch;
         default:
-          throw new Error("Unknown sorting mode: " + sorting);
+          throw new Error('Unknown sorting mode: ' + sorting);
       }
     });
   }
@@ -122,25 +120,25 @@ export const SortableTransactionsList = (props: {
   return (
     <>
       <div className="mb-2 text-xs">
-        Sort by{" "}
+        Sort by{' '}
         <ButtonLink
           onClick={() =>
             setSorting(
               sorting == SortingMode.DATE_ASC
                 ? SortingMode.DATE_DESC
-                : SortingMode.DATE_ASC,
+                : SortingMode.DATE_ASC
             )
           }
         >
           date
         </ButtonLink>
-        ,{" "}
+        ,{' '}
         <ButtonLink
           onClick={() =>
             setSorting(
               sorting == SortingMode.AMOUNT_DESC
                 ? SortingMode.AMOUNT_ASC
-                : SortingMode.AMOUNT_DESC,
+                : SortingMode.AMOUNT_DESC
             )
           }
         >

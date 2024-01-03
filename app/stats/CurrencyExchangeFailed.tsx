@@ -1,28 +1,28 @@
-"use client";
-import { ButtonLink } from "components/ui/buttons";
-import { format } from "date-fns";
-import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
-import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
-import { fullAccountName } from "lib/model/BankAccount";
+'use client';
+import {ButtonLink} from 'components/ui/buttons';
+import {format} from 'date-fns';
+import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
+import {fullAccountName} from 'lib/model/BankAccount';
 import {
   Transaction,
   isIncome,
   isPersonalExpense,
   isThirdPartyExpense,
   isTransfer,
-} from "lib/model/transaction/Transaction";
+} from 'lib/model/transaction/Transaction';
 import {
   amountReceived,
   amountSent,
   incomingBankAccount,
   outgoingBankAccount,
-} from "lib/model/transaction/Transfer";
-import { paidTotal } from "lib/model/transaction/amounts";
-import { useState } from "react";
+} from 'lib/model/transaction/Transfer';
+import {paidTotal} from 'lib/model/transaction/amounts';
+import {useState} from 'react';
 
-export const TransactionTitle = ({ t }: { t: Transaction }) => {
-  const { banks, bankAccounts, stocks } = useAllDatabaseDataContext();
-  const date = format(t.timestampEpoch, "MMM dd");
+export const TransactionTitle = ({t}: {t: Transaction}) => {
+  const {banks, bankAccounts, stocks} = useAllDatabaseDataContext();
+  const date = format(t.timestampEpoch, 'MMM dd');
   if (isTransfer(t)) {
     const from = outgoingBankAccount(t, bankAccounts);
     const to = incomingBankAccount(t, bankAccounts);
@@ -34,7 +34,7 @@ export const TransactionTitle = ({ t }: { t: Transaction }) => {
     }
     return (
       <>
-        [{date}] {fullAccountName(from, banks)} → {fullAccountName(to, banks)}{" "}
+        [{date}] {fullAccountName(from, banks)} → {fullAccountName(to, banks)}{' '}
         {amountText}
       </>
     );
@@ -49,7 +49,7 @@ export const TransactionTitle = ({ t }: { t: Transaction }) => {
   if (isThirdPartyExpense(t)) {
     return (
       <>
-        [{date}] {t.vendor} <small>paid by {t.payer}</small>{" "}
+        [{date}] {t.vendor} <small>paid by {t.payer}</small>{' '}
         {paidTotal(t, bankAccounts, stocks).format()}
       </>
     );
@@ -85,7 +85,7 @@ export function CurrencyExchangeFailed({
         , these transactions are ignored in the charts:
       </div>
       <ul className="ml-6 list-disc">
-        {visibleTransactions.map((t) => (
+        {visibleTransactions.map(t => (
           <li key={t.id}>
             <TransactionTitle t={t} />
           </li>
@@ -93,7 +93,7 @@ export function CurrencyExchangeFailed({
       </ul>
       {failedTransactions.length > visibleTransactions.length && (
         <div>
-          And {failedTransactions.length - visibleTransactions.length} more.{" "}
+          And {failedTransactions.length - visibleTransactions.length} more.{' '}
           <ButtonLink onClick={() => setShowAll(true)}>Show all</ButtonLink>
         </div>
       )}

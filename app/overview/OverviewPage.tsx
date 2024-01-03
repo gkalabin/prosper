@@ -1,53 +1,50 @@
-"use client";
-import {
-  isFullyConfigured,
-  NotConfiguredYet,
-} from "components/NotConfiguredYet";
-import { TransactionsList } from "components/transactions/TransactionsList";
-import { AddTransactionForm } from "components/txform/AddTransactionForm";
-import { ButtonPagePrimary } from "components/ui/buttons";
-import { AmountWithUnit } from "lib/AmountWithUnit";
+'use client';
+import {isFullyConfigured, NotConfiguredYet} from 'components/NotConfiguredYet';
+import {TransactionsList} from 'components/transactions/TransactionsList';
+import {AddTransactionForm} from 'components/txform/AddTransactionForm';
+import {ButtonPagePrimary} from 'components/ui/buttons';
+import {AmountWithUnit} from 'lib/AmountWithUnit';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
-} from "lib/context/AllDatabaseDataContext";
-import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
-import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
+} from 'lib/context/AllDatabaseDataContext';
+import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
+import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
 import {
   accountsForBank,
   accountUnit,
   Bank,
   BankAccount,
-} from "lib/model/BankAccount";
-import { Income } from "lib/model/transaction/Income";
-import { PersonalExpense } from "lib/model/transaction/PersonalExpense";
-import { Transfer } from "lib/model/transaction/Transfer";
+} from 'lib/model/BankAccount';
+import {Income} from 'lib/model/transaction/Income';
+import {PersonalExpense} from 'lib/model/transaction/PersonalExpense';
+import {Transfer} from 'lib/model/transaction/Transfer';
 import {
   useOpenBankingBalances,
   useOpenBankingTransactions,
-} from "lib/openbanking/context";
-import { onTransactionChange } from "lib/stateHelpers";
-import { useState } from "react";
+} from 'lib/openbanking/context';
+import {onTransactionChange} from 'lib/stateHelpers';
+import {useState} from 'react';
 import {
   accountBalance,
   accountsSum,
   transactionBelongsToAccount,
-} from "./modelHelpers";
-import { OpenBankingConnectionExpirationWarning } from "./OpenBankingConnectionExpirationWarning";
-import { StatsWidget } from "./StatsWidget";
+} from './modelHelpers';
+import {OpenBankingConnectionExpirationWarning} from './OpenBankingConnectionExpirationWarning';
+import {StatsWidget} from './StatsWidget';
 
-const BankAccountListItem = ({ account }: { account: BankAccount }) => {
+const BankAccountListItem = ({account}: {account: BankAccount}) => {
   const [showTransactionList, setShowTransactionList] = useState(false);
-  const { setDbData, transactions, stocks } = useAllDatabaseDataContext();
+  const {setDbData, transactions, stocks} = useAllDatabaseDataContext();
   const appBalance = accountBalance(account, transactions, stocks);
   const unit = accountUnit(account, stocks);
   const accountTransactions = transactions.filter(
     (t): t is PersonalExpense | Transfer | Income =>
-      transactionBelongsToAccount(t, account),
+      transactionBelongsToAccount(t, account)
   );
   let balanceText = <span>{appBalance.format()}</span>;
-  const { balances } = useOpenBankingBalances();
-  const obBalance = balances?.find((b) => b.internalAccountId === account.id);
+  const {balances} = useOpenBankingBalances();
+  const obBalance = balances?.find(b => b.internalAccountId === account.id);
   if (obBalance) {
     const obAmount = new AmountWithUnit({
       amountCents: obBalance.balanceCents,
@@ -61,9 +58,9 @@ const BankAccountListItem = ({ account }: { account: BankAccount }) => {
     } else {
       balanceText = (
         <>
-          <span className="text-red-600">{appBalance.format()}</span>{" "}
-          {delta.abs().format()} unaccounted{" "}
-          {delta.isNegative() ? "income" : "expense"}
+          <span className="text-red-600">{appBalance.format()}</span>{' '}
+          {delta.abs().format()} unaccounted{' '}
+          {delta.isNegative() ? 'income' : 'expense'}
         </>
       );
     }
@@ -90,19 +87,19 @@ const BankAccountListItem = ({ account }: { account: BankAccount }) => {
   );
 };
 
-export const BanksList = ({ banks }: { banks: Bank[] }) => {
+export const BanksList = ({banks}: {banks: Bank[]}) => {
   return (
     <div className="space-y-4">
-      {banks.map((bank) => (
+      {banks.map(bank => (
         <BanksListItem key={bank.id} bank={bank} />
       ))}
     </div>
   );
 };
 
-const BanksListItem = ({ bank }: { bank: Bank }) => {
+const BanksListItem = ({bank}: {bank: Bank}) => {
   const displayCurrency = useDisplayCurrency();
-  const { exchange, stocks, transactions, bankAccounts } =
+  const {exchange, stocks, transactions, bankAccounts} =
     useAllDatabaseDataContext();
   const accounts = accountsForBank(bank, bankAccounts);
   const bankTotal = accountsSum(
@@ -110,7 +107,7 @@ const BanksListItem = ({ bank }: { bank: Bank }) => {
     displayCurrency,
     exchange,
     transactions,
-    stocks,
+    stocks
   );
   return (
     <div className="rounded border">
@@ -124,8 +121,8 @@ const BanksListItem = ({ bank }: { bank: Bank }) => {
 
       <div className="divide-y divide-gray-200">
         {accounts
-          .filter((a) => !a.archived)
-          .map((account) => (
+          .filter(a => !a.archived)
+          .map(account => (
             <BankAccountListItem key={account.id} account={account} />
           ))}
       </div>
@@ -135,8 +132,8 @@ const BanksListItem = ({ bank }: { bank: Bank }) => {
 
 function NonEmptyPageContent() {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
-  const { banks, setDbData } = useAllDatabaseDataContext();
-  const { isError: obBalancesError, isLoading: obBalancesLoading } =
+  const {banks, setDbData} = useAllDatabaseDataContext();
+  const {isError: obBalancesError, isLoading: obBalancesLoading} =
     useOpenBankingBalances();
   // Just trigger the loading of transactions, so they are cached for later.
   useOpenBankingTransactions();
@@ -174,7 +171,7 @@ function NonEmptyPageContent() {
   );
 }
 
-export function OverviewPage({ dbData }: { dbData: AllDatabaseData }) {
+export function OverviewPage({dbData}: {dbData: AllDatabaseData}) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }

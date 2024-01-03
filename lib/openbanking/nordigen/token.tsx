@@ -1,8 +1,8 @@
-import { NordigenRequisition, NordigenToken } from "@prisma/client";
-import { addSeconds, isBefore } from "date-fns";
-import { assert } from "lib/assert";
-import { DB } from "lib/db";
-import prisma from "lib/prisma";
+import {NordigenRequisition, NordigenToken} from '@prisma/client';
+import {addSeconds, isBefore} from 'date-fns';
+import {assert} from 'lib/assert';
+import {DB} from 'lib/db';
+import prisma from 'lib/prisma';
 
 export async function getOrCreateToken(db: DB, bankId: number) {
   const now = new Date();
@@ -22,14 +22,14 @@ export async function getOrCreateToken(db: DB, bankId: number) {
 
 async function createToken(db: DB, bankId: number): Promise<NordigenToken> {
   const r = await fetch(`https://ob.nordigen.com/api/v2/token/new/`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({
       secret_id: process.env.NORDIGEN_SECRET_ID,
       secret_key: process.env.NORDIGEN_SECRET_KEY,
     }),
   });
-  const { access, access_expires, refresh, refresh_expires } = await r.json();
+  const {access, access_expires, refresh, refresh_expires} = await r.json();
   const now = new Date();
   const data = {
     access,
@@ -50,12 +50,12 @@ async function createToken(db: DB, bankId: number): Promise<NordigenToken> {
 
 export async function refreshToken(
   db: DB,
-  token: NordigenToken,
+  token: NordigenToken
 ): Promise<NordigenToken> {
   const fetched = await fetch(`https://ob.nordigen.com/api/v2/token/refresh/`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refresh: token.refresh }),
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({refresh: token.refresh}),
   });
   if (fetched.status !== 200) {
     const [bank] = await db.bankFindMany({
@@ -63,16 +63,16 @@ export async function refreshToken(
         id: token.bankId,
       },
     });
-    const bankName = bank?.name || "unknown bank";
+    const bankName = bank?.name || 'unknown bank';
     const reason = fetched.statusText;
     const text = await fetched.text();
     console.warn(
-      `Failed to refresh token for bank ${token.bankId} ${bankName}: ${text}`,
+      `Failed to refresh token for bank ${token.bankId} ${bankName}: ${text}`
     );
     return Promise.reject(`Refresh token for ${bankName} failed: ${reason}`);
   }
   const json = await fetched.json();
-  const { access, access_expires } = json;
+  const {access, access_expires} = json;
   const now = new Date();
   const updatedToken = await prisma.nordigenToken.update({
     data: {
@@ -89,18 +89,18 @@ export async function refreshToken(
 export async function deleteToken(
   db: DB,
   token: NordigenToken,
-  requisition: NordigenRequisition,
+  requisition: NordigenRequisition
 ): Promise<void> {
   assert(
     token.bankId === requisition.bankId,
-    `bankId mismatch: token bank id is ${token.bankId}, requisition bank id is ${requisition.bankId}`,
+    `bankId mismatch: token bank id is ${token.bankId}, requisition bank id is ${requisition.bankId}`
   );
   const response = await fetch(
     `https://ob.nordigen.com/api/v2/requisitions/${requisition.requisitionId}/`,
     {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token.access}` },
-    },
+      method: 'DELETE',
+      headers: {Authorization: `Bearer ${token.access}`},
+    }
   );
   const responseText = await response.text();
   // FIXME: error handling here is overly simplistic, it allows for the case
@@ -108,16 +108,16 @@ export async function deleteToken(
   if (response.status !== 200) {
     if (response.status === 404) {
       console.warn(
-        `Requisition ${requisition.id} is not found in Nordigen API: ${responseText}`,
+        `Requisition ${requisition.id} is not found in Nordigen API: ${responseText}`
       );
       // Okay to proceed with deleting the token and requisition.
     } else {
       throw new Error(
-        `Failed to delete nordigen requisition ${requisition.id} (code ${response.status}): ${responseText}`,
+        `Failed to delete nordigen requisition ${requisition.id} (code ${response.status}): ${responseText}`
       );
     }
   }
-  console.info("Deleted nordigen requisition", requisition.id, responseText);
-  await db.nordigenTokenDelete({ where: { bankId: token.bankId } });
-  await db.nordigenRequisitionDelete({ where: { bankId: requisition.bankId } });
+  console.info('Deleted nordigen requisition', requisition.id, responseText);
+  await db.nordigenTokenDelete({where: {bankId: token.bankId}});
+  await db.nordigenRequisitionDelete({where: {bankId: requisition.bankId}});
 }

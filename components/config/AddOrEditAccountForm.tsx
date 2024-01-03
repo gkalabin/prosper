@@ -1,24 +1,24 @@
-import { BankAccount as DBBankAccount } from "@prisma/client";
-import { FormikInput, FormikMoneyInput } from "components/forms/Input";
-import { undoTailwindInputStyles } from "components/forms/Select";
+import {BankAccount as DBBankAccount} from '@prisma/client';
+import {FormikInput, FormikMoneyInput} from 'components/forms/Input';
+import {undoTailwindInputStyles} from 'components/forms/Select';
 import {
   AddOrUpdateButtonText,
   ButtonFormPrimary,
   ButtonFormSecondary,
-} from "components/ui/buttons";
-import { Form, Formik, useFormikContext } from "formik";
-import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
-import { Bank, BankAccount } from "lib/model/BankAccount";
-import { Currency } from "lib/model/Currency";
-import { Stock } from "lib/model/Stock";
+} from 'components/ui/buttons';
+import {Form, Formik, useFormikContext} from 'formik';
+import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
+import {Bank, BankAccount} from 'lib/model/BankAccount';
+import {Currency} from 'lib/model/Currency';
+import {Stock} from 'lib/model/Stock';
 import {
   AccountUnitFormValue,
   BankAccountFormValues,
   CurrencyFormValue,
   StockFormValue,
-} from "lib/model/forms/BankAccountFormValues";
-import { useEffect, useState } from "react";
-import Async from "react-select/async";
+} from 'lib/model/forms/BankAccountFormValues';
+import {useEffect, useState} from 'react';
+import Async from 'react-select/async';
 
 export const AddOrEditAccountForm = ({
   bank,
@@ -35,33 +35,33 @@ export const AddOrEditAccountForm = ({
   onAddedOrUpdated: (x: DBBankAccount) => void;
   onClose: () => void;
 }) => {
-  const [apiError, setApiError] = useState("");
+  const [apiError, setApiError] = useState('');
   const addingNewAccount = !bankAccount;
   const initialValues = useInitialFormValues(
     bank,
     bankAccounts,
     stocks,
-    bankAccount,
+    bankAccount
   );
 
   const handleSubmit = async (values: BankAccountFormValues) => {
-    setApiError("");
+    setApiError('');
     try {
       const body = {
         ...values,
         bankId: bank.id,
       };
       const added = await fetch(
-        `/api/config/bank-account/${addingNewAccount ? "" : bankAccount.id}`,
+        `/api/config/bank-account/${addingNewAccount ? '' : bankAccount.id}`,
         {
-          method: addingNewAccount ? "POST" : "PUT",
-          headers: { "Content-Type": "application/json" },
+          method: addingNewAccount ? 'POST' : 'PUT',
+          headers: {'Content-Type': 'application/json'},
           body: JSON.stringify(body),
-        },
+        }
       );
       if (!added.ok) {
         setApiError(
-          `Failed to add: ${await added.text()} (code ${added.status})`,
+          `Failed to add: ${await added.text()} (code ${added.status})`
         );
         return;
       }
@@ -73,11 +73,11 @@ export const AddOrEditAccountForm = ({
 
   return (
     <Formik initialValues={initialValues} onSubmit={handleSubmit}>
-      {({ isSubmitting, values }) => (
+      {({isSubmitting, values}) => (
         <Form className="flex max-w-xs flex-col gap-2 px-4 pb-6 pt-2">
           <h3 className="mb-2 text-xl font-medium leading-5">
             {addingNewAccount
-              ? "Add New Bank Account"
+              ? 'Add New Bank Account'
               : `Edit ${bankAccount.name}`}
           </h3>
           <div>
@@ -143,50 +143,49 @@ export const AddOrEditAccountForm = ({
 
 function useDefaultUnitValue(): AccountUnitFormValue {
   const displayCurrency = useDisplayCurrency();
-  return { kind: "currency", currencyCode: displayCurrency.code() };
+  return {kind: 'currency', currencyCode: displayCurrency.code()};
 }
 
 function useInitialFormValues(
   bank: Bank,
   bankAccounts: BankAccount[],
   stocks: Stock[],
-  bankAccount?: BankAccount,
+  bankAccount?: BankAccount
 ): BankAccountFormValues {
   const defaultUnit = useDefaultUnitValue();
   if (!bankAccount) {
     return {
-      name: "",
+      name: '',
       unit: defaultUnit,
       isJoint: false,
       isArchived: false,
       initialBalance: 0,
-      displayOrder:
-        100 * bankAccounts.filter((a) => a.bankId == bank.id).length,
+      displayOrder: 100 * bankAccounts.filter(a => a.bankId == bank.id).length,
     };
   }
 
   let unit: AccountUnitFormValue;
   if (bankAccount.stockId) {
-    const stock = stocks.find((s) => s.id === bankAccount.stockId);
+    const stock = stocks.find(s => s.id === bankAccount.stockId);
     if (!stock) {
       throw new Error(
-        `BankAccount ${bankAccount.id} has stockId ${bankAccount.stockId} but it does not exist`,
+        `BankAccount ${bankAccount.id} has stockId ${bankAccount.stockId} but it does not exist`
       );
     }
     unit = {
-      kind: "stock",
+      kind: 'stock',
       ticker: stock.ticker,
       exchange: stock.exchange,
       name: stock.name,
     };
   } else if (bankAccount.currencyCode) {
     unit = {
-      kind: "currency",
+      kind: 'currency',
       currencyCode: Currency.mustFindByCode(bankAccount.currencyCode).code(),
     };
   } else {
     throw new Error(
-      `BankAccount ${bankAccount.id} does not have a stock or currency`,
+      `BankAccount ${bankAccount.id} does not have a stock or currency`
     );
   }
   return {
@@ -205,12 +204,12 @@ type UnitSelectOption = {
 };
 
 function labelFor(unit: AccountUnitFormValue) {
-  if (unit.kind === "currency") {
+  if (unit.kind === 'currency') {
     return unit.currencyCode;
-  } else if (unit.kind === "stock") {
+  } else if (unit.kind === 'stock') {
     return `${unit.name} (${unit.ticker})`;
   } else {
-    return "Unknown";
+    return 'Unknown';
   }
 }
 
@@ -221,33 +220,33 @@ function unitToOption(u: AccountUnitFormValue): UnitSelectOption {
   };
 }
 
-export function UnitSelect({ stocks }: { stocks: Stock[] }) {
+export function UnitSelect({stocks}: {stocks: Stock[]}) {
   const {
-    values: { unit },
+    values: {unit},
     isSubmitting,
     setFieldValue,
   } = useFormikContext<BankAccountFormValues>();
-  const currencies: CurrencyFormValue[] = Currency.all().map((x) => ({
-    kind: "currency",
+  const currencies: CurrencyFormValue[] = Currency.all().map(x => ({
+    kind: 'currency',
     currencyCode: x.code(),
   }));
   const initialStocks = stocks.map(
     (s): StockFormValue => ({
-      kind: "stock",
+      kind: 'stock',
       ticker: s.ticker,
       exchange: s.exchange,
       name: s.name,
-    }),
+    })
   );
   const initialOptions = [...currencies, ...initialStocks].map(unitToOption);
   // Debounce the loadOptions function to avoid spamming the API.
   const [loadOptionsDebounced, setLoadOptionsDebounced] = useState(
-    {} as { cb: () => void; delayMilliseconds: number },
+    {} as {cb: () => void; delayMilliseconds: number}
   );
-  const [loadingError, setLoadingError] = useState("");
+  const [loadingError, setLoadingError] = useState('');
   // Listen to changes of debounce (function, delay), when it does clear the previos timeout and set the new one.
   useEffect(() => {
-    const { cb, delayMilliseconds } = loadOptionsDebounced;
+    const {cb, delayMilliseconds} = loadOptionsDebounced;
     if (cb) {
       const timeout = setTimeout(cb, delayMilliseconds);
       return () => clearTimeout(timeout);
@@ -255,17 +254,17 @@ export function UnitSelect({ stocks }: { stocks: Stock[] }) {
   }, [loadOptionsDebounced]);
   const loadOptions = (
     inputValue: string,
-    callback: (opts: UnitSelectOption[]) => void,
+    callback: (opts: UnitSelectOption[]) => void
   ) => {
     setLoadOptionsDebounced({
       cb: async () => {
-        const newOptions: AccountUnitFormValue[] = currencies.filter((c) =>
-          c.currencyCode.toLowerCase().includes(inputValue.toLowerCase()),
+        const newOptions: AccountUnitFormValue[] = currencies.filter(c =>
+          c.currencyCode.toLowerCase().includes(inputValue.toLowerCase())
         );
         try {
           const r = await fetch(`/api/stock?q=${inputValue}`, {
-            method: "GET",
-            headers: { "Content-Type": "application/json" },
+            method: 'GET',
+            headers: {'Content-Type': 'application/json'},
           });
           const stocks: StockFormValue[] = await r.json();
           newOptions.push(...stocks);
@@ -286,8 +285,8 @@ export function UnitSelect({ stocks }: { stocks: Stock[] }) {
         loadOptions={loadOptions}
         defaultOptions={initialOptions}
         value={unitToOption(unit)}
-        onChange={(newValue) =>
-          setFieldValue("unit", newValue?.value ?? defaultValue)
+        onChange={newValue =>
+          setFieldValue('unit', newValue?.value ?? defaultValue)
         }
         isDisabled={isSubmitting}
         isClearable={false}

@@ -1,15 +1,15 @@
-import { Prisma } from "@prisma/client";
+import {Prisma} from '@prisma/client';
 import {
   AllDatabaseData,
   TransactionWithTagIds,
-} from "lib/model/AllDatabaseDataModel";
-import { Currency } from "lib/model/Currency";
-import prisma from "lib/prisma";
+} from 'lib/model/AllDatabaseDataModel';
+import {Currency} from 'lib/model/Currency';
+import prisma from 'lib/prisma';
 
 export class DB {
   private readonly userId: number;
 
-  public constructor({ userId }: { userId: number }) {
+  public constructor({userId}: {userId: number}) {
     this.userId = userId;
   }
 
@@ -99,14 +99,14 @@ export class DB {
     return prisma.starlingToken.delete(this.whereUser(args));
   }
   externalAccountMappingFindMany(
-    args?: Prisma.ExternalAccountMappingFindManyArgs,
+    args?: Prisma.ExternalAccountMappingFindManyArgs
   ) {
     return prisma.externalAccountMapping.findMany(this.whereUser(args ?? {}));
   }
 
   async getOrCreateDbDisplaySettings() {
     const [existing] = await prisma.displaySettings.findMany(
-      this.whereUser({}),
+      this.whereUser({})
     );
     if (existing) {
       return existing;
@@ -114,7 +114,7 @@ export class DB {
     const created = await prisma.displaySettings.create({
       data: {
         displayCurrencyCode: Currency.USD.code(),
-        excludeCategoryIdsInStats: "",
+        excludeCategoryIdsInStats: '',
         userId: this.userId,
       },
     });
@@ -126,17 +126,17 @@ export class DB {
   }
 
   private whereUser<T extends UserIdFilter>(args: T): T {
-    const copy = { ...args };
-    copy.where = { ...copy.where };
+    const copy = {...args};
+    copy.where = {...copy.where};
     if (copy.where.userId) {
-      throw new Error("User id is already set");
+      throw new Error('User id is already set');
     }
     copy.where.userId = this.userId;
     return copy;
   }
 }
 
-type UserIdFilter = { where?: { userId?: number | Prisma.IntFilter<string> } };
+type UserIdFilter = {where?: {userId?: number | Prisma.IntFilter<string>}};
 
 export async function fetchAllDatabaseData(db: DB): Promise<AllDatabaseData> {
   const data = {} as AllDatabaseData;
@@ -156,7 +156,7 @@ export async function fetchAllDatabaseData(db: DB): Promise<AllDatabaseData> {
       async () =>
         (data.dbTransactionPrototypes =
           await db.transactionPrototypeFindMany()),
-    ].map((f) => f()),
+    ].map(f => f())
   );
   return data;
 }

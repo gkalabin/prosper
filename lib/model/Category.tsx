@@ -1,5 +1,5 @@
-import { Category as DBCategory } from "@prisma/client";
-import { Transaction } from "lib/model/transaction/Transaction";
+import {Category as DBCategory} from '@prisma/client';
+import {Transaction} from 'lib/model/transaction/Transaction';
 
 export class Category {
   private readonly _id: number;
@@ -17,7 +17,7 @@ export class Category {
       throw new Error(
         `Category ${this._id} has parent ${
           this._parentCategoryId
-        } but was set to ${parent.id()}`,
+        } but was set to ${parent.id()}`
       );
     }
     this._immediateParent = parent;
@@ -51,7 +51,7 @@ export class Category {
     if (this.isRoot()) {
       return this.name();
     }
-    return [...this._ancestors, this].map((a) => a.name()).join(" > ");
+    return [...this._ancestors, this].map(a => a.name()).join(' > ');
   }
 
   isRoot() {
@@ -81,16 +81,16 @@ export class Category {
   }
 
   childOf(categoryId: number) {
-    return this._ancestors.some((a) => a.id() == categoryId);
+    return this._ancestors.some(a => a.id() == categoryId);
   }
 }
 
 export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
-  const categories = dbCategories.map((c) => new Category(c));
+  const categories = dbCategories.map(c => new Category(c));
   const categoryById = new Map<number, Category>(
-    categories.map((c) => [c.id(), c]),
+    categories.map(c => [c.id(), c])
   );
-  categories.forEach((c) => {
+  categories.forEach(c => {
     let parentId = c.parentCategoryId();
     if (!parentId) {
       return;
@@ -113,10 +113,8 @@ export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
 
   // Sort categories by display order
   categories.sort((c1, c2) => c1.displayOrder() - c2.displayOrder());
-  categories.forEach((c) =>
-    c._immediateChildren.sort(
-      (c1, c2) => c1.displayOrder() - c2.displayOrder(),
-    ),
+  categories.forEach(c =>
+    c._immediateChildren.sort((c1, c2) => c1.displayOrder() - c2.displayOrder())
   );
   // Sort categories to get the list like:
   //  - A
@@ -124,9 +122,9 @@ export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
   //  - B
   //  - B > Sub B
   const categoriesSorted: Category[] = [];
-  const rootCategories = categories.filter((c) => c.isRoot());
+  const rootCategories = categories.filter(c => c.isRoot());
   const inOrderTreeTraversal = (subtree: Category[]) => {
-    subtree.forEach((c) => {
+    subtree.forEach(c => {
       categoriesSorted.push(c);
       inOrderTreeTraversal(c.children());
     });
@@ -138,12 +136,12 @@ export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
 export function transactionIsDescendant(
   t: Transaction,
   cid: number,
-  categories: Category[],
+  categories: Category[]
 ): boolean {
   if (t.categoryId == cid) {
     return true;
   }
-  const transactionCategory = categories.find((c) => c.id() == t.categoryId);
+  const transactionCategory = categories.find(c => c.id() == t.categoryId);
   if (!transactionCategory) {
     throw new Error(`Category ${t.categoryId} not found`);
   }
@@ -152,9 +150,9 @@ export function transactionIsDescendant(
 
 export function mustFindCategory(
   cid: number,
-  categories: Category[],
+  categories: Category[]
 ): Category {
-  const c = categories.find((c) => c.id() == cid);
+  const c = categories.find(c => c.id() == cid);
   if (!c) {
     throw new Error(`Category ${cid} is not found`);
   }

@@ -9,7 +9,7 @@
   "rules": {
     "@typescript-eslint/no-unused-vars": [
       "warn",
-      { "ignoreRestSiblings": true, "destructuredArrayIgnorePattern": "^_" }
+      {"ignoreRestSiblings": true, "destructuredArrayIgnorePattern": "^_"}
     ]
   }
 }

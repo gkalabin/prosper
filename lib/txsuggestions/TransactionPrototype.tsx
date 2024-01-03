@@ -1,17 +1,17 @@
-import { Transaction as OpenBankingTransaction } from "lib/openbanking/interface";
+import {Transaction as OpenBankingTransaction} from 'lib/openbanking/interface';
 
 export type TransferPrototype = {
-  type: "transfer";
+  type: 'transfer';
   withdrawal: WithdrawalPrototype;
   deposit: DepositPrototype;
 };
 
 export interface WithdrawalPrototype extends WithdrawalOrDepositFields {
-  type: "withdrawal";
+  type: 'withdrawal';
 }
 
 export interface DepositPrototype extends WithdrawalOrDepositFields {
-  type: "deposit";
+  type: 'deposit';
 }
 
 interface WithdrawalOrDepositFields {
@@ -36,7 +36,7 @@ export function fromOpenBankingTransaction(
   t: OpenBankingTransaction
 ): WithdrawalOrDepositPrototype {
   return {
-    type: t.amountCents > 0 ? ("deposit" as const) : ("withdrawal" as const),
+    type: t.amountCents > 0 ? ('deposit' as const) : ('withdrawal' as const),
     timestampEpoch: new Date(t.timestamp).getTime(),
     description: t.description,
     originalDescription: t.description,

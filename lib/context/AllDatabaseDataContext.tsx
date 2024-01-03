@@ -1,8 +1,8 @@
-import { AllClientDataModel, modelFromDatabaseData } from "lib/ClientSideModel";
-import { DisplaySettingsContextProvider } from "lib/context/DisplaySettingsContext";
-import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
-import { Setter } from "lib/stateHelpers";
-import { createContext, useContext, useState } from "react";
+import {AllClientDataModel, modelFromDatabaseData} from 'lib/ClientSideModel';
+import {DisplaySettingsContextProvider} from 'lib/context/DisplaySettingsContext';
+import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
+import {Setter} from 'lib/stateHelpers';
+import {createContext, useContext, useState} from 'react';
 
 const AllDatabaseDataContext = createContext<
   AllClientDataModel & {
@@ -11,7 +11,7 @@ const AllDatabaseDataContext = createContext<
 >(
   null as unknown as AllClientDataModel & {
     setDbData: Setter<AllDatabaseData>;
-  },
+  }
 );
 
 export const AllDatabaseDataContextProvider = (props: {
@@ -24,7 +24,7 @@ export const AllDatabaseDataContextProvider = (props: {
     <DisplaySettingsContextProvider
       initialDbSettings={props.dbData.dbDisplaySettings}
     >
-      <AllDatabaseDataContext.Provider value={{ ...model, setDbData }}>
+      <AllDatabaseDataContext.Provider value={{...model, setDbData}}>
         {props.children}
       </AllDatabaseDataContext.Provider>
     </DisplaySettingsContextProvider>

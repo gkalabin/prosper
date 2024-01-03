@@ -1,44 +1,41 @@
-"use client";
-import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
-import { ExcludedCategoriesSelector } from "app/stats/ExcludedCategoriesSelector";
-import { ownShareSum } from "app/stats/modelHelpers";
-import {
-  NotConfiguredYet,
-  isFullyConfigured,
-} from "components/NotConfiguredYet";
+'use client';
+import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
+import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
+import {ownShareSum} from 'app/stats/modelHelpers';
+import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
 import {
   ChildCategoryOwnShareChart,
   TopLevelCategoryOwnShareChart,
-} from "components/charts/CategoryPie";
+} from 'components/charts/CategoryPie';
 import {
   TopNVendorsMostSpent,
   TopNVendorsMostTransactions,
-} from "components/charts/Vendor";
+} from 'components/charts/Vendor';
 import {
   SortableTransactionsList,
   SortingMode,
-} from "components/transactions/SortableTransactionsList";
-import { ButtonLink } from "components/ui/buttons";
-import { format, isSameYear } from "date-fns";
+} from 'components/transactions/SortableTransactionsList';
+import {ButtonLink} from 'components/ui/buttons';
+import {format, isSameYear} from 'date-fns';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
-} from "lib/context/AllDatabaseDataContext";
+} from 'lib/context/AllDatabaseDataContext';
 import {
   useDisplayCurrency,
   useDisplaySettingsContext,
-} from "lib/context/DisplaySettingsContext";
-import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
-import { transactionIsDescendant } from "lib/model/Category";
-import { Income } from "lib/model/transaction/Income";
+} from 'lib/context/DisplaySettingsContext';
+import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
+import {transactionIsDescendant} from 'lib/model/Category';
+import {Income} from 'lib/model/transaction/Income';
 import {
   Expense,
   Transaction,
   isExpense,
   isIncome,
-} from "lib/model/transaction/Transaction";
-import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
-import { useState } from "react";
+} from 'lib/model/transaction/Transaction';
+import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
+import {useState} from 'react';
 
 function Navigation({
   years,
@@ -52,15 +49,15 @@ function Navigation({
   return (
     <>
       <div className="space-x-2">
-        {years.map((y) => (
+        {years.map(y => (
           <span key={y.getTime()}>
             {(isSameYear(active, y) && (
               <span className="font-medium text-slate-700">
-                {format(y, "yyyy")}
+                {format(y, 'yyyy')}
               </span>
             )) || (
               <ButtonLink onClick={() => setActive(y)}>
-                {format(y, "yyyy")}
+                {format(y, 'yyyy')}
               </ButtonLink>
             )}
           </span>
@@ -79,7 +76,7 @@ export function VendorStats({
 }) {
   const transactions = input
     .transactionsAllTime()
-    .filter((t) => isSameYear(year, t.timestampEpoch));
+    .filter(t => isSameYear(year, t.timestampEpoch));
   const expenses = transactions.filter((t): t is Expense => isExpense(t));
   return (
     <div>
@@ -94,16 +91,16 @@ export function VendorStats({
   );
 }
 
-export function YearlyStats({ input }: { input: TransactionsStatsInput }) {
+export function YearlyStats({input}: {input: TransactionsStatsInput}) {
   const years = input.years();
   const [year, setYear] = useState(years[years.length - 1]);
   const transactions = input
     .transactionsAllTime()
-    .filter((t) => isSameYear(year, t.timestampEpoch));
+    .filter(t => isSameYear(year, t.timestampEpoch));
   const expenses = transactions.filter((t): t is Expense => isExpense(t));
   const income = transactions.filter((t): t is Income => isIncome(t));
   const displayCurrency = useDisplayCurrency();
-  const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
+  const {bankAccounts, stocks, exchange} = useAllDatabaseDataContext();
   const failedToExchange: Transaction[] = [];
   const totalExpense = ownShareSum(
     expenses,
@@ -111,7 +108,7 @@ export function YearlyStats({ input }: { input: TransactionsStatsInput }) {
     displayCurrency,
     bankAccounts,
     stocks,
-    exchange,
+    exchange
   );
   const totalIncome = ownShareSum(
     income,
@@ -119,18 +116,18 @@ export function YearlyStats({ input }: { input: TransactionsStatsInput }) {
     displayCurrency,
     bankAccounts,
     stocks,
-    exchange,
+    exchange
   );
   const expenseIncomeRatio = totalIncome.isZero()
     ? Infinity
     : totalExpense.dollar() / totalIncome.dollar();
   const totalTrips = ownShareSum(
-    expenses.filter((t) => t.tripId),
+    expenses.filter(t => t.tripId),
     failedToExchange,
     displayCurrency,
     bankAccounts,
     stocks,
-    exchange,
+    exchange
   );
 
   return (
@@ -194,19 +191,19 @@ export function YearlyStats({ input }: { input: TransactionsStatsInput }) {
 }
 
 function NonEmptyPageContent() {
-  const { transactions, categories } = useAllDatabaseDataContext();
-  const { displaySettings } = useDisplaySettingsContext();
+  const {transactions, categories} = useAllDatabaseDataContext();
+  const {displaySettings} = useDisplaySettingsContext();
   const [excludeCategories, setExcludeCategories] = useState(
-    displaySettings.excludeCategoryIdsInStats(),
+    displaySettings.excludeCategoryIdsInStats()
   );
   const filteredTransactions = transactions.filter(
-    (t) =>
-      !excludeCategories.some((cid) =>
-        transactionIsDescendant(t, cid, categories),
-      ),
+    t =>
+      !excludeCategories.some(cid =>
+        transactionIsDescendant(t, cid, categories)
+      )
   );
   const durations = transactions
-    .map((t) => t.timestampEpoch)
+    .map(t => t.timestampEpoch)
     .sort((a, b) => a - b);
   const input = new TransactionsStatsInput(filteredTransactions, {
     start: durations[0],
@@ -223,7 +220,7 @@ function NonEmptyPageContent() {
   );
 }
 
-export function YearlyStatsPage({ dbData }: { dbData: AllDatabaseData }) {
+export function YearlyStatsPage({dbData}: {dbData: AllDatabaseData}) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }

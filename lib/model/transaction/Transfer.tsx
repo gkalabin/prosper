@@ -1,17 +1,17 @@
-import { TransactionType } from "@prisma/client";
-import { AmountWithUnit } from "lib/AmountWithUnit";
-import { assert, assertDefined } from "lib/assert";
-import { TransactionWithTagIds } from "lib/model/AllDatabaseDataModel";
+import {TransactionType} from '@prisma/client';
+import {AmountWithUnit} from 'lib/AmountWithUnit';
+import {assert, assertDefined} from 'lib/assert';
+import {TransactionWithTagIds} from 'lib/model/AllDatabaseDataModel';
 import {
   Bank,
   BankAccount,
   accountBank,
   accountUnit,
-} from "lib/model/BankAccount";
-import { Stock } from "lib/model/Stock";
+} from 'lib/model/BankAccount';
+import {Stock} from 'lib/model/Stock';
 
 export type Transfer = {
-  kind: "Transfer";
+  kind: 'Transfer';
   id: number;
   timestampEpoch: number;
   fromAccountId: number;
@@ -30,7 +30,7 @@ export function transferModelFromDB(init: TransactionWithTagIds): Transfer {
   assertDefined(init.outgoingAmountCents);
   assertDefined(init.incomingAmountCents);
   return {
-    kind: "Transfer",
+    kind: 'Transfer',
     id: init.id,
     timestampEpoch: new Date(init.timestamp).getTime(),
     fromAccountId: init.outgoingAccountId,
@@ -39,14 +39,14 @@ export function transferModelFromDB(init: TransactionWithTagIds): Transfer {
     receivedAmountCents: init.incomingAmountCents,
     note: init.description,
     categoryId: init.categoryId,
-    tagsIds: init.tags.map((t) => t.id),
+    tagsIds: init.tags.map(t => t.id),
   };
 }
 
 export function outgoingBank(
   t: Transfer,
   banks: Bank[],
-  bankAccounts: BankAccount[],
+  bankAccounts: BankAccount[]
 ): Bank {
   const account = outgoingBankAccount(t, bankAccounts);
   return accountBank(account, banks);
@@ -55,7 +55,7 @@ export function outgoingBank(
 export function incomingBank(
   t: Transfer,
   banks: Bank[],
-  bankAccounts: BankAccount[],
+  bankAccounts: BankAccount[]
 ): Bank {
   const account = incomingBankAccount(t, bankAccounts);
   return accountBank(account, banks);
@@ -63,12 +63,12 @@ export function incomingBank(
 
 export function outgoingBankAccount(
   t: Transfer,
-  bankAccounts: BankAccount[],
+  bankAccounts: BankAccount[]
 ): BankAccount {
-  const account = bankAccounts.find((a) => a.id == t.fromAccountId);
+  const account = bankAccounts.find(a => a.id == t.fromAccountId);
   if (!account) {
     throw new Error(
-      `Cannot find account ${t.fromAccountId} for transaction ${t.id}`,
+      `Cannot find account ${t.fromAccountId} for transaction ${t.id}`
     );
   }
   return account;
@@ -76,12 +76,12 @@ export function outgoingBankAccount(
 
 export function incomingBankAccount(
   t: Transfer,
-  bankAccounts: BankAccount[],
+  bankAccounts: BankAccount[]
 ): BankAccount {
-  const account = bankAccounts.find((a) => a.id == t.toAccountId);
+  const account = bankAccounts.find(a => a.id == t.toAccountId);
   if (!account) {
     throw new Error(
-      `Cannot find account ${t.toAccountId} for transaction ${t.id}`,
+      `Cannot find account ${t.toAccountId} for transaction ${t.id}`
     );
   }
   return account;
@@ -90,7 +90,7 @@ export function incomingBankAccount(
 export function amountReceived(
   t: Transfer,
   bankAccounts: BankAccount[],
-  stocks: Stock[],
+  stocks: Stock[]
 ): AmountWithUnit {
   const incomingAccount = incomingBankAccount(t, bankAccounts);
   const unit = accountUnit(incomingAccount, stocks);
@@ -103,7 +103,7 @@ export function amountReceived(
 export function amountSent(
   t: Transfer,
   bankAccounts: BankAccount[],
-  stocks: Stock[],
+  stocks: Stock[]
 ): AmountWithUnit {
   const outgoingAccount = outgoingBankAccount(t, bankAccounts);
   const unit = accountUnit(outgoingAccount, stocks);

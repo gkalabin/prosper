@@ -1,8 +1,8 @@
-import { ButtonLink } from "components/ui/buttons";
-import { Bank } from "lib/model/BankAccount";
-import { useState } from "react";
+import {ButtonLink} from 'components/ui/buttons';
+import {Bank} from 'lib/model/BankAccount';
+import {useState} from 'react';
 
-export function DisconnectOpenBankingLink({ bank }: { bank: Bank }) {
+export function DisconnectOpenBankingLink({bank}: {bank: Bank}) {
   const [disconnecting, setDisconnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const onClick = async () => {
@@ -14,8 +14,8 @@ export function DisconnectOpenBankingLink({ bank }: { bank: Bank }) {
     const response = await fetch(
       `/api/config/bank/${bank.id}/open-banking/disconnect`,
       {
-        method: "POST",
-      },
+        method: 'POST',
+      }
     );
     if (response.status !== 200) {
       setDisconnecting(false);
@@ -32,7 +32,7 @@ export function DisconnectOpenBankingLink({ bank }: { bank: Bank }) {
         onClick={onClick}
         disabled={disconnecting}
       >
-        {disconnecting ? "Disconnecting..." : "Disconnect"}
+        {disconnecting ? 'Disconnecting...' : 'Disconnect'}
       </ButtonLink>
       {error && <div className="text-red-600">{error}</div>}
     </>

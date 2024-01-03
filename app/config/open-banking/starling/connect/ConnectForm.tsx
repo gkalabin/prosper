@@ -1,11 +1,11 @@
-"use client";
-import { Bank as DBBank } from "@prisma/client";
-import { Input } from "components/forms/Input";
-import { ButtonFormPrimary } from "components/ui/buttons";
-import { useState } from "react";
+'use client';
+import {Bank as DBBank} from '@prisma/client';
+import {Input} from 'components/forms/Input';
+import {ButtonFormPrimary} from 'components/ui/buttons';
+import {useState} from 'react';
 
-export function ConnectForm({ dbBank }: { dbBank: DBBank }) {
-  const [token, setToken] = useState("");
+export function ConnectForm({dbBank}: {dbBank: DBBank}) {
+  const [token, setToken] = useState('');
   return (
     <>
       <h1 className="text-2xl font-semibold">
@@ -29,7 +29,7 @@ export function ConnectForm({ dbBank }: { dbBank: DBBank }) {
             name="token"
             className="block w-full"
             value={token}
-            onChange={(e) => setToken(e.target.value)}
+            onChange={e => setToken(e.target.value)}
           />
         </div>
         <div className="flex justify-end">

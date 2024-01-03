@@ -1,12 +1,12 @@
-"use client";
-import { ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
-import { Category as DBCategory } from "@prisma/client";
-import classNames from "classnames";
-import { AddOrEditCategoryForm } from "components/config/AddOrEditCategoryForm";
-import { ButtonLink, ButtonPagePrimary } from "components/ui/buttons";
-import { Category, categoryModelFromDB } from "lib/model/Category";
-import { updateState } from "lib/stateHelpers";
-import { useState } from "react";
+'use client';
+import {ChevronDownIcon, ChevronRightIcon} from '@heroicons/react/24/outline';
+import {Category as DBCategory} from '@prisma/client';
+import classNames from 'classnames';
+import {AddOrEditCategoryForm} from 'components/config/AddOrEditCategoryForm';
+import {ButtonLink, ButtonPagePrimary} from 'components/ui/buttons';
+import {Category, categoryModelFromDB} from 'lib/model/Category';
+import {updateState} from 'lib/stateHelpers';
+import {useState} from 'react';
 
 const CategoriesList = (props: {
   categories: Category[];
@@ -18,7 +18,7 @@ const CategoriesList = (props: {
   }
   return (
     <div>
-      {props.categories.map((category) => (
+      {props.categories.map(category => (
         <div key={category.id()}>
           <EditableCategoryListItem
             category={category}
@@ -47,10 +47,10 @@ const EditableCategoryListItem = ({
     <>
       <div
         className={classNames(
-          "my-2 rounded-md border p-3 shadow",
+          'my-2 rounded-md border p-3 shadow',
           // https://stackoverflow.com/questions/69687530/dynamically-build-classnames-in-tailwindcss:
           // make following classNames available for JIT: ml-4 ml-8 ml-12 ml-16 ml-20 ml-24 ml-28 ml-32 ml-36 ml-40
-          "ml-" + category.depth() * 4,
+          'ml-' + category.depth() * 4
         )}
       >
         <div className="flex items-center justify-between">
@@ -66,13 +66,13 @@ const EditableCategoryListItem = ({
             )}
             <span
               className={classNames(
-                category.isRoot() && "text-xl font-medium",
-                category.depth() == 1 && "text-lg",
-                category.depth() > 1 && "text-base font-light",
-                "ml-2 align-middle",
+                category.isRoot() && 'text-xl font-medium',
+                category.depth() == 1 && 'text-lg',
+                category.depth() > 1 && 'text-base font-light',
+                'ml-2 align-middle'
               )}
             >
-              {showEditForm && "Editing "}
+              {showEditForm && 'Editing '}
               {category.name()}
             </span>
           </div>
@@ -84,7 +84,7 @@ const EditableCategoryListItem = ({
           <AddOrEditCategoryForm
             category={category}
             categories={allCategories}
-            onAddedOrUpdated={(x) => {
+            onAddedOrUpdated={x => {
               onCategoryUpdated(x);
               setShowEditForm(false);
             }}
@@ -111,7 +111,7 @@ export function CategoriesConfigPage({
   const [dbCategories, setDbCategories] = useState(initialDbCategories);
   const [showAddForm, setShowAddForm] = useState(false);
   const allCategoriesFlat = categoryModelFromDB(dbCategories);
-  const rootCategories = allCategoriesFlat.filter((c) => c.isRoot());
+  const rootCategories = allCategoriesFlat.filter(c => c.isRoot());
 
   const addOrUpdateState = updateState(setDbCategories);
   return (
@@ -135,7 +135,7 @@ export function CategoriesConfigPage({
             <div className="ml-4">
               <AddOrEditCategoryForm
                 categories={allCategoriesFlat}
-                onAddedOrUpdated={(x) => {
+                onAddedOrUpdated={x => {
                   setShowAddForm(false);
                   addOrUpdateState(x);
                 }}

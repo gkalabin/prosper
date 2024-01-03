@@ -1,6 +1,6 @@
-import classNames from "classnames";
-import { MoneyInputWithLabel } from "components/forms/Input";
-import { toDateTimeLocal } from "components/txform/AddTransactionForm";
+import classNames from 'classnames';
+import {MoneyInputWithLabel} from 'components/forms/Input';
+import {toDateTimeLocal} from 'components/txform/AddTransactionForm';
 import {
   AccountTo,
   Category,
@@ -12,21 +12,21 @@ import {
   Payer,
   Tags,
   Timestamp,
-} from "components/txform/FormInputs";
-import { ButtonLink } from "components/ui/buttons";
-import { differenceInMonths } from "date-fns";
-import { useFormikContext } from "formik";
-import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
-import { uniqMostFrequent } from "lib/collections";
-import { TransactionFormValues } from "lib/model/forms/TransactionFormValues";
-import { Income } from "lib/model/transaction/Income";
+} from 'components/txform/FormInputs';
+import {ButtonLink} from 'components/ui/buttons';
+import {differenceInMonths} from 'date-fns';
+import {useFormikContext} from 'formik';
+import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {uniqMostFrequent} from 'lib/collections';
+import {TransactionFormValues} from 'lib/model/forms/TransactionFormValues';
+import {Income} from 'lib/model/transaction/Income';
 import {
   Transaction,
   isIncome,
   otherPartyNameOrNull,
-} from "lib/model/transaction/Transaction";
-import { TransactionPrototype } from "lib/txsuggestions/TransactionPrototype";
-import { useEffect, useState } from "react";
+} from 'lib/model/transaction/Transaction';
+import {TransactionPrototype} from 'lib/txsuggestions/TransactionPrototype';
+import {useEffect, useState} from 'react';
 
 const SUGGESTIONS_WINDOW_MONTHS = 6;
 
@@ -37,7 +37,7 @@ export const FormIncome = ({
   transaction: Transaction | null;
   prototype: TransactionPrototype | null;
 }) => {
-  const { transactions, bankAccounts } = useAllDatabaseDataContext();
+  const {transactions, bankAccounts} = useAllDatabaseDataContext();
   const {
     values: {
       isShared,
@@ -51,39 +51,36 @@ export const FormIncome = ({
     setFieldValue,
   } = useFormikContext<TransactionFormValues>();
   const incomeTransactions = transactions.filter((x): x is Income =>
-    isIncome(x),
+    isIncome(x)
   );
   const now = new Date();
   const recentIncomeTransactions = incomeTransactions.filter(
-    (x) =>
-      differenceInMonths(now, x.timestampEpoch) < SUGGESTIONS_WINDOW_MONTHS,
+    x => differenceInMonths(now, x.timestampEpoch) < SUGGESTIONS_WINDOW_MONTHS
   );
 
   const [mostFrequentOtherParty] = uniqMostFrequent(
-    recentIncomeTransactions
-      .map((x) => otherPartyNameOrNull(x))
-      .filter((x) => x),
+    recentIncomeTransactions.map(x => otherPartyNameOrNull(x)).filter(x => x)
   );
   useEffect(() => {
     if (transaction) {
       return;
     }
     if (isShared && mostFrequentOtherParty) {
-      setFieldValue("otherPartyName", mostFrequentOtherParty);
+      setFieldValue('otherPartyName', mostFrequentOtherParty);
     }
     if (!isShared) {
-      setFieldValue("otherPartyName", "");
+      setFieldValue('otherPartyName', '');
     }
   }, [isShared, setFieldValue, mostFrequentOtherParty, transaction]);
 
   let [mostFrequentCategoryId] = uniqMostFrequent(
     recentIncomeTransactions
-      .filter((x) => !payer || x.payer == payer)
-      .map((x) => x.categoryId),
+      .filter(x => !payer || x.payer == payer)
+      .map(x => x.categoryId)
   );
   if (!mostFrequentCategoryId) {
     [mostFrequentCategoryId] = uniqMostFrequent(
-      incomeTransactions.map((x) => x.categoryId),
+      incomeTransactions.map(x => x.categoryId)
     );
   }
   useEffect(() => {
@@ -91,7 +88,7 @@ export const FormIncome = ({
       return;
     }
     if (mostFrequentCategoryId) {
-      setFieldValue("categoryId", mostFrequentCategoryId);
+      setFieldValue('categoryId', mostFrequentCategoryId);
     }
   }, [setFieldValue, mostFrequentCategoryId, transaction]);
 
@@ -100,31 +97,31 @@ export const FormIncome = ({
       return;
     }
     const deposit =
-      prototype.type == "transfer" ? prototype.deposit : prototype;
-    setFieldValue("amount", deposit.absoluteAmountCents / 100);
-    setFieldValue("timestamp", toDateTimeLocal(deposit.timestampEpoch));
-    setFieldValue("payer", deposit.description);
-    setFieldValue("toBankAccountId", deposit.internalAccountId);
+      prototype.type == 'transfer' ? prototype.deposit : prototype;
+    setFieldValue('amount', deposit.absoluteAmountCents / 100);
+    setFieldValue('timestamp', toDateTimeLocal(deposit.timestampEpoch));
+    setFieldValue('payer', deposit.description);
+    setFieldValue('toBankAccountId', deposit.internalAccountId);
   }, [prototype, setFieldValue]);
 
   useEffect(() => {
     if (transaction) {
       return;
     }
-    const account = bankAccounts.find((a) => a.id == fromBankAccountId);
+    const account = bankAccounts.find(a => a.id == fromBankAccountId);
     if (account) {
-      setFieldValue("isShared", account.joint);
+      setFieldValue('isShared', account.joint);
     }
   }, [mode, setFieldValue, bankAccounts, fromBankAccountId, transaction]);
   useEffect(() => {
     if (!isShared) {
-      setFieldValue("ownShareAmount", amount);
+      setFieldValue('ownShareAmount', amount);
       return;
     }
     const newAmount = amount / 2;
     // Round new amount to the closest cent.
     const newAmountRounded = Math.round(100 * newAmount) / 100;
-    setFieldValue("ownShareAmount", newAmountRounded);
+    setFieldValue('ownShareAmount', newAmountRounded);
   }, [amount, isShared, setFieldValue, transaction]);
 
   const [showParent, setShowParent] = useState(!!parentTransactionId);
@@ -141,7 +138,7 @@ export const FormIncome = ({
           <OtherPartyName />
         </div>
       )}
-      <div className={classNames(isShared ? "col-span-3" : "col-span-6")}>
+      <div className={classNames(isShared ? 'col-span-3' : 'col-span-6')}>
         <MoneyInputWithLabel name="amount" label="Amount" />
       </div>
       {isShared && (
@@ -155,20 +152,20 @@ export const FormIncome = ({
       <Tags />
       <Category />
       <div className="col-span-6 text-xs">
-        Add a{" "}
+        Add a{' '}
         <ButtonLink
           onClick={() => {
             setShowNote(!showNote);
-            setFieldValue("description", "");
+            setFieldValue('description', '');
           }}
         >
           note
-        </ButtonLink>{" "}
-        or{" "}
+        </ButtonLink>{' '}
+        or{' '}
         <ButtonLink
           onClick={() => {
             setShowParent(!showParent);
-            setFieldValue("parentTransactionId", 0);
+            setFieldValue('parentTransactionId', 0);
           }}
         >
           link the transaction this is the refund for

@@ -1,20 +1,20 @@
-import { Amount } from "lib/Amount";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { AmountWithUnit } from "lib/AmountWithUnit";
-import { StockAndCurrencyExchange } from "lib/ClientSideModel";
-import { BankAccount } from "lib/model/BankAccount";
-import { Currency } from "lib/model/Currency";
-import { Stock } from "lib/model/Stock";
-import { isCurrency, isStock } from "lib/model/Unit";
-import { Income } from "lib/model/transaction/Income";
-import { PersonalExpense } from "lib/model/transaction/PersonalExpense";
-import { ThirdPartyExpense } from "lib/model/transaction/ThirdPartyExpense";
-import { transactionUnit } from "lib/model/transaction/Transaction";
+import {Amount} from 'lib/Amount';
+import {AmountWithCurrency} from 'lib/AmountWithCurrency';
+import {AmountWithUnit} from 'lib/AmountWithUnit';
+import {StockAndCurrencyExchange} from 'lib/ClientSideModel';
+import {BankAccount} from 'lib/model/BankAccount';
+import {Currency} from 'lib/model/Currency';
+import {Stock} from 'lib/model/Stock';
+import {isCurrency, isStock} from 'lib/model/Unit';
+import {Income} from 'lib/model/transaction/Income';
+import {PersonalExpense} from 'lib/model/transaction/PersonalExpense';
+import {ThirdPartyExpense} from 'lib/model/transaction/ThirdPartyExpense';
+import {transactionUnit} from 'lib/model/transaction/Transaction';
 
 export function paidTotal(
   t: PersonalExpense | ThirdPartyExpense | Income,
   bankAccounts: BankAccount[],
-  stocks: Stock[],
+  stocks: Stock[]
 ): AmountWithUnit {
   return new AmountWithUnit({
     amountCents: t.amountCents,
@@ -23,10 +23,10 @@ export function paidTotal(
 }
 
 export function ownShareAmountCentsIgnoreRefuds(
-  t: PersonalExpense | ThirdPartyExpense | Income,
+  t: PersonalExpense | ThirdPartyExpense | Income
 ): number {
   const otherPartiesAmountCents = t.companions
-    .map((c) => c.amountCents)
+    .map(c => c.amountCents)
     .reduce((a, b) => a + b, 0);
   return t.amountCents - otherPartiesAmountCents;
 }
@@ -34,7 +34,7 @@ export function ownShareAmountCentsIgnoreRefuds(
 export function ownShareAmountIgnoreRefunds(
   t: PersonalExpense | ThirdPartyExpense | Income,
   bankAccounts: BankAccount[],
-  stocks: Stock[],
+  stocks: Stock[]
 ): AmountWithUnit {
   return new AmountWithUnit({
     amountCents: ownShareAmountCentsIgnoreRefuds(t),
@@ -47,10 +47,10 @@ export function amountAllParties(
   target: Currency,
   bankAccounts: BankAccount[],
   stocks: Stock[],
-  exchange: StockAndCurrencyExchange,
+  exchange: StockAndCurrencyExchange
 ): AmountWithCurrency | undefined {
   const unit = transactionUnit(t, bankAccounts, stocks);
-  const allParties = new Amount({ amountCents: t.amountCents });
+  const allParties = new Amount({amountCents: t.amountCents});
   if (isCurrency(unit)) {
     const amount = new AmountWithCurrency({
       amountCents: allParties.cents(),
@@ -69,7 +69,7 @@ export function amountOwnShare(
   target: Currency,
   bankAccounts: BankAccount[],
   stocks: Stock[],
-  exchange: StockAndCurrencyExchange,
+  exchange: StockAndCurrencyExchange
 ): AmountWithCurrency | undefined {
   const unit = transactionUnit(t, bankAccounts, stocks);
   const ownShare = new Amount({

@@ -1,14 +1,14 @@
-import { Bank as DBBank } from "@prisma/client";
-import { InputWithLabel } from "components/forms/Input";
+import {Bank as DBBank} from '@prisma/client';
+import {InputWithLabel} from 'components/forms/Input';
 import {
   AddOrUpdateButtonText,
   FormikButtonFormPrimary,
   FormikButtonFormSecondary,
-} from "components/ui/buttons";
-import { Form, Formik } from "formik";
-import { Bank } from "lib/model/BankAccount";
-import { BankFormValues } from "lib/model/forms/BankFormValues";
-import { useState } from "react";
+} from 'components/ui/buttons';
+import {Form, Formik} from 'formik';
+import {Bank} from 'lib/model/BankAccount';
+import {BankFormValues} from 'lib/model/forms/BankFormValues';
+import {useState} from 'react';
 
 export const AddOrEditBankForm = ({
   bank,
@@ -21,19 +21,19 @@ export const AddOrEditBankForm = ({
   onAddedOrUpdated: (x: DBBank) => void;
   onCancelClick: () => void;
 }) => {
-  const [apiError, setApiError] = useState("");
+  const [apiError, setApiError] = useState('');
   const isCreate = !bank;
 
   const handleSubmit = async (values: BankFormValues) => {
-    setApiError("");
+    setApiError('');
     try {
       const dbDbank = await fetch(
-        `/api/config/bank/${isCreate ? "" : bank.id}`,
+        `/api/config/bank/${isCreate ? '' : bank.id}`,
         {
-          method: isCreate ? "POST" : "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...values }),
-        },
+          method: isCreate ? 'POST' : 'PUT',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({...values}),
+        }
       );
       onAddedOrUpdated(await dbDbank.json());
     } catch (error) {
@@ -42,7 +42,7 @@ export const AddOrEditBankForm = ({
   };
 
   let initialValues: BankFormValues = {
-    name: "",
+    name: '',
     displayOrder,
   };
   if (bank) {

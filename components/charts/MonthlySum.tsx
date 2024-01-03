@@ -1,23 +1,18 @@
-import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
-import { Interval, eachMonthOfInterval } from "date-fns";
-import ReactEcharts from "echarts-for-react";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import {
-  StockAndCurrencyExchange,
-} from "lib/ClientSideModel";
-import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
-import { defaultMonthlyMoneyChart } from "lib/charts";
-import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
-import { BankAccount } from "lib/model/BankAccount";
-import { Currency } from "lib/model/Currency";
-import { Stock } from "lib/model/Stock";
-import { Income } from "lib/model/transaction/Income";
-import { Expense, Transaction } from "lib/model/transaction/Transaction";
-import {
-  amountAllParties,
-  amountOwnShare,
-} from "lib/model/transaction/amounts";
-import { MoneyTimeseries } from "lib/util/Timeseries";
+import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
+import {Interval, eachMonthOfInterval} from 'date-fns';
+import ReactEcharts from 'echarts-for-react';
+import {AmountWithCurrency} from 'lib/AmountWithCurrency';
+import {StockAndCurrencyExchange} from 'lib/ClientSideModel';
+import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {defaultMonthlyMoneyChart} from 'lib/charts';
+import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
+import {BankAccount} from 'lib/model/BankAccount';
+import {Currency} from 'lib/model/Currency';
+import {Stock} from 'lib/model/Stock';
+import {Income} from 'lib/model/transaction/Income';
+import {Expense, Transaction} from 'lib/model/transaction/Transaction';
+import {amountAllParties, amountOwnShare} from 'lib/model/transaction/amounts';
+import {MoneyTimeseries} from 'lib/util/Timeseries';
 
 export function MonthlyOwnShare(props: {
   transactions: (Expense | Income)[];
@@ -49,11 +44,11 @@ function Monthly({
     target: Currency,
     bankAccounts: BankAccount[],
     stocks: Stock[],
-    exchange: StockAndCurrencyExchange,
+    exchange: StockAndCurrencyExchange
   ) => AmountWithCurrency | undefined;
 }) {
   const displayCurrency = useDisplayCurrency();
-  const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
+  const {bankAccounts, stocks, exchange} = useAllDatabaseDataContext();
   const months = eachMonthOfInterval(duration);
   const data = new MoneyTimeseries(displayCurrency);
   // TODO: validate that transactions can be exchanged on the page level
@@ -80,7 +75,7 @@ function Monthly({
           },
           series: [
             {
-              type: "bar",
+              type: 'bar',
               name: title,
               data: data.monthRoundDollars(months),
             },

@@ -3,14 +3,14 @@ import {
   eachMonthOfInterval,
   eachYearOfInterval,
   isWithinInterval,
-} from "date-fns";
+} from 'date-fns';
 import {
   Expense,
   Transaction,
   isExpense,
   isIncome,
-} from "lib/model/transaction/Transaction";
-import { Income } from "lib/model/transaction/Income";
+} from 'lib/model/transaction/Transaction';
+import {Income} from 'lib/model/transaction/Income';
 
 export class TransactionsStatsInput {
   constructor(
@@ -50,7 +50,7 @@ export class TransactionsStatsInput {
     return eachYearOfInterval(this._interval);
   }
 
-  private intervalOnly<T extends { timestampEpoch: number }>(ts: T[]) {
-    return ts.filter((t) => isWithinInterval(t.timestampEpoch, this._interval));
+  private intervalOnly<T extends {timestampEpoch: number}>(ts: T[]) {
+    return ts.filter(t => isWithinInterval(t.timestampEpoch, this._interval));
   }
 }

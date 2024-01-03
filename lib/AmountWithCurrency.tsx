@@ -1,25 +1,25 @@
-import { Amount } from "lib/Amount";
-import { Currency } from "lib/model/Currency";
+import {Amount} from 'lib/Amount';
+import {Currency} from 'lib/model/Currency';
 
 export class AmountWithCurrency {
   private readonly amount: Amount;
   private readonly currency: Currency;
 
-  public constructor(init: { amountCents: number; currency: Currency }) {
-    this.amount = new Amount({ amountCents: init.amountCents });
+  public constructor(init: {amountCents: number; currency: Currency}) {
+    this.amount = new Amount({amountCents: init.amountCents});
     this.currency = init.currency;
   }
 
   public static add(
     x: AmountWithCurrency,
-    y: AmountWithCurrency,
+    y: AmountWithCurrency
   ): AmountWithCurrency {
     return x.add(y);
   }
 
   public static sum(
     amounts: AmountWithCurrency[],
-    currency: Currency,
+    currency: Currency
   ): AmountWithCurrency {
     if (!amounts?.length) {
       return AmountWithCurrency.zero(currency);
@@ -131,7 +131,7 @@ export class AmountWithCurrency {
   private assertSameCurrency(a: AmountWithCurrency) {
     if (a.currency.code() != this.currency.code()) {
       throw new Error(
-        `Impossible to add ${a.currency.code()} and ${this.currency.code()}`,
+        `Impossible to add ${a.currency.code()} and ${this.currency.code()}`
       );
     }
   }

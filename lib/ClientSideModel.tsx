@@ -5,26 +5,26 @@ import {
   Stock as DBStock,
   StockQuote as DBStockQuote,
   TransactionPrototype,
-} from "@prisma/client";
-import { addDays, closestTo, isBefore, startOfDay } from "date-fns";
-import { Amount } from "lib/Amount";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
+} from '@prisma/client';
+import {addDays, closestTo, isBefore, startOfDay} from 'date-fns';
+import {Amount} from 'lib/Amount';
+import {AmountWithCurrency} from 'lib/AmountWithCurrency';
+import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
 import {
   Bank,
   BankAccount,
   bankAccountModelFromDB,
   bankModelFromDB,
-} from "lib/model/BankAccount";
-import { Category, categoryModelFromDB } from "lib/model/Category";
-import { Currency, NANOS_MULTIPLIER } from "lib/model/Currency";
-import { Stock, stockModelFromDB } from "lib/model/Stock";
-import { Tag, tagModelFromDB } from "lib/model/Tag";
-import { Trip, tripModelFromDB } from "lib/model/Trip";
+} from 'lib/model/BankAccount';
+import {Category, categoryModelFromDB} from 'lib/model/Category';
+import {Currency, NANOS_MULTIPLIER} from 'lib/model/Currency';
+import {Stock, stockModelFromDB} from 'lib/model/Stock';
+import {Tag, tagModelFromDB} from 'lib/model/Tag';
+import {Trip, tripModelFromDB} from 'lib/model/Trip';
 import {
   Transaction,
   transactionModelFromDB,
-} from "lib/model/transaction/Transaction";
+} from 'lib/model/transaction/Transaction';
 
 export class StockAndCurrencyExchange {
   private readonly exchangeRates: ExchangeRates;
@@ -38,7 +38,7 @@ export class StockAndCurrencyExchange {
   exchangeCurrency(
     a: AmountWithCurrency,
     target: Currency,
-    when: Date | number,
+    when: Date | number
   ): AmountWithCurrency | undefined {
     return this.exchangeRates.exchange(a, target, when);
   }
@@ -47,7 +47,7 @@ export class StockAndCurrencyExchange {
     a: Amount,
     stock: Stock,
     target: Currency,
-    when: Date | number,
+    when: Date | number
   ): AmountWithCurrency | undefined {
     const exchangeCurrencyAmount = this.stockQuotes.exchange(a, stock, when);
     if (!exchangeCurrencyAmount) {
@@ -75,7 +75,7 @@ const backfillMissingDates = (timeseries: Timeseries) => {
       const prevValue = timeseries.get(prev);
       if (!prevValue) {
         throw new Error(
-          `Prev value cannot be null, failed to backfill ${timeseries} on ${today}`,
+          `Prev value cannot be null, failed to backfill ${timeseries} on ${today}`
         );
       }
       timeseries.set(x.getTime(), prevValue);
@@ -89,7 +89,7 @@ export class ExchangeRates {
   public constructor(init: DBExchangeRate[]) {
     this.ratesByCurrencyCode = new Map();
     for (const r of init) {
-      const { currencyCodeFrom: from, currencyCodeTo: to } = r;
+      const {currencyCodeFrom: from, currencyCodeTo: to} = r;
       const timeseries =
         this.ratesByCurrencyCode.get(from)?.get(to) ?? new Map();
       const date = startOfDay(new Date(r.rateTimestamp));
@@ -111,7 +111,7 @@ export class ExchangeRates {
   exchange(
     a: AmountWithCurrency,
     target: Currency,
-    when: Date | number,
+    when: Date | number
   ): AmountWithCurrency | undefined {
     if (a.getCurrency().code() == target.code()) {
       return a;
@@ -132,7 +132,7 @@ export class ExchangeRates {
   private findRate(
     from: Currency,
     to: Currency,
-    when: Date | number,
+    when: Date | number
   ): number | undefined {
     const ratesFrom = this.ratesByCurrencyCode.get(from.code());
     if (!ratesFrom) {
@@ -153,7 +153,7 @@ export class ExchangeRates {
       return undefined;
     }
     console.warn(
-      `Approximating ${from.code()}→${to.code()} rate for ${when} with ${closestTimestamp}`,
+      `Approximating ${from.code()}→${to.code()} rate for ${when} with ${closestTimestamp}`
     );
     return ratesHistory.get(closestTimestamp.getTime());
   }
@@ -167,7 +167,7 @@ export class StockQuotes {
   public constructor(init: DBStockQuote[]) {
     this.quotesByStockId = new Map();
     for (const r of init) {
-      const { stockId, value } = r;
+      const {stockId, value} = r;
       const day = startOfDay(new Date(r.quoteTimestamp));
       const timeseries = this.quotesByStockId.get(stockId) ?? new Map();
       timeseries.set(day.getTime(), value);
@@ -181,7 +181,7 @@ export class StockQuotes {
   exchange(
     a: Amount,
     stock: Stock,
-    when: Date | number,
+    when: Date | number
   ): AmountWithCurrency | undefined {
     const currency = Currency.mustFindByCode(stock.currencyCode);
     if (a.isZero()) {
@@ -193,7 +193,7 @@ export class StockQuotes {
     }
     return new AmountWithCurrency({
       amountCents: Math.round(
-        a.dollar() * pricePerShareCents * stock.multiplier,
+        a.dollar() * pricePerShareCents * stock.multiplier
       ),
       currency,
     });
@@ -215,7 +215,7 @@ export class StockQuotes {
       return undefined;
     }
     console.warn(
-      `Approximating ${stock.ticker} quote for ${when} with ${closestTimestamp}`,
+      `Approximating ${stock.ticker} quote for ${when} with ${closestTimestamp}`
     );
     return quotesForStock.get(closestTimestamp.getTime());
   }
@@ -243,7 +243,7 @@ function mustBank(bank: Bank | undefined, message: string): Bank {
 export const banksModelFromDatabaseData = (
   dbBanks: DBBank[],
   dbBankAccounts: DBBankAccount[],
-  dbStocks: DBStock[],
+  dbStocks: DBStock[]
 ): [Bank[], BankAccount[], Stock[]] => {
   const stocks = dbStocks.map(stockModelFromDB);
   const banks = dbBanks
@@ -251,15 +251,15 @@ export const banksModelFromDatabaseData = (
     .sort((a, b) => a.displayOrder - b.displayOrder);
   const bankAccounts = dbBankAccounts.map(bankAccountModelFromDB);
   // Sort bank accounts by display order, but taking precedence of the bank display order.
-  const bankById = new Map<number, Bank>(banks.map((b) => [b.id, b]));
+  const bankById = new Map<number, Bank>(banks.map(b => [b.id, b]));
   const bankByBankAccountId = new Map<number, Bank>(
-    bankAccounts.map((ba) => {
+    bankAccounts.map(ba => {
       const bank = mustBank(
         bankById.get(ba.bankId),
-        `Bank ${ba.bankId} for account ${ba.id}`,
+        `Bank ${ba.bankId} for account ${ba.id}`
       );
       return [ba.id, bank];
-    }),
+    })
   );
   bankAccounts.sort((a, b) => {
     const bankA = mustBank(bankByBankAccountId.get(a.id), `Bank ${a.id}`);
@@ -273,7 +273,7 @@ export const banksModelFromDatabaseData = (
 };
 
 export const modelFromDatabaseData = (
-  dbData: AllDatabaseData,
+  dbData: AllDatabaseData
 ): AllClientDataModel => {
   const categories = categoryModelFromDB(dbData.dbCategories);
   const exchangeRates = new ExchangeRates(dbData.dbExchangeRates);
@@ -283,7 +283,7 @@ export const modelFromDatabaseData = (
   const [banks, bankAccounts, stocks] = banksModelFromDatabaseData(
     dbData.dbBanks,
     dbData.dbBankAccounts,
-    dbData.dbStocks,
+    dbData.dbStocks
   );
 
   const trips = dbData.dbTrips.map(tripModelFromDB);

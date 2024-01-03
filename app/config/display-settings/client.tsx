@@ -1,17 +1,17 @@
-"use client";
+'use client';
 import {
   Category as DBCategory,
   DisplaySettings as DBDisplaySettings,
-} from "@prisma/client";
-import { FormikSelect, undoTailwindInputStyles } from "components/forms/Select";
-import { FormikButtonFormPrimary } from "components/ui/buttons";
-import { Form, Formik } from "formik";
-import { DisplaySettings } from "lib/displaySettings";
-import { categoryModelFromDB } from "lib/model/Category";
-import { Currency } from "lib/model/Currency";
-import { DispalySettingsFormValues } from "lib/model/api/DisplaySettingsConfig";
-import { useState } from "react";
-import Select from "react-select";
+} from '@prisma/client';
+import {FormikSelect, undoTailwindInputStyles} from 'components/forms/Select';
+import {FormikButtonFormPrimary} from 'components/ui/buttons';
+import {Form, Formik} from 'formik';
+import {DisplaySettings} from 'lib/displaySettings';
+import {categoryModelFromDB} from 'lib/model/Category';
+import {Currency} from 'lib/model/Currency';
+import {DispalySettingsFormValues} from 'lib/model/api/DisplaySettingsConfig';
+import {useState} from 'react';
+import Select from 'react-select';
 
 export function DispalySettings({
   dbDisplaySettings: initialDbDisplaySettings,
@@ -22,28 +22,28 @@ export function DispalySettings({
 }) {
   const categories = categoryModelFromDB(dbCategories);
   const [dbDisplaySettings, setDbDisplaySettings] = useState(
-    initialDbDisplaySettings,
+    initialDbDisplaySettings
   );
   const displaySettings = new DisplaySettings(dbDisplaySettings);
-  const [apiError, setApiError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [apiError, setApiError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const handleSubmit = async (values: DispalySettingsFormValues) => {
-    setApiError("");
-    setSuccessMessage("");
+    setApiError('');
+    setSuccessMessage('');
     try {
       const response = await fetch(`/api/config/display-settings/`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(values),
       });
       setDbDisplaySettings(await response.json());
-      setSuccessMessage("Successfully saved!");
+      setSuccessMessage('Successfully saved!');
     } catch (error) {
       console.log(error);
       setApiError(`Failed to save: ${error}`);
     }
   };
-  const categoryOptions = categories.map((a) => ({
+  const categoryOptions = categories.map(a => ({
     value: a.id(),
     label: a.nameWithAncestors(),
   }));
@@ -53,7 +53,7 @@ export function DispalySettings({
   };
   return (
     <Formik initialValues={initialValues} onSubmit={handleSubmit}>
-      {({ isSubmitting, values, setFieldValue }) => (
+      {({isSubmitting, values, setFieldValue}) => (
         <Form className="space-y-4">
           {successMessage && (
             <div className="text-green-500">{successMessage}</div>
@@ -70,7 +70,7 @@ export function DispalySettings({
               className="w-full"
               value={values.displayCurrencyCode}
             >
-              {Currency.all().map((x) => (
+              {Currency.all().map(x => (
                 <option key={x.code()} value={x.code()}>
                   {x.code()}
                 </option>
@@ -89,22 +89,22 @@ export function DispalySettings({
               styles={undoTailwindInputStyles()}
               options={categoryOptions}
               isMulti
-              value={values.excludeCategoryIdsInStats.map((x) => ({
+              value={values.excludeCategoryIdsInStats.map(x => ({
                 label:
-                  categoryOptions.find((c) => c.value == x)?.label ?? "Unknown",
+                  categoryOptions.find(c => c.value == x)?.label ?? 'Unknown',
                 value: x,
               }))}
-              onChange={(x) =>
+              onChange={x =>
                 setFieldValue(
-                  "excludeCategoryIdsInStats",
-                  x.map((x) => x.value),
+                  'excludeCategoryIdsInStats',
+                  x.map(x => x.value)
                 )
               }
             />
           </div>
           <div className="flex justify-end gap-2">
             <FormikButtonFormPrimary type="submit">
-              {isSubmitting ? "Saving…" : "Save"}
+              {isSubmitting ? 'Saving…' : 'Save'}
             </FormikButtonFormPrimary>
           </div>
           {apiError && <div className="text-red-500">{apiError}</div>}

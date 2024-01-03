@@ -1,37 +1,34 @@
-"use client";
-import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
-import { ExcludedCategoriesSelector } from "app/stats/ExcludedCategoriesSelector";
-import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
-import {
-  NotConfiguredYet,
-  isFullyConfigured,
-} from "components/NotConfiguredYet";
-import { MonthlyChart } from "components/charts/Monthly";
-import { MonthlyOwnShare } from "components/charts/MonthlySum";
-import { RunningAverageAmounts } from "components/charts/RunningAverage";
-import { YearlyChart } from "components/charts/Yearly";
-import { YearlyOwnShare } from "components/charts/YearlySum";
-import { startOfMonth, startOfYear } from "date-fns";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
+'use client';
+import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
+import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
+import {DurationSelector, LAST_6_MONTHS} from 'components/DurationSelector';
+import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
+import {MonthlyChart} from 'components/charts/Monthly';
+import {MonthlyOwnShare} from 'components/charts/MonthlySum';
+import {RunningAverageAmounts} from 'components/charts/RunningAverage';
+import {YearlyChart} from 'components/charts/Yearly';
+import {YearlyOwnShare} from 'components/charts/YearlySum';
+import {startOfMonth, startOfYear} from 'date-fns';
+import {AmountWithCurrency} from 'lib/AmountWithCurrency';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
-} from "lib/context/AllDatabaseDataContext";
+} from 'lib/context/AllDatabaseDataContext';
 import {
   useDisplayCurrency,
   useDisplaySettingsContext,
-} from "lib/context/DisplaySettingsContext";
-import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
-import { transactionIsDescendant } from "lib/model/Category";
-import { Transaction } from "lib/model/transaction/Transaction";
-import { amountOwnShare } from "lib/model/transaction/amounts";
-import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
-import { MoneyTimeseries } from "lib/util/Timeseries";
-import { useState } from "react";
+} from 'lib/context/DisplaySettingsContext';
+import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
+import {transactionIsDescendant} from 'lib/model/Category';
+import {Transaction} from 'lib/model/transaction/Transaction';
+import {amountOwnShare} from 'lib/model/transaction/amounts';
+import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
+import {MoneyTimeseries} from 'lib/util/Timeseries';
+import {useState} from 'react';
 
-export function CashflowCharts({ input }: { input: TransactionsStatsInput }) {
+export function CashflowCharts({input}: {input: TransactionsStatsInput}) {
   const displayCurrency = useDisplayCurrency();
-  const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
+  const {bankAccounts, stocks, exchange} = useAllDatabaseDataContext();
   const zero = AmountWithCurrency.zero(displayCurrency);
   const failedToExchange: Transaction[] = [];
   // collect monthly in/out amounts
@@ -42,7 +39,7 @@ export function CashflowCharts({ input }: { input: TransactionsStatsInput }) {
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange,
+      exchange
     );
     if (!exchanged) {
       failedToExchange.push(t);
@@ -57,7 +54,7 @@ export function CashflowCharts({ input }: { input: TransactionsStatsInput }) {
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange,
+      exchange
     );
     if (!exchanged) {
       failedToExchange.push(t);
@@ -67,17 +64,17 @@ export function CashflowCharts({ input }: { input: TransactionsStatsInput }) {
   }
   // calculate cashflow for each month
   const dataMonthsIndex = new Set<number>(
-    [...input.expensesAllTime(), ...input.incomeAllTime()].map((t) =>
-      startOfMonth(t.timestampEpoch).getTime(),
-    ),
+    [...input.expensesAllTime(), ...input.incomeAllTime()].map(t =>
+      startOfMonth(t.timestampEpoch).getTime()
+    )
   );
   const dataMonths = [...dataMonthsIndex.keys()].sort();
   const cashflow = new MoneyTimeseries(displayCurrency);
-  dataMonths.forEach((m) =>
-    cashflow.append(m, moneyIn.month(m).subtract(moneyOut.month(m))),
+  dataMonths.forEach(m =>
+    cashflow.append(m, moneyIn.month(m).subtract(moneyOut.month(m)))
   );
   // calculate cumulative cashflow for display months only
-  const displayMonths = input.months().map((x) => x.getTime());
+  const displayMonths = input.months().map(x => x.getTime());
   const cashflowCumulative = new MoneyTimeseries(displayCurrency);
   let current = zero;
   for (const m of displayMonths) {
@@ -151,16 +148,16 @@ export function CashflowCharts({ input }: { input: TransactionsStatsInput }) {
 
 function NonEmptyPageContent() {
   const [duration, setDuration] = useState(LAST_6_MONTHS);
-  const { transactions, categories } = useAllDatabaseDataContext();
-  const { displaySettings } = useDisplaySettingsContext();
+  const {transactions, categories} = useAllDatabaseDataContext();
+  const {displaySettings} = useDisplaySettingsContext();
   const [excludeCategories, setExcludeCategories] = useState(
-    displaySettings.excludeCategoryIdsInStats(),
+    displaySettings.excludeCategoryIdsInStats()
   );
   const filteredTransactions = transactions.filter(
-    (t) =>
-      !excludeCategories.some((cid) =>
-        transactionIsDescendant(t, cid, categories),
-      ),
+    t =>
+      !excludeCategories.some(cid =>
+        transactionIsDescendant(t, cid, categories)
+      )
   );
   const input = new TransactionsStatsInput(filteredTransactions, duration);
   return (
@@ -177,7 +174,7 @@ function NonEmptyPageContent() {
   );
 }
 
-export function CashflowPage({ dbData }: { dbData: AllDatabaseData }) {
+export function CashflowPage({dbData}: {dbData: AllDatabaseData}) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }

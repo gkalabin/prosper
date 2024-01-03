@@ -1,4 +1,4 @@
-import { SubHeader } from "components/SubHeader";
+import {SubHeader} from 'components/SubHeader';
 
 export default function StatsPageLayout({
   children,
@@ -10,24 +10,24 @@ export default function StatsPageLayout({
       <SubHeader
         items={[
           {
-            title: "Cashflow",
-            path: "/stats/cashflow",
+            title: 'Cashflow',
+            path: '/stats/cashflow',
           },
           {
-            title: "Income",
-            path: "/stats/income",
+            title: 'Income',
+            path: '/stats/income',
           },
           {
-            title: "Expense",
-            path: "/stats/expense",
+            title: 'Expense',
+            path: '/stats/expense',
           },
           {
-            title: "Monthly",
-            path: "/stats/monthly",
+            title: 'Monthly',
+            path: '/stats/monthly',
           },
           {
-            title: "Yearly",
-            path: "/stats/yearly",
+            title: 'Yearly',
+            path: '/stats/yearly',
           },
         ]}
       />

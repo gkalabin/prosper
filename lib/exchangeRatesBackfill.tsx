@@ -1,8 +1,8 @@
-import { addDays, differenceInHours, format, isSameDay } from "date-fns";
-import { Currency, NANOS_MULTIPLIER } from "lib/model/Currency";
-import yahooFinance from "yahoo-finance2";
-import { HistoricalRowHistory } from "yahoo-finance2/dist/esm/src/modules/historical";
-import prisma from "./prisma";
+import {addDays, differenceInHours, format, isSameDay} from 'date-fns';
+import {Currency, NANOS_MULTIPLIER} from 'lib/model/Currency';
+import yahooFinance from 'yahoo-finance2';
+import {HistoricalRowHistory} from 'yahoo-finance2/dist/esm/src/modules/historical';
+import prisma from './prisma';
 
 const UPDATE_FREQUENCY_HOURS = 6;
 const NO_HISTORY_LOOK_BACK_DAYS = 30;
@@ -20,28 +20,28 @@ export async function fetchExchangeRates({
   const r = await yahooFinance.historical(
     symbol,
     {
-      period1: format(startDate, "yyyy-MM-dd"),
-      interval: "1d",
+      period1: format(startDate, 'yyyy-MM-dd'),
+      interval: '1d',
     },
-    { devel: false }
+    {devel: false}
   );
   return r;
 }
 
 export async function addLatestExchangeRates() {
-  const timingLabel = "Exchange rate backfill " + new Date().getTime();
+  const timingLabel = 'Exchange rate backfill ' + new Date().getTime();
   console.time(timingLabel);
   const backfillPromises: Promise<void>[] = [];
   for (const sell of Currency.all()) {
     for (const buy of Currency.all()) {
-      backfillPromises.push(backfill({ sell, buy }));
+      backfillPromises.push(backfill({sell, buy}));
     }
   }
   await Promise.allSettled(backfillPromises);
   console.timeEnd(timingLabel);
 }
 
-async function backfill({ sell, buy }: { sell: Currency; buy: Currency }) {
+async function backfill({sell, buy}: {sell: Currency; buy: Currency}) {
   if (sell.code() == buy.code()) {
     return;
   }
@@ -61,10 +61,10 @@ async function backfill({ sell, buy }: { sell: Currency; buy: Currency }) {
     },
     orderBy: [
       {
-        rateTimestamp: "desc",
+        rateTimestamp: 'desc',
       },
       {
-        updatedAt: "desc",
+        updatedAt: 'desc',
       },
     ],
   });
@@ -72,10 +72,10 @@ async function backfill({ sell, buy }: { sell: Currency; buy: Currency }) {
   if (!latest) {
     console.info(`${sell.code()}->${buy.code()}: no history`);
     const startDate = addDays(now, -NO_HISTORY_LOOK_BACK_DAYS);
-    const fetched = await fetchExchangeRates({ sell, buy, startDate });
+    const fetched = await fetchExchangeRates({sell, buy, startDate});
     if (fetched?.length == 0) {
       console.warn(
-        "%s->%s: historical data not found starting on %s",
+        '%s->%s: historical data not found starting on %s',
         sell.code(),
         buy.code(),
         startDate.toDateString()
@@ -83,7 +83,7 @@ async function backfill({ sell, buy }: { sell: Currency; buy: Currency }) {
       return;
     }
     console.log(
-      "%s->%s: inserting a new rate for %s",
+      '%s->%s: inserting a new rate for %s',
       sell.code(),
       buy.code(),
       fetched[0].date.toDateString()
@@ -100,7 +100,7 @@ async function backfill({ sell, buy }: { sell: Currency; buy: Currency }) {
     const ageHours = differenceInHours(now, latest.updatedAt);
     if (ageHours < UPDATE_FREQUENCY_HOURS) {
       console.warn(
-        "%s->%s: rate for %s is still fresh, updated %d hours ago on %s",
+        '%s->%s: rate for %s is still fresh, updated %d hours ago on %s',
         sell.code(),
         buy.code(),
         latest.rateTimestamp.toDateString(),
@@ -116,10 +116,10 @@ async function backfill({ sell, buy }: { sell: Currency; buy: Currency }) {
       latest.rateTimestamp.toDateString(),
       ageHours
     );
-    const fetched = await fetchExchangeRates({ sell, buy, startDate: now });
+    const fetched = await fetchExchangeRates({sell, buy, startDate: now});
     if (fetched?.length != 1) {
       console.warn(
-        "%s->%s: found %d rates on %s, want 1, ignoring",
+        '%s->%s: found %d rates on %s, want 1, ignoring',
         sell.code(),
         buy.code(),
         fetched?.length,
@@ -139,7 +139,7 @@ async function backfill({ sell, buy }: { sell: Currency; buy: Currency }) {
     // If the latest timestamp was updated on the same day we fetch it one last time to make sure we have the most up to date value.
     // When the timestamp was updated on a later date, it's up to date, so not reupdate it.
     console.log(
-      "%s->%s: latest rate from %s was updated on %s, skipping additional update",
+      '%s->%s: latest rate from %s was updated on %s, skipping additional update',
       sell.code(),
       buy.code(),
       latest.rateTimestamp.toDateString(),
@@ -149,18 +149,18 @@ async function backfill({ sell, buy }: { sell: Currency; buy: Currency }) {
   }
 
   console.log(
-    "%s->%s: fetching from %s",
+    '%s->%s: fetching from %s',
     sell.code(),
     buy.code(),
     startDate.toDateString(),
     now.toDateString()
   );
 
-  const fetched = await fetchExchangeRates({ sell, buy, startDate });
-  const toUpdate = fetched.find((x) => isSameDay(x.date, latest.rateTimestamp));
+  const fetched = await fetchExchangeRates({sell, buy, startDate});
+  const toUpdate = fetched.find(x => isSameDay(x.date, latest.rateTimestamp));
   if (toUpdate) {
     console.log(
-      "%s->%s: updating rate for %s",
+      '%s->%s: updating rate for %s',
       sell.code(),
       buy.code(),
       latest.rateTimestamp.toDateString()
@@ -173,11 +173,11 @@ async function backfill({ sell, buy }: { sell: Currency; buy: Currency }) {
     });
   }
   const toInsert = fetched.filter(
-    (x) => !isSameDay(x.date, latest.rateTimestamp)
+    x => !isSameDay(x.date, latest.rateTimestamp)
   );
   if (toInsert) {
     console.log(
-      "%s->%s: inserting %d quotes",
+      '%s->%s: inserting %d quotes',
       sell.code(),
       buy.code(),
       toInsert.length

@@ -1,4 +1,4 @@
-import { Stock as DBStock } from "@prisma/client";
+import {Stock as DBStock} from '@prisma/client';
 
 export type Stock = {
   id: number;

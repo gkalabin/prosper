@@ -1,13 +1,13 @@
-import { Prisma } from "@prisma/client";
-import { fillUnitData } from "app/api/config/bank-account/fillUnitData";
-import { CreateBankAccountRequest } from "lib/model/forms/BankAccountFormValues";
-import prisma from "lib/prisma";
-import { getUserId } from "lib/user";
-import { NextRequest, NextResponse } from "next/server";
+import {Prisma} from '@prisma/client';
+import {fillUnitData} from 'app/api/config/bank-account/fillUnitData';
+import {CreateBankAccountRequest} from 'lib/model/forms/BankAccountFormValues';
+import prisma from 'lib/prisma';
+import {getUserId} from 'lib/user';
+import {NextRequest, NextResponse} from 'next/server';
 
 export async function POST(request: NextRequest): Promise<Response> {
   const userId = await getUserId();
-  const { name, displayOrder, bankId, unit, isJoint, initialBalance } =
+  const {name, displayOrder, bankId, unit, isJoint, initialBalance} =
     (await request.json()) as CreateBankAccountRequest;
   const data: Prisma.BankAccountUncheckedCreateInput = {
     name,

@@ -4,16 +4,16 @@ import {
   Tag,
   TransactionType,
   Trip,
-} from "@prisma/client";
-import { TransactionWithTagIds } from "lib/model/AllDatabaseDataModel";
+} from '@prisma/client';
+import {TransactionWithTagIds} from 'lib/model/AllDatabaseDataModel';
 import {
   FormMode,
   TransactionFormValues,
-} from "lib/model/forms/TransactionFormValues";
+} from 'lib/model/forms/TransactionFormValues';
 import {
   TransactionPrototype,
   WithdrawalOrDepositPrototype,
-} from "lib/txsuggestions/TransactionPrototype";
+} from 'lib/txsuggestions/TransactionPrototype';
 
 export type TransactionAPIRequest = {
   form: TransactionFormValues;
@@ -59,7 +59,7 @@ export function commonTransactionDbData(
     payer,
     currencyCode,
   }: TransactionFormValues,
-  userId: number,
+  userId: number
 ): CommonCreateAndUpdateInput {
   const result: CommonCreateAndUpdateInput = {
     description,
@@ -130,10 +130,10 @@ export function commonTransactionDbData(
 export async function fetchOrCreateTags(
   tx: Prisma.TransactionClient,
   tagNames: string[],
-  userId: number,
-): Promise<{ existing: Tag[]; created: Tag[] }> {
+  userId: number
+): Promise<{existing: Tag[]; created: Tag[]}> {
   if (!tagNames.length) {
-    return { existing: [], created: [] };
+    return {existing: [], created: []};
   }
   const existing: Tag[] = await tx.tag.findMany({
     where: {
@@ -143,11 +143,11 @@ export async function fetchOrCreateTags(
       },
     },
   });
-  const newNames = tagNames.filter((x) => existing.every((t) => t.name != x));
+  const newNames = tagNames.filter(x => existing.every(t => t.name != x));
   const created = await Promise.all(
-    newNames.map((name) => tx.tag.create({ data: { name, userId } })),
+    newNames.map(name => tx.tag.create({data: {name, userId}}))
   );
-  return { existing, created };
+  return {existing, created};
 }
 
 export async function writeTrip({
@@ -174,12 +174,12 @@ export async function writeTrip({
     name: form.tripName,
     userId,
   };
-  const existingTrip = await tx.trip.findFirst({ where: tripNameAndUser });
+  const existingTrip = await tx.trip.findFirst({where: tripNameAndUser});
   if (existingTrip) {
     data.tripId = existingTrip.id;
     return null;
   }
-  const createdTrip = await tx.trip.create({ data: tripNameAndUser });
+  const createdTrip = await tx.trip.create({data: tripNameAndUser});
   data.tripId = createdTrip.id;
   return createdTrip;
 }
@@ -194,9 +194,9 @@ export async function writeUsedPrototypes({
   createdTransactionId: number;
   userId: number;
   tx: Prisma.TransactionClient;
-}): Promise<{ createdPrototypes: DBTransactionPrototype[] }> {
+}): Promise<{createdPrototypes: DBTransactionPrototype[]}> {
   if (!usedPrototype) {
-    return { createdPrototypes: [] };
+    return {createdPrototypes: []};
   }
   const createSinglePrototype = (proto: WithdrawalOrDepositPrototype) =>
     tx.transactionPrototype.create({
@@ -207,12 +207,12 @@ export async function writeUsedPrototypes({
         userId,
       },
     });
-  if (usedPrototype.type == "transfer") {
+  if (usedPrototype.type == 'transfer') {
     const created = await Promise.all([
       createSinglePrototype(usedPrototype.deposit),
       createSinglePrototype(usedPrototype.withdrawal),
     ]);
-    return { createdPrototypes: created };
+    return {createdPrototypes: created};
   }
-  return { createdPrototypes: [await createSinglePrototype(usedPrototype)] };
+  return {createdPrototypes: [await createSinglePrototype(usedPrototype)]};
 }

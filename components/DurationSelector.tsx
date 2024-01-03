@@ -1,13 +1,13 @@
-import { Popover, Transition } from "@headlessui/react";
-import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import { CheckIcon } from "@heroicons/react/24/outline";
-import classNames from "classnames";
-import { Input } from "components/forms/Input";
-import { Interval, format, isEqual, startOfMonth } from "date-fns";
-import { Fragment } from "react";
+import {Popover, Transition} from '@headlessui/react';
+import {ChevronDownIcon} from '@heroicons/react/20/solid';
+import {CheckIcon} from '@heroicons/react/24/outline';
+import classNames from 'classnames';
+import {Input} from 'components/forms/Input';
+import {Interval, format, isEqual, startOfMonth} from 'date-fns';
+import {Fragment} from 'react';
 
-import { subMonths } from "date-fns";
-import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
+import {subMonths} from 'date-fns';
+import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
 
 const now = new Date();
 export const LAST_6_MONTHS: Interval = {
@@ -20,21 +20,21 @@ export const LAST_12_MONTHS: Interval = {
 };
 
 function useCommonIntervals() {
-  const { transactions } = useAllDatabaseDataContext();
+  const {transactions} = useAllDatabaseDataContext();
   const [firstTransaction] = [...transactions].sort(
-    (a, b) => a.timestampEpoch - b.timestampEpoch,
+    (a, b) => a.timestampEpoch - b.timestampEpoch
   );
   return [
     {
-      label: "Last 6 months",
+      label: 'Last 6 months',
       interval: LAST_6_MONTHS,
     },
     {
-      label: "Last 12 months",
+      label: 'Last 12 months',
       interval: LAST_12_MONTHS,
     },
     {
-      label: "All time",
+      label: 'All time',
       interval: {
         start: startOfMonth(firstTransaction.timestampEpoch),
         end: now,
@@ -44,7 +44,7 @@ function useCommonIntervals() {
 }
 
 const formatDate = (date?: Date | number) =>
-  date ? format(date, "yyyy-MM-dd") : "";
+  date ? format(date, 'yyyy-MM-dd') : '';
 
 function intervalsEqual(i1: Interval, i2: Interval): boolean {
   return isEqual(i1.start, i2.start) && isEqual(i1.end, i2.end);
@@ -59,7 +59,7 @@ export function DurationSelector({
 }) {
   const commonIntervals = useCommonIntervals();
   const formatInterval = (i: Interval): string => {
-    const common = commonIntervals.find((x) => intervalsEqual(x.interval, i));
+    const common = commonIntervals.find(x => intervalsEqual(x.interval, i));
     if (common) {
       return common.label;
     }
@@ -72,21 +72,21 @@ export function DurationSelector({
     if (i.end) {
       return `Before ${formatDate(i.end)}`;
     }
-    return "Never";
+    return 'Never';
   };
 
   return (
     <Popover className="relative">
-      {({ open }) => (
+      {({open}) => (
         <>
           <Popover.Button
             className={`
-                ${open ? "" : "text-opacity-90"}
+                ${open ? '' : 'text-opacity-90'}
                 group inline-flex items-center rounded-md bg-indigo-700 px-3 py-2 text-base font-medium text-white hover:text-opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75`}
           >
             <span>Duration: {formatInterval(duration)}</span>
             <ChevronDownIcon
-              className={`${open ? "" : "text-opacity-70"}
+              className={`${open ? '' : 'text-opacity-70'}
                   ml-2 h-5 w-5 text-indigo-300 transition duration-150 ease-in-out group-hover:text-opacity-80`}
             />
           </Popover.Button>
@@ -102,7 +102,7 @@ export function DurationSelector({
             <Popover.Panel className="absolute left-1/2 z-10 mt-3 w-screen max-w-xs -translate-x-1/2 transform px-4 sm:px-0">
               <div className="overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5">
                 <div className="relative grid gap-8 bg-white p-7">
-                  {commonIntervals.map((opt) => (
+                  {commonIntervals.map(opt => (
                     <Popover.Button
                       key={opt.label}
                       className="-m-3 flex items-center rounded-lg p-2 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-indigo-500 focus-visible:ring-opacity-50"
@@ -112,9 +112,9 @@ export function DurationSelector({
                         <CheckIcon
                           className={classNames(
                             intervalsEqual(duration, opt.interval)
-                              ? "visible"
-                              : "invisible",
-                            "mr-2 inline h-4 w-4",
+                              ? 'visible'
+                              : 'invisible',
+                            'mr-2 inline h-4 w-4'
                           )}
                         />
                         {formatInterval(opt.interval)}
@@ -136,7 +136,7 @@ export function DurationSelector({
                           type="date"
                           className="grow"
                           value={formatDate(duration.start)}
-                          onChange={(x) =>
+                          onChange={x =>
                             onChange({
                               start: new Date(x.target.value),
                               end: duration.end,
@@ -155,7 +155,7 @@ export function DurationSelector({
                           type="date"
                           className="grow"
                           value={formatDate(duration.end)}
-                          onChange={(x) =>
+                          onChange={x =>
                             onChange({
                               start: duration.start,
                               end: new Date(x.target.value),

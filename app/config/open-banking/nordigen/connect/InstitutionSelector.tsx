@@ -1,6 +1,6 @@
-import { Bank as DBBank } from "@prisma/client";
-import { AnchorLink, ExternalAnchorLink } from "components/ui/anchors";
-import { Institution } from "lib/openbanking/nordigen/institution";
+import {Bank as DBBank} from '@prisma/client';
+import {AnchorLink, ExternalAnchorLink} from 'components/ui/anchors';
+import {Institution} from 'lib/openbanking/nordigen/institution';
 
 export function InstitutionSelector({
   dbBank,
@@ -14,7 +14,7 @@ export function InstitutionSelector({
   return (
     <>
       <div className="mb-4">
-        Showing banks for {countryCode}.{" "}
+        Showing banks for {countryCode}.{' '}
         <AnchorLink
           href={`/config/open-banking/nordigen/connect?bankId=${dbBank.id}`}
         >
@@ -23,7 +23,7 @@ export function InstitutionSelector({
       </div>
       <h1 className="mb-2 text-xl font-medium leading-7">Select bank:</h1>
       <div className="space-y-2">
-        {institutions.map((institution) => (
+        {institutions.map(institution => (
           <div key={institution.id} className="rounded-md bg-slate-50 p-2">
             <ExternalAnchorLink
               href={`/api/open-banking/nordigen/connect?bankId=${dbBank.id}&institutionId=${institution.id}`}

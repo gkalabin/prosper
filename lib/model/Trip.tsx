@@ -1,4 +1,4 @@
-import { Trip as DBTrip } from "@prisma/client";
+import {Trip as DBTrip} from '@prisma/client';
 
 export type Trip = {
   id: number;

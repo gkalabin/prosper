@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import {
   Bank as DBBank,
   BankAccount as DBBankAccount,
@@ -7,23 +7,19 @@ import {
   StarlingToken as DBStarlingToken,
   Stock as DBStock,
   TrueLayerToken as DBTrueLayerToken,
-} from "@prisma/client";
-import { ConfigureOpenBankingConnectionLink } from "app/config/banks/ConfigureOpenBankingConnectionLink";
-import { DisconnectOpenBankingLink } from "app/config/banks/DisconnectOpenBankingLink";
-import { ReconnectOpenBankingLink } from "app/config/banks/ReconnectOpenBankingLink";
-import { AddOrEditAccountForm } from "components/config/AddOrEditAccountForm";
-import { AddOrEditBankForm } from "components/config/AddOrEditBankForm";
-import {
-  AnchorLink,
-  ButtonLink,
-  ButtonPagePrimary,
-} from "components/ui/buttons";
-import { banksModelFromDatabaseData } from "lib/ClientSideModel";
-import { DisplaySettingsContextProvider } from "lib/context/DisplaySettingsContext";
-import { Bank, BankAccount } from "lib/model/BankAccount";
-import { Stock } from "lib/model/Stock";
-import { updateState } from "lib/stateHelpers";
-import { useState } from "react";
+} from '@prisma/client';
+import {ConfigureOpenBankingConnectionLink} from 'app/config/banks/ConfigureOpenBankingConnectionLink';
+import {DisconnectOpenBankingLink} from 'app/config/banks/DisconnectOpenBankingLink';
+import {ReconnectOpenBankingLink} from 'app/config/banks/ReconnectOpenBankingLink';
+import {AddOrEditAccountForm} from 'components/config/AddOrEditAccountForm';
+import {AddOrEditBankForm} from 'components/config/AddOrEditBankForm';
+import {AnchorLink, ButtonLink, ButtonPagePrimary} from 'components/ui/buttons';
+import {banksModelFromDatabaseData} from 'lib/ClientSideModel';
+import {DisplaySettingsContextProvider} from 'lib/context/DisplaySettingsContext';
+import {Bank, BankAccount} from 'lib/model/BankAccount';
+import {Stock} from 'lib/model/Stock';
+import {updateState} from 'lib/stateHelpers';
+import {useState} from 'react';
 
 const BanksList = (props: {
   banks: Bank[];
@@ -40,17 +36,15 @@ const BanksList = (props: {
   }
   return (
     <div className="space-y-4">
-      {props.banks.map((bank) => (
+      {props.banks.map(bank => (
         <BanksListItem
           key={bank.id}
           bank={bank}
-          bankAccounts={props.bankAccounts.filter((x) => x.bankId == bank.id)}
+          bankAccounts={props.bankAccounts.filter(x => x.bankId == bank.id)}
           stocks={props.stocks}
-          trueLayerToken={props.trueLayerTokens.find(
-            (t) => t.bankId == bank.id,
-          )}
-          nordigenToken={props.nordigenTokens.find((t) => t.bankId == bank.id)}
-          starlingToken={props.starlingTokens.find((t) => t.bankId == bank.id)}
+          trueLayerToken={props.trueLayerTokens.find(t => t.bankId == bank.id)}
+          nordigenToken={props.nordigenTokens.find(t => t.bankId == bank.id)}
+          starlingToken={props.starlingTokens.find(t => t.bankId == bank.id)}
           onBankUpdated={props.onBankUpdated}
           onAccountAddedOrUpdated={props.onAccountAddedOrUpdated}
         />
@@ -97,7 +91,7 @@ function BanksListItem({
           {!editBankFormDisplayed && (
             <div className="text-sm text-gray-600">
               <BankConnections
-                {...{ trueLayerToken, nordigenToken, starlingToken, bank }}
+                {...{trueLayerToken, nordigenToken, starlingToken, bank}}
               />
             </div>
           )}
@@ -107,7 +101,7 @@ function BanksListItem({
           <div className="ml-2 mt-2">
             <AddOrEditBankForm
               bank={bank}
-              onAddedOrUpdated={(x) => {
+              onAddedOrUpdated={x => {
                 onBankUpdated(x);
                 setEditBankFormDisplayed(false);
               }}
@@ -135,7 +129,7 @@ function BanksListItem({
             bank={bank}
             bankAccounts={bankAccounts}
             stocks={stocks}
-            onAddedOrUpdated={(x) => {
+            onAddedOrUpdated={x => {
               setNewAccountFormDisplayed(false);
               onAccountAddedOrUpdated(x);
             }}
@@ -161,18 +155,18 @@ const BankConnections = ({
   if (!trueLayerToken && !nordigenToken && !starlingToken) {
     return (
       <div>
-        Connect with{" "}
+        Connect with{' '}
         <AnchorLink
           href={`/config/open-banking/starling/connect?bankId=${bank.id}`}
         >
           Starling (UK),
-        </AnchorLink>{" "}
+        </AnchorLink>{' '}
         <AnchorLink
           href={`/api/open-banking/truelayer/connect?bankId=${bank.id}`}
         >
           TrueLayer (UK)
-        </AnchorLink>{" "}
-        or{" "}
+        </AnchorLink>{' '}
+        or{' '}
         <AnchorLink
           href={`/config/open-banking/nordigen/connect?bankId=${bank.id}`}
         >
@@ -190,7 +184,7 @@ const BankConnections = ({
   );
 };
 
-const TrueLayerActions = ({ bank }: { bank: Bank }) => {
+const TrueLayerActions = ({bank}: {bank: Bank}) => {
   return (
     <div className="space-x-3">
       <span>Connected with TrueLayer</span>
@@ -201,7 +195,7 @@ const TrueLayerActions = ({ bank }: { bank: Bank }) => {
   );
 };
 
-const NordigenActions = ({ bank }: { bank: Bank }) => {
+const NordigenActions = ({bank}: {bank: Bank}) => {
   return (
     <div className="space-x-3">
       <span>Connected with Nordigen</span>
@@ -212,7 +206,7 @@ const NordigenActions = ({ bank }: { bank: Bank }) => {
   );
 };
 
-const StarlingActions = ({ bank }: { bank: Bank }) => {
+const StarlingActions = ({bank}: {bank: Bank}) => {
   return (
     <div className="space-x-3">
       <span>Connected with Starling</span>
@@ -231,12 +225,10 @@ const AccountsList = (props: {
   if (!props.accounts) {
     return <div>No accounts.</div>;
   }
-  const accountsForBank = props.accounts.filter(
-    (x) => x.bankId == props.bank.id,
-  );
+  const accountsForBank = props.accounts.filter(x => x.bankId == props.bank.id);
   return (
     <>
-      {accountsForBank.map((account) => (
+      {accountsForBank.map(account => (
         <AccountListItem
           key={account.id}
           bank={props.bank}
@@ -275,7 +267,7 @@ const AccountListItem = (props: {
             bankAccounts={props.bankAccounts}
             bankAccount={props.account}
             stocks={props.stocks}
-            onAddedOrUpdated={(x) => {
+            onAddedOrUpdated={x => {
               setFormDisplayed(false);
               props.onUpdated(x);
             }}
@@ -311,7 +303,7 @@ export function BanksConfigPage({
   const [banks, bankAccounts, stocks] = banksModelFromDatabaseData(
     dbBanks,
     dbBankAccounts,
-    dbStocks,
+    dbStocks
   );
 
   return (
@@ -341,7 +333,7 @@ export function BanksConfigPage({
           <div className="mt-4 rounded-md border p-2">
             <AddOrEditBankForm
               displayOrder={banks.length * 100}
-              onAddedOrUpdated={(x) => {
+              onAddedOrUpdated={x => {
                 onBankAddedOrUpdated(x);
                 setFormDisplayed(false);
               }}

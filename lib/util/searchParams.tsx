@@ -1,5 +1,5 @@
 export function paramOrFirst(
-  param: string | string[] | undefined,
+  param: string | string[] | undefined
 ): string | undefined {
   if (Array.isArray(param)) {
     return param[0];
@@ -8,7 +8,7 @@ export function paramOrFirst(
 }
 
 export function intParamOrFirst(
-  param: string | string[] | undefined,
+  param: string | string[] | undefined
 ): number | undefined {
   const paramOrFirstString = paramOrFirst(param);
   if (!paramOrFirstString) {

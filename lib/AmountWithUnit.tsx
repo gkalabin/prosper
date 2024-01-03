@@ -1,14 +1,14 @@
-import { Amount } from "lib/Amount";
-import { formatStock } from "lib/model/Stock";
-import { Unit, isCurrency, isStock } from "lib/model/Unit";
-import { formatCurrency } from "./model/Currency";
+import {Amount} from 'lib/Amount';
+import {formatStock} from 'lib/model/Stock';
+import {Unit, isCurrency, isStock} from 'lib/model/Unit';
+import {formatCurrency} from './model/Currency';
 
 export class AmountWithUnit {
   private readonly amount: Amount;
   private readonly unit: Unit;
 
-  public constructor(init: { amountCents: number; unit: Unit }) {
-    this.amount = new Amount({ amountCents: init.amountCents });
+  public constructor(init: {amountCents: number; unit: Unit}) {
+    this.amount = new Amount({amountCents: init.amountCents});
     this.unit = init.unit;
   }
 

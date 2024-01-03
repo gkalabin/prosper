@@ -1,55 +1,52 @@
-"use client";
-import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
-import { ExcludedCategoriesSelector } from "app/stats/ExcludedCategoriesSelector";
-import { categoryNameById, dollarsRounded } from "app/stats/modelHelpers";
-import { DurationSelector, LAST_6_MONTHS } from "components/DurationSelector";
-import {
-  NotConfiguredYet,
-  isFullyConfigured,
-} from "components/NotConfiguredYet";
-import { MonthlyOwnShare } from "components/charts/MonthlySum";
-import { RunningAverageOwnShare } from "components/charts/RunningAverage";
-import { YearlyOwnShare } from "components/charts/YearlySum";
+'use client';
+import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
+import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
+import {categoryNameById, dollarsRounded} from 'app/stats/modelHelpers';
+import {DurationSelector, LAST_6_MONTHS} from 'components/DurationSelector';
+import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
+import {MonthlyOwnShare} from 'components/charts/MonthlySum';
+import {RunningAverageOwnShare} from 'components/charts/RunningAverage';
+import {YearlyOwnShare} from 'components/charts/YearlySum';
 import {
   Interval,
   differenceInYears,
   eachMonthOfInterval,
   startOfMonth,
-} from "date-fns";
-import ReactEcharts from "echarts-for-react";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
+} from 'date-fns';
+import ReactEcharts from 'echarts-for-react';
+import {AmountWithCurrency} from 'lib/AmountWithCurrency';
 import {
   defaultMonthlyMoneyChart,
   legend,
   stackedBarChartTooltip,
-} from "lib/charts";
+} from 'lib/charts';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
-} from "lib/context/AllDatabaseDataContext";
+} from 'lib/context/AllDatabaseDataContext';
 import {
   useDisplayCurrency,
   useDisplaySettingsContext,
-} from "lib/context/DisplaySettingsContext";
-import { AllDatabaseData } from "lib/model/AllDatabaseDataModel";
-import { Category, transactionIsDescendant } from "lib/model/Category";
+} from 'lib/context/DisplaySettingsContext';
+import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
+import {Category, transactionIsDescendant} from 'lib/model/Category';
 import {
   Expense,
   Transaction,
   isExpense,
   transactionCategory,
-} from "lib/model/transaction/Transaction";
-import { amountOwnShare } from "lib/model/transaction/amounts";
-import { TransactionsStatsInput } from "lib/stats/TransactionsStatsInput";
-import { useState } from "react";
+} from 'lib/model/transaction/Transaction';
+import {amountOwnShare} from 'lib/model/transaction/amounts';
+import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
+import {useState} from 'react';
 
-export function ExpenseCharts({ input }: { input: TransactionsStatsInput }) {
+export function ExpenseCharts({input}: {input: TransactionsStatsInput}) {
   const displayCurrency = useDisplayCurrency();
-  const { categories, bankAccounts, stocks, exchange } =
+  const {categories, bankAccounts, stocks, exchange} =
     useAllDatabaseDataContext();
   const zero = AmountWithCurrency.zero(displayCurrency);
-  const months = input.months().map((x) => x.getTime());
-  const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
+  const months = input.months().map(x => x.getTime());
+  const zeroes: [number, AmountWithCurrency][] = months.map(m => [m, zero]);
   const failedToExchange: Transaction[] = [];
 
   const byRootCategoryIdAndMonth = new Map<
@@ -67,7 +64,7 @@ export function ExpenseCharts({ input }: { input: TransactionsStatsInput }) {
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange,
+      exchange
     );
     if (!exchanged) {
       failedToExchange.push(t);
@@ -117,15 +114,15 @@ export function ExpenseCharts({ input }: { input: TransactionsStatsInput }) {
           ...stackedBarChartTooltip(displayCurrency),
           ...legend(),
           title: {
-            text: "By top level category",
+            text: 'By top level category',
           },
           series: [...byRootCategoryIdAndMonth.entries()].map(
             ([categoryId, series]) => ({
-              type: "bar",
-              stack: "moneyIn",
+              type: 'bar',
+              stack: 'moneyIn',
               name: categoryNameById(categoryId, categories),
-              data: months.map((m) => dollarsRounded(series.get(m))),
-            }),
+              data: months.map(m => dollarsRounded(series.get(m))),
+            })
           ),
         }}
       />
@@ -135,15 +132,15 @@ export function ExpenseCharts({ input }: { input: TransactionsStatsInput }) {
           ...defaultMonthlyMoneyChart(displayCurrency, input.interval()),
           ...stackedBarChartTooltip(displayCurrency),
           title: {
-            text: "By bottom level category",
+            text: 'By bottom level category',
           },
           series: [...byCategoryIdAndMonth.entries()].map(
             ([categoryId, series]) => ({
-              type: "bar",
-              stack: "moneyIn",
+              type: 'bar',
+              stack: 'moneyIn',
               name: categoryNameById(categoryId, categories),
-              data: months.map((m) => dollarsRounded(series.get(m))),
-            }),
+              data: months.map(m => dollarsRounded(series.get(m))),
+            })
           ),
         }}
       />
@@ -160,15 +157,15 @@ export function ByCategoryCharts(props: {
   transactions: Transaction[];
   duration: Interval;
 }) {
-  const { categories } = useAllDatabaseDataContext();
+  const {categories} = useAllDatabaseDataContext();
   return (
     <>
       <h2 className="my-2 text-2xl font-medium leading-5">
         Drilldown by top-level categories
       </h2>
       {categories
-        .filter((c) => c.isRoot())
-        .map((c) => (
+        .filter(c => c.isRoot())
+        .map(c => (
           <ExpenseByCategory
             key={c.id()}
             transactions={props.transactions}
@@ -186,16 +183,16 @@ export function ExpenseByCategory(props: {
   duration: Interval;
 }) {
   const displayCurrency = useDisplayCurrency();
-  const { categories, bankAccounts, stocks, exchange } =
+  const {categories, bankAccounts, stocks, exchange} =
     useAllDatabaseDataContext();
   const transactions = props.transactions
     .filter((t): t is Expense => isExpense(t))
-    .filter((t) =>
-      transactionCategory(t, categories).childOf(props.category.id()),
+    .filter(t =>
+      transactionCategory(t, categories).childOf(props.category.id())
     );
   const zero = AmountWithCurrency.zero(displayCurrency);
-  const months = eachMonthOfInterval(props.duration).map((x) => x.getTime());
-  const zeroes: [number, AmountWithCurrency][] = months.map((m) => [m, zero]);
+  const months = eachMonthOfInterval(props.duration).map(x => x.getTime());
+  const zeroes: [number, AmountWithCurrency][] = months.map(m => [m, zero]);
 
   let totalSum = zero;
   const failedToExchange: Transaction[] = [];
@@ -207,7 +204,7 @@ export function ExpenseByCategory(props: {
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange,
+      exchange
     );
     if (!current) {
       failedToExchange.push(t);
@@ -237,11 +234,11 @@ export function ExpenseByCategory(props: {
           },
           series: [...byCategoryMonth.entries()].map(
             ([categoryId, series]) => ({
-              type: "bar",
-              stack: "moneyOut",
+              type: 'bar',
+              stack: 'moneyOut',
               name: categoryNameById(categoryId, categories),
-              data: months.map((m) => dollarsRounded(series.get(m))),
-            }),
+              data: months.map(m => dollarsRounded(series.get(m))),
+            })
           ),
         }}
       />
@@ -252,16 +249,16 @@ export function ExpenseByCategory(props: {
 function NonEmptyPageContent() {
   const [duration, setDuration] = useState(LAST_6_MONTHS);
 
-  const { transactions, categories } = useAllDatabaseDataContext();
-  const { displaySettings } = useDisplaySettingsContext();
+  const {transactions, categories} = useAllDatabaseDataContext();
+  const {displaySettings} = useDisplaySettingsContext();
   const [excludeCategories, setExcludeCategories] = useState(
-    displaySettings.excludeCategoryIdsInStats(),
+    displaySettings.excludeCategoryIdsInStats()
   );
   const filteredTransactions = transactions.filter(
-    (t) =>
-      !excludeCategories.some((cid) =>
-        transactionIsDescendant(t, cid, categories),
-      ),
+    t =>
+      !excludeCategories.some(cid =>
+        transactionIsDescendant(t, cid, categories)
+      )
   );
   const input = new TransactionsStatsInput(filteredTransactions, duration);
   return (
@@ -278,7 +275,7 @@ function NonEmptyPageContent() {
   );
 }
 
-export function ExpensePage({ dbData }: { dbData: AllDatabaseData }) {
+export function ExpensePage({dbData}: {dbData: AllDatabaseData}) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }

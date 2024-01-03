@@ -1,16 +1,16 @@
-"use client";
-import { Disclosure, Menu, Transition } from "@headlessui/react";
+'use client';
+import {Disclosure, Menu, Transition} from '@headlessui/react';
 import {
   BanknotesIcon,
   Bars3Icon,
   UserCircleIcon,
   XMarkIcon,
-} from "@heroicons/react/24/outline";
-import classNames from "classnames";
-import { AnchorUnstyled } from "components/ui/buttons";
-import { SessionProvider, signIn, signOut, useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
-import { Fragment } from "react";
+} from '@heroicons/react/24/outline';
+import classNames from 'classnames';
+import {AnchorUnstyled} from 'components/ui/buttons';
+import {SessionProvider, signIn, signOut, useSession} from 'next-auth/react';
+import {usePathname} from 'next/navigation';
+import {Fragment} from 'react';
 
 export default function Header() {
   return (
@@ -21,22 +21,22 @@ export default function Header() {
 }
 
 function HeaderImpl() {
-  const { data: session } = useSession();
+  const {data: session} = useSession();
   const pathname = usePathname();
-  const isActive = ({ href }: { href: string }) => {
+  const isActive = ({href}: {href: string}) => {
     return href === pathname;
   };
 
   const navigation = [
-    { name: "Overview", href: "/overview" },
-    { name: "Transactions", href: "/transactions" },
-    { name: "Stats", href: "/stats/expense" },
-    { name: "Trips", href: "/trips" },
+    {name: 'Overview', href: '/overview'},
+    {name: 'Transactions', href: '/transactions'},
+    {name: 'Stats', href: '/stats/expense'},
+    {name: 'Trips', href: '/trips'},
   ];
 
   return (
     <Disclosure as="nav" className="bg-gray-800">
-      {({ open }) => (
+      {({open}) => (
         <>
           <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
             <div className="relative flex h-16 items-center justify-between">
@@ -60,17 +60,17 @@ function HeaderImpl() {
                 </div>
                 <div className="hidden sm:ml-6 sm:block">
                   <div className="flex space-x-4">
-                    {navigation.map((item) => (
+                    {navigation.map(item => (
                       <AnchorUnstyled
                         href={item.href}
                         key={item.name}
                         className={classNames(
                           isActive(item)
-                            ? "bg-gray-900 text-white"
-                            : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                          "rounded-md px-3 py-2 text-sm font-medium",
+                            ? 'bg-gray-900 text-white'
+                            : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                          'rounded-md px-3 py-2 text-sm font-medium'
                         )}
-                        aria-current={isActive(item) ? "page" : undefined}
+                        aria-current={isActive(item) ? 'page' : undefined}
                       >
                         {item.name}
                       </AnchorUnstyled>
@@ -98,12 +98,12 @@ function HeaderImpl() {
                   >
                     <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
                       <Menu.Item>
-                        {({ active }) => (
+                        {({active}) => (
                           <AnchorUnstyled
                             href="/config"
                             className={classNames(
-                              active ? "bg-gray-100" : "",
-                              "block px-4 py-2 text-sm text-gray-700",
+                              active ? 'bg-gray-100' : '',
+                              'block px-4 py-2 text-sm text-gray-700'
                             )}
                           >
                             Config
@@ -113,12 +113,12 @@ function HeaderImpl() {
 
                       {!session?.user.name && (
                         <Menu.Item>
-                          {({ active }) => (
+                          {({active}) => (
                             <a
                               onClick={() => signIn()}
                               className={classNames(
-                                active ? "bg-gray-100" : "",
-                                "block cursor-pointer px-4 py-2 text-sm text-gray-700",
+                                active ? 'bg-gray-100' : '',
+                                'block cursor-pointer px-4 py-2 text-sm text-gray-700'
                               )}
                             >
                               Sign In
@@ -129,7 +129,7 @@ function HeaderImpl() {
 
                       {session?.user.name && (
                         <Menu.Item>
-                          {({ active }) => (
+                          {({active}) => (
                             <>
                               <span className="block px-4 py-2 text-sm text-gray-700">
                                 Signed in as <i>{session?.user.name}</i>
@@ -137,8 +137,8 @@ function HeaderImpl() {
                               <a
                                 onClick={() => signOut()}
                                 className={classNames(
-                                  active ? "bg-gray-100" : "",
-                                  "block cursor-pointer py-2 pl-6 pr-4 text-sm text-gray-700",
+                                  active ? 'bg-gray-100' : '',
+                                  'block cursor-pointer py-2 pl-6 pr-4 text-sm text-gray-700'
                                 )}
                               >
                                 Sign Out
@@ -156,17 +156,17 @@ function HeaderImpl() {
 
           <Disclosure.Panel className="sm:hidden">
             <div className="space-y-1 px-2 pb-3 pt-2">
-              {navigation.map((item) => (
+              {navigation.map(item => (
                 <AnchorUnstyled href={item.href} key={item.name}>
                   <Disclosure.Button
                     key={item.name}
                     className={classNames(
                       isActive(item)
-                        ? "bg-gray-900 text-white"
-                        : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                      "block rounded-md px-3 py-2 text-base font-medium",
+                        ? 'bg-gray-900 text-white'
+                        : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                      'block rounded-md px-3 py-2 text-base font-medium'
                     )}
-                    aria-current={isActive(item) ? "page" : undefined}
+                    aria-current={isActive(item) ? 'page' : undefined}
                   >
                     {item.name}
                   </Disclosure.Button>

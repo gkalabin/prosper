@@ -1,22 +1,22 @@
-import { Prisma } from "@prisma/client";
-import { Currency } from "lib/model/Currency";
-import { AccountUnitFormValue } from "lib/model/forms/BankAccountFormValues";
-import prisma from "lib/prisma";
-import yahooFinance from "yahoo-finance2";
-import { Quote } from "yahoo-finance2/dist/esm/src/modules/quote";
+import {Prisma} from '@prisma/client';
+import {Currency} from 'lib/model/Currency';
+import {AccountUnitFormValue} from 'lib/model/forms/BankAccountFormValues';
+import prisma from 'lib/prisma';
+import yahooFinance from 'yahoo-finance2';
+import {Quote} from 'yahoo-finance2/dist/esm/src/modules/quote';
 
 export async function fillUnitData(
   unit: AccountUnitFormValue,
   data:
     | Prisma.BankAccountUncheckedCreateInput
-    | Prisma.BankAccountUncheckedUpdateInput,
+    | Prisma.BankAccountUncheckedUpdateInput
 ): Promise<void> {
-  if (unit.kind === "currency") {
+  if (unit.kind === 'currency') {
     data.currencyCode = unit.currencyCode;
     return;
   }
-  if (unit.kind !== "stock") {
-    throw new Error("unknown unit kind: " + unit);
+  if (unit.kind !== 'stock') {
+    throw new Error('unknown unit kind: ' + unit);
   }
   const existingStock = await prisma.stock.findFirst({
     where: {
@@ -30,7 +30,7 @@ export async function fillUnitData(
   }
   const quote: Quote = await yahooFinance.quote(unit.ticker);
   if (!quote) {
-    throw new Error("could not find stock: " + unit.ticker);
+    throw new Error('could not find stock: ' + unit.ticker);
   }
   if (!quote.currency) {
     throw new Error(`quote for ${unit.ticker} has no currency`);
@@ -38,7 +38,7 @@ export async function fillUnitData(
   const currency = Currency.findByCode(quote.currency.toUpperCase());
   if (!currency) {
     throw new Error(
-      `could not find currency '${quote.currency}' when creating stock ${unit.ticker}`,
+      `could not find currency '${quote.currency}' when creating stock ${unit.ticker}`
     );
   }
   const newStock = await prisma.stock.create({

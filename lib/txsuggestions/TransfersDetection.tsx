@@ -2,14 +2,14 @@ import {
   differenceInHours,
   differenceInMilliseconds,
   differenceInMinutes,
-} from "date-fns";
+} from 'date-fns';
 import {
   DepositPrototype,
   TransactionPrototype,
   TransferPrototype,
   WithdrawalOrDepositPrototype,
   WithdrawalPrototype,
-} from "lib/txsuggestions/TransactionPrototype";
+} from 'lib/txsuggestions/TransactionPrototype';
 
 export function combineTransfers(
   prototypes: WithdrawalOrDepositPrototype[]
@@ -17,13 +17,13 @@ export function combineTransfers(
   // find all the matching deposits and withdrawals
   const transfersCandidates = [] as TransferPrototype[];
   for (const deposit of prototypes) {
-    if (deposit.type != "deposit") {
+    if (deposit.type != 'deposit') {
       continue;
     }
     const [closestWithdrawal] = prototypes
       .filter(
         (withdrawal): withdrawal is WithdrawalPrototype =>
-          withdrawal.type == "withdrawal" &&
+          withdrawal.type == 'withdrawal' &&
           deposit.absoluteAmountCents == withdrawal.absoluteAmountCents &&
           deposit.internalAccountId != withdrawal.internalAccountId &&
           closeInTime(deposit, withdrawal)
@@ -38,7 +38,7 @@ export function combineTransfers(
       continue;
     }
     transfersCandidates.push({
-      type: "transfer",
+      type: 'transfer',
       withdrawal: closestWithdrawal,
       deposit,
     });
@@ -54,7 +54,7 @@ export function combineTransfers(
   for (const transfer of transfersCandidates) {
     if (
       transfers.some(
-        (t) =>
+        t =>
           t.withdrawal.externalTransactionId ==
             transfer.withdrawal.externalTransactionId ||
           t.deposit.externalTransactionId ==
@@ -67,14 +67,14 @@ export function combineTransfers(
   }
 
   const usedInTransfer = new Set<string>(
-    transfers.flatMap((x) => [
+    transfers.flatMap(x => [
       x.withdrawal.externalTransactionId,
       x.deposit.externalTransactionId,
     ])
   );
   return [
     ...transfers,
-    ...prototypes.filter((x) => !usedInTransfer.has(x.externalTransactionId)),
+    ...prototypes.filter(x => !usedInTransfer.has(x.externalTransactionId)),
   ];
 }
 function closeInTime(d: DepositPrototype, w: WithdrawalPrototype): boolean {

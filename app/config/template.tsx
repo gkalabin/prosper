@@ -1,4 +1,4 @@
-import { SubHeader } from "components/SubHeader";
+import {SubHeader} from 'components/SubHeader';
 
 export default function ConfigPageLayout({
   children,
@@ -10,16 +10,16 @@ export default function ConfigPageLayout({
       <SubHeader
         items={[
           {
-            title: "Display settings",
-            path: "/config/display-settings",
+            title: 'Display settings',
+            path: '/config/display-settings',
           },
           {
-            title: "Banks and Accounts",
-            path: "/config/banks",
+            title: 'Banks and Accounts',
+            path: '/config/banks',
           },
           {
-            title: "Categories",
-            path: "/config/categories",
+            title: 'Categories',
+            path: '/config/categories',
           },
         ]}
       />

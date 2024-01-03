@@ -1,10 +1,10 @@
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { Currency } from "lib/model/Currency";
-import { AppendMap } from "lib/util/AppendingMap";
+import {AmountWithCurrency} from 'lib/AmountWithCurrency';
+import {Currency} from 'lib/model/Currency';
+import {AppendMap} from 'lib/util/AppendingMap';
 
 export function percentile(
   data: AmountWithCurrency[],
-  p: number,
+  p: number
 ): AmountWithCurrency {
   if (p < 0 || p > 100 || !Number.isInteger(p)) {
     throw new Error(`Invalid percentile '${p}'`);
@@ -22,10 +22,10 @@ export function percentile(
 
 export function runningAverage(
   timeseries: Map<number, AmountWithCurrency>,
-  maxWindowLength: number,
+  maxWindowLength: number
 ) {
   const monthlyAmounts = [...timeseries.entries()].sort(
-    ([t1], [t2]) => t1 - t2,
+    ([t1], [t2]) => t1 - t2
   );
   const window = [] as AmountWithCurrency[];
   const averages = new Map<number, AmountWithCurrency>();
@@ -40,7 +40,7 @@ export function runningAverage(
       currency = amountCurrency;
     } else if (currency.code() != amountCurrency.code()) {
       throw new Error(
-        `Cannot sum over different currencies, got ${currency.code()} and ${amountCurrency.code()}`,
+        `Cannot sum over different currencies, got ${currency.code()} and ${amountCurrency.code()}`
       );
     }
     const sum = AmountWithCurrency.sum(window, currency);
@@ -56,7 +56,7 @@ export function runningAverage(
 export function topNAmount<T>(
   data: AppendMap<T, AmountWithCurrency>,
   n: number,
-  otherFormatter: (otherPoints: number) => T,
+  otherFormatter: (otherPoints: number) => T
 ): [T, AmountWithCurrency][] {
   // Using n+1 here to avoid rolling up a single value into "other".
   if (data.size <= n + 1) {
@@ -74,7 +74,7 @@ export function topNAmount<T>(
 export function topN<T>(
   data: AppendMap<T, number>,
   n: number,
-  otherFormatter: (otherPoints: number) => T,
+  otherFormatter: (otherPoints: number) => T
 ): [T, number][] {
   // Using n+1 here to avoid rolling up a single value into "other".
   if (data.size <= n + 1) {
@@ -107,7 +107,7 @@ export function notEmpty<T>(value: T | null | undefined): value is T {
 }
 
 export function parseAmountAsCents(s: string): number {
-  const sign = s.startsWith("-") ? -1 : 1;
+  const sign = s.startsWith('-') ? -1 : 1;
   if (sign < 0) {
     s = s.slice(1);
   }
@@ -119,7 +119,7 @@ export function parseAmountAsCents(s: string): number {
   if (match[2]) {
     let fractionString = match[2].slice(1);
     if (fractionString.length == 1) {
-      fractionString = fractionString + "0";
+      fractionString = fractionString + '0';
     }
     const fraction = parseInt(fractionString, 10);
     if (fraction > 0) {

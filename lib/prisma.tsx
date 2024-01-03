@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import {PrismaClient} from '@prisma/client';
 
 declare global {
   // Global is special and let/const don't work there.
@@ -8,7 +8,7 @@ declare global {
 
 const prisma = global.prisma || new PrismaClient();
 
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV !== 'production') {
   global.prisma = prisma;
 }
 

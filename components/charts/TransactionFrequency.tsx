@@ -1,8 +1,8 @@
-import { Interval, eachMonthOfInterval, startOfMonth } from "date-fns";
-import ReactEcharts from "echarts-for-react";
-import { defaultCountChartOptions } from "lib/charts";
-import { Transaction } from "lib/model/transaction/Transaction";
-import { AppendMap } from "lib/util/AppendingMap";
+import {Interval, eachMonthOfInterval, startOfMonth} from 'date-fns';
+import ReactEcharts from 'echarts-for-react';
+import {defaultCountChartOptions} from 'lib/charts';
+import {Transaction} from 'lib/model/transaction/Transaction';
+import {AppendMap} from 'lib/util/AppendingMap';
 
 export function TransactionFrequencyChart({
   transactions,
@@ -11,7 +11,7 @@ export function TransactionFrequencyChart({
   transactions: Transaction[];
   duration: Interval;
 }) {
-  const months = eachMonthOfInterval(duration).map((t) => t.getTime());
+  const months = eachMonthOfInterval(duration).map(t => t.getTime());
   const count = new AppendMap<number, number>((a, b) => a + b, 0);
   for (const t of transactions) {
     const ts = startOfMonth(t.timestampEpoch).getTime();
@@ -24,12 +24,12 @@ export function TransactionFrequencyChart({
       option={{
         ...defaultCountChartOptions(months),
         title: {
-          text: "Count of transactions",
+          text: 'Count of transactions',
         },
         series: [
           {
-            type: "bar",
-            data: months.map((m) => count.get(m)),
+            type: 'bar',
+            data: months.map(m => count.get(m)),
           },
         ],
       }}

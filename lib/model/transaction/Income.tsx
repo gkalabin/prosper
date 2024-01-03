@@ -1,10 +1,10 @@
-import { TransactionType } from "@prisma/client";
-import { assert, assertDefined } from "lib/assert";
-import { TransactionWithTagIds } from "lib/model/AllDatabaseDataModel";
-import { TransactionCompanion } from "lib/model/transaction/TransactionCompanion";
+import {TransactionType} from '@prisma/client';
+import {assert, assertDefined} from 'lib/assert';
+import {TransactionWithTagIds} from 'lib/model/AllDatabaseDataModel';
+import {TransactionCompanion} from 'lib/model/transaction/TransactionCompanion';
 
 export type Income = {
-  kind: "Income";
+  kind: 'Income';
   id: number;
   timestampEpoch: number;
   payer: string;
@@ -37,7 +37,7 @@ export function incomeModelFromDB(init: TransactionWithTagIds): Income {
   assertDefined(init.payer);
   assertDefined(init.incomingAccountId);
   return {
-    kind: "Income",
+    kind: 'Income',
     id: init.id,
     timestampEpoch: new Date(init.timestamp).getTime(),
     payer: init.payer,
@@ -46,7 +46,7 @@ export function incomeModelFromDB(init: TransactionWithTagIds): Income {
     note: init.description,
     accountId: init.incomingAccountId,
     categoryId: init.categoryId,
-    tagsIds: init.tags.map((t) => t.id),
+    tagsIds: init.tags.map(t => t.id),
     refundGroupTransactionIds,
   };
 }

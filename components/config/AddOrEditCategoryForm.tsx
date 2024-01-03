@@ -1,15 +1,15 @@
-import { Category as DBCategory } from "@prisma/client";
-import { InputWithLabel, TextInputWithLabel } from "components/forms/Input";
-import { FormikSelect } from "components/forms/Select";
+import {Category as DBCategory} from '@prisma/client';
+import {InputWithLabel, TextInputWithLabel} from 'components/forms/Input';
+import {FormikSelect} from 'components/forms/Select';
 import {
   AddOrUpdateButtonText,
   FormikButtonFormPrimary,
   FormikButtonFormSecondary,
-} from "components/ui/buttons";
-import { Form, Formik } from "formik";
-import { Category } from "lib/model/Category";
-import { CategoryFormValues } from "lib/model/forms/CategoryFormValues";
-import { useState } from "react";
+} from 'components/ui/buttons';
+import {Form, Formik} from 'formik';
+import {Category} from 'lib/model/Category';
+import {CategoryFormValues} from 'lib/model/forms/CategoryFormValues';
+import {useState} from 'react';
 
 export const AddOrEditCategoryForm = ({
   category,
@@ -22,17 +22,17 @@ export const AddOrEditCategoryForm = ({
   onAddedOrUpdated: (addedOrUpdated: DBCategory) => void;
   onClose: () => void;
 }) => {
-  const [apiError, setApiError] = useState("");
+  const [apiError, setApiError] = useState('');
   const handleSubmit = async (values: CategoryFormValues) => {
-    setApiError("");
+    setApiError('');
     try {
       const response = await fetch(
-        `/api/config/category/${category?.id() ?? ""}`,
+        `/api/config/category/${category?.id() ?? ''}`,
         {
-          method: category ? "PUT" : "POST",
-          headers: { "Content-Type": "application/json" },
+          method: category ? 'PUT' : 'POST',
+          headers: {'Content-Type': 'application/json'},
           body: JSON.stringify(values),
-        },
+        }
       );
       onAddedOrUpdated(await response.json());
     } catch (error) {
@@ -41,13 +41,13 @@ export const AddOrEditCategoryForm = ({
   };
 
   const initialValues: CategoryFormValues = {
-    name: category?.name() ?? "",
+    name: category?.name() ?? '',
     displayOrder: category?.displayOrder() ?? categories.length * 100,
     parentCategoryId: category?.parent()?.id() ?? 0,
   };
   return (
     <Formik initialValues={initialValues} onSubmit={handleSubmit}>
-      {({ values }) => (
+      {({values}) => (
         <Form className="flex flex-col gap-4">
           <div>
             <TextInputWithLabel name="name" label="Category name" autoFocus />
@@ -61,7 +61,7 @@ export const AddOrEditCategoryForm = ({
           </div>
           <FormikSelect name="parentCategoryId">
             <option value="0">No parent</option>
-            {categories.map((category) => (
+            {categories.map(category => (
               <option key={category.id()} value={category.id()}>
                 {category.nameWithAncestors()}
               </option>

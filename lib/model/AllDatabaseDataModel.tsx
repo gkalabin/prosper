@@ -10,11 +10,10 @@ import {
   Transaction,
   TransactionPrototype,
   Trip,
-} from "@prisma/client";
-import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
+} from '@prisma/client';
+import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
 
-export interface TransactionWithTagIds
-  extends Transaction {
+export interface TransactionWithTagIds extends Transaction {
   tags: {
     id: number;
   }[];
@@ -34,6 +33,6 @@ export type AllDatabaseData = {
   dbStocks: Stock[];
 };
 export const useDisplayBankAccounts = () => {
-  const { bankAccounts } = useAllDatabaseDataContext();
-  return bankAccounts.filter((x) => !x.archived);
+  const {bankAccounts} = useAllDatabaseDataContext();
+  return bankAccounts.filter(x => !x.archived);
 };

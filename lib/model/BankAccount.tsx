@@ -1,8 +1,8 @@
-import { Bank as DBBank, BankAccount as DBBankAccount } from "@prisma/client";
-import { Currency } from "lib/model/Currency";
-import { Stock } from "lib/model/Stock";
+import {Bank as DBBank, BankAccount as DBBankAccount} from '@prisma/client';
+import {Currency} from 'lib/model/Currency';
+import {Stock} from 'lib/model/Stock';
 
-import { Unit } from "lib/model/Unit";
+import {Unit} from 'lib/model/Unit';
 
 export type Bank = {
   id: number;
@@ -20,9 +20,9 @@ export function bankModelFromDB(init: DBBank): Bank {
 
 export function accountsForBank(
   bank: Bank,
-  accounts: BankAccount[],
+  accounts: BankAccount[]
 ): BankAccount[] {
-  return accounts.filter((a) => a.bankId == bank.id);
+  return accounts.filter(a => a.bankId == bank.id);
 }
 
 export type BankAccount = {
@@ -56,10 +56,10 @@ export function accountUnit(account: BankAccount, stocks: Stock[]): Unit {
     return Currency.mustFindByCode(account.currencyCode);
   }
   if (account.stockId) {
-    const stock = stocks.find((s) => s.id == account.stockId);
+    const stock = stocks.find(s => s.id == account.stockId);
     if (!stock) {
       throw new Error(
-        `Cannot find stock ${account.stockId} for account ${account.id}`,
+        `Cannot find stock ${account.stockId} for account ${account.id}`
       );
     }
     return stock;
@@ -68,20 +68,20 @@ export function accountUnit(account: BankAccount, stocks: Stock[]): Unit {
 }
 
 export function accountBank(account: BankAccount, banks: Bank[]): Bank {
-  const bank = banks.find((b) => b.id == account.bankId);
+  const bank = banks.find(b => b.id == account.bankId);
   if (!bank) {
     throw new Error(
-      `Cannot find bank ${account.bankId} for account ${account.id}`,
+      `Cannot find bank ${account.bankId} for account ${account.id}`
     );
   }
   return bank;
 }
 
 export function fullAccountName(account: BankAccount, banks: Bank[]): string {
-  const bank = banks.find((b) => b.id == account.bankId);
+  const bank = banks.find(b => b.id == account.bankId);
   if (!bank) {
     throw new Error(
-      `Cannot find bank ${account.bankId} for account ${account.id}`,
+      `Cannot find bank ${account.bankId} for account ${account.id}`
     );
   }
   return `${bank.name}: ${account.name}`;

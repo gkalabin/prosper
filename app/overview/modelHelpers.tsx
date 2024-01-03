@@ -1,23 +1,23 @@
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { AmountWithUnit } from "lib/AmountWithUnit";
-import { StockAndCurrencyExchange } from "lib/ClientSideModel";
-import { BankAccount, accountUnit } from "lib/model/BankAccount";
-import { Currency } from "lib/model/Currency";
-import { Stock } from "lib/model/Stock";
-import { isCurrency, isStock } from "lib/model/Unit";
-import { Transaction } from "lib/model/transaction/Transaction";
+import {AmountWithCurrency} from 'lib/AmountWithCurrency';
+import {AmountWithUnit} from 'lib/AmountWithUnit';
+import {StockAndCurrencyExchange} from 'lib/ClientSideModel';
+import {BankAccount, accountUnit} from 'lib/model/BankAccount';
+import {Currency} from 'lib/model/Currency';
+import {Stock} from 'lib/model/Stock';
+import {isCurrency, isStock} from 'lib/model/Unit';
+import {Transaction} from 'lib/model/transaction/Transaction';
 
 export function transactionBelongsToAccount(
   t: Transaction,
-  account: BankAccount,
+  account: BankAccount
 ): boolean {
   switch (t.kind) {
-    case "ThirdPartyExpense":
+    case 'ThirdPartyExpense':
       return false;
-    case "PersonalExpense":
-    case "Income":
+    case 'PersonalExpense':
+    case 'Income':
       return t.accountId == account.id;
-    case "Transfer":
+    case 'Transfer':
       return t.fromAccountId == account.id || t.toAccountId == account.id;
     default:
       const _exhaustiveCheck: never = t;
@@ -28,21 +28,21 @@ export function transactionBelongsToAccount(
 export function accountBalance(
   account: BankAccount,
   allTransactions: Transaction[],
-  stocks: Stock[],
+  stocks: Stock[]
 ): AmountWithUnit {
   let balance = account.initialBalanceCents;
-  allTransactions.forEach((t) => {
+  allTransactions.forEach(t => {
     if (!transactionBelongsToAccount(t, account)) {
       return;
     }
     switch (t.kind) {
-      case "PersonalExpense":
+      case 'PersonalExpense':
         balance = balance - t.amountCents;
         return;
-      case "Income":
+      case 'Income':
         balance = balance + t.amountCents;
         return;
-      case "Transfer":
+      case 'Transfer':
         if (t.fromAccountId == account.id) {
           balance = balance - t.sentAmountCents;
         } else if (t.toAccountId == account.id) {
@@ -62,11 +62,11 @@ export function accountsSum(
   targetCurrency: Currency,
   exchange: StockAndCurrencyExchange,
   allTransactions: Transaction[],
-  stocks: Stock[],
+  stocks: Stock[]
 ): AmountWithCurrency | undefined {
   let sum = AmountWithCurrency.zero(targetCurrency);
   const now = new Date();
-  accounts.forEach((x) => {
+  accounts.forEach(x => {
     const b = accountBalance(x, allTransactions, stocks);
     const unit = b.getUnit();
     if (isCurrency(unit)) {
@@ -76,7 +76,7 @@ export function accountsSum(
           currency: unit,
         }),
         targetCurrency,
-        now,
+        now
       );
       if (!delta) {
         return undefined;
@@ -89,7 +89,7 @@ export function accountsSum(
         b.getAmount(),
         unit,
         targetCurrency,
-        now,
+        now
       );
       if (!delta) {
         return undefined;

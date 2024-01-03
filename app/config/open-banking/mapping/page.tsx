@@ -1,17 +1,17 @@
-import { OpenBankingMappingConfigPage } from "app/config/open-banking/mapping/client";
-import { DB } from "lib/db";
-import { fetchAccountsForBank } from "lib/openbanking/fetchall";
-import { getUserId } from "lib/user";
-import { intParamOrFirst } from "lib/util/searchParams";
-import { Metadata } from "next";
-import { notFound } from "next/navigation";
+import {OpenBankingMappingConfigPage} from 'app/config/open-banking/mapping/client';
+import {DB} from 'lib/db';
+import {fetchAccountsForBank} from 'lib/openbanking/fetchall';
+import {getUserId} from 'lib/user';
+import {intParamOrFirst} from 'lib/util/searchParams';
+import {Metadata} from 'next';
+import {notFound} from 'next/navigation';
 
 export const metadata: Metadata = {
-  title: "Open Banking Mapping - Prosper",
+  title: 'Open Banking Mapping - Prosper',
 };
 
 async function getData(userId: number, bankId: number) {
-  const db = new DB({ userId });
+  const db = new DB({userId});
   if (!bankId) {
     return notFound();
   }
@@ -36,7 +36,7 @@ async function getData(userId: number, bankId: number) {
     dbMapping: await db.externalAccountMappingFindMany({
       where: {
         internalAccountId: {
-          in: dbBankAccounts.map((x) => x.id),
+          in: dbBankAccounts.map(x => x.id),
         },
       },
     }),
@@ -47,9 +47,9 @@ async function getData(userId: number, bankId: number) {
 export default async function Page({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: {[key: string]: string | string[] | undefined};
 }) {
-  const bankId = intParamOrFirst(searchParams["bankId"]);
+  const bankId = intParamOrFirst(searchParams['bankId']);
   if (!bankId) {
     return notFound();
   }

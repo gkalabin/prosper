@@ -1,8 +1,8 @@
-import { Interval, eachYearOfInterval } from "date-fns";
-import ReactEcharts from "echarts-for-react";
-import { defaultYearlyMoneyChart } from "lib/charts";
-import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
-import { MoneyTimeseries } from "lib/util/Timeseries";
+import {Interval, eachYearOfInterval} from 'date-fns';
+import ReactEcharts from 'echarts-for-react';
+import {defaultYearlyMoneyChart} from 'lib/charts';
+import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
+import {MoneyTimeseries} from 'lib/util/Timeseries';
 
 export function YearlyChart({
   data,
@@ -13,9 +13,9 @@ export function YearlyChart({
   data: MoneyTimeseries;
   duration: Interval;
   title: string;
-  type?: "bar" | "line";
+  type?: 'bar' | 'line';
 }) {
-  type ??= "bar";
+  type ??= 'bar';
   const displayCurrency = useDisplayCurrency();
   const years = eachYearOfInterval(duration);
   return (

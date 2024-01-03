@@ -1,12 +1,12 @@
-import { Currency } from "lib/model/Currency";
-import { Stock, formatStock } from "lib/model/Stock";
+import {Currency} from 'lib/model/Currency';
+import {Stock, formatStock} from 'lib/model/Stock';
 
 export type Unit = Stock | Currency;
 
 export function formatUnit(
   unit: Unit,
   amountDollar: number,
-  options?: Intl.NumberFormatOptions,
+  options?: Intl.NumberFormatOptions
 ): string {
   const stock: Stock = unit as Stock;
   if (stock?.currencyCode) {
@@ -15,7 +15,7 @@ export function formatUnit(
   if (unit instanceof Currency) {
     return unit.format(amountDollar, options);
   }
-  throw new Error("Unknown unit");
+  throw new Error('Unknown unit');
 }
 
 export function isCurrency(unit: Unit): unit is Currency {

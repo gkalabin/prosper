@@ -1,7 +1,7 @@
-import { DispalySettingsFormValues } from "lib/model/api/DisplaySettingsConfig";
-import prisma from "lib/prisma";
-import { getUserId } from "lib/user";
-import { NextRequest, NextResponse } from "next/server";
+import {DispalySettingsFormValues} from 'lib/model/api/DisplaySettingsConfig';
+import prisma from 'lib/prisma';
+import {getUserId} from 'lib/user';
+import {NextRequest, NextResponse} from 'next/server';
 
 export async function PUT(request: NextRequest): Promise<Response> {
   const userId = await getUserId();
@@ -13,9 +13,9 @@ export async function PUT(request: NextRequest): Promise<Response> {
   const result = await prisma.displaySettings.update({
     data: {
       displayCurrencyCode,
-      excludeCategoryIdsInStats: excludeCategoryIdsInStats.join(","),
+      excludeCategoryIdsInStats: excludeCategoryIdsInStats.join(','),
     },
-    where: { userId },
+    where: {userId},
   });
   return NextResponse.json(result);
 }

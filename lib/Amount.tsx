@@ -1,9 +1,9 @@
 export class Amount {
-  static readonly ZERO = new Amount({ amountCents: 0 });
+  static readonly ZERO = new Amount({amountCents: 0});
 
   private readonly amountCents: number;
 
-  public constructor(init: { amountCents: number }) {
+  public constructor(init: {amountCents: number}) {
     if (!Number.isInteger(init.amountCents)) {
       throw new Error(`Want integer, got ${init.amountCents}`);
     }
@@ -69,7 +69,7 @@ export class Amount {
 }
 
 export class AbsoluteAmount extends Amount {
-  public constructor(init: { amountCents: number }) {
+  public constructor(init: {amountCents: number}) {
     super(init);
     if (this.cents() < 0) {
       throw new Error(`Want non-negative amount, got ${this.cents()}`);

@@ -1,12 +1,12 @@
-import { ChevronDownIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
-import { TransactionAPIResponse } from "app/api/transaction/dbHelpers";
-import classNames from "classnames";
-import { AddTransactionForm } from "components/txform/AddTransactionForm";
-import { ButtonLink } from "components/ui/buttons";
-import { format } from "date-fns";
-import { AmountWithUnit } from "lib/AmountWithUnit";
-import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
-import { fullAccountName } from "lib/model/BankAccount";
+import {ChevronDownIcon, ChevronRightIcon} from '@heroicons/react/24/outline';
+import {TransactionAPIResponse} from 'app/api/transaction/dbHelpers';
+import classNames from 'classnames';
+import {AddTransactionForm} from 'components/txform/AddTransactionForm';
+import {ButtonLink} from 'components/ui/buttons';
+import {format} from 'date-fns';
+import {AmountWithUnit} from 'lib/AmountWithUnit';
+import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {fullAccountName} from 'lib/model/BankAccount';
 import {
   Transaction,
   isExpense,
@@ -18,21 +18,21 @@ import {
   transactionBankAccount,
   transactionCategory,
   transactionUnit,
-} from "lib/model/transaction/Transaction";
+} from 'lib/model/transaction/Transaction';
 import {
   amountReceived,
   amountSent,
   incomingBankAccount,
   outgoingBankAccount,
-} from "lib/model/transaction/Transfer";
+} from 'lib/model/transaction/Transfer';
 import {
   ownShareAmountIgnoreRefunds,
   paidTotal,
-} from "lib/model/transaction/amounts";
-import { useState } from "react";
+} from 'lib/model/transaction/amounts';
+import {useState} from 'react';
 
-const TransactionTitle = ({ t }: { t: Transaction }) => {
-  const { banks, bankAccounts } = useAllDatabaseDataContext();
+const TransactionTitle = ({t}: {t: Transaction}) => {
+  const {banks, bankAccounts} = useAllDatabaseDataContext();
   if (isTransfer(t)) {
     const from = outgoingBankAccount(t, bankAccounts);
     const to = incomingBankAccount(t, bankAccounts);
@@ -45,7 +45,7 @@ const TransactionTitle = ({ t }: { t: Transaction }) => {
   if (isPersonalExpense(t)) {
     return (
       <>
-        {t.vendor}{" "}
+        {t.vendor}{' '}
         {otherPartyNameOrNull(t) && (
           <small>split with {otherPartyNameOrNull(t)}</small>
         )}
@@ -62,7 +62,7 @@ const TransactionTitle = ({ t }: { t: Transaction }) => {
   if (isIncome(t)) {
     return (
       <>
-        {t.payer}{" "}
+        {t.payer}{' '}
         {otherPartyNameOrNull(t) && (
           <small>split with {otherPartyNameOrNull(t)}</small>
         )}
@@ -72,24 +72,24 @@ const TransactionTitle = ({ t }: { t: Transaction }) => {
   throw new Error(`Unknown transaction type ${t}`);
 };
 
-const TransactionAmount = (props: { transaction: Transaction }) => {
-  const { bankAccounts, stocks } = useAllDatabaseDataContext();
+const TransactionAmount = (props: {transaction: Transaction}) => {
+  const {bankAccounts, stocks} = useAllDatabaseDataContext();
   const t = props.transaction;
   switch (t.kind) {
-    case "PersonalExpense":
-    case "ThirdPartyExpense":
-    case "Income":
+    case 'PersonalExpense':
+    case 'ThirdPartyExpense':
+    case 'Income':
       const a = new AmountWithUnit({
         amountCents: t.amountCents,
         unit: transactionUnit(t, bankAccounts, stocks),
       });
       return (
         <>
-          {isIncome(t) ? "+" : ""}
+          {isIncome(t) ? '+' : ''}
           {a.format()}
         </>
       );
-    case "Transfer":
+    case 'Transfer':
       const sent = amountSent(t, bankAccounts, stocks);
       return <>{sent.format()}</>;
     default:
@@ -107,7 +107,7 @@ export const TransactionsListItem = (props: {
   const [expanded, setExpanded] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const raw = JSON.stringify(props.transaction, null, 2);
-  const { tags, categories, bankAccounts, banks, stocks, trips } =
+  const {tags, categories, bankAccounts, banks, stocks, trips} =
     useAllDatabaseDataContext();
   const t = props.transaction;
   const category = transactionCategory(t, categories);
@@ -126,12 +126,12 @@ export const TransactionsListItem = (props: {
             className="text-xs text-gray-600"
             suppressHydrationWarning={true}
           >
-            {format(t.timestampEpoch, "yyyy-MM-dd HH:mm")}
+            {format(t.timestampEpoch, 'yyyy-MM-dd HH:mm')}
           </div>
         </div>
         <div
-          className={classNames("self-center pr-2 text-lg", {
-            "text-green-900": isIncome(t),
+          className={classNames('self-center pr-2 text-lg', {
+            'text-green-900': isIncome(t),
           })}
         >
           <TransactionAmount transaction={t} />
@@ -158,25 +158,25 @@ export const TransactionsListItem = (props: {
           {isIncome(t) && <div>Payer: {t.payer}</div>}
           {isPersonalExpense(t) && (
             <div>
-              Account from:{" "}
+              Account from:{' '}
               {fullAccountName(transactionBankAccount(t, bankAccounts), banks)}
             </div>
           )}
           {isIncome(t) && (
             <div>
-              Account to:{" "}
+              Account to:{' '}
               {fullAccountName(transactionBankAccount(t, bankAccounts), banks)}
             </div>
           )}
           {isTransfer(t) && (
             <div>
-              Account from:{" "}
+              Account from:{' '}
               {fullAccountName(outgoingBankAccount(t, bankAccounts), banks)}
             </div>
           )}
           {isTransfer(t) && (
             <div>
-              Account to:{" "}
+              Account to:{' '}
               {fullAccountName(incomingBankAccount(t, bankAccounts), banks)}
             </div>
           )}
@@ -187,7 +187,7 @@ export const TransactionsListItem = (props: {
           )}
           {(isExpense(t) || isIncome(t)) && (
             <div>
-              Own share:{" "}
+              Own share:{' '}
               {ownShareAmountIgnoreRefunds(t, bankAccounts, stocks).format()}
             </div>
           )}
@@ -201,17 +201,16 @@ export const TransactionsListItem = (props: {
           )}
           {t.tagsIds.length > 0 && (
             <div>
-              Tags:{" "}
+              Tags:{' '}
               {t.tagsIds
-                .map((tt) => tags.find((x) => x.id == tt)?.name ?? "")
-                .join(", ")}
+                .map(tt => tags.find(x => x.id == tt)?.name ?? '')
+                .join(', ')}
             </div>
           )}
           {(isExpense(t) || isIncome(t)) && t.tripId && (
             <div>
-              Trip:{" "}
-              {trips.find((trip) => trip.id == t.tripId)?.name ??
-                "Unknown trip"}
+              Trip:{' '}
+              {trips.find(trip => trip.id == t.tripId)?.name ?? 'Unknown trip'}
             </div>
           )}
         </div>
@@ -223,7 +222,7 @@ export const TransactionsListItem = (props: {
             <ButtonLink onClick={() => setShowEditForm(true)}>Edit</ButtonLink>
           )}
           <ButtonLink onClick={() => setShowRawDetails(!showRawDetails)}>
-            {showRawDetails ? "Hide" : "Show"} raw details
+            {showRawDetails ? 'Hide' : 'Show'} raw details
           </ButtonLink>
         </div>
       )}
@@ -233,7 +232,7 @@ export const TransactionsListItem = (props: {
         <div>
           <AddTransactionForm
             transaction={props.transaction}
-            onAddedOrUpdated={(updated) => {
+            onAddedOrUpdated={updated => {
               props.onUpdated(updated);
               setShowEditForm(false);
             }}
@@ -262,7 +261,7 @@ export const TransactionsList = (props: {
     <>
       <div className="flex-1 rounded border border-gray-200">
         <ul className="flex flex-col divide-y divide-gray-200">
-          {displayTransactions.map((t) => (
+          {displayTransactions.map(t => (
             <TransactionsListItem
               key={t.id}
               transaction={t}

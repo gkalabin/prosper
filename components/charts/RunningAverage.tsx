@@ -1,14 +1,14 @@
-import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
-import { Interval } from "date-fns";
-import ReactEcharts from "echarts-for-react";
-import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
-import { defaultMonthlyMoneyChart, monthlyData } from "lib/charts";
-import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
-import { Income } from "lib/model/transaction/Income";
-import { Expense, Transaction } from "lib/model/transaction/Transaction";
-import { amountOwnShare } from "lib/model/transaction/amounts";
-import { MoneyTimeseries } from "lib/util/Timeseries";
-import { runningAverage } from "lib/util/util";
+import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
+import {Interval} from 'date-fns';
+import ReactEcharts from 'echarts-for-react';
+import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {defaultMonthlyMoneyChart, monthlyData} from 'lib/charts';
+import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
+import {Income} from 'lib/model/transaction/Income';
+import {Expense, Transaction} from 'lib/model/transaction/Transaction';
+import {amountOwnShare} from 'lib/model/transaction/amounts';
+import {MoneyTimeseries} from 'lib/util/Timeseries';
+import {runningAverage} from 'lib/util/util';
 
 export function RunningAverageOwnShare(props: {
   transactions: (Expense | Income)[];
@@ -17,7 +17,7 @@ export function RunningAverageOwnShare(props: {
   title: string;
 }) {
   const displayCurrency = useDisplayCurrency();
-  const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
+  const {bankAccounts, stocks, exchange} = useAllDatabaseDataContext();
   const net = new MoneyTimeseries(displayCurrency);
   // TODO: validate that transactions can be exchanged on the page level
   // and only pass down the exchangeable ones as displaying the same
@@ -29,7 +29,7 @@ export function RunningAverageOwnShare(props: {
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange,
+      exchange
     );
     if (!amount) {
       failedToExchange.push(t);
@@ -59,7 +59,7 @@ export function RunningAverageAmounts(props: {
   const displayCurrency = useDisplayCurrency();
   const averages = runningAverage(
     props.timeseries.monthlyMap(),
-    props.maxWindowLength,
+    props.maxWindowLength
   );
   return (
     <ReactEcharts
@@ -71,7 +71,7 @@ export function RunningAverageAmounts(props: {
         },
         series: [
           {
-            type: "bar",
+            type: 'bar',
             name: props.title,
             data: monthlyData(props.duration, averages),
           },

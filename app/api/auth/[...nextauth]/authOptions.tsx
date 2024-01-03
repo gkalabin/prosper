@@ -1,34 +1,34 @@
-import bcrypt from "bcrypt";
-import prisma from "lib/prisma";
-import { AuthOptions, User } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from 'bcrypt';
+import prisma from 'lib/prisma';
+import {AuthOptions, User} from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
 
 export const authOptions: AuthOptions = {
   events: {
     async signIn(message) {
-      console.log("[AUTH] signIn:", message);
+      console.log('[AUTH] signIn:', message);
     },
     async signOut(message) {
-      console.log("[AUTH] signOut:", message);
+      console.log('[AUTH] signOut:', message);
     },
     async createUser(message) {
-      console.log("[AUTH] createUser:", message);
+      console.log('[AUTH] createUser:', message);
     },
     async updateUser(message) {
-      console.log("[AUTH] updateUser:", message);
+      console.log('[AUTH] updateUser:', message);
     },
     async linkAccount(message) {
-      console.log("[AUTH] linkAccount:", message);
+      console.log('[AUTH] linkAccount:', message);
     },
   },
   callbacks: {
-    jwt({ token, account, user }) {
+    jwt({token, account, user}) {
       if (account) {
         token.id = user.id;
       }
       return token;
     },
-    session({ session, token }) {
+    session({session, token}) {
       session.user.id = token.id as number;
       return session;
     },
@@ -36,10 +36,10 @@ export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
       // The name to display on the sign in form (e.g. 'Sign in with...')
-      name: "Login and password",
+      name: 'Login and password',
       credentials: {
-        login: { label: "Login", type: "text", placeholder: "login" },
-        password: { label: "Password", type: "password" },
+        login: {label: 'Login', type: 'text', placeholder: 'login'},
+        password: {label: 'Password', type: 'password'},
       },
       async authorize(credentials): Promise<User | null> {
         if (!credentials || !credentials.login || !credentials.password) {
@@ -52,7 +52,7 @@ export const authOptions: AuthOptions = {
         });
         const passwordsMatch = await bcrypt.compare(
           credentials.password,
-          found?.password ?? "",
+          found?.password ?? ''
         );
         if (!passwordsMatch) {
           return null;

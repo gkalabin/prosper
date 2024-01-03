@@ -1,36 +1,36 @@
-import { DB } from "lib/db";
-import { getOrCreateToken } from "lib/openbanking/nordigen/token";
-import prisma from "lib/prisma";
-import { getUserId } from "lib/user";
-import { intParam } from "lib/util/searchParams";
-import { redirect } from "next/navigation";
-import { NextRequest } from "next/server";
-import { v4 as uuidv4 } from "uuid";
+import {DB} from 'lib/db';
+import {getOrCreateToken} from 'lib/openbanking/nordigen/token';
+import prisma from 'lib/prisma';
+import {getUserId} from 'lib/user';
+import {intParam} from 'lib/util/searchParams';
+import {redirect} from 'next/navigation';
+import {NextRequest} from 'next/server';
+import {v4 as uuidv4} from 'uuid';
 
 export async function GET(request: NextRequest): Promise<Response> {
   const query = request.nextUrl.searchParams;
-  const bankId = intParam(query.get("bankId"));
+  const bankId = intParam(query.get('bankId'));
   if (!bankId) {
-    return new Response(`bankId must be an integer`, { status: 400 });
+    return new Response(`bankId must be an integer`, {status: 400});
   }
-  const institutionId = query.get("institutionId");
+  const institutionId = query.get('institutionId');
   if (!institutionId) {
-    return new Response(`institutionId is missing`, { status: 400 });
+    return new Response(`institutionId is missing`, {status: 400});
   }
   const redirectURI = `${process.env.PUBLIC_APP_URL}/api/open-banking/nordigen/connected`;
   const userId = await getUserId();
-  const db = new DB({ userId });
-  const [bank] = await db.bankFindMany({ where: { id: bankId } });
+  const db = new DB({userId});
+  const [bank] = await db.bankFindMany({where: {id: bankId}});
   if (!bank) {
-    return new Response(`Bank not found`, { status: 404 });
+    return new Response(`Bank not found`, {status: 404});
   }
   const reference = uuidv4();
   const token = await getOrCreateToken(db, bankId);
   const response = await fetch(`https://ob.nordigen.com/api/v2/requisitions/`, {
-    method: "POST",
+    method: 'POST',
     headers: {
       Authorization: `Bearer ${token.access}`,
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       redirect: redirectURI,
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       `Failed to create requisition (status ${
         response.status
       }): ${await response.text()}`,
-      { status: 500 },
+      {status: 500}
     );
   }
   const requisition = await response.json();

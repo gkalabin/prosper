@@ -1,9 +1,9 @@
-import { assertDefined } from "lib/assert";
-import { Bank, BankAccount } from "lib/model/BankAccount";
-import { Category } from "lib/model/Category";
-import { Tag } from "lib/model/Tag";
-import { Trip } from "lib/model/Trip";
-import { Transaction } from "lib/model/transaction/Transaction";
+import {assertDefined} from 'lib/assert';
+import {Bank, BankAccount} from 'lib/model/BankAccount';
+import {Category} from 'lib/model/Category';
+import {Tag} from 'lib/model/Tag';
+import {Trip} from 'lib/model/Trip';
+import {Transaction} from 'lib/model/transaction/Transaction';
 import {
   ClauseContext,
   CompareOpContext,
@@ -15,17 +15,17 @@ import {
   QueryContext,
   RootQueryContext,
   TermContext,
-} from "lib/search/generated/TransactionSearchQueryParser";
-import QueryVisitor from "lib/search/generated/TransactionSearchQueryVisitor";
+} from 'lib/search/generated/TransactionSearchQueryParser';
+import QueryVisitor from 'lib/search/generated/TransactionSearchQueryVisitor';
 import {
   CaseMatch,
   ComparisonOperator,
   compareField,
   matchAnyField,
   matchField,
-} from "lib/search/matchers";
-import { intersect, union } from "lib/util/set";
-import { removeQuotes } from "lib/util/util";
+} from 'lib/search/matchers';
+import {intersect, union} from 'lib/util/set';
+import {removeQuotes} from 'lib/util/util';
 
 type TransactionIds = readonly number[];
 
@@ -38,10 +38,10 @@ export class TransactionSearchQueryVisitor extends QueryVisitor<TransactionIds> 
     private bankAccounts: BankAccount[],
     private categories: Category[],
     private trips: Trip[],
-    private tags: Tag[],
+    private tags: Tag[]
   ) {
     super();
-    this.allIds = transactions.map((t) => t.id);
+    this.allIds = transactions.map(t => t.id);
   }
 
   visitRootQuery = (ctx: RootQueryContext): TransactionIds => {
@@ -68,7 +68,7 @@ export class TransactionSearchQueryVisitor extends QueryVisitor<TransactionIds> 
     // Ordering is lost during union, so we need to re-sort according to the
     // original transaction list.
     const set = new Set(result);
-    return this.allIds.filter((id) => set.has(id));
+    return this.allIds.filter(id => set.has(id));
   };
 
   // ConjQuery ::= ModClause ( AND ModClause )*
@@ -88,7 +88,7 @@ export class TransactionSearchQueryVisitor extends QueryVisitor<TransactionIds> 
     if (modifier) {
       assertDefined(modifier.NOT());
       const set = new Set(clauseMatch);
-      return this.allIds.filter((x) => !set.has(x));
+      return this.allIds.filter(x => !set.has(x));
     }
     return clauseMatch;
   };
@@ -109,9 +109,9 @@ export class TransactionSearchQueryVisitor extends QueryVisitor<TransactionIds> 
 
   // term: quotedTerm | TERM;
   visitTerm = (ctx: TermContext): TransactionIds => {
-    const { term, c } = this.getTerm(ctx);
+    const {term, c} = this.getTerm(ctx);
     return this.transactions
-      .filter((t) =>
+      .filter(t =>
         matchAnyField(
           t,
           term,
@@ -120,18 +120,18 @@ export class TransactionSearchQueryVisitor extends QueryVisitor<TransactionIds> 
           this.bankAccounts,
           this.categories,
           this.trips,
-          this.tags,
-        ),
+          this.tags
+        )
       )
-      .map((t) => t.id);
+      .map(t => t.id);
   };
 
   // fieldMatchExpr: fieldName ( OP_COLON | OP_EQUAL) term
   visitFieldMatchExpr = (ctx: FieldMatchExprContext): TransactionIds => {
     const fieldName = ctx.fieldName().getText();
-    const { term, c } = this.getTerm(ctx.term());
+    const {term, c} = this.getTerm(ctx.term());
     return this.transactions
-      .filter((t) =>
+      .filter(t =>
         matchField(
           t,
           fieldName,
@@ -141,10 +141,10 @@ export class TransactionSearchQueryVisitor extends QueryVisitor<TransactionIds> 
           this.bankAccounts,
           this.categories,
           this.trips,
-          this.tags,
-        ),
+          this.tags
+        )
       )
-      .map((t) => t.id);
+      .map(t => t.id);
   };
 
   // FieldCompareExpr ::= FieldName ('<' | '>' | '<=' | '>=') TERM
@@ -154,25 +154,25 @@ export class TransactionSearchQueryVisitor extends QueryVisitor<TransactionIds> 
     const opCtx = ctx.compareOp();
     const op = this.compareOperationFromContext(opCtx);
     return this.transactions
-      .filter((t) => compareField(t, fieldName, op, term))
-      .map((t) => t.id);
+      .filter(t => compareField(t, fieldName, op, term))
+      .map(t => t.id);
   };
 
-  private getTerm(ctx: TermContext): { term: string; c: CaseMatch } {
+  private getTerm(ctx: TermContext): {term: string; c: CaseMatch} {
     if (ctx.TERM()) {
       const term = ctx.TERM().getText();
-      return { term, c: CaseMatch.CaseInsensitive };
+      return {term, c: CaseMatch.CaseInsensitive};
     }
     if (ctx.quotedTerm()) {
       const quotedTerm = ctx.quotedTerm().QUOTED().getText();
       const term = removeQuotes(quotedTerm);
-      return { term, c: CaseMatch.Exact };
+      return {term, c: CaseMatch.Exact};
     }
     throw new Error(`Unknown term: ${ctx.getText()}`);
   }
 
   private compareOperationFromContext(
-    opCtx: CompareOpContext,
+    opCtx: CompareOpContext
   ): ComparisonOperator {
     if (opCtx.OP_LESSTHAN()) {
       return ComparisonOperator.LessThan;

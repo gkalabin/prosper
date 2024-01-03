@@ -1,20 +1,17 @@
-import { CurrencyExchangeFailed } from "app/stats/CurrencyExchangeFailed";
+import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
 import {
   ChildCategoryFullAmountChart,
   ChildCategoryOwnShareChart,
-} from "components/charts/CategoryPie";
-import {
-  MonthlyAllParties,
-  MonthlyOwnShare,
-} from "components/charts/MonthlySum";
-import { TransactionFrequencyChart } from "components/charts/TransactionFrequency";
-import { YearlyAllParties, YearlyOwnShare } from "components/charts/YearlySum";
-import { ButtonFormSecondary } from "components/ui/buttons";
-import { differenceInMonths, startOfMonth } from "date-fns";
-import { AmountWithCurrency } from "lib/AmountWithCurrency";
-import { useAllDatabaseDataContext } from "lib/context/AllDatabaseDataContext";
-import { useDisplayCurrency } from "lib/context/DisplaySettingsContext";
-import { Income } from "lib/model/transaction/Income";
+} from 'components/charts/CategoryPie';
+import {MonthlyAllParties, MonthlyOwnShare} from 'components/charts/MonthlySum';
+import {TransactionFrequencyChart} from 'components/charts/TransactionFrequency';
+import {YearlyAllParties, YearlyOwnShare} from 'components/charts/YearlySum';
+import {ButtonFormSecondary} from 'components/ui/buttons';
+import {differenceInMonths, startOfMonth} from 'date-fns';
+import {AmountWithCurrency} from 'lib/AmountWithCurrency';
+import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
+import {Income} from 'lib/model/transaction/Income';
 import {
   Expense,
   Transaction,
@@ -23,21 +20,18 @@ import {
   isPersonalExpense,
   isThirdPartyExpense,
   isTransfer,
-} from "lib/model/transaction/Transaction";
-import {
-  amountAllParties,
-  amountOwnShare,
-} from "lib/model/transaction/amounts";
-import { AppendMap } from "lib/util/AppendingMap";
-import { MoneyTimeseries } from "lib/util/Timeseries";
-import { capitalize } from "lib/util/util";
+} from 'lib/model/transaction/Transaction';
+import {amountAllParties, amountOwnShare} from 'lib/model/transaction/amounts';
+import {AppendMap} from 'lib/util/AppendingMap';
+import {MoneyTimeseries} from 'lib/util/Timeseries';
+import {capitalize} from 'lib/util/util';
 
 export function TransactionStats(props: {
   onClose: () => void;
   transactions: Transaction[];
 }) {
   const transactionsByTimestamp = [...props.transactions].sort(
-    (a, b) => a.timestampEpoch - b.timestampEpoch,
+    (a, b) => a.timestampEpoch - b.timestampEpoch
   );
   return (
     <div className="grid grid-cols-6 gap-6 bg-white p-2 shadow sm:rounded-md sm:p-6">
@@ -75,24 +69,24 @@ function NonEmptyTransactionStats({
   );
 }
 
-function TextSummary({ transactions }: { transactions: Transaction[] }) {
+function TextSummary({transactions}: {transactions: Transaction[]}) {
   const [first, last] = [
     transactions[0],
     transactions[transactions.length - 1],
   ];
   return (
     <div className="col-span-6">
-      Matched {transactions.length} transations over the last{" "}
+      Matched {transactions.length} transations over the last{' '}
       {differenceInMonths(last.timestampEpoch, first.timestampEpoch)} months
       <div className="ml-2 text-sm text-slate-600">
         <div>
-          Personal: {transactions.filter((t) => isPersonalExpense(t)).length}
+          Personal: {transactions.filter(t => isPersonalExpense(t)).length}
         </div>
         <div>
-          External: {transactions.filter((t) => isThirdPartyExpense(t)).length}
+          External: {transactions.filter(t => isThirdPartyExpense(t)).length}
         </div>
-        <div>Transfers: {transactions.filter((t) => isTransfer(t)).length}</div>
-        <div>Income: {transactions.filter((t) => isIncome(t)).length}</div>
+        <div>Transfers: {transactions.filter(t => isTransfer(t)).length}</div>
+        <div>Income: {transactions.filter(t => isIncome(t)).length}</div>
         <div>First: {new Date(first.timestampEpoch).toISOString()}</div>
         <div>Last: {new Date(last.timestampEpoch).toISOString()}</div>
       </div>
@@ -100,12 +94,12 @@ function TextSummary({ transactions }: { transactions: Transaction[] }) {
   );
 }
 
-function Charts({ transactions }: { transactions: Transaction[] }) {
+function Charts({transactions}: {transactions: Transaction[]}) {
   const [first, last] = [
     transactions[0],
     transactions[transactions.length - 1],
   ];
-  const duration = { start: first.timestampEpoch, end: last.timestampEpoch };
+  const duration = {start: first.timestampEpoch, end: last.timestampEpoch};
   return (
     <div className="col-span-6">
       <TransactionFrequencyChart
@@ -126,7 +120,7 @@ function IncomeOrExenseStats({
   transactions: (Income | Expense)[];
 }) {
   const displayCurrency = useDisplayCurrency();
-  const { bankAccounts, stocks, exchange } = useAllDatabaseDataContext();
+  const {bankAccounts, stocks, exchange} = useAllDatabaseDataContext();
   if (!transactions.length) {
     return <></>;
   }
@@ -134,19 +128,19 @@ function IncomeOrExenseStats({
     transactions[0],
     transactions[transactions.length - 1],
   ];
-  const spentOrReceived = first.kind == "Income" ? "income" : "expense";
+  const spentOrReceived = first.kind == 'Income' ? 'income' : 'expense';
   const spentOrReceivedCapital = capitalize(spentOrReceived);
-  const duration = { start: first.timestampEpoch, end: last.timestampEpoch };
+  const duration = {start: first.timestampEpoch, end: last.timestampEpoch};
   const zero = AmountWithCurrency.zero(displayCurrency);
   const grossPerMonth = new MoneyTimeseries(displayCurrency);
   const netPerMonth = new MoneyTimeseries(displayCurrency);
   const grossPerCategory = new AppendMap<number, AmountWithCurrency>(
     AmountWithCurrency.add,
-    zero,
+    zero
   );
   const netPerCategory = new AppendMap<number, AmountWithCurrency>(
     AmountWithCurrency.add,
-    zero,
+    zero
   );
   const gross: AmountWithCurrency[] = [];
   const net: AmountWithCurrency[] = [];
@@ -158,14 +152,14 @@ function IncomeOrExenseStats({
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange,
+      exchange
     );
     const n = amountOwnShare(
       t,
       displayCurrency,
       bankAccounts,
       stocks,
-      exchange,
+      exchange
     );
     if (!g || !n) {
       failedToExchange.push(t);
@@ -187,28 +181,28 @@ function IncomeOrExenseStats({
       <CurrencyExchangeFailed failedTransactions={failedToExchange} />
       <div className="mb-2 ml-2 text-sm text-slate-600">
         <div>
-          Total: {totalGross.round().format()}(gross) /{" "}
+          Total: {totalGross.round().format()}(gross) /{' '}
           {totalNet.round().format()}(net)
         </div>
         <div>
-          Own share percent:{" "}
+          Own share percent:{' '}
           {Math.round((100 * totalNet.cents()) / totalGross.cents())}%
         </div>
         <div>
           Monthly percentiles (gross):
           <div className="ml-1 text-xs">
-            {grossPerMonth.monthlyPercentile(25).round().format()} (p25) /{" "}
-            {grossPerMonth.monthlyPercentile(50).round().format()} (p50) /{" "}
-            {grossPerMonth.monthlyPercentile(75).round().format()} (p75) /{" "}
+            {grossPerMonth.monthlyPercentile(25).round().format()} (p25) /{' '}
+            {grossPerMonth.monthlyPercentile(50).round().format()} (p50) /{' '}
+            {grossPerMonth.monthlyPercentile(75).round().format()} (p75) /{' '}
             {grossPerMonth.monthlyPercentile(100).round().format()} (max)
           </div>
         </div>
         <div>
           Monthly percentiles (net):
           <div className="ml-1 text-xs">
-            {netPerMonth.monthlyPercentile(25).round().format()} (p25) /{" "}
-            {netPerMonth.monthlyPercentile(50).round().format()} (p50) /{" "}
-            {netPerMonth.monthlyPercentile(75).round().format()} (p75) /{" "}
+            {netPerMonth.monthlyPercentile(25).round().format()} (p25) /{' '}
+            {netPerMonth.monthlyPercentile(50).round().format()} (p50) /{' '}
+            {netPerMonth.monthlyPercentile(75).round().format()} (p75) /{' '}
             {netPerMonth.monthlyPercentile(100).round().format()} (max)
           </div>
         </div>
@@ -245,12 +239,12 @@ function IncomeOrExenseStats({
   );
 }
 
-function ExenseStats({ transactions }: { transactions: Transaction[] }) {
+function ExenseStats({transactions}: {transactions: Transaction[]}) {
   const expenses = transactions.filter((t): t is Expense => isExpense(t));
   return <IncomeOrExenseStats transactions={expenses} />;
 }
 
-function IncomeStats({ transactions }: { transactions: Transaction[] }) {
+function IncomeStats({transactions}: {transactions: Transaction[]}) {
   const income = transactions.filter((t): t is Income => isIncome(t));
   return <IncomeOrExenseStats transactions={income} />;
 }

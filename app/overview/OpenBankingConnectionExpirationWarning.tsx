@@ -1,15 +1,15 @@
-"use client";
-import { AnchorLink } from "components/ui/buttons";
-import { differenceInDays } from "date-fns";
-import { Bank } from "lib/model/BankAccount";
-import { useOpenBankingExpirations } from "lib/openbanking/context";
+'use client';
+import {AnchorLink} from 'components/ui/buttons';
+import {differenceInDays} from 'date-fns';
+import {Bank} from 'lib/model/BankAccount';
+import {useOpenBankingExpirations} from 'lib/openbanking/context';
 
-export function OpenBankingConnectionExpirationWarning({ bank }: { bank: Bank; }) {
-  const { expirations } = useOpenBankingExpirations();
+export function OpenBankingConnectionExpirationWarning({bank}: {bank: Bank}) {
+  const {expirations} = useOpenBankingExpirations();
   if (!expirations?.length) {
     return <></>;
   }
-  const expiration = expirations.find((e) => e.bankId == bank.id);
+  const expiration = expirations.find(e => e.bankId == bank.id);
   if (!expiration) {
     return <></>;
   }
@@ -18,7 +18,7 @@ export function OpenBankingConnectionExpirationWarning({ bank }: { bank: Bank; }
   if (expiresInDays > 7) {
     return <></>;
   }
-  const dayOrDays = Math.abs(expiresInDays) == 1 ? "day" : "days";
+  const dayOrDays = Math.abs(expiresInDays) == 1 ? 'day' : 'days';
   let text = `OpenBanking connection expires in ${expiresInDays} ${dayOrDays}.`;
   if (Math.abs(expiresInDays) < 1) {
     text = `OpenBanking connection has expired today.`;
@@ -27,7 +27,7 @@ export function OpenBankingConnectionExpirationWarning({ bank }: { bank: Bank; }
   }
   return (
     <div className="text-sm font-light text-gray-700">
-      {text}{" "}
+      {text}{' '}
       <AnchorLink href={`/api/open-banking/reconnect?bankId=${bank.id}`}>
         Reconnect
       </AnchorLink>

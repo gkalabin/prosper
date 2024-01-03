@@ -1,8 +1,8 @@
-"use client";
-import classNames from "classnames";
-import { AnchorUnstyled } from "components/ui/buttons";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+'use client';
+import classNames from 'classnames';
+import {AnchorUnstyled} from 'components/ui/buttons';
+import {usePathname} from 'next/navigation';
+import {useState} from 'react';
 
 export type SubHeaderItem = {
   title: string;
@@ -29,10 +29,10 @@ const validate = (items: SubHeaderItem[]) => {
   }
 };
 
-export const SubHeader = (props: { items: SubHeaderItem[] }) => {
+export const SubHeader = (props: {items: SubHeaderItem[]}) => {
   validate(props.items);
   const pathname = usePathname();
-  const activeItem = props.items.find((i) => i.path == pathname);
+  const activeItem = props.items.find(i => i.path == pathname);
   const [active, setActive] = useState<SubHeaderItem | undefined>(activeItem);
   const handleClick = (item: SubHeaderItem) => {
     setActive(item);
@@ -44,7 +44,7 @@ export const SubHeader = (props: { items: SubHeaderItem[] }) => {
   return (
     <nav className="bg-gray-600">
       <div className="mx-auto max-w-7xl space-x-2 px-2 py-1 sm:space-x-4 sm:px-6 lg:px-8">
-        {props.items.map((item) => (
+        {props.items.map(item => (
           <div key={item.title} className="my-1 inline-block">
             <Button item={item} active={active} onClick={handleClick} />
           </div>
@@ -85,20 +85,14 @@ function Button({
   );
 }
 
-function ButtonContent({
-  text,
-  isActive,
-}: {
-  text: string;
-  isActive: boolean;
-}) {
+function ButtonContent({text, isActive}: {text: string; isActive: boolean}) {
   return (
     <div
       className={classNames(
         isActive
-          ? "bg-gray-800 text-white"
-          : "text-gray-300 hover:bg-gray-700 hover:text-white",
-        "whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium",
+          ? 'bg-gray-800 text-white'
+          : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+        'whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium'
       )}
     >
       {text}

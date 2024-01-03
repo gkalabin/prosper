@@ -1,10 +1,10 @@
 export type CurrencyFormValue = {
-  kind: "currency";
+  kind: 'currency';
   currencyCode: string;
 };
 
 export type StockFormValue = {
-  kind: "stock";
+  kind: 'stock';
   ticker: string;
   exchange: string;
   name: string;

@@ -1,20 +1,20 @@
-import { ExternalAccountMapping, TrueLayerToken } from "@prisma/client";
-import { Transaction } from "lib/openbanking/interface";
+import {ExternalAccountMapping, TrueLayerToken} from '@prisma/client';
+import {Transaction} from 'lib/openbanking/interface';
 
 export async function fetchTransactions(
   token: TrueLayerToken,
   mapping: ExternalAccountMapping
 ): Promise<Transaction[]> {
   const init = {
-    method: "GET",
-    headers: { Authorization: `Bearer ${token.access}` },
+    method: 'GET',
+    headers: {Authorization: `Bearer ${token.access}`},
   };
   const urlSettled = `https://api.truelayer.com/data/v1/accounts/${mapping.externalAccountId}/transactions`;
   const urlPending = `https://api.truelayer.com/data/v1/accounts/${mapping.externalAccountId}/transactions/pending`;
-  const fetches = [urlSettled, urlPending].map((url) =>
+  const fetches = [urlSettled, urlPending].map(url =>
     fetch(url, init)
-      .then((r) => r.json())
-      .then((r) => decode({ r, accountId: mapping.internalAccountId }))
+      .then(r => r.json())
+      .then(r => decode({r, accountId: mapping.internalAccountId}))
   );
   const x = await Promise.all(fetches);
   return x.flat();
@@ -22,13 +22,13 @@ export async function fetchTransactions(
 
 // TODO: define the interface for the external API response.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function decode(arg: { accountId: number; r: any; }): Transaction[] {
-  const { results } = arg.r;
+function decode(arg: {accountId: number; r: any}): Transaction[] {
+  const {results} = arg.r;
   if (results?.length === 0) {
     return [];
   }
   if (!results?.length) {
-    console.warn("True layer transactions error", arg.r);
+    console.warn('True layer transactions error', arg.r);
     return [];
   }
   // TODO: define the interface for the external API response.
