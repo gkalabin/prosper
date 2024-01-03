@@ -1,8 +1,8 @@
 import {addDays, differenceInHours, format, isSameDay} from 'date-fns';
 import {Currency, NANOS_MULTIPLIER} from 'lib/model/Currency';
+import prisma from 'lib/prisma';
 import yahooFinance from 'yahoo-finance2';
 import {HistoricalRowHistory} from 'yahoo-finance2/dist/esm/src/modules/historical';
-import prisma from './prisma';
 
 const UPDATE_FREQUENCY_HOURS = 6;
 const NO_HISTORY_LOOK_BACK_DAYS = 30;

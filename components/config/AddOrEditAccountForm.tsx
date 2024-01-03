@@ -251,6 +251,7 @@ export function UnitSelect({stocks}: {stocks: Stock[]}) {
       const timeout = setTimeout(cb, delayMilliseconds);
       return () => clearTimeout(timeout);
     }
+    return;
   }, [loadOptionsDebounced]);
   const loadOptions = (
     inputValue: string,

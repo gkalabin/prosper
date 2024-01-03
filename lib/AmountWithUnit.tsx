@@ -1,7 +1,7 @@
 import {Amount} from 'lib/Amount';
+import {formatCurrency} from 'lib/model/Currency';
 import {formatStock} from 'lib/model/Stock';
 import {Unit, isCurrency, isStock} from 'lib/model/Unit';
-import {formatCurrency} from './model/Currency';
 
 export class AmountWithUnit {
   private readonly amount: Amount;
