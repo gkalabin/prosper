@@ -1,7 +1,7 @@
 // TODO: write tests (XS)
 export function intersect(
   a: readonly number[],
-  b: readonly number[]
+  b: readonly number[],
 ): number[] {
   if (a.length > b.length) {
     return intersect(b, a);
