@@ -1,0 +1,18 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.3.0
+    hooks:
+    -   id: check-yaml
+    -   id: double-quote-string-fixer
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace
+
+- repo: https://github.com/crate-ci/typos
+  rev: v1.17.0
+  hooks:
+    - id: typos
+
+- repo: https://github.com/awslabs/git-secrets
+  rev: 5357e18bc27b42a827b6780564ea873a72ca1f01
+  hooks:
+    - id: git-secrets
