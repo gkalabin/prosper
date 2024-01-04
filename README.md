@@ -4,8 +4,6 @@
 
 Requirements:
 
- - pre-commit (https://pre-commit.com/#install)
-    - Run `pre-commit install` after checkout
 - nodejs
 - mysql
 

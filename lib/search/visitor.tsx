@@ -93,7 +93,7 @@ export class TransactionSearchQueryVisitor extends QueryVisitor<TransactionIds> 
     return clauseMatch;
   };
 
-  // clause: fieldCompareExpr | fieldMatchExpr | term;
+  // clause: fieldCompareExpr | fieldMatchExpr | term | groupingExpr;
   visitClause = (ctx: ClauseContext): TransactionIds => {
     if (ctx.term()) {
       return this.visitTerm(ctx.term());
