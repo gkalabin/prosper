@@ -81,4 +81,4 @@
 -- ALTER TABLE Transaction MODIFY `updatedAt` datetime(3) NOT NULL AFTER `createdAt`;
 -- ALTER TABLE Transaction MODIFY `amountCents` int NOT NULL AFTER `updatedAt`;
 
-ALTER TABLE TransactionPrototype RENAME COLUMN synteticId TO syntheticId; 
+-- ALTER TABLE TransactionPrototype RENAME COLUMN syntheticId TO syntheticId;
