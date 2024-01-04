@@ -216,7 +216,7 @@ model ExternalAccountMapping {
 }
 
 model TransactionPrototype {
-  synteticId            Int         @id @default(autoincrement())
+  syntheticId            Int         @id @default(autoincrement())
   // not unique as multiple users can share the same bank and import the same transaction
   externalId            String
   externalDescription   String

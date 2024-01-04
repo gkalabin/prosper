@@ -80,3 +80,5 @@
 -- ALTER TABLE Transaction MODIFY `createdAt` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) AFTER `userId`;
 -- ALTER TABLE Transaction MODIFY `updatedAt` datetime(3) NOT NULL AFTER `createdAt`;
 -- ALTER TABLE Transaction MODIFY `amountCents` int NOT NULL AFTER `updatedAt`;
+
+ALTER TABLE TransactionPrototype RENAME COLUMN synteticId TO syntheticId; 
