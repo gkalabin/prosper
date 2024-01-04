@@ -76,7 +76,7 @@ function TextSummary({transactions}: {transactions: Transaction[]}) {
   ];
   return (
     <div className="col-span-6">
-      Matched {transactions.length} transations over the last{' '}
+      Matched {transactions.length} transactions over the last{' '}
       {differenceInMonths(last.timestampEpoch, first.timestampEpoch)} months
       <div className="ml-2 text-sm text-slate-600">
         <div>

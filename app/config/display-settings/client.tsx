@@ -9,11 +9,11 @@ import {Form, Formik} from 'formik';
 import {DisplaySettings} from 'lib/displaySettings';
 import {categoryModelFromDB} from 'lib/model/Category';
 import {Currency} from 'lib/model/Currency';
-import {DispalySettingsFormValues} from 'lib/model/api/DisplaySettingsConfig';
+import {DisplaySettingsFormValues} from 'lib/model/api/DisplaySettingsConfig';
 import {useState} from 'react';
 import Select from 'react-select';
 
-export function DispalySettings({
+export function DisplaySettingsPage({
   dbDisplaySettings: initialDbDisplaySettings,
   dbCategories,
 }: {
@@ -27,7 +27,7 @@ export function DispalySettings({
   const displaySettings = new DisplaySettings(dbDisplaySettings);
   const [apiError, setApiError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const handleSubmit = async (values: DispalySettingsFormValues) => {
+  const handleSubmit = async (values: DisplaySettingsFormValues) => {
     setApiError('');
     setSuccessMessage('');
     try {
@@ -47,7 +47,7 @@ export function DispalySettings({
     value: a.id(),
     label: a.nameWithAncestors(),
   }));
-  const initialValues: DispalySettingsFormValues = {
+  const initialValues: DisplaySettingsFormValues = {
     displayCurrencyCode: displaySettings.displayCurrency().code(),
     excludeCategoryIdsInStats: displaySettings.excludeCategoryIdsInStats(),
   };

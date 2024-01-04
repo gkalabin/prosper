@@ -15,7 +15,7 @@ describe('search: empty query', () => {
     tx('Starbucks', 3.25, 'Amex > Gold', 'Coffee'),
     tx('Electric', 4, 'HSBC > Current', 'Food'),
   ]);
-  test('empty string mathes everything', () => {
+  test('empty string matches everything', () => {
     expectSearch({
       q: {query: '', ...params},
       results: [
@@ -48,7 +48,7 @@ describe('fallback search: empty query', () => {
     expect.objectContaining({vendor: 'Starbucks', amountCents: 325}),
     expect.objectContaining({vendor: 'Electric', amountCents: 400}),
   ]);
-  test('empty string mathes everything', () => {
+  test('empty string matches everything', () => {
     expect(fallbackSearch({query: '', ...params})).toEqual(allItems);
   });
   test('spaces only query is the same as empty string', () => {

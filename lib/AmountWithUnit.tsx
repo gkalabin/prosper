@@ -94,7 +94,7 @@ export class AmountWithUnit {
   }
 
   public subtract(other: AmountWithUnit): AmountWithUnit {
-    // TODO: do not short curcuit before asserting the same unit
+    // TODO: do not short circuit before asserting the same unit
     if (!other || other.isZero()) {
       return this;
     }

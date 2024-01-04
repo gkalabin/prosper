@@ -253,12 +253,12 @@ export const banksModelFromDatabaseData = (
   // Sort bank accounts by display order, but taking precedence of the bank display order.
   const bankById = new Map<number, Bank>(banks.map(b => [b.id, b]));
   const bankByBankAccountId = new Map<number, Bank>(
-    bankAccounts.map(ba => {
+    bankAccounts.map(a => {
       const bank = mustBank(
-        bankById.get(ba.bankId),
-        `Bank ${ba.bankId} for account ${ba.id}`
+        bankById.get(a.bankId),
+        `Bank ${a.bankId} for account ${a.id}`
       );
-      return [ba.id, bank];
+      return [a.id, bank];
     })
   );
   bankAccounts.sort((a, b) => {

@@ -244,7 +244,7 @@ export function UnitSelect({stocks}: {stocks: Stock[]}) {
     {} as {cb: () => void; delayMilliseconds: number}
   );
   const [loadingError, setLoadingError] = useState('');
-  // Listen to changes of debounce (function, delay), when it does clear the previos timeout and set the new one.
+  // Listen to changes of debounce (function, delay), when it does clear the previous timeout and set the new one.
   useEffect(() => {
     const {cb, delayMilliseconds} = loadOptionsDebounced;
     if (cb) {

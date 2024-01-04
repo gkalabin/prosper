@@ -103,11 +103,11 @@ export function OpenBankingMappingConfigPage({
             }
           >
             <option value="0">None</option>
-            {accountsForBank.map(ba => (
-              <option key={ba.id} value={ba.id}>
+            {accountsForBank.map(a => (
+              <option key={a.id} value={a.id}>
                 <>
-                  {bank.name} {ba.name} (
-                  <UnitName unit={accountUnit(ba, stocks)} />)
+                  {bank.name} {a.name} (
+                  <UnitName unit={accountUnit(a, stocks)} />)
                 </>
               </option>
             ))}

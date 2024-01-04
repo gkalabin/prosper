@@ -1,4 +1,4 @@
-import {DispalySettings} from 'app/config/display-settings/client';
+import {DisplaySettingsPage} from 'app/config/display-settings/client';
 import {DB} from 'lib/db';
 import {getUserId} from 'lib/user';
 import {Metadata} from 'next';
@@ -15,7 +15,7 @@ export default async function Page() {
   return (
     <>
       <h1 className="mb-6 text-2xl leading-7">Display settings</h1>
-      <DispalySettings
+      <DisplaySettingsPage
         dbDisplaySettings={dbDisplaySettings}
         dbCategories={dbCategories}
       />
