@@ -31,31 +31,31 @@ export default class TransactionSearchQueryLexer extends Lexer {
 	public static readonly EOF = Token.EOF;
 
 	public static readonly channelNames: string[] = [ "DEFAULT_TOKEN_CHANNEL", "HIDDEN" ];
-	public static readonly literalNames: (string | null)[] = [ null, null, 
-                                                            null, null, 
-                                                            "'+'", "'('", 
-                                                            "')'", "':'", 
-                                                            "'='", "'<'", 
-                                                            "'<='", "'>'", 
+	public static readonly literalNames: (string | null)[] = [ null, null,
+                                                            null, null,
+                                                            "'+'", "'('",
+                                                            "')'", "':'",
+                                                            "'='", "'<'",
+                                                            "'<='", "'>'",
                                                             "'>='" ];
-	public static readonly symbolicNames: (string | null)[] = [ null, "AND", 
-                                                             "OR", "NOT", 
-                                                             "PLUS", "LPAREN", 
-                                                             "RPAREN", "OP_COLON", 
-                                                             "OP_EQUAL", 
-                                                             "OP_LESSTHAN", 
-                                                             "OP_LESSTHANEQ", 
-                                                             "OP_MORETHAN", 
-                                                             "OP_MORETHANEQ", 
-                                                             "QUOTED", "TERM", 
-                                                             "DEFAULT_SKIP", 
+	public static readonly symbolicNames: (string | null)[] = [ null, "AND",
+                                                             "OR", "NOT",
+                                                             "PLUS", "LPAREN",
+                                                             "RPAREN", "OP_COLON",
+                                                             "OP_EQUAL",
+                                                             "OP_LESSTHAN",
+                                                             "OP_LESSTHANEQ",
+                                                             "OP_MORETHAN",
+                                                             "OP_MORETHANEQ",
+                                                             "QUOTED", "TERM",
+                                                             "DEFAULT_SKIP",
                                                              "UNKNOWN" ];
 	public static readonly modeNames: string[] = [ "DEFAULT_MODE", ];
 
 	public static readonly ruleNames: string[] = [
-		"AND", "OR", "NOT", "PLUS", "LPAREN", "RPAREN", "OP_COLON", "OP_EQUAL", 
-		"OP_LESSTHAN", "OP_LESSTHANEQ", "OP_MORETHAN", "OP_MORETHANEQ", "QUOTED", 
-		"TERM", "DEFAULT_SKIP", "UNKNOWN", "WHITESPACE", "QUOTED_CHAR", "ESCAPED_CHAR", 
+		"AND", "OR", "NOT", "PLUS", "LPAREN", "RPAREN", "OP_COLON", "OP_EQUAL",
+		"OP_LESSTHAN", "OP_LESSTHANEQ", "OP_MORETHAN", "OP_MORETHANEQ", "QUOTED",
+		"TERM", "DEFAULT_SKIP", "UNKNOWN", "WHITESPACE", "QUOTED_CHAR", "ESCAPED_CHAR",
 		"TERM_START_CHAR", "TERM_CHAR",
 	];
 

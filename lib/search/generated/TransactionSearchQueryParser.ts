@@ -49,29 +49,29 @@ export default class TransactionSearchQueryParser extends Parser {
 	public static readonly RULE_groupingExpr = 11;
 	public static readonly RULE_fieldName = 12;
 	public static readonly RULE_quotedTerm = 13;
-	public static readonly literalNames: (string | null)[] = [ null, null, 
-                                                            null, null, 
-                                                            "'+'", "'('", 
-                                                            "')'", "':'", 
-                                                            "'='", "'<'", 
-                                                            "'<='", "'>'", 
+	public static readonly literalNames: (string | null)[] = [ null, null,
+                                                            null, null,
+                                                            "'+'", "'('",
+                                                            "')'", "':'",
+                                                            "'='", "'<'",
+                                                            "'<='", "'>'",
                                                             "'>='" ];
-	public static readonly symbolicNames: (string | null)[] = [ null, "AND", 
-                                                             "OR", "NOT", 
-                                                             "PLUS", "LPAREN", 
-                                                             "RPAREN", "OP_COLON", 
-                                                             "OP_EQUAL", 
-                                                             "OP_LESSTHAN", 
-                                                             "OP_LESSTHANEQ", 
-                                                             "OP_MORETHAN", 
-                                                             "OP_MORETHANEQ", 
-                                                             "QUOTED", "TERM", 
-                                                             "DEFAULT_SKIP", 
+	public static readonly symbolicNames: (string | null)[] = [ null, "AND",
+                                                             "OR", "NOT",
+                                                             "PLUS", "LPAREN",
+                                                             "RPAREN", "OP_COLON",
+                                                             "OP_EQUAL",
+                                                             "OP_LESSTHAN",
+                                                             "OP_LESSTHANEQ",
+                                                             "OP_MORETHAN",
+                                                             "OP_MORETHANEQ",
+                                                             "QUOTED", "TERM",
+                                                             "DEFAULT_SKIP",
                                                              "UNKNOWN" ];
 	// tslint:disable:no-trailing-whitespace
 	public static readonly ruleNames: string[] = [
-		"rootQuery", "query", "disjQuery", "conjQuery", "modClause", "modifier", 
-		"clause", "fieldMatchExpr", "fieldCompareExpr", "compareOp", "term", "groupingExpr", 
+		"rootQuery", "query", "disjQuery", "conjQuery", "modClause", "modifier",
+		"clause", "fieldMatchExpr", "fieldCompareExpr", "compareOp", "term", "groupingExpr",
 		"fieldName", "quotedTerm",
 	];
 	public get grammarFileName(): string { return "TransactionSearchQuery.g4"; }

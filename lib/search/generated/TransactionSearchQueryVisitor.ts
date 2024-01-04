@@ -112,4 +112,3 @@ export default class TransactionSearchQueryVisitor<Result> extends ParseTreeVisi
 	 */
 	visitQuotedTerm?: (ctx: QuotedTermContext) => Result;
 }
-
