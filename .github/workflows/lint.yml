@@ -9,21 +9,32 @@ on:
       - main
 
 jobs:
-  run-linters:
-    name: Run linters
+
+  spelling:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out Git repository
-        uses: actions/checkout@v3
+    - uses: actions/checkout@v4
+    - name: Check Spelling
+      uses: crate-ci/typos@1.17.0
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v1
+  formatting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - run: npm ci
+      - name: Check code format
+        run: npm run lint:fmt
 
-      - name: Install Node.js dependencies
-        run: npm ci
-
-      - name: Run linters
-        run: npm run lint
+  codestyle:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - name: Check code style (eslint)
+        run: npm run lint:eslint
