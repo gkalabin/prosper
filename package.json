@@ -6,7 +6,7 @@
     "dev": "next",
     "build": "next build",
     "start": "next start",
-    "test": "jest --watch",
+    "test": "jest",
     "fmt": "prettier --write .",
     "lint:fmt": "prettier --check .",
     "lint:eslint": "eslint --ext .js,.jsx,.ts,.tsx . --max-warnings=0",
@@ -14,6 +14,22 @@
     "lint:typos": "typos . # https://github.com/crate-ci/typos",
     "lint": "npm run lint:eslint && npm run lint:ts && npm run lint:fmt && npm run lint:typos",
     "prepare": "husky install"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint",
+      "jest --findRelatedTests"
+    ],
+    "*.{ts,tsx}": [
+      "bash -c 'tsc --noEmit'"
+    ],
+    "*.{js,jsx,ts,tsx,json,css,scss,md}": [
+      "prettier"
+    ],
+    "*": [
+      "typos",
+      "gitleaks protect --no-banner --staged --verbose"
+    ]
   },
   "keywords": [
     "expense tracking",
@@ -77,21 +93,5 @@
     "prisma": "^5.5.2",
     "tailwindcss": "^3.3.5",
     "typescript": "*"
-  },
-  "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "eslint",
-      "jest --findRelatedTests"
-    ],
-    "*.{ts,tsx}": [
-      "bash -c 'tsc --noEmit'"
-    ],
-    "*.{js,jsx,ts,tsx,json,css,scss,md}": [
-      "prettier"
-    ],
-    "*": [
-      "typos",
-      "gitleaks protect --no-banner --staged --verbose"
-    ]
   }
 }
