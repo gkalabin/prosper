@@ -1,5 +1,6 @@
 # Prosper - personal expense tracking app
 
+![build](https://github.com/gkalabin/prosper/actions/workflows/build.yml/badge.svg)
 ![tests](https://github.com/gkalabin/prosper/actions/workflows/tests.yml/badge.svg)
 
 ## Setup
