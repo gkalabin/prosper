@@ -1,4 +1,6 @@
-# Spent - a spending tracker
+# Prosper - personal expense tracking app
+
+![tests](https://github.com/gkalabin/prosper/actions/workflows/tests.yml/badge.svg)
 
 ## Setup
 
