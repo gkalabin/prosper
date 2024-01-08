@@ -2,7 +2,7 @@ import {Prisma} from '@prisma/client';
 import {DB} from 'lib/db';
 import prisma from 'lib/prisma';
 import {getUserId} from 'lib/user';
-import {intParam} from 'lib/util/searchParams';
+import {positiveIntOrNull} from 'lib/util/searchParams';
 import {redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
 
@@ -12,14 +12,14 @@ export async function GET(request: NextRequest): Promise<Response> {
   const code = query.get('code');
   const redirectURI = `${process.env.PUBLIC_APP_URL}/api/open-banking/truelayer/connect`;
   if (!code) {
-    const connectingBankId = intParam(query.get('bankId'));
+    const connectingBankId = positiveIntOrNull(query.get('bankId'));
     if (!connectingBankId) {
       return new Response(`bankId must be an integer`, {status: 400});
     }
     const authURL = `https://auth.truelayer.com/?response_type=code&client_id=${process.env.TRUE_LAYER_CLIENT_ID}&scope=accounts%20balance%20transactions%20offline_access&redirect_uri=${redirectURI}&state=${connectingBankId}`;
     return redirect(authURL);
   }
-  const bankId = intParam(query.get('state'));
+  const bankId = positiveIntOrNull(query.get('state'));
   if (!bankId) {
     return new Response(`bankId must be an integer`, {status: 400});
   }

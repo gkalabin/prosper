@@ -19,12 +19,9 @@ describe('parseAmountAsCents', () => {
     ${'0.23'} | ${23}
     ${'1,5'}  | ${150}
     ${'-1'}   | ${-100}
-  `(
-    'returns $expected when $a as parsed as amount',
-    ({a, expected}: {a: string; expected: number}) => {
-      expect(parseAmountAsCents(a)).toEqual(expected);
-    }
-  );
+  `('returns $expected when $a as parsed as amount', ({a, expected}) => {
+    expect(parseAmountAsCents(a)).toEqual(expected);
+  });
 });
 
 describe('percentile', () => {
@@ -59,14 +56,11 @@ describe('percentile', () => {
     ${[100, 200, 300, 400]} | ${75}  | ${300}
     ${[100, 200, 300, 400]} | ${99}  | ${400}
     ${[100, 200, 300, 400]} | ${100} | ${400}
-  `(
-    '$p-th percentile of $items is $expected',
-    (input: {items: number[]; p: number; expected: number}) => {
-      const amounts = input.items.map(
-        i => new AmountWithCurrency({amountCents: i, currency: Currency.USD})
-      );
-      const actual = percentile(amounts, input.p);
-      expect(actual.cents()).toEqual(input.expected);
-    }
-  );
+  `('$p-th percentile of $items is $expected', ({items, p, expected}) => {
+    const amounts = items.map(
+      i => new AmountWithCurrency({amountCents: i, currency: Currency.USD})
+    );
+    const actual = percentile(amounts, p);
+    expect(actual.cents()).toEqual(expected);
+  });
 });

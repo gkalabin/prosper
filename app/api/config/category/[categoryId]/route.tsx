@@ -3,14 +3,14 @@ import {DB} from 'lib/db';
 import {UpdateCategoryRequest} from 'lib/model/forms/CategoryFormValues';
 import prisma from 'lib/prisma';
 import {getUserId} from 'lib/user';
-import {intParam} from 'lib/util/searchParams';
+import {positiveIntOrNull} from 'lib/util/searchParams';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function PUT(
   request: NextRequest,
   {params}: {params: {categoryId: string}}
 ): Promise<Response> {
-  const categoryId = intParam(params.categoryId);
+  const categoryId = positiveIntOrNull(params.categoryId);
   if (!categoryId) {
     return new Response(`categoryId must be an integer`, {status: 400});
   }

@@ -1,13 +1,13 @@
 import {addYears} from 'date-fns';
 import prisma from 'lib/prisma';
 import {getUserId} from 'lib/user';
-import {intParam} from 'lib/util/searchParams';
+import {positiveIntOrNull} from 'lib/util/searchParams';
 import {redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
 
 export async function POST(request: NextRequest): Promise<Response> {
   const query = request.nextUrl.searchParams;
-  const bankId = intParam(query.get('bankId'));
+  const bankId = positiveIntOrNull(query.get('bankId'));
   if (!bankId) {
     return new Response(`bankId must be an integer`, {status: 400});
   }

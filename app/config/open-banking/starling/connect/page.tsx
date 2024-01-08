@@ -1,7 +1,7 @@
 import {ConnectForm} from 'app/config/open-banking/starling/connect/ConnectForm';
 import {DB} from 'lib/db';
 import {getUserId} from 'lib/user';
-import {intParamOrFirst} from 'lib/util/searchParams';
+import {firstPositiveIntOrNull} from 'lib/util/searchParams';
 import {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 
@@ -27,7 +27,7 @@ export default async function Page({
 }: {
   searchParams: {[key: string]: string | string[] | undefined};
 }) {
-  const bankId = intParamOrFirst(searchParams['bankId']);
+  const bankId = firstPositiveIntOrNull(searchParams['bankId']);
   if (!bankId) {
     return notFound();
   }

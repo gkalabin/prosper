@@ -2,7 +2,7 @@ import {OpenBankingMappingConfigPage} from 'app/config/open-banking/mapping/clie
 import {DB} from 'lib/db';
 import {fetchAccountsForBank} from 'lib/openbanking/fetchall';
 import {getUserId} from 'lib/user';
-import {intParamOrFirst} from 'lib/util/searchParams';
+import {firstPositiveIntOrNull} from 'lib/util/searchParams';
 import {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 
@@ -49,7 +49,7 @@ export default async function Page({
 }: {
   searchParams: {[key: string]: string | string[] | undefined};
 }) {
-  const bankId = intParamOrFirst(searchParams['bankId']);
+  const bankId = firstPositiveIntOrNull(searchParams['bankId']);
   if (!bankId) {
     return notFound();
   }

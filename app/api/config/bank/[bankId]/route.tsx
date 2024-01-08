@@ -1,14 +1,14 @@
 import {DB} from 'lib/db';
 import {UpdateBankRequest} from 'lib/model/forms/BankFormValues';
 import {getUserId} from 'lib/user';
-import {intParam} from 'lib/util/searchParams';
+import {positiveIntOrNull} from 'lib/util/searchParams';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function PUT(
   request: NextRequest,
   {params}: {params: {bankId: string}}
 ): Promise<Response> {
-  const bankId = intParam(params.bankId);
+  const bankId = positiveIntOrNull(params.bankId);
   if (!bankId) {
     return new Response(`bankId must be an integer`, {status: 400});
   }

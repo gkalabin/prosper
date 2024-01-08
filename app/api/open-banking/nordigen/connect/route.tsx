@@ -2,14 +2,14 @@ import {DB} from 'lib/db';
 import {getOrCreateToken} from 'lib/openbanking/nordigen/token';
 import prisma from 'lib/prisma';
 import {getUserId} from 'lib/user';
-import {intParam} from 'lib/util/searchParams';
+import {positiveIntOrNull} from 'lib/util/searchParams';
 import {redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
 import {v4 as uuidv4} from 'uuid';
 
 export async function GET(request: NextRequest): Promise<Response> {
   const query = request.nextUrl.searchParams;
-  const bankId = intParam(query.get('bankId'));
+  const bankId = positiveIntOrNull(query.get('bankId'));
   if (!bankId) {
     return new Response(`bankId must be an integer`, {status: 400});
   }

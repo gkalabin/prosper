@@ -1,33 +1,36 @@
-export function paramOrFirst(
+import {notEmpty} from 'lib/util/util';
+
+export function firstValueOrNull(
   param: string | string[] | undefined
-): string | undefined {
+): string | null {
   if (Array.isArray(param)) {
-    return param[0];
+    return param.length > 0 ? param[0] : null;
+  }
+  if (typeof param !== 'string') {
+    return null;
   }
   return param;
 }
 
-export function intParamOrFirst(
+export function firstPositiveIntOrNull(
   param: string | string[] | undefined
-): number | undefined {
-  const paramOrFirstString = paramOrFirst(param);
-  if (!paramOrFirstString) {
-    return undefined;
+): number | null {
+  const first = firstValueOrNull(param);
+  if (first == null) {
+    return null;
   }
-  const i = parseInt(paramOrFirstString, 10);
-  if (isNaN(i)) {
-    return undefined;
-  }
-  return i;
+  return positiveIntOrNull(first);
 }
 
-export function intParam(param: string | null): number | null {
-  if (!param) {
-    // TODO: test '0'
+export function positiveIntOrNull(param: string | null): number | null {
+  if (!notEmpty(param)) {
+    return null;
+  }
+  if (!param.match(/^\d+$/)) {
     return null;
   }
   const i = parseInt(param, 10);
-  if (isNaN(i)) {
+  if (isNaN(i) || i > Number.MAX_SAFE_INTEGER || Math.round(i) != i || i <= 0) {
     return null;
   }
   return i;

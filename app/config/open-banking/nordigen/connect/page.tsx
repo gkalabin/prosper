@@ -5,7 +5,7 @@ import {NORDIGEN_COUNTRIES} from 'lib/openbanking/nordigen/countries';
 import {Institution} from 'lib/openbanking/nordigen/institution';
 import {getOrCreateToken} from 'lib/openbanking/nordigen/token';
 import {getUserId} from 'lib/user';
-import {intParamOrFirst, paramOrFirst} from 'lib/util/searchParams';
+import {firstPositiveIntOrNull, firstValueOrNull} from 'lib/util/searchParams';
 import {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 
@@ -18,7 +18,7 @@ export default async function Page({
 }: {
   searchParams: {[key: string]: string | string[] | undefined};
 }) {
-  const bankId = intParamOrFirst(searchParams['bankId']);
+  const bankId = firstPositiveIntOrNull(searchParams['bankId']);
   if (!bankId) {
     return notFound();
   }
@@ -32,7 +32,7 @@ export default async function Page({
   if (!dbBank) {
     return notFound();
   }
-  const country = paramOrFirst(searchParams['country']);
+  const country = firstValueOrNull(searchParams['country']);
   if (!country) {
     return <CountriesSelector dbBank={dbBank} />;
   }

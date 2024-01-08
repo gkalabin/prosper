@@ -2,7 +2,7 @@ import {DB} from 'lib/db';
 import {deleteToken as deleteTokenNordigen} from 'lib/openbanking/nordigen/token';
 import {deleteToken as deleteTokenTrueLayer} from 'lib/openbanking/truelayer/token';
 import {getUserId} from 'lib/user';
-import {intParam} from 'lib/util/searchParams';
+import {positiveIntOrNull} from 'lib/util/searchParams';
 import {RedirectType, redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
 
@@ -10,7 +10,7 @@ export async function POST(
   request: NextRequest,
   {params}: {params: {bankId: string}}
 ): Promise<Response> {
-  const bankId = intParam(params.bankId);
+  const bankId = positiveIntOrNull(params.bankId);
   if (!bankId) {
     return new Response(`bankId must be an integer`, {status: 400});
   }

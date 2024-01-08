@@ -11,14 +11,14 @@ import {DB} from 'lib/db';
 import {TransactionFormValues} from 'lib/model/forms/TransactionFormValues';
 import prisma from 'lib/prisma';
 import {getUserId} from 'lib/user';
-import {intParam} from 'lib/util/searchParams';
+import {positiveIntOrNull} from 'lib/util/searchParams';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function POST(
   request: NextRequest,
   {params}: {params: {transactionId: string}}
 ): Promise<Response> {
-  const transactionId = intParam(params.transactionId);
+  const transactionId = positiveIntOrNull(params.transactionId);
   if (!transactionId) {
     return new Response(`transactionId must be an integer`, {status: 400});
   }

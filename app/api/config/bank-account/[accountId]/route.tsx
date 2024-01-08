@@ -3,14 +3,14 @@ import {DB} from 'lib/db';
 import {UpdateBankAccountRequest} from 'lib/model/forms/BankAccountFormValues';
 import prisma from 'lib/prisma';
 import {getUserId} from 'lib/user';
-import {intParam} from 'lib/util/searchParams';
+import {positiveIntOrNull} from 'lib/util/searchParams';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function PUT(
   request: NextRequest,
   {params}: {params: {accountId: string}}
 ): Promise<Response> {
-  const accountId = intParam(params.accountId);
+  const accountId = positiveIntOrNull(params.accountId);
   if (!accountId) {
     return new Response(`accountId must be an integer`, {status: 400});
   }
