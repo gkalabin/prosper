@@ -63,7 +63,7 @@ export class TransactionSearchQueryVisitor extends QueryVisitor<TransactionIds> 
     let result: TransactionIds = [];
     for (const child of ctx.conjQuery_list()) {
       const match = this.visitConjQuery(child);
-      result = union(result, match);
+      result = Array.from(union(result, match));
     }
     // Ordering is lost during union, so we need to re-sort according to the
     // original transaction list.
