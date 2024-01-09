@@ -160,11 +160,12 @@ export function immediateChildren(
 export function descendants(target: Category, all: Category[]): Category[] {
   const descendants = immediateChildren(target, all);
   const needToCheckChildren = [...descendants];
-  const next = needToCheckChildren.pop();
+  let next = needToCheckChildren.pop();
   while (next) {
     const nextChildren = immediateChildren(next, all);
     descendants.push(...nextChildren);
     needToCheckChildren.push(...nextChildren);
+    next = needToCheckChildren.pop();
   }
   return descendants;
 }
