@@ -18,7 +18,7 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "eslint",
-      "jest --findRelatedTests"
+      "jest --findRelatedTests --passWithNoTests"
     ],
     "*.{ts,tsx}": [
       "bash -c 'tsc --noEmit'"

@@ -1,16 +1,17 @@
 import {
   Interval,
   eachMonthOfInterval,
+  eachQuarterOfInterval,
   eachYearOfInterval,
   isWithinInterval,
 } from 'date-fns';
+import {Income} from 'lib/model/transaction/Income';
 import {
   Expense,
   Transaction,
   isExpense,
   isIncome,
 } from 'lib/model/transaction/Transaction';
-import {Income} from 'lib/model/transaction/Income';
 
 export class TransactionsStatsInput {
   constructor(
@@ -44,6 +45,10 @@ export class TransactionsStatsInput {
 
   months() {
     return eachMonthOfInterval(this._interval);
+  }
+
+  quarters() {
+    return eachQuarterOfInterval(this._interval);
   }
 
   years() {
