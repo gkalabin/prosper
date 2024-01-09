@@ -73,7 +73,7 @@ export const FormInputs = (props: {
 };
 
 function hasTrip(value: Transaction): value is TransactionWithTrip {
-  return (value as TransactionWithTrip).tripId !== undefined;
+  return !!(value as TransactionWithTrip).tripId;
 }
 
 export const Trips = () => {
