@@ -74,7 +74,7 @@ export const SortableTransactionsList = (props: {
   const {setDbData, bankAccounts, stocks, exchange} =
     useAllDatabaseDataContext();
   const displayCurrency = useDisplayCurrency();
-  if (!props.transactions?.length) {
+  if (props.transactions.length == 0) {
     return <div>No transactions.</div>;
   }
 
@@ -84,7 +84,7 @@ export const SortableTransactionsList = (props: {
     const transactionsWithAmount: Array<{
       t: Transaction;
       a: AmountWithCurrency | undefined;
-    }> = sortedTransactions.map(t => ({
+    }> = [...props.transactions].map(t => ({
       t,
       a: amount(t, displayCurrency, bankAccounts, stocks, exchange),
     }));
