@@ -4,7 +4,11 @@ import {Category as DBCategory} from '@prisma/client';
 import classNames from 'classnames';
 import {AddOrEditCategoryForm} from 'components/config/AddOrEditCategoryForm';
 import {ButtonLink, ButtonPagePrimary} from 'components/ui/buttons';
-import {Category, categoryModelFromDB} from 'lib/model/Category';
+import {
+  Category,
+  categoryModelFromDB,
+  immediateChildren,
+} from 'lib/model/Category';
 import {updateState} from 'lib/stateHelpers';
 import {useState} from 'react';
 
@@ -42,7 +46,8 @@ const EditableCategoryListItem = ({
 }) => {
   const [showEditForm, setShowEditForm] = useState(false);
   const [showChildren, setShowChildren] = useState(true);
-  const hasChildren = category.children().length > 0;
+  const children = immediateChildren(category, allCategories);
+  const hasChildren = children.length > 0;
   return (
     <>
       <div
@@ -92,9 +97,9 @@ const EditableCategoryListItem = ({
           />
         )}
       </div>
-      {!!category.children().length && showChildren && (
+      {hasChildren && showChildren && (
         <CategoriesList
-          categories={category.children()}
+          categories={children}
           allCategories={allCategories}
           onCategoryUpdated={onCategoryUpdated}
         />

@@ -150,7 +150,7 @@ export function ancestors(c: Category, all: Category[]): Category[] {
   return ancestors;
 }
 
-function immediateChildren(target: Category, all: Category[]): Category[] {
+export function immediateChildren(target: Category, all: Category[]): Category[] {
   return all.filter(x => x.parentCategoryId() == target.id());
 }
 

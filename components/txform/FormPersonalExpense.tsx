@@ -18,7 +18,7 @@ import {differenceInMonths} from 'date-fns';
 import {useFormikContext} from 'formik';
 import {uniqMostFrequent} from 'lib/collections';
 import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
-import {Category as CategoryModel} from 'lib/model/Category';
+import {Category as CategoryModel, immediateChildren} from 'lib/model/Category';
 import {
   FormMode,
   TransactionFormValues,
@@ -218,6 +218,10 @@ export function Category() {
     value: x.id(),
   });
 
+  // This is O(n^2), but can be optimised in case it's slow.
+  const categoriesWithoutChildren = categories.filter(
+    c => immediateChildren(c, categories).length == 0
+  );
   const options = [
     {
       label: 'Most Frequently Used',
@@ -225,11 +229,11 @@ export function Category() {
     },
     {
       label: 'Children Categories',
-      options: categories.filter(x => !x.children().length).map(makeOption),
+      options: categoriesWithoutChildren.map(makeOption),
     },
     {
-      label: 'Parent Categories',
-      options: categories.filter(x => x.children().length).map(makeOption),
+      label: 'All Categories',
+      options: categories.map(makeOption),
     },
   ];
   return (
