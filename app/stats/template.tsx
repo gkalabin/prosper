@@ -26,6 +26,10 @@ export default function StatsPageLayout({
             path: '/stats/monthly',
           },
           {
+            title: 'Quarterly',
+            path: '/stats/quarterly',
+          },
+          {
             title: 'Yearly',
             path: '/stats/yearly',
           },
