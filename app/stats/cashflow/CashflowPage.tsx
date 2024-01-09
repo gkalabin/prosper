@@ -19,12 +19,12 @@ import {
   useDisplaySettingsContext,
 } from 'lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
-import {transactionIsDescendant} from 'lib/model/Category';
 import {Transaction} from 'lib/model/transaction/Transaction';
 import {amountOwnShare} from 'lib/model/transaction/amounts';
 import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
 import {MoneyTimeseries} from 'lib/util/Timeseries';
 import {useState} from 'react';
+import {filterExcludedTransactions} from '../modelHelpers';
 
 export function CashflowCharts({input}: {input: TransactionsStatsInput}) {
   const displayCurrency = useDisplayCurrency();
@@ -153,11 +153,10 @@ function NonEmptyPageContent() {
   const [excludeCategories, setExcludeCategories] = useState(
     displaySettings.excludeCategoryIdsInStats()
   );
-  const filteredTransactions = transactions.filter(
-    t =>
-      !excludeCategories.some(cid =>
-        transactionIsDescendant(t, cid, categories)
-      )
+  const filteredTransactions = filterExcludedTransactions(
+    transactions,
+    excludeCategories,
+    categories
   );
   const input = new TransactionsStatsInput(filteredTransactions, duration);
   return (

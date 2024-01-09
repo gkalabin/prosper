@@ -1,7 +1,11 @@
 'use client';
 import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
-import {categoryNameById, dollarsRounded} from 'app/stats/modelHelpers';
+import {
+  categoryNameById,
+  dollarsRounded,
+  filterExcludedTransactions,
+} from 'app/stats/modelHelpers';
 import {DurationSelector, LAST_6_MONTHS} from 'components/DurationSelector';
 import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
 import {MonthlyOwnShare} from 'components/charts/MonthlySum';
@@ -20,7 +24,6 @@ import {
   useDisplaySettingsContext,
 } from 'lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
-import {transactionIsDescendant} from 'lib/model/Category';
 import {Transaction} from 'lib/model/transaction/Transaction';
 import {amountOwnShare} from 'lib/model/transaction/amounts';
 import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
@@ -107,11 +110,10 @@ function NonEmptyPageContent() {
   const [excludeCategories, setExcludeCategories] = useState(
     displaySettings.excludeCategoryIdsInStats()
   );
-  const filteredTransactions = transactions.filter(
-    t =>
-      !excludeCategories.some(cid =>
-        transactionIsDescendant(t, cid, categories)
-      )
+  const filteredTransactions = filterExcludedTransactions(
+    transactions,
+    excludeCategories,
+    categories
   );
   const input = new TransactionsStatsInput(filteredTransactions, duration);
   return (

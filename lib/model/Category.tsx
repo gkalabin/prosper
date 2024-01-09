@@ -1,12 +1,10 @@
 import {Category as DBCategory} from '@prisma/client';
-import {Transaction} from 'lib/model/transaction/Transaction';
 
 export class Category {
   private readonly _id: number;
   private readonly _name: string;
   private readonly _displayOrder: number;
   private readonly _parentCategoryId?: number;
-  private readonly _dbValue: DBCategory;
 
   _ancestors: Category[] = [];
   private _immediateParent?: Category;
@@ -28,7 +26,6 @@ export class Category {
     this._name = init.name;
     this._parentCategoryId = init.parentCategoryId ?? undefined;
     this._displayOrder = init.displayOrder;
-    this._dbValue = init;
   }
 
   id() {
@@ -133,19 +130,31 @@ export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
   return categoriesSorted;
 };
 
-export function transactionIsDescendant(
-  t: Transaction,
-  cid: number,
-  categories: Category[]
-): boolean {
-  if (t.categoryId == cid) {
-    return true;
+export function ancestors(c: Category, all: Category[]): Category[] {
+  const ancestors: Category[] = [];
+  let parentId = c.parentCategoryId();
+  while (parentId) {
+    const parent = mustFindCategory(parentId, all);
+    ancestors.push(parent);
+    parentId = parent.parentCategoryId();
   }
-  const transactionCategory = categories.find(c => c.id() == t.categoryId);
-  if (!transactionCategory) {
-    throw new Error(`Category ${t.categoryId} not found`);
+  return ancestors;
+}
+
+function immediateChildren(target: Category, all: Category[]): Category[] {
+  return all.filter(x => x.parentCategoryId() == target.id());
+}
+
+export function descendants(target: Category, all: Category[]): Category[] {
+  const descendants = immediateChildren(target, all);
+  const needToCheckChildren = [...descendants];
+  const next = needToCheckChildren.pop();
+  while (next) {
+    const nextChildren = immediateChildren(next, all);
+    descendants.push(...nextChildren);
+    needToCheckChildren.push(...nextChildren);
   }
-  return transactionCategory.childOf(cid);
+  return descendants;
 }
 
 export function mustFindCategory(

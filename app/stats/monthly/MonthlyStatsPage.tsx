@@ -1,7 +1,7 @@
 'use client';
 import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
-import {ownShareSum} from 'app/stats/modelHelpers';
+import {filterExcludedTransactions, ownShareSum} from 'app/stats/modelHelpers';
 import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
 import {
   ChildCategoryOwnShareChart,
@@ -26,7 +26,6 @@ import {
   useDisplaySettingsContext,
 } from 'lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
-import {transactionIsDescendant} from 'lib/model/Category';
 import {Income} from 'lib/model/transaction/Income';
 import {
   Expense,
@@ -255,11 +254,10 @@ function NonEmptyPageContent() {
   const [excludeCategories, setExcludeCategories] = useState(
     displaySettings.excludeCategoryIdsInStats()
   );
-  const filteredTransactions = transactions.filter(
-    t =>
-      !excludeCategories.some(cid =>
-        transactionIsDescendant(t, cid, categories)
-      )
+  const filteredTransactions = filterExcludedTransactions(
+    transactions,
+    excludeCategories,
+    categories
   );
   const durations = transactions
     .map(t => t.timestampEpoch)
