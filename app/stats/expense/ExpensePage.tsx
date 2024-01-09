@@ -33,7 +33,7 @@ import {
   useDisplaySettingsContext,
 } from 'lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
-import {Category} from 'lib/model/Category';
+import {Category, subtreeIncludes} from 'lib/model/Category';
 import {
   Expense,
   Transaction,
@@ -192,7 +192,11 @@ export function ExpenseByCategory(props: {
   const transactions = props.transactions
     .filter((t): t is Expense => isExpense(t))
     .filter(t =>
-      transactionCategory(t, categories).childOf(props.category.id())
+      subtreeIncludes(
+        props.category,
+        transactionCategory(t, categories),
+        categories
+      )
     );
   const zero = AmountWithCurrency.zero(displayCurrency);
   const months = eachMonthOfInterval(props.duration).map(x => x.getTime());

@@ -76,10 +76,6 @@ export class Category {
   children() {
     return this._immediateChildren;
   }
-
-  childOf(categoryId: number) {
-    return this._ancestors.some(a => a.id() == categoryId);
-  }
 }
 
 export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
@@ -129,6 +125,19 @@ export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
   inOrderTreeTraversal(rootCategories);
   return categoriesSorted;
 };
+
+export function subtreeIncludes(
+  subtreeRoot: Category,
+  maybeDescendant: Category,
+  all: Category[]
+): boolean {
+  if (subtreeRoot.id() == maybeDescendant.id()) {
+    return true;
+  }
+  return descendants(subtreeRoot, all).some(
+    c => c.id() == maybeDescendant.id()
+  );
+}
 
 export function ancestors(c: Category, all: Category[]): Category[] {
   const ancestors: Category[] = [];

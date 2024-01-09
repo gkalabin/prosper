@@ -229,7 +229,7 @@ export function Category() {
     },
     {
       label: 'Parent Categories',
-      options: categories.filter(x => !!x.children().length).map(makeOption),
+      options: categories.filter(x => x.children().length).map(makeOption),
     },
   ];
   return (
