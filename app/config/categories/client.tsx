@@ -14,6 +14,7 @@ import {useState} from 'react';
 
 const CategoriesList = (props: {
   categories: Category[];
+  depth: number;
   allCategories: Category[];
   onCategoryUpdated: (updated: DBCategory) => void;
 }) => {
@@ -26,6 +27,7 @@ const CategoriesList = (props: {
         <div key={category.id()}>
           <EditableCategoryListItem
             category={category}
+            depth={props.depth}
             allCategories={props.allCategories}
             onCategoryUpdated={props.onCategoryUpdated}
           />
@@ -37,10 +39,12 @@ const CategoriesList = (props: {
 
 const EditableCategoryListItem = ({
   category,
+  depth,
   allCategories,
   onCategoryUpdated,
 }: {
   category: Category;
+  depth: number;
   allCategories: Category[];
   onCategoryUpdated: (updated: DBCategory) => void;
 }) => {
@@ -55,7 +59,7 @@ const EditableCategoryListItem = ({
           'my-2 rounded-md border p-3 shadow',
           // https://stackoverflow.com/questions/69687530/dynamically-build-classnames-in-tailwindcss:
           // make following classNames available for JIT: ml-4 ml-8 ml-12 ml-16 ml-20 ml-24 ml-28 ml-32 ml-36 ml-40
-          'ml-' + category.depth() * 4
+          'ml-' + depth * 4
         )}
       >
         <div className="flex items-center justify-between">
@@ -71,9 +75,9 @@ const EditableCategoryListItem = ({
             )}
             <span
               className={classNames(
-                category.isRoot() && 'text-xl font-medium',
-                category.depth() == 1 && 'text-lg',
-                category.depth() > 1 && 'text-base font-light',
+                depth == 0 && 'text-xl font-medium',
+                depth == 1 && 'text-lg',
+                depth > 1 && 'text-base font-light',
                 'ml-2 align-middle'
               )}
             >
@@ -100,6 +104,7 @@ const EditableCategoryListItem = ({
       {hasChildren && showChildren && (
         <CategoriesList
           categories={children}
+          depth={depth + 1}
           allCategories={allCategories}
           onCategoryUpdated={onCategoryUpdated}
         />
@@ -123,6 +128,7 @@ export function CategoriesConfigPage({
     <>
       <CategoriesList
         categories={rootCategories}
+        depth={0}
         allCategories={allCategoriesFlat}
         onCategoryUpdated={updateState(setDbCategories)}
       />
