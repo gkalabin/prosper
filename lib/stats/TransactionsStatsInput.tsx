@@ -1,5 +1,5 @@
 import {
-  Interval,
+  type Interval,
   eachMonthOfInterval,
   eachQuarterOfInterval,
   eachYearOfInterval,

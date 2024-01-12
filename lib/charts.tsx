@@ -1,11 +1,11 @@
 import {
-  Interval,
   eachMonthOfInterval,
   eachYearOfInterval,
   format,
+  type Interval,
 } from 'date-fns';
-import {EChartsOption} from 'echarts';
-import {TooltipComponentOption} from 'echarts/components';
+import {type EChartsOption} from 'echarts';
+import {type TooltipComponentOption} from 'echarts/components';
 import {CallbackDataParams} from 'echarts/types/dist/shared';
 import {AmountWithCurrency} from 'lib/AmountWithCurrency';
 import {formatMonth} from 'lib/TimeHelpers';

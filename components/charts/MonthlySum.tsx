@@ -1,5 +1,5 @@
 import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
-import {Interval, eachMonthOfInterval} from 'date-fns';
+import {type Interval, eachMonthOfInterval} from 'date-fns';
 import ReactEcharts from 'echarts-for-react';
 import {AmountWithCurrency} from 'lib/AmountWithCurrency';
 import {StockAndCurrencyExchange} from 'lib/ClientSideModel';

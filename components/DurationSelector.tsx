@@ -3,11 +3,15 @@ import {ChevronDownIcon} from '@heroicons/react/20/solid';
 import {CheckIcon} from '@heroicons/react/24/outline';
 import classNames from 'classnames';
 import {Input} from 'components/forms/Input';
-import {Interval, format, isEqual, startOfMonth} from 'date-fns';
-import {Fragment} from 'react';
-
-import {subMonths} from 'date-fns';
+import {
+  format,
+  isEqual,
+  startOfMonth,
+  subMonths,
+  type Interval,
+} from 'date-fns';
 import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {Fragment} from 'react';
 
 const now = new Date();
 export const LAST_6_MONTHS: Interval = {

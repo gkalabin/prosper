@@ -1,8 +1,9 @@
 {
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["@typescript-eslint", "import"],
   "extends": [
     "next/core-web-vitals",
     "plugin:@typescript-eslint/recommended",
+    "plugin:import/recommended",
     "prettier"
   ],
   "ignorePatterns": ["lib/search/generated"],

@@ -1,4 +1,4 @@
-import {Interval, eachMonthOfInterval, startOfMonth} from 'date-fns';
+import {type Interval, eachMonthOfInterval, startOfMonth} from 'date-fns';
 import ReactEcharts from 'echarts-for-react';
 import {defaultCountChartOptions} from 'lib/charts';
 import {Transaction} from 'lib/model/transaction/Transaction';

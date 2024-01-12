@@ -2,7 +2,7 @@ import {Stock as DBStock} from '@prisma/client';
 import {addDays, differenceInHours, format, isSameDay} from 'date-fns';
 import prisma from 'lib/prisma';
 import yahooFinance from 'yahoo-finance2';
-import {HistoricalRowHistory} from 'yahoo-finance2/dist/esm/src/modules/historical';
+import {type HistoricalRowHistory} from 'yahoo-finance2/dist/esm/src/modules/historical';
 
 const UPDATE_FREQUENCY_HOURS = 6;
 const NO_HISTORY_LOOK_BACK_DAYS = 30;

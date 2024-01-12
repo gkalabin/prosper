@@ -12,10 +12,10 @@ import {MonthlyOwnShare} from 'components/charts/MonthlySum';
 import {RunningAverageOwnShare} from 'components/charts/RunningAverage';
 import {YearlyOwnShare} from 'components/charts/YearlySum';
 import {
-  Interval,
   differenceInYears,
   eachMonthOfInterval,
   startOfMonth,
+  type Interval,
 } from 'date-fns';
 import ReactEcharts from 'echarts-for-react';
 import {AmountWithCurrency} from 'lib/AmountWithCurrency';

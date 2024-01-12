@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import {Field, useFormikContext} from 'formik';
 import {ChangeEvent} from 'react';
-import {CSSObjectWithLabel} from 'react-select';
+import {type CSSObjectWithLabel} from 'react-select';
 
 export const Select = (
   props: React.SelectHTMLAttributes<HTMLSelectElement>

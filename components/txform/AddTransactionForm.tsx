@@ -11,7 +11,7 @@ import {
   FormikButtonFormSecondary,
 } from 'components/ui/buttons';
 import {format, startOfDay} from 'date-fns';
-import {Form, Formik, FormikHelpers} from 'formik';
+import {Form, Formik, type FormikHelpers} from 'formik';
 import {useDisplayBankAccounts} from 'lib/model/AllDatabaseDataModel';
 import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
 import {uniqMostFrequent} from 'lib/collections';

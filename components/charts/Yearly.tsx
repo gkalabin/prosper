@@ -1,4 +1,4 @@
-import {Interval, eachYearOfInterval} from 'date-fns';
+import {type Interval, eachYearOfInterval} from 'date-fns';
 import ReactEcharts from 'echarts-for-react';
 import {defaultYearlyMoneyChart} from 'lib/charts';
 import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
