@@ -124,6 +124,7 @@ function NonEmptyPageContent() {
       <ExcludedCategoriesSelector
         excludedIds={excludeCategories}
         setExcludedIds={setExcludeCategories}
+        allCategories={categories}
       />
       <IncomeCharts input={input} />
     </div>

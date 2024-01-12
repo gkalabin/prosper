@@ -1,11 +1,16 @@
 import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
 import {AmountWithCurrency} from 'lib/AmountWithCurrency';
 import {StockAndCurrencyExchange} from 'lib/ClientSideModel';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
 import {defaultPieChartOptions} from 'lib/charts';
+import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
 import {BankAccount} from 'lib/model/BankAccount';
-import {Category, mustFindCategory} from 'lib/model/Category';
+import {
+  Category,
+  findRoot,
+  makeCategoryTree,
+  mustFindCategory,
+} from 'lib/model/Category';
 import {Currency} from 'lib/model/Currency';
 import {Stock} from 'lib/model/Stock';
 import {Income} from 'lib/model/transaction/Income';
@@ -23,6 +28,8 @@ export function TopLevelCategoryOwnShareChart({
   transactions: (Expense | Income)[];
   title: string;
 }) {
+  const {categories} = useAllDatabaseDataContext();
+  const rootCategoryId = makeRootCategoryIdFn(categories);
   return (
     <ByCategoryChart
       title={title}
@@ -40,6 +47,8 @@ export function TopLevelCategoryFullAmountChart({
   transactions: (Expense | Income)[];
   title: string;
 }) {
+  const {categories} = useAllDatabaseDataContext();
+  const rootCategoryId = makeRootCategoryIdFn(categories);
   return (
     <ByCategoryChart
       title={title}
@@ -104,15 +113,22 @@ function groupTransactions<T>({
   return data;
 }
 
-function rootCategoryId(t: Transaction, categories: Category[]): number {
-  const category = mustFindCategory(t.categoryId, categories);
-  return category.root().id();
+function makeRootCategoryIdFn(
+  categories: Category[]
+): TransactionCategoryFunction {
+  const tree = makeCategoryTree(categories);
+  return (t: Transaction): number => findRoot(t.categoryId, tree).id();
 }
 
 function leafCategoryId(t: Transaction, categories: Category[]): number {
   const category = mustFindCategory(t.categoryId, categories);
   return category.id();
 }
+
+type TransactionCategoryFunction = (
+  t: Transaction,
+  categories: Category[]
+) => number;
 
 function ByCategoryChart({
   transactions,
@@ -122,7 +138,7 @@ function ByCategoryChart({
 }: {
   transactions: (Expense | Income)[];
   title: string;
-  categoryFn: (t: Transaction, categories: Category[]) => number;
+  categoryFn: TransactionCategoryFunction;
   amountFn: (
     t: Expense | Income,
     target: Currency,

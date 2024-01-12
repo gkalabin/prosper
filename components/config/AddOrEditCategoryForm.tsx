@@ -43,7 +43,7 @@ export const AddOrEditCategoryForm = ({
   const initialValues: CategoryFormValues = {
     name: category?.name() ?? '',
     displayOrder: category?.displayOrder() ?? categories.length * 100,
-    parentCategoryId: category?.parent()?.id() ?? 0,
+    parentCategoryId: category?.parentCategoryId() ?? 0,
   };
   return (
     <Formik initialValues={initialValues} onSubmit={handleSubmit}>

@@ -33,7 +33,12 @@ import {
   useDisplaySettingsContext,
 } from 'lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
-import {Category, subtreeIncludes} from 'lib/model/Category';
+import {
+  Category,
+  findRoot,
+  makeCategoryTree,
+  subtreeIncludes,
+} from 'lib/model/Category';
 import {
   Expense,
   Transaction,
@@ -48,6 +53,7 @@ export function ExpenseCharts({input}: {input: TransactionsStatsInput}) {
   const displayCurrency = useDisplayCurrency();
   const {categories, bankAccounts, stocks, exchange} =
     useAllDatabaseDataContext();
+  const categoryTree = makeCategoryTree(categories);
   const zero = AmountWithCurrency.zero(displayCurrency);
   const months = input.months().map(x => x.getTime());
   const zeroes: [number, AmountWithCurrency][] = months.map(m => [m, zero]);
@@ -82,10 +88,10 @@ export function ExpenseCharts({input}: {input: TransactionsStatsInput}) {
     }
     {
       const category = transactionCategory(t, categories);
-      const cid = category.root().id();
-      const series = byRootCategoryIdAndMonth.get(cid) ?? new Map(zeroes);
+      const rootId = findRoot(category, categoryTree).id();
+      const series = byRootCategoryIdAndMonth.get(rootId) ?? new Map(zeroes);
       series.set(ts, exchanged.add(series.get(ts) ?? zero));
-      byRootCategoryIdAndMonth.set(cid, series);
+      byRootCategoryIdAndMonth.set(rootId, series);
     }
   }
 
@@ -276,6 +282,7 @@ function NonEmptyPageContent() {
       <ExcludedCategoriesSelector
         excludedIds={excludeCategories}
         setExcludedIds={setExcludeCategories}
+        allCategories={categories}
       />
       <ExpenseCharts input={input} />
     </div>

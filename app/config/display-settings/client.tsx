@@ -3,7 +3,8 @@ import {
   Category as DBCategory,
   DisplaySettings as DBDisplaySettings,
 } from '@prisma/client';
-import {FormikSelect, undoTailwindInputStyles} from 'components/forms/Select';
+import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
+import {FormikSelect} from 'components/forms/Select';
 import {FormikButtonFormPrimary} from 'components/ui/buttons';
 import {Form, Formik} from 'formik';
 import {DisplaySettings} from 'lib/displaySettings';
@@ -11,7 +12,6 @@ import {categoryModelFromDB} from 'lib/model/Category';
 import {Currency} from 'lib/model/Currency';
 import {DisplaySettingsFormValues} from 'lib/model/api/DisplaySettingsConfig';
 import {useState} from 'react';
-import Select from 'react-select';
 
 export function DisplaySettingsPage({
   dbDisplaySettings: initialDbDisplaySettings,
@@ -43,10 +43,6 @@ export function DisplaySettingsPage({
       setApiError(`Failed to save: ${error}`);
     }
   };
-  const categoryOptions = categories.map(a => ({
-    value: a.id(),
-    label: a.nameWithAncestors(),
-  }));
   const initialValues: DisplaySettingsFormValues = {
     displayCurrencyCode: displaySettings.displayCurrency().code(),
     excludeCategoryIdsInStats: displaySettings.excludeCategoryIdsInStats(),
@@ -84,22 +80,12 @@ export function DisplaySettingsPage({
             >
               Categories to exclude in stats
             </label>
-            <Select
-              instanceId="excludeCategoryIdsInStats"
-              styles={undoTailwindInputStyles()}
-              options={categoryOptions}
-              isMulti
-              value={values.excludeCategoryIdsInStats.map(x => ({
-                label:
-                  categoryOptions.find(c => c.value == x)?.label ?? 'Unknown',
-                value: x,
-              }))}
-              onChange={x =>
-                setFieldValue(
-                  'excludeCategoryIdsInStats',
-                  x.map(x => x.value)
-                )
+            <ExcludedCategoriesSelector
+              excludedIds={values.excludeCategoryIdsInStats}
+              setExcludedIds={v =>
+                setFieldValue('excludeCategoryIdsInStats', v)
               }
+              allCategories={categories}
             />
           </div>
           <div className="flex justify-end gap-2">

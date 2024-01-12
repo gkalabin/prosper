@@ -1,4 +1,5 @@
 import {Category as DBCategory} from '@prisma/client';
+import {assertDefined} from 'lib/assert';
 
 export class Category {
   private readonly _id: number;
@@ -7,19 +8,7 @@ export class Category {
   private readonly _parentCategoryId?: number;
 
   _ancestors: Category[] = [];
-  private _immediateParent?: Category;
   _immediateChildren: Category[] = [];
-
-  _setImmediateParent(parent: Category) {
-    if (this._parentCategoryId != parent.id()) {
-      throw new Error(
-        `Category ${this._id} has parent ${
-          this._parentCategoryId
-        } but was set to ${parent.id()}`
-      );
-    }
-    this._immediateParent = parent;
-  }
 
   constructor(init: DBCategory) {
     this._id = init.id;
@@ -54,28 +43,84 @@ export class Category {
   isRoot() {
     return !this._parentCategoryId;
   }
+}
 
-  root() {
-    if (this.isRoot()) {
-      return this;
+export type CategoryTree = {
+  tree: CategoryTreeNode[];
+  nodeLookup: Map<number, CategoryTreeNode>;
+};
+export type CategoryTreeNode = {
+  category: Category;
+  parent: CategoryTreeNode | null;
+  children: CategoryTreeNode[];
+};
+
+export function makeCategoryTree(all: Category[]): CategoryTree {
+  const nodes: CategoryTreeNode[] = all.map(root => ({
+    category: root,
+    parent: null,
+    children: [],
+  }));
+  const tree: CategoryTreeNode[] = nodes.filter(n => n.category.isRoot());
+  const nodeLookup = new Map<number, CategoryTreeNode>(
+    nodes.map(n => [n.category.id(), n])
+  );
+  nodes.forEach(node => {
+    const c = node.category;
+    const parentId = c.parentCategoryId();
+    if (!parentId) {
+      return;
     }
-    return this._ancestors[0];
-  }
-
-  depth() {
-    return this._ancestors.length;
-  }
-
-  parent() {
-    if (this.isRoot()) {
-      throw new Error(`Category ${this._id} is root`);
+    const parent = nodeLookup.get(parentId);
+    if (!parent) {
+      throw new Error(`Cannot find parent ${parentId} for category ${c.id()}`);
     }
-    return this._immediateParent;
-  }
+    node.parent = parent;
+    parent.children.push(node);
+  });
+  return {
+    tree,
+    nodeLookup,
+  };
+}
 
-  children() {
-    return this._immediateChildren;
+function findNode(c: Category | number, tree: CategoryTree): CategoryTreeNode {
+  const cid = c instanceof Category ? c.id() : c;
+  const node = tree.nodeLookup.get(cid);
+  assertDefined(node, `Cannot find category ${cid} in the tree`);
+  return node;
+}
+
+function getAncestors(
+  c: Category | number,
+  tree: CategoryTree
+): CategoryTreeNode[] {
+  const node = findNode(c, tree);
+  const ancestors = [];
+  let parent = node.parent;
+  while (parent) {
+    ancestors.push(parent);
+    parent = parent.parent;
   }
+  return ancestors.reverse();
+}
+
+export function getNameWithAncestors(
+  c: Category | number,
+  tree: CategoryTree
+): string {
+  const node = findNode(c, tree);
+  const ancestors = getAncestors(c, tree);
+  return [...ancestors, node].map(a => a.category.name()).join(' > ');
+}
+
+export function findRoot(c: Category | number, tree: CategoryTree): Category {
+  const node = findNode(c, tree);
+  if (!node.parent) {
+    return node.category;
+  }
+  const ancestors = getAncestors(c, tree);
+  return ancestors[0].category;
 }
 
 export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
@@ -92,7 +137,6 @@ export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
     if (!parent) {
       throw new Error(`Cannot find parent ${parentId} for category ${c.id()}`);
     }
-    c._setImmediateParent(parent);
     parent._immediateChildren.push(c);
     while (parent) {
       c._ancestors.unshift(parent);
@@ -119,7 +163,7 @@ export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
   const inOrderTreeTraversal = (subtree: Category[]) => {
     subtree.forEach(c => {
       categoriesSorted.push(c);
-      inOrderTreeTraversal(c.children());
+      inOrderTreeTraversal(c._immediateChildren);
     });
   };
   inOrderTreeTraversal(rootCategories);
