@@ -40,25 +40,6 @@ export function TopLevelCategoryOwnShareChart({
   );
 }
 
-export function TopLevelCategoryFullAmountChart({
-  transactions,
-  title,
-}: {
-  transactions: (Expense | Income)[];
-  title: string;
-}) {
-  const {categories} = useAllDatabaseDataContext();
-  const rootCategoryId = makeRootCategoryIdFn(categories);
-  return (
-    <ByCategoryChart
-      title={title}
-      transactions={transactions}
-      categoryFn={rootCategoryId}
-      amountFn={amountAllParties}
-    />
-  );
-}
-
 export function ChildCategoryOwnShareChart({
   transactions,
   title,

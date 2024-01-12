@@ -71,29 +71,6 @@ export function tx(
   return tx;
 }
 
-export function mkTransaction(
-  vendor: string,
-  amount: number,
-  account: BankAccount,
-  category: Category
-): Transaction {
-  const tx: PersonalExpense = {
-    kind: 'PersonalExpense',
-    id: nextId++,
-    vendor,
-    amountCents: Math.round(amount * 100),
-    timestampEpoch: new Date().getTime(),
-    companions: [],
-    note: '',
-    accountId: account.id,
-    categoryId: category.id(),
-    tagsIds: [],
-    tripId: null,
-    refundGroupTransactionIds: [],
-  };
-  return tx;
-}
-
 export function mkBank(name: string): Bank {
   return {
     name,

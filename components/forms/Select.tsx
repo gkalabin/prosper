@@ -1,6 +1,5 @@
 import classNames from 'classnames';
 import {Field, useFormikContext} from 'formik';
-import {ChangeEvent} from 'react';
 import {type CSSObjectWithLabel} from 'react-select';
 
 export const Select = (
@@ -41,20 +40,6 @@ export const FormikSelect = (
     >
       {props.children}
     </Field>
-  );
-};
-
-export const SelectNumber = (
-  props: React.SelectHTMLAttributes<HTMLSelectElement> & {name: string}
-) => {
-  const {setFieldValue} = useFormikContext();
-  return (
-    <Select
-      {...props}
-      onChange={(e: ChangeEvent<HTMLSelectElement>) => {
-        setFieldValue(props.name, parseInt(e.target.value));
-      }}
-    />
   );
 };
 
