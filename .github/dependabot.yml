@@ -3,13 +3,16 @@ version: 2
 updates:
   - package-ecosystem: 'github-actions'
     directory: '/'
+    # Disable labels on pull requests from Dependabot on GitHub.
+    labels: []
     schedule:
       interval: 'daily'
   - package-ecosystem: 'npm'
     directory: '/'
+    # Disable labels on pull requests from Dependabot on GitHub.
+    labels: []
     schedule:
       interval: 'daily'
     allow:
       # Allow both direct and indirect updates for all packages
       - dependency-type: 'all'
-    rebase-strategy: 'auto'
