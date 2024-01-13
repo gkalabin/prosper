@@ -76,6 +76,7 @@
     "@types/node": "^20.11.0",
     "@types/react": "^18.2.34",
     "@types/uuid": "^9.0.6",
+    "autoprefixer": "^10.4.16",
     "eslint": "^8.52.0",
     "eslint-config-next": "^14.0.4",
     "eslint-config-prettier": "^9.0.0",
