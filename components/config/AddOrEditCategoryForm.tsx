@@ -7,7 +7,11 @@ import {
   FormikButtonFormSecondary,
 } from 'components/ui/buttons';
 import {Form, Formik} from 'formik';
-import {Category} from 'lib/model/Category';
+import {
+  Category,
+  getNameWithAncestors,
+  makeCategoryTree,
+} from 'lib/model/Category';
 import {CategoryFormValues} from 'lib/model/forms/CategoryFormValues';
 import {useState} from 'react';
 
@@ -45,6 +49,7 @@ export const AddOrEditCategoryForm = ({
     displayOrder: category?.displayOrder() ?? categories.length * 100,
     parentCategoryId: category?.parentCategoryId() ?? 0,
   };
+  const categoryTree = makeCategoryTree(categories);
   return (
     <Formik initialValues={initialValues} onSubmit={handleSubmit}>
       {({values}) => (
@@ -63,7 +68,7 @@ export const AddOrEditCategoryForm = ({
             <option value="0">No parent</option>
             {categories.map(category => (
               <option key={category.id()} value={category.id()}>
-                {category.nameWithAncestors()}
+                {getNameWithAncestors(category, categoryTree)}
               </option>
             ))}
           </FormikSelect>
