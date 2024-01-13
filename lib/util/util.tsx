@@ -136,13 +136,3 @@ export function removeQuotes(s: string): string {
   }
   return s;
 }
-
-function blah2() {
-  const s = 'foo';
-  return s;
-}
-
-export function blah() {
-  const s = 'foo';
-  return s;
-}
