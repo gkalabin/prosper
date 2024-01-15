@@ -17,6 +17,11 @@ import {useFormikContext} from 'formik';
 import {shortRelativeDate} from 'lib/TimeHelpers';
 import {uniqMostFrequent} from 'lib/collections';
 import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {
+  getNameWithAncestors,
+  makeCategoryTree,
+  mustFindCategory,
+} from 'lib/model/Category';
 import {Currency} from 'lib/model/Currency';
 import {Trip} from 'lib/model/Trip';
 import {
@@ -336,6 +341,8 @@ export function Category() {
     values: {categoryId},
   } = useFormikContext<TransactionFormValues>();
   const {categories} = useAllDatabaseDataContext();
+  const value = mustFindCategory(categoryId, categories);
+  const tree = makeCategoryTree(categories);
   return (
     <div className="col-span-6">
       <label className="block text-sm font-medium text-gray-700">
@@ -343,21 +350,12 @@ export function Category() {
       </label>
       <Select
         styles={undoTailwindInputStyles()}
-        options={categories.map(x => {
-          return {
-            label: x.nameWithAncestors(),
-            value: x.id(),
-          };
-        })}
-        value={{
-          label:
-            categories.find(x => x.id() == categoryId)?.nameWithAncestors() ??
-            'Unknown category',
-          value: categoryId,
-        }}
+        options={[...categories]}
+        value={value}
+        getOptionLabel={c => getNameWithAncestors(c, tree)}
+        getOptionValue={c => getNameWithAncestors(c, tree)}
         isClearable={false}
-        // TODO: find a way to not have undefined newValue
-        onChange={newValue => setFieldValue('categoryId', newValue?.value ?? 0)}
+        onChange={newValue => setFieldValue('categoryId', newValue?.id())}
         isDisabled={isSubmitting}
       />
     </div>

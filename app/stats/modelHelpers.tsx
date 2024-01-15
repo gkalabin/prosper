@@ -1,7 +1,13 @@
 import {AmountWithCurrency} from 'lib/AmountWithCurrency';
 import {StockAndCurrencyExchange} from 'lib/ClientSideModel';
 import {BankAccount} from 'lib/model/BankAccount';
-import {Category, descendants, mustFindCategory} from 'lib/model/Category';
+import {
+  Category,
+  descendants,
+  getNameWithAncestors,
+  makeCategoryTree,
+  mustFindCategory,
+} from 'lib/model/Category';
 import {Currency} from 'lib/model/Currency';
 import {Stock} from 'lib/model/Stock';
 import {Income} from 'lib/model/transaction/Income';
@@ -31,11 +37,8 @@ export function categoryNameById(
   categoryId: number,
   categories: Category[]
 ): string {
-  const found = categories.find(c => c.id() === categoryId);
-  if (!found) {
-    return 'Unknown category';
-  }
-  return found.nameWithAncestors();
+  const tree = makeCategoryTree(categories);
+  return getNameWithAncestors(categoryId, tree);
 }
 
 export function ownShareSum(

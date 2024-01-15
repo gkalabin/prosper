@@ -234,7 +234,6 @@ export function ExpenseByCategory(props: {
   if (totalSum.isZero()) {
     return <></>;
   }
-
   return (
     <>
       <CurrencyExchangeFailed failedTransactions={failedToExchange} />
@@ -244,7 +243,7 @@ export function ExpenseByCategory(props: {
           ...defaultMonthlyMoneyChart(displayCurrency, props.duration),
           ...stackedBarChartTooltip(displayCurrency),
           title: {
-            text: props.category.nameWithAncestors(),
+            text: categoryNameById(props.category.id(), categories),
           },
           series: [...byCategoryMonth.entries()].map(
             ([categoryId, series]) => ({

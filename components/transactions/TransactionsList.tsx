@@ -8,6 +8,11 @@ import {AmountWithUnit} from 'lib/AmountWithUnit';
 import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
 import {fullAccountName} from 'lib/model/BankAccount';
 import {
+  CategoryTree,
+  getNameWithAncestors,
+  makeCategoryTree,
+} from 'lib/model/Category';
+import {
   Transaction,
   isExpense,
   isIncome,
@@ -16,7 +21,6 @@ import {
   isTransfer,
   otherPartyNameOrNull,
   transactionBankAccount,
-  transactionCategory,
   transactionUnit,
 } from 'lib/model/transaction/Transaction';
 import {
@@ -98,19 +102,21 @@ const TransactionAmount = (props: {transaction: Transaction}) => {
   }
 };
 
-export const TransactionsListItem = (props: {
+export const TransactionsListItem = ({
+  transaction: t,
+  categoryTree,
+  onUpdated,
+}: {
   transaction: Transaction;
+  categoryTree: CategoryTree;
   onUpdated: (response: TransactionAPIResponse) => void;
-  showBankAccountInStatusLine: boolean;
 }) => {
   const [showRawDetails, setShowRawDetails] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-  const raw = JSON.stringify(props.transaction, null, 2);
-  const {tags, categories, bankAccounts, banks, stocks, trips} =
+  const raw = JSON.stringify(t, null, 2);
+  const {tags, bankAccounts, banks, stocks, trips} =
     useAllDatabaseDataContext();
-  const t = props.transaction;
-  const category = transactionCategory(t, categories);
   return (
     <div className="p-2">
       <div
@@ -149,7 +155,9 @@ export const TransactionsListItem = (props: {
             Time: {new Date(t.timestampEpoch).toISOString()}
           </div>
           <div>Type: {t.kind}</div>
-          <div>Category: {category.nameWithAncestors()}</div>
+          <div>
+            Category: {getNameWithAncestors(t.categoryId, categoryTree)}
+          </div>
           {t.note && <div>Note: {t.note}</div>}
           {isExpense(t) && <div>Vendor: {t.vendor}</div>}
           {otherPartyNameOrNull(t) && (
@@ -231,9 +239,9 @@ export const TransactionsListItem = (props: {
       {expanded && showEditForm && (
         <div>
           <AddTransactionForm
-            transaction={props.transaction}
+            transaction={t}
             onAddedOrUpdated={updated => {
-              props.onUpdated(updated);
+              onUpdated(updated);
               setShowEditForm(false);
             }}
             onClose={() => setShowEditForm(false)}
@@ -248,15 +256,14 @@ export const TransactionsList = (props: {
   transactions: Transaction[];
   onTransactionUpdated: (response: TransactionAPIResponse) => void;
   displayLimit?: number;
-  showBankAccountInStatusLine?: boolean;
 }) => {
   const [displayLimit, setDisplayLimit] = useState(props.displayLimit || 10);
-
+  const {categories} = useAllDatabaseDataContext();
   if (!props.transactions?.length) {
     return <div>No transactions.</div>;
   }
-
   const displayTransactions = [...props.transactions].slice(0, displayLimit);
+  const categoryTree = makeCategoryTree(categories);
   return (
     <>
       <div className="flex-1 rounded border border-gray-200">
@@ -265,10 +272,8 @@ export const TransactionsList = (props: {
             <TransactionsListItem
               key={t.id}
               transaction={t}
+              categoryTree={categoryTree}
               onUpdated={props.onTransactionUpdated}
-              showBankAccountInStatusLine={
-                props.showBankAccountInStatusLine ?? true
-              }
             />
           ))}
           <li className="bg-slate-50 p-2 text-center text-lg font-medium">

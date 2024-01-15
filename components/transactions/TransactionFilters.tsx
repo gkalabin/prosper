@@ -5,10 +5,20 @@ import {format} from 'date-fns';
 import {useFormikContext} from 'formik';
 import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
 import {fullAccountName} from 'lib/model/BankAccount';
+import {
+  Category,
+  getNameWithAncestors,
+  makeCategoryTree,
+} from 'lib/model/Category';
 import {Tag} from 'lib/model/Tag';
 import {Trip} from 'lib/model/Trip';
 import {Transaction} from 'lib/model/transaction/Transaction';
-import {QuerySyntaxError, fallbackSearch, search} from 'lib/search/search';
+import {
+  QuerySyntaxError,
+  SearchParams,
+  fallbackSearch,
+  search,
+} from 'lib/search/search';
 import {notEmpty} from 'lib/util/util';
 import {useEffect} from 'react';
 import Select from 'react-select';
@@ -22,7 +32,7 @@ export type FiltersFormValues = {
   timeFrom: string;
   timeTo: string;
   accountIds: number[];
-  categoryIds: number[];
+  categories: Category[];
   tripId: number | undefined;
   tagIds: number[];
   allTagsShouldMatch: boolean;
@@ -34,7 +44,7 @@ export const initialTransactionFilters: FiltersFormValues = {
   timeFrom: '',
   timeTo: '',
   accountIds: [],
-  categoryIds: [],
+  categories: [],
   tripId: undefined,
   tagIds: [],
   allTagsShouldMatch: false,
@@ -53,7 +63,7 @@ function generateQuery({
     transactionTypes,
     vendor,
     accountIds,
-    categoryIds,
+    categories,
     tripId,
     timeFrom,
     timeTo,
@@ -72,7 +82,7 @@ function generateQuery({
   appendOR(...transactionTypes.map(tt => `t:${tt}`));
   appendOR(vendor && `vendor:${vendor}`);
   appendOR(...accountIds.map(id => `account:${id}`));
-  appendOR(...categoryIds.map(id => `c:${id}`));
+  appendOR(...categories.map(c => `c:${c.id()}`));
   if (tripId) {
     const trip = trips.find(t => t.id == tripId);
     appendOR(trip && `trip:"${trip.name}"`);
@@ -96,15 +106,21 @@ export function useFilteredTransactions(): {
   results: Transaction[];
   error?: QuerySyntaxError;
 } {
-  const {transactions, banks, bankAccounts, categories, trips, tags} =
-    useAllDatabaseDataContext();
+  const {
+    transactions,
+    banks,
+    bankAccounts,
+    categories: allCategories,
+    trips,
+    tags,
+  } = useAllDatabaseDataContext();
   const {
     values: {
       query,
       transactionTypes,
       vendor,
       accountIds,
-      categoryIds,
+      categories: filterCategories,
       tripId,
       timeFrom,
       timeTo,
@@ -121,7 +137,7 @@ export function useFilteredTransactions(): {
         transactionTypes,
         vendor,
         accountIds,
-        categoryIds,
+        categories: filterCategories,
         tripId,
         timeFrom,
         timeTo,
@@ -136,7 +152,7 @@ export function useFilteredTransactions(): {
     transactionTypes,
     vendor,
     accountIds,
-    categoryIds,
+    filterCategories,
     tripId,
     timeFrom,
     timeTo,
@@ -146,12 +162,12 @@ export function useFilteredTransactions(): {
     tags,
     setFieldValue,
   ]);
-  const searchParams = {
+  const searchParams: SearchParams = {
     query,
     transactions,
     banks,
     bankAccounts,
-    categories,
+    categories: allCategories,
     trips,
     tags,
   };
@@ -184,10 +200,21 @@ export function SearchForAnythingInput() {
 }
 
 export function TransactionFiltersForm(props: {onClose: () => void}) {
-  const {banks, bankAccounts, categories, trips, tags} =
-    useAllDatabaseDataContext();
   const {
-    values: {transactionTypes, accountIds, categoryIds, tripId, tagIds},
+    banks,
+    bankAccounts,
+    categories: allCategories,
+    trips,
+    tags,
+  } = useAllDatabaseDataContext();
+  const {
+    values: {
+      transactionTypes,
+      accountIds,
+      categories: filterCategories,
+      tripId,
+      tagIds,
+    },
     setFieldValue,
   } = useFormikContext<FiltersFormValues>();
   const bankAccountOptions = bankAccounts.map(a => ({
@@ -198,14 +225,8 @@ export function TransactionFiltersForm(props: {onClose: () => void}) {
     number,
     {value: number; label: string}
   >(bankAccountOptions.map(x => [x.value, x]));
-
-  const categoryOptions = categories.map(a => ({
-    value: a.id(),
-    label: a.nameWithAncestors(),
-  }));
-  const categoryOptionByValue = new Map<number, {value: number; label: string}>(
-    categoryOptions.map(x => [x.value, x])
-  );
+  const tree = makeCategoryTree(allCategories);
+  const formatCategoryName = (c: Category) => getNameWithAncestors(c, tree);
 
   const tripOptions = trips.map(a => ({
     value: a.id,
@@ -294,18 +315,12 @@ export function TransactionFiltersForm(props: {onClose: () => void}) {
           </label>
           <Select
             styles={undoTailwindInputStyles()}
-            options={categoryOptions}
             isMulti
-            value={categoryIds.map(x => ({
-              label: categoryOptionByValue.get(x)?.label ?? 'unknown',
-              value: x,
-            }))}
-            onChange={x =>
-              setFieldValue(
-                'categoryIds',
-                x.map(x => x.value)
-              )
-            }
+            options={[...allCategories]}
+            value={[...filterCategories]}
+            getOptionLabel={formatCategoryName}
+            getOptionValue={formatCategoryName}
+            onChange={x => setFieldValue('categories', x)}
           />
         </div>
         <div className="col-span-6">

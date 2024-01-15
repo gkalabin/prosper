@@ -8,6 +8,7 @@ import {BankAccount} from 'lib/model/BankAccount';
 import {
   Category,
   findRoot,
+  getNameWithAncestors,
   makeCategoryTree,
   mustFindCategory,
 } from 'lib/model/Category';
@@ -150,6 +151,7 @@ function ByCategoryChart({
     groupFn,
     amountFn: amountFnWithModel,
   });
+  const tree = makeCategoryTree(categories);
   return (
     <>
       <CurrencyExchangeFailed failedTransactions={failedToExchange} />
@@ -164,7 +166,7 @@ function ByCategoryChart({
             {
               type: 'pie',
               data: [...data.entries()].map(([cid, amount]) => ({
-                name: mustFindCategory(cid, categories).nameWithAncestors(),
+                name: getNameWithAncestors(cid, tree),
                 value: amount.dollar(),
               })),
             },

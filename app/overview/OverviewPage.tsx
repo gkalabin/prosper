@@ -79,7 +79,6 @@ const BankAccountListItem = ({account}: {account: BankAccount}) => {
           <TransactionsList
             transactions={accountTransactions}
             onTransactionUpdated={onTransactionChange(setDbData)}
-            showBankAccountInStatusLine={false}
           />
         </div>
       )}
