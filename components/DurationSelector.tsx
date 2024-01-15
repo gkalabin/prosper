@@ -23,11 +23,15 @@ export const LAST_12_MONTHS: Interval = {
   end: now,
 };
 
-function useCommonIntervals() {
+function useFirstTransactionMonth() {
   const {transactions} = useAllDatabaseDataContext();
   const [firstTransaction] = [...transactions].sort(
     (a, b) => a.timestampEpoch - b.timestampEpoch
   );
+  return startOfMonth(firstTransaction.timestampEpoch);
+}
+
+function useCommonIntervals() {
   return [
     {
       label: 'Last 6 months',
@@ -40,14 +44,14 @@ function useCommonIntervals() {
     {
       label: 'All time',
       interval: {
-        start: startOfMonth(firstTransaction.timestampEpoch),
+        start: useFirstTransactionMonth(),
         end: now,
       },
     },
   ];
 }
 
-const formatDate = (date?: Date | number) =>
+const formatDate = (date: Date | number | string) =>
   date ? format(date, 'yyyy-MM-dd') : '';
 
 function intervalsEqual(i1: Interval, i2: Interval): boolean {
@@ -78,6 +82,7 @@ export function DurationSelector({
     }
     return 'Never';
   };
+  const firstTransactionMonth = useFirstTransactionMonth();
 
   return (
     <Popover className="relative">
@@ -142,7 +147,9 @@ export function DurationSelector({
                           value={formatDate(duration.start)}
                           onChange={x =>
                             onChange({
-                              start: new Date(x.target.value),
+                              start: x.target.value
+                                ? new Date(x.target.value)
+                                : firstTransactionMonth,
                               end: duration.end,
                             })
                           }
@@ -162,7 +169,9 @@ export function DurationSelector({
                           onChange={x =>
                             onChange({
                               start: duration.start,
-                              end: new Date(x.target.value),
+                              end: x.target.value
+                                ? new Date(x.target.value)
+                                : now,
                             })
                           }
                         />
