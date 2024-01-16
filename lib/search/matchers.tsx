@@ -1,6 +1,6 @@
 import {format, isAfter, isBefore, isSameDay, parse} from 'date-fns';
 import {Bank, BankAccount} from 'lib/model/BankAccount';
-import {Category} from 'lib/model/Category';
+import {CategoryTree, getNameWithAncestors} from 'lib/model/Category';
 import {Tag} from 'lib/model/Tag';
 import {Trip} from 'lib/model/Trip';
 import {
@@ -13,7 +13,6 @@ import {
   otherPartyName,
   transactionBank,
   transactionBankAccount,
-  transactionCategory,
   transactionTags,
   transactionTrip,
 } from 'lib/model/transaction/Transaction';
@@ -43,7 +42,7 @@ export function matchAnyField(
   c: CaseMatch,
   banks: Bank[],
   bankAccounts: BankAccount[],
-  categories: Category[],
+  categoryTree: CategoryTree,
   trips: Trip[],
   tags: Tag[]
 ): boolean {
@@ -56,7 +55,7 @@ export function matchAnyField(
     matchTransactionId(t, term) ||
     matchBank(t, term, c, banks, bankAccounts) ||
     matchBankAccount(t, term, c, bankAccounts) ||
-    matchCategory(t, term, c, categories) ||
+    matchCategory(t, term, c, categoryTree) ||
     matchTrip(t, term, c, trips) ||
     matchTag(t, term, c, tags) ||
     matchDate(t, term) ||
@@ -71,7 +70,7 @@ export function matchField(
   c: CaseMatch,
   banks: Bank[],
   bankAccounts: BankAccount[],
-  categories: Category[],
+  categoryTree: CategoryTree,
   trips: Trip[],
   tags: Tag[]
 ): boolean {
@@ -105,7 +104,7 @@ export function matchField(
     );
   }
   if (includesIgnoreCase(fieldName, ['category', 'c'])) {
-    return matchCategoryId(t, term) || matchCategory(t, term, c, categories);
+    return matchCategoryId(t, term) || matchCategory(t, term, c, categoryTree);
   }
   if (includesIgnoreCase(fieldName, ['trip'])) {
     return matchTripId(t, term) || matchTrip(t, term, c, trips);
@@ -302,10 +301,10 @@ function matchCategory(
   t: Transaction,
   term: string,
   c: CaseMatch,
-  categories: Category[]
+  categoryTree: CategoryTree
 ): boolean {
-  const category = transactionCategory(t, categories);
-  return includes(category.nameWithAncestors(), term, c);
+  const name = getNameWithAncestors(t.categoryId, categoryTree);
+  return includes(name, term, c);
 }
 
 function matchCategoryId(t: Transaction, term: string): boolean {

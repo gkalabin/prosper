@@ -18,7 +18,12 @@ import {differenceInMonths} from 'date-fns';
 import {useFormikContext} from 'formik';
 import {uniqMostFrequent} from 'lib/collections';
 import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
-import {Category as CategoryModel, immediateChildren} from 'lib/model/Category';
+import {
+  getNameWithAncestors,
+  immediateChildren,
+  makeCategoryTree,
+  mustFindCategory,
+} from 'lib/model/Category';
 import {
   FormMode,
   TransactionFormValues,
@@ -212,12 +217,6 @@ export function Category() {
   const mostFrequent = mostFrequentIds
     .map(id => categories.find(c => c.id() == id))
     .filter(notEmpty);
-
-  const makeOption = (x: CategoryModel) => ({
-    label: x.nameWithAncestors(),
-    value: x.id(),
-  });
-
   // This is O(n^2), but can be optimised in case it's slow.
   const categoriesWithoutChildren = categories.filter(
     c => immediateChildren(c, categories).length == 0
@@ -225,17 +224,19 @@ export function Category() {
   const options = [
     {
       label: 'Most Frequently Used',
-      options: mostFrequent.slice(0, MAX_MOST_FREQUENT).map(makeOption),
+      options: mostFrequent.slice(0, MAX_MOST_FREQUENT),
     },
     {
       label: 'Children Categories',
-      options: categoriesWithoutChildren.map(makeOption),
+      options: categoriesWithoutChildren,
     },
     {
       label: 'All Categories',
-      options: categories.map(makeOption),
+      options: categories,
     },
   ];
+  const value = mustFindCategory(categoryId, categories);
+  const tree = makeCategoryTree(categories);
   return (
     <div className="col-span-6">
       <label className="block text-sm font-medium text-gray-700">
@@ -244,13 +245,10 @@ export function Category() {
       <Select
         styles={undoTailwindInputStyles()}
         options={options}
-        value={{
-          label: categories
-            .find(x => x.id() == categoryId)
-            ?.nameWithAncestors(),
-          value: categoryId,
-        }}
-        onChange={newValue => setFieldValue('categoryId', newValue?.value ?? 0)}
+        getOptionLabel={c => getNameWithAncestors(c, tree)}
+        getOptionValue={c => getNameWithAncestors(c, tree)}
+        value={value}
+        onChange={newValue => setFieldValue('categoryId', newValue?.id())}
         isDisabled={isSubmitting}
       />
     </div>

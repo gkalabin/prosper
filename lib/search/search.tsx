@@ -1,6 +1,6 @@
 import {CharStream, CommonTokenStream, ErrorListener, Recognizer} from 'antlr4';
 import {Bank, BankAccount} from 'lib/model/BankAccount';
-import {Category} from 'lib/model/Category';
+import {Category, makeCategoryTree} from 'lib/model/Category';
 import {Tag} from 'lib/model/Tag';
 import {Trip} from 'lib/model/Trip';
 import {Transaction} from 'lib/model/transaction/Transaction';
@@ -102,6 +102,7 @@ export function fallbackSearch({
   if (!query || !query.trim()) {
     return transactions;
   }
+  const tree = makeCategoryTree(categories);
   return transactions.filter(t =>
     matchAnyField(
       t,
@@ -109,7 +110,7 @@ export function fallbackSearch({
       CaseMatch.CaseInsensitive,
       banks,
       bankAccounts,
-      categories,
+      tree,
       trips,
       tags
     )

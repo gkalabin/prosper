@@ -7,7 +7,6 @@ export class Category {
   private readonly _displayOrder: number;
   private readonly _parentCategoryId?: number;
 
-  _ancestors: Category[] = [];
   _immediateChildren: Category[] = [];
 
   constructor(init: DBCategory) {
@@ -31,13 +30,6 @@ export class Category {
 
   name() {
     return this._name;
-  }
-
-  nameWithAncestors() {
-    if (this.isRoot()) {
-      return this.name();
-    }
-    return [...this._ancestors, this].map(a => a.name()).join(' > ');
   }
 
   isRoot() {
@@ -139,7 +131,6 @@ export const categoryModelFromDB = (dbCategories: DBCategory[]): Category[] => {
     }
     parent._immediateChildren.push(c);
     while (parent) {
-      c._ancestors.unshift(parent);
       parentId = parent.parentCategoryId();
       if (!parentId) {
         break;

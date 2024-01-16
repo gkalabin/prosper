@@ -1,6 +1,6 @@
 import {assertDefined} from 'lib/assert';
 import {Bank, BankAccount} from 'lib/model/BankAccount';
-import {Category} from 'lib/model/Category';
+import {Category, CategoryTree, makeCategoryTree} from 'lib/model/Category';
 import {Tag} from 'lib/model/Tag';
 import {Trip} from 'lib/model/Trip';
 import {Transaction} from 'lib/model/transaction/Transaction';
@@ -31,17 +31,19 @@ type TransactionIds = readonly number[];
 
 export class TransactionSearchQueryVisitor extends QueryVisitor<TransactionIds> {
   private readonly allIds: TransactionIds;
+  private readonly categoryTree: CategoryTree;
 
   constructor(
     private transactions: Transaction[],
     private banks: Bank[],
     private bankAccounts: BankAccount[],
-    private categories: Category[],
+    categories: Category[],
     private trips: Trip[],
     private tags: Tag[]
   ) {
     super();
     this.allIds = transactions.map(t => t.id);
+    this.categoryTree = makeCategoryTree(categories);
   }
 
   visitRootQuery = (ctx: RootQueryContext): TransactionIds => {
@@ -121,7 +123,7 @@ export class TransactionSearchQueryVisitor extends QueryVisitor<TransactionIds> 
           c,
           this.banks,
           this.bankAccounts,
-          this.categories,
+          this.categoryTree,
           this.trips,
           this.tags
         )
@@ -142,7 +144,7 @@ export class TransactionSearchQueryVisitor extends QueryVisitor<TransactionIds> 
           c,
           this.banks,
           this.bankAccounts,
-          this.categories,
+          this.categoryTree,
           this.trips,
           this.tags
         )
