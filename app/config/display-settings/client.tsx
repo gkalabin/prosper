@@ -9,7 +9,7 @@ import {FormikButtonFormPrimary} from 'components/ui/buttons';
 import {Form, Formik} from 'formik';
 import {DisplaySettings} from 'lib/displaySettings';
 import {categoryModelFromDB, sortCategories} from 'lib/model/Category';
-import {Currency} from 'lib/model/Currency';
+import {allCurrencies} from 'lib/model/Currency';
 import {DisplaySettingsFormValues} from 'lib/model/api/DisplaySettingsConfig';
 import {useState} from 'react';
 
@@ -44,7 +44,7 @@ export function DisplaySettingsPage({
     }
   };
   const initialValues: DisplaySettingsFormValues = {
-    displayCurrencyCode: displaySettings.displayCurrency().code(),
+    displayCurrencyCode: displaySettings.displayCurrency().code,
     excludeCategoryIdsInStats: displaySettings.excludeCategoryIdsInStats(),
   };
   return (
@@ -66,9 +66,9 @@ export function DisplaySettingsPage({
               className="w-full"
               value={values.displayCurrencyCode}
             >
-              {Currency.all().map(x => (
-                <option key={x.code()} value={x.code()}>
-                  {x.code()}
+              {allCurrencies().map(x => (
+                <option key={x.code} value={x.code}>
+                  {x.code}
                 </option>
               ))}
             </FormikSelect>

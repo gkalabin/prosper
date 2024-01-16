@@ -1,5 +1,5 @@
 import {addDays, differenceInHours, format, isSameDay} from 'date-fns';
-import {Currency, NANOS_MULTIPLIER} from 'lib/model/Currency';
+import {Currency, NANOS_MULTIPLIER, allCurrencies} from 'lib/model/Currency';
 import prisma from 'lib/prisma';
 import yahooFinance from 'yahoo-finance2';
 import {type HistoricalRowHistory} from 'yahoo-finance2/dist/esm/src/modules/historical';
@@ -16,7 +16,7 @@ export async function fetchExchangeRates({
   sell: Currency;
   buy: Currency;
 }) {
-  const symbol = `${sell.code()}${buy.code()}=X`;
+  const symbol = `${sell.code}${buy.code}=X`;
   const r = await yahooFinance.historical(
     symbol,
     {
@@ -32,8 +32,8 @@ export async function addLatestExchangeRates() {
   const timingLabel = 'Exchange rate backfill ' + new Date().getTime();
   console.time(timingLabel);
   const backfillPromises: Promise<void>[] = [];
-  for (const sell of Currency.all()) {
-    for (const buy of Currency.all()) {
+  for (const sell of allCurrencies()) {
+    for (const buy of allCurrencies()) {
       backfillPromises.push(backfill({sell, buy}));
     }
   }
@@ -42,22 +42,22 @@ export async function addLatestExchangeRates() {
 }
 
 async function backfill({sell, buy}: {sell: Currency; buy: Currency}) {
-  if (sell.code() == buy.code()) {
+  if (sell.code == buy.code) {
     return;
   }
   const now = new Date();
   const apiModelToDb = (x: HistoricalRowHistory) => {
     return {
-      currencyCodeFrom: sell.code(),
-      currencyCodeTo: buy.code(),
+      currencyCodeFrom: sell.code,
+      currencyCodeTo: buy.code,
       rateTimestamp: x.date.toISOString(),
       rateNanos: Math.round(x.close * NANOS_MULTIPLIER),
     };
   };
   const latest = await prisma.exchangeRate.findFirst({
     where: {
-      currencyCodeFrom: sell.code(),
-      currencyCodeTo: buy.code(),
+      currencyCodeFrom: sell.code,
+      currencyCodeTo: buy.code,
     },
     orderBy: [
       {
@@ -70,22 +70,22 @@ async function backfill({sell, buy}: {sell: Currency; buy: Currency}) {
   });
 
   if (!latest) {
-    console.info(`${sell.code()}->${buy.code()}: no history`);
+    console.info(`${sell.code}->${buy.code}: no history`);
     const startDate = addDays(now, -NO_HISTORY_LOOK_BACK_DAYS);
     const fetched = await fetchExchangeRates({sell, buy, startDate});
     if (fetched?.length == 0) {
       console.warn(
         '%s->%s: historical data not found starting on %s',
-        sell.code(),
-        buy.code(),
+        sell.code,
+        buy.code,
         startDate.toDateString()
       );
       return;
     }
     console.log(
       '%s->%s: inserting a new rate for %s',
-      sell.code(),
-      buy.code(),
+      sell.code,
+      buy.code,
       fetched[0].date.toDateString()
     );
     await prisma.exchangeRate.createMany({
@@ -101,8 +101,8 @@ async function backfill({sell, buy}: {sell: Currency; buy: Currency}) {
     if (ageHours < UPDATE_FREQUENCY_HOURS) {
       console.warn(
         '%s->%s: rate for %s is still fresh, updated %d hours ago on %s',
-        sell.code(),
-        buy.code(),
+        sell.code,
+        buy.code,
         latest.rateTimestamp.toDateString(),
         ageHours,
         latest.updatedAt
@@ -111,8 +111,8 @@ async function backfill({sell, buy}: {sell: Currency; buy: Currency}) {
     }
     console.log(
       "%s->%s: updating today's (%s) rate as it's %d hours old",
-      sell.code(),
-      buy.code(),
+      sell.code,
+      buy.code,
       latest.rateTimestamp.toDateString(),
       ageHours
     );
@@ -120,8 +120,8 @@ async function backfill({sell, buy}: {sell: Currency; buy: Currency}) {
     if (fetched?.length != 1) {
       console.warn(
         '%s->%s: found %d rates on %s, want 1, ignoring',
-        sell.code(),
-        buy.code(),
+        sell.code,
+        buy.code,
         fetched?.length,
         now.toDateString()
       );
@@ -140,8 +140,8 @@ async function backfill({sell, buy}: {sell: Currency; buy: Currency}) {
     // When the timestamp was updated on a later date, it's up to date, so not reupdate it.
     console.log(
       '%s->%s: latest rate from %s was updated on %s, skipping additional update',
-      sell.code(),
-      buy.code(),
+      sell.code,
+      buy.code,
       latest.rateTimestamp.toDateString(),
       latest.updatedAt.toDateString()
     );
@@ -150,8 +150,8 @@ async function backfill({sell, buy}: {sell: Currency; buy: Currency}) {
 
   console.log(
     '%s->%s: fetching from %s',
-    sell.code(),
-    buy.code(),
+    sell.code,
+    buy.code,
     startDate.toDateString(),
     now.toDateString()
   );
@@ -161,8 +161,8 @@ async function backfill({sell, buy}: {sell: Currency; buy: Currency}) {
   if (toUpdate) {
     console.log(
       '%s->%s: updating rate for %s',
-      sell.code(),
-      buy.code(),
+      sell.code,
+      buy.code,
       latest.rateTimestamp.toDateString()
     );
     await prisma.exchangeRate.update({
@@ -178,8 +178,8 @@ async function backfill({sell, buy}: {sell: Currency; buy: Currency}) {
   if (toInsert) {
     console.log(
       '%s->%s: inserting %d quotes',
-      sell.code(),
-      buy.code(),
+      sell.code,
+      buy.code,
       toInsert.length
     );
     await prisma.exchangeRate.createMany({

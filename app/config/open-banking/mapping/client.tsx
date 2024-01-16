@@ -16,7 +16,7 @@ import {useState} from 'react';
 
 function UnitName({unit}: {unit: Unit}) {
   if (isCurrency(unit)) {
-    return <>{unit.code()}</>;
+    return <>{unit.code}</>;
   }
   return <>{unit.ticker}</>;
 }

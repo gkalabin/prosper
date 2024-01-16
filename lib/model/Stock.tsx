@@ -1,6 +1,7 @@
 import {Stock as DBStock} from '@prisma/client';
 
 export type Stock = {
+  kind: 'stock';
   id: number;
   name: string;
   currencyCode: string;
@@ -11,6 +12,7 @@ export type Stock = {
 
 export function stockModelFromDB(init: DBStock): Stock {
   return {
+    kind: 'stock',
     id: init.id,
     name: init.name,
     currencyCode: init.currencyCode,

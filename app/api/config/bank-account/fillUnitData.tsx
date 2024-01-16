@@ -1,5 +1,5 @@
 import {Prisma} from '@prisma/client';
-import {Currency} from 'lib/model/Currency';
+import {findByCode} from 'lib/model/Currency';
 import {AccountUnitFormValue} from 'lib/model/forms/BankAccountFormValues';
 import prisma from 'lib/prisma';
 import yahooFinance from 'yahoo-finance2';
@@ -35,7 +35,7 @@ export async function fillUnitData(
   if (!quote.currency) {
     throw new Error(`quote for ${unit.ticker} has no currency`);
   }
-  const currency = Currency.findByCode(quote.currency.toUpperCase());
+  const currency = findByCode(quote.currency.toUpperCase());
   if (!currency) {
     throw new Error(
       `could not find currency '${quote.currency}' when creating stock ${unit.ticker}`
@@ -45,7 +45,7 @@ export async function fillUnitData(
     data: {
       exchange: quote.exchange,
       ticker: quote.symbol,
-      currencyCode: currency.code(),
+      currencyCode: currency.code,
       name: quote.longName ?? quote.shortName ?? quote.symbol,
     },
   });

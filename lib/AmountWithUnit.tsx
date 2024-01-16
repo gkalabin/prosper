@@ -136,7 +136,7 @@ export class AmountWithUnit {
     if (
       isCurrency(that.unit) &&
       isCurrency(this.unit) &&
-      that.unit.code() == this.unit.code()
+      that.unit.code == this.unit.code
     ) {
       return;
     }

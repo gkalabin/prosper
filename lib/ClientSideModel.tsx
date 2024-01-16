@@ -21,7 +21,7 @@ import {
   categoryModelFromDB,
   sortCategories,
 } from 'lib/model/Category';
-import {Currency, NANOS_MULTIPLIER} from 'lib/model/Currency';
+import {Currency, NANOS_MULTIPLIER, mustFindByCode} from 'lib/model/Currency';
 import {Stock, stockModelFromDB} from 'lib/model/Stock';
 import {Tag, tagModelFromDB} from 'lib/model/Tag';
 import {Trip, tripModelFromDB} from 'lib/model/Trip';
@@ -117,7 +117,7 @@ export class ExchangeRates {
     target: Currency,
     when: Date | number
   ): AmountWithCurrency | undefined {
-    if (a.getCurrency().code() == target.code()) {
+    if (a.getCurrency().code == target.code) {
       return a;
     }
     if (a.isZero()) {
@@ -138,11 +138,11 @@ export class ExchangeRates {
     to: Currency,
     when: Date | number
   ): number | undefined {
-    const ratesFrom = this.ratesByCurrencyCode.get(from.code());
+    const ratesFrom = this.ratesByCurrencyCode.get(from.code);
     if (!ratesFrom) {
       return undefined;
     }
-    const ratesHistory = ratesFrom.get(to.code());
+    const ratesHistory = ratesFrom.get(to.code);
     if (!ratesHistory) {
       return undefined;
     }
@@ -157,7 +157,7 @@ export class ExchangeRates {
       return undefined;
     }
     console.warn(
-      `Approximating ${from.code()}→${to.code()} rate for ${when} with ${closestTimestamp}`
+      `Approximating ${from.code}→${to.code} rate for ${when} with ${closestTimestamp}`
     );
     return ratesHistory.get(closestTimestamp.getTime());
   }
@@ -187,7 +187,7 @@ export class StockQuotes {
     stock: Stock,
     when: Date | number
   ): AmountWithCurrency | undefined {
-    const currency = Currency.mustFindByCode(stock.currencyCode);
+    const currency = mustFindByCode(stock.currencyCode);
     if (a.isZero()) {
       return AmountWithCurrency.zero(currency);
     }

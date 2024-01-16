@@ -1,5 +1,5 @@
 import {Bank as DBBank, BankAccount as DBBankAccount} from '@prisma/client';
-import {Currency} from 'lib/model/Currency';
+import {mustFindByCode} from 'lib/model/Currency';
 import {Stock} from 'lib/model/Stock';
 
 import {Unit} from 'lib/model/Unit';
@@ -53,7 +53,7 @@ export function bankAccountModelFromDB(init: DBBankAccount): BankAccount {
 
 export function accountUnit(account: BankAccount, stocks: Stock[]): Unit {
   if (account.currencyCode) {
-    return Currency.mustFindByCode(account.currencyCode);
+    return mustFindByCode(account.currencyCode);
   }
   if (account.stockId) {
     const stock = stocks.find(s => s.id == account.stockId);

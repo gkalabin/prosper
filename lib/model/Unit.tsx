@@ -1,4 +1,4 @@
-import {Currency} from 'lib/model/Currency';
+import {Currency, formatCurrency} from 'lib/model/Currency';
 import {Stock, formatStock} from 'lib/model/Stock';
 
 export type Unit = Stock | Currency;
@@ -8,21 +8,21 @@ export function formatUnit(
   amountDollar: number,
   options?: Intl.NumberFormatOptions
 ): string {
-  const stock: Stock = unit as Stock;
-  if (stock?.currencyCode) {
-    return formatStock(stock, amountDollar, options);
+  switch (unit.kind) {
+    case 'currency':
+      return formatCurrency(unit, amountDollar, options);
+    case 'stock':
+      return formatStock(unit, amountDollar, options);
+    default:
+      const _exhaustivenessCheck: never = unit;
+      throw new Error(`Unknown unit ${_exhaustivenessCheck}`);
   }
-  if (unit instanceof Currency) {
-    return unit.format(amountDollar, options);
-  }
-  throw new Error('Unknown unit');
 }
 
 export function isCurrency(unit: Unit): unit is Currency {
-  return unit instanceof Currency;
+  return unit.kind == 'currency';
 }
 
 export function isStock(unit: Unit): unit is Stock {
-  // TODO: fix, casting is ugly.
-  return !!(unit as Stock)?.ticker;
+  return unit.kind == 'stock';
 }

@@ -81,8 +81,8 @@ export function CurrencyExchangeFailed({
   return (
     <div className="rounded border bg-red-100 p-2 text-gray-900">
       <div className="text-lg font-medium">
-        Failed to convert the following transactions to {displayCurrency.code()}
-        , these transactions are ignored in the charts:
+        Failed to convert the following transactions to {displayCurrency.code},
+        these transactions are ignored in the charts:
       </div>
       <ul className="ml-6 list-disc">
         {visibleTransactions.map(t => (

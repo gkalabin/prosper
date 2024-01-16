@@ -1,5 +1,5 @@
 import {Amount} from 'lib/Amount';
-import {Currency} from 'lib/model/Currency';
+import {Currency, formatCurrency} from 'lib/model/Currency';
 
 export class AmountWithCurrency {
   private readonly amount: Amount;
@@ -119,7 +119,7 @@ export class AmountWithCurrency {
   }
 
   public format(): string {
-    return this.currency.format(this.amount.dollar(), {
+    return formatCurrency(this.currency, this.amount.dollar(), {
       maximumFractionDigits: this.isRound() ? 0 : 2,
     });
   }
@@ -129,9 +129,9 @@ export class AmountWithCurrency {
   }
 
   private assertSameCurrency(a: AmountWithCurrency) {
-    if (a.currency.code() != this.currency.code()) {
+    if (a.currency.code != this.currency.code) {
       throw new Error(
-        `Impossible to add ${a.currency.code()} and ${this.currency.code()}`
+        `Impossible to add ${a.currency.code} and ${this.currency.code}`
       );
     }
   }

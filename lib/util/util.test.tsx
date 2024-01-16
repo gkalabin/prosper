@@ -1,6 +1,6 @@
 import {expect, test} from '@jest/globals';
 import {AmountWithCurrency} from 'lib/AmountWithCurrency';
-import {Currency} from 'lib/model/Currency';
+import {USD} from 'lib/model/Currency';
 import {parseAmountAsCents, percentile} from 'lib/util/util';
 
 describe('parseAmountAsCents', () => {
@@ -25,7 +25,7 @@ describe('parseAmountAsCents', () => {
 });
 
 describe('percentile', () => {
-  const zero = AmountWithCurrency.zero(Currency.USD);
+  const zero = AmountWithCurrency.zero(USD);
   test.each([-1, 101, 1.5])("throws for invalid percentile '%s'", a =>
     expect(() => percentile([zero], a)).toThrow()
   );
@@ -58,7 +58,7 @@ describe('percentile', () => {
     ${[100, 200, 300, 400]} | ${100} | ${400}
   `('$p-th percentile of $items is $expected', ({items, p, expected}) => {
     const amounts = items.map(
-      i => new AmountWithCurrency({amountCents: i, currency: Currency.USD})
+      i => new AmountWithCurrency({amountCents: i, currency: USD})
     );
     const actual = percentile(amounts, p);
     expect(actual.cents()).toEqual(expected);

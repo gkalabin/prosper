@@ -7,7 +7,7 @@ import {
   accountUnit,
 } from 'lib/model/BankAccount';
 import {Category} from 'lib/model/Category';
-import {Currency} from 'lib/model/Currency';
+import {mustFindByCode} from 'lib/model/Currency';
 import {Stock} from 'lib/model/Stock';
 import {Tag} from 'lib/model/Tag';
 import {Trip} from 'lib/model/Trip';
@@ -87,7 +87,7 @@ export function transactionUnit(
       const account = transactionBankAccount(t, bankAccounts);
       return accountUnit(account, stocks);
     case 'ThirdPartyExpense':
-      return Currency.mustFindByCode(t.currencyCode);
+      return mustFindByCode(t.currencyCode);
     default:
       const _exhaustiveCheck: never = t;
       throw new Error(`No unit for ${_exhaustiveCheck}`);

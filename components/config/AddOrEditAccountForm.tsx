@@ -9,7 +9,7 @@ import {
 import {Form, Formik, useFormikContext} from 'formik';
 import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
 import {Bank, BankAccount} from 'lib/model/BankAccount';
-import {Currency} from 'lib/model/Currency';
+import {allCurrencies, mustFindByCode} from 'lib/model/Currency';
 import {Stock} from 'lib/model/Stock';
 import {
   AccountUnitFormValue,
@@ -143,7 +143,7 @@ export const AddOrEditAccountForm = ({
 
 function useDefaultUnitValue(): AccountUnitFormValue {
   const displayCurrency = useDisplayCurrency();
-  return {kind: 'currency', currencyCode: displayCurrency.code()};
+  return {kind: 'currency', currencyCode: displayCurrency.code};
 }
 
 function useInitialFormValues(
@@ -181,7 +181,7 @@ function useInitialFormValues(
   } else if (bankAccount.currencyCode) {
     unit = {
       kind: 'currency',
-      currencyCode: Currency.mustFindByCode(bankAccount.currencyCode).code(),
+      currencyCode: mustFindByCode(bankAccount.currencyCode).code,
     };
   } else {
     throw new Error(
@@ -226,9 +226,9 @@ export function UnitSelect({stocks}: {stocks: Stock[]}) {
     isSubmitting,
     setFieldValue,
   } = useFormikContext<BankAccountFormValues>();
-  const currencies: CurrencyFormValue[] = Currency.all().map(x => ({
+  const currencies: CurrencyFormValue[] = allCurrencies().map(x => ({
     kind: 'currency',
-    currencyCode: x.code(),
+    currencyCode: x.code,
   }));
   const initialStocks = stocks.map(
     (s): StockFormValue => ({

@@ -3,7 +3,7 @@ import {
   AllDatabaseData,
   TransactionWithTagIds,
 } from 'lib/model/AllDatabaseDataModel';
-import {Currency} from 'lib/model/Currency';
+import {USD} from 'lib/model/Currency';
 import prisma from 'lib/prisma';
 
 export class DB {
@@ -113,7 +113,7 @@ export class DB {
     }
     const created = await prisma.displaySettings.create({
       data: {
-        displayCurrencyCode: Currency.USD.code(),
+        displayCurrencyCode: USD.code,
         excludeCategoryIdsInStats: '',
         userId: this.userId,
       },

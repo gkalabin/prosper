@@ -22,7 +22,7 @@ import {
   makeCategoryTree,
   mustFindCategory,
 } from 'lib/model/Category';
-import {Currency} from 'lib/model/Currency';
+import {allCurrencies} from 'lib/model/Currency';
 import {Trip} from 'lib/model/Trip';
 import {
   FormMode,
@@ -461,9 +461,9 @@ export function Currencies() {
         Currency
       </label>
       <FormikSelect name="currencyCode">
-        {Currency.all().map(c => (
-          <option key={c.code()} value={c.code()}>
-            {c.code()}
+        {allCurrencies().map(c => (
+          <option key={c.code} value={c.code}>
+            {c.code}
           </option>
         ))}
       </FormikSelect>

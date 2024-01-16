@@ -9,7 +9,7 @@ import {type TooltipComponentOption} from 'echarts/components';
 import {CallbackDataParams} from 'echarts/types/dist/shared';
 import {AmountWithCurrency} from 'lib/AmountWithCurrency';
 import {formatMonth} from 'lib/TimeHelpers';
-import {Currency} from 'lib/model/Currency';
+import {Currency, formatCurrency} from 'lib/model/Currency';
 
 export function stackedBarChartTooltip(c: Currency): EChartsOption {
   return {
@@ -162,7 +162,7 @@ export function defaultPieChartOptions(): EChartsOption {
 }
 
 export function currencyFormatter(c: Currency) {
-  return (v: number) => c.format(v, {maximumFractionDigits: 0});
+  return (v: number) => formatCurrency(c, v, {maximumFractionDigits: 0});
 }
 
 export function monthlyData(
