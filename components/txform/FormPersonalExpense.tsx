@@ -215,7 +215,7 @@ export function Category() {
     [transactions, vendor]
   );
   const mostFrequent = mostFrequentIds
-    .map(id => categories.find(c => c.id() == id))
+    .map(id => categories.find(c => c.id == id))
     .filter(notEmpty);
   // This is O(n^2), but can be optimised in case it's slow.
   const categoriesWithoutChildren = categories.filter(
@@ -248,7 +248,7 @@ export function Category() {
         getOptionLabel={c => getNameWithAncestors(c, tree)}
         getOptionValue={c => getNameWithAncestors(c, tree)}
         value={value}
-        onChange={newValue => setFieldValue('categoryId', newValue?.id())}
+        onChange={newValue => setFieldValue('categoryId', newValue?.id)}
         isDisabled={isSubmitting}
       />
     </div>

@@ -51,5 +51,5 @@ function makeCategoryNameFormatter(tree: CategoryTree): CategoryNameFormatter {
 }
 
 function collectIds(categories: readonly Category[]): number[] {
-  return categories.map(c => c.id());
+  return categories.map(c => c.id);
 }

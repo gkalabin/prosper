@@ -29,7 +29,7 @@ export function filterExcludedTransactions(
   const direct = excludeCategoryIds.map(cid => mustFindCategory(cid, all));
   const exclusionDescendants = direct.flatMap(c => descendants(c, all));
   const allExclusion = [...direct, ...exclusionDescendants];
-  const exclude = new Set<number>(allExclusion.map(c => c.id()));
+  const exclude = new Set<number>(allExclusion.map(c => c.id));
   return allTransactions.filter(t => !exclude.has(t.categoryId));
 }
 

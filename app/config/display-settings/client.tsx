@@ -8,7 +8,7 @@ import {FormikSelect} from 'components/forms/Select';
 import {FormikButtonFormPrimary} from 'components/ui/buttons';
 import {Form, Formik} from 'formik';
 import {DisplaySettings} from 'lib/displaySettings';
-import {categoryModelFromDB} from 'lib/model/Category';
+import {categoryModelFromDB, sortCategories} from 'lib/model/Category';
 import {Currency} from 'lib/model/Currency';
 import {DisplaySettingsFormValues} from 'lib/model/api/DisplaySettingsConfig';
 import {useState} from 'react';
@@ -20,7 +20,7 @@ export function DisplaySettingsPage({
   dbDisplaySettings: DBDisplaySettings;
   dbCategories: DBCategory[];
 }) {
-  const categories = categoryModelFromDB(dbCategories);
+  const categories = sortCategories(dbCategories.map(categoryModelFromDB));
   const [dbDisplaySettings, setDbDisplaySettings] = useState(
     initialDbDisplaySettings
   );

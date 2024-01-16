@@ -16,7 +16,11 @@ import {
   bankAccountModelFromDB,
   bankModelFromDB,
 } from 'lib/model/BankAccount';
-import {Category, categoryModelFromDB} from 'lib/model/Category';
+import {
+  Category,
+  categoryModelFromDB,
+  sortCategories,
+} from 'lib/model/Category';
 import {Currency, NANOS_MULTIPLIER} from 'lib/model/Currency';
 import {Stock, stockModelFromDB} from 'lib/model/Stock';
 import {Tag, tagModelFromDB} from 'lib/model/Tag';
@@ -275,7 +279,9 @@ export const banksModelFromDatabaseData = (
 export const modelFromDatabaseData = (
   dbData: AllDatabaseData
 ): AllClientDataModel => {
-  const categories = categoryModelFromDB(dbData.dbCategories);
+  const categories = sortCategories(
+    dbData.dbCategories.map(categoryModelFromDB)
+  );
   const exchangeRates = new ExchangeRates(dbData.dbExchangeRates);
   const stockQuotes = new StockQuotes(dbData.dbStockQuotes);
   const exchange = new StockAndCurrencyExchange(exchangeRates, stockQuotes);

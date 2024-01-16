@@ -99,12 +99,12 @@ function makeRootCategoryIdFn(
   categories: Category[]
 ): TransactionCategoryFunction {
   const tree = makeCategoryTree(categories);
-  return (t: Transaction): number => findRoot(t.categoryId, tree).id();
+  return (t: Transaction): number => findRoot(t.categoryId, tree).id;
 }
 
 function leafCategoryId(t: Transaction, categories: Category[]): number {
   const category = mustFindCategory(t.categoryId, categories);
-  return category.id();
+  return category.id;
 }
 
 type TransactionCategoryFunction = (

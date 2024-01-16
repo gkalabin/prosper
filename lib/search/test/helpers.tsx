@@ -63,7 +63,7 @@ export function tx(
     companions: [],
     note: '',
     accountId: accounts.get(account)!.id,
-    categoryId: categories.get(category)!.id(),
+    categoryId: categories.get(category)!.id,
     tagsIds: [],
     tripId: null,
     refundGroupTransactionIds: [],
@@ -93,15 +93,12 @@ export function mkAccount(name: string, bank: Bank): BankAccount {
 }
 
 export function mkCategory(id: number, name: string): Category {
-  const c = new Category({
+  const c = {
     id,
     name,
     displayOrder: 0,
     parentCategoryId: null,
-    userId: 1,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+  };
   categories.set(name, c);
   return c;
 }

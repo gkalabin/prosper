@@ -8,6 +8,8 @@ import {
   Category,
   categoryModelFromDB,
   immediateChildren,
+  isRoot,
+  sortCategories,
 } from 'lib/model/Category';
 import {updateState} from 'lib/stateHelpers';
 import {useState} from 'react';
@@ -24,7 +26,7 @@ const CategoriesList = (props: {
   return (
     <div>
       {props.categories.map(category => (
-        <div key={category.id()}>
+        <div key={category.id}>
           <EditableCategoryListItem
             category={category}
             depth={props.depth}
@@ -82,7 +84,7 @@ const EditableCategoryListItem = ({
               )}
             >
               {showEditForm && 'Editing '}
-              {category.name()}
+              {category.name}
             </span>
           </div>
           {!showEditForm && (
@@ -120,8 +122,8 @@ export function CategoriesConfigPage({
 }) {
   const [dbCategories, setDbCategories] = useState(initialDbCategories);
   const [showAddForm, setShowAddForm] = useState(false);
-  const allCategoriesFlat = categoryModelFromDB(dbCategories);
-  const rootCategories = allCategoriesFlat.filter(c => c.isRoot());
+  const categories = sortCategories(dbCategories.map(categoryModelFromDB));
+  const rootCategories = categories.filter(c => isRoot(c));
 
   const addOrUpdateState = updateState(setDbCategories);
   return (
@@ -129,7 +131,7 @@ export function CategoriesConfigPage({
       <CategoriesList
         categories={rootCategories}
         depth={0}
-        allCategories={allCategoriesFlat}
+        allCategories={categories}
         onCategoryUpdated={updateState(setDbCategories)}
       />
       <div className="my-6">
@@ -145,7 +147,7 @@ export function CategoriesConfigPage({
             </div>
             <div className="ml-4">
               <AddOrEditCategoryForm
-                categories={allCategoriesFlat}
+                categories={categories}
                 onAddedOrUpdated={x => {
                   setShowAddForm(false);
                   addOrUpdateState(x);

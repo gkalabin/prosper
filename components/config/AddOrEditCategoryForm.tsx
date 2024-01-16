@@ -31,7 +31,7 @@ export const AddOrEditCategoryForm = ({
     setApiError('');
     try {
       const response = await fetch(
-        `/api/config/category/${category?.id() ?? ''}`,
+        `/api/config/category/${category?.id ?? ''}`,
         {
           method: category ? 'PUT' : 'POST',
           headers: {'Content-Type': 'application/json'},
@@ -45,9 +45,9 @@ export const AddOrEditCategoryForm = ({
   };
 
   const initialValues: CategoryFormValues = {
-    name: category?.name() ?? '',
-    displayOrder: category?.displayOrder() ?? categories.length * 100,
-    parentCategoryId: category?.parentCategoryId() ?? 0,
+    name: category?.name ?? '',
+    displayOrder: category?.displayOrder ?? categories.length * 100,
+    parentCategoryId: category?.parentCategoryId ?? 0,
   };
   const categoryTree = makeCategoryTree(categories);
   return (
@@ -67,7 +67,7 @@ export const AddOrEditCategoryForm = ({
           <FormikSelect name="parentCategoryId">
             <option value="0">No parent</option>
             {categories.map(category => (
-              <option key={category.id()} value={category.id()}>
+              <option key={category.id} value={category.id}>
                 {getNameWithAncestors(category, categoryTree)}
               </option>
             ))}

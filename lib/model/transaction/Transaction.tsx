@@ -167,7 +167,7 @@ export function transactionCategory(
   t: Transaction,
   allCategories: Category[]
 ): Category {
-  const c = allCategories.find(c => c.id() == t.categoryId);
+  const c = allCategories.find(c => c.id == t.categoryId);
   if (!c) {
     throw new Error(
       `Cannot find category ${t.categoryId} for transaction ${t.id}`

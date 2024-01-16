@@ -355,7 +355,7 @@ export function Category() {
         getOptionLabel={c => getNameWithAncestors(c, tree)}
         getOptionValue={c => getNameWithAncestors(c, tree)}
         isClearable={false}
-        onChange={newValue => setFieldValue('categoryId', newValue?.id())}
+        onChange={newValue => setFieldValue('categoryId', newValue?.id)}
         isDisabled={isSubmitting}
       />
     </div>

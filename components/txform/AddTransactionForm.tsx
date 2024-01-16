@@ -321,7 +321,7 @@ export const AddTransactionForm = (props: {
   const defaultAccountTo =
     mostUsedAccountTo(transactions) ?? bankAccounts[0].id;
   const defaultCategory =
-    mostUsedCategoryId(transactions, '') ?? categories[0].id();
+    mostUsedCategoryId(transactions, '') ?? categories[0].id;
   const displayCurrency = useDisplayCurrency();
   const initialValuesForEmptyForm = initialValuesEmpty(
     initialMode,

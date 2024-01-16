@@ -36,6 +36,7 @@ import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
 import {
   Category,
   findRoot,
+  isRoot,
   makeCategoryTree,
   subtreeIncludes,
 } from 'lib/model/Category';
@@ -88,7 +89,7 @@ export function ExpenseCharts({input}: {input: TransactionsStatsInput}) {
     }
     {
       const category = transactionCategory(t, categories);
-      const rootId = findRoot(category, categoryTree).id();
+      const rootId = findRoot(category, categoryTree).id;
       const series = byRootCategoryIdAndMonth.get(rootId) ?? new Map(zeroes);
       series.set(ts, exchanged.add(series.get(ts) ?? zero));
       byRootCategoryIdAndMonth.set(rootId, series);
@@ -174,10 +175,10 @@ export function ByCategoryCharts(props: {
         Drilldown by top-level categories
       </h2>
       {categories
-        .filter(c => c.isRoot())
+        .filter(c => isRoot(c))
         .map(c => (
           <ExpenseByCategory
-            key={c.id()}
+            key={c.id}
             transactions={props.transactions}
             category={c}
             duration={props.duration}
@@ -243,7 +244,7 @@ export function ExpenseByCategory(props: {
           ...defaultMonthlyMoneyChart(displayCurrency, props.duration),
           ...stackedBarChartTooltip(displayCurrency),
           title: {
-            text: categoryNameById(props.category.id(), categories),
+            text: categoryNameById(props.category.id, categories),
           },
           series: [...byCategoryMonth.entries()].map(
             ([categoryId, series]) => ({

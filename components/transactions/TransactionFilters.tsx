@@ -82,7 +82,7 @@ function generateQuery({
   appendOR(...transactionTypes.map(tt => `t:${tt}`));
   appendOR(vendor && `vendor:${vendor}`);
   appendOR(...accountIds.map(id => `account:${id}`));
-  appendOR(...categories.map(c => `c:${c.id()}`));
+  appendOR(...categories.map(c => `c:${c.id}`));
   if (tripId) {
     const trip = trips.find(t => t.id == tripId);
     appendOR(trip && `trip:"${trip.name}"`);
