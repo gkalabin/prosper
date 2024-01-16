@@ -37,8 +37,10 @@ RUN chown prosper:prosper .next
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=prosper:prosper /app/.next/standalone ./
 COPY --from=builder --chown=prosper:prosper /app/.next/static ./.next/static
-# Copy the start script.
-COPY --from=builder --chown=prosper:prosper /app/scripts/migrate-and-start.sh /app/scripts/migrate-and-start.sh
+# Copy the prisma folder as it contains all the migrations which need to be run on startup,
+# so schema changes can be picked up by existing applications.
+COPY --from=builder --chown=prosper:prosper /app/prisma/ ./prisma/
+COPY --from=builder --chown=prosper:prosper /app/scripts/migrate-and-start.sh ./scripts/migrate-and-start.sh
 
 USER prosper
 EXPOSE 3000
