@@ -44,4 +44,4 @@ ENV PORT 3000
 # set hostname to localhost
 ENV HOSTNAME "0.0.0.0"
 
-CMD [".scripts/migrate-and-start.sh"]
+CMD ["./scripts/migrate-and-start.sh"]
