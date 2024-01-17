@@ -20,12 +20,12 @@ export type CategoryTreeNode = {
 };
 
 export function isRoot(c: Category): boolean {
-  return c.parentCategoryId != null;
+  return !c.parentCategoryId;
 }
 
 export function makeCategoryTree(all: Category[]): CategoryTree {
-  const nodes: CategoryTreeNode[] = all.map(root => ({
-    category: root,
+  const nodes: CategoryTreeNode[] = all.map(category => ({
+    category,
     parent: null,
     children: [],
   }));
