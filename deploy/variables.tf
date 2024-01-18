@@ -8,3 +8,8 @@ variable "region" {
   type        = string
   default     = "europe-west2"
 }
+
+variable "public_url" {
+  description = "address where the app is accessible from, like https://prosper.com"
+  type        = string
+}

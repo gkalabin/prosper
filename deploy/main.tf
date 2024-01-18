@@ -1,5 +1,5 @@
 provider "google" {
-  region = var.region
+  region  = var.region
   project = var.project_id
 }
 
@@ -19,7 +19,7 @@ resource "google_project_service" "project_services" {
   disable_dependent_services = true
 }
 
-resource "random_password" "prosperdb_root_password" {
+resource "random_password" "prosperdb_password" {
   min_lower   = 1
   min_numeric = 1
   min_upper   = 1
@@ -33,33 +33,52 @@ resource "random_password" "prosperdb_root_password" {
   }
 }
 
+
+resource "random_password" "nextauth_secret" {
+  min_lower   = 1
+  min_numeric = 1
+  min_upper   = 1
+  length      = 42
+  special     = false
+  lifecycle {
+    ignore_changes = [
+      min_lower, min_upper, min_numeric, special, length
+    ]
+  }
+}
+
 resource "google_sql_database_instance" "prosperdb" {
   name             = "prosperdb"
   database_version = "MYSQL_8_0"
-  root_password    = random_password.prosperdb_root_password.result
   settings {
-    tier                        = "db-f1-micro"
+    tier = "db-f1-micro"
   }
   deletion_protection = "true"
 }
 
-resource "google_secret_manager_secret" "prosperdb_root_password" {
-  secret_id = "prosperdb-root-password"
+resource "google_sql_user" "prosperdb_user" {
+  name     = "prosper"
+  instance = google_sql_database_instance.prosperdb.name
+  password = random_password.prosperdb_password.result
+}
+
+resource "google_secret_manager_secret" "prosperdb_password" {
+  secret_id = "prosperdb_password"
   replication {
     auto {}
   }
 }
 
-resource "google_secret_manager_secret_version" "prosperdb_root_password" {
-  secret      = google_secret_manager_secret.prosperdb_root_password.name
-  secret_data = google_sql_database_instance.prosperdb.root_password
+resource "google_secret_manager_secret_version" "prosperdb_password" {
+  secret      = google_secret_manager_secret.prosperdb_password.name
+  secret_data = google_sql_user.prosperdb_user.password
 }
 
-resource "google_secret_manager_secret_iam_member" "prosperdb_root_password" {
-  secret_id  = google_secret_manager_secret.prosperdb_root_password.id
+resource "google_secret_manager_secret_iam_member" "prosperdb_password" {
+  secret_id  = google_secret_manager_secret.prosperdb_password.id
   role       = "roles/secretmanager.secretAccessor"
   member     = "serviceAccount:${data.google_project.prosper.number}-compute@developer.gserviceaccount.com"
-  depends_on = [google_secret_manager_secret.prosperdb_root_password]
+  depends_on = [google_secret_manager_secret.prosperdb_password]
 }
 
 resource "google_cloud_run_v2_service" "prosper" {
@@ -78,27 +97,38 @@ resource "google_cloud_run_v2_service" "prosper" {
     containers {
       name  = "prosper"
       image = "docker.io/gkalabin/prosper:latest"
-
       env {
         name  = "DB_HOST"
         value = "/cloudsql/${data.google_project.prosper.project_id}:${var.region}:${google_sql_database_instance.prosperdb.name}"
+      }
+      env {
+        name  = "DB_PORT"
+        value = "3306"
       }
       env {
         name  = "DB_USER"
         value = "prosper"
       }
       env {
+        name = "DB_PASSWORD"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.prosperdb_password.secret_id
+            version = google_secret_manager_secret_version.prosperdb_password.version
+          }
+        }
+      }
+      env {
         name  = "DB_NAME"
         value = "prosperdb"
       }
       env {
-        name = "DB_PASSWORD"
-        value_source {
-          secret_key_ref {
-            secret  = google_secret_manager_secret.prosperdb_root_password.secret_id
-            version = google_secret_manager_secret_version.prosperdb_root_password.version
-          }
-        }
+        name  = "NEXTAUTH_URL"
+        value = var.public_url
+      }
+      env {
+        name  = "NEXTAUTH_SECRET"
+        value = random_password.nextauth_secret.result
       }
       volume_mounts {
         name       = "cloudsql"
