@@ -37,9 +37,10 @@ RUN chown prosper:prosper .next
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=prosper:prosper /app/.next/standalone ./
 COPY --from=builder --chown=prosper:prosper /app/.next/static ./.next/static
-# Copy the prisma folder as it contains all the migrations which need to be run on startup,
-# so schema changes can be picked up by existing applications.
+# Database migrations are run before starting the app inside the container,
+# so the database changes can be applied in the CI/CD pipeline. This requires all the prisma related files.
 COPY --from=builder --chown=prosper:prosper /app/prisma/ ./prisma/
+COPY --from=builder --chown=prosper:prosper /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 COPY --from=builder --chown=prosper:prosper /app/scripts/migrate-and-start.sh ./scripts/migrate-and-start.sh
 
 USER prosper
