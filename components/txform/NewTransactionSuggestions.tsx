@@ -302,8 +302,8 @@ function SuggestionItem({
     proto.type != 'transfer'
       ? null
       : singleOpProto.type == 'deposit'
-      ? proto.withdrawal.internalAccountId
-      : proto.deposit.internalAccountId;
+        ? proto.withdrawal.internalAccountId
+        : proto.deposit.internalAccountId;
   const otherAccount = bankAccounts.find(a => a.id == otherAccountId);
   const unit = accountUnit(bankAccount, stocks);
   return (
