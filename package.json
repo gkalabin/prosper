@@ -79,7 +79,7 @@
     "@types/uuid": "^9.0.6",
     "autoprefixer": "^10.4.16",
     "eslint": "^8.52.0",
-    "eslint-config-next": "^14.0.4",
+    "eslint-config-next": "^14.1.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
     "husky": "^8.0.3",
