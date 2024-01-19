@@ -13,9 +13,8 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Make sure not to expose the .env file with real secrets, but keep an empty
-# file so that the real .env file can be mounted with -v param.
-RUN echo "" > .env
+# To avoid exposing secrets in .env files explicitly remove all of the env files.
+RUN rm -f .env*
 RUN npx prisma generate
 RUN npm run build
 

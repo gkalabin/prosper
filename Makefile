@@ -15,7 +15,7 @@ dockerpull:
 # Inside .env file we can use localhost as a host for DB_URL.
 .PHONY: prodrun
 prodrun: dockerpull
-	docker run --rm -v $(PWD)/.env:/app/.env --net=host gkalabin/prosper
+	docker run --rm --env-file $(PWD)/.env --net=host gkalabin/prosper
 
 # On MacOS docker containers run inside a VM, so --net=host doesn't work and
 # we need to map ports manually. Also DB_HOST should be host.docker.internal
