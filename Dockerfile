@@ -39,7 +39,7 @@ COPY --from=builder --chown=prosper:prosper /app/.next/static ./.next/static
 # Database migrations are run before starting the app inside the container,
 # so the database changes can be applied in the CI/CD pipeline. This requires all the prisma related files.
 COPY --from=builder --chown=prosper:prosper /app/prisma/ ./prisma/
-COPY --from=builder --chown=prosper:prosper /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
+RUN npm install -g prisma
 COPY --from=builder --chown=prosper:prosper /app/scripts/migrate-and-start.sh ./scripts/migrate-and-start.sh
 
 USER prosper
