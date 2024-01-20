@@ -155,3 +155,19 @@ resource "google_cloud_run_v2_service" "prosper" {
   }
   depends_on = [google_secret_manager_secret_version.prosperdb_password]
 }
+
+data "google_iam_policy" "noauth" {
+  binding {
+    role = "roles/run.invoker"
+    members = [
+      "allUsers"
+    ]
+  }
+}
+
+resource "google_cloud_run_v2_service_iam_policy" "cloudrun_noauth" {
+  project = google_cloud_run_v2_service.prosper.project
+  location = google_cloud_run_v2_service.prosper.location
+  name = google_cloud_run_v2_service.prosper.name
+  policy_data = data.google_iam_policy.noauth.policy_data
+}
