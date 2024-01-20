@@ -153,5 +153,5 @@ resource "google_cloud_run_v2_service" "prosper" {
       }
     }
   }
-  depends_on = [google_secret_manager_secret_version.prosperdb_root_password]
+  depends_on = [google_secret_manager_secret_version.prosperdb_password]
 }
