@@ -130,6 +130,23 @@ resource "google_cloud_run_v2_service" "prosper" {
         name  = "NEXTAUTH_SECRET"
         value = random_password.nextauth_secret.result
       }
+      env {
+        name  = "TRUE_LAYER_CLIENT_ID"
+        value = var.true_layer_client_id
+      }
+      env {
+        name  = "TRUE_LAYER_CLIENT_SECRET"
+        value = var.true_layer_client_secret
+      }
+      env {
+        name  = "NORDIGEN_SECRET_ID"
+        value = var.nordigen_secret_id
+      }
+      env {
+        name  = "NORDIGEN_SECRET_KEY"
+        value = var.nordigen_secret_key
+      }
+
       volume_mounts {
         name       = "cloudsql"
         mount_path = "/cloudsql"
