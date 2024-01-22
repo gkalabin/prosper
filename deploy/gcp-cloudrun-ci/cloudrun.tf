@@ -4,18 +4,16 @@ resource "random_password" "nextauth_secret" {
 }
 
 resource "google_secret_manager_secret_iam_member" "cloudrun_secrets_permissions" {
-  for_each   = toset([google_secret_manager_secret.prosperdb_password.id])
-  secret_id  = each.value
+  secret_id  = google_secret_manager_secret.prosperdb_password.id
   role       = "roles/secretmanager.secretAccessor"
   member     = "serviceAccount:${local.service_account_email}"
   depends_on = [google_secret_manager_secret.prosperdb_password]
 }
 
 resource "google_project_iam_member" "cloudrun_permissions" {
-  for_each = toset(["roles/cloudsql.client"])
-  role     = each.value
-  member   = "serviceAccount:${local.service_account_email}"
-  project  = var.project_id
+  role    = "roles/cloudsql.client"
+  member  = "serviceAccount:${local.service_account_email}"
+  project = var.project_id
 }
 
 resource "google_cloud_run_v2_service" "prosper" {
@@ -63,11 +61,11 @@ resource "google_cloud_run_v2_service" "prosper" {
       }
       env {
         name  = "PUBLIC_APP_URL"
-        value = var.public_url
+        value = "https://${var.domain_name}"
       }
       env {
         name  = "NEXTAUTH_URL"
-        value = var.public_url
+        value = "https://${var.domain_name}"
       }
       env {
         name  = "NEXTAUTH_SECRET"
@@ -96,15 +94,16 @@ resource "google_cloud_run_v2_service" "prosper" {
       }
     }
   }
-  depends_on = [google_secret_manager_secret_version.prosperdb_password]
+  depends_on = [
+    google_project_service.project_services,
+    google_secret_manager_secret_version.prosperdb_password,
+  ]
 }
 
 data "google_iam_policy" "noauth" {
   binding {
-    role = "roles/run.invoker"
-    members = [
-      "allUsers"
-    ]
+    role    = "roles/run.invoker"
+    members = ["allUsers"]
   }
 }
 
@@ -114,3 +113,14 @@ resource "google_cloud_run_v2_service_iam_policy" "cloudrun_noauth" {
   name        = google_cloud_run_v2_service.prosper.name
   policy_data = data.google_iam_policy.noauth.policy_data
 }
+
+# resource "google_cloud_run_domain_mapping" "main" {
+#   location = var.region
+#   name     = var.domain_name
+#   metadata {
+#     namespace = data.google_project.prosper.project_id
+#   }
+#   spec {
+#     route_name = google_cloud_run_v2_service.prosper.name
+#   }
+# }

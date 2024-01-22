@@ -10,6 +10,7 @@ resource "google_sql_database_instance" "prosperdb" {
     tier = "db-f1-micro"
   }
   deletion_protection = "true"
+  depends_on = [google_project_service.project_services]
 }
 
 resource "google_sql_user" "prosperdb_user" {
@@ -23,6 +24,7 @@ resource "google_secret_manager_secret" "prosperdb_password" {
   replication {
     auto {}
   }
+  depends_on = [google_project_service.project_services]
 }
 
 resource "google_secret_manager_secret_version" "prosperdb_password" {

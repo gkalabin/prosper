@@ -1,5 +1,5 @@
 terraform {
-  required_version = "~> 1.7.0"
+  required_version = ">= 1.5.0"
   required_providers {
     google = {
       source  = "hashicorp/google"
@@ -18,7 +18,7 @@ provider "google" {
 }
 
 locals {
-  fe_docker_image       = "${var.region}-docker.pkg.dev/$PROJECT_ID/${google_artifact_registry_repository.prosper_artifact_repo.repository_id}/fe:$COMMIT_SHA"
+  fe_docker_image       = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.main.repository_id}/fe:$COMMIT_SHA"
   service_account_email = "${data.google_project.prosper.number}-compute@developer.gserviceaccount.com"
 }
 
@@ -26,11 +26,11 @@ data "google_project" "prosper" {}
 
 resource "google_project_service" "project_services" {
   for_each = toset([
-    "run.googleapis.com",
-    "sqladmin.googleapis.com",
-    "secretmanager.googleapis.com",
     "artifactregistry.googleapis.com",
     "cloudbuild.googleapis.com",
+    "run.googleapis.com",
+    "secretmanager.googleapis.com",
+    "sqladmin.googleapis.com",
   ])
   service = each.value
 }

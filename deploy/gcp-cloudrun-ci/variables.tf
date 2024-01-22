@@ -9,8 +9,8 @@ variable "region" {
   default     = "europe-west2"
 }
 
-variable "public_url" {
-  description = "external address where the app is accessible from, like https://example.com"
+variable "domain_name" {
+  description = "domain name to map to the service"
   type        = string
 }
 

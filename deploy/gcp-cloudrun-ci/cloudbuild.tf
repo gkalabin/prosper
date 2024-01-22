@@ -5,7 +5,7 @@ resource "google_project_iam_member" "build_permissions" {
   project  = var.project_id
 }
 
-resource "google_artifact_registry_repository" "prosper_artifact_repo" {
+resource "google_artifact_registry_repository" "main" {
   provider               = google-beta
   repository_id          = "prosper"
   location               = var.region
@@ -19,6 +19,7 @@ resource "google_artifact_registry_repository" "prosper_artifact_repo" {
       older_than = "31536000s" // 1 year
     }
   }
+  depends_on = [google_project_service.project_services]
 }
 
 resource "google_cloudbuild_trigger" "github_push_main" {
