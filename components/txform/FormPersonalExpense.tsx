@@ -217,9 +217,9 @@ export function Category() {
   const mostFrequent = mostFrequentIds
     .map(id => categories.find(c => c.id == id))
     .filter(notEmpty);
-  // This is O(n^2), but can be optimised in case it's slow.
+  const categoryTree = makeCategoryTree(categories);
   const categoriesWithoutChildren = categories.filter(
-    c => immediateChildren(c, categories).length == 0
+    c => immediateChildren(c, categoryTree).length == 0
   );
   const options = [
     {

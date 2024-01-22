@@ -136,3 +136,17 @@ export function removeQuotes(s: string): string {
   }
   return s;
 }
+
+type DisplayOrderAndId = {
+  id: number;
+  displayOrder: number;
+};
+export function byDisplayOrderThenId(
+  a: DisplayOrderAndId,
+  b: DisplayOrderAndId
+) {
+  if (a.displayOrder != b.displayOrder) {
+    return a.displayOrder - b.displayOrder;
+  }
+  return a.id - b.id;
+}

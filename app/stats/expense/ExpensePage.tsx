@@ -196,13 +196,14 @@ export function ExpenseByCategory(props: {
   const displayCurrency = useDisplayCurrency();
   const {categories, bankAccounts, stocks, exchange} =
     useAllDatabaseDataContext();
+  const categoryTree = makeCategoryTree(categories);
   const transactions = props.transactions
     .filter((t): t is Expense => isExpense(t))
     .filter(t =>
       subtreeIncludes(
         props.category,
         transactionCategory(t, categories),
-        categories
+        categoryTree
       )
     );
   const zero = AmountWithCurrency.zero(displayCurrency);

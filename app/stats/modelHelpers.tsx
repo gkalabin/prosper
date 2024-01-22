@@ -3,7 +3,7 @@ import {StockAndCurrencyExchange} from 'lib/ClientSideModel';
 import {BankAccount} from 'lib/model/BankAccount';
 import {
   Category,
-  descendants,
+  getDescendants,
   getNameWithAncestors,
   makeCategoryTree,
   mustFindCategory,
@@ -26,9 +26,12 @@ export function filterExcludedTransactions(
   excludeCategoryIds: number[],
   all: Category[]
 ): Transaction[] {
+  const tree = makeCategoryTree(all);
   const direct = excludeCategoryIds.map(cid => mustFindCategory(cid, all));
-  const exclusionDescendants = direct.flatMap(c => descendants(c, all));
-  const allExclusion = [...direct, ...exclusionDescendants];
+  const descendants = direct
+    .flatMap(c => getDescendants(c, tree))
+    .map(c => c.category);
+  const allExclusion = [...direct, ...descendants];
   const exclude = new Set<number>(allExclusion.map(c => c.id));
   return allTransactions.filter(t => !exclude.has(t.categoryId));
 }

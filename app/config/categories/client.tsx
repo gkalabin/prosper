@@ -9,6 +9,7 @@ import {
   categoryModelFromDB,
   immediateChildren,
   isRoot,
+  makeCategoryTree,
   sortCategories,
 } from 'lib/model/Category';
 import {updateState} from 'lib/stateHelpers';
@@ -52,7 +53,8 @@ const EditableCategoryListItem = ({
 }) => {
   const [showEditForm, setShowEditForm] = useState(false);
   const [showChildren, setShowChildren] = useState(true);
-  const children = immediateChildren(category, allCategories);
+  const tree = makeCategoryTree(allCategories);
+  const children = immediateChildren(category, tree);
   const hasChildren = children.length > 0;
   return (
     <>
