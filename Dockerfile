@@ -27,6 +27,8 @@ ENV NEXT_TELEMETRY_DISABLED 1
 # Create a non-root user
 RUN addgroup --system --gid 1001 prosper
 RUN adduser --system --uid 1001 prosper
+# Remove the annoying warning about using not the latest npm version.
+RUN npm install -g npm
 # Copy public assets.
 COPY --from=builder /app/public ./public
 # Set the correct permission for prerender cache
@@ -41,8 +43,6 @@ COPY --from=builder --chown=prosper:prosper /app/.next/static ./.next/static
 COPY --from=builder --chown=prosper:prosper /app/prisma/ ./prisma/
 RUN npm install -g prisma
 COPY --from=builder --chown=prosper:prosper /app/scripts/migrate-and-start.sh ./scripts/migrate-and-start.sh
-# Remove the annoying warning about using not the latest npm version.
-RUN npm install -g npm
 
 USER prosper
 EXPOSE 3000
