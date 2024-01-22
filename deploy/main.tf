@@ -10,23 +10,18 @@ provider "google" {
 }
 
 locals {
-  services = toset(["run.googleapis.com",
+  services = toset([
+    "run.googleapis.com",
     "sqladmin.googleapis.com",
     "secretmanager.googleapis.com",
     "artifactregistry.googleapis.com",
     "cloudbuild.googleapis.com",
   ])
-  fe_docker_image = "${var.build_region}-docker.pkg.dev/$PROJECT_ID/${google_artifact_registry_repository.prosper_artifact_repo.repository_id}/fe:$COMMIT_SHA"
+  fe_docker_image = "${var.region}-docker.pkg.dev/$PROJECT_ID/${google_artifact_registry_repository.prosper_artifact_repo.repository_id}/fe:$COMMIT_SHA"
+  service_account_email = "${data.google_project.prosper.number}-compute@developer.gserviceaccount.com"
 }
 
 data "google_project" "prosper" {}
-
-resource "google_project_iam_custom_role" "cloudsql_access" {
-  project     = var.project_id
-  permissions = ["cloudsql.instances.connect", "cloudsql.instances.get"]
-  role_id     = "AccessToCloudSQL"
-  title       = "Access to Cloud SQL"
-}
 
 resource "google_project_service" "project_services" {
   for_each = local.services
@@ -73,57 +68,28 @@ resource "google_secret_manager_secret_version" "prosperdb_password" {
 resource "google_secret_manager_secret_iam_member" "prosperdb_password" {
   secret_id  = google_secret_manager_secret.prosperdb_password.id
   role       = "roles/secretmanager.secretAccessor"
-  member     = "serviceAccount:${data.google_project.prosper.number}-compute@developer.gserviceaccount.com"
+  member     = "serviceAccount:${local.service_account_email}"
   depends_on = [google_secret_manager_secret.prosperdb_password]
 }
 
-resource "google_secret_manager_secret" "github_token" {
-  secret_id = "github_token"
-  replication {
-    auto {}
-  }
+resource "google_project_iam_member" "db_access_cloudsql" {
+  role    = "roles/cloudsql.client"
+  member  = "serviceAccount:${local.service_account_email}"
+  project = var.project_id
 }
 
-resource "google_secret_manager_secret_version" "github_token_version" {
-  secret      = google_secret_manager_secret.github_token.id
-  secret_data = var.github_token
-}
-
-resource "google_secret_manager_secret_iam_member" "github_token_access" {
-  secret_id  = google_secret_manager_secret.github_token.id
-  role       = "roles/secretmanager.secretAccessor"
-  member     = "serviceAccount:service-${data.google_project.prosper.number}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
-  depends_on = [google_secret_manager_secret.github_token]
-}
-
-resource "google_cloudbuildv2_connection" "github_connection" {
-  name     = "github"
-  location = var.build_region
-  github_config {
-    app_installation_id = var.github_app_installation_id
-    authorizer_credential {
-      oauth_token_secret_version = google_secret_manager_secret_version.github_token_version.id
-    }
-  }
-  depends_on = [google_secret_manager_secret_iam_member.github_token_access]
-}
-
-resource "google_cloudbuildv2_repository" "github_repo" {
-  name              = "github.com/gkalabin/prosper"
-  location          = var.build_region
-  parent_connection = google_cloudbuildv2_connection.github_connection.name
-  remote_uri        = "https://github.com/gkalabin/prosper.git"
+resource "google_project_iam_member" "cloud_run_access" {
+  role    = "roles/run.admin"
+  member  = "serviceAccount:${data.google_project.prosper.number}@cloudbuild.gserviceaccount.com"
+  project = var.project_id
 }
 
 resource "google_artifact_registry_repository" "prosper_artifact_repo" {
   provider      = google-beta
   repository_id = "prosper"
-  location      = var.build_region
+  location      = var.region
   project       = var.project_id
   format        = "DOCKER"
-  docker_config {
-    immutable_tags = true
-  }
   cleanup_policy_dry_run = false
   cleanup_policies {
     id     = "delete-older-than-1-year"
@@ -136,12 +102,10 @@ resource "google_artifact_registry_repository" "prosper_artifact_repo" {
 
 resource "google_cloudbuild_trigger" "github_push_main" {
   name     = "build-on-push-to-github-main"
-  location = var.build_region
-  repository_event_config {
-    repository = google_cloudbuildv2_repository.github_repo.id
-    push {
-      branch = "main"
-    }
+  location = "global"
+  trigger_template {
+    branch_name = "main"
+    repo_name   = "github_gkalabin_prosper"
   }
   build {
     images = [local.fe_docker_image]
@@ -161,12 +125,12 @@ resource "google_cloudbuild_trigger" "github_push_main" {
   }
 }
 
-// TODO: use separate service account and configure its access.
 resource "google_cloud_run_v2_service" "prosper" {
   name     = "prosper"
   location = var.region
   ingress  = "INGRESS_TRAFFIC_ALL"
   template {
+    service_account = local.service_account_email
     volumes {
       name = "cloudsql"
       cloud_sql_instance {
