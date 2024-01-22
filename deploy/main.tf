@@ -1,3 +1,9 @@
+terraform {
+  required_providers {
+    google = {}
+  }
+}
+
 provider "google" {
   region  = var.region
   project = var.project_id
@@ -6,45 +12,35 @@ provider "google" {
 locals {
   services = toset(["run.googleapis.com",
     "sqladmin.googleapis.com",
-    "secretmanager.googleapis.com"
+    "secretmanager.googleapis.com",
+    "artifactregistry.googleapis.com",
+    "cloudbuild.googleapis.com",
   ])
+  fe_docker_image = "${var.build_region}-docker.pkg.dev/$PROJECT_ID/${google_artifact_registry_repository.prosper_artifact_repo.repository_id}/fe:$COMMIT_SHA"
 }
 
 data "google_project" "prosper" {}
 
+resource "google_project_iam_custom_role" "cloudsql_access" {
+  project     = var.project_id
+  permissions = ["cloudsql.instances.connect", "cloudsql.instances.get"]
+  role_id     = "AccessToCloudSQL"
+  title       = "Access to Cloud SQL"
+}
+
 resource "google_project_service" "project_services" {
-  for_each                   = local.services
-  service                    = each.value
-  disable_on_destroy         = true
-  disable_dependent_services = true
+  for_each = local.services
+  service  = each.value
 }
 
 resource "random_password" "prosperdb_password" {
-  min_lower   = 1
-  min_numeric = 1
-  min_upper   = 1
-  length      = 19
-  special     = true
-  min_special = 1
-  lifecycle {
-    ignore_changes = [
-      min_lower, min_upper, min_numeric, special, min_special, length
-    ]
-  }
+  length  = 19
+  special = false
 }
 
-
 resource "random_password" "nextauth_secret" {
-  min_lower   = 1
-  min_numeric = 1
-  min_upper   = 1
-  length      = 42
-  special     = false
-  lifecycle {
-    ignore_changes = [
-      min_lower, min_upper, min_numeric, special, length
-    ]
-  }
+  length  = 42
+  special = false
 }
 
 resource "google_sql_database_instance" "prosperdb" {
@@ -81,11 +77,95 @@ resource "google_secret_manager_secret_iam_member" "prosperdb_password" {
   depends_on = [google_secret_manager_secret.prosperdb_password]
 }
 
+resource "google_secret_manager_secret" "github_token" {
+  secret_id = "github_token"
+  replication {
+    auto {}
+  }
+}
+
+resource "google_secret_manager_secret_version" "github_token_version" {
+  secret      = google_secret_manager_secret.github_token.id
+  secret_data = var.github_token
+}
+
+resource "google_secret_manager_secret_iam_member" "github_token_access" {
+  secret_id  = google_secret_manager_secret.github_token.id
+  role       = "roles/secretmanager.secretAccessor"
+  member     = "serviceAccount:service-${data.google_project.prosper.number}@gcp-sa-cloudbuild.iam.gserviceaccount.com"
+  depends_on = [google_secret_manager_secret.github_token]
+}
+
+resource "google_cloudbuildv2_connection" "github_connection" {
+  name     = "github"
+  location = var.build_region
+  github_config {
+    app_installation_id = var.github_app_installation_id
+    authorizer_credential {
+      oauth_token_secret_version = google_secret_manager_secret_version.github_token_version.id
+    }
+  }
+  depends_on = [google_secret_manager_secret_iam_member.github_token_access]
+}
+
+resource "google_cloudbuildv2_repository" "github_repo" {
+  name              = "github.com/gkalabin/prosper"
+  location          = var.build_region
+  parent_connection = google_cloudbuildv2_connection.github_connection.name
+  remote_uri        = "https://github.com/gkalabin/prosper.git"
+}
+
+resource "google_artifact_registry_repository" "prosper_artifact_repo" {
+  provider      = google-beta
+  repository_id = "prosper"
+  location      = var.build_region
+  project       = var.project_id
+  format        = "DOCKER"
+  docker_config {
+    immutable_tags = true
+  }
+  cleanup_policy_dry_run = false
+  cleanup_policies {
+    id     = "delete-older-than-1-year"
+    action = "DELETE"
+    condition {
+      older_than = "31536000s" // 1 year
+    }
+  }
+}
+
+resource "google_cloudbuild_trigger" "github_push_main" {
+  name     = "build-on-push-to-github-main"
+  location = var.build_region
+  repository_event_config {
+    repository = google_cloudbuildv2_repository.github_repo.id
+    push {
+      branch = "main"
+    }
+  }
+  build {
+    images = [local.fe_docker_image]
+    step {
+      name = "gcr.io/cloud-builders/docker"
+      args = ["build", "-t", local.fe_docker_image, "-f", "Dockerfile", "."]
+    }
+    step {
+      name = "gcr.io/cloud-builders/docker"
+      args = ["push", local.fe_docker_image]
+    }
+    step {
+      name       = "gcr.io/google.com/cloudsdktool/cloud-sdk"
+      entrypoint = "gcloud"
+      args       = ["run", "deploy", "prosper", "--image", local.fe_docker_image, "--region", var.region]
+    }
+  }
+}
+
+// TODO: use separate service account and configure its access.
 resource "google_cloud_run_v2_service" "prosper" {
   name     = "prosper"
   location = var.region
   ingress  = "INGRESS_TRAFFIC_ALL"
-
   template {
     volumes {
       name = "cloudsql"
@@ -93,12 +173,14 @@ resource "google_cloud_run_v2_service" "prosper" {
         instances = [google_sql_database_instance.prosperdb.connection_name]
       }
     }
-
+    scaling {
+      max_instance_count = 1
+    }
     containers {
       name  = "prosper"
       image = "docker.io/gkalabin/prosper:latest"
       env {
-        name  = "DB_HOST"
+        name  = "DB_SOCKET_PATH"
         value = "/cloudsql/${data.google_project.prosper.project_id}:${var.region}:${google_sql_database_instance.prosperdb.name}"
       }
       env {
@@ -107,7 +189,7 @@ resource "google_cloud_run_v2_service" "prosper" {
       }
       env {
         name  = "DB_USER"
-        value = "prosper"
+        value = google_sql_user.prosperdb_user.name
       }
       env {
         name = "DB_PASSWORD"
@@ -121,6 +203,10 @@ resource "google_cloud_run_v2_service" "prosper" {
       env {
         name  = "DB_NAME"
         value = "prosperdb"
+      }
+      env {
+        name  = "PUBLIC_APP_URL"
+        value = var.public_url
       }
       env {
         name  = "NEXTAUTH_URL"
@@ -166,8 +252,8 @@ data "google_iam_policy" "noauth" {
 }
 
 resource "google_cloud_run_v2_service_iam_policy" "cloudrun_noauth" {
-  project = google_cloud_run_v2_service.prosper.project
-  location = google_cloud_run_v2_service.prosper.location
-  name = google_cloud_run_v2_service.prosper.name
+  project     = google_cloud_run_v2_service.prosper.project
+  location    = google_cloud_run_v2_service.prosper.location
+  name        = google_cloud_run_v2_service.prosper.name
   policy_data = data.google_iam_policy.noauth.policy_data
 }
