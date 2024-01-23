@@ -27,7 +27,7 @@ resource "google_cloudbuild_trigger" "github_push_main" {
   location = "global"
   trigger_template {
     branch_name = "main"
-    repo_name   = "github_gkalabin_prosper"
+    repo_name   = var.cloudsource_repo_name
   }
   build {
     images = [local.fe_docker_image]

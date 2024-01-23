@@ -35,3 +35,8 @@ variable "nordigen_secret_key" {
   sensitive = true
   default   = null
 }
+
+variable "cloudsource_repo_name" {
+  type    = string
+  default = "github_gkalabin_prosper"
+}
