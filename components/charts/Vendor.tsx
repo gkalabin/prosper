@@ -41,10 +41,7 @@ export function TopNVendorsMostSpent({
   // To avoid this, if there is N+1 items, just use all of them.
   const topItemsCount = n == sum.size - 1 ? n + 1 : n;
   const dollars = new Map<string, number>(
-    [...sum.entries()].map(([vendor, amount]) => [
-      vendor,
-      amount.round().dollar(),
-    ])
+    [...sum.entries()].map(([vendor, amount]) => [vendor, amount.dollar()])
   );
   const {top, otherSum, otherCount} = topN(dollars, topItemsCount);
   top.push([`Other ${otherCount} vendors`, otherSum]);
@@ -68,7 +65,7 @@ export function TopNVendorsMostSpent({
           series: [
             {
               type: 'bar',
-              data: top.map(([_, sum]) => sum),
+              data: top.map(([_, sum]) => Math.round(sum)),
             },
           ],
         }}
