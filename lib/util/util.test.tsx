@@ -1,14 +1,16 @@
 import {expect, test} from '@jest/globals';
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
-import {USD} from 'lib/model/Currency';
-import {parseAmountAsCents, percentile} from 'lib/util/util';
+import {
+  capitalize as capitalise,
+  notEmpty,
+  parseAmountAsCents,
+  removeQuotes,
+} from 'lib/util/util';
 
 describe('parseAmountAsCents', () => {
   test.each(['', ' ', ' 1', '1.', '.1', '1.123', 'x'])(
     "parsing '%s' returns NaN",
     a => expect(parseAmountAsCents(a)).toBeNaN()
   );
-
   test.each<{a: string; expected: number}>`
     a         | expected
     ${'1'}    | ${100}
@@ -24,43 +26,45 @@ describe('parseAmountAsCents', () => {
   });
 });
 
-describe('percentile', () => {
-  const zero = AmountWithCurrency.zero(USD);
-  test.each([-1, 101, 1.5])("throws for invalid percentile '%s'", a =>
-    expect(() => percentile([zero], a)).toThrow()
+describe('removeQuotes', () => {
+  test.each<{s: string; expected: number}>`
+    s        | expected
+    ${``}    | ${``}
+    ${`x`}   | ${`x`}
+    ${`x`}   | ${`x`}
+    ${`""`}  | ${``}
+    ${`"x"`} | ${`x`}
+    ${`"`}   | ${`"`}
+  `('removeQuotes of $s is $expected', ({s, expected}) =>
+    expect(removeQuotes(s)).toEqual(expected)
   );
+});
 
-  test.each<{items: number[]; p: number; expected: number}>`
-    items                   | p      | expected
-    ${[100]}                | ${0}   | ${100}
-    ${[100]}                | ${25}  | ${100}
-    ${[100]}                | ${50}  | ${100}
-    ${[100]}                | ${75}  | ${100}
-    ${[100]}                | ${99}  | ${100}
-    ${[100]}                | ${100} | ${100}
-    ${[100, 200]}           | ${0}   | ${100}
-    ${[100, 200]}           | ${25}  | ${100}
-    ${[100, 200]}           | ${50}  | ${100}
-    ${[100, 200]}           | ${75}  | ${200}
-    ${[100, 200]}           | ${99}  | ${200}
-    ${[100, 200]}           | ${100} | ${200}
-    ${[100, 200, 300]}      | ${0}   | ${100}
-    ${[100, 200, 300]}      | ${25}  | ${100}
-    ${[100, 200, 300]}      | ${50}  | ${200}
-    ${[100, 200, 300]}      | ${75}  | ${300}
-    ${[100, 200, 300]}      | ${99}  | ${300}
-    ${[100, 200, 300]}      | ${100} | ${300}
-    ${[100, 200, 300, 400]} | ${0}   | ${100}
-    ${[100, 200, 300, 400]} | ${25}  | ${100}
-    ${[100, 200, 300, 400]} | ${50}  | ${200}
-    ${[100, 200, 300, 400]} | ${75}  | ${300}
-    ${[100, 200, 300, 400]} | ${99}  | ${400}
-    ${[100, 200, 300, 400]} | ${100} | ${400}
-  `('$p-th percentile of $items is $expected', ({items, p, expected}) => {
-    const amounts = items.map(
-      i => new AmountWithCurrency({amountCents: i, currency: USD})
-    );
-    const actual = percentile(amounts, p);
-    expect(actual.cents()).toEqual(expected);
-  });
+describe('capitalize', () => {
+  test.each<{s: string; expected: number}>`
+    s        | expected
+    ${``}    | ${``}
+    ${`7`}   | ${`7`}
+    ${`x`}   | ${`X`}
+    ${`X`}   | ${`X`}
+    ${`xyz`} | ${`Xyz`}
+    ${`Xyz`} | ${`Xyz`}
+  `('capitalize of $s is $expected', ({s, expected}) =>
+    expect(capitalise(s)).toEqual(expected)
+  );
+});
+
+describe('notEmpty', () => {
+  test.each<{x: string; expected: number}>`
+    x            | expected
+    ${null}      | ${false}
+    ${undefined} | ${false}
+    ${''}        | ${true}
+    ${'abc'}     | ${true}
+    ${0}         | ${true}
+    ${1}         | ${true}
+    ${{}}        | ${true}
+  `('notEmpty of $x is $expected', ({x, expected}) =>
+    expect(notEmpty(x)).toEqual(expected)
+  );
 });

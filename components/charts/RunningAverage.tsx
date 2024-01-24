@@ -1,14 +1,14 @@
 import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
 import {type Interval} from 'date-fns';
 import ReactEcharts from 'echarts-for-react';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
 import {defaultMonthlyMoneyChart, monthlyData} from 'lib/charts';
+import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
 import {Income} from 'lib/model/transaction/Income';
 import {Expense, Transaction} from 'lib/model/transaction/Transaction';
 import {amountOwnShare} from 'lib/model/transaction/amounts';
 import {MoneyTimeseries} from 'lib/util/Timeseries';
-import {runningAverage} from 'lib/util/util';
+import {runningAverage} from 'lib/util/stats';
 
 export function RunningAverageOwnShare(props: {
   transactions: (Expense | Income)[];

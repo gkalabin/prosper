@@ -5,7 +5,7 @@ import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
 import {Expense, Transaction} from 'lib/model/transaction/Transaction';
 import {amountOwnShare} from 'lib/model/transaction/amounts';
 import {AppendMap, currencyAppendMap} from 'lib/util/AppendingMap';
-import {topN, topNAmount} from 'lib/util/util';
+import {topN} from 'lib/util/stats';
 
 export function TopNVendorsMostSpent({
   transactions,
@@ -37,7 +37,17 @@ export function TopNVendorsMostSpent({
     }
     sum.append(t.vendor, amount);
   }
-  const topSum = topNAmount(sum, n, x => `Other ${x} vendors`);
+  // If there is just N+1 items, taking top N would result in only one item rolled into 'others'.
+  // To avoid this, if there is N+1 items, just use all of them.
+  const topItemsCount = n == sum.size - 1 ? n + 1 : n;
+  const dollars = new Map<string, number>(
+    [...sum.entries()].map(([vendor, amount]) => [
+      vendor,
+      amount.round().dollar(),
+    ])
+  );
+  const {top, otherSum, otherCount} = topN(dollars, topItemsCount);
+  top.push([`Other ${otherCount} vendors`, otherSum]);
   return (
     <>
       <CurrencyExchangeFailed failedTransactions={failedToExchange} />
@@ -49,7 +59,7 @@ export function TopNVendorsMostSpent({
           },
           tooltip: {},
           xAxis: {
-            data: topSum.map(([vendor]) => vendor),
+            data: top.map(([vendor]) => vendor),
           },
           yAxis: {},
           title: {
@@ -58,7 +68,7 @@ export function TopNVendorsMostSpent({
           series: [
             {
               type: 'bar',
-              data: topSum.map(([_, sum]) => sum.round().dollar()),
+              data: top.map(([_, sum]) => sum),
             },
           ],
         }}
@@ -80,7 +90,11 @@ export function TopNVendorsMostTransactions({
   for (const t of transactions) {
     count.append(t.vendor, 1);
   }
-  const topCount = topN(count, n, x => `Other ${x} vendors`);
+  // If there is just N+1 items, taking top N would result in only one item rolled into 'others'.
+  // To avoid this, if there is N+1 items, just use all of them.
+  const topItemsCount = n == count.size - 1 ? n + 1 : n;
+  const {top, otherSum, otherCount} = topN(count, topItemsCount);
+  top.push([`Other ${otherCount} vendors`, otherSum]);
 
   return (
     <ReactEcharts
@@ -91,7 +105,7 @@ export function TopNVendorsMostTransactions({
         },
         tooltip: {},
         xAxis: {
-          data: topCount.map(([vendor]) => vendor),
+          data: top.map(([vendor]) => vendor),
         },
         yAxis: {},
         title: {
@@ -100,7 +114,7 @@ export function TopNVendorsMostTransactions({
         series: [
           {
             type: 'bar',
-            data: topCount.map(([_, sum]) => sum),
+            data: top.map(([_, sum]) => sum),
           },
         ],
       }}
