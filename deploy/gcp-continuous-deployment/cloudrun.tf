@@ -4,16 +4,26 @@ resource "random_password" "nextauth_secret" {
 }
 
 resource "google_secret_manager_secret_iam_member" "cloudrun_secrets_permissions" {
-  secret_id  = google_secret_manager_secret.prosperdb_password.id
-  role       = "roles/secretmanager.secretAccessor"
-  member     = "serviceAccount:${local.service_account_email}"
-  depends_on = [google_secret_manager_secret.prosperdb_password]
+  secret_id = google_secret_manager_secret.prosperdb_password.id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${local.service_account_email}"
+  depends_on = [
+    google_project_service.project_services["iam.googleapis.com"],
+    google_project_service.project_services["run.googleapis.com"],
+    google_project_service.project_services["secretmanager.googleapis.com"],
+    google_secret_manager_secret.prosperdb_password
+  ]
 }
 
 resource "google_project_iam_member" "cloudrun_permissions" {
   role    = "roles/cloudsql.client"
   member  = "serviceAccount:${local.service_account_email}"
   project = var.project_id
+  depends_on = [
+    google_project_service.project_services["compute.googleapis.com"],
+    google_project_service.project_services["iam.googleapis.com"],
+    google_project_service.project_services["run.googleapis.com"],
+  ]
 }
 
 resource "google_cloud_run_v2_service" "prosper" {
@@ -112,6 +122,9 @@ resource "google_cloud_run_v2_service_iam_policy" "cloudrun_noauth" {
   location    = google_cloud_run_v2_service.prosper.location
   name        = google_cloud_run_v2_service.prosper.name
   policy_data = data.google_iam_policy.noauth.policy_data
+  depends_on = [
+    google_cloud_run_v2_service.prosper
+  ]
 }
 
 # resource "google_cloud_run_domain_mapping" "main" {

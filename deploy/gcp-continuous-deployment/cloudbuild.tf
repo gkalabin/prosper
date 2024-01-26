@@ -3,6 +3,10 @@ resource "google_project_iam_member" "build_permissions" {
   role     = each.value
   member   = "serviceAccount:${data.google_project.prosper.number}@cloudbuild.gserviceaccount.com"
   project  = var.project_id
+  depends_on = [
+    google_project_service.project_services["cloudbuild.googleapis.com"],
+    google_project_service.project_services["run.googleapis.com"]
+  ]
 }
 
 resource "google_artifact_registry_repository" "main" {
@@ -19,7 +23,9 @@ resource "google_artifact_registry_repository" "main" {
       older_than = "31536000s" // 1 year
     }
   }
-  depends_on = [google_project_service.project_services]
+  depends_on = [
+    google_project_service.project_services["artifactregistry.googleapis.com"]
+  ]
 }
 
 resource "google_cloudbuild_trigger" "github_push_main" {
@@ -45,4 +51,9 @@ resource "google_cloudbuild_trigger" "github_push_main" {
       args       = ["run", "deploy", "prosper", "--image", local.fe_docker_image, "--region", var.region]
     }
   }
+  depends_on = [
+    google_project_service.project_services["cloudbuild.googleapis.com"],
+    google_project_service.project_services["run.googleapis.com"],
+    google_project_service.project_services["sourcerepo.googleapis.com"]
+  ]
 }

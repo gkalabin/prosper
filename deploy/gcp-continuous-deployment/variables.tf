@@ -6,7 +6,7 @@ variable "project_id" {
 variable "region" {
   description = "region where the service should run"
   type        = string
-  default     = "europe-west2"
+  default     = "europe-west1"
 }
 
 variable "domain_name" {
