@@ -127,13 +127,13 @@ resource "google_cloud_run_v2_service_iam_policy" "cloudrun_noauth" {
   ]
 }
 
-# resource "google_cloud_run_domain_mapping" "main" {
-#   location = var.region
-#   name     = var.domain_name
-#   metadata {
-#     namespace = data.google_project.prosper.project_id
-#   }
-#   spec {
-#     route_name = google_cloud_run_v2_service.prosper.name
-#   }
-# }
+resource "google_cloud_run_domain_mapping" "main" {
+  location = var.region
+  name     = var.domain_name
+  metadata {
+    namespace = data.google_project.prosper.project_id
+  }
+  spec {
+    route_name = google_cloud_run_v2_service.prosper.name
+  }
+}
