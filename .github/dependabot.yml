@@ -16,7 +16,7 @@ updates:
     allow:
       # Allow both direct and indirect updates for all packages
       - dependency-type: 'all'
-  - package-ecosystem: 'Terraform'
+  - package-ecosystem: 'terraform'
     directory: '/'
     # Disable labels on pull requests from Dependabot on GitHub.
     labels: []
