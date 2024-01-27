@@ -43,6 +43,7 @@ COPY --from=builder --chown=prosper:prosper /app/.next/static ./.next/static
 COPY --from=builder --chown=prosper:prosper /app/prisma/ ./prisma/
 RUN npm install -g prisma
 COPY --from=builder --chown=prosper:prosper /app/scripts/migrate-and-start.sh ./scripts/migrate-and-start.sh
+COPY --from=builder --chown=prosper:prosper /app/scripts/start.sh ./scripts/start.sh
 
 USER prosper
 EXPOSE 3000
