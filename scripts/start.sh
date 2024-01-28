@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # When running in docker some DB connection params might come as individual pieces, so reconstruct the DB connection URL.
 if [ -n "$DB_HOST" ] && [ -n "$DB_PORT" ] && [ -n "$DB_USER" ] && [ -n "$DB_PASSWORD" ] && [ -n "$DB_NAME" ]; then
