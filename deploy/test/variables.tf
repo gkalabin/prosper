@@ -40,3 +40,9 @@ variable "cloudsource_repo_name" {
   type    = string
   default = "github_gkalabin_prosper"
 }
+
+variable "deploy_branch" {
+  description = "each push to this branch will trigger a new build and deployment to cloud run"
+  type    = string
+  default = "test"
+}

@@ -3,10 +3,15 @@ resource "random_password" "nextauth_secret" {
   special = false
 }
 
-resource "google_secret_manager_secret_iam_member" "cloudrun_secrets_permissions" {
+resource "google_service_account" "runner" {
+  account_id   = "runner"
+  display_name = "Account to run the main prosper app"
+}
+
+resource "google_secret_manager_secret_iam_member" "runner_secrets_access" {
   secret_id = google_secret_manager_secret.prosperdb_password.id
   role      = "roles/secretmanager.secretAccessor"
-  member    = "serviceAccount:${local.service_account_email}"
+  member    = "serviceAccount:${google_service_account.runner.email}"
   depends_on = [
     google_project_service.project_services["iam.googleapis.com"],
     google_project_service.project_services["run.googleapis.com"],
@@ -15,9 +20,9 @@ resource "google_secret_manager_secret_iam_member" "cloudrun_secrets_permissions
   ]
 }
 
-resource "google_project_iam_member" "cloudrun_permissions" {
+resource "google_project_iam_member" "runner_db_access" {
   role    = "roles/cloudsql.client"
-  member  = "serviceAccount:${local.service_account_email}"
+  member  = "serviceAccount:${google_service_account.runner.email}"
   project = var.project_id
   depends_on = [
     google_project_service.project_services["compute.googleapis.com"],
@@ -31,7 +36,7 @@ resource "google_cloud_run_v2_service" "prosper" {
   location = var.region
   ingress  = "INGRESS_TRAFFIC_ALL"
   template {
-    service_account = local.service_account_email
+    service_account = google_service_account.runner.email
     volumes {
       name = "cloudsql"
       cloud_sql_instance {
@@ -42,8 +47,9 @@ resource "google_cloud_run_v2_service" "prosper" {
       max_instance_count = 1
     }
     containers {
-      name  = "prosper"
-      image = "docker.io/gkalabin/prosper:latest"
+      name    = "prosper"
+      command = ["sh", "-c", "./scripts/start.sh"]
+      image   = "docker.io/gkalabin/prosper:latest@sha256:ff786cc7fe6ee1f7d7d96ca4bc821a5d7f588e760420ada8ec333e859e30604c"
       env {
         name  = "DB_SOCKET_PATH"
         value = "/cloudsql/${data.google_project.prosper.project_id}:${var.region}:${google_sql_database_instance.prosperdb.name}"
@@ -122,9 +128,7 @@ resource "google_cloud_run_v2_service_iam_policy" "cloudrun_noauth" {
   location    = google_cloud_run_v2_service.prosper.location
   name        = google_cloud_run_v2_service.prosper.name
   policy_data = data.google_iam_policy.noauth.policy_data
-  depends_on = [
-    google_cloud_run_v2_service.prosper
-  ]
+  depends_on  = [google_cloud_run_v2_service.prosper]
 }
 
 resource "google_cloud_run_domain_mapping" "main" {
