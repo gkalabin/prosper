@@ -1,14 +1,12 @@
 import {expect, test} from '@jest/globals';
-import {percentile, topN} from 'lib/util/stats';
+import {percentile, runningAverage, topN} from 'lib/util/stats';
 
 describe('percentile', () => {
   test.each([-1, 101, 1.5])("throws for invalid percentile '%s'", a =>
     expect(() => percentile([0], a)).toThrow()
   );
-
   test('throws when no data is provided', () =>
     expect(() => percentile([], 1)).toThrow());
-
   test.each<{items: number[]; p: number; expected: number}>`
     items                   | p      | expected
     ${[100]}                | ${0}   | ${100}
@@ -39,6 +37,32 @@ describe('percentile', () => {
     const actual = percentile(items, p);
     expect(actual).toEqual(expected);
   });
+});
+
+describe('runningAverage', () => {
+  test.each([-1, 0, 1.5, NaN])("throws for invalid window length '%s'", a =>
+    expect(() => runningAverage([0], a)).toThrow()
+  );
+  test.each<{items: number[]; window: number; expected: number[]}>`
+    items                    | window | expected
+    ${[]}                    | ${1}   | ${[]}
+    ${[]}                    | ${10}  | ${[]}
+    ${[1]}                   | ${1}   | ${[1]}
+    ${[1]}                   | ${10}  | ${[1]}
+    ${[1, 2]}                | ${1}   | ${[1, 2]}
+    ${[1, 2]}                | ${2}   | ${[1, 1.5]}
+    ${[1, 2, 3]}             | ${1}   | ${[1, 2, 3]}
+    ${[1, 2, 3]}             | ${2}   | ${[1, 1.5, 2.5]}
+    ${[1, 2, 3]}             | ${3}   | ${[1, 1.5, 2]}
+    ${[1, 2, 3]}             | ${4}   | ${[1, 1.5, 2]}
+    ${[1, 1, 1, 1]}          | ${2}   | ${[1, 1, 1, 1]}
+    ${[2, 4, 0, 8, 1, -100]} | ${4}   | ${[2, 3, 2, 3.5, 3.25, -22.75]}
+  `(
+    'running average of $items with window $window is $expected',
+    ({items, window, expected}) => {
+      expect(runningAverage(items, window)).toEqual(expected);
+    }
+  );
 });
 
 describe('topN', () => {

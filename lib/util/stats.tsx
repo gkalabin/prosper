@@ -16,6 +16,9 @@ export function percentile(data: number[], p: number): number {
 }
 
 export function runningAverage(data: number[], window: number) {
+  if (window <= 0 || !Number.isInteger(window)) {
+    throw new Error(`Invalid window length '${window}'`);
+  }
   const slidingWindow = [] as number[];
   let sum = 0;
   const averages: number[] = [];
