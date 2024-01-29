@@ -41,8 +41,8 @@ variable "cloudsource_repo_name" {
   default = "github_gkalabin_prosper"
 }
 
-variable "deploy_branch" {
-  description = "each push to this branch will trigger a new build and deployment to cloud run"
-  type    = string
-  default = "main"
+variable "db_deletion_protection" {
+  description = "if true, the database cannot be deleted via terraform"
+  type        = bool
+  default     = true
 }

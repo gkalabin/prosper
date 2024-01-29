@@ -10,5 +10,5 @@ module "gcp-continuous-deployment" {
   nordigen_secret_id       = var.nordigen_secret_id
   nordigen_secret_key      = var.nordigen_secret_key
   cloudsource_repo_name    = var.cloudsource_repo_name
-  deploy_branch            = var.deploy_branch
+  db_deletion_protection   = var.db_deletion_protection
 }
