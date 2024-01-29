@@ -49,8 +49,8 @@ resource "google_cloud_run_v2_service" "prosper" {
       max_instance_count = 1
     }
     containers {
-      name    = "prosper"
-      image   = "docker.io/gkalabin/prosper:latest"
+      name  = "prosper"
+      image = "docker.io/gkalabin/prosper:latest"
       env {
         name  = "DB_SOCKET_PATH"
         value = "/cloudsql/${data.google_project.prosper.project_id}:${var.region}:${google_sql_database_instance.prosperdb.name}"
