@@ -50,7 +50,6 @@ resource "google_cloud_run_v2_service" "prosper" {
     }
     containers {
       name    = "prosper"
-      command = ["sh", "-c", "./scripts/start.sh"]
       image   = "docker.io/gkalabin/prosper:latest"
       env {
         name  = "DB_SOCKET_PATH"
