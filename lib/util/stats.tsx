@@ -1,10 +1,6 @@
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
-import {Currency} from 'lib/model/Currency';
+import {assertDefined} from 'lib/assert';
 
-export function percentile(
-  data: AmountWithCurrency[],
-  p: number
-): AmountWithCurrency {
+export function percentile(data: number[], p: number): number {
   if (p < 0 || p > 100 || !Number.isInteger(p)) {
     throw new Error(`Invalid percentile '${p}'`);
   }
@@ -14,40 +10,25 @@ export function percentile(
   if (p == 0) {
     return data[0];
   }
-  const amounts = [...data].sort((a, b) => a.cents() - b.cents());
+  const sorted = [...data].sort();
   const position = Math.ceil((data.length * p) / 100) - 1;
-  return amounts[position];
+  return sorted[position];
 }
 
-export function runningAverage(
-  timeseries: Map<number, AmountWithCurrency>,
-  maxWindowLength: number
-) {
-  const monthlyAmounts = [...timeseries.entries()].sort(
-    ([t1], [t2]) => t1 - t2
-  );
-  const window = [] as AmountWithCurrency[];
-  const averages = new Map<number, AmountWithCurrency>();
-  let currency: Currency | null = null;
-  for (const [month, amount] of monthlyAmounts) {
-    window.push(amount);
-    if (window.length > maxWindowLength) {
-      window.shift();
+export function runningAverage(data: number[], window: number) {
+  const slidingWindow = [] as number[];
+  let sum = 0;
+  const averages: number[] = [];
+  for (const amount of data) {
+    slidingWindow.push(amount);
+    sum += amount;
+    if (slidingWindow.length > window) {
+      const leftItem = slidingWindow.shift();
+      assertDefined(leftItem);
+      sum -= leftItem;
     }
-    const amountCurrency = amount.getCurrency();
-    if (!currency) {
-      currency = amountCurrency;
-    } else if (currency.code != amountCurrency.code) {
-      throw new Error(
-        `Cannot sum over different currencies, got ${currency.code} and ${amountCurrency.code}`
-      );
-    }
-    const sum = AmountWithCurrency.sum(window, currency);
-    const avg = new AmountWithCurrency({
-      amountCents: Math.round(sum.cents() / window.length),
-      currency,
-    });
-    averages.set(month, avg);
+    const avg = sum / slidingWindow.length;
+    averages.push(avg);
   }
   return averages;
 }

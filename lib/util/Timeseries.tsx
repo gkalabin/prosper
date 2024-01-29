@@ -1,64 +1,117 @@
 import {startOfMonth, startOfYear} from 'date-fns';
 import {AmountWithCurrency} from 'lib/AmountWithCurrency';
+import {assert} from 'lib/assert';
 import {Currency} from 'lib/model/Currency';
-import {AppendMap} from 'lib/util/AppendingMap';
-import {percentile} from 'lib/util/stats';
+import {
+  percentile as numbersPercentile,
+  runningAverage as numbersRunningAverage,
+} from 'lib/util/stats';
 
-export class Timeseries<T> {
-  private readonly _monthly: AppendMap<number, T>;
-  private readonly _yearly: AppendMap<number, T>;
-  private readonly _zero: T;
+export enum Granularity {
+  MONTHLY,
+  YEARLY,
+}
 
-  constructor(combineFn: (x: T, y: T) => T, zero: T) {
-    this._monthly = new AppendMap<number, T>(combineFn, zero);
-    this._yearly = new AppendMap<number, T>(combineFn, zero);
-    this._zero = zero;
+type MoneyTimeseriesEntry = {
+  time: Date;
+  sum: AmountWithCurrency;
+};
+
+export class MoneyTimeseries {
+  private readonly data: Map<number, AmountWithCurrency>;
+  private readonly currency: Currency;
+  private readonly granularity: Granularity;
+
+  constructor(currency: Currency, granularity: Granularity) {
+    this.currency = currency;
+    this.granularity = granularity;
+    this.data = new Map();
   }
 
-  append(time: Date | number, newValue: T) {
-    const m = startOfMonth(time).getTime();
-    this._monthly.append(m, newValue);
-    const y = startOfYear(time).getTime();
-    this._yearly.append(y, newValue);
+  private bucket(time: Date | number): Date {
+    switch (this.granularity) {
+      case Granularity.MONTHLY:
+        return startOfMonth(time);
+      case Granularity.YEARLY:
+        return startOfYear(time);
+      default:
+        const _exhaustivenessCheck: never = this.granularity;
+        throw new Error(`Unknown granularity ${_exhaustivenessCheck}`);
+    }
   }
 
-  month(time: Date | number) {
-    const m = startOfMonth(time).getTime();
-    return this._monthly.get(m) ?? this._zero;
+  getCurrency(): Currency {
+    return this.currency;
   }
 
-  year(time: Date | number) {
-    const y = startOfYear(time).getTime();
-    return this._yearly.get(y) ?? this._zero;
+  getGranularity(): Granularity {
+    return this.granularity;
   }
 
-  protected monthly() {
-    return this._monthly;
+  increment(time: Date | number, i: AmountWithCurrency) {
+    if (i.getCurrency().code != this.currency.code) {
+      throw new Error(
+        `Cannot insert amount in ${i.getCurrency().code} into ${this.currency.code} timeseries`
+      );
+    }
+    const k = this.bucket(time).getTime();
+    const existing = this.data.get(k) ?? AmountWithCurrency.zero(this.currency);
+    this.data.set(k, existing.add(i));
   }
 
-  protected yearly() {
-    return this._yearly;
+  set(time: Date | number, i: AmountWithCurrency) {
+    if (i.getCurrency().code != this.currency.code) {
+      throw new Error(
+        `Cannot insert amount in ${i.getCurrency().code} into ${this.currency.code} timeseries`
+      );
+    }
+    const k = this.bucket(time).getTime();
+    this.data.set(k, i);
+  }
+
+  get(time: Date | number): AmountWithCurrency {
+    const k = this.bucket(time).getTime();
+    return this.data.get(k) ?? AmountWithCurrency.zero(this.currency);
+  }
+
+  entries(): MoneyTimeseriesEntry[] {
+    const out: MoneyTimeseriesEntry[] = [];
+    [...this.data.entries()]
+      .sort(([t1], [t2]) => t1 - t2)
+      .forEach(([t, v]) => {
+        out.push({
+          time: new Date(t),
+          sum: v,
+        });
+      });
+    return out;
   }
 }
 
-export class MoneyTimeseries extends Timeseries<AmountWithCurrency> {
-  constructor(private readonly _currency: Currency) {
-    super(AmountWithCurrency.add, AmountWithCurrency.zero(_currency));
+export function runningAverage(ts: MoneyTimeseries, window: number) {
+  const entries = ts.entries();
+  const cents = entries.map(x => x.sum.cents());
+  const averagesCent = numbersRunningAverage(cents, window);
+  assert(entries.length == averagesCent.length);
+  const out = new MoneyTimeseries(ts.getCurrency(), ts.getGranularity());
+  for (let i = 0; i < entries.length; i++) {
+    out.set(
+      entries[i].time,
+      new AmountWithCurrency({
+        amountCents: averagesCent[i],
+        currency: ts.getCurrency(),
+      })
+    );
   }
+  return out;
+}
 
-  monthlyPercentile(p: number) {
-    return percentile([...this.monthly().values()], p);
-  }
-
-  monthRoundDollars(dates: number[] | Date[]) {
-    return dates.map((m: number | Date) => this.month(m).round().dollar());
-  }
-
-  yearRoundDollars(dates: number[] | Date[]) {
-    return dates.map((m: number | Date) => this.year(m).round().dollar());
-  }
-
-  monthlyMap() {
-    return this.monthly();
-  }
+export function percentile(ts: MoneyTimeseries, p: number) {
+  const entries = ts.entries();
+  const cents = entries.map(x => x.sum.cents());
+  const percentileCent = numbersPercentile(cents, p);
+  return new AmountWithCurrency({
+    amountCents: percentileCent,
+    currency: ts.getCurrency(),
+  });
 }

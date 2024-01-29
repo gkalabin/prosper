@@ -1,4 +1,4 @@
-import {type Interval, eachMonthOfInterval} from 'date-fns';
+import {eachMonthOfInterval, type Interval} from 'date-fns';
 import ReactEcharts from 'echarts-for-react';
 import {defaultMonthlyMoneyChart} from 'lib/charts';
 import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
@@ -30,7 +30,7 @@ export function MonthlyChart({
           {
             type,
             name: title,
-            data: data.monthRoundDollars(months),
+            data: months.map(m => data.get(m).round().dollar()),
           },
         ],
       }}

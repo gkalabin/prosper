@@ -30,7 +30,7 @@ export function YearlyChart({
           {
             type,
             name: title,
-            data: data.yearRoundDollars(years),
+            data: years.map(m => data.get(m).round().dollar()),
           },
         ],
       }}

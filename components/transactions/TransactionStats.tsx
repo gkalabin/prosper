@@ -23,7 +23,7 @@ import {
 } from 'lib/model/transaction/Transaction';
 import {amountAllParties, amountOwnShare} from 'lib/model/transaction/amounts';
 import {AppendMap} from 'lib/util/AppendingMap';
-import {MoneyTimeseries} from 'lib/util/Timeseries';
+import {Granularity, MoneyTimeseries, percentile} from 'lib/util/Timeseries';
 import {capitalize} from 'lib/util/util';
 
 export function TransactionStats(props: {
@@ -132,8 +132,11 @@ function IncomeOrExenseStats({
   const spentOrReceivedCapital = capitalize(spentOrReceived);
   const duration = {start: first.timestampEpoch, end: last.timestampEpoch};
   const zero = AmountWithCurrency.zero(displayCurrency);
-  const grossPerMonth = new MoneyTimeseries(displayCurrency);
-  const netPerMonth = new MoneyTimeseries(displayCurrency);
+  const grossPerMonth = new MoneyTimeseries(
+    displayCurrency,
+    Granularity.MONTHLY
+  );
+  const netPerMonth = new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);
   const grossPerCategory = new AppendMap<number, AmountWithCurrency>(
     AmountWithCurrency.add,
     zero
@@ -167,8 +170,8 @@ function IncomeOrExenseStats({
     }
     gross.push(g);
     net.push(n);
-    netPerMonth.append(ts, n);
-    grossPerMonth.append(ts, g);
+    netPerMonth.increment(ts, n);
+    grossPerMonth.increment(ts, g);
     const cid = t.categoryId;
     grossPerCategory.append(cid, g);
     netPerCategory.append(cid, n);
@@ -191,19 +194,19 @@ function IncomeOrExenseStats({
         <div>
           Monthly percentiles (gross):
           <div className="ml-1 text-xs">
-            {grossPerMonth.monthlyPercentile(25).round().format()} (p25) /{' '}
-            {grossPerMonth.monthlyPercentile(50).round().format()} (p50) /{' '}
-            {grossPerMonth.monthlyPercentile(75).round().format()} (p75) /{' '}
-            {grossPerMonth.monthlyPercentile(100).round().format()} (max)
+            {percentile(grossPerMonth, 25).round().format()} (p25) /{' '}
+            {percentile(grossPerMonth, 50).round().format()} (p50) /{' '}
+            {percentile(grossPerMonth, 75).round().format()} (p75) /{' '}
+            {percentile(grossPerMonth, 100).round().format()} (max)
           </div>
         </div>
         <div>
           Monthly percentiles (net):
           <div className="ml-1 text-xs">
-            {netPerMonth.monthlyPercentile(25).round().format()} (p25) /{' '}
-            {netPerMonth.monthlyPercentile(50).round().format()} (p50) /{' '}
-            {netPerMonth.monthlyPercentile(75).round().format()} (p75) /{' '}
-            {netPerMonth.monthlyPercentile(100).round().format()} (max)
+            {percentile(netPerMonth, 25).round().format()} (p25) /{' '}
+            {percentile(netPerMonth, 50).round().format()} (p50) /{' '}
+            {percentile(netPerMonth, 75).round().format()} (p75) /{' '}
+            {percentile(netPerMonth, 100).round().format()} (max)
           </div>
         </div>
       </div>

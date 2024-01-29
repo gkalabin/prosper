@@ -1,6 +1,7 @@
 'use client';
 import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
+import {filterExcludedTransactions} from 'app/stats/modelHelpers';
 import {DurationSelector, LAST_6_MONTHS} from 'components/DurationSelector';
 import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
 import {MonthlyChart} from 'components/charts/Monthly';
@@ -22,9 +23,8 @@ import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
 import {Transaction} from 'lib/model/transaction/Transaction';
 import {amountOwnShare} from 'lib/model/transaction/amounts';
 import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
-import {MoneyTimeseries} from 'lib/util/Timeseries';
+import {Granularity, MoneyTimeseries} from 'lib/util/Timeseries';
 import {useState} from 'react';
-import {filterExcludedTransactions} from '../modelHelpers';
 
 export function CashflowCharts({input}: {input: TransactionsStatsInput}) {
   const displayCurrency = useDisplayCurrency();
@@ -32,7 +32,7 @@ export function CashflowCharts({input}: {input: TransactionsStatsInput}) {
   const zero = AmountWithCurrency.zero(displayCurrency);
   const failedToExchange: Transaction[] = [];
   // collect monthly in/out amounts
-  const moneyOut = new MoneyTimeseries(displayCurrency);
+  const moneyOut = new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);
   for (const t of input.expensesAllTime()) {
     const exchanged = amountOwnShare(
       t,
@@ -45,9 +45,9 @@ export function CashflowCharts({input}: {input: TransactionsStatsInput}) {
       failedToExchange.push(t);
       continue;
     }
-    moneyOut.append(t.timestampEpoch, exchanged);
+    moneyOut.increment(t.timestampEpoch, exchanged);
   }
-  const moneyIn = new MoneyTimeseries(displayCurrency);
+  const moneyIn = new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);
   for (const t of input.incomeAllTime()) {
     const exchanged = amountOwnShare(
       t,
@@ -60,7 +60,7 @@ export function CashflowCharts({input}: {input: TransactionsStatsInput}) {
       failedToExchange.push(t);
       continue;
     }
-    moneyIn.append(t.timestampEpoch, exchanged);
+    moneyIn.increment(t.timestampEpoch, exchanged);
   }
   // calculate cashflow for each month
   const dataMonthsIndex = new Set<number>(
@@ -69,17 +69,20 @@ export function CashflowCharts({input}: {input: TransactionsStatsInput}) {
     )
   );
   const dataMonths = [...dataMonthsIndex.keys()].sort();
-  const cashflow = new MoneyTimeseries(displayCurrency);
+  const cashflow = new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);
   dataMonths.forEach(m =>
-    cashflow.append(m, moneyIn.month(m).subtract(moneyOut.month(m)))
+    cashflow.set(m, moneyIn.get(m).subtract(moneyOut.get(m)))
   );
   // calculate cumulative cashflow for display months only
   const displayMonths = input.months().map(x => x.getTime());
-  const cashflowCumulative = new MoneyTimeseries(displayCurrency);
+  const cashflowCumulative = new MoneyTimeseries(
+    displayCurrency,
+    Granularity.MONTHLY
+  );
   let current = zero;
   for (const m of displayMonths) {
-    current = current.add(cashflow.month(m));
-    cashflowCumulative.append(m, current);
+    current = current.add(cashflow.get(m));
+    cashflowCumulative.set(m, current);
   }
   const yearsIncomplete =
     startOfYear(input.interval().start).getTime() != +input.interval().start ||
