@@ -51,7 +51,7 @@ resource "google_cloud_run_v2_service" "prosper" {
     containers {
       name    = "prosper"
       command = ["sh", "-c", "./scripts/start.sh"]
-      image   = "docker.io/gkalabin/prosper:latest@sha256:ff786cc7fe6ee1f7d7d96ca4bc821a5d7f588e760420ada8ec333e859e30604c"
+      image   = "docker.io/gkalabin/prosper:latest"
       env {
         name  = "DB_SOCKET_PATH"
         value = "/cloudsql/${data.google_project.prosper.project_id}:${var.region}:${google_sql_database_instance.prosperdb.name}"
