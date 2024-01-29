@@ -50,7 +50,7 @@ resource "null_resource" "before_service_account_creation" {
 
 resource "null_resource" "delay_after_service_account_creation" {
   provisioner "local-exec" {
-    command = "sleep 30"
+    command = "sleep 60"
   }
   triggers = {
     "before" = null_resource.before_service_account_creation.id
