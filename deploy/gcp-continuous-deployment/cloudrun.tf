@@ -53,11 +53,7 @@ resource "google_cloud_run_v2_service" "prosper" {
       image = "docker.io/gkalabin/prosper:latest"
       env {
         name  = "DB_SOCKET_PATH"
-        value = "/cloudsql/${data.google_project.prosper.project_id}:${var.region}:${google_sql_database_instance.prosperdb.name}"
-      }
-      env {
-        name  = "DB_PORT"
-        value = "3306"
+        value = "/cloudsql/${local.db_connection_name}"
       }
       env {
         name  = "DB_USER"
@@ -74,7 +70,7 @@ resource "google_cloud_run_v2_service" "prosper" {
       }
       env {
         name  = "DB_NAME"
-        value = "prosperdb"
+        value = local.db_name
       }
       env {
         name  = "PUBLIC_APP_URL"

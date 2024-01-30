@@ -18,8 +18,9 @@ provider "google" {
 }
 
 locals {
-  fe_docker_image       = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.main.repository_id}/fe:$COMMIT_SHA"
-  service_account_email = "${data.google_project.prosper.number}-compute@developer.gserviceaccount.com"
+  fe_docker_image    = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.main.repository_id}/fe:$COMMIT_SHA"
+  db_name            = "prosperdb"
+  db_connection_name = "${data.google_project.prosper.project_id}:${var.region}:${google_sql_database_instance.prosperdb.name}"
 }
 
 data "google_project" "prosper" {}
