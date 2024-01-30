@@ -10,7 +10,7 @@ resource "google_sql_database_instance" "prosperdb" {
     tier = "db-f1-micro"
   }
   deletion_protection = var.db_deletion_protection
-  depends_on = [google_project_service.project_services]
+  depends_on          = [google_project_service.project_services]
 }
 
 resource "google_sql_user" "prosperdb_user" {
