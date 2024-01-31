@@ -145,6 +145,8 @@ model Tag {
 model Trip {
   id          Int           @id @default(autoincrement())
   name        String
+  country     String?
+  city        String?
   destination String?
   start       DateTime?
   end         DateTime?
