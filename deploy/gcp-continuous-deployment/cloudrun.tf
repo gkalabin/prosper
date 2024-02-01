@@ -14,7 +14,6 @@ resource "google_secret_manager_secret_iam_member" "runner_secrets_access" {
   member    = "serviceAccount:${google_service_account.runner.email}"
   depends_on = [
     google_project_service.project_services["iam.googleapis.com"],
-    google_project_service.project_services["run.googleapis.com"],
     google_project_service.project_services["secretmanager.googleapis.com"],
     google_secret_manager_secret.prosperdb_password,
     null_resource.after_service_account_creation
@@ -26,9 +25,7 @@ resource "google_project_iam_member" "runner_db_access" {
   member  = "serviceAccount:${google_service_account.runner.email}"
   project = var.project_id
   depends_on = [
-    google_project_service.project_services["compute.googleapis.com"],
     google_project_service.project_services["iam.googleapis.com"],
-    google_project_service.project_services["run.googleapis.com"],
     null_resource.after_service_account_creation
   ]
 }
