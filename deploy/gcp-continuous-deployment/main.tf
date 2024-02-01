@@ -9,6 +9,14 @@ terraform {
       source  = "hashicorp/google-beta"
       version = "~> 5.13.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6.0"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.2.2"
+    }
   }
 }
 
@@ -18,7 +26,6 @@ provider "google" {
 }
 
 locals {
-  fe_docker_image    = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.main.repository_id}/fe:$COMMIT_SHA"
   db_name            = "prosperdb"
   db_connection_name = "${data.google_project.prosper.project_id}:${var.region}:${google_sql_database_instance.prosperdb.name}"
 }
