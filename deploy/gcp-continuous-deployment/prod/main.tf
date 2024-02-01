@@ -1,7 +1,7 @@
 // Production version of Prosper deployment on GCP.
 // This module just calls the main module and forwards the variables and output.
 module "gcp-continuous-deployment-prod" {
-  source                   = "./module"
+  source                   = "../module"
   project_id               = var.project_id
   region                   = var.region
   domain_name              = var.domain_name
