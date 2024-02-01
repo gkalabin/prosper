@@ -26,6 +26,9 @@
     "*.{js,jsx,ts,tsx,json,css,scss,md,yml,yaml}": [
       "prettier --check"
     ],
+    "*.tf": [
+      "terraform fmt -check"
+    ],
     "*": [
       "typos",
       "gitleaks protect --no-banner --staged --verbose"
