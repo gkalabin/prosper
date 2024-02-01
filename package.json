@@ -54,7 +54,7 @@
   "dependencies": {
     "@headlessui/react": "^1.7.17",
     "@heroicons/react": "^2.1.1",
-    "@prisma/client": "^5.5.2",
+    "@prisma/client": "^5.8.1",
     "@types/echarts": "^4.9.22",
     "@typescript-eslint/eslint-plugin": "^6.19.1",
     "antlr4": "^4.13.1-patch-1",
