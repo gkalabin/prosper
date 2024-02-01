@@ -106,7 +106,7 @@ resource "google_cloudbuild_trigger" "github_push_main" {
         <<-EOT
         echo "FROM ${local.image_app}" > Dockerfile-migration
         echo "COPY --from=gcr.io/cloud-sql-connectors/cloud-sql-proxy /cloud-sql-proxy /cloudsql/cloud-sql-proxy" >> Dockerfile-migration
-        # echo "RUN npm install -g prisma" >> Dockerfile-migration
+        echo "RUN npm install -g prisma" >> Dockerfile-migration
         # In order to mount the sql proxy socket, the current user has to be root.
         echo "USER root" >> Dockerfile-migration
         docker build -f Dockerfile-migration -t ${local.image_migration} .
