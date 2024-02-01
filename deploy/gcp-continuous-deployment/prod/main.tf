@@ -1,7 +1,7 @@
-// This module just uses gcp-continuous-deployment.
-// Handy for testing where the state can be different from the prod.
-module "gcp-continuous-deployment" {
-  source                   = "../gcp-continuous-deployment"
+// Production version of Prosper deployment on GCP.
+// This module just calls the main module and forwards the variables and output.
+module "gcp-continuous-deployment-prod" {
+  source                   = "./module"
   project_id               = var.project_id
   region                   = var.region
   domain_name              = var.domain_name
@@ -10,5 +10,5 @@ module "gcp-continuous-deployment" {
   nordigen_secret_id       = var.nordigen_secret_id
   nordigen_secret_key      = var.nordigen_secret_key
   cloudsource_repo_name    = var.cloudsource_repo_name
-  db_deletion_protection   = var.db_deletion_protection
+  db_deletion_protection   = true
 }
