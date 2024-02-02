@@ -20,7 +20,6 @@ RUN npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
-WORKDIR /app
 ENV NODE_ENV production
 # Disable telemetry during runtime.
 ENV NEXT_TELEMETRY_DISABLED 1
@@ -29,6 +28,7 @@ RUN addgroup --system --gid 1001 prosper
 RUN adduser --system --uid 1001 prosper
 # Remove the annoying warning about using not the latest npm version.
 RUN npm install -g npm
+WORKDIR /app
 # Copy public assets.
 COPY --from=builder /app/public ./public
 # Set the correct permission for prerender cache
@@ -38,13 +38,9 @@ RUN chown prosper:prosper .next
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=prosper:prosper /app/.next/standalone ./
 COPY --from=builder --chown=prosper:prosper /app/.next/static ./.next/static
-# Database migrations are run before starting the app inside the container,
-# so the database changes can be applied in the CI/CD pipeline. This requires all the prisma related files.
+# Add prisma schema and migrations, so the DB migration can be run in CI/CD pipeline.
 COPY --from=builder --chown=prosper:prosper /app/prisma/ ./prisma/
-RUN npm install -g prisma
-COPY --from=builder --chown=prosper:prosper /app/scripts/migrate-and-start.sh ./scripts/migrate-and-start.sh
-COPY --from=builder --chown=prosper:prosper /app/scripts/start.sh ./scripts/start.sh
-COPY --from=builder --chown=prosper:prosper /app/scripts/migrate.sh ./scripts/migrate.sh
+COPY --from=builder --chown=prosper:prosper /app/scripts/ ./scripts/
 
 USER prosper
 EXPOSE 3000
@@ -52,4 +48,4 @@ ENV PORT 3000
 # set hostname to localhost
 ENV HOSTNAME "0.0.0.0"
 
-CMD ["./scripts/migrate-and-start.sh"]
+CMD ["./scripts/start.sh"]

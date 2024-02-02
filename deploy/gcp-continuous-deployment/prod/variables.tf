@@ -40,9 +40,3 @@ variable "cloudsource_repo_name" {
   type    = string
   default = "github_gkalabin_prosper"
 }
-
-variable "db_deletion_protection" {
-  description = "if true, the database cannot be deleted via terraform"
-  type        = bool
-  default     = false
-}
