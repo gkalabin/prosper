@@ -98,7 +98,8 @@ export function runningAverage(ts: MoneyTimeseries, window: number) {
     out.set(
       entries[i].time,
       new AmountWithCurrency({
-        amountCents: averagesCent[i],
+        // TODO: write tests for Math.round
+        amountCents: Math.round(averagesCent[i]),
         currency: ts.getCurrency(),
       })
     );
