@@ -156,15 +156,17 @@ export function sortCategories(categories: Category[]): Category[] {
 }
 
 export function subtreeIncludes(
-  subtreeRoot: Category,
-  maybeDescendant: Category,
+  subtreeRoot: CategoryOrID,
+  maybeDescendant: CategoryOrID,
   tree: CategoryTree
 ): boolean {
-  if (subtreeRoot.id == maybeDescendant.id) {
+  const root = findNode(subtreeRoot, tree);
+  const descendant = findNode(maybeDescendant, tree);
+  if (root.category.id == descendant.category.id) {
     return true;
   }
   return getDescendants(subtreeRoot, tree).some(
-    c => c.category.id == maybeDescendant.id
+    c => c.category.id == descendant.category.id
   );
 }
 

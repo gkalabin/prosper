@@ -5,6 +5,7 @@ import {
   eachYearOfInterval,
   isWithinInterval,
 } from 'date-fns';
+import {AmountWithCurrency} from 'lib/AmountWithCurrency';
 import {Income} from 'lib/model/transaction/Income';
 import {
   Expense,
@@ -13,10 +14,17 @@ import {
   isIncome,
 } from 'lib/model/transaction/Transaction';
 
+export type DisplayCurrencyTransaction = {
+  t: Transaction;
+  ownShare: AmountWithCurrency;
+  allParties: AmountWithCurrency;
+};
+
 export class TransactionsStatsInput {
   constructor(
     private readonly _transactions: Transaction[],
-    private readonly _interval: Interval
+    private readonly _interval: Interval,
+    private readonly _exchanged?: DisplayCurrencyTransaction[]
   ) {}
 
   transactionsAllTime() {
@@ -29,6 +37,12 @@ export class TransactionsStatsInput {
 
   expenses() {
     return this.intervalOnly(this.expensesAllTime());
+  }
+
+  expenses2(): DisplayCurrencyTransaction[] {
+    return this._exchanged!.filter(
+      x => isExpense(x.t) && this.isWithinInterval(x.t)
+    );
   }
 
   incomeAllTime(): Income[] {
@@ -53,6 +67,10 @@ export class TransactionsStatsInput {
 
   years() {
     return eachYearOfInterval(this._interval);
+  }
+
+  private isWithinInterval(t: Transaction): boolean {
+    return isWithinInterval(t.timestampEpoch, this._interval);
   }
 
   private intervalOnly<T extends {timestampEpoch: number}>(ts: T[]) {
