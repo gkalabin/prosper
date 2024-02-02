@@ -6,7 +6,7 @@ provider "google" {
   project = var.project_id
 }
 
-module "gcp-continuous-deployment-prod" {
+module "gcp_continuous_deployment_prod" {
   source                   = "../module"
   project_id               = var.project_id
   region                   = var.region
