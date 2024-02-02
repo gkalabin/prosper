@@ -1,5 +1,11 @@
 // Test version of Prosper deployment on GCP.
 // This module just calls the main module and forwards the variables and output.
+
+provider "google" {
+  region  = var.region
+  project = var.project_id
+}
+
 module "gcp-continuous-deployment-test" {
   source                   = "../module"
   project_id               = var.project_id
