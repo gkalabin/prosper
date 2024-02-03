@@ -4,11 +4,11 @@ import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
 import {filterExcludedTransactions} from 'app/stats/modelHelpers';
 import {DurationSelector, LAST_6_MONTHS} from 'components/DurationSelector';
 import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
-import {MonthlyChart} from 'components/charts/Monthly';
 import {MonthlyOwnShare} from 'components/charts/MonthlySum';
 import {RunningAverageAmounts} from 'components/charts/RunningAverage';
 import {YearlyChart} from 'components/charts/Yearly';
 import {YearlyOwnShare} from 'components/charts/YearlySum';
+import Charts from 'components/charts/interface';
 import {startOfMonth, startOfYear} from 'date-fns';
 import {AmountWithCurrency} from 'lib/AmountWithCurrency';
 import {
@@ -91,16 +91,15 @@ export function CashflowCharts({input}: {input: TransactionsStatsInput}) {
     <>
       <CurrencyExchangeFailed failedTransactions={failedToExchange} />
 
-      <MonthlyChart
-        data={cashflow}
-        duration={input.interval()}
-        title="Monthly cashflow"
+      <Charts.Bar
+        title={'Monthly cashflow'}
+        series={{data: cashflow}}
+        interval={input.interval()}
       />
-      <MonthlyChart
-        data={cashflowCumulative}
-        duration={input.interval()}
-        title="Monthly cashflow (cumulative)"
-        type="line"
+      <Charts.Line
+        title={'Monthly cashflow (cumulative)'}
+        series={{data: cashflowCumulative}}
+        interval={input.interval()}
       />
       <RunningAverageAmounts
         title="Cashflow running average (over 12 months)"

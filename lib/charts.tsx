@@ -7,7 +7,6 @@ import {
 import {type EChartsOption} from 'echarts';
 import {type TooltipComponentOption} from 'echarts/components';
 import {CallbackDataParams} from 'echarts/types/dist/shared';
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
 import {formatMonth} from 'lib/TimeHelpers';
 import {Currency, formatCurrency} from 'lib/model/Currency';
 
@@ -163,19 +162,4 @@ export function defaultPieChartOptions(): EChartsOption {
 
 export function currencyFormatter(c: Currency) {
   return (v: number) => formatCurrency(c, v, {maximumFractionDigits: 0});
-}
-
-export function monthlyData(
-  interval: Interval,
-  timeseries: Map<number, AmountWithCurrency>
-) {
-  const months = eachMonthOfInterval(interval).map(x => x.getTime());
-  return makeData(months, timeseries);
-}
-
-export function makeData(
-  time: number[],
-  timeseries: Map<number, AmountWithCurrency>
-) {
-  return time.map(m => timeseries.get(m)?.round()?.dollar() ?? 0);
 }
