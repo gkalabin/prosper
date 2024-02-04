@@ -1,7 +1,6 @@
 import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
-import {isWithinInterval, type Interval} from 'date-fns';
-import ReactEcharts from 'echarts-for-react';
-import {defaultMonthlyMoneyChart} from 'lib/charts';
+import Charts from 'components/charts/interface';
+import {type Interval} from 'date-fns';
 import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
 import {Income} from 'lib/model/transaction/Income';
@@ -40,49 +39,15 @@ export function RunningAverageOwnShare(props: {
     }
     net.increment(t.timestampEpoch, amount);
   }
+  const averageTimeseries = runningAverage(net, props.maxWindowLength);
   return (
     <>
       <CurrencyExchangeFailed failedTransactions={failedToExchange} />
-      <RunningAverageAmounts
-        timeseries={net}
-        duration={props.duration}
-        maxWindowLength={props.maxWindowLength}
+      <Charts.Bar
         title={props.title}
+        series={{data: averageTimeseries}}
+        interval={props.duration}
       />
     </>
-  );
-}
-
-export function RunningAverageAmounts(props: {
-  timeseries: MoneyTimeseries;
-  duration: Interval;
-  maxWindowLength: number;
-  title: string;
-}) {
-  const displayCurrency = useDisplayCurrency();
-  const averageTimeseries = runningAverage(
-    props.timeseries,
-    props.maxWindowLength
-  );
-  const displayData = averageTimeseries
-    .entries()
-    .filter(x => isWithinInterval(x.time, props.duration));
-  return (
-    <ReactEcharts
-      notMerge
-      option={{
-        ...defaultMonthlyMoneyChart(displayCurrency, props.duration),
-        title: {
-          text: props.title,
-        },
-        series: [
-          {
-            type: 'bar',
-            name: props.title,
-            data: displayData.map(x => x.sum.round().dollar()),
-          },
-        ],
-      }}
-    />
   );
 }

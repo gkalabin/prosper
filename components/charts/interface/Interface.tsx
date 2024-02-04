@@ -7,6 +7,7 @@ export type Props = {
   interval: Interval;
 };
 
+// TODO: remove wrapping object if it hold only one property.
 export type Series = {
   data: MoneyTimeseries;
 };

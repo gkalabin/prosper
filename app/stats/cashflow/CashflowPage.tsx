@@ -5,7 +5,6 @@ import {filterExcludedTransactions} from 'app/stats/modelHelpers';
 import {DurationSelector, LAST_6_MONTHS} from 'components/DurationSelector';
 import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
 import {MonthlyOwnShare} from 'components/charts/MonthlySum';
-import {RunningAverageAmounts} from 'components/charts/RunningAverage';
 import {YearlyChart} from 'components/charts/Yearly';
 import {YearlyOwnShare} from 'components/charts/YearlySum';
 import Charts from 'components/charts/interface';
@@ -23,7 +22,11 @@ import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
 import {Transaction} from 'lib/model/transaction/Transaction';
 import {amountOwnShare} from 'lib/model/transaction/amounts';
 import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
-import {Granularity, MoneyTimeseries} from 'lib/util/Timeseries';
+import {
+  Granularity,
+  MoneyTimeseries,
+  runningAverage,
+} from 'lib/util/Timeseries';
 import {useState} from 'react';
 
 export function CashflowCharts({input}: {input: TransactionsStatsInput}) {
@@ -101,11 +104,10 @@ export function CashflowCharts({input}: {input: TransactionsStatsInput}) {
         series={{data: cashflowCumulative}}
         interval={input.interval()}
       />
-      <RunningAverageAmounts
-        title="Cashflow running average (over 12 months)"
-        timeseries={cashflow}
-        duration={input.interval()}
-        maxWindowLength={12}
+      <Charts.Bar
+        title={'Cashflow 12 months running average'}
+        series={{data: runningAverage(cashflow, 12)}}
+        interval={input.interval()}
       />
       <MonthlyOwnShare
         title="Monthly out"
