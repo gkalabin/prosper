@@ -1,5 +1,6 @@
 'use client';
 import {undoTailwindInputStyles} from 'components/forms/Select';
+import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
 import {
   Category,
   CategoryTree,
@@ -10,6 +11,23 @@ import {
 import Select from 'react-select';
 
 export function ExcludedCategoriesSelector({
+  excludedIds,
+  setExcludedIds,
+}: {
+  excludedIds: number[];
+  setExcludedIds: (newValue: number[]) => void;
+}) {
+  const {categories} = useAllDatabaseDataContext();
+  return (
+    <ExcludedCategoriesSelectorStandalone
+      excludedIds={excludedIds}
+      setExcludedIds={setExcludedIds}
+      allCategories={categories}
+    />
+  );
+}
+
+export function ExcludedCategoriesSelectorStandalone({
   excludedIds,
   setExcludedIds,
   allCategories: all,

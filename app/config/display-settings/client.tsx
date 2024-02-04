@@ -3,7 +3,7 @@ import {
   Category as DBCategory,
   DisplaySettings as DBDisplaySettings,
 } from '@prisma/client';
-import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
+import {ExcludedCategoriesSelectorStandalone} from 'app/stats/ExcludedCategoriesSelector';
 import {FormikSelect} from 'components/forms/Select';
 import {FormikButtonFormPrimary} from 'components/ui/buttons';
 import {Form, Formik} from 'formik';
@@ -80,7 +80,7 @@ export function DisplaySettingsPage({
             >
               Categories to exclude in stats
             </label>
-            <ExcludedCategoriesSelector
+            <ExcludedCategoriesSelectorStandalone
               excludedIds={values.excludeCategoryIdsInStats}
               setExcludedIds={v =>
                 setFieldValue('excludeCategoryIdsInStats', v)

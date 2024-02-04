@@ -1,7 +1,7 @@
 'use client';
 import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
-import {filterExcludedTransactions} from 'app/stats/modelHelpers';
+import {useStatsPageProps} from 'app/stats/modelHelpers';
 import {DurationSelector, LAST_6_MONTHS} from 'components/DurationSelector';
 import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
 import {MonthlyOwnShare} from 'components/charts/MonthlySum';
@@ -152,17 +152,14 @@ export function CashflowCharts({input}: {input: TransactionsStatsInput}) {
 
 function NonEmptyPageContent() {
   const [duration, setDuration] = useState(LAST_6_MONTHS);
-  const {transactions, categories} = useAllDatabaseDataContext();
   const {displaySettings} = useDisplaySettingsContext();
   const [excludeCategories, setExcludeCategories] = useState(
     displaySettings.excludeCategoryIdsInStats()
   );
-  const filteredTransactions = filterExcludedTransactions(
-    transactions,
+  const {input, failedToExchange} = useStatsPageProps(
     excludeCategories,
-    categories
+    duration
   );
-  const input = new TransactionsStatsInput(filteredTransactions, duration);
   return (
     <div className="space-y-4">
       <div className="w-full max-w-sm">
@@ -171,8 +168,8 @@ function NonEmptyPageContent() {
       <ExcludedCategoriesSelector
         excludedIds={excludeCategories}
         setExcludedIds={setExcludeCategories}
-        allCategories={categories}
       />
+      <CurrencyExchangeFailed failedTransactions={failedToExchange} />
       <CashflowCharts input={input} />
     </div>
   );

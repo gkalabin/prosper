@@ -6,7 +6,7 @@ import {ExpensesByRootCategory} from 'app/stats/expense/ByRootCategory';
 import {
   categoryNameById,
   dollarsRounded,
-  filterExcludedTransactions,
+  useStatsPageProps,
 } from 'app/stats/modelHelpers';
 import {DurationSelector, LAST_6_MONTHS} from 'components/DurationSelector';
 import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
@@ -31,12 +31,7 @@ import {
   makeCategoryTree,
   subtreeIncludes,
 } from 'lib/model/Category';
-import {Transaction} from 'lib/model/transaction/Transaction';
-import {amountAllParties, amountOwnShare} from 'lib/model/transaction/amounts';
-import {
-  DisplayCurrencyTransaction,
-  TransactionsStatsInput,
-} from 'lib/stats/TransactionsStatsInput';
+import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
 import {DefaultMap} from 'lib/util/DefaultMap';
 import {Granularity, MoneyTimeseries} from 'lib/util/Timeseries';
 import {useState} from 'react';
@@ -103,56 +98,13 @@ function ExpenseByCategory({
 
 function NonEmptyPageContent() {
   const [duration, setDuration] = useState(LAST_6_MONTHS);
-  const {transactions, categories, bankAccounts, stocks, exchange} =
-    useAllDatabaseDataContext();
-  const displayCurrency = useDisplayCurrency();
   const {displaySettings} = useDisplaySettingsContext();
   const [excludeCategories, setExcludeCategories] = useState(
     displaySettings.excludeCategoryIdsInStats()
   );
-  const filteredTransactions = filterExcludedTransactions(
-    transactions,
+  const {input, failedToExchange} = useStatsPageProps(
     excludeCategories,
-    categories
-  );
-  const failedToExchange: Transaction[] = [];
-  const exchanged: DisplayCurrencyTransaction[] = [];
-  for (const t of filteredTransactions) {
-    if (t.kind == 'Transfer') {
-      continue;
-    }
-    const own = amountOwnShare(
-      t,
-      displayCurrency,
-      bankAccounts,
-      stocks,
-      exchange
-    );
-    if (!own) {
-      failedToExchange.push(t);
-      continue;
-    }
-    const all = amountAllParties(
-      t,
-      displayCurrency,
-      bankAccounts,
-      stocks,
-      exchange
-    );
-    if (!all) {
-      failedToExchange.push(t);
-      continue;
-    }
-    exchanged.push({
-      t,
-      ownShare: own,
-      allParties: all,
-    });
-  }
-  const input = new TransactionsStatsInput(
-    filteredTransactions,
-    duration,
-    exchanged
+    duration
   );
   return (
     <div className="space-y-4">
@@ -162,7 +114,6 @@ function NonEmptyPageContent() {
       <ExcludedCategoriesSelector
         excludedIds={excludeCategories}
         setExcludedIds={setExcludeCategories}
-        allCategories={categories}
       />
       <CurrencyExchangeFailed failedTransactions={failedToExchange} />
       {/* Charts with statistics begin below. */}

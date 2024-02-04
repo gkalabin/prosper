@@ -216,7 +216,6 @@ function NonEmptyPageContent() {
       <ExcludedCategoriesSelector
         excludedIds={excludeCategories}
         setExcludedIds={setExcludeCategories}
-        allCategories={categories}
       />
       <QuarterlyStats input={input} />
     </div>

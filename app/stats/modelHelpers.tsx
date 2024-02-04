@@ -1,5 +1,8 @@
+import {type Interval} from 'date-fns';
 import {AmountWithCurrency} from 'lib/AmountWithCurrency';
 import {StockAndCurrencyExchange} from 'lib/ClientSideModel';
+import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
 import {BankAccount} from 'lib/model/BankAccount';
 import {
   Category,
@@ -12,7 +15,11 @@ import {Currency} from 'lib/model/Currency';
 import {Stock} from 'lib/model/Stock';
 import {Income} from 'lib/model/transaction/Income';
 import {Expense, Transaction} from 'lib/model/transaction/Transaction';
-import {amountOwnShare} from 'lib/model/transaction/amounts';
+import {amountAllParties, amountOwnShare} from 'lib/model/transaction/amounts';
+import {
+  DisplayCurrencyTransaction,
+  TransactionsStatsInput,
+} from 'lib/stats/TransactionsStatsInput';
 
 export function dollarsRounded(amount: AmountWithCurrency | undefined): number {
   if (!amount) {
@@ -68,4 +75,60 @@ export function ownShareSum(
     sum = sum.add(exchanged);
   }
   return sum;
+}
+
+export function useStatsPageProps(
+  excludeCategories: number[],
+  duration: Interval<Date>
+) {
+  const {transactions, categories, bankAccounts, stocks, exchange} =
+    useAllDatabaseDataContext();
+  const displayCurrency = useDisplayCurrency();
+  const filteredTransactions = filterExcludedTransactions(
+    transactions,
+    excludeCategories,
+    categories
+  );
+  const failedToExchange: Transaction[] = [];
+  const exchanged: DisplayCurrencyTransaction[] = [];
+  for (const t of filteredTransactions) {
+    if (t.kind == 'Transfer') {
+      continue;
+    }
+    const own = amountOwnShare(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange
+    );
+    if (!own) {
+      failedToExchange.push(t);
+      continue;
+    }
+    const all = amountAllParties(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange
+    );
+    if (!all) {
+      failedToExchange.push(t);
+      continue;
+    }
+    exchanged.push({
+      t,
+      ownShare: own,
+      allParties: all,
+    });
+  }
+  return {
+    input: new TransactionsStatsInput(
+      filteredTransactions,
+      duration,
+      exchanged
+    ),
+    failedToExchange,
+  };
 }
