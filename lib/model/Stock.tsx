@@ -7,7 +7,6 @@ export type Stock = {
   currencyCode: string;
   ticker: string;
   exchange: string;
-  multiplier: number;
 };
 
 export function stockModelFromDB(init: DBStock): Stock {
@@ -18,7 +17,6 @@ export function stockModelFromDB(init: DBStock): Stock {
     currencyCode: init.currencyCode,
     ticker: init.ticker,
     exchange: init.exchange,
-    multiplier: init.multiplier,
   };
 }
 

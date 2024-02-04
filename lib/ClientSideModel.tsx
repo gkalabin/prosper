@@ -196,9 +196,7 @@ export class StockQuotes {
       return undefined;
     }
     return new AmountWithCurrency({
-      amountCents: Math.round(
-        a.dollar() * pricePerShareCents * stock.multiplier
-      ),
+      amountCents: Math.round(a.dollar() * pricePerShareCents),
       currency,
     });
   }
