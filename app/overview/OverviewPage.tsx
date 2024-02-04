@@ -1,90 +1,24 @@
 'use client';
+import {BankAccountListItem} from 'app/overview/AccountListItem';
+import {accountsSum} from 'app/overview/modelHelpers';
+import {OpenBankingConnectionExpirationWarning} from 'app/overview/OpenBankingConnectionExpirationWarning';
+import {StatsWidget} from 'app/overview/StatsWidget';
 import {isFullyConfigured, NotConfiguredYet} from 'components/NotConfiguredYet';
-import {TransactionsList} from 'components/transactions/TransactionsList';
 import {AddTransactionForm} from 'components/txform/AddTransactionForm';
 import {ButtonPagePrimary} from 'components/ui/buttons';
-import {AmountWithUnit} from 'lib/AmountWithUnit';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
 } from 'lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
-import {
-  accountsForBank,
-  accountUnit,
-  Bank,
-  BankAccount,
-} from 'lib/model/BankAccount';
-import {Income} from 'lib/model/transaction/Income';
-import {PersonalExpense} from 'lib/model/transaction/PersonalExpense';
-import {Transfer} from 'lib/model/transaction/Transfer';
+import {accountsForBank, Bank} from 'lib/model/BankAccount';
 import {
   useOpenBankingBalances,
   useOpenBankingTransactions,
 } from 'lib/openbanking/context';
 import {onTransactionChange} from 'lib/stateHelpers';
 import {useState} from 'react';
-import {
-  accountBalance,
-  accountsSum,
-  transactionBelongsToAccount,
-} from './modelHelpers';
-import {OpenBankingConnectionExpirationWarning} from './OpenBankingConnectionExpirationWarning';
-import {StatsWidget} from './StatsWidget';
-
-const BankAccountListItem = ({account}: {account: BankAccount}) => {
-  const [showTransactionList, setShowTransactionList] = useState(false);
-  const {setDbData, transactions, stocks} = useAllDatabaseDataContext();
-  const appBalance = accountBalance(account, transactions, stocks);
-  const unit = accountUnit(account, stocks);
-  const accountTransactions = transactions.filter(
-    (t): t is PersonalExpense | Transfer | Income =>
-      transactionBelongsToAccount(t, account)
-  );
-  let balanceText = <span>{appBalance.format()}</span>;
-  const {balances} = useOpenBankingBalances();
-  const obBalance = balances?.find(b => b.internalAccountId === account.id);
-  if (obBalance) {
-    const obAmount = new AmountWithUnit({
-      amountCents: obBalance.balanceCents,
-      unit,
-    });
-    const delta = appBalance.subtract(obAmount);
-    if (delta.isZero()) {
-      balanceText = (
-        <span className="text-green-600">{appBalance.format()}</span>
-      );
-    } else {
-      balanceText = (
-        <>
-          <span className="text-red-600">{appBalance.format()}</span>{' '}
-          {delta.abs().format()} unaccounted{' '}
-          {delta.isNegative() ? 'income' : 'expense'}
-        </>
-      );
-    }
-  }
-  return (
-    <div className="flex flex-col py-2 pl-6 pr-2">
-      <div
-        className="cursor-pointer"
-        onClick={() => setShowTransactionList(!showTransactionList)}
-      >
-        <span className="text-base font-normal">{account.name}</span>
-        <span className="ml-2 text-sm font-light">{balanceText}</span>
-      </div>
-      {showTransactionList && (
-        <div className="mt-4">
-          <TransactionsList
-            transactions={accountTransactions}
-            onTransactionUpdated={onTransactionChange(setDbData)}
-          />
-        </div>
-      )}
-    </div>
-  );
-};
 
 export const BanksList = ({banks}: {banks: Bank[]}) => {
   return (
