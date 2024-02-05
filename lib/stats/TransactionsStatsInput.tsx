@@ -43,6 +43,10 @@ export class TransactionsStatsInput {
     return this.intervalOnly(this.expensesAllTime());
   }
 
+  expensesExchangedAllTime(): DisplayCurrencyTransaction[] {
+    return this._exchanged!.filter(x => isExpense(x.t));
+  }
+
   expensesExchanged(): DisplayCurrencyTransaction[] {
     return this._exchanged!.filter(
       x => isExpense(x.t) && this.isWithinInterval(x.t)
