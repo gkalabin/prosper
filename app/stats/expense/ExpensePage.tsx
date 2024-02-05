@@ -21,10 +21,7 @@ function NonEmptyPageContent() {
   const [excludeCategories, setExcludeCategories] = useState(
     displaySettings.excludeCategoryIdsInStats()
   );
-  const {input, failedToExchange} = useStatsPageProps(
-    excludeCategories,
-    duration
-  );
+  const {input, failed} = useStatsPageProps(excludeCategories, duration);
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -35,7 +32,7 @@ function NonEmptyPageContent() {
         excludedIds={excludeCategories}
         setExcludedIds={setExcludeCategories}
       />
-      <CurrencyExchangeFailed failedTransactions={failedToExchange} />
+      <CurrencyExchangeFailed failedTransactions={failed} />
       {/* Charts */}
       <MonthlySpend input={input} />
       <AverageMonthlySpend input={input} />

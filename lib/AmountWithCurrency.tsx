@@ -60,6 +60,13 @@ export class AmountWithCurrency {
     return this;
   }
 
+  public negate() {
+    return new AmountWithCurrency({
+      amountCents: -this.cents(),
+      currency: this.currency,
+    });
+  }
+
   public round() {
     if (!this.isRound()) {
       return new AmountWithCurrency({

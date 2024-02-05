@@ -48,7 +48,7 @@ export class MoneyTimeseries {
     return this.granularity;
   }
 
-  increment(time: Date | number, i: AmountWithCurrency) {
+  increment(time: Date | number, i: AmountWithCurrency): void {
     if (i.getCurrency().code != this.currency.code) {
       throw new Error(
         `Cannot insert amount in ${i.getCurrency().code} into ${this.currency.code} timeseries`

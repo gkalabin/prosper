@@ -80,7 +80,7 @@ export function ownShareSum(
 export function useStatsPageProps(
   excludeCategories: number[],
   duration: Interval<Date>
-) {
+): {input: TransactionsStatsInput; failed: Transaction[]} {
   const {transactions, categories, bankAccounts, stocks, exchange} =
     useAllDatabaseDataContext();
   const displayCurrency = useDisplayCurrency();
@@ -89,7 +89,7 @@ export function useStatsPageProps(
     excludeCategories,
     categories
   );
-  const failedToExchange: Transaction[] = [];
+  const failed: Transaction[] = [];
   const exchanged: DisplayCurrencyTransaction[] = [];
   for (const t of filteredTransactions) {
     if (t.kind == 'Transfer') {
@@ -103,7 +103,7 @@ export function useStatsPageProps(
       exchange
     );
     if (!own) {
-      failedToExchange.push(t);
+      failed.push(t);
       continue;
     }
     const all = amountAllParties(
@@ -114,7 +114,7 @@ export function useStatsPageProps(
       exchange
     );
     if (!all) {
-      failedToExchange.push(t);
+      failed.push(t);
       continue;
     }
     exchanged.push({
@@ -129,6 +129,6 @@ export function useStatsPageProps(
       duration,
       exchanged
     ),
-    failedToExchange,
+    failed,
   };
 }
