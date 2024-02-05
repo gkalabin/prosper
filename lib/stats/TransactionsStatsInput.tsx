@@ -57,8 +57,22 @@ export class TransactionsStatsInput {
     return this._transactions.filter((t): t is Income => isIncome(t));
   }
 
+  /**
+   * @deprecated Use incomeExchanged instead.
+   * @returns the income within the provided duration interval.
+   */
   income() {
     return this.intervalOnly(this.incomeAllTime());
+  }
+
+  incomeExchangedAllTime(): DisplayCurrencyTransaction[] {
+    return this._exchanged!.filter(x => isIncome(x.t));
+  }
+
+  incomeExchanged(): DisplayCurrencyTransaction[] {
+    return this._exchanged!.filter(
+      x => isIncome(x.t) && this.isWithinInterval(x.t)
+    );
   }
 
   interval() {

@@ -1,121 +1,28 @@
 'use client';
 import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
-import {
-  categoryNameById,
-  dollarsRounded,
-  filterExcludedTransactions,
-} from 'app/stats/modelHelpers';
+import {AverageMonthlyIncome} from 'app/stats/income/AverageMonthlyIncome';
+import {IncomeByCategory} from 'app/stats/income/IncomeByCategory';
+import {MonthlyIncome} from 'app/stats/income/MonthlyIncome';
+import {YearlyIncome} from 'app/stats/income/YearlyIncome';
+import {useStatsPageProps} from 'app/stats/modelHelpers';
 import {DurationSelector, LAST_6_MONTHS} from 'components/DurationSelector';
 import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
-import {MonthlyOwnShare} from 'components/charts/MonthlySum';
-import {RunningAverageOwnShare} from 'components/charts/RunningAverage';
-import {YearlyOwnShare} from 'components/charts/YearlySum';
-import {differenceInYears, startOfMonth} from 'date-fns';
-import ReactEcharts from 'echarts-for-react';
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
-import {defaultMonthlyMoneyChart, legend} from 'lib/charts';
-import {
-  AllDatabaseDataContextProvider,
-  useAllDatabaseDataContext,
-} from 'lib/context/AllDatabaseDataContext';
-import {
-  useDisplayCurrency,
-  useDisplaySettingsContext,
-} from 'lib/context/DisplaySettingsContext';
+import {AllDatabaseDataContextProvider} from 'lib/context/AllDatabaseDataContext';
+import {useDisplaySettingsContext} from 'lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
-import {Transaction} from 'lib/model/transaction/Transaction';
-import {amountOwnShare} from 'lib/model/transaction/amounts';
-import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
 import {useState} from 'react';
-
-export function IncomeCharts({input}: {input: TransactionsStatsInput}) {
-  const displayCurrency = useDisplayCurrency();
-  const {categories, bankAccounts, stocks, exchange} =
-    useAllDatabaseDataContext();
-  const zero = AmountWithCurrency.zero(displayCurrency);
-  const months = input.months().map(x => x.getTime());
-  const zeroes: [number, AmountWithCurrency][] = months.map(m => [m, zero]);
-  const byCategoryIdAndMonth = new Map<
-    number,
-    Map<number, AmountWithCurrency>
-  >();
-  const failedToExchange: Transaction[] = [];
-  for (const t of input.income()) {
-    const ts = startOfMonth(t.timestampEpoch).getTime();
-    const exchanged = amountOwnShare(
-      t,
-      displayCurrency,
-      bankAccounts,
-      stocks,
-      exchange
-    );
-    if (!exchanged) {
-      failedToExchange.push(t);
-      continue;
-    }
-    const categorySeries =
-      byCategoryIdAndMonth.get(t.categoryId) ?? new Map(zeroes);
-    categorySeries.set(ts, exchanged.add(categorySeries.get(ts) ?? zero));
-    byCategoryIdAndMonth.set(t.categoryId, categorySeries);
-  }
-
-  return (
-    <>
-      <CurrencyExchangeFailed failedTransactions={failedToExchange} />
-      <MonthlyOwnShare
-        title="Monthly income"
-        transactions={input.income()}
-        duration={input.interval()}
-      />
-      {differenceInYears(input.interval().end, input.interval().start) > 1 && (
-        <YearlyOwnShare
-          title="Yearly income"
-          transactions={input.income()}
-          duration={input.interval()}
-        />
-      )}
-      <RunningAverageOwnShare
-        transactions={input.incomeAllTime()}
-        duration={input.interval()}
-        maxWindowLength={12}
-        title="Average income (over previous 12 months)"
-      />
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultMonthlyMoneyChart(displayCurrency, input.interval()),
-          ...legend(),
-          title: {
-            text: 'By category',
-          },
-          series: [...byCategoryIdAndMonth.entries()].map(
-            ([categoryId, series]) => ({
-              type: 'bar',
-              stack: 'moneyIn',
-              name: categoryNameById(categoryId, categories),
-              data: months.map(m => dollarsRounded(series.get(m))),
-            })
-          ),
-        }}
-      />
-    </>
-  );
-}
 
 function NonEmptyPageContent() {
   const [duration, setDuration] = useState(LAST_6_MONTHS);
-  const {transactions, categories} = useAllDatabaseDataContext();
   const {displaySettings} = useDisplaySettingsContext();
   const [excludeCategories, setExcludeCategories] = useState(
     displaySettings.excludeCategoryIdsInStats()
   );
-  const filteredTransactions = filterExcludedTransactions(
-    transactions,
+  const {input, failedToExchange} = useStatsPageProps(
     excludeCategories,
-    categories
+    duration
   );
-  const input = new TransactionsStatsInput(filteredTransactions, duration);
   return (
     <div className="space-y-4">
       <div className="w-full max-w-sm">
@@ -125,7 +32,11 @@ function NonEmptyPageContent() {
         excludedIds={excludeCategories}
         setExcludedIds={setExcludeCategories}
       />
-      <IncomeCharts input={input} />
+      <CurrencyExchangeFailed failedTransactions={failedToExchange} />
+      <MonthlyIncome input={input} />
+      <AverageMonthlyIncome input={input} />
+      <YearlyIncome input={input} />
+      <IncomeByCategory input={input} />
     </div>
   );
 }
