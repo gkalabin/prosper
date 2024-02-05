@@ -10,7 +10,7 @@ import {
 
 export function AverageMonthlySpend({input}: {input: TransactionsStatsInput}) {
   const displayCurrency = useDisplayCurrency();
-  const data = new MoneyTimeseries(displayCurrency, Granularity.YEARLY);
+  const data = new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);
   for (const {t, ownShare} of input.expensesExchangedAllTime()) {
     data.increment(t.timestampEpoch, ownShare);
   }

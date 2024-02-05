@@ -38,8 +38,8 @@ function NonEmptyPageContent() {
       <CurrencyExchangeFailed failedTransactions={failedToExchange} />
       {/* Charts */}
       <MonthlySpend input={input} />
-      <YearlySpend input={input} />
       <AverageMonthlySpend input={input} />
+      <YearlySpend input={input} />
       <ExpensesByRootCategory input={input} />
       <ExpensesByChildCategory input={input} />
       <ByCategoryCharts input={input} />
