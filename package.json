@@ -52,7 +52,7 @@
     ]
   },
   "dependencies": {
-    "@headlessui/react": "^1.7.17",
+    "@headlessui/react": "^1.7.18",
     "@heroicons/react": "^2.1.1",
     "@prisma/client": "^5.9.1",
     "@types/echarts": "^4.9.22",
