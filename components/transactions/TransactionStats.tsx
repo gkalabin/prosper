@@ -23,7 +23,8 @@ import {
 } from 'lib/model/transaction/Transaction';
 import {amountAllParties, amountOwnShare} from 'lib/model/transaction/amounts';
 import {AppendMap} from 'lib/util/AppendingMap';
-import {Granularity, MoneyTimeseries, percentile} from 'lib/util/Timeseries';
+import {MoneyTimeseries, percentile} from 'lib/util/Timeseries';
+import {Granularity} from 'lib/util/Granularity';
 import {capitalize} from 'lib/util/util';
 
 export function TransactionStats(props: {

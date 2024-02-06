@@ -2,11 +2,8 @@
 import Charts from 'components/charts/interface';
 import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
 import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
-import {
-  Granularity,
-  MoneyTimeseries,
-  runningAverage,
-} from 'lib/util/Timeseries';
+import {MoneyTimeseries, runningAverage} from 'lib/util/Timeseries';
+import {Granularity} from 'lib/util/Granularity';
 
 export function AverageMonthlyIncome({input}: {input: TransactionsStatsInput}) {
   const displayCurrency = useDisplayCurrency();

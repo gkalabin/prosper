@@ -3,7 +3,8 @@ import Charts from 'components/charts/interface';
 import {differenceInYears} from 'date-fns';
 import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
 import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
-import {Granularity, MoneyTimeseries} from 'lib/util/Timeseries';
+import {MoneyTimeseries} from 'lib/util/Timeseries';
+import {Granularity} from 'lib/util/Granularity';
 
 export function YearlyCashflow({input}: {input: TransactionsStatsInput}) {
   const displayCurrency = useDisplayCurrency();

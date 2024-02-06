@@ -6,7 +6,8 @@ import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
 import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
 import {DefaultMap} from 'lib/util/DefaultMap';
-import {Granularity, MoneyTimeseries} from 'lib/util/Timeseries';
+import {MoneyTimeseries} from 'lib/util/Timeseries';
+import {Granularity} from 'lib/util/Granularity';
 
 export function IncomeByCategory({input}: {input: TransactionsStatsInput}) {
   const displayCurrency = useDisplayCurrency();

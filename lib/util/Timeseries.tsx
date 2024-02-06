@@ -1,16 +1,12 @@
-import {startOfMonth, startOfYear} from 'date-fns';
+import {startOfMonth, startOfQuarter, startOfYear} from 'date-fns';
 import {AmountWithCurrency} from 'lib/AmountWithCurrency';
 import {assert} from 'lib/assert';
 import {Currency} from 'lib/model/Currency';
+import {Granularity} from 'lib/util/Granularity';
 import {
   percentile as numbersPercentile,
   runningAverage as numbersRunningAverage,
 } from 'lib/util/stats';
-
-export enum Granularity {
-  MONTHLY,
-  YEARLY,
-}
 
 type MoneyTimeseriesEntry = {
   time: Date;
@@ -32,6 +28,8 @@ export class MoneyTimeseries {
     switch (this.granularity) {
       case Granularity.MONTHLY:
         return startOfMonth(time);
+      case Granularity.QUARTERLY:
+        return startOfQuarter(time);
       case Granularity.YEARLY:
         return startOfYear(time);
       default:

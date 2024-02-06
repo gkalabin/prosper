@@ -13,7 +13,8 @@ import {findRoot, makeCategoryTree} from 'lib/model/Category';
 import {transactionCategory} from 'lib/model/transaction/Transaction';
 import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
 import {DefaultMap} from 'lib/util/DefaultMap';
-import {Granularity, MoneyTimeseries} from 'lib/util/Timeseries';
+import {MoneyTimeseries} from 'lib/util/Timeseries';
+import {Granularity} from 'lib/util/Granularity';
 
 export function ExpensesByRootCategory({
   input,
