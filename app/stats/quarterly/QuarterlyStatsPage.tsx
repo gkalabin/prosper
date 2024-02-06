@@ -1,7 +1,7 @@
 'use client';
 import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
-import {filterExcludedTransactions, ownShareSum} from 'app/stats/modelHelpers';
+import {useStatsPageProps} from 'app/stats/modelHelpers';
 import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
 import {
   ChildCategoryOwnShareChart,
@@ -16,7 +16,14 @@ import {
   SortingMode,
 } from 'components/transactions/SortableTransactionsList';
 import {ButtonLink} from 'components/ui/buttons';
-import {format, isSameQuarter} from 'date-fns';
+import {
+  eachQuarterOfInterval,
+  endOfQuarter,
+  format,
+  isSameQuarter,
+  startOfQuarter,
+} from 'date-fns';
+import {AmountWithCurrency} from 'lib/AmountWithCurrency';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -27,12 +34,7 @@ import {
 } from 'lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
 import {Income} from 'lib/model/transaction/Income';
-import {
-  Expense,
-  Transaction,
-  isExpense,
-  isIncome,
-} from 'lib/model/transaction/Transaction';
+import {Expense, isExpense, isIncome} from 'lib/model/transaction/Transaction';
 import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
 import {useState} from 'react';
 
@@ -71,7 +73,7 @@ export function VendorStats({
   quarter,
 }: {
   input: TransactionsStatsInput;
-  quarter: Date;
+  quarter: string | number | Date;
 }) {
   const transactions = input
     .transactionsAllTime()
@@ -91,132 +93,118 @@ export function VendorStats({
 }
 
 export function QuarterlyStats({input}: {input: TransactionsStatsInput}) {
-  const quarters = input.quarters();
-  const [quarter, setQuarter] = useState(quarters[quarters.length - 1]);
-  const transactions = input
-    .transactionsAllTime()
-    .filter(t => isSameQuarter(quarter, t.timestampEpoch));
-  const expenses = transactions.filter((t): t is Expense => isExpense(t));
-  const income = transactions.filter((t): t is Income => isIncome(t));
-  const displayCurrency = useDisplayCurrency();
-  const {bankAccounts, stocks, exchange} = useAllDatabaseDataContext();
-  const failedToExchange: Transaction[] = [];
-  const totalExpense = ownShareSum(
-    expenses,
-    failedToExchange,
-    displayCurrency,
-    bankAccounts,
-    stocks,
-    exchange
-  );
-  const totalIncome = ownShareSum(
-    income,
-    failedToExchange,
-    displayCurrency,
-    bankAccounts,
-    stocks,
-    exchange
-  );
-  const expenseIncomeRatio = totalIncome.isZero()
-    ? Infinity
-    : totalExpense.dollar() / totalIncome.dollar();
-  const totalTrips = ownShareSum(
-    expenses.filter(t => t.tripId),
-    failedToExchange,
-    displayCurrency,
-    bankAccounts,
-    stocks,
-    exchange
-  );
-
   return (
-    <>
+    <div className="space-y-4">
+      <PeriodSummary input={input} />
       <div>
-        <div className="my-3">
-          <Navigation
-            quarters={quarters}
-            active={quarter}
-            setActive={setQuarter}
-          />
-        </div>
-        <div className="space-y-4">
-          <CurrencyExchangeFailed failedTransactions={failedToExchange} />
-
-          <ul className="text-lg">
-            <li>Spent: {totalExpense.round().format()}</li>
-            <li>Received: {totalIncome.round().format()}</li>
-            <li>
-              Delta: {totalIncome.subtract(totalExpense).round().format()}
-            </li>
-            <li>Spent/received: {Math.round(expenseIncomeRatio * 100)}%</li>
-            <li>Trips: {totalTrips.round().format()}</li>
-          </ul>
-
-          <div>
-            <h1 className="text-xl font-medium leading-7">
-              Expenses ({expenses.length})
-            </h1>
-            <TopLevelCategoryOwnShareChart
-              title="Top level category"
-              transactions={expenses}
-            />
-            <ChildCategoryOwnShareChart
-              title="Transaction category"
-              transactions={expenses}
-            />
-            <SortableTransactionsList
-              transactions={expenses}
-              initialSorting={SortingMode.AMOUNT_DESC}
-            />
-          </div>
-
-          <div>
-            <h1 className="text-xl font-medium leading-7">
-              Income ({income.length})
-            </h1>
-            <ChildCategoryOwnShareChart
-              title="Income category"
-              transactions={income}
-            />
-            <SortableTransactionsList
-              transactions={income}
-              initialSorting={SortingMode.AMOUNT_DESC}
-            />
-          </div>
-
-          <div>
-            <VendorStats input={input} quarter={quarter} />
-          </div>
-        </div>
+        <h1 className="text-xl font-medium leading-7">
+          Expenses ({input.expensesExchanged().length})
+        </h1>
+        <TopLevelCategoryOwnShareChart
+          title="Top level category"
+          transactions={input
+            .expensesExchanged()
+            .map(({t}) => t)
+            .filter((t): t is Expense => isExpense(t))}
+        />
+        <ChildCategoryOwnShareChart
+          title="Transaction category"
+          transactions={input
+            .expensesExchanged()
+            .map(({t}) => t)
+            .filter((t): t is Expense => isExpense(t))}
+        />
+        <SortableTransactionsList
+          transactions={input
+            .expensesExchanged()
+            .map(({t}) => t)
+            .filter((t): t is Expense => isExpense(t))}
+          initialSorting={SortingMode.AMOUNT_DESC}
+        />
       </div>
-    </>
+      <div>
+        <h1 className="text-xl font-medium leading-7">
+          Income ({input.incomeExchanged().length})
+        </h1>
+        <ChildCategoryOwnShareChart
+          title="Income category"
+          transactions={input
+            .incomeExchanged()
+            .map(({t}) => t)
+            .filter((t): t is Income => isIncome(t))}
+        />
+        <SortableTransactionsList
+          transactions={input
+            .incomeExchanged()
+            .map(({t}) => t)
+            .filter((t): t is Income => isIncome(t))}
+          initialSorting={SortingMode.AMOUNT_DESC}
+        />
+      </div>
+      <VendorStats input={input} quarter={input.interval().start} />
+    </div>
+  );
+}
+
+function PeriodSummary({input}: {input: TransactionsStatsInput}) {
+  const displayCurrency = useDisplayCurrency();
+  let expense = AmountWithCurrency.zero(displayCurrency);
+  for (const {ownShare} of input.expensesExchanged()) {
+    expense = expense.add(ownShare);
+  }
+  let income = AmountWithCurrency.zero(displayCurrency);
+  for (const {ownShare} of input.incomeExchanged()) {
+    income = income.add(ownShare);
+  }
+  const expenseIncomeRatio = income.isZero()
+    ? Infinity
+    : expense.dollar() / income.dollar();
+  let trips = AmountWithCurrency.zero(displayCurrency);
+  for (const {t, ownShare} of input.expensesExchanged()) {
+    if (!isExpense(t) || !t.tripId) {
+      continue;
+    }
+    trips = trips.add(ownShare);
+  }
+  return (
+    <ul className="text-lg">
+      <li>Spent: {expense.round().format()}</li>
+      <li>Received: {income.round().format()}</li>
+      <li>Delta: {income.subtract(expense).round().format()}</li>
+      <li>Spent/received: {Math.round(expenseIncomeRatio * 100)}%</li>
+      <li>Trips: {trips.round().format()}</li>
+    </ul>
   );
 }
 
 function NonEmptyPageContent() {
-  const {transactions, categories} = useAllDatabaseDataContext();
+  const {transactions} = useAllDatabaseDataContext();
   const {displaySettings} = useDisplaySettingsContext();
   const [excludeCategories, setExcludeCategories] = useState(
     displaySettings.excludeCategoryIdsInStats()
   );
-  const filteredTransactions = filterExcludedTransactions(
-    transactions,
-    excludeCategories,
-    categories
-  );
-  const durations = transactions
+  const timestamps = transactions
     .map(t => t.timestampEpoch)
     .sort((a, b) => a - b);
-  const input = new TransactionsStatsInput(filteredTransactions, {
-    start: durations[0],
-    end: durations[durations.length - 1],
-  });
+  const allDataInterval = {
+    start: timestamps[0],
+    end: timestamps[timestamps.length - 1],
+  };
+  const quarters = eachQuarterOfInterval(allDataInterval);
+  const [quarter, setQuarter] = useState(quarters[quarters.length - 1]);
+  const quarterInterval = {
+    start: startOfQuarter(quarter),
+    end: endOfQuarter(quarter),
+  };
+  const {input, failed} = useStatsPageProps(excludeCategories, quarterInterval);
   return (
     <div className="space-y-4">
       <ExcludedCategoriesSelector
         excludedIds={excludeCategories}
         setExcludedIds={setExcludeCategories}
       />
+      <Navigation quarters={quarters} active={quarter} setActive={setQuarter} />
+      <CurrencyExchangeFailed failedTransactions={failed} />
       <QuarterlyStats input={input} />
     </div>
   );
