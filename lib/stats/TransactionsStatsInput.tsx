@@ -1,14 +1,12 @@
 import {
-  type Interval,
   eachMonthOfInterval,
   eachQuarterOfInterval,
   eachYearOfInterval,
   isWithinInterval,
+  type Interval,
 } from 'date-fns';
 import {AmountWithCurrency} from 'lib/AmountWithCurrency';
-import {Income} from 'lib/model/transaction/Income';
 import {
-  Expense,
   Transaction,
   isExpense,
   isIncome,
@@ -31,18 +29,6 @@ export class TransactionsStatsInput {
     return this._transactions;
   }
 
-  expensesAllTime(): Expense[] {
-    return this._transactions.filter((t): t is Expense => isExpense(t));
-  }
-
-  /**
-   * @deprecated Use expensesExchanged instead.
-   * @returns the expenses within the provided duration interval.
-   */
-  expenses() {
-    return this.intervalOnly(this.expensesAllTime());
-  }
-
   expensesExchangedAllTime(): DisplayCurrencyTransaction[] {
     return this._exchanged!.filter(x => isExpense(x.t));
   }
@@ -51,18 +37,6 @@ export class TransactionsStatsInput {
     return this._exchanged!.filter(
       x => isExpense(x.t) && this.isWithinInterval(x.t)
     );
-  }
-
-  incomeAllTime(): Income[] {
-    return this._transactions.filter((t): t is Income => isIncome(t));
-  }
-
-  /**
-   * @deprecated Use incomeExchanged instead.
-   * @returns the income within the provided duration interval.
-   */
-  income() {
-    return this.intervalOnly(this.incomeAllTime());
   }
 
   incomeExchangedAllTime(): DisplayCurrencyTransaction[] {
