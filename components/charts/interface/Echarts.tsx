@@ -1,7 +1,11 @@
-import {ChartsLibrary, Props} from 'components/charts/interface/Interface';
+import {
+  ChartsLibrary,
+  HorizontalBarProps,
+  Props,
+} from 'components/charts/interface/Interface';
+import {formatPoint, intervalPoints} from 'components/charts/interface/util';
 import ReactEcharts from 'echarts-for-react';
 import {formatCurrency} from 'lib/model/Currency';
-import {formatPoint, intervalPoints} from './util';
 
 function Bar({series, interval, title}: Props) {
   const currency = series.data.getCurrency();
@@ -77,5 +81,46 @@ function Line({series, interval, title}: Props) {
   );
 }
 
-const echartsImpl: ChartsLibrary = {Bar, Line};
+function HorizontalBar({title, currency, data}: HorizontalBarProps) {
+  const entries = [...data.entries()].sort(
+    ([_k1, v1], [_k2, v2]) => v1.cents() - v2.cents()
+  );
+  const categories = entries.map(([k, _v]) => k);
+  const values = entries.map(([_k, v]) => v.round().dollar());
+  const formatter = (v: number): string =>
+    formatCurrency(currency, v, {maximumFractionDigits: 0});
+  return (
+    <ReactEcharts
+      notMerge
+      option={{
+        title: {
+          text: title,
+        },
+        grid: {
+          containLabel: true,
+        },
+        tooltip: {},
+        xAxis: {
+          type: 'value',
+          axisLabel: {
+            formatter,
+          },
+        },
+        yAxis: {
+          type: 'category',
+          data: categories,
+        },
+        series: [
+          {
+            type: 'bar',
+            name: title,
+            data: values,
+          },
+        ],
+      }}
+    />
+  );
+}
+
+const echartsImpl: ChartsLibrary = {Bar, Line, HorizontalBar};
 export default echartsImpl;

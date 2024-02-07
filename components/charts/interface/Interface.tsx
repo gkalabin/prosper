@@ -1,10 +1,13 @@
 import {type Interval} from 'date-fns';
+import {Amount} from 'lib/Amount';
+import {Currency} from 'lib/model/Currency';
 import {MoneyTimeseries} from 'lib/util/Timeseries';
 
 export type Props = {
   title: string;
   series: Series;
   interval: Interval;
+  // TODO: add granularity as the prop.
 };
 
 // TODO: remove wrapping object if it hold only one property.
@@ -12,7 +15,14 @@ export type Series = {
   data: MoneyTimeseries;
 };
 
+export type HorizontalBarProps = {
+  title: string;
+  currency: Currency;
+  data: Map<string, Amount>;
+};
+
 export interface ChartsLibrary {
   Bar(props: Props): JSX.Element;
   Line(props: Props): JSX.Element;
+  HorizontalBar(props: HorizontalBarProps): JSX.Element;
 }

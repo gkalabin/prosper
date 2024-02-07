@@ -2,11 +2,9 @@
 import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
 import {useStatsPageProps} from 'app/stats/modelHelpers';
+import {ExpensesByRootCategory} from 'app/stats/quarterly/ExpensesByRootCategory';
 import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
-import {
-  ChildCategoryOwnShareChart,
-  TopLevelCategoryOwnShareChart,
-} from 'components/charts/CategoryPie';
+import {ChildCategoryOwnShareChart} from 'components/charts/CategoryPie';
 import {
   TopNVendorsMostSpent,
   TopNVendorsMostTransactions,
@@ -100,13 +98,7 @@ export function QuarterlyStats({input}: {input: TransactionsStatsInput}) {
         <h1 className="text-xl font-medium leading-7">
           Expenses ({input.expensesExchanged().length})
         </h1>
-        <TopLevelCategoryOwnShareChart
-          title="Top level category"
-          transactions={input
-            .expensesExchanged()
-            .map(({t}) => t)
-            .filter((t): t is Expense => isExpense(t))}
-        />
+        <ExpensesByRootCategory input={input} />
         <ChildCategoryOwnShareChart
           title="Transaction category"
           transactions={input
