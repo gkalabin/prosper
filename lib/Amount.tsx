@@ -10,11 +10,11 @@ export class Amount {
     this.amountCents = init.amountCents;
   }
 
-  public cents() {
+  public cents(): number {
     return this.amountCents;
   }
 
-  public dollar() {
+  public dollar(): number {
     return this.amountCents / 100;
   }
 
@@ -39,27 +39,40 @@ export class Amount {
     });
   }
 
-  public equals(a: Amount) {
+  public round(): Amount {
+    if (!this.isRound()) {
+      return new Amount({
+        amountCents: Math.round(this.dollar()) * 100,
+      });
+    }
+    return this;
+  }
+
+  public negate(): Amount {
+    return new Amount({amountCents: -this.amountCents});
+  }
+
+  public equals(a: Amount): boolean {
     return this.amountCents == a.amountCents;
   }
 
-  public lessThan(a: Amount) {
+  public lessThan(a: Amount): boolean {
     return this.amountCents < a.amountCents;
   }
 
-  public isZero() {
+  public isZero(): boolean {
     return this.amountCents === 0;
   }
 
-  public isPositive() {
+  public isPositive(): boolean {
     return this.amountCents > 0;
   }
 
-  public isNegative() {
+  public isNegative(): boolean {
     return this.amountCents < 0;
   }
 
-  public isRound() {
+  public isRound(): boolean {
     return this.amountCents % 100 == 0;
   }
 

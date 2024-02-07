@@ -1,12 +1,11 @@
 import {Amount} from 'lib/Amount';
 import {Currency, formatCurrency} from 'lib/model/Currency';
 
-export class AmountWithCurrency {
-  private readonly amount: Amount;
+export class AmountWithCurrency extends Amount {
   private readonly currency: Currency;
 
   public constructor(init: {amountCents: number; currency: Currency}) {
-    this.amount = new Amount({amountCents: init.amountCents});
+    super({amountCents: init.amountCents});
     this.currency = init.currency;
   }
 
@@ -15,16 +14,6 @@ export class AmountWithCurrency {
     y: AmountWithCurrency
   ): AmountWithCurrency {
     return x.add(y);
-  }
-
-  public static sum(
-    amounts: AmountWithCurrency[],
-    currency: Currency
-  ): AmountWithCurrency {
-    if (!amounts?.length) {
-      return AmountWithCurrency.zero(currency);
-    }
-    return amounts.reduce((p, c) => p.add(c));
   }
 
   public static zero(currency: Currency): AmountWithCurrency {
@@ -38,22 +27,10 @@ export class AmountWithCurrency {
     return this.currency;
   }
 
-  public getAmountWithoutCurrency() {
-    return this.amount;
-  }
-
-  public cents() {
-    return this.amount.cents();
-  }
-
-  public dollar() {
-    return this.amount.dollar();
-  }
-
-  public abs() {
-    if (this.amount.isNegative()) {
+  public abs(): AmountWithCurrency {
+    if (this.isNegative()) {
       return new AmountWithCurrency({
-        amountCents: this.amount.abs().cents(),
+        amountCents: super.abs().cents(),
         currency: this.currency,
       });
     }
@@ -62,7 +39,7 @@ export class AmountWithCurrency {
 
   public negate() {
     return new AmountWithCurrency({
-      amountCents: -this.cents(),
+      amountCents: super.negate().cents(),
       currency: this.currency,
     });
   }
@@ -70,27 +47,11 @@ export class AmountWithCurrency {
   public round() {
     if (!this.isRound()) {
       return new AmountWithCurrency({
-        amountCents: Math.round(this.amount.dollar()) * 100,
+        amountCents: super.round().cents(),
         currency: this.currency,
       });
     }
     return this;
-  }
-
-  public isZero() {
-    return this.amount.isZero();
-  }
-
-  public isPositive() {
-    return this.amount.isPositive();
-  }
-
-  public isNegative() {
-    return this.amount.isNegative();
-  }
-
-  public isRound() {
-    return this.amount.cents() % 100 == 0;
   }
 
   public add(other: AmountWithCurrency): AmountWithCurrency {
@@ -99,7 +60,7 @@ export class AmountWithCurrency {
     }
     this.assertSameCurrency(other);
     return new AmountWithCurrency({
-      amountCents: this.amount.add(other.amount).cents(),
+      amountCents: super.add(other).cents(),
       currency: this.currency,
     });
   }
@@ -110,23 +71,23 @@ export class AmountWithCurrency {
     }
     this.assertSameCurrency(other);
     return new AmountWithCurrency({
-      amountCents: this.amount.subtract(other.amount).cents(),
+      amountCents: super.subtract(other).cents(),
       currency: this.currency,
     });
   }
 
   public equals(other: AmountWithCurrency) {
     this.assertSameCurrency(other);
-    return this.amount.equals(other.amount);
+    return super.equals(other);
   }
 
   public lessThan(other: AmountWithCurrency) {
     this.assertSameCurrency(other);
-    return this.amount.lessThan(other.amount);
+    return super.lessThan(other);
   }
 
   public format(): string {
-    return formatCurrency(this.currency, this.amount.dollar(), {
+    return formatCurrency(this.currency, this.dollar(), {
       maximumFractionDigits: this.isRound() ? 0 : 2,
     });
   }
