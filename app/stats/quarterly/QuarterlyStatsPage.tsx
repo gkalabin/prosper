@@ -2,8 +2,9 @@
 import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
 import {useStatsPageProps} from 'app/stats/modelHelpers';
-import {Navigation} from 'app/stats/quarterly/Navigation';
 import {ExpensesByRootCategory} from 'app/stats/quarterly/ExpensesByRootCategory';
+import {Navigation} from 'app/stats/quarterly/Navigation';
+import {PeriodSummary} from 'app/stats/quarterly/PeriodSummary';
 import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
 import {ChildCategoryOwnShareChart} from 'components/charts/CategoryPie';
 import {
@@ -15,15 +16,11 @@ import {
   SortingMode,
 } from 'components/transactions/SortableTransactionsList';
 import {Interval, endOfQuarter, isSameQuarter, startOfQuarter} from 'date-fns';
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
 } from 'lib/context/AllDatabaseDataContext';
-import {
-  useDisplayCurrency,
-  useDisplaySettingsContext,
-} from 'lib/context/DisplaySettingsContext';
+import {useDisplaySettingsContext} from 'lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
 import {Income} from 'lib/model/transaction/Income';
 import {Expense, isExpense, isIncome} from 'lib/model/transaction/Transaction';
@@ -100,37 +97,6 @@ export function QuarterlyStats({input}: {input: TransactionsStatsInput}) {
       </div>
       <VendorStats input={input} quarter={input.interval().start} />
     </div>
-  );
-}
-
-function PeriodSummary({input}: {input: TransactionsStatsInput}) {
-  const displayCurrency = useDisplayCurrency();
-  let expense = AmountWithCurrency.zero(displayCurrency);
-  for (const {ownShare} of input.expensesExchanged()) {
-    expense = expense.add(ownShare);
-  }
-  let income = AmountWithCurrency.zero(displayCurrency);
-  for (const {ownShare} of input.incomeExchanged()) {
-    income = income.add(ownShare);
-  }
-  const expenseIncomeRatio = income.isZero()
-    ? Infinity
-    : expense.dollar() / income.dollar();
-  let trips = AmountWithCurrency.zero(displayCurrency);
-  for (const {t, ownShare} of input.expensesExchanged()) {
-    if (!isExpense(t) || !t.tripId) {
-      continue;
-    }
-    trips = trips.add(ownShare);
-  }
-  return (
-    <ul className="text-lg">
-      <li>Spent: {expense.round().format()}</li>
-      <li>Received: {income.round().format()}</li>
-      <li>Delta: {income.subtract(expense).round().format()}</li>
-      <li>Spent/received: {Math.round(expenseIncomeRatio * 100)}%</li>
-      <li>Trips: {trips.round().format()}</li>
-    </ul>
   );
 }
 

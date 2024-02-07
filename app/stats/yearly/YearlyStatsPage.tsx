@@ -1,13 +1,12 @@
 'use client';
 import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
-import {filterExcludedTransactions, ownShareSum} from 'app/stats/modelHelpers';
+import {useStatsPageProps} from 'app/stats/modelHelpers';
+import {ExpensesByRootCategory} from 'app/stats/quarterly/ExpensesByRootCategory';
 import {Navigation} from 'app/stats/quarterly/Navigation';
+import {PeriodSummary} from 'app/stats/quarterly/PeriodSummary';
 import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
-import {
-  ChildCategoryOwnShareChart,
-  TopLevelCategoryOwnShareChart,
-} from 'components/charts/CategoryPie';
+import {ChildCategoryOwnShareChart} from 'components/charts/CategoryPie';
 import {
   TopNVendorsMostSpent,
   TopNVendorsMostTransactions,
@@ -16,29 +15,15 @@ import {
   SortableTransactionsList,
   SortingMode,
 } from 'components/transactions/SortableTransactionsList';
-import {
-  Interval,
-  endOfYear,
-  isSameYear,
-  isWithinInterval,
-  startOfYear,
-} from 'date-fns';
+import {Interval, endOfYear, isSameYear, startOfYear} from 'date-fns';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
 } from 'lib/context/AllDatabaseDataContext';
-import {
-  useDisplayCurrency,
-  useDisplaySettingsContext,
-} from 'lib/context/DisplaySettingsContext';
+import {useDisplaySettingsContext} from 'lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
 import {Income} from 'lib/model/transaction/Income';
-import {
-  Expense,
-  Transaction,
-  isExpense,
-  isIncome,
-} from 'lib/model/transaction/Transaction';
+import {Expense, isExpense, isIncome} from 'lib/model/transaction/Transaction';
 import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
 import {Granularity} from 'lib/util/Granularity';
 import {useState} from 'react';
@@ -48,7 +33,7 @@ export function VendorStats({
   year,
 }: {
   input: TransactionsStatsInput;
-  year: Date;
+  year: Date | number | string;
 }) {
   const transactions = input
     .transactionsAllTime()
@@ -67,9 +52,64 @@ export function VendorStats({
   );
 }
 
-export function YearlyStats({input}: {input: TransactionsStatsInput}) {
-  const timestamps = input
-    .transactionsAllTime()
+function YearlyStats({input}: {input: TransactionsStatsInput}) {
+  return (
+    <div className="space-y-4">
+      <PeriodSummary input={input} />
+
+      <div>
+        <h1 className="text-xl font-medium leading-7">
+          Expenses ({input.expensesExchanged().length})
+        </h1>
+        <ExpensesByRootCategory input={input} />
+        <ChildCategoryOwnShareChart
+          title="Transaction category"
+          transactions={input
+            .expensesExchanged()
+            .map(({t}) => t)
+            .filter((t): t is Expense => isExpense(t))}
+        />
+        <SortableTransactionsList
+          transactions={input
+            .expensesExchanged()
+            .map(({t}) => t)
+            .filter((t): t is Expense => isExpense(t))}
+          initialSorting={SortingMode.AMOUNT_DESC}
+        />
+      </div>
+
+      <div>
+        <h1 className="text-xl font-medium leading-7">
+          Income ({input.incomeExchanged().length})
+        </h1>
+        <ChildCategoryOwnShareChart
+          title="Income category"
+          transactions={input
+            .incomeExchanged()
+            .map(({t}) => t)
+            .filter((t): t is Income => isIncome(t))}
+        />
+        <SortableTransactionsList
+          transactions={input
+            .incomeExchanged()
+            .map(({t}) => t)
+            .filter((t): t is Income => isIncome(t))}
+          initialSorting={SortingMode.AMOUNT_DESC}
+        />
+      </div>
+
+      <VendorStats input={input} year={input.interval().start} />
+    </div>
+  );
+}
+
+function NonEmptyPageContent() {
+  const {transactions} = useAllDatabaseDataContext();
+  const {displaySettings} = useDisplaySettingsContext();
+  const [excludeCategories, setExcludeCategories] = useState(
+    displaySettings.excludeCategoryIdsInStats()
+  );
+  const timestamps = transactions
     .map(t => t.timestampEpoch)
     .sort((a, b) => a - b);
   const allDataInterval = {
@@ -81,131 +121,20 @@ export function YearlyStats({input}: {input: TransactionsStatsInput}) {
     start: startOfYear(now),
     end: endOfYear(now),
   });
-  const transactions = input
-    .transactionsAllTime()
-    .filter(t => isWithinInterval(t.timestampEpoch, year));
-  const expenses = transactions.filter((t): t is Expense => isExpense(t));
-  const income = transactions.filter((t): t is Income => isIncome(t));
-  const displayCurrency = useDisplayCurrency();
-  const {bankAccounts, stocks, exchange} = useAllDatabaseDataContext();
-  const failedToExchange: Transaction[] = [];
-  const totalExpense = ownShareSum(
-    expenses,
-    failedToExchange,
-    displayCurrency,
-    bankAccounts,
-    stocks,
-    exchange
-  );
-  const totalIncome = ownShareSum(
-    income,
-    failedToExchange,
-    displayCurrency,
-    bankAccounts,
-    stocks,
-    exchange
-  );
-  const expenseIncomeRatio = totalIncome.isZero()
-    ? Infinity
-    : totalExpense.dollar() / totalIncome.dollar();
-  const totalTrips = ownShareSum(
-    expenses.filter(t => t.tripId),
-    failedToExchange,
-    displayCurrency,
-    bankAccounts,
-    stocks,
-    exchange
-  );
-
-  return (
-    <>
-      <div>
-        <div className="my-3">
-          <Navigation
-            timeline={allDataInterval}
-            granularity={Granularity.YEARLY}
-            selected={year}
-            setSelected={setYear}
-          />
-        </div>
-        <div className="space-y-4">
-          <CurrencyExchangeFailed failedTransactions={failedToExchange} />
-
-          <ul className="text-lg">
-            <li>Spent: {totalExpense.round().format()}</li>
-            <li>Received: {totalIncome.round().format()}</li>
-            <li>
-              Delta: {totalIncome.subtract(totalExpense).round().format()}
-            </li>
-            <li>Spent/received: {Math.round(expenseIncomeRatio * 100)}%</li>
-            <li>Trips: {totalTrips.round().format()}</li>
-          </ul>
-
-          <div>
-            <h1 className="text-xl font-medium leading-7">
-              Expenses ({expenses.length})
-            </h1>
-            <TopLevelCategoryOwnShareChart
-              title="Top level category"
-              transactions={expenses}
-            />
-            <ChildCategoryOwnShareChart
-              title="Transaction category"
-              transactions={expenses}
-            />
-            <SortableTransactionsList
-              transactions={expenses}
-              initialSorting={SortingMode.AMOUNT_DESC}
-            />
-          </div>
-
-          <div>
-            <h1 className="text-xl font-medium leading-7">
-              Income ({income.length})
-            </h1>
-            <ChildCategoryOwnShareChart
-              title="Income category"
-              transactions={income}
-            />
-            <SortableTransactionsList
-              transactions={income}
-              initialSorting={SortingMode.AMOUNT_DESC}
-            />
-          </div>
-
-          <div>
-            <VendorStats input={input} year={new Date(year.start)} />
-          </div>
-        </div>
-      </div>
-    </>
-  );
-}
-
-function NonEmptyPageContent() {
-  const {transactions, categories} = useAllDatabaseDataContext();
-  const {displaySettings} = useDisplaySettingsContext();
-  const [excludeCategories, setExcludeCategories] = useState(
-    displaySettings.excludeCategoryIdsInStats()
-  );
-  const filteredTransactions = filterExcludedTransactions(
-    transactions,
-    excludeCategories,
-    categories
-  );
-  const durations = transactions
-    .map(t => t.timestampEpoch)
-    .sort((a, b) => a - b);
-  const input = new TransactionsStatsInput(filteredTransactions, {
-    start: durations[0],
-    end: durations[durations.length - 1],
-  });
+  const {input, failed} = useStatsPageProps(excludeCategories, year);
   return (
     <div className="space-y-4">
       <ExcludedCategoriesSelector
         excludedIds={excludeCategories}
         setExcludedIds={setExcludeCategories}
       />
+      <Navigation
+        timeline={allDataInterval}
+        granularity={Granularity.YEARLY}
+        selected={year}
+        setSelected={setYear}
+      />
+      <CurrencyExchangeFailed failedTransactions={failed} />
       <YearlyStats input={input} />
     </div>
   );
