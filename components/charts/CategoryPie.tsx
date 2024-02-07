@@ -17,7 +17,7 @@ import {Stock} from 'lib/model/Stock';
 import {Income} from 'lib/model/transaction/Income';
 import {Expense, Transaction} from 'lib/model/transaction/Transaction';
 import {amountAllParties, amountOwnShare} from 'lib/model/transaction/amounts';
-import {AppendMap, currencyAppendMap} from 'lib/util/AppendingMap';
+import {AppendMap, currencyAppendMap} from 'lib/util/AppendMap';
 import dynamic from 'next/dynamic';
 
 const ReactEcharts = dynamic(() => import('echarts-for-react'), {ssr: false});
@@ -90,7 +90,7 @@ function groupTransactions<T>({
   for (const t of transactions) {
     const k = groupFn(t);
     const amount = amountFn(t, currency);
-    data.append(k, amount);
+    data.increment(k, amount);
   }
   return data;
 }

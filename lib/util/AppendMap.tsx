@@ -22,7 +22,7 @@ export class AppendMap<K, V> extends Map<K, V> {
     this._zero = zero;
   }
 
-  append(k: K, v: V) {
+  increment(k: K, v: V) {
     const existing = this.getOrZero(k);
     const updated = this._combineFn(existing, v);
     this.set(k, updated);

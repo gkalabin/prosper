@@ -4,7 +4,7 @@ import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
 import {Expense, Transaction} from 'lib/model/transaction/Transaction';
 import {amountOwnShare} from 'lib/model/transaction/amounts';
-import {AppendMap, currencyAppendMap} from 'lib/util/AppendingMap';
+import {AppendMap, currencyAppendMap} from 'lib/util/AppendMap';
 import {topN} from 'lib/util/stats';
 
 export function TopNVendorsMostSpent({
@@ -35,7 +35,7 @@ export function TopNVendorsMostSpent({
       failedToExchange.push(t);
       continue;
     }
-    sum.append(t.vendor, amount);
+    sum.increment(t.vendor, amount);
   }
   // If there is just N+1 items, taking top N would result in only one item rolled into 'others'.
   // To avoid this, if there is N+1 items, just use all of them.
@@ -85,7 +85,7 @@ export function TopNVendorsMostTransactions({
 }) {
   const count = new AppendMap<string, number>((a, b) => a + b, 0);
   for (const t of transactions) {
-    count.append(t.vendor, 1);
+    count.increment(t.vendor, 1);
   }
   // If there is just N+1 items, taking top N would result in only one item rolled into 'others'.
   // To avoid this, if there is N+1 items, just use all of them.

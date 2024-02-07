@@ -2,7 +2,7 @@ import {type Interval, eachMonthOfInterval, startOfMonth} from 'date-fns';
 import ReactEcharts from 'echarts-for-react';
 import {defaultCountChartOptions} from 'lib/charts';
 import {Transaction} from 'lib/model/transaction/Transaction';
-import {AppendMap} from 'lib/util/AppendingMap';
+import {AppendMap} from 'lib/util/AppendMap';
 
 export function TransactionFrequencyChart({
   transactions,
@@ -15,7 +15,7 @@ export function TransactionFrequencyChart({
   const count = new AppendMap<number, number>((a, b) => a + b, 0);
   for (const t of transactions) {
     const ts = startOfMonth(t.timestampEpoch).getTime();
-    count.append(ts, 1);
+    count.increment(ts, 1);
   }
 
   return (

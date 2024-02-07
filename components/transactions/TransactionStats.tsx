@@ -22,7 +22,7 @@ import {
   isTransfer,
 } from 'lib/model/transaction/Transaction';
 import {amountAllParties, amountOwnShare} from 'lib/model/transaction/amounts';
-import {AppendMap} from 'lib/util/AppendingMap';
+import {AppendMap} from 'lib/util/AppendMap';
 import {MoneyTimeseries, percentile} from 'lib/util/Timeseries';
 import {Granularity} from 'lib/util/Granularity';
 import {capitalize} from 'lib/util/util';
@@ -174,8 +174,8 @@ function IncomeOrExenseStats({
     netPerMonth.increment(ts, n);
     grossPerMonth.increment(ts, g);
     const cid = t.categoryId;
-    grossPerCategory.append(cid, g);
-    netPerCategory.append(cid, n);
+    grossPerCategory.increment(cid, g);
+    netPerCategory.increment(cid, n);
   }
   const totalGross = gross.reduce((a, b) => a.add(b), zero);
   const totalNet = net.reduce((a, b) => a.add(b), zero);
