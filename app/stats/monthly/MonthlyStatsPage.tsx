@@ -2,6 +2,7 @@
 import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
 import {filterExcludedTransactions, ownShareSum} from 'app/stats/modelHelpers';
+import {Navigation} from 'app/stats/quarterly/Navigation';
 import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
 import {
   ChildCategoryOwnShareChart,
@@ -15,8 +16,13 @@ import {
   SortableTransactionsList,
   SortingMode,
 } from 'components/transactions/SortableTransactionsList';
-import {ButtonLink} from 'components/ui/buttons';
-import {addMonths, format, isSameMonth} from 'date-fns';
+import {
+  Interval,
+  endOfMonth,
+  isSameMonth,
+  isWithinInterval,
+  startOfMonth,
+} from 'date-fns';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -34,109 +40,26 @@ import {
   isIncome,
 } from 'lib/model/transaction/Transaction';
 import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
+import {Granularity} from 'lib/util/Granularity';
 import {useState} from 'react';
 
-export function MonthsNavigationItem({
-  m,
-  active,
-  showYear: forceShowYear,
-  onClick,
-}: {
-  m: Date;
-  active: Date;
-  showYear?: boolean;
-  onClick: (d: Date) => void;
-}) {
-  const isActive = isSameMonth(m, active);
-  const monthOnly = format(m, 'MMM');
-  const monthAndYear = format(m, 'MMM yyyy');
-  if (isActive) {
-    return <span className="font-medium text-slate-700">{monthAndYear}</span>;
-  }
-  const showYear = forceShowYear || monthOnly === 'Jan' || monthOnly === 'Dec';
-  return (
-    <ButtonLink onClick={() => onClick(m)}>
-      {showYear ? monthAndYear : monthOnly}
-    </ButtonLink>
-  );
-}
-
-export function MonthsNavigation({
-  months,
-  active,
-  setActive,
-}: {
-  months: Date[];
-  active: Date;
-  setActive: (d: Date) => void;
-}) {
-  const [leftMonthsCollapsed, setLeftMonthsCollapsed] = useState(true);
-  const [rightMonthsCollapsed, setRightMonthsCollapsed] = useState(true);
-  const [first, last] = [months[0], months[months.length - 1]];
-  const monthIndex = months.findIndex(m => m.getTime() === active.getTime());
-  const windowMonths = 1;
-  const displayMonths = months.slice(
-    leftMonthsCollapsed ? Math.max(0, monthIndex - windowMonths) : 0,
-    rightMonthsCollapsed
-      ? Math.min(months.length, monthIndex + windowMonths + 1)
-      : months.length
-  );
-  const [firstDisplay, lastDisplay] = [
-    displayMonths[0],
-    displayMonths[displayMonths.length - 1],
-  ];
-  return (
-    <>
-      <div className="space-x-2">
-        {!isSameMonth(first, firstDisplay) && (
-          <>
-            <MonthsNavigationItem
-              m={first}
-              active={active}
-              onClick={setActive}
-              showYear={true}
-            />
-            {!isSameMonth(addMonths(first, 1), firstDisplay) && (
-              <ButtonLink onClick={() => setLeftMonthsCollapsed(false)}>
-                &hellip;
-              </ButtonLink>
-            )}
-          </>
-        )}
-        {displayMonths.map(m => (
-          <MonthsNavigationItem
-            key={m.getTime()}
-            m={m}
-            active={active}
-            onClick={setActive}
-          />
-        ))}
-        {!isSameMonth(last, lastDisplay) && (
-          <>
-            {!isSameMonth(addMonths(last, -1), lastDisplay) && (
-              <ButtonLink onClick={() => setRightMonthsCollapsed(false)}>
-                &hellip;
-              </ButtonLink>
-            )}
-            <MonthsNavigationItem
-              m={last}
-              active={active}
-              onClick={setActive}
-              showYear={true}
-            />
-          </>
-        )}
-      </div>
-    </>
-  );
-}
-
 export function MonthlyStats({input}: {input: TransactionsStatsInput}) {
-  const months = input.months();
-  const [month, setMonth] = useState(months[months.length - 1]);
+  const timestamps = input
+    .transactionsAllTime()
+    .map(t => t.timestampEpoch)
+    .sort((a, b) => a - b);
+  const allDataInterval = {
+    start: timestamps[0],
+    end: timestamps[timestamps.length - 1],
+  };
+  const now = new Date();
+  const [month, setMonth] = useState<Interval>({
+    start: startOfMonth(now),
+    end: endOfMonth(now),
+  });
   const transactions = input
     .transactionsAllTime()
-    .filter(t => isSameMonth(month, t.timestampEpoch));
+    .filter(t => isWithinInterval(t.timestampEpoch, month));
   const expenses = transactions.filter((t): t is Expense => isExpense(t));
   const income = transactions.filter((t): t is Income => isIncome(t));
   const displayCurrency = useDisplayCurrency();
@@ -165,10 +88,11 @@ export function MonthlyStats({input}: {input: TransactionsStatsInput}) {
     <>
       <div>
         <div className="my-3">
-          <MonthsNavigation
-            months={months}
-            active={month}
-            setActive={setMonth}
+          <Navigation
+            timeline={allDataInterval}
+            granularity={Granularity.MONTHLY}
+            selected={month}
+            setSelected={setMonth}
           />
         </div>
 
@@ -216,7 +140,7 @@ export function MonthlyStats({input}: {input: TransactionsStatsInput}) {
             />
           </div>
           <div>
-            <VendorStats input={input} month={month} />
+            <VendorStats input={input} month={new Date(month.start)} />
           </div>
         </div>
       </div>

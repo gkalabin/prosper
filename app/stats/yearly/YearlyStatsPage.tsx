@@ -2,6 +2,7 @@
 import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
 import {filterExcludedTransactions, ownShareSum} from 'app/stats/modelHelpers';
+import {Navigation} from 'app/stats/quarterly/Navigation';
 import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
 import {
   ChildCategoryOwnShareChart,
@@ -15,8 +16,13 @@ import {
   SortableTransactionsList,
   SortingMode,
 } from 'components/transactions/SortableTransactionsList';
-import {ButtonLink} from 'components/ui/buttons';
-import {format, isSameYear} from 'date-fns';
+import {
+  Interval,
+  endOfYear,
+  isSameYear,
+  isWithinInterval,
+  startOfYear,
+} from 'date-fns';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -34,37 +40,8 @@ import {
   isIncome,
 } from 'lib/model/transaction/Transaction';
 import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
+import {Granularity} from 'lib/util/Granularity';
 import {useState} from 'react';
-
-function Navigation({
-  years,
-  active,
-  setActive,
-}: {
-  years: Date[];
-  active: Date;
-  setActive: (d: Date) => void;
-}) {
-  return (
-    <>
-      <div className="space-x-2">
-        {years.map(y => (
-          <span key={y.getTime()}>
-            {(isSameYear(active, y) && (
-              <span className="font-medium text-slate-700">
-                {format(y, 'yyyy')}
-              </span>
-            )) || (
-              <ButtonLink onClick={() => setActive(y)}>
-                {format(y, 'yyyy')}
-              </ButtonLink>
-            )}
-          </span>
-        ))}
-      </div>
-    </>
-  );
-}
 
 export function VendorStats({
   input,
@@ -91,11 +68,22 @@ export function VendorStats({
 }
 
 export function YearlyStats({input}: {input: TransactionsStatsInput}) {
-  const years = input.years();
-  const [year, setYear] = useState(years[years.length - 1]);
+  const timestamps = input
+    .transactionsAllTime()
+    .map(t => t.timestampEpoch)
+    .sort((a, b) => a - b);
+  const allDataInterval = {
+    start: timestamps[0],
+    end: timestamps[timestamps.length - 1],
+  };
+  const now = new Date();
+  const [year, setYear] = useState<Interval>({
+    start: startOfYear(now),
+    end: endOfYear(now),
+  });
   const transactions = input
     .transactionsAllTime()
-    .filter(t => isSameYear(year, t.timestampEpoch));
+    .filter(t => isWithinInterval(t.timestampEpoch, year));
   const expenses = transactions.filter((t): t is Expense => isExpense(t));
   const income = transactions.filter((t): t is Income => isIncome(t));
   const displayCurrency = useDisplayCurrency();
@@ -133,7 +121,12 @@ export function YearlyStats({input}: {input: TransactionsStatsInput}) {
     <>
       <div>
         <div className="my-3">
-          <Navigation years={years} active={year} setActive={setYear} />
+          <Navigation
+            timeline={allDataInterval}
+            granularity={Granularity.YEARLY}
+            selected={year}
+            setSelected={setYear}
+          />
         </div>
         <div className="space-y-4">
           <CurrencyExchangeFailed failedTransactions={failedToExchange} />
@@ -181,7 +174,7 @@ export function YearlyStats({input}: {input: TransactionsStatsInput}) {
           </div>
 
           <div>
-            <VendorStats input={input} year={year} />
+            <VendorStats input={input} year={new Date(year.start)} />
           </div>
         </div>
       </div>
