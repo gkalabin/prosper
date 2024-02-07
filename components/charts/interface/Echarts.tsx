@@ -3,16 +3,16 @@ import {
   HorizontalBarProps,
   Props,
 } from 'components/charts/interface/Interface';
-import {formatPoint, intervalPoints} from 'components/charts/interface/util';
 import ReactEcharts from 'echarts-for-react';
 import {formatCurrency} from 'lib/model/Currency';
+import {formatInterval, sliceInterval} from 'lib/util/time';
 
 function Bar({series, interval, title}: Props) {
   const currency = series.data.getCurrency();
   const yFormatter = (v: number): string =>
     formatCurrency(currency, v, {maximumFractionDigits: 0});
   const g = series.data.getGranularity();
-  const xAxis = intervalPoints(interval, g);
+  const slices = sliceInterval({interval, granularity: g});
   return (
     <ReactEcharts
       notMerge
@@ -27,7 +27,7 @@ function Bar({series, interval, title}: Props) {
           },
         },
         xAxis: {
-          data: xAxis.map(x => formatPoint(x, g)),
+          data: slices.map(formatInterval),
         },
         title: {
           text: title,
@@ -36,7 +36,7 @@ function Bar({series, interval, title}: Props) {
           {
             type: 'bar',
             name: title,
-            data: xAxis.map(p => series.data.get(p).round().dollar()),
+            data: slices.map(i => series.data.get(i.start).round().dollar()),
           },
         ],
       }}
@@ -49,7 +49,7 @@ function Line({series, interval, title}: Props) {
   const yFormatter = (v: number): string =>
     formatCurrency(currency, v, {maximumFractionDigits: 0});
   const g = series.data.getGranularity();
-  const xAxis = intervalPoints(interval, g);
+  const slices = sliceInterval({interval, granularity: g});
   return (
     <ReactEcharts
       notMerge
@@ -64,7 +64,7 @@ function Line({series, interval, title}: Props) {
           },
         },
         xAxis: {
-          data: xAxis.map(x => formatPoint(x, g)),
+          data: slices.map(formatInterval),
         },
         title: {
           text: title,
@@ -73,7 +73,7 @@ function Line({series, interval, title}: Props) {
           {
             type: 'line',
             name: series,
-            data: xAxis.map(p => series.data.get(p).round().dollar()),
+            data: slices.map(i => series.data.get(i.start).round().dollar()),
           },
         ],
       }}

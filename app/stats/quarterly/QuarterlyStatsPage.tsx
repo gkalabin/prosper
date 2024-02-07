@@ -2,6 +2,7 @@
 import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
 import {useStatsPageProps} from 'app/stats/modelHelpers';
+import {Navigation} from 'app/stats/quarterly/Navigation';
 import {ExpensesByRootCategory} from 'app/stats/quarterly/ExpensesByRootCategory';
 import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
 import {ChildCategoryOwnShareChart} from 'components/charts/CategoryPie';
@@ -13,14 +14,7 @@ import {
   SortableTransactionsList,
   SortingMode,
 } from 'components/transactions/SortableTransactionsList';
-import {ButtonLink} from 'components/ui/buttons';
-import {
-  eachQuarterOfInterval,
-  endOfQuarter,
-  format,
-  isSameQuarter,
-  startOfQuarter,
-} from 'date-fns';
+import {Interval, endOfQuarter, isSameQuarter, startOfQuarter} from 'date-fns';
 import {AmountWithCurrency} from 'lib/AmountWithCurrency';
 import {
   AllDatabaseDataContextProvider,
@@ -34,37 +28,8 @@ import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
 import {Income} from 'lib/model/transaction/Income';
 import {Expense, isExpense, isIncome} from 'lib/model/transaction/Transaction';
 import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
+import {Granularity} from 'lib/util/Granularity';
 import {useState} from 'react';
-
-function Navigation({
-  quarters,
-  active,
-  setActive,
-}: {
-  quarters: Date[];
-  active: Date;
-  setActive: (d: Date) => void;
-}) {
-  return (
-    <>
-      <div className="space-x-2">
-        {quarters.map(y => (
-          <span key={y.getTime()}>
-            {(isSameQuarter(active, y) && (
-              <span className="font-medium text-slate-700">
-                {format(y, 'yyyyQQQ')}
-              </span>
-            )) || (
-              <ButtonLink onClick={() => setActive(y)}>
-                {format(y, 'yyyyQQQ')}
-              </ButtonLink>
-            )}
-          </span>
-        ))}
-      </div>
-    </>
-  );
-}
 
 export function VendorStats({
   input,
@@ -182,20 +147,24 @@ function NonEmptyPageContent() {
     start: timestamps[0],
     end: timestamps[timestamps.length - 1],
   };
-  const quarters = eachQuarterOfInterval(allDataInterval);
-  const [quarter, setQuarter] = useState(quarters[quarters.length - 1]);
-  const quarterInterval = {
-    start: startOfQuarter(quarter),
-    end: endOfQuarter(quarter),
-  };
-  const {input, failed} = useStatsPageProps(excludeCategories, quarterInterval);
+  const now = new Date();
+  const [quarter, setQuarter] = useState<Interval>({
+    start: startOfQuarter(now),
+    end: endOfQuarter(now),
+  });
+  const {input, failed} = useStatsPageProps(excludeCategories, quarter);
   return (
     <div className="space-y-4">
       <ExcludedCategoriesSelector
         excludedIds={excludeCategories}
         setExcludedIds={setExcludeCategories}
       />
-      <Navigation quarters={quarters} active={quarter} setActive={setQuarter} />
+      <Navigation
+        timeline={allDataInterval}
+        selected={quarter}
+        setSelected={setQuarter}
+        granularity={Granularity.QUARTERLY}
+      />
       <CurrencyExchangeFailed failedTransactions={failed} />
       <QuarterlyStats input={input} />
     </div>

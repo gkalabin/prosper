@@ -24,7 +24,7 @@ export class MoneyTimeseries {
     this.data = new Map();
   }
 
-  private bucket(time: Date | number): Date {
+  private bucket(time: Date | number | string): Date {
     switch (this.granularity) {
       case Granularity.MONTHLY:
         return startOfMonth(time);
@@ -67,7 +67,7 @@ export class MoneyTimeseries {
     this.data.set(k, i);
   }
 
-  get(time: Date | number): AmountWithCurrency {
+  get(time: Date | number | string): AmountWithCurrency {
     const k = this.bucket(time).getTime();
     return this.data.get(k) ?? AmountWithCurrency.zero(this.currency);
   }
