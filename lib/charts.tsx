@@ -51,7 +51,6 @@ function stackedBarChartTooltipFormatter(
     if (!Array.isArray(params)) {
       throw new Error(`Stacked bar should have params array, got ${params}`);
     }
-    console.log(params);
     if (params.length === 0) {
       return 'No data';
     }
