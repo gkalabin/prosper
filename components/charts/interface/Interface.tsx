@@ -19,12 +19,17 @@ export type Series = {
 export type HorizontalBarProps = {
   title: string;
   currency: Currency;
-  data: Map<string, Amount>;
+  data: Array<NamedAmount>;
 };
 
 export type NamedTimeseries = {
   name: string;
   series: MoneyTimeseries;
+};
+
+export type NamedAmount = {
+  name: string;
+  amount: Amount;
 };
 
 export type StackedBarProps = {

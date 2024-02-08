@@ -82,11 +82,9 @@ function Line({series, interval, title}: Props) {
 }
 
 function HorizontalBar({title, currency, data}: HorizontalBarProps) {
-  const entries = [...data.entries()].sort(
-    ([_k1, v1], [_k2, v2]) => v1.cents() - v2.cents()
-  );
-  const categories = entries.map(([k, _v]) => k);
-  const values = entries.map(([_k, v]) => v.round().dollar());
+  const sorted = [...data].sort((a, b) => a.amount.cents() - b.amount.cents());
+  const categories = sorted.map(({name}) => name);
+  const values = sorted.map(({amount}) => amount.round().dollar());
   return (
     <ReactEcharts
       notMerge
