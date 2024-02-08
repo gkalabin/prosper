@@ -161,13 +161,14 @@ export function subtreeIncludes(
   tree: CategoryTree
 ): boolean {
   const root = findNode(subtreeRoot, tree);
-  const descendant = findNode(maybeDescendant, tree);
-  if (root.category.id == descendant.category.id) {
-    return true;
+  let node: CategoryTreeNode | null = findNode(maybeDescendant, tree);
+  while (node) {
+    if (node.category.id === root.category.id) {
+      return true;
+    }
+    node = node.parent;
   }
-  return getDescendants(subtreeRoot, tree).some(
-    c => c.category.id == descendant.category.id
-  );
+  return false;
 }
 
 export function immediateChildren(
