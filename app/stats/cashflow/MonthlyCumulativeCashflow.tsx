@@ -3,8 +3,8 @@ import Charts from 'components/charts/interface';
 import {AmountWithCurrency} from 'lib/AmountWithCurrency';
 import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
 import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
-import {MoneyTimeseries} from 'lib/util/Timeseries';
 import {Granularity} from 'lib/util/Granularity';
+import {MoneyTimeseries} from 'lib/util/Timeseries';
 
 export function MonthlyCumulativeCashflow({
   input,
@@ -28,8 +28,9 @@ export function MonthlyCumulativeCashflow({
   return (
     <Charts.Line
       title={'Cumulative monthly cashflow'}
-      series={{data: cumulative}}
+      granularity={Granularity.MONTHLY}
       interval={input.interval()}
+      data={cumulative}
     />
   );
 }

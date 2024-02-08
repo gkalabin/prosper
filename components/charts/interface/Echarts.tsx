@@ -1,8 +1,8 @@
 import {
   ChartsLibrary,
   HorizontalBarProps,
-  Props,
   StackedBarProps,
+  TimeseriesProps,
 } from 'components/charts/interface/Interface';
 import {type EChartsOption} from 'echarts';
 import ReactEcharts from 'echarts-for-react';
@@ -11,10 +11,9 @@ import {CallbackDataParams} from 'echarts/types/dist/shared';
 import {Currency, formatCurrency} from 'lib/model/Currency';
 import {formatInterval, sliceInterval} from 'lib/util/time';
 
-function Bar({series, interval, title}: Props) {
-  const currency = series.data.getCurrency();
-  const g = series.data.getGranularity();
-  const slices = sliceInterval({interval, granularity: g});
+function Bar({title, interval, granularity, data}: TimeseriesProps) {
+  const currency = data.getCurrency();
+  const slices = sliceInterval({interval, granularity});
   return (
     <ReactEcharts
       notMerge
@@ -38,7 +37,7 @@ function Bar({series, interval, title}: Props) {
           {
             type: 'bar',
             name: title,
-            data: slices.map(i => series.data.get(i.start).round().dollar()),
+            data: slices.map(i => data.get(i.start).round().dollar()),
           },
         ],
       }}
@@ -46,10 +45,9 @@ function Bar({series, interval, title}: Props) {
   );
 }
 
-function Line({series, interval, title}: Props) {
-  const currency = series.data.getCurrency();
-  const g = series.data.getGranularity();
-  const slices = sliceInterval({interval, granularity: g});
+function Line({title, interval, granularity, data}: TimeseriesProps) {
+  const currency = data.getCurrency();
+  const slices = sliceInterval({interval, granularity});
   return (
     <ReactEcharts
       notMerge
@@ -72,8 +70,8 @@ function Line({series, interval, title}: Props) {
         series: [
           {
             type: 'line',
-            name: series,
-            data: slices.map(i => series.data.get(i.start).round().dollar()),
+            name: title,
+            data: slices.map(i => data.get(i.start).round().dollar()),
           },
         ],
       }}

@@ -2,8 +2,8 @@
 import Charts from 'components/charts/interface';
 import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
 import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
-import {MoneyTimeseries, runningAverage} from 'lib/util/Timeseries';
 import {Granularity} from 'lib/util/Granularity';
+import {MoneyTimeseries, runningAverage} from 'lib/util/Timeseries';
 
 export function MonthlyAverageCashflow({
   input,
@@ -21,8 +21,9 @@ export function MonthlyAverageCashflow({
   return (
     <Charts.Bar
       title={'Cashflow 12 months running average'}
-      series={{data: runningAverage(cashflow, 12)}}
+      granularity={Granularity.MONTHLY}
       interval={input.interval()}
+      data={runningAverage(cashflow, 12)}
     />
   );
 }

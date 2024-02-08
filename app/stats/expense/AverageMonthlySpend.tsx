@@ -2,8 +2,8 @@
 import Charts from 'components/charts/interface';
 import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
 import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
-import {MoneyTimeseries, runningAverage} from 'lib/util/Timeseries';
 import {Granularity} from 'lib/util/Granularity';
+import {MoneyTimeseries, runningAverage} from 'lib/util/Timeseries';
 
 export function AverageMonthlySpend({input}: {input: TransactionsStatsInput}) {
   const displayCurrency = useDisplayCurrency();
@@ -15,8 +15,9 @@ export function AverageMonthlySpend({input}: {input: TransactionsStatsInput}) {
   return (
     <Charts.Bar
       title={'Average monthly spend (12 months running average)'}
-      series={{data: average}}
+      granularity={Granularity.MONTHLY}
       interval={input.interval()}
+      data={average}
     />
   );
 }
