@@ -1,21 +1,21 @@
 'use client';
-import {categoryNameById, dollarsRounded} from 'app/stats/modelHelpers';
-import ReactEcharts from 'echarts-for-react';
-import {defaultMonthlyMoneyChart, stackedBarChartTooltip} from 'lib/charts';
+import Charts from 'components/charts/interface';
+import {NamedTimeseries} from 'components/charts/interface/Interface';
 import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
 import {
   Category,
+  getNameWithAncestors,
   isRoot,
   makeCategoryTree,
   subtreeIncludes,
 } from 'lib/model/Category';
 import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
 import {DefaultMap} from 'lib/util/DefaultMap';
-import {MoneyTimeseries} from 'lib/util/Timeseries';
 import {Granularity} from 'lib/util/Granularity';
+import {MoneyTimeseries} from 'lib/util/Timeseries';
 
-export function ByCategoryCharts({input}: {input: TransactionsStatsInput}) {
+export function FanoutByRootCategory({input}: {input: TransactionsStatsInput}) {
   const {categories} = useAllDatabaseDataContext();
   return (
     <>
@@ -39,37 +39,32 @@ function ExpenseByCategory({
 }) {
   const displayCurrency = useDisplayCurrency();
   const {categories} = useAllDatabaseDataContext();
-  const categoryTree = makeCategoryTree(categories);
+  const tree = makeCategoryTree(categories);
   const newEmptySeries = () =>
     new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);
-  const data = new DefaultMap<number, MoneyTimeseries>(newEmptySeries);
+  const byId = new DefaultMap<number, MoneyTimeseries>(newEmptySeries);
   for (const {t, ownShare} of input.expensesExchanged()) {
-    if (!subtreeIncludes(root, t.categoryId, categoryTree)) {
+    if (!subtreeIncludes(root, t.categoryId, tree)) {
       continue;
     }
-    data.getOrCreate(t.categoryId).increment(t.timestampEpoch, ownShare);
+    byId.getOrCreate(t.categoryId).increment(t.timestampEpoch, ownShare);
   }
-  if (data.size == 0) {
+  if (byId.size == 0) {
     return <></>;
   }
+  const data: NamedTimeseries[] = [...byId.entries()].map(
+    ([categoryId, series]) => ({
+      name: getNameWithAncestors(categoryId, tree),
+      series,
+    })
+  );
   return (
-    <>
-      <ReactEcharts
-        notMerge
-        option={{
-          ...defaultMonthlyMoneyChart(displayCurrency, input.interval()),
-          ...stackedBarChartTooltip(displayCurrency),
-          title: {
-            text: categoryNameById(root.id, categories),
-          },
-          series: [...data.entries()].map(([categoryId, series]) => ({
-            type: 'bar',
-            stack: 'moneyOut',
-            name: categoryNameById(categoryId, categories),
-            data: input.months().map(m => dollarsRounded(series.get(m))),
-          })),
-        }}
-      />
-    </>
+    <Charts.StackedBar
+      title={getNameWithAncestors(root, tree)}
+      currency={displayCurrency}
+      granularity={Granularity.MONTHLY}
+      interval={input.interval()}
+      data={data}
+    />
   );
 }

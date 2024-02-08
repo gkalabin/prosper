@@ -4,7 +4,7 @@ import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
 import {AverageMonthlySpend} from 'app/stats/expense/AverageMonthlySpend';
 import {ExpensesByChildCategory} from 'app/stats/expense/ByChildCategory';
 import {ExpensesByRootCategory} from 'app/stats/expense/ByRootCategory';
-import {ByCategoryCharts} from 'app/stats/expense/DrilldownByCategory';
+import {FanoutByRootCategory} from 'app/stats/expense/FanoutByRootCategory';
 import {MonthlySpend} from 'app/stats/expense/MonthlySpend';
 import {YearlySpend} from 'app/stats/expense/YearlySpend';
 import {useStatsPageProps} from 'app/stats/modelHelpers';
@@ -39,7 +39,7 @@ function NonEmptyPageContent() {
       <YearlySpend input={input} />
       <ExpensesByRootCategory input={input} />
       <ExpensesByChildCategory input={input} />
-      <ByCategoryCharts input={input} />
+      <FanoutByRootCategory input={input} />
     </div>
   );
 }
