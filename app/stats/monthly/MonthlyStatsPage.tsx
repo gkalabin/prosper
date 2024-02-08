@@ -1,13 +1,13 @@
 'use client';
 import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
+import {ExpensesByRootCategory} from 'app/stats/expense/ByRootCategory';
 import {useStatsPageProps} from 'app/stats/modelHelpers';
+import {ExpenseByChildCategory} from 'app/stats/quarterly/ExpenseByChildCategory';
 import {Navigation} from 'app/stats/quarterly/Navigation';
+import {PeriodSummary} from 'app/stats/quarterly/PeriodSummary';
 import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
-import {
-  ChildCategoryOwnShareChart,
-  TopLevelCategoryOwnShareChart,
-} from 'components/charts/CategoryPie';
+import {ChildCategoryOwnShareChart} from 'components/charts/CategoryPie';
 import {
   TopNVendorsMostSpent,
   TopNVendorsMostTransactions,
@@ -28,37 +28,22 @@ import {Expense, isExpense, isIncome} from 'lib/model/transaction/Transaction';
 import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
 import {Granularity} from 'lib/util/Granularity';
 import {useState} from 'react';
-import {PeriodSummary} from '../quarterly/PeriodSummary';
 
 export function MonthlyStats({input}: {input: TransactionsStatsInput}) {
   return (
     <div className="space-y-4">
       <PeriodSummary input={input} />
-
       <div>
         <h1 className="text-xl font-medium leading-7">
           Expenses ({input.expensesExchanged().length})
         </h1>
-        <TopLevelCategoryOwnShareChart
-          title="Top level category"
-          transactions={input
-            .expensesExchanged()
-            .map(({t}) => t)
-            .filter((t): t is Expense => isExpense(t))}
-        />
-        <ChildCategoryOwnShareChart
-          title="Transaction category"
-          transactions={input
-            .expensesExchanged()
-            .map(({t}) => t)
-            .filter((t): t is Expense => isExpense(t))}
-        />
+        <ExpensesByRootCategory input={input} />
+        <ExpenseByChildCategory input={input} />
         <SortableTransactionsList
           transactions={input.expensesExchanged().map(({t}) => t)}
           initialSorting={SortingMode.AMOUNT_DESC}
         />
       </div>
-
       <div>
         <h1 className="text-xl font-medium leading-7">
           Income ({input.incomeExchanged().length})
@@ -75,9 +60,7 @@ export function MonthlyStats({input}: {input: TransactionsStatsInput}) {
           initialSorting={SortingMode.AMOUNT_DESC}
         />
       </div>
-      <div>
-        <VendorStats input={input} month={input.interval().start} />
-      </div>
+      <VendorStats input={input} month={input.interval().start} />
     </div>
   );
 }

@@ -7,7 +7,6 @@ import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
 import {BankAccount} from 'lib/model/BankAccount';
 import {
   Category,
-  findRoot,
   getNameWithAncestors,
   makeCategoryTree,
   mustFindCategory,
@@ -21,25 +20,6 @@ import {AppendMap, currencyAppendMap} from 'lib/util/AppendMap';
 import dynamic from 'next/dynamic';
 
 const ReactEcharts = dynamic(() => import('echarts-for-react'), {ssr: false});
-
-export function TopLevelCategoryOwnShareChart({
-  transactions,
-  title,
-}: {
-  transactions: (Expense | Income)[];
-  title: string;
-}) {
-  const {categories} = useAllDatabaseDataContext();
-  const rootCategoryId = makeRootCategoryIdFn(categories);
-  return (
-    <ByCategoryChart
-      title={title}
-      transactions={transactions}
-      categoryFn={rootCategoryId}
-      amountFn={amountOwnShare}
-    />
-  );
-}
 
 export function ChildCategoryOwnShareChart({
   transactions,
@@ -93,13 +73,6 @@ function groupTransactions<T>({
     data.increment(k, amount);
   }
   return data;
-}
-
-function makeRootCategoryIdFn(
-  categories: Category[]
-): TransactionCategoryFunction {
-  const tree = makeCategoryTree(categories);
-  return (t: Transaction): number => findRoot(t.categoryId, tree).id;
 }
 
 function leafCategoryId(t: Transaction, categories: Category[]): number {

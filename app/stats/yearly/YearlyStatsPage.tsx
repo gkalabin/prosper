@@ -2,6 +2,7 @@
 import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
 import {useStatsPageProps} from 'app/stats/modelHelpers';
+import {ExpenseByChildCategory} from 'app/stats/quarterly/ExpenseByChildCategory';
 import {ExpensesByRootCategory} from 'app/stats/quarterly/ExpensesByRootCategory';
 import {Navigation} from 'app/stats/quarterly/Navigation';
 import {PeriodSummary} from 'app/stats/quarterly/PeriodSummary';
@@ -62,13 +63,7 @@ function YearlyStats({input}: {input: TransactionsStatsInput}) {
           Expenses ({input.expensesExchanged().length})
         </h1>
         <ExpensesByRootCategory input={input} />
-        <ChildCategoryOwnShareChart
-          title="Transaction category"
-          transactions={input
-            .expensesExchanged()
-            .map(({t}) => t)
-            .filter((t): t is Expense => isExpense(t))}
-        />
+        <ExpenseByChildCategory input={input} />
         <SortableTransactionsList
           transactions={input.expensesExchanged().map(({t}) => t)}
           initialSorting={SortingMode.AMOUNT_DESC}
