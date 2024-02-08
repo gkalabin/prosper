@@ -1,6 +1,7 @@
 import {type Interval} from 'date-fns';
 import {Amount} from 'lib/Amount';
 import {Currency} from 'lib/model/Currency';
+import {Granularity} from 'lib/util/Granularity';
 import {MoneyTimeseries} from 'lib/util/Timeseries';
 
 export type Props = {
@@ -21,8 +22,22 @@ export type HorizontalBarProps = {
   data: Map<string, Amount>;
 };
 
+export type NamedTimeseries = {
+  name: string;
+  series: MoneyTimeseries;
+};
+
+export type StackedBarProps = {
+  title: string;
+  currency: Currency;
+  granularity: Granularity;
+  interval: Interval;
+  data: Array<NamedTimeseries>;
+};
+
 export interface ChartsLibrary {
-  Bar(props: Props): JSX.Element;
   Line(props: Props): JSX.Element;
+  Bar(props: Props): JSX.Element;
+  StackedBar(props: StackedBarProps): JSX.Element;
   HorizontalBar(props: HorizontalBarProps): JSX.Element;
 }
