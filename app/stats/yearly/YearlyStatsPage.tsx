@@ -70,10 +70,7 @@ function YearlyStats({input}: {input: TransactionsStatsInput}) {
             .filter((t): t is Expense => isExpense(t))}
         />
         <SortableTransactionsList
-          transactions={input
-            .expensesExchanged()
-            .map(({t}) => t)
-            .filter((t): t is Expense => isExpense(t))}
+          transactions={input.expensesExchanged().map(({t}) => t)}
           initialSorting={SortingMode.AMOUNT_DESC}
         />
       </div>
@@ -90,10 +87,7 @@ function YearlyStats({input}: {input: TransactionsStatsInput}) {
             .filter((t): t is Income => isIncome(t))}
         />
         <SortableTransactionsList
-          transactions={input
-            .incomeExchanged()
-            .map(({t}) => t)
-            .filter((t): t is Income => isIncome(t))}
+          transactions={input.incomeExchanged().map(({t}) => t)}
           initialSorting={SortingMode.AMOUNT_DESC}
         />
       </div>
