@@ -2,7 +2,6 @@
 import {categoryNameById} from 'app/stats/modelHelpers';
 import Charts from 'components/charts/interface';
 import {NamedTimeseries} from 'components/charts/interface/Interface';
-import {startOfMonth} from 'date-fns';
 import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
 import {findRoot, makeCategoryTree} from 'lib/model/Category';
@@ -24,10 +23,9 @@ export function ExpensesByRootCategory({
     new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);
   const byId = new DefaultMap<number, MoneyTimeseries>(newEmptySeries);
   for (const {t, ownShare} of input.expensesExchanged()) {
-    const ts = startOfMonth(t.timestampEpoch).getTime();
     const category = transactionCategory(t, categories);
-    const rootId = findRoot(category, categoryTree).id;
-    byId.getOrCreate(rootId).increment(ts, ownShare);
+    const root = findRoot(category, categoryTree).id;
+    byId.getOrCreate(root).increment(t.timestampEpoch, ownShare);
   }
   const data: NamedTimeseries[] = [...byId.entries()].map(
     ([categoryId, series]) => ({
