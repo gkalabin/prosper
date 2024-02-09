@@ -1,4 +1,4 @@
-import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
+import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 
 export function isFullyConfigured(dbData: AllDatabaseData) {
   return dbData.dbCategories?.length && dbData.dbBankAccounts?.length;

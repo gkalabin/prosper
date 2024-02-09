@@ -5,29 +5,29 @@ import {
   TrueLayerToken,
 } from '@prisma/client';
 import {isBefore} from 'date-fns';
-import {DB} from 'lib/db';
+import {DB} from '@/lib/db';
 import {
   AccountBalance,
   AccountDetails,
   ConnectionExpiration,
   Transaction,
-} from 'lib/openbanking/interface';
-import {fetchAccounts as nordigenFetchAccounts} from 'lib/openbanking/nordigen/account';
-import {fetchBalance as nordigenFetchBalance} from 'lib/openbanking/nordigen/balance';
-import {refreshToken as nordigenRefreshToken} from 'lib/openbanking/nordigen/token';
-import {fetchTransactions as nordigenFetchTransactions} from 'lib/openbanking/nordigen/transactions';
-import {fetchAccounts as starlingFetchAccounts} from 'lib/openbanking/starling/account';
-import {fetchBalance as starlingFetchBalance} from 'lib/openbanking/starling/balance';
-import {fetchTransactions as starlingFetchTransactions} from 'lib/openbanking/starling/transactions';
-import {fetchAccounts as trueLayerFetchAccounts} from 'lib/openbanking/truelayer/account';
-import {fetchBalance as trueLayerFetchBalance} from 'lib/openbanking/truelayer/balance';
-import {refreshToken as trueLayerRefreshToken} from 'lib/openbanking/truelayer/token';
-import {fetchTransactions as trueLayerFetchTransactions} from 'lib/openbanking/truelayer/transactions';
+} from '@/lib/openbanking/interface';
+import {fetchAccounts as nordigenFetchAccounts} from '@/lib/openbanking/nordigen/account';
+import {fetchBalance as nordigenFetchBalance} from '@/lib/openbanking/nordigen/balance';
+import {refreshToken as nordigenRefreshToken} from '@/lib/openbanking/nordigen/token';
+import {fetchTransactions as nordigenFetchTransactions} from '@/lib/openbanking/nordigen/transactions';
+import {fetchAccounts as starlingFetchAccounts} from '@/lib/openbanking/starling/account';
+import {fetchBalance as starlingFetchBalance} from '@/lib/openbanking/starling/balance';
+import {fetchTransactions as starlingFetchTransactions} from '@/lib/openbanking/starling/transactions';
+import {fetchAccounts as trueLayerFetchAccounts} from '@/lib/openbanking/truelayer/account';
+import {fetchBalance as trueLayerFetchBalance} from '@/lib/openbanking/truelayer/balance';
+import {refreshToken as trueLayerRefreshToken} from '@/lib/openbanking/truelayer/token';
+import {fetchTransactions as trueLayerFetchTransactions} from '@/lib/openbanking/truelayer/transactions';
 import {
   WithdrawalOrDepositPrototype,
   fromOpenBankingTransaction,
-} from 'lib/txsuggestions/TransactionPrototype';
-import {notEmpty} from 'lib/util/util';
+} from '@/lib/txsuggestions/TransactionPrototype';
+import {notEmpty} from '@/lib/util/util';
 
 type Token = TrueLayerToken | NordigenToken | StarlingToken;
 

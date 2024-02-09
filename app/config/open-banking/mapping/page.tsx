@@ -1,8 +1,8 @@
-import {OpenBankingMappingConfigPage} from 'app/config/open-banking/mapping/client';
-import {DB} from 'lib/db';
-import {fetchAccountsForBank} from 'lib/openbanking/fetchall';
-import {getUserId} from 'lib/user';
-import {firstPositiveIntOrNull} from 'lib/util/searchParams';
+import {OpenBankingMappingConfigPage} from '@/app/config/open-banking/mapping/client';
+import {DB} from '@/lib/db';
+import {fetchAccountsForBank} from '@/lib/openbanking/fetchall';
+import {getUserId} from '@/lib/user';
+import {firstPositiveIntOrNull} from '@/lib/util/searchParams';
 import {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 

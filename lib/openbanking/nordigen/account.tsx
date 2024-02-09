@@ -1,5 +1,5 @@
 import {NordigenRequisition, NordigenToken} from '@prisma/client';
-import {AccountDetails} from 'lib/openbanking/interface';
+import {AccountDetails} from '@/lib/openbanking/interface';
 
 export async function fetchAccounts(
   token: NordigenToken,

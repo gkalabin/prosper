@@ -1,27 +1,30 @@
 'use client';
 import classNames from 'classnames';
-import {isFullyConfigured, NotConfiguredYet} from 'components/NotConfiguredYet';
-import {AnchorLink} from 'components/ui/anchors';
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
-import {StockAndCurrencyExchange} from 'lib/ClientSideModel';
+import {
+  isFullyConfigured,
+  NotConfiguredYet,
+} from '@/components/NotConfiguredYet';
+import {AnchorLink} from '@/components/ui/anchors';
+import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
+import {StockAndCurrencyExchange} from '@/lib/ClientSideModel';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
-} from 'lib/context/AllDatabaseDataContext';
-import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
-import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
-import {BankAccount} from 'lib/model/BankAccount';
-import {Currency} from 'lib/model/Currency';
-import {Stock} from 'lib/model/Stock';
-import {amountAllParties} from 'lib/model/transaction/amounts';
-import {Income} from 'lib/model/transaction/Income';
+} from '@/lib/context/AllDatabaseDataContext';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
+import {BankAccount} from '@/lib/model/BankAccount';
+import {Currency} from '@/lib/model/Currency';
+import {Stock} from '@/lib/model/Stock';
+import {amountAllParties} from '@/lib/model/transaction/amounts';
+import {Income} from '@/lib/model/transaction/Income';
 import {
   Expense,
   isExpense,
   isIncome,
   Transaction,
-} from 'lib/model/transaction/Transaction';
-import {Trip} from 'lib/model/Trip';
+} from '@/lib/model/transaction/Transaction';
+import {Trip} from '@/lib/model/Trip';
 
 function tripTotalSpend(
   tripId: number,

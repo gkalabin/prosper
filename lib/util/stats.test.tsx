@@ -1,5 +1,5 @@
 import {expect, test} from '@jest/globals';
-import {percentile, runningAverage, topN} from 'lib/util/stats';
+import {percentile, runningAverage, topN} from '@/lib/util/stats';
 
 describe('percentile', () => {
   test.each([-1, 101, 1.5])("throws for invalid percentile '%s'", a =>

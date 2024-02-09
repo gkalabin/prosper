@@ -1,8 +1,8 @@
 import {Prisma} from '@prisma/client';
-import {DB} from 'lib/db';
-import prisma from 'lib/prisma';
-import {getUserId} from 'lib/user';
-import {positiveIntOrNull} from 'lib/util/searchParams';
+import {DB} from '@/lib/db';
+import prisma from '@/lib/prisma';
+import {getUserId} from '@/lib/user';
+import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
 

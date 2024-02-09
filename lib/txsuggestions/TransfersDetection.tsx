@@ -9,7 +9,7 @@ import {
   TransferPrototype,
   WithdrawalOrDepositPrototype,
   WithdrawalPrototype,
-} from 'lib/txsuggestions/TransactionPrototype';
+} from '@/lib/txsuggestions/TransactionPrototype';
 
 export function combineTransfers(
   prototypes: WithdrawalOrDepositPrototype[]

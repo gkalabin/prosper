@@ -1,8 +1,8 @@
-import {OverviewPage} from 'app/overview/OverviewPage';
-import {DB, fetchAllDatabaseData} from 'lib/db';
-import {addLatestExchangeRates} from 'lib/exchangeRatesBackfill';
-import {addLatestStockQuotes} from 'lib/stockQuotesBackfill';
-import {getUserId} from 'lib/user';
+import {OverviewPage} from '@/app/overview/OverviewPage';
+import {DB, fetchAllDatabaseData} from '@/lib/db';
+import {addLatestExchangeRates} from '@/lib/exchangeRatesBackfill';
+import {addLatestStockQuotes} from '@/lib/stockQuotesBackfill';
+import {getUserId} from '@/lib/user';
 import {Metadata} from 'next';
 
 export const metadata: Metadata = {

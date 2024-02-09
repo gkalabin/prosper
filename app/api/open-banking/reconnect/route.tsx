@@ -1,7 +1,10 @@
-import {DB} from 'lib/db';
-import {AccountBalance, ConnectionExpiration} from 'lib/openbanking/interface';
-import {getUserId} from 'lib/user';
-import {positiveIntOrNull} from 'lib/util/searchParams';
+import {DB} from '@/lib/db';
+import {
+  AccountBalance,
+  ConnectionExpiration,
+} from '@/lib/openbanking/interface';
+import {getUserId} from '@/lib/user';
+import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
 

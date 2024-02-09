@@ -11,7 +11,7 @@ import {
   TransactionPrototype,
   Trip,
 } from '@prisma/client';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 
 export interface TransactionWithTagIds extends Transaction {
   tags: {

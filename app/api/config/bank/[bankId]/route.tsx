@@ -1,7 +1,7 @@
-import {DB} from 'lib/db';
-import {UpdateBankRequest} from 'lib/model/forms/BankFormValues';
-import {getUserId} from 'lib/user';
-import {positiveIntOrNull} from 'lib/util/searchParams';
+import {DB} from '@/lib/db';
+import {UpdateBankRequest} from '@/lib/model/forms/BankFormValues';
+import {getUserId} from '@/lib/user';
+import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function PUT(

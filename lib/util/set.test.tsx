@@ -1,5 +1,5 @@
 import {expect, test} from '@jest/globals';
-import {intersect, union} from 'lib/util/set';
+import {intersect, union} from '@/lib/util/set';
 
 describe('intersect', () => {
   test.each<{a: number[]; b: number[]; expected: number[]}>`

@@ -1,13 +1,13 @@
 'use client';
-import {categoryNameById, dollarsRounded} from 'app/stats/modelHelpers';
+import {categoryNameById, dollarsRounded} from '@/app/stats/modelHelpers';
 import ReactEcharts from 'echarts-for-react';
-import {defaultMonthlyMoneyChart, stackedBarChartTooltip} from 'lib/charts';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
-import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
-import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
-import {DefaultMap} from 'lib/util/DefaultMap';
-import {MoneyTimeseries} from 'lib/util/Timeseries';
-import {Granularity} from 'lib/util/Granularity';
+import {defaultMonthlyMoneyChart, stackedBarChartTooltip} from '@/lib/charts';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
+import {DefaultMap} from '@/lib/util/DefaultMap';
+import {MoneyTimeseries} from '@/lib/util/Timeseries';
+import {Granularity} from '@/lib/util/Granularity';
 
 export function IncomeByCategory({input}: {input: TransactionsStatsInput}) {
   const displayCurrency = useDisplayCurrency();

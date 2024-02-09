@@ -1,6 +1,6 @@
-import {TransactionsPage} from 'app/transactions/TransactionsPage';
-import {DB, fetchAllDatabaseData} from 'lib/db';
-import {getUserId} from 'lib/user';
+import {TransactionsPage} from '@/app/transactions/TransactionsPage';
+import {DB, fetchAllDatabaseData} from '@/lib/db';
+import {getUserId} from '@/lib/user';
 import {Metadata} from 'next';
 
 export const metadata: Metadata = {

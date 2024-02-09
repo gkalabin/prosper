@@ -3,7 +3,7 @@ import {
   firstPositiveIntOrNull,
   firstValueOrNull,
   positiveIntOrNull,
-} from 'lib/util/searchParams';
+} from '@/lib/util/searchParams';
 
 describe('positiveIntOrNull', () => {
   test.each<{input: string | null; expected: string | null}>`

@@ -1,16 +1,19 @@
 'use client';
-import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
-import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
-import {AverageMonthlyIncome} from 'app/stats/income/AverageMonthlyIncome';
-import {IncomeByCategory} from 'app/stats/income/IncomeByCategory';
-import {MonthlyIncome} from 'app/stats/income/MonthlyIncome';
-import {YearlyIncome} from 'app/stats/income/YearlyIncome';
-import {useStatsPageProps} from 'app/stats/modelHelpers';
-import {DurationSelector, LAST_6_MONTHS} from 'components/DurationSelector';
-import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
-import {AllDatabaseDataContextProvider} from 'lib/context/AllDatabaseDataContext';
-import {useDisplaySettingsContext} from 'lib/context/DisplaySettingsContext';
-import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
+import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
+import {ExcludedCategoriesSelector} from '@/app/stats/ExcludedCategoriesSelector';
+import {AverageMonthlyIncome} from '@/app/stats/income/AverageMonthlyIncome';
+import {IncomeByCategory} from '@/app/stats/income/IncomeByCategory';
+import {MonthlyIncome} from '@/app/stats/income/MonthlyIncome';
+import {YearlyIncome} from '@/app/stats/income/YearlyIncome';
+import {useStatsPageProps} from '@/app/stats/modelHelpers';
+import {DurationSelector, LAST_6_MONTHS} from '@/components/DurationSelector';
+import {
+  NotConfiguredYet,
+  isFullyConfigured,
+} from '@/components/NotConfiguredYet';
+import {AllDatabaseDataContextProvider} from '@/lib/context/AllDatabaseDataContext';
+import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
+import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {useState} from 'react';
 
 function NonEmptyPageContent() {

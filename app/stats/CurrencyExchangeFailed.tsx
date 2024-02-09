@@ -1,23 +1,23 @@
 'use client';
-import {ButtonLink} from 'components/ui/buttons';
+import {ButtonLink} from '@/components/ui/buttons';
 import {format} from 'date-fns';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
-import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
-import {fullAccountName} from 'lib/model/BankAccount';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {fullAccountName} from '@/lib/model/BankAccount';
 import {
   Transaction,
   isIncome,
   isPersonalExpense,
   isThirdPartyExpense,
   isTransfer,
-} from 'lib/model/transaction/Transaction';
+} from '@/lib/model/transaction/Transaction';
 import {
   amountReceived,
   amountSent,
   incomingBankAccount,
   outgoingBankAccount,
-} from 'lib/model/transaction/Transfer';
-import {paidTotal} from 'lib/model/transaction/amounts';
+} from '@/lib/model/transaction/Transfer';
+import {paidTotal} from '@/lib/model/transaction/amounts';
 import {useState} from 'react';
 
 export const TransactionTitle = ({t}: {t: Transaction}) => {

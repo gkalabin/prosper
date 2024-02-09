@@ -3,13 +3,13 @@ import {
   HorizontalBarProps,
   StackedBarProps,
   TimeseriesProps,
-} from 'components/charts/interface/Interface';
+} from '@/components/charts/interface/Interface';
 import {type EChartsOption} from 'echarts';
 import ReactEcharts from 'echarts-for-react';
 import {type TooltipComponentOption} from 'echarts/components';
 import {CallbackDataParams} from 'echarts/types/dist/shared';
-import {Currency, formatCurrency} from 'lib/model/Currency';
-import {formatInterval, sliceInterval} from 'lib/util/time';
+import {Currency, formatCurrency} from '@/lib/model/Currency';
+import {formatInterval, sliceInterval} from '@/lib/util/time';
 
 function Bar({title, interval, granularity, data}: TimeseriesProps) {
   const currency = data.getCurrency();

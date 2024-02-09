@@ -1,8 +1,8 @@
 import {Bank as DBBank, BankAccount as DBBankAccount} from '@prisma/client';
-import {mustFindByCode} from 'lib/model/Currency';
-import {Stock} from 'lib/model/Stock';
+import {mustFindByCode} from '@/lib/model/Currency';
+import {Stock} from '@/lib/model/Stock';
 
-import {Unit} from 'lib/model/Unit';
+import {Unit} from '@/lib/model/Unit';
 
 export type Bank = {
   id: number;

@@ -1,7 +1,7 @@
-import {ConnectForm} from 'app/config/open-banking/starling/connect/ConnectForm';
-import {DB} from 'lib/db';
-import {getUserId} from 'lib/user';
-import {firstPositiveIntOrNull} from 'lib/util/searchParams';
+import {ConnectForm} from '@/app/config/open-banking/starling/connect/ConnectForm';
+import {DB} from '@/lib/db';
+import {getUserId} from '@/lib/user';
+import {firstPositiveIntOrNull} from '@/lib/util/searchParams';
 import {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 

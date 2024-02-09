@@ -8,17 +8,21 @@ import {
   Stock as DBStock,
   TrueLayerToken as DBTrueLayerToken,
 } from '@prisma/client';
-import {ConfigureOpenBankingConnectionLink} from 'app/config/banks/ConfigureOpenBankingConnectionLink';
-import {DisconnectOpenBankingLink} from 'app/config/banks/DisconnectOpenBankingLink';
-import {ReconnectOpenBankingLink} from 'app/config/banks/ReconnectOpenBankingLink';
-import {AddOrEditAccountForm} from 'components/config/AddOrEditAccountForm';
-import {AddOrEditBankForm} from 'components/config/AddOrEditBankForm';
-import {AnchorLink, ButtonLink, ButtonPagePrimary} from 'components/ui/buttons';
-import {banksModelFromDatabaseData} from 'lib/ClientSideModel';
-import {DisplaySettingsContextProvider} from 'lib/context/DisplaySettingsContext';
-import {Bank, BankAccount} from 'lib/model/BankAccount';
-import {Stock} from 'lib/model/Stock';
-import {updateState} from 'lib/stateHelpers';
+import {ConfigureOpenBankingConnectionLink} from '@/app/config/banks/ConfigureOpenBankingConnectionLink';
+import {DisconnectOpenBankingLink} from '@/app/config/banks/DisconnectOpenBankingLink';
+import {ReconnectOpenBankingLink} from '@/app/config/banks/ReconnectOpenBankingLink';
+import {AddOrEditAccountForm} from '@/components/config/AddOrEditAccountForm';
+import {AddOrEditBankForm} from '@/components/config/AddOrEditBankForm';
+import {
+  AnchorLink,
+  ButtonLink,
+  ButtonPagePrimary,
+} from '@/components/ui/buttons';
+import {banksModelFromDatabaseData} from '@/lib/ClientSideModel';
+import {DisplaySettingsContextProvider} from '@/lib/context/DisplaySettingsContext';
+import {Bank, BankAccount} from '@/lib/model/BankAccount';
+import {Stock} from '@/lib/model/Stock';
+import {updateState} from '@/lib/stateHelpers';
 import {useState} from 'react';
 
 const BanksList = (props: {

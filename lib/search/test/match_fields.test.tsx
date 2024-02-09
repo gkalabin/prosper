@@ -4,7 +4,7 @@ import {
   expectSearch,
   modelParams,
   tx,
-} from 'lib/search/test/helpers';
+} from '@/lib/search/test/helpers';
 
 beforeEach(clearModel);
 

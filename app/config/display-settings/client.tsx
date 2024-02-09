@@ -3,14 +3,14 @@ import {
   Category as DBCategory,
   DisplaySettings as DBDisplaySettings,
 } from '@prisma/client';
-import {ExcludedCategoriesSelectorStandalone} from 'app/stats/ExcludedCategoriesSelector';
-import {FormikSelect} from 'components/forms/Select';
-import {FormikButtonFormPrimary} from 'components/ui/buttons';
+import {ExcludedCategoriesSelectorStandalone} from '@/app/stats/ExcludedCategoriesSelector';
+import {FormikSelect} from '@/components/forms/Select';
+import {FormikButtonFormPrimary} from '@/components/ui/buttons';
 import {Form, Formik} from 'formik';
-import {DisplaySettings} from 'lib/displaySettings';
-import {categoryModelFromDB, sortCategories} from 'lib/model/Category';
-import {allCurrencies} from 'lib/model/Currency';
-import {DisplaySettingsFormValues} from 'lib/model/api/DisplaySettingsConfig';
+import {DisplaySettings} from '@/lib/displaySettings';
+import {categoryModelFromDB, sortCategories} from '@/lib/model/Category';
+import {allCurrencies} from '@/lib/model/Currency';
+import {DisplaySettingsFormValues} from '@/lib/model/api/DisplaySettingsConfig';
 import {useState} from 'react';
 
 export function DisplaySettingsPage({

@@ -1,4 +1,4 @@
-import {Transaction as OpenBankingTransaction} from 'lib/openbanking/interface';
+import {Transaction as OpenBankingTransaction} from '@/lib/openbanking/interface';
 
 export type TransferPrototype = {
   type: 'transfer';

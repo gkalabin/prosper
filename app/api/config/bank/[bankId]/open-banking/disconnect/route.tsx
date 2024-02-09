@@ -1,8 +1,8 @@
-import {DB} from 'lib/db';
-import {deleteToken as deleteTokenNordigen} from 'lib/openbanking/nordigen/token';
-import {deleteToken as deleteTokenTrueLayer} from 'lib/openbanking/truelayer/token';
-import {getUserId} from 'lib/user';
-import {positiveIntOrNull} from 'lib/util/searchParams';
+import {DB} from '@/lib/db';
+import {deleteToken as deleteTokenNordigen} from '@/lib/openbanking/nordigen/token';
+import {deleteToken as deleteTokenTrueLayer} from '@/lib/openbanking/truelayer/token';
+import {getUserId} from '@/lib/user';
+import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {RedirectType, redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
 

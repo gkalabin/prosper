@@ -1,5 +1,5 @@
 import {StarlingToken} from '@prisma/client';
-import {AccountDetails} from 'lib/openbanking/interface';
+import {AccountDetails} from '@/lib/openbanking/interface';
 
 const categorySeparator = '@';
 

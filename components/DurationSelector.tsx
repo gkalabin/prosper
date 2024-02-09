@@ -2,7 +2,7 @@ import {Popover, Transition} from '@headlessui/react';
 import {ChevronDownIcon} from '@heroicons/react/20/solid';
 import {CheckIcon} from '@heroicons/react/24/outline';
 import classNames from 'classnames';
-import {Input} from 'components/forms/Input';
+import {Input} from '@/components/forms/Input';
 import {
   format,
   isEqual,
@@ -10,7 +10,7 @@ import {
   subMonths,
   type Interval,
 } from 'date-fns';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {Fragment} from 'react';
 
 const now = new Date();

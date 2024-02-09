@@ -1,8 +1,8 @@
 'use client';
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
-import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
-import {isExpense} from 'lib/model/transaction/Transaction';
-import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
+import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {isExpense} from '@/lib/model/transaction/Transaction';
+import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
 
 export function PeriodSummary({input}: {input: TransactionsStatsInput}) {
   const displayCurrency = useDisplayCurrency();

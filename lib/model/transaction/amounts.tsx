@@ -1,15 +1,15 @@
-import {Amount} from 'lib/Amount';
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
-import {AmountWithUnit} from 'lib/AmountWithUnit';
-import {StockAndCurrencyExchange} from 'lib/ClientSideModel';
-import {BankAccount} from 'lib/model/BankAccount';
-import {Currency} from 'lib/model/Currency';
-import {Stock} from 'lib/model/Stock';
-import {isCurrency, isStock} from 'lib/model/Unit';
-import {Income} from 'lib/model/transaction/Income';
-import {PersonalExpense} from 'lib/model/transaction/PersonalExpense';
-import {ThirdPartyExpense} from 'lib/model/transaction/ThirdPartyExpense';
-import {transactionUnit} from 'lib/model/transaction/Transaction';
+import {Amount} from '@/lib/Amount';
+import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
+import {AmountWithUnit} from '@/lib/AmountWithUnit';
+import {StockAndCurrencyExchange} from '@/lib/ClientSideModel';
+import {BankAccount} from '@/lib/model/BankAccount';
+import {Currency} from '@/lib/model/Currency';
+import {Stock} from '@/lib/model/Stock';
+import {isCurrency, isStock} from '@/lib/model/Unit';
+import {Income} from '@/lib/model/transaction/Income';
+import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
+import {ThirdPartyExpense} from '@/lib/model/transaction/ThirdPartyExpense';
+import {transactionUnit} from '@/lib/model/transaction/Transaction';
 
 export function paidTotal(
   t: PersonalExpense | ThirdPartyExpense | Income,

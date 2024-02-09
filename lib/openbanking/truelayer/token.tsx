@@ -1,7 +1,7 @@
 import {TrueLayerToken} from '@prisma/client';
 import {addDays, addSeconds} from 'date-fns';
-import {DB} from 'lib/db';
-import prisma from 'lib/prisma';
+import {DB} from '@/lib/db';
+import prisma from '@/lib/prisma';
 
 export async function refreshToken(
   db: DB,

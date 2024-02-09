@@ -1,7 +1,7 @@
-import {DB} from 'lib/db';
-import {fetchTransactions} from 'lib/openbanking/fetchall';
-import {WithdrawalOrDepositPrototype} from 'lib/txsuggestions/TransactionPrototype';
-import {getUserId} from 'lib/user';
+import {DB} from '@/lib/db';
+import {fetchTransactions} from '@/lib/openbanking/fetchall';
+import {WithdrawalOrDepositPrototype} from '@/lib/txsuggestions/TransactionPrototype';
+import {getUserId} from '@/lib/user';
 import {NextResponse} from 'next/server';
 
 export interface OpenBankingTransactions {

@@ -1,6 +1,6 @@
 import {Stock as DBStock} from '@prisma/client';
 import {addDays, differenceInHours, format, isSameDay} from 'date-fns';
-import prisma from 'lib/prisma';
+import prisma from '@/lib/prisma';
 import yahooFinance from 'yahoo-finance2';
 import {type HistoricalRowHistory} from 'yahoo-finance2/dist/esm/src/modules/historical';
 

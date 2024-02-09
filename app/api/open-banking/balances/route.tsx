@@ -1,7 +1,10 @@
-import {DB} from 'lib/db';
-import {fetchBalances, getExpirations} from 'lib/openbanking/fetchall';
-import {AccountBalance, ConnectionExpiration} from 'lib/openbanking/interface';
-import {getUserId} from 'lib/user';
+import {DB} from '@/lib/db';
+import {fetchBalances, getExpirations} from '@/lib/openbanking/fetchall';
+import {
+  AccountBalance,
+  ConnectionExpiration,
+} from '@/lib/openbanking/interface';
+import {getUserId} from '@/lib/user';
 import {NextResponse} from 'next/server';
 
 export interface OpenBankingBalances {

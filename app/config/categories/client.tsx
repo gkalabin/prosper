@@ -2,8 +2,8 @@
 import {ChevronDownIcon, ChevronRightIcon} from '@heroicons/react/24/outline';
 import {Category as DBCategory} from '@prisma/client';
 import classNames from 'classnames';
-import {AddOrEditCategoryForm} from 'components/config/AddOrEditCategoryForm';
-import {ButtonLink, ButtonPagePrimary} from 'components/ui/buttons';
+import {AddOrEditCategoryForm} from '@/components/config/AddOrEditCategoryForm';
+import {ButtonLink, ButtonPagePrimary} from '@/components/ui/buttons';
 import {
   Category,
   categoryModelFromDB,
@@ -11,8 +11,8 @@ import {
   isRoot,
   makeCategoryTree,
   sortCategories,
-} from 'lib/model/Category';
-import {updateState} from 'lib/stateHelpers';
+} from '@/lib/model/Category';
+import {updateState} from '@/lib/stateHelpers';
 import {useState} from 'react';
 
 const CategoriesList = (props: {

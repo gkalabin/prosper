@@ -1,7 +1,7 @@
 import {Prisma} from '@prisma/client';
-import {CreateCategoryRequest} from 'lib/model/forms/CategoryFormValues';
-import prisma from 'lib/prisma';
-import {getUserId} from 'lib/user';
+import {CreateCategoryRequest} from '@/lib/model/forms/CategoryFormValues';
+import prisma from '@/lib/prisma';
+import {getUserId} from '@/lib/user';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function POST(request: NextRequest): Promise<Response> {

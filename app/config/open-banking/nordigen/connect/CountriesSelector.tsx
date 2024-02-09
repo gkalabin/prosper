@@ -1,6 +1,6 @@
 import {Bank as DBBank} from '@prisma/client';
-import {AnchorLink} from 'components/ui/anchors';
-import {NORDIGEN_COUNTRIES} from 'lib/openbanking/nordigen/countries';
+import {AnchorLink} from '@/components/ui/anchors';
+import {NORDIGEN_COUNTRIES} from '@/lib/openbanking/nordigen/countries';
 
 export function CountriesSelector({dbBank}: {dbBank: DBBank}) {
   return (

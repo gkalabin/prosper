@@ -2,9 +2,9 @@ import {Prisma} from '@prisma/client';
 import {
   AllDatabaseData,
   TransactionWithTagIds,
-} from 'lib/model/AllDatabaseDataModel';
-import {USD} from 'lib/model/Currency';
-import prisma from 'lib/prisma';
+} from '@/lib/model/AllDatabaseDataModel';
+import {USD} from '@/lib/model/Currency';
+import prisma from '@/lib/prisma';
 
 export class DB {
   private readonly userId: number;

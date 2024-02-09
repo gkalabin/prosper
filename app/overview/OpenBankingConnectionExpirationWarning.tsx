@@ -1,8 +1,8 @@
 'use client';
-import {AnchorLink} from 'components/ui/buttons';
+import {AnchorLink} from '@/components/ui/buttons';
 import {differenceInDays} from 'date-fns';
-import {Bank} from 'lib/model/BankAccount';
-import {useOpenBankingExpirations} from 'lib/openbanking/context';
+import {Bank} from '@/lib/model/BankAccount';
+import {useOpenBankingExpirations} from '@/lib/openbanking/context';
 
 export function OpenBankingConnectionExpirationWarning({bank}: {bank: Bank}) {
   const {expirations} = useOpenBankingExpirations();

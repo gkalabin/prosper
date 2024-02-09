@@ -1,17 +1,20 @@
-import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
+import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
 import {
   ChildCategoryFullAmountChart,
   ChildCategoryOwnShareChart,
-} from 'components/charts/CategoryPie';
-import {MonthlyAllParties, MonthlyOwnShare} from 'components/charts/MonthlySum';
-import {TransactionFrequencyChart} from 'components/charts/TransactionFrequency';
-import {YearlyAllParties, YearlyOwnShare} from 'components/charts/YearlySum';
-import {ButtonFormSecondary} from 'components/ui/buttons';
+} from '@/components/charts/CategoryPie';
+import {
+  MonthlyAllParties,
+  MonthlyOwnShare,
+} from '@/components/charts/MonthlySum';
+import {TransactionFrequencyChart} from '@/components/charts/TransactionFrequency';
+import {YearlyAllParties, YearlyOwnShare} from '@/components/charts/YearlySum';
+import {ButtonFormSecondary} from '@/components/ui/buttons';
 import {differenceInMonths, startOfMonth} from 'date-fns';
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
-import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
-import {Income} from 'lib/model/transaction/Income';
+import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {Income} from '@/lib/model/transaction/Income';
 import {
   Expense,
   Transaction,
@@ -20,12 +23,15 @@ import {
   isPersonalExpense,
   isThirdPartyExpense,
   isTransfer,
-} from 'lib/model/transaction/Transaction';
-import {amountAllParties, amountOwnShare} from 'lib/model/transaction/amounts';
-import {AppendMap} from 'lib/util/AppendMap';
-import {MoneyTimeseries, percentile} from 'lib/util/Timeseries';
-import {Granularity} from 'lib/util/Granularity';
-import {capitalize} from 'lib/util/util';
+} from '@/lib/model/transaction/Transaction';
+import {
+  amountAllParties,
+  amountOwnShare,
+} from '@/lib/model/transaction/amounts';
+import {AppendMap} from '@/lib/util/AppendMap';
+import {MoneyTimeseries, percentile} from '@/lib/util/Timeseries';
+import {Granularity} from '@/lib/util/Granularity';
+import {capitalize} from '@/lib/util/util';
 
 export function TransactionStats(props: {
   onClose: () => void;

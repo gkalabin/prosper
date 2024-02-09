@@ -1,9 +1,9 @@
 import {Prisma} from '@prisma/client';
-import {DB} from 'lib/db';
-import {UpdateCategoryRequest} from 'lib/model/forms/CategoryFormValues';
-import prisma from 'lib/prisma';
-import {getUserId} from 'lib/user';
-import {positiveIntOrNull} from 'lib/util/searchParams';
+import {DB} from '@/lib/db';
+import {UpdateCategoryRequest} from '@/lib/model/forms/CategoryFormValues';
+import prisma from '@/lib/prisma';
+import {getUserId} from '@/lib/user';
+import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function PUT(

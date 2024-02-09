@@ -1,22 +1,25 @@
 'use client';
 import {ChartPieIcon, FunnelIcon} from '@heroicons/react/24/outline';
-import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
+import {
+  NotConfiguredYet,
+  isFullyConfigured,
+} from '@/components/NotConfiguredYet';
 import {
   SearchForAnythingInput,
   TransactionFiltersForm,
   initialTransactionFilters,
   useFilteredTransactions,
-} from 'components/transactions/TransactionFilters';
-import {TransactionStats} from 'components/transactions/TransactionStats';
-import {TransactionsList} from 'components/transactions/TransactionsList';
-import {ButtonPagePrimary} from 'components/ui/buttons';
+} from '@/components/transactions/TransactionFilters';
+import {TransactionStats} from '@/components/transactions/TransactionStats';
+import {TransactionsList} from '@/components/transactions/TransactionsList';
+import {ButtonPagePrimary} from '@/components/ui/buttons';
 import {Formik} from 'formik';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
-} from 'lib/context/AllDatabaseDataContext';
-import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
-import {onTransactionChange} from 'lib/stateHelpers';
+} from '@/lib/context/AllDatabaseDataContext';
+import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
+import {onTransactionChange} from '@/lib/stateHelpers';
 import {useState} from 'react';
 
 function NonEmptyPageContent() {

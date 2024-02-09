@@ -1,35 +1,35 @@
 import {TransactionPrototype as DBTransactionPrototype} from '@prisma/client';
 import assert from 'assert';
 import classNames from 'classnames';
-import {ButtonLink} from 'components/ui/buttons';
+import {ButtonLink} from '@/components/ui/buttons';
 import {format} from 'date-fns';
 import {useFormikContext} from 'formik';
-import {uniqMostFrequent} from 'lib/collections';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
-import {useDisplayBankAccounts} from 'lib/model/AllDatabaseDataModel';
+import {uniqMostFrequent} from '@/lib/collections';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
 import {
   Bank,
   BankAccount,
   accountUnit,
   fullAccountName,
-} from 'lib/model/BankAccount';
-import {formatUnit} from 'lib/model/Unit';
+} from '@/lib/model/BankAccount';
+import {formatUnit} from '@/lib/model/Unit';
 import {
   Transaction,
   isExpense,
   isIncome,
   otherPartyNameOrNull,
-} from 'lib/model/transaction/Transaction';
+} from '@/lib/model/transaction/Transaction';
 import {
   incomingBankAccount,
   outgoingBankAccount,
-} from 'lib/model/transaction/Transfer';
-import {useOpenBankingTransactions} from 'lib/openbanking/context';
+} from '@/lib/model/transaction/Transfer';
+import {useOpenBankingTransactions} from '@/lib/openbanking/context';
 import {
   TransactionPrototype,
   WithdrawalOrDepositPrototype,
-} from 'lib/txsuggestions/TransactionPrototype';
-import {combineTransfers} from 'lib/txsuggestions/TransfersDetection';
+} from '@/lib/txsuggestions/TransactionPrototype';
+import {combineTransfers} from '@/lib/txsuggestions/TransfersDetection';
 import {useEffect, useState} from 'react';
 
 export function fillMostCommonDescriptions(input: {

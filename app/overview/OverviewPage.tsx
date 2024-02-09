@@ -1,23 +1,26 @@
 'use client';
-import {BankAccountListItem} from 'app/overview/AccountListItem';
-import {accountsSum} from 'app/overview/modelHelpers';
-import {OpenBankingConnectionExpirationWarning} from 'app/overview/OpenBankingConnectionExpirationWarning';
-import {StatsWidget} from 'app/overview/StatsWidget';
-import {isFullyConfigured, NotConfiguredYet} from 'components/NotConfiguredYet';
-import {AddTransactionForm} from 'components/txform/AddTransactionForm';
-import {ButtonPagePrimary} from 'components/ui/buttons';
+import {BankAccountListItem} from '@/app/overview/AccountListItem';
+import {accountsSum} from '@/app/overview/modelHelpers';
+import {OpenBankingConnectionExpirationWarning} from '@/app/overview/OpenBankingConnectionExpirationWarning';
+import {StatsWidget} from '@/app/overview/StatsWidget';
+import {
+  isFullyConfigured,
+  NotConfiguredYet,
+} from '@/components/NotConfiguredYet';
+import {AddTransactionForm} from '@/components/txform/AddTransactionForm';
+import {ButtonPagePrimary} from '@/components/ui/buttons';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
-} from 'lib/context/AllDatabaseDataContext';
-import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
-import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
-import {accountsForBank, Bank} from 'lib/model/BankAccount';
+} from '@/lib/context/AllDatabaseDataContext';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
+import {accountsForBank, Bank} from '@/lib/model/BankAccount';
 import {
   useOpenBankingBalances,
   useOpenBankingTransactions,
-} from 'lib/openbanking/context';
-import {onTransactionChange} from 'lib/stateHelpers';
+} from '@/lib/openbanking/context';
+import {onTransactionChange} from '@/lib/stateHelpers';
 import {useState} from 'react';
 
 export const BanksList = ({banks}: {banks: Bank[]}) => {

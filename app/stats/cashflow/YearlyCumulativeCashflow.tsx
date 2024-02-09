@@ -1,10 +1,10 @@
 'use client';
-import Charts from 'components/charts/interface';
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
-import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
-import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
-import {Granularity} from 'lib/util/Granularity';
-import {MoneyTimeseries} from 'lib/util/Timeseries';
+import Charts from '@/components/charts/interface';
+import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
+import {Granularity} from '@/lib/util/Granularity';
+import {MoneyTimeseries} from '@/lib/util/Timeseries';
 
 export function YearlyCumulativeCashflow({
   input,

@@ -1,5 +1,5 @@
-import {OpenBankingBalances} from 'app/api/open-banking/balances/route';
-import {OpenBankingTransactions} from 'app/api/open-banking/transactions/route';
+import {OpenBankingBalances} from '@/app/api/open-banking/balances/route';
+import {OpenBankingTransactions} from '@/app/api/open-banking/transactions/route';
 import useSWR from 'swr';
 
 export const useOpenBankingExpirations = () => {

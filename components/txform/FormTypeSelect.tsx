@@ -3,7 +3,7 @@ import {useFormikContext} from 'formik';
 import {
   FormMode,
   TransactionFormValues,
-} from 'lib/model/forms/TransactionFormValues';
+} from '@/lib/model/forms/TransactionFormValues';
 
 const Button = (
   props: React.ButtonHTMLAttributes<HTMLButtonElement> & {active: boolean}

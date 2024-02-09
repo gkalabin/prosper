@@ -1,9 +1,9 @@
-import {assertDefined} from 'lib/assert';
-import {Bank, BankAccount} from 'lib/model/BankAccount';
-import {Category, CategoryTree, makeCategoryTree} from 'lib/model/Category';
-import {Tag} from 'lib/model/Tag';
-import {Trip} from 'lib/model/Trip';
-import {Transaction} from 'lib/model/transaction/Transaction';
+import {assertDefined} from '@/lib/assert';
+import {Bank, BankAccount} from '@/lib/model/BankAccount';
+import {Category, CategoryTree, makeCategoryTree} from '@/lib/model/Category';
+import {Tag} from '@/lib/model/Tag';
+import {Trip} from '@/lib/model/Trip';
+import {Transaction} from '@/lib/model/transaction/Transaction';
 import {
   ClauseContext,
   CompareOpContext,
@@ -15,17 +15,17 @@ import {
   QueryContext,
   RootQueryContext,
   TermContext,
-} from 'lib/search/generated/TransactionSearchQueryParser';
-import QueryVisitor from 'lib/search/generated/TransactionSearchQueryVisitor';
+} from '@/lib/search/generated/TransactionSearchQueryParser';
+import QueryVisitor from '@/lib/search/generated/TransactionSearchQueryVisitor';
 import {
   CaseMatch,
   ComparisonOperator,
   compareField,
   matchAnyField,
   matchField,
-} from 'lib/search/matchers';
-import {intersect, union} from 'lib/util/set';
-import {removeQuotes} from 'lib/util/util';
+} from '@/lib/search/matchers';
+import {intersect, union} from '@/lib/util/set';
+import {removeQuotes} from '@/lib/util/util';
 
 type TransactionIds = readonly number[];
 

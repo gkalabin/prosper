@@ -1,8 +1,8 @@
 import {NordigenRequisition, NordigenToken} from '@prisma/client';
 import {addSeconds, isBefore} from 'date-fns';
-import {assert} from 'lib/assert';
-import {DB} from 'lib/db';
-import prisma from 'lib/prisma';
+import {assert} from '@/lib/assert';
+import {DB} from '@/lib/db';
+import prisma from '@/lib/prisma';
 
 export async function getOrCreateToken(db: DB, bankId: number) {
   const now = new Date();

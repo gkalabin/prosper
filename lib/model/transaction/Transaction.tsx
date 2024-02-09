@@ -1,28 +1,28 @@
 import {TransactionType} from '@prisma/client';
-import {TransactionWithTagIds} from 'lib/model/AllDatabaseDataModel';
+import {TransactionWithTagIds} from '@/lib/model/AllDatabaseDataModel';
 import {
   Bank,
   BankAccount,
   accountBank,
   accountUnit,
-} from 'lib/model/BankAccount';
-import {Category} from 'lib/model/Category';
-import {mustFindByCode} from 'lib/model/Currency';
-import {Stock} from 'lib/model/Stock';
-import {Tag} from 'lib/model/Tag';
-import {Trip} from 'lib/model/Trip';
-import {Unit, formatUnit} from 'lib/model/Unit';
-import {Income, incomeModelFromDB} from 'lib/model/transaction/Income';
+} from '@/lib/model/BankAccount';
+import {Category} from '@/lib/model/Category';
+import {mustFindByCode} from '@/lib/model/Currency';
+import {Stock} from '@/lib/model/Stock';
+import {Tag} from '@/lib/model/Tag';
+import {Trip} from '@/lib/model/Trip';
+import {Unit, formatUnit} from '@/lib/model/Unit';
+import {Income, incomeModelFromDB} from '@/lib/model/transaction/Income';
 import {
   PersonalExpense,
   personalExpenseModelFromDB,
-} from 'lib/model/transaction/PersonalExpense';
+} from '@/lib/model/transaction/PersonalExpense';
 import {
   ThirdPartyExpense,
   thirdPartyExpenseModelFromDB,
-} from 'lib/model/transaction/ThirdPartyExpense';
-import {Transfer, transferModelFromDB} from 'lib/model/transaction/Transfer';
-import {notEmpty} from 'lib/util/util';
+} from '@/lib/model/transaction/ThirdPartyExpense';
+import {Transfer, transferModelFromDB} from '@/lib/model/transaction/Transfer';
+import {notEmpty} from '@/lib/util/util';
 
 export type Transaction =
   | PersonalExpense

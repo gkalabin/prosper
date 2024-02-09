@@ -1,19 +1,19 @@
-import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
-import {TransactionsList} from 'components/transactions/TransactionsList';
-import {ButtonLink} from 'components/ui/buttons';
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
-import {StockAndCurrencyExchange} from 'lib/ClientSideModel';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
-import {assertDefined} from 'lib/assert';
-import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
-import {BankAccount} from 'lib/model/BankAccount';
-import {Currency} from 'lib/model/Currency';
-import {Stock} from 'lib/model/Stock';
-import {isCurrency, isStock} from 'lib/model/Unit';
-import {Transaction, isTransfer} from 'lib/model/transaction/Transaction';
-import {amountSent} from 'lib/model/transaction/Transfer';
-import {amountAllParties} from 'lib/model/transaction/amounts';
-import {onTransactionChange} from 'lib/stateHelpers';
+import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
+import {TransactionsList} from '@/components/transactions/TransactionsList';
+import {ButtonLink} from '@/components/ui/buttons';
+import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
+import {StockAndCurrencyExchange} from '@/lib/ClientSideModel';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {assertDefined} from '@/lib/assert';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {BankAccount} from '@/lib/model/BankAccount';
+import {Currency} from '@/lib/model/Currency';
+import {Stock} from '@/lib/model/Stock';
+import {isCurrency, isStock} from '@/lib/model/Unit';
+import {Transaction, isTransfer} from '@/lib/model/transaction/Transaction';
+import {amountSent} from '@/lib/model/transaction/Transfer';
+import {amountAllParties} from '@/lib/model/transaction/amounts';
+import {onTransactionChange} from '@/lib/stateHelpers';
 import {useState} from 'react';
 
 export enum SortingMode {

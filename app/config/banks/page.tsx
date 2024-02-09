@@ -1,6 +1,6 @@
-import {BanksConfigPage} from 'app/config/banks/BanksConfigPage';
-import {DB} from 'lib/db';
-import {getUserId} from 'lib/user';
+import {BanksConfigPage} from '@/app/config/banks/BanksConfigPage';
+import {DB} from '@/lib/db';
+import {getUserId} from '@/lib/user';
 import {Metadata} from 'next';
 
 export const metadata: Metadata = {

@@ -1,12 +1,12 @@
 import {startOfMonth, startOfQuarter, startOfYear} from 'date-fns';
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
-import {assert} from 'lib/assert';
-import {Currency} from 'lib/model/Currency';
-import {Granularity} from 'lib/util/Granularity';
+import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
+import {assert} from '@/lib/assert';
+import {Currency} from '@/lib/model/Currency';
+import {Granularity} from '@/lib/util/Granularity';
 import {
   percentile as numbersPercentile,
   runningAverage as numbersRunningAverage,
-} from 'lib/util/stats';
+} from '@/lib/util/stats';
 
 type MoneyTimeseriesEntry = {
   time: Date;

@@ -4,7 +4,7 @@ import {
   notEmpty,
   parseAmountAsCents,
   removeQuotes,
-} from 'lib/util/util';
+} from '@/lib/util/util';
 
 describe('parseAmountAsCents', () => {
   test.each(['', ' ', ' 1', '1.', '.1', '1.123', 'x'])(

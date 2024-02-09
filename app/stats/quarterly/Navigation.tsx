@@ -1,8 +1,8 @@
 'use client';
-import {ButtonLink} from 'components/ui/buttons';
+import {ButtonLink} from '@/components/ui/buttons';
 import {type Interval} from 'date-fns';
-import {Granularity} from 'lib/util/Granularity';
-import {formatInterval, intervalsEqual, sliceInterval} from 'lib/util/time';
+import {Granularity} from '@/lib/util/Granularity';
+import {formatInterval, intervalsEqual, sliceInterval} from '@/lib/util/time';
 
 export function Navigation({
   timeline,

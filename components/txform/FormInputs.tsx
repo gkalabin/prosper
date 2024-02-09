@@ -4,31 +4,31 @@ import {
   FormikInput,
   MoneyInputWithLabel,
   TextInputWithLabel,
-} from 'components/forms/Input';
-import {FormikSelect, undoTailwindInputStyles} from 'components/forms/Select';
-import {formModeForTransaction} from 'components/txform/AddTransactionForm';
-import {BankAccountSelect} from 'components/txform/BankAccountSelect';
-import {FormExternalExpense} from 'components/txform/FormExternalExpense';
-import {FormIncome} from 'components/txform/FormIncome';
-import {FormPersonalExpense} from 'components/txform/FormPersonalExpense';
-import {FormTransfer} from 'components/txform/FormTransfer';
+} from '@/components/forms/Input';
+import {FormikSelect, undoTailwindInputStyles} from '@/components/forms/Select';
+import {formModeForTransaction} from '@/components/txform/AddTransactionForm';
+import {BankAccountSelect} from '@/components/txform/BankAccountSelect';
+import {FormExternalExpense} from '@/components/txform/FormExternalExpense';
+import {FormIncome} from '@/components/txform/FormIncome';
+import {FormPersonalExpense} from '@/components/txform/FormPersonalExpense';
+import {FormTransfer} from '@/components/txform/FormTransfer';
 import {differenceInMonths, isBefore} from 'date-fns';
 import {useFormikContext} from 'formik';
-import {shortRelativeDate} from 'lib/TimeHelpers';
-import {uniqMostFrequent} from 'lib/collections';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {shortRelativeDate} from '@/lib/TimeHelpers';
+import {uniqMostFrequent} from '@/lib/collections';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {
   getNameWithAncestors,
   makeCategoryTree,
   mustFindCategory,
-} from 'lib/model/Category';
-import {allCurrencies} from 'lib/model/Currency';
-import {Trip} from 'lib/model/Trip';
+} from '@/lib/model/Category';
+import {allCurrencies} from '@/lib/model/Currency';
+import {Trip} from '@/lib/model/Trip';
 import {
   FormMode,
   TransactionFormValues,
-} from 'lib/model/forms/TransactionFormValues';
-import {PersonalExpense} from 'lib/model/transaction/PersonalExpense';
+} from '@/lib/model/forms/TransactionFormValues';
+import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
 import {
   Transaction,
   TransactionWithTrip,
@@ -36,9 +36,9 @@ import {
   isExpense,
   isIncome,
   otherPartyNameOrNull,
-} from 'lib/model/transaction/Transaction';
-import {TransactionPrototype} from 'lib/txsuggestions/TransactionPrototype';
-import {notEmpty} from 'lib/util/util';
+} from '@/lib/model/transaction/Transaction';
+import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
+import {notEmpty} from '@/lib/util/util';
 import {useEffect} from 'react';
 import Select from 'react-select';
 import Async from 'react-select/async';

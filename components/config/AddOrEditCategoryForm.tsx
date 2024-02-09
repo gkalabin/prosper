@@ -1,18 +1,18 @@
 import {Category as DBCategory} from '@prisma/client';
-import {InputWithLabel, TextInputWithLabel} from 'components/forms/Input';
-import {FormikSelect} from 'components/forms/Select';
+import {InputWithLabel, TextInputWithLabel} from '@/components/forms/Input';
+import {FormikSelect} from '@/components/forms/Select';
 import {
   AddOrUpdateButtonText,
   FormikButtonFormPrimary,
   FormikButtonFormSecondary,
-} from 'components/ui/buttons';
+} from '@/components/ui/buttons';
 import {Form, Formik} from 'formik';
 import {
   Category,
   getNameWithAncestors,
   makeCategoryTree,
-} from 'lib/model/Category';
-import {CategoryFormValues} from 'lib/model/forms/CategoryFormValues';
+} from '@/lib/model/Category';
+import {CategoryFormValues} from '@/lib/model/forms/CategoryFormValues';
 import {useState} from 'react';
 
 export const AddOrEditCategoryForm = ({

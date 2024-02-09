@@ -1,9 +1,9 @@
 'use client';
-import {accountsSum} from 'app/overview/modelHelpers';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
-import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
-import {accountUnit} from 'lib/model/BankAccount';
-import {isCurrency} from 'lib/model/Unit';
+import {accountsSum} from '@/app/overview/modelHelpers';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {accountUnit} from '@/lib/model/BankAccount';
+import {isCurrency} from '@/lib/model/Unit';
 
 export function StatsWidget() {
   const displayCurrency = useDisplayCurrency();

@@ -1,8 +1,8 @@
-import {DB} from 'lib/db';
-import {getOrCreateToken} from 'lib/openbanking/nordigen/token';
-import prisma from 'lib/prisma';
-import {getUserId} from 'lib/user';
-import {positiveIntOrNull} from 'lib/util/searchParams';
+import {DB} from '@/lib/db';
+import {getOrCreateToken} from '@/lib/openbanking/nordigen/token';
+import prisma from '@/lib/prisma';
+import {getUserId} from '@/lib/user';
+import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
 import {v4 as uuidv4} from 'uuid';

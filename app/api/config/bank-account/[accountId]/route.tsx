@@ -1,9 +1,9 @@
-import {fillUnitData} from 'app/api/config/bank-account/fillUnitData';
-import {DB} from 'lib/db';
-import {UpdateBankAccountRequest} from 'lib/model/forms/BankAccountFormValues';
-import prisma from 'lib/prisma';
-import {getUserId} from 'lib/user';
-import {positiveIntOrNull} from 'lib/util/searchParams';
+import {fillUnitData} from '@/app/api/config/bank-account/fillUnitData';
+import {DB} from '@/lib/db';
+import {UpdateBankAccountRequest} from '@/lib/model/forms/BankAccountFormValues';
+import prisma from '@/lib/prisma';
+import {getUserId} from '@/lib/user';
+import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function PUT(

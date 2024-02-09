@@ -1,17 +1,17 @@
 import {ChevronDownIcon, ChevronRightIcon} from '@heroicons/react/24/outline';
-import {TransactionAPIResponse} from 'app/api/transaction/dbHelpers';
+import {TransactionAPIResponse} from '@/app/api/transaction/dbHelpers';
 import classNames from 'classnames';
-import {AddTransactionForm} from 'components/txform/AddTransactionForm';
-import {ButtonLink} from 'components/ui/buttons';
+import {AddTransactionForm} from '@/components/txform/AddTransactionForm';
+import {ButtonLink} from '@/components/ui/buttons';
 import {format} from 'date-fns';
-import {AmountWithUnit} from 'lib/AmountWithUnit';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
-import {fullAccountName} from 'lib/model/BankAccount';
+import {AmountWithUnit} from '@/lib/AmountWithUnit';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {fullAccountName} from '@/lib/model/BankAccount';
 import {
   CategoryTree,
   getNameWithAncestors,
   makeCategoryTree,
-} from 'lib/model/Category';
+} from '@/lib/model/Category';
 import {
   Transaction,
   isExpense,
@@ -22,17 +22,17 @@ import {
   otherPartyNameOrNull,
   transactionBankAccount,
   transactionUnit,
-} from 'lib/model/transaction/Transaction';
+} from '@/lib/model/transaction/Transaction';
 import {
   amountReceived,
   amountSent,
   incomingBankAccount,
   outgoingBankAccount,
-} from 'lib/model/transaction/Transfer';
+} from '@/lib/model/transaction/Transfer';
 import {
   ownShareAmountIgnoreRefunds,
   paidTotal,
-} from 'lib/model/transaction/amounts';
+} from '@/lib/model/transaction/amounts';
 import {useState} from 'react';
 
 const TransactionTitle = ({t}: {t: Transaction}) => {

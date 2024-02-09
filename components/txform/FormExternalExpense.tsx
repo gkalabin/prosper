@@ -1,4 +1,4 @@
-import {MoneyInputWithLabel} from 'components/forms/Input';
+import {MoneyInputWithLabel} from '@/components/forms/Input';
 import {
   Category,
   Currencies,
@@ -10,20 +10,20 @@ import {
   Timestamp,
   Trips,
   Vendor,
-} from 'components/txform/FormInputs';
-import {ButtonLink} from 'components/ui/buttons';
+} from '@/components/txform/FormInputs';
+import {ButtonLink} from '@/components/ui/buttons';
 import {differenceInMonths} from 'date-fns';
 import {useFormikContext} from 'formik';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
-import {uniqMostFrequent} from 'lib/collections';
-import {TransactionFormValues} from 'lib/model/forms/TransactionFormValues';
-import {ThirdPartyExpense} from 'lib/model/transaction/ThirdPartyExpense';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {uniqMostFrequent} from '@/lib/collections';
+import {TransactionFormValues} from '@/lib/model/forms/TransactionFormValues';
+import {ThirdPartyExpense} from '@/lib/model/transaction/ThirdPartyExpense';
 import {
   Transaction,
   isThirdPartyExpense,
   otherPartyNameOrNull,
-} from 'lib/model/transaction/Transaction';
-import {TransactionPrototype} from 'lib/txsuggestions/TransactionPrototype';
+} from '@/lib/model/transaction/Transaction';
+import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {useEffect, useState} from 'react';
 
 const SUGGESTIONS_WINDOW_MONTHS = 6;

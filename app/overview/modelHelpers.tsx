@@ -1,11 +1,11 @@
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
-import {AmountWithUnit} from 'lib/AmountWithUnit';
-import {StockAndCurrencyExchange} from 'lib/ClientSideModel';
-import {BankAccount, accountUnit} from 'lib/model/BankAccount';
-import {Currency} from 'lib/model/Currency';
-import {Stock} from 'lib/model/Stock';
-import {isCurrency, isStock} from 'lib/model/Unit';
-import {Transaction} from 'lib/model/transaction/Transaction';
+import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
+import {AmountWithUnit} from '@/lib/AmountWithUnit';
+import {StockAndCurrencyExchange} from '@/lib/ClientSideModel';
+import {BankAccount, accountUnit} from '@/lib/model/BankAccount';
+import {Currency} from '@/lib/model/Currency';
+import {Stock} from '@/lib/model/Stock';
+import {isCurrency, isStock} from '@/lib/model/Unit';
+import {Transaction} from '@/lib/model/transaction/Transaction';
 
 export function transactionBelongsToAccount(
   t: Transaction,

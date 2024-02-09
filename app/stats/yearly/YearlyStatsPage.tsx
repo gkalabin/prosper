@@ -1,32 +1,39 @@
 'use client';
-import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
-import {ExcludedCategoriesSelector} from 'app/stats/ExcludedCategoriesSelector';
-import {useStatsPageProps} from 'app/stats/modelHelpers';
-import {ExpenseByChildCategory} from 'app/stats/quarterly/ExpenseByChildCategory';
-import {ExpensesByRootCategory} from 'app/stats/quarterly/ExpensesByRootCategory';
-import {Navigation} from 'app/stats/quarterly/Navigation';
-import {PeriodSummary} from 'app/stats/quarterly/PeriodSummary';
-import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
-import {ChildCategoryOwnShareChart} from 'components/charts/CategoryPie';
+import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
+import {ExcludedCategoriesSelector} from '@/app/stats/ExcludedCategoriesSelector';
+import {useStatsPageProps} from '@/app/stats/modelHelpers';
+import {ExpenseByChildCategory} from '@/app/stats/quarterly/ExpenseByChildCategory';
+import {ExpensesByRootCategory} from '@/app/stats/quarterly/ExpensesByRootCategory';
+import {Navigation} from '@/app/stats/quarterly/Navigation';
+import {PeriodSummary} from '@/app/stats/quarterly/PeriodSummary';
+import {
+  NotConfiguredYet,
+  isFullyConfigured,
+} from '@/components/NotConfiguredYet';
+import {ChildCategoryOwnShareChart} from '@/components/charts/CategoryPie';
 import {
   TopNVendorsMostSpent,
   TopNVendorsMostTransactions,
-} from 'components/charts/Vendor';
+} from '@/components/charts/Vendor';
 import {
   SortableTransactionsList,
   SortingMode,
-} from 'components/transactions/SortableTransactionsList';
+} from '@/components/transactions/SortableTransactionsList';
 import {Interval, endOfYear, isSameYear, startOfYear} from 'date-fns';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
-} from 'lib/context/AllDatabaseDataContext';
-import {useDisplaySettingsContext} from 'lib/context/DisplaySettingsContext';
-import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
-import {Income} from 'lib/model/transaction/Income';
-import {Expense, isExpense, isIncome} from 'lib/model/transaction/Transaction';
-import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
-import {Granularity} from 'lib/util/Granularity';
+} from '@/lib/context/AllDatabaseDataContext';
+import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
+import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
+import {Income} from '@/lib/model/transaction/Income';
+import {
+  Expense,
+  isExpense,
+  isIncome,
+} from '@/lib/model/transaction/Transaction';
+import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
+import {Granularity} from '@/lib/util/Granularity';
 import {useState} from 'react';
 
 export function VendorStats({

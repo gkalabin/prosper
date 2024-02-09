@@ -1,32 +1,38 @@
 'use client';
 import {Trip as DBTrip} from '@prisma/client';
-import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
-import {NotConfiguredYet, isFullyConfigured} from 'components/NotConfiguredYet';
+import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
+import {
+  NotConfiguredYet,
+  isFullyConfigured,
+} from '@/components/NotConfiguredYet';
 import {
   ChildCategoryFullAmountChart,
   ChildCategoryOwnShareChart,
-} from 'components/charts/CategoryPie';
+} from '@/components/charts/CategoryPie';
 import {
   SortableTransactionsList,
   SortingMode,
-} from 'components/transactions/SortableTransactionsList';
-import {AnchorLink} from 'components/ui/anchors';
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
+} from '@/components/transactions/SortableTransactionsList';
+import {AnchorLink} from '@/components/ui/anchors';
+import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
-} from 'lib/context/AllDatabaseDataContext';
-import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
-import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
-import {Trip, tripModelFromDB} from 'lib/model/Trip';
-import {Income} from 'lib/model/transaction/Income';
+} from '@/lib/context/AllDatabaseDataContext';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
+import {Trip, tripModelFromDB} from '@/lib/model/Trip';
+import {Income} from '@/lib/model/transaction/Income';
 import {
   Expense,
   Transaction,
   isExpense,
   isIncome,
-} from 'lib/model/transaction/Transaction';
-import {amountAllParties, amountOwnShare} from 'lib/model/transaction/amounts';
+} from '@/lib/model/transaction/Transaction';
+import {
+  amountAllParties,
+  amountOwnShare,
+} from '@/lib/model/transaction/amounts';
 
 function NonEmptyTripDetails(props: {trip: Trip}) {
   const {transactions: allTransactions} = useAllDatabaseDataContext();

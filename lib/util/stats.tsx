@@ -1,4 +1,4 @@
-import {assertDefined} from 'lib/assert';
+import {assertDefined} from '@/lib/assert';
 
 export function percentile(data: number[], p: number): number {
   if (p < 0 || p > 100 || !Number.isInteger(p)) {

@@ -1,6 +1,6 @@
-import {MonthlyStatsPage} from 'app/stats/monthly/MonthlyStatsPage';
-import {DB, fetchAllDatabaseData} from 'lib/db';
-import {getUserId} from 'lib/user';
+import {MonthlyStatsPage} from '@/app/stats/monthly/MonthlyStatsPage';
+import {DB, fetchAllDatabaseData} from '@/lib/db';
+import {getUserId} from '@/lib/user';
 import {Metadata} from 'next';
 
 export const metadata: Metadata = {

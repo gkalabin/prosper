@@ -1,5 +1,5 @@
-import {StockFormValue} from 'lib/model/forms/BankAccountFormValues';
-import {getUserId} from 'lib/user';
+import {StockFormValue} from '@/lib/model/forms/BankAccountFormValues';
+import {getUserId} from '@/lib/user';
 import {NextRequest, NextResponse} from 'next/server';
 import yahooFinance from 'yahoo-finance2';
 import {type SearchResult} from 'yahoo-finance2/dist/esm/src/modules/search';

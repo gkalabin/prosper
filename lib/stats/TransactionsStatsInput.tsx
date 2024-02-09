@@ -5,12 +5,12 @@ import {
   isWithinInterval,
   type Interval,
 } from 'date-fns';
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
+import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {
   Transaction,
   isExpense,
   isIncome,
-} from 'lib/model/transaction/Transaction';
+} from '@/lib/model/transaction/Transaction';
 
 export type DisplayCurrencyTransaction = {
   t: Transaction;

@@ -1,6 +1,6 @@
 'use client';
 import classNames from 'classnames';
-import {AnchorUnstyled} from 'components/ui/buttons';
+import {AnchorUnstyled} from '@/components/ui/buttons';
 import {usePathname} from 'next/navigation';
 import {useState} from 'react';
 

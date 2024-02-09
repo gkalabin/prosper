@@ -1,4 +1,4 @@
-import {notEmpty} from 'lib/util/util';
+import {notEmpty} from '@/lib/util/util';
 
 export function firstValueOrNull(
   param: string | string[] | undefined

@@ -1,5 +1,5 @@
 import {ExternalAccountMapping, NordigenToken} from '@prisma/client';
-import {Transaction} from 'lib/openbanking/interface';
+import {Transaction} from '@/lib/openbanking/interface';
 
 export function fetchTransactions(
   token: NordigenToken,

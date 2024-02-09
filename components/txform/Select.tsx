@@ -1,7 +1,7 @@
-import {LabelledInputProps} from 'components/forms/Input';
-import {Select} from 'components/forms/Select';
+import {LabelledInputProps} from '@/components/forms/Input';
+import {Select} from '@/components/forms/Select';
 import {useField, useFormikContext} from 'formik';
-import {capitalize} from 'lib/util/util';
+import {capitalize} from '@/lib/util/util';
 
 const SelectWithLabelUntyped = (
   props: React.InputHTMLAttributes<HTMLSelectElement> & LabelledInputProps

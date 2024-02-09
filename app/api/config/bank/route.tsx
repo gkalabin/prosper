@@ -1,6 +1,6 @@
-import {CreateBankRequest} from 'lib/model/forms/BankFormValues';
-import prisma from 'lib/prisma';
-import {getUserId} from 'lib/user';
+import {CreateBankRequest} from '@/lib/model/forms/BankFormValues';
+import prisma from '@/lib/prisma';
+import {getUserId} from '@/lib/user';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function POST(request: NextRequest): Promise<Response> {

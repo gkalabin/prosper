@@ -1,6 +1,6 @@
-import {TripDetails} from 'app/trips/[tripName]/TripDetails';
-import {DB, fetchAllDatabaseData} from 'lib/db';
-import {getUserId} from 'lib/user';
+import {TripDetails} from '@/app/trips/[tripName]/TripDetails';
+import {DB, fetchAllDatabaseData} from '@/lib/db';
+import {getUserId} from '@/lib/user';
 import {Metadata} from 'next';
 import {redirect} from 'next/navigation';
 

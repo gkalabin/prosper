@@ -1,41 +1,41 @@
 import {
   TransactionAPIRequest,
   TransactionAPIResponse,
-} from 'app/api/transaction/dbHelpers';
-import {FormInputs} from 'components/txform/FormInputs';
-import {FormTypeSelect} from 'components/txform/FormTypeSelect';
-import {NewTransactionSuggestions} from 'components/txform/NewTransactionSuggestions';
+} from '@/app/api/transaction/dbHelpers';
+import {FormInputs} from '@/components/txform/FormInputs';
+import {FormTypeSelect} from '@/components/txform/FormTypeSelect';
+import {NewTransactionSuggestions} from '@/components/txform/NewTransactionSuggestions';
 import {
   AddOrUpdateButtonText,
   FormikButtonFormPrimary,
   FormikButtonFormSecondary,
-} from 'components/ui/buttons';
+} from '@/components/ui/buttons';
 import {format, startOfDay} from 'date-fns';
 import {Form, Formik, type FormikHelpers} from 'formik';
-import {useDisplayBankAccounts} from 'lib/model/AllDatabaseDataModel';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
-import {uniqMostFrequent} from 'lib/collections';
-import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
-import {Currency} from 'lib/model/Currency';
-import {Tag} from 'lib/model/Tag';
-import {Trip} from 'lib/model/Trip';
+import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {uniqMostFrequent} from '@/lib/collections';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {Currency} from '@/lib/model/Currency';
+import {Tag} from '@/lib/model/Tag';
+import {Trip} from '@/lib/model/Trip';
 import {
   FormMode,
   TransactionFormValues,
-} from 'lib/model/forms/TransactionFormValues';
-import {Income} from 'lib/model/transaction/Income';
-import {PersonalExpense} from 'lib/model/transaction/PersonalExpense';
-import {ThirdPartyExpense} from 'lib/model/transaction/ThirdPartyExpense';
+} from '@/lib/model/forms/TransactionFormValues';
+import {Income} from '@/lib/model/transaction/Income';
+import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
+import {ThirdPartyExpense} from '@/lib/model/transaction/ThirdPartyExpense';
 import {
   Transaction,
   otherPartyNameOrNull,
   parentTransactionId,
   transactionTags,
   transactionTrip,
-} from 'lib/model/transaction/Transaction';
-import {Transfer} from 'lib/model/transaction/Transfer';
-import {ownShareAmountCentsIgnoreRefuds} from 'lib/model/transaction/amounts';
-import {TransactionPrototype} from 'lib/txsuggestions/TransactionPrototype';
+} from '@/lib/model/transaction/Transaction';
+import {Transfer} from '@/lib/model/transaction/Transfer';
+import {ownShareAmountCentsIgnoreRefuds} from '@/lib/model/transaction/amounts';
+import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {useState} from 'react';
 
 export function toDateTimeLocal(d: Date | number) {

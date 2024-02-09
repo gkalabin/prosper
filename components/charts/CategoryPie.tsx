@@ -1,22 +1,25 @@
-import {CurrencyExchangeFailed} from 'app/stats/CurrencyExchangeFailed';
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
-import {StockAndCurrencyExchange} from 'lib/ClientSideModel';
-import {defaultPieChartOptions} from 'lib/charts';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
-import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
-import {BankAccount} from 'lib/model/BankAccount';
+import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
+import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
+import {StockAndCurrencyExchange} from '@/lib/ClientSideModel';
+import {defaultPieChartOptions} from '@/lib/charts';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {BankAccount} from '@/lib/model/BankAccount';
 import {
   Category,
   getNameWithAncestors,
   makeCategoryTree,
   mustFindCategory,
-} from 'lib/model/Category';
-import {Currency} from 'lib/model/Currency';
-import {Stock} from 'lib/model/Stock';
-import {Income} from 'lib/model/transaction/Income';
-import {Expense, Transaction} from 'lib/model/transaction/Transaction';
-import {amountAllParties, amountOwnShare} from 'lib/model/transaction/amounts';
-import {AppendMap, currencyAppendMap} from 'lib/util/AppendMap';
+} from '@/lib/model/Category';
+import {Currency} from '@/lib/model/Currency';
+import {Stock} from '@/lib/model/Stock';
+import {Income} from '@/lib/model/transaction/Income';
+import {Expense, Transaction} from '@/lib/model/transaction/Transaction';
+import {
+  amountAllParties,
+  amountOwnShare,
+} from '@/lib/model/transaction/amounts';
+import {AppendMap, currencyAppendMap} from '@/lib/util/AppendMap';
 import dynamic from 'next/dynamic';
 
 const ReactEcharts = dynamic(() => import('echarts-for-react'), {ssr: false});

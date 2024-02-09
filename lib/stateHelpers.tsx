@@ -1,5 +1,5 @@
-import {TransactionAPIResponse} from 'app/api/transaction/dbHelpers';
-import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
+import {TransactionAPIResponse} from '@/app/api/transaction/dbHelpers';
+import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {SetStateAction} from 'react';
 
 export function onTransactionChange(setDbData: Setter<AllDatabaseData>) {

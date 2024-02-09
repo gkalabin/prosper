@@ -2,22 +2,22 @@
 import {
   accountBalance,
   transactionBelongsToAccount,
-} from 'app/overview/modelHelpers';
-import {TransactionsList} from 'components/transactions/TransactionsList';
-import {Amount} from 'lib/Amount';
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
-import {AmountWithUnit} from 'lib/AmountWithUnit';
-import {assert} from 'lib/assert';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
-import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
-import {BankAccount, accountUnit} from 'lib/model/BankAccount';
-import {mustFindByCode} from 'lib/model/Currency';
-import {Stock} from 'lib/model/Stock';
-import {Income} from 'lib/model/transaction/Income';
-import {PersonalExpense} from 'lib/model/transaction/PersonalExpense';
-import {Transfer} from 'lib/model/transaction/Transfer';
-import {useOpenBankingBalances} from 'lib/openbanking/context';
-import {onTransactionChange} from 'lib/stateHelpers';
+} from '@/app/overview/modelHelpers';
+import {TransactionsList} from '@/components/transactions/TransactionsList';
+import {Amount} from '@/lib/Amount';
+import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
+import {AmountWithUnit} from '@/lib/AmountWithUnit';
+import {assert} from '@/lib/assert';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {BankAccount, accountUnit} from '@/lib/model/BankAccount';
+import {mustFindByCode} from '@/lib/model/Currency';
+import {Stock} from '@/lib/model/Stock';
+import {Income} from '@/lib/model/transaction/Income';
+import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
+import {Transfer} from '@/lib/model/transaction/Transfer';
+import {useOpenBankingBalances} from '@/lib/openbanking/context';
+import {onTransactionChange} from '@/lib/stateHelpers';
 import {useState} from 'react';
 
 export const BankAccountListItem = ({account}: {account: BankAccount}) => {

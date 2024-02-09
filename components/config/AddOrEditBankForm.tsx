@@ -1,13 +1,13 @@
 import {Bank as DBBank} from '@prisma/client';
-import {InputWithLabel} from 'components/forms/Input';
+import {InputWithLabel} from '@/components/forms/Input';
 import {
   AddOrUpdateButtonText,
   FormikButtonFormPrimary,
   FormikButtonFormSecondary,
-} from 'components/ui/buttons';
+} from '@/components/ui/buttons';
 import {Form, Formik} from 'formik';
-import {Bank} from 'lib/model/BankAccount';
-import {BankFormValues} from 'lib/model/forms/BankFormValues';
+import {Bank} from '@/lib/model/BankAccount';
+import {BankFormValues} from '@/lib/model/forms/BankFormValues';
 import {useState} from 'react';
 
 export const AddOrEditBankForm = ({

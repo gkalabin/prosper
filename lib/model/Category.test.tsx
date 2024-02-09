@@ -8,7 +8,7 @@ import {
   makeCategoryTree,
   sortCategories,
   subtreeIncludes,
-} from 'lib/model/Category';
+} from '@/lib/model/Category';
 
 const {getAncestors} = TEST_ONLY;
 

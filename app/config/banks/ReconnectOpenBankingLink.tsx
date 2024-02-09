@@ -1,6 +1,6 @@
 'use client';
-import {AnchorLink} from 'components/ui/buttons';
-import {Bank} from 'lib/model/BankAccount';
+import {AnchorLink} from '@/components/ui/buttons';
+import {Bank} from '@/lib/model/BankAccount';
 
 export function ReconnectOpenBankingLink({bank}: {bank: Bank}) {
   return (

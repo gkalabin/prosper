@@ -1,5 +1,5 @@
-import {ButtonLink} from 'components/ui/buttons';
-import {Bank} from 'lib/model/BankAccount';
+import {ButtonLink} from '@/components/ui/buttons';
+import {Bank} from '@/lib/model/BankAccount';
 import {useState} from 'react';
 
 export function DisconnectOpenBankingLink({bank}: {bank: Bank}) {

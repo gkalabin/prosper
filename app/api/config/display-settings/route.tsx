@@ -1,8 +1,8 @@
-import {DB} from 'lib/db';
-import {findByCode} from 'lib/model/Currency';
-import {DisplaySettingsFormValues} from 'lib/model/api/DisplaySettingsConfig';
-import prisma from 'lib/prisma';
-import {getUserId} from 'lib/user';
+import {DB} from '@/lib/db';
+import {findByCode} from '@/lib/model/Currency';
+import {DisplaySettingsFormValues} from '@/lib/model/api/DisplaySettingsConfig';
+import prisma from '@/lib/prisma';
+import {getUserId} from '@/lib/user';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function PUT(request: NextRequest): Promise<Response> {

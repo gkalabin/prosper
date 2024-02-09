@@ -16,7 +16,7 @@ import {
   isSameYear,
   isSameWeek,
 } from 'date-fns';
-import {Granularity} from 'lib/util/Granularity';
+import {Granularity} from '@/lib/util/Granularity';
 
 function dateFunctionsForGranularity(granularity: Granularity): {
   slice: (i: Interval<Date>) => Date[];

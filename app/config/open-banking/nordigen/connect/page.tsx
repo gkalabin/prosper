@@ -1,11 +1,14 @@
-import {CountriesSelector} from 'app/config/open-banking/nordigen/connect/CountriesSelector';
-import {InstitutionSelector} from 'app/config/open-banking/nordigen/connect/InstitutionSelector';
-import {DB} from 'lib/db';
-import {NORDIGEN_COUNTRIES} from 'lib/openbanking/nordigen/countries';
-import {Institution} from 'lib/openbanking/nordigen/institution';
-import {getOrCreateToken} from 'lib/openbanking/nordigen/token';
-import {getUserId} from 'lib/user';
-import {firstPositiveIntOrNull, firstValueOrNull} from 'lib/util/searchParams';
+import {CountriesSelector} from '@/app/config/open-banking/nordigen/connect/CountriesSelector';
+import {InstitutionSelector} from '@/app/config/open-banking/nordigen/connect/InstitutionSelector';
+import {DB} from '@/lib/db';
+import {NORDIGEN_COUNTRIES} from '@/lib/openbanking/nordigen/countries';
+import {Institution} from '@/lib/openbanking/nordigen/institution';
+import {getOrCreateToken} from '@/lib/openbanking/nordigen/token';
+import {getUserId} from '@/lib/user';
+import {
+  firstPositiveIntOrNull,
+  firstValueOrNull,
+} from '@/lib/util/searchParams';
 import {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 

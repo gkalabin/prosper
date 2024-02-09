@@ -1,19 +1,19 @@
 'use client';
-import Charts from 'components/charts/interface';
-import {NamedTimeseries} from 'components/charts/interface/Interface';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
-import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
+import Charts from '@/components/charts/interface';
+import {NamedTimeseries} from '@/components/charts/interface/Interface';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {
   Category,
   getNameWithAncestors,
   isRoot,
   makeCategoryTree,
   subtreeIncludes,
-} from 'lib/model/Category';
-import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
-import {DefaultMap} from 'lib/util/DefaultMap';
-import {Granularity} from 'lib/util/Granularity';
-import {MoneyTimeseries} from 'lib/util/Timeseries';
+} from '@/lib/model/Category';
+import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
+import {DefaultMap} from '@/lib/util/DefaultMap';
+import {Granularity} from '@/lib/util/Granularity';
+import {MoneyTimeseries} from '@/lib/util/Timeseries';
 
 export function FanoutByRootCategory({input}: {input: TransactionsStatsInput}) {
   const {categories} = useAllDatabaseDataContext();

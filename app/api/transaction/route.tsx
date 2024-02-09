@@ -7,10 +7,10 @@ import {
   includeTagIds,
   writeTrip,
   writeUsedPrototypes,
-} from 'app/api/transaction/dbHelpers';
-import {TransactionFormValues} from 'lib/model/forms/TransactionFormValues';
-import prisma from 'lib/prisma';
-import {getUserId} from 'lib/user';
+} from '@/app/api/transaction/dbHelpers';
+import {TransactionFormValues} from '@/lib/model/forms/TransactionFormValues';
+import prisma from '@/lib/prisma';
+import {getUserId} from '@/lib/user';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function POST(request: NextRequest): Promise<Response> {

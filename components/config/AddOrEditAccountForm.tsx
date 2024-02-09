@@ -1,22 +1,22 @@
 import {BankAccount as DBBankAccount} from '@prisma/client';
-import {FormikInput, FormikMoneyInput} from 'components/forms/Input';
-import {undoTailwindInputStyles} from 'components/forms/Select';
+import {FormikInput, FormikMoneyInput} from '@/components/forms/Input';
+import {undoTailwindInputStyles} from '@/components/forms/Select';
 import {
   AddOrUpdateButtonText,
   ButtonFormPrimary,
   ButtonFormSecondary,
-} from 'components/ui/buttons';
+} from '@/components/ui/buttons';
 import {Form, Formik, useFormikContext} from 'formik';
-import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
-import {Bank, BankAccount} from 'lib/model/BankAccount';
-import {allCurrencies, mustFindByCode} from 'lib/model/Currency';
-import {Stock} from 'lib/model/Stock';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {Bank, BankAccount} from '@/lib/model/BankAccount';
+import {allCurrencies, mustFindByCode} from '@/lib/model/Currency';
+import {Stock} from '@/lib/model/Stock';
 import {
   AccountUnitFormValue,
   BankAccountFormValues,
   CurrencyFormValue,
   StockFormValue,
-} from 'lib/model/forms/BankAccountFormValues';
+} from '@/lib/model/forms/BankAccountFormValues';
 import {useEffect, useState} from 'react';
 import Async from 'react-select/async';
 

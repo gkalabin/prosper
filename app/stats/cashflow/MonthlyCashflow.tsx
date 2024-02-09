@@ -1,9 +1,9 @@
 'use client';
-import Charts from 'components/charts/interface';
-import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
-import {TransactionsStatsInput} from 'lib/stats/TransactionsStatsInput';
-import {Granularity} from 'lib/util/Granularity';
-import {MoneyTimeseries} from 'lib/util/Timeseries';
+import Charts from '@/components/charts/interface';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
+import {Granularity} from '@/lib/util/Granularity';
+import {MoneyTimeseries} from '@/lib/util/Timeseries';
 
 export function MonthlyCashflow({input}: {input: TransactionsStatsInput}) {
   const displayCurrency = useDisplayCurrency();

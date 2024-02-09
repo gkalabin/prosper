@@ -1,4 +1,4 @@
-import {SubHeader} from 'components/SubHeader';
+import {SubHeader} from '@/components/SubHeader';
 
 export default function StatsPageLayout({
   children,

@@ -1,6 +1,6 @@
 import classNames from 'classnames';
-import {MoneyInputWithLabel} from 'components/forms/Input';
-import {toDateTimeLocal} from 'components/txform/AddTransactionForm';
+import {MoneyInputWithLabel} from '@/components/forms/Input';
+import {toDateTimeLocal} from '@/components/txform/AddTransactionForm';
 import {
   AccountFrom,
   AccountTo,
@@ -8,16 +8,16 @@ import {
   Description,
   Tags,
   Timestamp,
-} from 'components/txform/FormInputs';
+} from '@/components/txform/FormInputs';
 import {differenceInMonths} from 'date-fns';
 import {useFormikContext} from 'formik';
-import {uniqMostFrequent} from 'lib/collections';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
-import {accountUnit} from 'lib/model/BankAccount';
-import {TransactionFormValues} from 'lib/model/forms/TransactionFormValues';
-import {Transaction, isTransfer} from 'lib/model/transaction/Transaction';
-import {Transfer} from 'lib/model/transaction/Transfer';
-import {TransactionPrototype} from 'lib/txsuggestions/TransactionPrototype';
+import {uniqMostFrequent} from '@/lib/collections';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {accountUnit} from '@/lib/model/BankAccount';
+import {TransactionFormValues} from '@/lib/model/forms/TransactionFormValues';
+import {Transaction, isTransfer} from '@/lib/model/transaction/Transaction';
+import {Transfer} from '@/lib/model/transaction/Transfer';
+import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {useEffect} from 'react';
 
 const SUGGESTIONS_WINDOW_MONTHS = 6;

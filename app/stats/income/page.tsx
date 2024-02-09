@@ -1,6 +1,6 @@
-import {IncomePage} from 'app/stats/income/IncomePage';
-import {DB, fetchAllDatabaseData} from 'lib/db';
-import {getUserId} from 'lib/user';
+import {IncomePage} from '@/app/stats/income/IncomePage';
+import {DB, fetchAllDatabaseData} from '@/lib/db';
+import {getUserId} from '@/lib/user';
 import {Metadata} from 'next';
 
 export const metadata: Metadata = {

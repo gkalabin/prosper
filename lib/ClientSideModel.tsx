@@ -7,28 +7,28 @@ import {
   TransactionPrototype,
 } from '@prisma/client';
 import {addDays, closestTo, isBefore, startOfDay} from 'date-fns';
-import {Amount} from 'lib/Amount';
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
-import {AllDatabaseData} from 'lib/model/AllDatabaseDataModel';
+import {Amount} from '@/lib/Amount';
+import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
+import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {
   Bank,
   BankAccount,
   bankAccountModelFromDB,
   bankModelFromDB,
-} from 'lib/model/BankAccount';
+} from '@/lib/model/BankAccount';
 import {
   Category,
   categoryModelFromDB,
   sortCategories,
-} from 'lib/model/Category';
-import {Currency, NANOS_MULTIPLIER, mustFindByCode} from 'lib/model/Currency';
-import {Stock, stockModelFromDB} from 'lib/model/Stock';
-import {Tag, tagModelFromDB} from 'lib/model/Tag';
-import {Trip, tripModelFromDB} from 'lib/model/Trip';
+} from '@/lib/model/Category';
+import {Currency, NANOS_MULTIPLIER, mustFindByCode} from '@/lib/model/Currency';
+import {Stock, stockModelFromDB} from '@/lib/model/Stock';
+import {Tag, tagModelFromDB} from '@/lib/model/Tag';
+import {Trip, tripModelFromDB} from '@/lib/model/Trip';
 import {
   Transaction,
   transactionModelFromDB,
-} from 'lib/model/transaction/Transaction';
+} from '@/lib/model/transaction/Transaction';
 
 export class StockAndCurrencyExchange {
   private readonly exchangeRates: ExchangeRates;

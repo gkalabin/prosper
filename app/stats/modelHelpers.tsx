@@ -1,25 +1,28 @@
 import {type Interval} from 'date-fns';
-import {AmountWithCurrency} from 'lib/AmountWithCurrency';
-import {StockAndCurrencyExchange} from 'lib/ClientSideModel';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
-import {useDisplayCurrency} from 'lib/context/DisplaySettingsContext';
-import {BankAccount} from 'lib/model/BankAccount';
+import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
+import {StockAndCurrencyExchange} from '@/lib/ClientSideModel';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {BankAccount} from '@/lib/model/BankAccount';
 import {
   Category,
   getDescendants,
   getNameWithAncestors,
   makeCategoryTree,
   mustFindCategory,
-} from 'lib/model/Category';
-import {Currency} from 'lib/model/Currency';
-import {Stock} from 'lib/model/Stock';
-import {Income} from 'lib/model/transaction/Income';
-import {Expense, Transaction} from 'lib/model/transaction/Transaction';
-import {amountAllParties, amountOwnShare} from 'lib/model/transaction/amounts';
+} from '@/lib/model/Category';
+import {Currency} from '@/lib/model/Currency';
+import {Stock} from '@/lib/model/Stock';
+import {Income} from '@/lib/model/transaction/Income';
+import {Expense, Transaction} from '@/lib/model/transaction/Transaction';
+import {
+  amountAllParties,
+  amountOwnShare,
+} from '@/lib/model/transaction/amounts';
 import {
   DisplayCurrencyTransaction,
   TransactionsStatsInput,
-} from 'lib/stats/TransactionsStatsInput';
+} from '@/lib/stats/TransactionsStatsInput';
 
 export function dollarsRounded(amount: AmountWithCurrency | undefined): number {
   if (!amount) {

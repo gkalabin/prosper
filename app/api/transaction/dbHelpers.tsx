@@ -5,15 +5,15 @@ import {
   TransactionType,
   Trip,
 } from '@prisma/client';
-import {TransactionWithTagIds} from 'lib/model/AllDatabaseDataModel';
+import {TransactionWithTagIds} from '@/lib/model/AllDatabaseDataModel';
 import {
   FormMode,
   TransactionFormValues,
-} from 'lib/model/forms/TransactionFormValues';
+} from '@/lib/model/forms/TransactionFormValues';
 import {
   TransactionPrototype,
   WithdrawalOrDepositPrototype,
-} from 'lib/txsuggestions/TransactionPrototype';
+} from '@/lib/txsuggestions/TransactionPrototype';
 
 export type TransactionAPIRequest = {
   form: TransactionFormValues;

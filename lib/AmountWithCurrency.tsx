@@ -1,5 +1,5 @@
-import {Amount} from 'lib/Amount';
-import {Currency, formatCurrency} from 'lib/model/Currency';
+import {Amount} from '@/lib/Amount';
+import {Currency, formatCurrency} from '@/lib/model/Currency';
 
 export class AmountWithCurrency extends Amount {
   private readonly currency: Currency;

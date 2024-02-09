@@ -1,7 +1,7 @@
 import classNames from 'classnames';
-import {MoneyInputWithLabel} from 'components/forms/Input';
-import {undoTailwindInputStyles} from 'components/forms/Select';
-import {toDateTimeLocal} from 'components/txform/AddTransactionForm';
+import {MoneyInputWithLabel} from '@/components/forms/Input';
+import {undoTailwindInputStyles} from '@/components/forms/Select';
+import {toDateTimeLocal} from '@/components/txform/AddTransactionForm';
 import {
   AccountFrom,
   Description,
@@ -12,32 +12,32 @@ import {
   Timestamp,
   Trips,
   Vendor,
-} from 'components/txform/FormInputs';
-import {ButtonLink} from 'components/ui/buttons';
+} from '@/components/txform/FormInputs';
+import {ButtonLink} from '@/components/ui/buttons';
 import {differenceInMonths} from 'date-fns';
 import {useFormikContext} from 'formik';
-import {uniqMostFrequent} from 'lib/collections';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {uniqMostFrequent} from '@/lib/collections';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {
   getNameWithAncestors,
   immediateChildren,
   makeCategoryTree,
   mustFindCategory,
-} from 'lib/model/Category';
+} from '@/lib/model/Category';
 import {
   FormMode,
   TransactionFormValues,
-} from 'lib/model/forms/TransactionFormValues';
-import {PersonalExpense} from 'lib/model/transaction/PersonalExpense';
-import {ThirdPartyExpense} from 'lib/model/transaction/ThirdPartyExpense';
+} from '@/lib/model/forms/TransactionFormValues';
+import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
+import {ThirdPartyExpense} from '@/lib/model/transaction/ThirdPartyExpense';
 import {
   Transaction,
   isExpense,
   isPersonalExpense,
   otherPartyNameOrNull,
-} from 'lib/model/transaction/Transaction';
-import {TransactionPrototype} from 'lib/txsuggestions/TransactionPrototype';
-import {notEmpty} from 'lib/util/util';
+} from '@/lib/model/transaction/Transaction';
+import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
+import {notEmpty} from '@/lib/util/util';
 import {useEffect, useMemo, useState} from 'react';
 import Select from 'react-select';
 

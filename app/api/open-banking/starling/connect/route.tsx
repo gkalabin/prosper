@@ -1,7 +1,7 @@
 import {addYears} from 'date-fns';
-import prisma from 'lib/prisma';
-import {getUserId} from 'lib/user';
-import {positiveIntOrNull} from 'lib/util/searchParams';
+import prisma from '@/lib/prisma';
+import {getUserId} from '@/lib/user';
+import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
 

@@ -1,13 +1,13 @@
 'use client';
-import {undoTailwindInputStyles} from 'components/forms/Select';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
+import {undoTailwindInputStyles} from '@/components/forms/Select';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {
   Category,
   CategoryTree,
   getNameWithAncestors,
   makeCategoryTree,
   mustFindCategory,
-} from 'lib/model/Category';
+} from '@/lib/model/Category';
 import Select from 'react-select';
 
 export function ExcludedCategoriesSelector({

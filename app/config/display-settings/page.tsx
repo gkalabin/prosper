@@ -1,6 +1,6 @@
-import {DisplaySettingsPage} from 'app/config/display-settings/client';
-import {DB} from 'lib/db';
-import {getUserId} from 'lib/user';
+import {DisplaySettingsPage} from '@/app/config/display-settings/client';
+import {DB} from '@/lib/db';
+import {getUserId} from '@/lib/user';
 import {Metadata} from 'next';
 
 export const metadata: Metadata = {

@@ -1,13 +1,13 @@
 import {CharStream, CommonTokenStream, ErrorListener, Recognizer} from 'antlr4';
-import {Bank, BankAccount} from 'lib/model/BankAccount';
-import {Category, makeCategoryTree} from 'lib/model/Category';
-import {Tag} from 'lib/model/Tag';
-import {Trip} from 'lib/model/Trip';
-import {Transaction} from 'lib/model/transaction/Transaction';
-import QueryLexer from 'lib/search/generated/TransactionSearchQueryLexer';
-import QueryParser from 'lib/search/generated/TransactionSearchQueryParser';
-import {CaseMatch, matchAnyField} from 'lib/search/matchers';
-import {TransactionSearchQueryVisitor} from 'lib/search/visitor';
+import {Bank, BankAccount} from '@/lib/model/BankAccount';
+import {Category, makeCategoryTree} from '@/lib/model/Category';
+import {Tag} from '@/lib/model/Tag';
+import {Trip} from '@/lib/model/Trip';
+import {Transaction} from '@/lib/model/transaction/Transaction';
+import QueryLexer from '@/lib/search/generated/TransactionSearchQueryLexer';
+import QueryParser from '@/lib/search/generated/TransactionSearchQueryParser';
+import {CaseMatch, matchAnyField} from '@/lib/search/matchers';
+import {TransactionSearchQueryVisitor} from '@/lib/search/visitor';
 
 export class QuerySyntaxError extends Error {
   constructor(private errors: string[]) {

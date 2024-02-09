@@ -1,8 +1,8 @@
 import {type Interval} from 'date-fns';
-import {Amount} from 'lib/Amount';
-import {Currency} from 'lib/model/Currency';
-import {Granularity} from 'lib/util/Granularity';
-import {MoneyTimeseries} from 'lib/util/Timeseries';
+import {Amount} from '@/lib/Amount';
+import {Currency} from '@/lib/model/Currency';
+import {Granularity} from '@/lib/util/Granularity';
+import {MoneyTimeseries} from '@/lib/util/Timeseries';
 
 export type TimeseriesProps = {
   title: string;

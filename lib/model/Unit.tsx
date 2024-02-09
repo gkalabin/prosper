@@ -1,5 +1,5 @@
-import {Currency, formatCurrency} from 'lib/model/Currency';
-import {Stock, formatStock} from 'lib/model/Stock';
+import {Currency, formatCurrency} from '@/lib/model/Currency';
+import {Stock, formatStock} from '@/lib/model/Stock';
 
 export type Unit = Stock | Currency;
 

@@ -7,7 +7,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import classNames from 'classnames';
-import {AnchorUnstyled} from 'components/ui/buttons';
+import {AnchorUnstyled} from '@/components/ui/buttons';
 import {SessionProvider, signIn, signOut, useSession} from 'next-auth/react';
 import {usePathname} from 'next/navigation';
 import {Fragment} from 'react';

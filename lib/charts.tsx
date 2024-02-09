@@ -7,8 +7,8 @@ import {
 import {type EChartsOption} from 'echarts';
 import {type TooltipComponentOption} from 'echarts/components';
 import {CallbackDataParams} from 'echarts/types/dist/shared';
-import {formatMonth} from 'lib/TimeHelpers';
-import {Currency, formatCurrency} from 'lib/model/Currency';
+import {formatMonth} from '@/lib/TimeHelpers';
+import {Currency, formatCurrency} from '@/lib/model/Currency';
 
 export function stackedBarChartTooltip(c: Currency): EChartsOption {
   return {

@@ -1,6 +1,6 @@
-import {CashflowPage} from 'app/stats/cashflow/CashflowPage';
-import {DB, fetchAllDatabaseData} from 'lib/db';
-import {getUserId} from 'lib/user';
+import {CashflowPage} from '@/app/stats/cashflow/CashflowPage';
+import {DB, fetchAllDatabaseData} from '@/lib/db';
+import {getUserId} from '@/lib/user';
 import {Metadata} from 'next';
 
 export const metadata: Metadata = {

@@ -1,6 +1,6 @@
-import {CategoriesConfigPage} from 'app/config/categories/client';
-import {DB} from 'lib/db';
-import {getUserId} from 'lib/user';
+import {CategoriesConfigPage} from '@/app/config/categories/client';
+import {DB} from '@/lib/db';
+import {getUserId} from '@/lib/user';
 import {Metadata} from 'next';
 
 export const metadata: Metadata = {

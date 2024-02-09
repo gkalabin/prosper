@@ -1,14 +1,14 @@
 import {TransactionType} from '@prisma/client';
-import {AmountWithUnit} from 'lib/AmountWithUnit';
-import {assert, assertDefined} from 'lib/assert';
-import {TransactionWithTagIds} from 'lib/model/AllDatabaseDataModel';
+import {AmountWithUnit} from '@/lib/AmountWithUnit';
+import {assert, assertDefined} from '@/lib/assert';
+import {TransactionWithTagIds} from '@/lib/model/AllDatabaseDataModel';
 import {
   Bank,
   BankAccount,
   accountBank,
   accountUnit,
-} from 'lib/model/BankAccount';
-import {Stock} from 'lib/model/Stock';
+} from '@/lib/model/BankAccount';
+import {Stock} from '@/lib/model/Stock';
 
 export type Transfer = {
   kind: 'Transfer';

@@ -1,6 +1,6 @@
 import {Bank as DBBank} from '@prisma/client';
-import {AnchorLink, ExternalAnchorLink} from 'components/ui/anchors';
-import {Institution} from 'lib/openbanking/nordigen/institution';
+import {AnchorLink, ExternalAnchorLink} from '@/components/ui/anchors';
+import {Institution} from '@/lib/openbanking/nordigen/institution';
 
 export function InstitutionSelector({
   dbBank,

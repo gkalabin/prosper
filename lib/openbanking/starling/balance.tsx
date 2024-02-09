@@ -1,6 +1,6 @@
 import {ExternalAccountMapping, StarlingToken} from '@prisma/client';
-import {AccountBalance} from 'lib/openbanking/interface';
-import {parseExternalAccountId} from 'lib/openbanking/starling/account';
+import {AccountBalance} from '@/lib/openbanking/interface';
+import {parseExternalAccountId} from '@/lib/openbanking/starling/account';
 
 export async function fetchBalance(
   token: StarlingToken,

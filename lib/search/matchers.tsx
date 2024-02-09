@@ -1,8 +1,8 @@
 import {format, isAfter, isBefore, isSameDay, parse} from 'date-fns';
-import {Bank, BankAccount} from 'lib/model/BankAccount';
-import {CategoryTree, getNameWithAncestors} from 'lib/model/Category';
-import {Tag} from 'lib/model/Tag';
-import {Trip} from 'lib/model/Trip';
+import {Bank, BankAccount} from '@/lib/model/BankAccount';
+import {CategoryTree, getNameWithAncestors} from '@/lib/model/Category';
+import {Tag} from '@/lib/model/Tag';
+import {Trip} from '@/lib/model/Trip';
 import {
   Transaction,
   isExpense,
@@ -15,14 +15,14 @@ import {
   transactionBankAccount,
   transactionTags,
   transactionTrip,
-} from 'lib/model/transaction/Transaction';
+} from '@/lib/model/transaction/Transaction';
 import {
   incomingBank,
   incomingBankAccount,
   outgoingBank,
   outgoingBankAccount,
-} from 'lib/model/transaction/Transfer';
-import {parseAmountAsCents} from 'lib/util/util';
+} from '@/lib/model/transaction/Transfer';
+import {parseAmountAsCents} from '@/lib/util/util';
 
 export enum CaseMatch {
   Exact,

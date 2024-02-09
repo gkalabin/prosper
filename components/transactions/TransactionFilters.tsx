@@ -1,25 +1,25 @@
-import {FormikInput} from 'components/forms/Input';
-import {undoTailwindInputStyles} from 'components/forms/Select';
-import {ButtonFormSecondary} from 'components/ui/buttons';
-import {format} from 'date-fns';
-import {useFormikContext} from 'formik';
-import {useAllDatabaseDataContext} from 'lib/context/AllDatabaseDataContext';
-import {fullAccountName} from 'lib/model/BankAccount';
+import {FormikInput} from '@/components/forms/Input';
+import {undoTailwindInputStyles} from '@/components/forms/Select';
+import {ButtonFormSecondary} from '@/components/ui/buttons';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {fullAccountName} from '@/lib/model/BankAccount';
 import {
   Category,
   getNameWithAncestors,
   makeCategoryTree,
-} from 'lib/model/Category';
-import {Tag} from 'lib/model/Tag';
-import {Trip} from 'lib/model/Trip';
-import {Transaction} from 'lib/model/transaction/Transaction';
+} from '@/lib/model/Category';
+import {Tag} from '@/lib/model/Tag';
+import {Trip} from '@/lib/model/Trip';
+import {Transaction} from '@/lib/model/transaction/Transaction';
 import {
   QuerySyntaxError,
   SearchParams,
   fallbackSearch,
   search,
-} from 'lib/search/search';
-import {notEmpty} from 'lib/util/util';
+} from '@/lib/search/search';
+import {notEmpty} from '@/lib/util/util';
+import {format} from 'date-fns';
+import {useFormikContext} from 'formik';
 import {useEffect} from 'react';
 import Select from 'react-select';
 
