@@ -3,7 +3,6 @@
     "target": "es2018",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
-    "baseUrl": ".",
     "skipLibCheck": true,
     "strict": true,
     "forceConsistentCasingInFileNames": true,
@@ -29,7 +28,7 @@
       },
     ],
     "paths": {
-      "@/*": ["./*"],
+      "@/*": ["./src/*"],
     },
   },
   "exclude": ["node_modules"],

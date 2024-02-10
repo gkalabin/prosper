@@ -1,6 +1,6 @@
 import Header from '@/components/Header';
 import {Metadata} from 'next';
-import 'styles/global.css';
+import '@/styles/global.css';
 
 export const metadata: Metadata = {
   title: 'Prosper',

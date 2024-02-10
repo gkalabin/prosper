@@ -6,7 +6,7 @@
     "plugin:import/recommended",
     "prettier"
   ],
-  "ignorePatterns": ["lib/search/generated"],
+  "ignorePatterns": ["src/lib/search/generated"],
   "rules": {
     "@typescript-eslint/no-unused-vars": [
       "warn",
