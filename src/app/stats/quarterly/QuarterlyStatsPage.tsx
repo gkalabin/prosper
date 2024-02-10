@@ -6,20 +6,17 @@ import {ExpenseByChildCategory} from '@/app/stats/quarterly/ExpenseByChildCatego
 import {ExpensesByRootCategory} from '@/app/stats/quarterly/ExpensesByRootCategory';
 import {Navigation} from '@/app/stats/quarterly/Navigation';
 import {PeriodSummary} from '@/app/stats/quarterly/PeriodSummary';
+import {TopVendorsBySpend} from '@/app/stats/quarterly/TopVendorsBySpend';
 import {
   NotConfiguredYet,
   isFullyConfigured,
 } from '@/components/NotConfiguredYet';
 import {ChildCategoryOwnShareChart} from '@/components/charts/CategoryPie';
-import {
-  TopNVendorsMostSpent,
-  TopNVendorsMostTransactions,
-} from '@/components/charts/Vendor';
+import {TopNVendorsMostTransactions} from '@/components/charts/Vendor';
 import {
   SortableTransactionsList,
   SortingMode,
 } from '@/components/transactions/SortableTransactionsList';
-import {Interval, endOfQuarter, isSameQuarter, startOfQuarter} from 'date-fns';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -34,6 +31,7 @@ import {
 } from '@/lib/model/transaction/Transaction';
 import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
 import {Granularity} from '@/lib/util/Granularity';
+import {Interval, endOfQuarter, isSameQuarter, startOfQuarter} from 'date-fns';
 import {useState} from 'react';
 
 export function VendorStats({
@@ -49,8 +47,7 @@ export function VendorStats({
   const expenses = transactions.filter((t): t is Expense => isExpense(t));
   return (
     <div>
-      <h1 className="text-xl font-medium leading-7">Vendors</h1>
-      <TopNVendorsMostSpent transactions={expenses} title="Most spent" n={10} />
+      <TopVendorsBySpend input={input} />
       <TopNVendorsMostTransactions
         transactions={expenses}
         title="Most transactions"
@@ -91,7 +88,10 @@ export function QuarterlyStats({input}: {input: TransactionsStatsInput}) {
           initialSorting={SortingMode.AMOUNT_DESC}
         />
       </div>
-      <VendorStats input={input} quarter={input.interval().start} />
+      <div>
+        <h1 className="text-xl font-medium leading-7">Vendors</h1>
+        <VendorStats input={input} quarter={input.interval().start} />
+      </div>
     </div>
   );
 }

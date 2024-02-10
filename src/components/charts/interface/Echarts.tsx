@@ -80,6 +80,7 @@ function Line({title, interval, granularity, data}: TimeseriesProps) {
 }
 
 function HorizontalBar({title, currency, data}: HorizontalBarProps) {
+  // TODO: do not sort here, instead do that upstream.
   const sorted = [...data].sort((a, b) => a.amount.cents() - b.amount.cents());
   const categories = sorted.map(({name}) => name);
   const values = sorted.map(({amount}) => amount.round().dollar());

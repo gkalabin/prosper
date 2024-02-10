@@ -1,3 +1,10 @@
+import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
+import {Currency} from '@/lib/model/Currency';
+import {
+  Transaction,
+  isExpense,
+  isIncome,
+} from '@/lib/model/transaction/Transaction';
 import {
   eachMonthOfInterval,
   eachQuarterOfInterval,
@@ -5,12 +12,6 @@ import {
   isWithinInterval,
   type Interval,
 } from 'date-fns';
-import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
-import {
-  Transaction,
-  isExpense,
-  isIncome,
-} from '@/lib/model/transaction/Transaction';
 
 export type DisplayCurrencyTransaction = {
   t: Transaction;
@@ -22,8 +23,14 @@ export class TransactionsStatsInput {
   constructor(
     private readonly _transactions: Transaction[],
     private readonly _interval: Interval,
-    private readonly _exchanged?: DisplayCurrencyTransaction[]
+    // TODO: make required and remove non null assertions.
+    private readonly _exchanged?: DisplayCurrencyTransaction[],
+    private readonly _currency?: Currency
   ) {}
+
+  currency(): Currency {
+    return this._currency!;
+  }
 
   transactionsAllTime() {
     return this._transactions;

@@ -1,4 +1,3 @@
-import {type Interval} from 'date-fns';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {StockAndCurrencyExchange} from '@/lib/ClientSideModel';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
@@ -23,6 +22,7 @@ import {
   DisplayCurrencyTransaction,
   TransactionsStatsInput,
 } from '@/lib/stats/TransactionsStatsInput';
+import {type Interval} from 'date-fns';
 
 export function dollarsRounded(amount: AmountWithCurrency | undefined): number {
   if (!amount) {
@@ -130,7 +130,8 @@ export function useStatsPageProps(
     input: new TransactionsStatsInput(
       filteredTransactions,
       duration,
-      exchanged
+      exchanged,
+      displayCurrency
     ),
     failed,
   };
