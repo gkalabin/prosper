@@ -1,5 +1,5 @@
 // To generate the lexer and parser, run the following command:
-// antlr4 -Dlanguage=TypeScript -no-listener -visitor -Werror -Xexact-output-dir -o lib/search/generated lib/search/TransactionSearchQuery.g4
+// antlr4 -Dlanguage=TypeScript -no-listener -visitor -Werror -Xexact-output-dir -o src/lib/search/generated src/lib/search/TransactionSearchQuery.g4
 grammar TransactionSearchQuery;
 
 rootQuery: query EOF;
