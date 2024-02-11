@@ -4,12 +4,12 @@ import {
   StackedBarProps,
   TimeseriesProps,
 } from '@/components/charts/interface/Interface';
+import {Currency, formatCurrency} from '@/lib/model/Currency';
+import {formatInterval, sliceInterval} from '@/lib/util/time';
 import {type EChartsOption} from 'echarts';
 import ReactEcharts from 'echarts-for-react';
 import {type TooltipComponentOption} from 'echarts/components';
 import {CallbackDataParams} from 'echarts/types/dist/shared';
-import {Currency, formatCurrency} from '@/lib/model/Currency';
-import {formatInterval, sliceInterval} from '@/lib/util/time';
 
 function Bar({title, interval, granularity, data}: TimeseriesProps) {
   const currency = data.getCurrency();
@@ -80,10 +80,8 @@ function Line({title, interval, granularity, data}: TimeseriesProps) {
 }
 
 function HorizontalBar({title, currency, data}: HorizontalBarProps) {
-  // TODO: do not sort here, instead do that upstream.
-  const sorted = [...data].sort((a, b) => a.amount.cents() - b.amount.cents());
-  const categories = sorted.map(({name}) => name);
-  const values = sorted.map(({amount}) => amount.round().dollar());
+  const categories = data.map(({name}) => name);
+  const values = data.map(({amount}) => amount.round().dollar());
   return (
     <ReactEcharts
       notMerge

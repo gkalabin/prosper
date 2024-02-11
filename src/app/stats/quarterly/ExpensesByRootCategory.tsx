@@ -22,10 +22,12 @@ export function ExpensesByRootCategory({
     const root = findRoot(t.categoryId, tree);
     byId.increment(root.id, ownShare);
   }
-  const data = [...byId.entries()].map(([k, v]) => ({
-    name: mustFindCategory(k, categories).name,
-    amount: v,
-  }));
+  const data = [...byId.entries()]
+    .map(([k, v]) => ({
+      name: mustFindCategory(k, categories).name,
+      amount: v,
+    }))
+    .sort((a, b) => a.amount.cents() - b.amount.cents());
   return (
     <Charts.HorizontalBar
       title="Expenses by root category"

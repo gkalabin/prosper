@@ -20,10 +20,12 @@ export function ExpenseByChildCategory({
     const category = transactionCategory(t, categories);
     byId.increment(category.id, ownShare);
   }
-  const data = [...byId.entries()].map(([k, v]) => ({
-    name: getNameWithAncestors(k, tree),
-    amount: v,
-  }));
+  const data = [...byId.entries()]
+    .map(([k, v]) => ({
+      name: getNameWithAncestors(k, tree),
+      amount: v,
+    }))
+    .sort((a, b) => a.amount.cents() - b.amount.cents());
   return (
     <Charts.HorizontalBar
       title="Expenses by category"
