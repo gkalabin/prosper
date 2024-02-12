@@ -4,6 +4,7 @@ import {ExcludedCategoriesSelector} from '@/app/stats/ExcludedCategoriesSelector
 import {useStatsPageProps} from '@/app/stats/modelHelpers';
 import {ExpenseByChildCategory} from '@/app/stats/quarterly/ExpenseByChildCategory';
 import {ExpensesByRootCategory} from '@/app/stats/quarterly/ExpensesByRootCategory';
+import {IncomeByChildCategory} from '@/app/stats/quarterly/IncomeByChildCategory';
 import {Navigation} from '@/app/stats/quarterly/Navigation';
 import {PeriodSummary} from '@/app/stats/quarterly/PeriodSummary';
 import {TopVendorsBySpend} from '@/app/stats/quarterly/TopVendorsBySpend';
@@ -12,7 +13,6 @@ import {
   NotConfiguredYet,
   isFullyConfigured,
 } from '@/components/NotConfiguredYet';
-import {ChildCategoryOwnShareChart} from '@/components/charts/CategoryPie';
 import {
   SortableTransactionsList,
   SortingMode,
@@ -23,8 +23,6 @@ import {
 } from '@/lib/context/AllDatabaseDataContext';
 import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
-import {Income} from '@/lib/model/transaction/Income';
-import {isIncome} from '@/lib/model/transaction/Transaction';
 import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
 import {Granularity} from '@/lib/util/Granularity';
 import {Interval, endOfQuarter, startOfQuarter} from 'date-fns';
@@ -49,13 +47,7 @@ export function QuarterlyStats({input}: {input: TransactionsStatsInput}) {
         <h1 className="text-xl font-medium leading-7">
           Income ({input.incomeExchanged().length})
         </h1>
-        <ChildCategoryOwnShareChart
-          title="Income category"
-          transactions={input
-            .incomeExchanged()
-            .map(({t}) => t)
-            .filter((t): t is Income => isIncome(t))}
-        />
+        <IncomeByChildCategory input={input} />
         <SortableTransactionsList
           transactions={input.incomeExchanged().map(({t}) => t)}
           initialSorting={SortingMode.AMOUNT_DESC}
