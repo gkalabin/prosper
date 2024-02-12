@@ -1,10 +1,12 @@
 'use client';
-import {categoryNameById} from '@/app/stats/modelHelpers';
 import Charts from '@/components/charts/interface';
 import {NamedTimeseries} from '@/components/charts/interface/Interface';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
-import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
-import {findRoot, makeCategoryTree} from '@/lib/model/Category';
+import {
+  findRoot,
+  getNameWithAncestors,
+  makeCategoryTree,
+} from '@/lib/model/Category';
 import {transactionCategory} from '@/lib/model/transaction/Transaction';
 import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
 import {DefaultMap} from '@/lib/util/DefaultMap';
@@ -16,11 +18,10 @@ export function ExpensesByRootCategory({
 }: {
   input: TransactionsStatsInput;
 }) {
-  const displayCurrency = useDisplayCurrency();
   const {categories} = useAllDatabaseDataContext();
   const categoryTree = makeCategoryTree(categories);
   const newEmptySeries = () =>
-    new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);
+    new MoneyTimeseries(input.currency(), Granularity.MONTHLY);
   const byId = new DefaultMap<number, MoneyTimeseries>(newEmptySeries);
   for (const {t, ownShare} of input.expensesExchanged()) {
     const category = transactionCategory(t, categories);
@@ -29,14 +30,14 @@ export function ExpensesByRootCategory({
   }
   const data: NamedTimeseries[] = [...byId.entries()].map(
     ([categoryId, series]) => ({
-      name: categoryNameById(categoryId, categories),
+      name: getNameWithAncestors(categoryId, categoryTree),
       series,
     })
   );
   return (
     <Charts.StackedBar
       title="By root category"
-      currency={displayCurrency}
+      currency={input.currency()}
       granularity={Granularity.MONTHLY}
       interval={input.interval()}
       data={data}
