@@ -1,15 +1,15 @@
-import {QuarterlyStatsPage} from '@/app/stats/quarterly/QuarterlyStatsPage';
+import {MonthlyStatsPage} from '@/app/stats/(aggregate-by-period)/monthly/MonthlyStatsPage';
 import {DB, fetchAllDatabaseData} from '@/lib/db';
 import {getUserId} from '@/lib/user';
 import {Metadata} from 'next';
 
 export const metadata: Metadata = {
-  title: 'Quarterly - Prosper',
+  title: 'Monthly - Prosper',
 };
 
 export default async function Page() {
   const userId = await getUserId();
   const db = new DB({userId});
   const data = await fetchAllDatabaseData(db);
-  return <QuarterlyStatsPage dbData={data} />;
+  return <MonthlyStatsPage dbData={data} />;
 }

@@ -1,14 +1,14 @@
 'use client';
 import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from '@/app/stats/ExcludedCategoriesSelector';
-import {ExpensesByRootCategory} from '@/app/stats/expense/ByRootCategory';
 import {useStatsPageProps} from '@/app/stats/modelHelpers';
-import {ExpenseByChildCategory} from '@/app/stats/quarterly/ExpenseByChildCategory';
-import {IncomeByChildCategory} from '@/app/stats/quarterly/IncomeByChildCategory';
-import {Navigation} from '@/app/stats/quarterly/Navigation';
-import {PeriodSummary} from '@/app/stats/quarterly/PeriodSummary';
-import {TopVendorsBySpend} from '@/app/stats/quarterly/TopVendorsBySpend';
-import {TopVendorsByTransactionCount} from '@/app/stats/quarterly/TopVendorsByTransactionCount';
+import {ExpenseByChildCategory} from '@/app/stats/(aggregate-by-period)/ExpenseByChildCategory';
+import {ExpensesByRootCategory} from '@/app/stats/(aggregate-by-period)/ExpensesByRootCategory';
+import {IncomeByChildCategory} from '@/app/stats/(aggregate-by-period)/IncomeByChildCategory';
+import {Navigation} from '@/app/stats/(aggregate-by-period)/Navigation';
+import {PeriodSummary} from '@/app/stats/(aggregate-by-period)/PeriodSummary';
+import {TopVendorsBySpend} from '@/app/stats/(aggregate-by-period)/TopVendorsBySpend';
+import {TopVendorsByTransactionCount} from '@/app/stats/(aggregate-by-period)/TopVendorsByTransactionCount';
 import {
   NotConfiguredYet,
   isFullyConfigured,
@@ -25,10 +25,10 @@ import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
 import {Granularity} from '@/lib/util/Granularity';
-import {Interval, endOfMonth, startOfMonth} from 'date-fns';
+import {Interval, endOfQuarter, startOfQuarter} from 'date-fns';
 import {useState} from 'react';
 
-export function MonthlyStats({input}: {input: TransactionsStatsInput}) {
+export function QuarterlyStats({input}: {input: TransactionsStatsInput}) {
   return (
     <div className="space-y-4">
       <PeriodSummary input={input} />
@@ -53,9 +53,11 @@ export function MonthlyStats({input}: {input: TransactionsStatsInput}) {
           initialSorting={SortingMode.AMOUNT_DESC}
         />
       </div>
-      <h1 className="text-xl font-medium leading-7">Vendors</h1>
-      <TopVendorsBySpend input={input} />
-      <TopVendorsByTransactionCount input={input} />
+      <div>
+        <h1 className="text-xl font-medium leading-7">Vendors</h1>
+        <TopVendorsBySpend input={input} />
+        <TopVendorsByTransactionCount input={input} />
+      </div>
     </div>
   );
 }
@@ -74,11 +76,11 @@ function NonEmptyPageContent() {
     end: timestamps[timestamps.length - 1],
   };
   const now = new Date();
-  const [month, setMonth] = useState<Interval>({
-    start: startOfMonth(now),
-    end: endOfMonth(now),
+  const [quarter, setQuarter] = useState<Interval>({
+    start: startOfQuarter(now),
+    end: endOfQuarter(now),
   });
-  const {input, failed} = useStatsPageProps(excludeCategories, month);
+  const {input, failed} = useStatsPageProps(excludeCategories, quarter);
   return (
     <div className="space-y-4">
       <ExcludedCategoriesSelector
@@ -87,17 +89,17 @@ function NonEmptyPageContent() {
       />
       <Navigation
         timeline={allDataInterval}
-        granularity={Granularity.MONTHLY}
-        selected={month}
-        setSelected={setMonth}
+        selected={quarter}
+        setSelected={setQuarter}
+        granularity={Granularity.QUARTERLY}
       />
       <CurrencyExchangeFailed failedTransactions={failed} />
-      <MonthlyStats input={input} />
+      <QuarterlyStats input={input} />
     </div>
   );
 }
 
-export function MonthlyStatsPage({dbData}: {dbData: AllDatabaseData}) {
+export function QuarterlyStatsPage({dbData}: {dbData: AllDatabaseData}) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }

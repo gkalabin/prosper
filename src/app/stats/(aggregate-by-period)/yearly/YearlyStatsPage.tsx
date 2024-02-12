@@ -2,13 +2,13 @@
 import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from '@/app/stats/ExcludedCategoriesSelector';
 import {useStatsPageProps} from '@/app/stats/modelHelpers';
-import {ExpenseByChildCategory} from '@/app/stats/quarterly/ExpenseByChildCategory';
-import {ExpensesByRootCategory} from '@/app/stats/quarterly/ExpensesByRootCategory';
-import {IncomeByChildCategory} from '@/app/stats/quarterly/IncomeByChildCategory';
-import {Navigation} from '@/app/stats/quarterly/Navigation';
-import {PeriodSummary} from '@/app/stats/quarterly/PeriodSummary';
-import {TopVendorsBySpend} from '@/app/stats/quarterly/TopVendorsBySpend';
-import {TopVendorsByTransactionCount} from '@/app/stats/quarterly/TopVendorsByTransactionCount';
+import {ExpenseByChildCategory} from '@/app/stats/(aggregate-by-period)/ExpenseByChildCategory';
+import {ExpensesByRootCategory} from '@/app/stats/(aggregate-by-period)/ExpensesByRootCategory';
+import {IncomeByChildCategory} from '@/app/stats/(aggregate-by-period)/IncomeByChildCategory';
+import {Navigation} from '@/app/stats/(aggregate-by-period)/Navigation';
+import {PeriodSummary} from '@/app/stats/(aggregate-by-period)/PeriodSummary';
+import {TopVendorsBySpend} from '@/app/stats/(aggregate-by-period)/TopVendorsBySpend';
+import {TopVendorsByTransactionCount} from '@/app/stats/(aggregate-by-period)/TopVendorsByTransactionCount';
 import {
   NotConfiguredYet,
   isFullyConfigured,
@@ -25,13 +25,14 @@ import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
 import {Granularity} from '@/lib/util/Granularity';
-import {Interval, endOfQuarter, startOfQuarter} from 'date-fns';
+import {Interval, endOfYear, startOfYear} from 'date-fns';
 import {useState} from 'react';
 
-export function QuarterlyStats({input}: {input: TransactionsStatsInput}) {
+function YearlyStats({input}: {input: TransactionsStatsInput}) {
   return (
     <div className="space-y-4">
       <PeriodSummary input={input} />
+
       <div>
         <h1 className="text-xl font-medium leading-7">
           Expenses ({input.expensesExchanged().length})
@@ -43,6 +44,7 @@ export function QuarterlyStats({input}: {input: TransactionsStatsInput}) {
           initialSorting={SortingMode.AMOUNT_DESC}
         />
       </div>
+
       <div>
         <h1 className="text-xl font-medium leading-7">
           Income ({input.incomeExchanged().length})
@@ -53,6 +55,7 @@ export function QuarterlyStats({input}: {input: TransactionsStatsInput}) {
           initialSorting={SortingMode.AMOUNT_DESC}
         />
       </div>
+
       <div>
         <h1 className="text-xl font-medium leading-7">Vendors</h1>
         <TopVendorsBySpend input={input} />
@@ -76,11 +79,11 @@ function NonEmptyPageContent() {
     end: timestamps[timestamps.length - 1],
   };
   const now = new Date();
-  const [quarter, setQuarter] = useState<Interval>({
-    start: startOfQuarter(now),
-    end: endOfQuarter(now),
+  const [year, setYear] = useState<Interval>({
+    start: startOfYear(now),
+    end: endOfYear(now),
   });
-  const {input, failed} = useStatsPageProps(excludeCategories, quarter);
+  const {input, failed} = useStatsPageProps(excludeCategories, year);
   return (
     <div className="space-y-4">
       <ExcludedCategoriesSelector
@@ -89,17 +92,17 @@ function NonEmptyPageContent() {
       />
       <Navigation
         timeline={allDataInterval}
-        selected={quarter}
-        setSelected={setQuarter}
-        granularity={Granularity.QUARTERLY}
+        granularity={Granularity.YEARLY}
+        selected={year}
+        setSelected={setYear}
       />
       <CurrencyExchangeFailed failedTransactions={failed} />
-      <QuarterlyStats input={input} />
+      <YearlyStats input={input} />
     </div>
   );
 }
 
-export function QuarterlyStatsPage({dbData}: {dbData: AllDatabaseData}) {
+export function YearlyStatsPage({dbData}: {dbData: AllDatabaseData}) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }

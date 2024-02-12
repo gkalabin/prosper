@@ -1,4 +1,4 @@
-import {YearlyStatsPage} from '@/app/stats/yearly/YearlyStatsPage';
+import {YearlyStatsPage} from '@/app/stats/(aggregate-by-period)/yearly/YearlyStatsPage';
 import {DB, fetchAllDatabaseData} from '@/lib/db';
 import {getUserId} from '@/lib/user';
 import {Metadata} from 'next';
