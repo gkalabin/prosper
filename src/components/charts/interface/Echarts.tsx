@@ -101,11 +101,9 @@ function HorizontalBar(
   if (isMoneyProps(props)) {
     values = props.data.map(({amount}) => amount.round().dollar());
     xAxis = {
-      xAxis: {
-        type: 'value',
-        axisLabel: {
-          formatter: currencyFormatter(props.currency),
-        },
+      type: 'value',
+      axisLabel: {
+        formatter: currencyFormatter(props.currency),
       },
     };
   } else if (isNumberProps(props)) {
@@ -126,7 +124,7 @@ function HorizontalBar(
           containLabel: true,
         },
         tooltip: {},
-        ...xAxis,
+        xAxis,
         yAxis: {
           type: 'category',
           data: categories,
