@@ -7,12 +7,12 @@ import {ExpensesByRootCategory} from '@/app/stats/quarterly/ExpensesByRootCatego
 import {Navigation} from '@/app/stats/quarterly/Navigation';
 import {PeriodSummary} from '@/app/stats/quarterly/PeriodSummary';
 import {TopVendorsBySpend} from '@/app/stats/quarterly/TopVendorsBySpend';
+import {TopVendorsByTransactionCount} from '@/app/stats/quarterly/TopVendorsByTransactionCount';
 import {
   NotConfiguredYet,
   isFullyConfigured,
 } from '@/components/NotConfiguredYet';
 import {ChildCategoryOwnShareChart} from '@/components/charts/CategoryPie';
-import {TopNVendorsMostTransactions} from '@/components/charts/Vendor';
 import {
   SortableTransactionsList,
   SortingMode,
@@ -24,38 +24,11 @@ import {
 import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {Income} from '@/lib/model/transaction/Income';
-import {
-  Expense,
-  isExpense,
-  isIncome,
-} from '@/lib/model/transaction/Transaction';
+import {isIncome} from '@/lib/model/transaction/Transaction';
 import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
 import {Granularity} from '@/lib/util/Granularity';
-import {Interval, endOfQuarter, isSameQuarter, startOfQuarter} from 'date-fns';
+import {Interval, endOfQuarter, startOfQuarter} from 'date-fns';
 import {useState} from 'react';
-
-export function VendorStats({
-  input,
-  quarter,
-}: {
-  input: TransactionsStatsInput;
-  quarter: string | number | Date;
-}) {
-  const transactions = input
-    .transactionsAllTime()
-    .filter(t => isSameQuarter(quarter, t.timestampEpoch));
-  const expenses = transactions.filter((t): t is Expense => isExpense(t));
-  return (
-    <div>
-      <TopVendorsBySpend input={input} />
-      <TopNVendorsMostTransactions
-        transactions={expenses}
-        title="Most transactions"
-        n={10}
-      />
-    </div>
-  );
-}
 
 export function QuarterlyStats({input}: {input: TransactionsStatsInput}) {
   return (
@@ -90,7 +63,8 @@ export function QuarterlyStats({input}: {input: TransactionsStatsInput}) {
       </div>
       <div>
         <h1 className="text-xl font-medium leading-7">Vendors</h1>
-        <VendorStats input={input} quarter={input.interval().start} />
+        <TopVendorsBySpend input={input} />
+        <TopVendorsByTransactionCount input={input} />
       </div>
     </div>
   );

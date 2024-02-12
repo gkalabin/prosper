@@ -1,6 +1,7 @@
 import {
   ChartsLibrary,
-  HorizontalBarProps,
+  HorizontalBarMoneyProps,
+  HorizontalBarNumbersProps,
   StackedBarProps,
   TimeseriesProps,
 } from '@/components/charts/interface/Interface';
@@ -79,26 +80,53 @@ function Line({title, interval, granularity, data}: TimeseriesProps) {
   );
 }
 
-function HorizontalBar({title, currency, data}: HorizontalBarProps) {
-  const categories = data.map(({name}) => name);
-  const values = data.map(({amount}) => amount.round().dollar());
+function isMoneyProps(
+  props: HorizontalBarMoneyProps | HorizontalBarNumbersProps
+): props is HorizontalBarMoneyProps {
+  return !!(props as HorizontalBarMoneyProps).currency;
+}
+
+function isNumberProps(
+  props: HorizontalBarMoneyProps | HorizontalBarNumbersProps
+): props is HorizontalBarNumbersProps {
+  return !(props as HorizontalBarMoneyProps).currency;
+}
+
+function HorizontalBar(
+  props: HorizontalBarMoneyProps | HorizontalBarNumbersProps
+) {
+  const categories = props.data.map(({name}) => name);
+  let values: number[] = [];
+  let xAxis: EChartsOption = {};
+  if (isMoneyProps(props)) {
+    values = props.data.map(({amount}) => amount.round().dollar());
+    xAxis = {
+      xAxis: {
+        type: 'value',
+        axisLabel: {
+          formatter: currencyFormatter(props.currency),
+        },
+      },
+    };
+  } else if (isNumberProps(props)) {
+    values = props.data.map(({amount}) => amount);
+    xAxis = {};
+  } else {
+    const exhaustiveCheck: never = props;
+    throw new Error(`Unknown props type ${exhaustiveCheck}`);
+  }
   return (
     <ReactEcharts
       notMerge
       option={{
         title: {
-          text: title,
+          text: props.title,
         },
         grid: {
           containLabel: true,
         },
         tooltip: {},
-        xAxis: {
-          type: 'value',
-          axisLabel: {
-            formatter: currencyFormatter(currency),
-          },
-        },
+        ...xAxis,
         yAxis: {
           type: 'category',
           data: categories,
@@ -106,7 +134,7 @@ function HorizontalBar({title, currency, data}: HorizontalBarProps) {
         series: [
           {
             type: 'bar',
-            name: title,
+            name: props.title,
             data: values,
           },
         ],
