@@ -2,7 +2,7 @@
 import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from '@/app/stats/ExcludedCategoriesSelector';
 import {AverageMonthlyIncome} from '@/app/stats/income/AverageMonthlyIncome';
-import {IncomeByCategory} from '@/app/stats/income/IncomeByCategory';
+import {IncomeByChildCategory} from '@/app/stats/income/IncomeByChildCategory';
 import {MonthlyIncome} from '@/app/stats/income/MonthlyIncome';
 import {YearlyIncome} from '@/app/stats/income/YearlyIncome';
 import {useStatsPageProps} from '@/app/stats/modelHelpers';
@@ -36,7 +36,7 @@ function NonEmptyPageContent() {
       <MonthlyIncome input={input} />
       <AverageMonthlyIncome input={input} />
       <YearlyIncome input={input} />
-      <IncomeByCategory input={input} />
+      <IncomeByChildCategory input={input} />
     </div>
   );
 }
