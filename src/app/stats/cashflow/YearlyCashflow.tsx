@@ -23,6 +23,7 @@ export function YearlyCashflow({input}: {input: TransactionsStatsInput}) {
       title={'Yearly cashflow'}
       interval={input.interval()}
       granularity={Granularity.YEARLY}
+      currency={input.currency()}
       data={cashflow}
     />
   );

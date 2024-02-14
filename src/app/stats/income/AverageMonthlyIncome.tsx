@@ -15,6 +15,7 @@ export function AverageMonthlyIncome({input}: {input: TransactionsStatsInput}) {
     <Charts.Bar
       title={'Average monthly income (12 months running average)'}
       granularity={Granularity.MONTHLY}
+      currency={input.currency()}
       interval={input.interval()}
       data={runningAverage(data, 12)}
     />

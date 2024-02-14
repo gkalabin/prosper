@@ -29,6 +29,7 @@ export function MonthlyCumulativeCashflow({
     <Charts.Line
       title={'Cumulative monthly cashflow'}
       granularity={Granularity.MONTHLY}
+      currency={input.currency()}
       interval={input.interval()}
       data={cumulative}
     />

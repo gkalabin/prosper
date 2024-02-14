@@ -18,6 +18,7 @@ export function MonthlyCashflow({input}: {input: TransactionsStatsInput}) {
     <Charts.Bar
       title={'Monthly cashflow'}
       granularity={Granularity.MONTHLY}
+      currency={input.currency()}
       interval={input.interval()}
       data={cashflow}
     />

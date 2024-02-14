@@ -22,6 +22,7 @@ export function MonthlyAverageCashflow({
     <Charts.Bar
       title={'Cashflow 12 months running average'}
       granularity={Granularity.MONTHLY}
+      currency={input.currency()}
       interval={input.interval()}
       data={runningAverage(cashflow, 12)}
     />

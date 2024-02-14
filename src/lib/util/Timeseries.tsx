@@ -1,4 +1,3 @@
-import {startOfMonth, startOfQuarter, startOfYear} from 'date-fns';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {assert} from '@/lib/assert';
 import {Currency} from '@/lib/model/Currency';
@@ -7,21 +6,28 @@ import {
   percentile as numbersPercentile,
   runningAverage as numbersRunningAverage,
 } from '@/lib/util/stats';
+import {startOfMonth, startOfQuarter, startOfYear} from 'date-fns';
 
-type MoneyTimeseriesEntry = {
-  time: Date;
-  sum: AmountWithCurrency;
-};
+type AddFunction<T> = (a: T, b: T) => T;
 
-export class MoneyTimeseries {
-  private readonly data: Map<number, AmountWithCurrency>;
+export class AbstractTimeseries<T> {
+  protected readonly data: Map<number, T>;
   private readonly currency: Currency;
   private readonly granularity: Granularity;
+  private readonly addFn: AddFunction<T>;
+  private readonly zero: T;
 
-  constructor(currency: Currency, granularity: Granularity) {
+  constructor(
+    currency: Currency,
+    granularity: Granularity,
+    addFn: AddFunction<T>,
+    zero: T
+  ) {
     this.currency = currency;
     this.granularity = granularity;
     this.data = new Map();
+    this.addFn = addFn;
+    this.zero = zero;
   }
 
   private bucket(time: Date | number | string): Date {
@@ -46,30 +52,43 @@ export class MoneyTimeseries {
     return this.granularity;
   }
 
-  increment(time: Date | number, i: AmountWithCurrency): void {
-    if (i.getCurrency().code != this.currency.code) {
-      throw new Error(
-        `Cannot insert amount in ${i.getCurrency().code} into ${this.currency.code} timeseries`
-      );
-    }
+  increment(time: Date | number, i: T): void {
     const k = this.bucket(time).getTime();
-    const existing = this.data.get(k) ?? AmountWithCurrency.zero(this.currency);
-    this.data.set(k, existing.add(i));
+    const existing = this.data.get(k) ?? this.zero;
+    const sum = this.addFn(existing, i);
+    this.data.set(k, sum);
   }
 
-  set(time: Date | number, i: AmountWithCurrency) {
-    if (i.getCurrency().code != this.currency.code) {
-      throw new Error(
-        `Cannot insert amount in ${i.getCurrency().code} into ${this.currency.code} timeseries`
-      );
-    }
+  set(time: Date | number, i: T) {
     const k = this.bucket(time).getTime();
     this.data.set(k, i);
   }
 
-  get(time: Date | number | string): AmountWithCurrency {
+  get(time: Date | number | string): T {
     const k = this.bucket(time).getTime();
-    return this.data.get(k) ?? AmountWithCurrency.zero(this.currency);
+    return this.data.get(k) ?? this.zero;
+  }
+}
+
+export class NumberTimeseries extends AbstractTimeseries<number> {
+  constructor(currency: Currency, granularity: Granularity) {
+    super(currency, granularity, (a, b) => a + b, 0);
+  }
+}
+
+type MoneyTimeseriesEntry = {
+  time: Date;
+  sum: AmountWithCurrency;
+};
+
+export class MoneyTimeseries extends AbstractTimeseries<AmountWithCurrency> {
+  constructor(currency: Currency, granularity: Granularity) {
+    super(
+      currency,
+      granularity,
+      AmountWithCurrency.add,
+      AmountWithCurrency.zero(currency)
+    );
   }
 
   entries(): MoneyTimeseriesEntry[] {

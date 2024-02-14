@@ -3,7 +3,8 @@ import {
   HorizontalBarMoneyProps,
   HorizontalBarNumbersProps,
   StackedBarProps,
-  TimeseriesProps,
+  TimeseriesMoneyProps,
+  TimeseriesNumbersProps,
 } from '@/components/charts/interface/Interface';
 import {Currency, formatCurrency} from '@/lib/model/Currency';
 import {formatInterval, sliceInterval} from '@/lib/util/time';
@@ -12,9 +13,39 @@ import ReactEcharts from 'echarts-for-react';
 import {type TooltipComponentOption} from 'echarts/components';
 import {CallbackDataParams} from 'echarts/types/dist/shared';
 
-function Bar({title, interval, granularity, data}: TimeseriesProps) {
-  const currency = data.getCurrency();
-  const slices = sliceInterval({interval, granularity});
+function Bar(props: TimeseriesMoneyProps | TimeseriesNumbersProps) {
+  return <BarOrLine {...props} type={'bar'} />;
+}
+
+function Line(props: TimeseriesMoneyProps | TimeseriesNumbersProps) {
+  return <BarOrLine {...props} type={'line'} />;
+}
+
+function BarOrLine(
+  props: (TimeseriesMoneyProps | TimeseriesNumbersProps) & {
+    type: 'bar' | 'line';
+  }
+) {
+  const slices = sliceInterval({
+    interval: props.interval,
+    granularity: props.granularity,
+  });
+  let values: number[] = [];
+  let yAxis: EChartsOption = {};
+  if (isTimeseriesMoneyProps(props)) {
+    values = slices.map(i => props.data.get(i.start).round().dollar());
+    yAxis = {
+      axisLabel: {
+        formatter: currencyFormatter(props.currency),
+      },
+    };
+  } else if (isTimeseriesNumberProps(props)) {
+    values = slices.map(i => props.data.get(i.start));
+    yAxis = {};
+  } else {
+    const exhaustiveCheck: never = props;
+    throw new Error(`Unknown props type ${exhaustiveCheck}`);
+  }
   return (
     <ReactEcharts
       notMerge
@@ -23,22 +54,18 @@ function Bar({title, interval, granularity, data}: TimeseriesProps) {
           containLabel: true,
         },
         tooltip: {},
-        yAxis: {
-          axisLabel: {
-            formatter: currencyFormatter(currency),
-          },
-        },
+        yAxis,
         xAxis: {
           data: slices.map(formatInterval),
         },
         title: {
-          text: title,
+          text: props.title,
         },
         series: [
           {
-            type: 'bar',
-            name: title,
-            data: slices.map(i => data.get(i.start).round().dollar()),
+            type: props.type,
+            name: props.title,
+            data: values,
           },
         ],
       }}
@@ -46,47 +73,25 @@ function Bar({title, interval, granularity, data}: TimeseriesProps) {
   );
 }
 
-function Line({title, interval, granularity, data}: TimeseriesProps) {
-  const currency = data.getCurrency();
-  const slices = sliceInterval({interval, granularity});
-  return (
-    <ReactEcharts
-      notMerge
-      option={{
-        grid: {
-          containLabel: true,
-        },
-        tooltip: {},
-        yAxis: {
-          axisLabel: {
-            formatter: currencyFormatter(currency),
-          },
-        },
-        xAxis: {
-          data: slices.map(formatInterval),
-        },
-        title: {
-          text: title,
-        },
-        series: [
-          {
-            type: 'line',
-            name: title,
-            data: slices.map(i => data.get(i.start).round().dollar()),
-          },
-        ],
-      }}
-    />
-  );
+function isTimeseriesMoneyProps(
+  props: TimeseriesMoneyProps | TimeseriesNumbersProps
+): props is TimeseriesMoneyProps {
+  return !!(props as TimeseriesMoneyProps).currency;
 }
 
-function isMoneyProps(
+function isTimeseriesNumberProps(
+  props: TimeseriesMoneyProps | TimeseriesNumbersProps
+): props is TimeseriesNumbersProps {
+  return !(props as TimeseriesMoneyProps).currency;
+}
+
+function isHorizontalBarMoneyProps(
   props: HorizontalBarMoneyProps | HorizontalBarNumbersProps
 ): props is HorizontalBarMoneyProps {
   return !!(props as HorizontalBarMoneyProps).currency;
 }
 
-function isNumberProps(
+function isHorizontalBarNumberProps(
   props: HorizontalBarMoneyProps | HorizontalBarNumbersProps
 ): props is HorizontalBarNumbersProps {
   return !(props as HorizontalBarMoneyProps).currency;
@@ -98,7 +103,7 @@ function HorizontalBar(
   const categories = props.data.map(({name}) => name);
   let values: number[] = [];
   let xAxis: EChartsOption = {};
-  if (isMoneyProps(props)) {
+  if (isHorizontalBarMoneyProps(props)) {
     values = props.data.map(({amount}) => amount.round().dollar());
     xAxis = {
       type: 'value',
@@ -106,9 +111,11 @@ function HorizontalBar(
         formatter: currencyFormatter(props.currency),
       },
     };
-  } else if (isNumberProps(props)) {
+  } else if (isHorizontalBarNumberProps(props)) {
     values = props.data.map(({amount}) => amount);
-    xAxis = {};
+    xAxis = {
+      type: 'value',
+    };
   } else {
     const exhaustiveCheck: never = props;
     throw new Error(`Unknown props type ${exhaustiveCheck}`);

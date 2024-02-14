@@ -16,6 +16,7 @@ export function AverageMonthlySpend({input}: {input: TransactionsStatsInput}) {
     <Charts.Bar
       title={'Average monthly spend (12 months running average)'}
       granularity={Granularity.MONTHLY}
+      currency={input.currency()}
       interval={input.interval()}
       data={average}
     />

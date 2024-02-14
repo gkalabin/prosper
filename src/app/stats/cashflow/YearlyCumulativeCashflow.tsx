@@ -29,6 +29,7 @@ export function YearlyCumulativeCashflow({
     <Charts.Line
       title={'Cumulative yearly cashflow'}
       granularity={Granularity.YEARLY}
+      currency={input.currency()}
       interval={input.interval()}
       data={cumulative}
     />

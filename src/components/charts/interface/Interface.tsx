@@ -1,14 +1,22 @@
 import {Amount} from '@/lib/Amount';
 import {Currency} from '@/lib/model/Currency';
 import {Granularity} from '@/lib/util/Granularity';
-import {MoneyTimeseries} from '@/lib/util/Timeseries';
+import {MoneyTimeseries, NumberTimeseries} from '@/lib/util/Timeseries';
 import {type Interval} from 'date-fns';
 
-export type TimeseriesProps = {
+export type TimeseriesMoneyProps = {
   title: string;
   interval: Interval;
   granularity: Granularity;
+  currency: Currency;
   data: MoneyTimeseries;
+};
+
+export type TimeseriesNumbersProps = {
+  title: string;
+  interval: Interval;
+  granularity: Granularity;
+  data: NumberTimeseries;
 };
 
 export type HorizontalBarMoneyProps = {
@@ -46,8 +54,8 @@ export type NamedNumber = {
 };
 
 export interface ChartsLibrary {
-  Line(props: TimeseriesProps): JSX.Element;
-  Bar(props: TimeseriesProps): JSX.Element;
+  Line(props: TimeseriesMoneyProps | TimeseriesNumbersProps): JSX.Element;
+  Bar(props: TimeseriesMoneyProps | TimeseriesNumbersProps): JSX.Element;
   StackedBar(props: StackedBarProps): JSX.Element;
   HorizontalBar(
     props: HorizontalBarMoneyProps | HorizontalBarNumbersProps
