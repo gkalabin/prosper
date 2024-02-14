@@ -12,18 +12,11 @@ type AddFunction<T> = (a: T, b: T) => T;
 
 export class AbstractTimeseries<T> {
   protected readonly data: Map<number, T>;
-  private readonly currency: Currency;
   private readonly granularity: Granularity;
   private readonly addFn: AddFunction<T>;
   private readonly zero: T;
 
-  constructor(
-    currency: Currency,
-    granularity: Granularity,
-    addFn: AddFunction<T>,
-    zero: T
-  ) {
-    this.currency = currency;
+  constructor(granularity: Granularity, addFn: AddFunction<T>, zero: T) {
     this.granularity = granularity;
     this.data = new Map();
     this.addFn = addFn;
@@ -42,10 +35,6 @@ export class AbstractTimeseries<T> {
         const _exhaustivenessCheck: never = this.granularity;
         throw new Error(`Unknown granularity ${_exhaustivenessCheck}`);
     }
-  }
-
-  getCurrency(): Currency {
-    return this.currency;
   }
 
   getGranularity(): Granularity {
@@ -71,8 +60,8 @@ export class AbstractTimeseries<T> {
 }
 
 export class NumberTimeseries extends AbstractTimeseries<number> {
-  constructor(currency: Currency, granularity: Granularity) {
-    super(currency, granularity, (a, b) => a + b, 0);
+  constructor(granularity: Granularity) {
+    super(granularity, (a, b) => a + b, 0);
   }
 }
 
@@ -82,13 +71,19 @@ type MoneyTimeseriesEntry = {
 };
 
 export class MoneyTimeseries extends AbstractTimeseries<AmountWithCurrency> {
+  private readonly currency: Currency;
+
   constructor(currency: Currency, granularity: Granularity) {
     super(
-      currency,
       granularity,
       AmountWithCurrency.add,
       AmountWithCurrency.zero(currency)
     );
+    this.currency = currency;
+  }
+
+  getCurrency(): Currency {
+    return this.currency;
   }
 
   entries(): MoneyTimeseriesEntry[] {
