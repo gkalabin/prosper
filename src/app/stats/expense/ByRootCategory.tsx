@@ -23,7 +23,7 @@ export function ExpensesByRootCategory({
   const newEmptySeries = () =>
     new MoneyTimeseries(input.currency(), Granularity.MONTHLY);
   const byId = new DefaultMap<number, MoneyTimeseries>(newEmptySeries);
-  for (const {t, ownShare} of input.expensesExchanged()) {
+  for (const {t, ownShare} of input.expenses()) {
     const category = transactionCategory(t, categories);
     const root = findRoot(category, categoryTree).id;
     byId.getOrCreate(root).increment(t.timestampEpoch, ownShare);

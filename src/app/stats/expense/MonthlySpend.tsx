@@ -8,7 +8,7 @@ import {MoneyTimeseries} from '@/lib/util/Timeseries';
 export function MonthlySpend({input}: {input: TransactionsStatsInput}) {
   const displayCurrency = useDisplayCurrency();
   const data = new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);
-  for (const {t, ownShare} of input.expensesExchanged()) {
+  for (const {t, ownShare} of input.expenses()) {
     data.increment(t.timestampEpoch, ownShare);
   }
   return (

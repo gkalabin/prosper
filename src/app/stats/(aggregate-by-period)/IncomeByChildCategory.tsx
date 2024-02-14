@@ -14,7 +14,7 @@ export function IncomeByChildCategory({
   const {categories} = useAllDatabaseDataContext();
   const tree = makeCategoryTree(categories);
   const byId = currencyAppendMap<number>(input.currency());
-  for (const {t, ownShare} of input.incomeExchanged()) {
+  for (const {t, ownShare} of input.income()) {
     const category = transactionCategory(t, categories);
     byId.increment(category.id, ownShare);
   }

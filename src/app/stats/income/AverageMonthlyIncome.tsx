@@ -8,7 +8,7 @@ import {MoneyTimeseries, runningAverage} from '@/lib/util/Timeseries';
 export function AverageMonthlyIncome({input}: {input: TransactionsStatsInput}) {
   const displayCurrency = useDisplayCurrency();
   const data = new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);
-  for (const {t, ownShare} of input.incomeExchangedAllTime()) {
+  for (const {t, ownShare} of input.incomeAllTime()) {
     data.increment(t.timestampEpoch, ownShare);
   }
   return (

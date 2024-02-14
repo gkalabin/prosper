@@ -18,7 +18,7 @@ export function IncomeByChildCategory({
   const newEmptySeries = () =>
     new MoneyTimeseries(input.currency(), Granularity.MONTHLY);
   const byId = new DefaultMap<number, MoneyTimeseries>(newEmptySeries);
-  for (const {t, ownShare} of input.incomeExchanged()) {
+  for (const {t, ownShare} of input.income()) {
     byId.getOrCreate(t.categoryId).increment(t.timestampEpoch, ownShare);
   }
   const data: NamedTimeseries[] = [...byId.entries()].map(

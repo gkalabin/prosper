@@ -12,10 +12,10 @@ export function MonthlyAverageCashflow({
 }) {
   const displayCurrency = useDisplayCurrency();
   const cashflow = new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);
-  for (const {t, ownShare} of input.incomeExchangedAllTime()) {
+  for (const {t, ownShare} of input.incomeAllTime()) {
     cashflow.increment(t.timestampEpoch, ownShare);
   }
-  for (const {t, ownShare} of input.expensesExchangedAllTime()) {
+  for (const {t, ownShare} of input.expensesAllTime()) {
     cashflow.increment(t.timestampEpoch, ownShare.negate());
   }
   return (

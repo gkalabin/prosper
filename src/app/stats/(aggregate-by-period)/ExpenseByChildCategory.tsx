@@ -16,7 +16,7 @@ export function ExpenseByChildCategory({
   const {categories} = useAllDatabaseDataContext();
   const tree = makeCategoryTree(categories);
   const byId = currencyAppendMap<number>(displayCurrency);
-  for (const {t, ownShare} of input.expensesExchanged()) {
+  for (const {t, ownShare} of input.expenses()) {
     const category = transactionCategory(t, categories);
     byId.increment(category.id, ownShare);
   }

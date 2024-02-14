@@ -7,18 +7,18 @@ import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
 export function PeriodSummary({input}: {input: TransactionsStatsInput}) {
   const displayCurrency = useDisplayCurrency();
   let expense = AmountWithCurrency.zero(displayCurrency);
-  for (const {ownShare} of input.expensesExchanged()) {
+  for (const {ownShare} of input.expenses()) {
     expense = expense.add(ownShare);
   }
   let income = AmountWithCurrency.zero(displayCurrency);
-  for (const {ownShare} of input.incomeExchanged()) {
+  for (const {ownShare} of input.income()) {
     income = income.add(ownShare);
   }
   const expenseIncomeRatio = income.isZero()
     ? Infinity
     : expense.dollar() / income.dollar();
   let trips = AmountWithCurrency.zero(displayCurrency);
-  for (const {t, ownShare} of input.expensesExchanged()) {
+  for (const {t, ownShare} of input.expenses()) {
     if (!isExpense(t) || !t.tripId) {
       continue;
     }

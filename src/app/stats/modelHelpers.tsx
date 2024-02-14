@@ -79,12 +79,7 @@ export function useStatsPageProps(
     });
   }
   return {
-    input: new TransactionsStatsInput(
-      filteredTransactions,
-      duration,
-      exchanged,
-      displayCurrency
-    ),
+    input: new TransactionsStatsInput(duration, exchanged, displayCurrency),
     failed,
   };
 }

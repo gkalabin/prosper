@@ -9,7 +9,7 @@ import {MoneyTimeseries} from '@/lib/util/Timeseries';
 export function YearlyIncome({input}: {input: TransactionsStatsInput}) {
   const displayCurrency = useDisplayCurrency();
   const data = new MoneyTimeseries(displayCurrency, Granularity.YEARLY);
-  for (const {t, ownShare} of input.incomeExchanged()) {
+  for (const {t, ownShare} of input.income()) {
     data.increment(t.timestampEpoch, ownShare);
   }
   if (differenceInYears(input.interval().end, input.interval().start) < 1) {

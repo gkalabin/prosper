@@ -34,22 +34,22 @@ export function QuarterlyStats({input}: {input: TransactionsStatsInput}) {
       <PeriodSummary input={input} />
       <div>
         <h1 className="text-xl font-medium leading-7">
-          Expenses ({input.expensesExchanged().length})
+          Expenses ({input.expenses().length})
         </h1>
         <ExpensesByRootCategory input={input} />
         <ExpenseByChildCategory input={input} />
         <SortableTransactionsList
-          transactions={input.expensesExchanged().map(({t}) => t)}
+          transactions={input.expenses().map(({t}) => t)}
           initialSorting={SortingMode.AMOUNT_DESC}
         />
       </div>
       <div>
         <h1 className="text-xl font-medium leading-7">
-          Income ({input.incomeExchanged().length})
+          Income ({input.income().length})
         </h1>
         <IncomeByChildCategory input={input} />
         <SortableTransactionsList
-          transactions={input.incomeExchanged().map(({t}) => t)}
+          transactions={input.income().map(({t}) => t)}
           initialSorting={SortingMode.AMOUNT_DESC}
         />
       </div>

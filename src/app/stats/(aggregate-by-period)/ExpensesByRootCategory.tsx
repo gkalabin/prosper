@@ -18,7 +18,7 @@ export function ExpensesByRootCategory({
   const {categories} = useAllDatabaseDataContext();
   const tree = makeCategoryTree(categories);
   const byId = currencyAppendMap<number>(displayCurrency);
-  for (const {t, ownShare} of input.expensesExchanged()) {
+  for (const {t, ownShare} of input.expenses()) {
     const root = findRoot(t.categoryId, tree);
     byId.increment(root.id, ownShare);
   }

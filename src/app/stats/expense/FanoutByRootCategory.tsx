@@ -43,7 +43,7 @@ function ExpenseByCategory({
   const newEmptySeries = () =>
     new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);
   const byId = new DefaultMap<number, MoneyTimeseries>(newEmptySeries);
-  for (const {t, ownShare} of input.expensesExchanged()) {
+  for (const {t, ownShare} of input.expenses()) {
     if (!subtreeIncludes(root, t.categoryId, tree)) {
       continue;
     }

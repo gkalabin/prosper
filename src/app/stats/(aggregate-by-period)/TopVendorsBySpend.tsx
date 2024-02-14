@@ -9,7 +9,7 @@ const TOP_N = 10;
 
 export function TopVendorsBySpend({input}: {input: TransactionsStatsInput}) {
   const byVendor = currencyAppendMap<string>(input.currency());
-  for (const {t, ownShare} of input.expensesExchanged()) {
+  for (const {t, ownShare} of input.expenses()) {
     // TODO: make expensesExchanged typed and remove the following check.
     if (t.kind != 'PersonalExpense' && t.kind != 'ThirdPartyExpense') {
       continue;

@@ -5,6 +5,7 @@ import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries} from '@/lib/util/Timeseries';
+import {eachYearOfInterval} from 'date-fns';
 
 export function YearlyCumulativeCashflow({
   input,
@@ -13,15 +14,15 @@ export function YearlyCumulativeCashflow({
 }) {
   const displayCurrency = useDisplayCurrency();
   const cashflow = new MoneyTimeseries(displayCurrency, Granularity.YEARLY);
-  for (const {t, ownShare} of input.incomeExchanged()) {
+  for (const {t, ownShare} of input.income()) {
     cashflow.increment(t.timestampEpoch, ownShare);
   }
-  for (const {t, ownShare} of input.expensesExchanged()) {
+  for (const {t, ownShare} of input.expenses()) {
     cashflow.increment(t.timestampEpoch, ownShare.negate());
   }
   const cumulative = new MoneyTimeseries(displayCurrency, Granularity.YEARLY);
   let current = AmountWithCurrency.zero(displayCurrency);
-  for (const m of input.years()) {
+  for (const m of eachYearOfInterval(input.interval())) {
     current = current.add(cashflow.get(m));
     cumulative.set(m, current);
   }
