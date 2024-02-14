@@ -4,7 +4,7 @@ import {Granularity} from '@/lib/util/Granularity';
 import {NumberTimeseries} from '@/lib/util/Timeseries';
 import {type Interval} from 'date-fns';
 
-export function TransactionFrequencyChart({
+export function TransactionCountByMonth({
   transactions,
   duration,
 }: {

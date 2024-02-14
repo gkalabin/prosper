@@ -7,10 +7,9 @@ import {
   MonthlyAllParties,
   MonthlyOwnShare,
 } from '@/components/charts/MonthlySum';
-import {TransactionFrequencyChart} from '@/components/charts/TransactionFrequency';
 import {YearlyAllParties, YearlyOwnShare} from '@/components/charts/YearlySum';
+import {TransactionCountByMonth} from '@/components/transactions/TransactionCountByMonth';
 import {ButtonFormSecondary} from '@/components/ui/buttons';
-import {differenceInMonths, startOfMonth} from 'date-fns';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
@@ -29,9 +28,10 @@ import {
   amountOwnShare,
 } from '@/lib/model/transaction/amounts';
 import {AppendMap} from '@/lib/util/AppendMap';
-import {MoneyTimeseries, percentile} from '@/lib/util/Timeseries';
 import {Granularity} from '@/lib/util/Granularity';
+import {MoneyTimeseries, percentile} from '@/lib/util/Timeseries';
 import {capitalize} from '@/lib/util/util';
+import {differenceInMonths, startOfMonth} from 'date-fns';
 
 export function TransactionStats(props: {
   onClose: () => void;
@@ -109,7 +109,7 @@ function Charts({transactions}: {transactions: Transaction[]}) {
   const duration = {start: first.timestampEpoch, end: last.timestampEpoch};
   return (
     <div className="col-span-6">
-      <TransactionFrequencyChart
+      <TransactionCountByMonth
         duration={duration}
         transactions={transactions}
       />
