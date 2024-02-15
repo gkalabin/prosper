@@ -1,13 +1,11 @@
 'use client';
 import Charts from '@/components/charts/interface';
-import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries, runningAverage} from '@/lib/util/Timeseries';
 
 export function AverageMonthlySpend({input}: {input: ExchangedTransactions}) {
-  const displayCurrency = useDisplayCurrency();
-  const data = new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);
+  const data = new MoneyTimeseries(input.currency(), Granularity.MONTHLY);
   for (const {t, ownShare} of input.expensesAllTime()) {
     data.increment(t.timestampEpoch, ownShare);
   }

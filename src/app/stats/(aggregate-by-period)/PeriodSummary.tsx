@@ -1,23 +1,21 @@
 'use client';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
-import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
-import {isExpense} from '@/lib/model/transaction/Transaction';
 import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
+import {isExpense} from '@/lib/model/transaction/Transaction';
 
 export function PeriodSummary({input}: {input: ExchangedTransactions}) {
-  const displayCurrency = useDisplayCurrency();
-  let expense = AmountWithCurrency.zero(displayCurrency);
+  let expense = AmountWithCurrency.zero(input.currency());
   for (const {ownShare} of input.expenses()) {
     expense = expense.add(ownShare);
   }
-  let income = AmountWithCurrency.zero(displayCurrency);
+  let income = AmountWithCurrency.zero(input.currency());
   for (const {ownShare} of input.income()) {
     income = income.add(ownShare);
   }
   const expenseIncomeRatio = income.isZero()
     ? Infinity
     : expense.dollar() / income.dollar();
-  let trips = AmountWithCurrency.zero(displayCurrency);
+  let trips = AmountWithCurrency.zero(input.currency());
   for (const {t, ownShare} of input.expenses()) {
     if (!isExpense(t) || !t.tripId) {
       continue;

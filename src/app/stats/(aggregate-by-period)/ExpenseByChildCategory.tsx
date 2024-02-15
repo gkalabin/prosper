@@ -1,10 +1,9 @@
 'use client';
 import Charts from '@/components/charts/interface';
+import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
-import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {getNameWithAncestors, makeCategoryTree} from '@/lib/model/Category';
 import {transactionCategory} from '@/lib/model/transaction/Transaction';
-import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {currencyAppendMap} from '@/lib/util/AppendMap';
 
 export function ExpenseByChildCategory({
@@ -12,10 +11,9 @@ export function ExpenseByChildCategory({
 }: {
   input: ExchangedTransactions;
 }) {
-  const displayCurrency = useDisplayCurrency();
   const {categories} = useAllDatabaseDataContext();
   const tree = makeCategoryTree(categories);
-  const byId = currencyAppendMap<number>(displayCurrency);
+  const byId = currencyAppendMap<number>(input.currency());
   for (const {t, ownShare} of input.expenses()) {
     const category = transactionCategory(t, categories);
     byId.increment(category.id, ownShare);
@@ -30,7 +28,7 @@ export function ExpenseByChildCategory({
     <Charts.HorizontalBar
       title="Expenses by category"
       data={data}
-      currency={displayCurrency}
+      currency={input.currency()}
     />
   );
 }

@@ -1,7 +1,6 @@
 'use client';
 import Charts from '@/components/charts/interface';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
-import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries} from '@/lib/util/Timeseries';
@@ -12,16 +11,15 @@ export function MonthlyCumulativeCashflow({
 }: {
   input: ExchangedTransactions;
 }) {
-  const displayCurrency = useDisplayCurrency();
-  const cashflow = new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);
+  const cashflow = new MoneyTimeseries(input.currency(), Granularity.MONTHLY);
   for (const {t, ownShare} of input.income()) {
     cashflow.increment(t.timestampEpoch, ownShare);
   }
   for (const {t, ownShare} of input.expenses()) {
     cashflow.increment(t.timestampEpoch, ownShare.negate());
   }
-  const cumulative = new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);
-  let current = AmountWithCurrency.zero(displayCurrency);
+  const cumulative = new MoneyTimeseries(input.currency(), Granularity.MONTHLY);
+  let current = AmountWithCurrency.zero(input.currency());
   for (const m of eachMonthOfInterval(input.interval())) {
     current = current.add(cashflow.get(m));
     cumulative.set(m, current);

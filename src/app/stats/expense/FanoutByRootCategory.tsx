@@ -1,8 +1,8 @@
 'use client';
 import Charts from '@/components/charts/interface';
 import {NamedTimeseries} from '@/components/charts/interface/Interface';
+import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
-import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {
   Category,
   getNameWithAncestors,
@@ -10,7 +10,6 @@ import {
   makeCategoryTree,
   subtreeIncludes,
 } from '@/lib/model/Category';
-import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {DefaultMap} from '@/lib/util/DefaultMap';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries} from '@/lib/util/Timeseries';
@@ -37,11 +36,10 @@ function ExpenseByCategory({
   input: ExchangedTransactions;
   root: Category;
 }) {
-  const displayCurrency = useDisplayCurrency();
   const {categories} = useAllDatabaseDataContext();
   const tree = makeCategoryTree(categories);
   const newEmptySeries = () =>
-    new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);
+    new MoneyTimeseries(input.currency(), Granularity.MONTHLY);
   const byId = new DefaultMap<number, MoneyTimeseries>(newEmptySeries);
   for (const {t, ownShare} of input.expenses()) {
     if (!subtreeIncludes(root, t.categoryId, tree)) {
@@ -61,7 +59,7 @@ function ExpenseByCategory({
   return (
     <Charts.StackedBar
       title={getNameWithAncestors(root, tree)}
-      currency={displayCurrency}
+      currency={input.currency()}
       granularity={Granularity.MONTHLY}
       interval={input.interval()}
       data={data}

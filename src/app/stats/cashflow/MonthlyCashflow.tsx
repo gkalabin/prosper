@@ -1,13 +1,11 @@
 'use client';
 import Charts from '@/components/charts/interface';
-import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries} from '@/lib/util/Timeseries';
 
 export function MonthlyCashflow({input}: {input: ExchangedTransactions}) {
-  const displayCurrency = useDisplayCurrency();
-  const cashflow = new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);
+  const cashflow = new MoneyTimeseries(input.currency(), Granularity.MONTHLY);
   for (const {t, ownShare} of input.income()) {
     cashflow.increment(t.timestampEpoch, ownShare);
   }

@@ -1,14 +1,12 @@
 'use client';
 import Charts from '@/components/charts/interface';
-import {differenceInYears} from 'date-fns';
-import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries} from '@/lib/util/Timeseries';
+import {differenceInYears} from 'date-fns';
 
 export function YearlySpend({input}: {input: ExchangedTransactions}) {
-  const displayCurrency = useDisplayCurrency();
-  const data = new MoneyTimeseries(displayCurrency, Granularity.YEARLY);
+  const data = new MoneyTimeseries(input.currency(), Granularity.YEARLY);
   for (const {t, ownShare} of input.expenses()) {
     data.increment(t.timestampEpoch, ownShare);
   }

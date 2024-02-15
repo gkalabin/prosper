@@ -1,12 +1,11 @@
 import Charts from '@/components/charts/interface';
+import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
-import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {
   findRoot,
   makeCategoryTree,
   mustFindCategory,
 } from '@/lib/model/Category';
-import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {currencyAppendMap} from '@/lib/util/AppendMap';
 
 export function ExpensesByRootCategory({
@@ -14,10 +13,9 @@ export function ExpensesByRootCategory({
 }: {
   input: ExchangedTransactions;
 }) {
-  const displayCurrency = useDisplayCurrency();
   const {categories} = useAllDatabaseDataContext();
   const tree = makeCategoryTree(categories);
-  const byId = currencyAppendMap<number>(displayCurrency);
+  const byId = currencyAppendMap<number>(input.currency());
   for (const {t, ownShare} of input.expenses()) {
     const root = findRoot(t.categoryId, tree);
     byId.increment(root.id, ownShare);
@@ -32,7 +30,7 @@ export function ExpensesByRootCategory({
     <Charts.HorizontalBar
       title="Expenses by root category"
       data={data}
-      currency={displayCurrency}
+      currency={input.currency()}
     />
   );
 }
