@@ -13,10 +13,6 @@ export function TopVendorsByTransactionCount({
 }) {
   const counts = new AppendMap<string, number>((a, b) => a + b, 0);
   for (const {t} of input.expenses()) {
-    // TODO: make expensesExchanged typed and remove the following check.
-    if (t.kind != 'PersonalExpense' && t.kind != 'ThirdPartyExpense') {
-      continue;
-    }
     counts.increment(t.vendor, 1);
   }
   // If there is just N+1 items, taking top N would result in only one item rolled into 'others'.
