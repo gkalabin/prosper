@@ -4,7 +4,7 @@ import {NamedTimeseries} from '@/components/charts/interface/Interface';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {getNameWithAncestors, makeCategoryTree} from '@/lib/model/Category';
-import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
+import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {DefaultMap} from '@/lib/util/DefaultMap';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries} from '@/lib/util/Timeseries';
@@ -12,7 +12,7 @@ import {MoneyTimeseries} from '@/lib/util/Timeseries';
 export function ExpensesByChildCategory({
   input,
 }: {
-  input: TransactionsStatsInput;
+  input: ExchangedTransactions;
 }) {
   const displayCurrency = useDisplayCurrency();
   const {categories} = useAllDatabaseDataContext();

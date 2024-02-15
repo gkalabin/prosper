@@ -12,9 +12,9 @@ import {
   amountOwnShare,
 } from '@/lib/model/transaction/amounts';
 import {
-  DisplayCurrencyTransaction,
-  TransactionsStatsInput,
-} from '@/lib/stats/TransactionsStatsInput';
+  ExchangedTransaction,
+  ExchangedTransactions,
+} from '@/lib/ExchangedTransactions';
 import {type Interval} from 'date-fns';
 
 function filterExcludedTransactions(
@@ -35,7 +35,7 @@ function filterExcludedTransactions(
 export function useStatsPageProps(
   excludeCategories: number[],
   duration: Interval<Date>
-): {input: TransactionsStatsInput; failed: Transaction[]} {
+): {input: ExchangedTransactions; failed: Transaction[]} {
   const {transactions, categories, bankAccounts, stocks, exchange} =
     useAllDatabaseDataContext();
   const displayCurrency = useDisplayCurrency();
@@ -45,7 +45,7 @@ export function useStatsPageProps(
     categories
   );
   const failed: Transaction[] = [];
-  const exchanged: DisplayCurrencyTransaction[] = [];
+  const exchanged: ExchangedTransaction[] = [];
   for (const t of filteredTransactions) {
     if (t.kind == 'Transfer') {
       continue;
@@ -79,7 +79,7 @@ export function useStatsPageProps(
     });
   }
   return {
-    input: new TransactionsStatsInput(duration, exchanged, displayCurrency),
+    input: new ExchangedTransactions(duration, exchanged, displayCurrency),
     failed,
   };
 }

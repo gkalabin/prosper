@@ -4,13 +4,13 @@ import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {getNameWithAncestors, makeCategoryTree} from '@/lib/model/Category';
 import {transactionCategory} from '@/lib/model/transaction/Transaction';
-import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
+import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {currencyAppendMap} from '@/lib/util/AppendMap';
 
 export function ExpenseByChildCategory({
   input,
 }: {
-  input: TransactionsStatsInput;
+  input: ExchangedTransactions;
 }) {
   const displayCurrency = useDisplayCurrency();
   const {categories} = useAllDatabaseDataContext();

@@ -1,14 +1,14 @@
 'use client';
 import Charts from '@/components/charts/interface';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
-import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
+import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries, runningAverage} from '@/lib/util/Timeseries';
 
 export function MonthlyAverageCashflow({
   input,
 }: {
-  input: TransactionsStatsInput;
+  input: ExchangedTransactions;
 }) {
   const displayCurrency = useDisplayCurrency();
   const cashflow = new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);

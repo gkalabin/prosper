@@ -8,7 +8,7 @@ import {
   makeCategoryTree,
 } from '@/lib/model/Category';
 import {transactionCategory} from '@/lib/model/transaction/Transaction';
-import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
+import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {DefaultMap} from '@/lib/util/DefaultMap';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries} from '@/lib/util/Timeseries';
@@ -16,7 +16,7 @@ import {MoneyTimeseries} from '@/lib/util/Timeseries';
 export function ExpensesByRootCategory({
   input,
 }: {
-  input: TransactionsStatsInput;
+  input: ExchangedTransactions;
 }) {
   const {categories} = useAllDatabaseDataContext();
   const categoryTree = makeCategoryTree(categories);

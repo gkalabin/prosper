@@ -1,6 +1,6 @@
 'use client';
 import Charts from '@/components/charts/interface';
-import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
+import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {AppendMap} from '@/lib/util/AppendMap';
 import {topN} from '@/lib/util/stats';
 
@@ -9,7 +9,7 @@ const TOP_N = 10;
 export function TopVendorsByTransactionCount({
   input,
 }: {
-  input: TransactionsStatsInput;
+  input: ExchangedTransactions;
 }) {
   const counts = new AppendMap<string, number>((a, b) => a + b, 0);
   for (const {t} of input.expenses()) {

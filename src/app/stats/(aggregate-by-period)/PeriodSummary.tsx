@@ -2,9 +2,9 @@
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {isExpense} from '@/lib/model/transaction/Transaction';
-import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
+import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 
-export function PeriodSummary({input}: {input: TransactionsStatsInput}) {
+export function PeriodSummary({input}: {input: ExchangedTransactions}) {
   const displayCurrency = useDisplayCurrency();
   let expense = AmountWithCurrency.zero(displayCurrency);
   for (const {ownShare} of input.expenses()) {

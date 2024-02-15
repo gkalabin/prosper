@@ -23,12 +23,12 @@ import {
 } from '@/lib/context/AllDatabaseDataContext';
 import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
-import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
+import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {Granularity} from '@/lib/util/Granularity';
 import {Interval, endOfMonth, startOfMonth} from 'date-fns';
 import {useState} from 'react';
 
-export function MonthlyStats({input}: {input: TransactionsStatsInput}) {
+export function MonthlyStats({input}: {input: ExchangedTransactions}) {
   return (
     <div className="space-y-4">
       <PeriodSummary input={input} />

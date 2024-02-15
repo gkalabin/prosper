@@ -1,19 +1,15 @@
 'use client';
 import Charts from '@/components/charts/interface';
 import {Amount} from '@/lib/Amount';
-import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
+import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {currencyAppendMap} from '@/lib/util/AppendMap';
 import {topN} from '@/lib/util/stats';
 
 const TOP_N = 10;
 
-export function TopVendorsBySpend({input}: {input: TransactionsStatsInput}) {
+export function TopVendorsBySpend({input}: {input: ExchangedTransactions}) {
   const byVendor = currencyAppendMap<string>(input.currency());
   for (const {t, ownShare} of input.expenses()) {
-    // TODO: make expensesExchanged typed and remove the following check.
-    if (t.kind != 'PersonalExpense' && t.kind != 'ThirdPartyExpense') {
-      continue;
-    }
     byVendor.increment(t.vendor, ownShare);
   }
   // If there is just N+1 items, taking top N would result in only one item rolled into 'others'.

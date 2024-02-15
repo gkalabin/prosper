@@ -6,13 +6,13 @@ import {
   makeCategoryTree,
   mustFindCategory,
 } from '@/lib/model/Category';
-import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
+import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {currencyAppendMap} from '@/lib/util/AppendMap';
 
 export function ExpensesByRootCategory({
   input,
 }: {
-  input: TransactionsStatsInput;
+  input: ExchangedTransactions;
 }) {
   const displayCurrency = useDisplayCurrency();
   const {categories} = useAllDatabaseDataContext();

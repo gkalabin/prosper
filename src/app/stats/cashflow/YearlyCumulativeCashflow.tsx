@@ -2,7 +2,7 @@
 import Charts from '@/components/charts/interface';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
-import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
+import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries} from '@/lib/util/Timeseries';
 import {eachYearOfInterval} from 'date-fns';
@@ -10,7 +10,7 @@ import {eachYearOfInterval} from 'date-fns';
 export function YearlyCumulativeCashflow({
   input,
 }: {
-  input: TransactionsStatsInput;
+  input: ExchangedTransactions;
 }) {
   const displayCurrency = useDisplayCurrency();
   const cashflow = new MoneyTimeseries(displayCurrency, Granularity.YEARLY);

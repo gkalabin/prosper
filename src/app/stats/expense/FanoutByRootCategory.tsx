@@ -10,12 +10,12 @@ import {
   makeCategoryTree,
   subtreeIncludes,
 } from '@/lib/model/Category';
-import {TransactionsStatsInput} from '@/lib/stats/TransactionsStatsInput';
+import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {DefaultMap} from '@/lib/util/DefaultMap';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries} from '@/lib/util/Timeseries';
 
-export function FanoutByRootCategory({input}: {input: TransactionsStatsInput}) {
+export function FanoutByRootCategory({input}: {input: ExchangedTransactions}) {
   const {categories} = useAllDatabaseDataContext();
   return (
     <>
@@ -34,7 +34,7 @@ function ExpenseByCategory({
   input,
   root,
 }: {
-  input: TransactionsStatsInput;
+  input: ExchangedTransactions;
   root: Category;
 }) {
   const displayCurrency = useDisplayCurrency();
