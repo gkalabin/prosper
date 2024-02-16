@@ -1,4 +1,4 @@
-import {Stock as DBStock} from '@prisma/client';
+import {Stock as DBStock, Prisma} from '@prisma/client';
 import {addDays, differenceInHours, format, isSameDay} from 'date-fns';
 import prisma from '@/lib/prisma';
 import yahooFinance from 'yahoo-finance2';
@@ -7,14 +7,20 @@ import {type HistoricalRowHistory} from 'yahoo-finance2/dist/esm/src/modules/his
 const UPDATE_FREQUENCY_HOURS = 6;
 const NO_HISTORY_LOOK_BACK_DAYS = 30;
 
-export async function fetchQuotes({
+type StockQuote = {
+  stockId: number;
+  pricePerShareCents: number;
+  quoteTimestamp: Date;
+};
+
+async function fetchQuotes({
   startDate,
   stock,
 }: {
   startDate: Date;
   stock: DBStock;
-}) {
-  const r = await yahooFinance.historical(
+}): Promise<StockQuote[]> {
+  const rows = await yahooFinance.historical(
     stock.ticker,
     {
       period1: format(startDate, 'yyyy-MM-dd'),
@@ -24,7 +30,30 @@ export async function fetchQuotes({
       devel: false,
     }
   );
-  return r;
+  const quotes: StockQuote[] = [];
+  for (const row of rows) {
+    const q = {
+      stockId: stock.id,
+      pricePerShareCents: Math.round(row.close * 100),
+      quoteTimestamp: new Date(row.date),
+    };
+    if (stock.ticker === '0P00018XAR.L' && q.pricePerShareCents > 1000000) {
+      // For an unknown reason, for Vanguard FTSE All-World UCITS ETF,
+      // the price is not in cents unlike other quotes, but is off by 100.
+      q.pricePerShareCents = Math.round(q.pricePerShareCents / 100);
+    }
+    quotes.push(q);
+  }
+  return quotes;
+}
+
+function stockQuoteToDbModel(x: StockQuote): Prisma.StockQuoteCreateManyInput {
+  // TODO: change schema to explicitly state what's stored in the value.
+  return {
+    stockId: x.stockId,
+    value: x.pricePerShareCents,
+    quoteTimestamp: x.quoteTimestamp.toISOString(),
+  };
 }
 
 export async function addLatestStockQuotes() {
@@ -47,13 +76,6 @@ export async function addLatestStockQuotes() {
 async function backfill(stock: DBStock) {
   console.log('backfilling %s', stock.ticker);
   const now = new Date();
-  const apiModelToDb = (x: HistoricalRowHistory) => {
-    return {
-      stockId: stock.id,
-      value: Math.round(x.close * 100),
-      quoteTimestamp: x.date.toISOString(),
-    };
-  };
   const latest = await prisma.stockQuote.findFirst({
     where: {
       stockId: stock.id,
@@ -81,7 +103,7 @@ async function backfill(stock: DBStock) {
       return;
     }
     await prisma.stockQuote.createMany({
-      data: fetched.map(apiModelToDb),
+      data: fetched.map(stockQuoteToDbModel),
     });
     return;
   }
@@ -118,7 +140,7 @@ async function backfill(stock: DBStock) {
       return;
     }
     await prisma.stockQuote.create({
-      data: apiModelToDb(fetched[0]),
+      data: stockQuoteToDbModel(fetched[0]),
     });
     return;
   }
@@ -145,27 +167,29 @@ async function backfill(stock: DBStock) {
   );
 
   const fetched = await fetchQuotes({stock, startDate});
-  const toUpdate = fetched.find(x => isSameDay(x.date, latest.quoteTimestamp));
+  const toUpdate = fetched.find(x =>
+    isSameDay(x.quoteTimestamp, latest.quoteTimestamp)
+  );
   if (toUpdate) {
     console.log(
       '%s: updating quote for %s',
       stock.ticker,
-      toUpdate.date.toDateString()
+      toUpdate.quoteTimestamp.toDateString()
     );
     await prisma.stockQuote.update({
-      data: apiModelToDb(toUpdate),
+      data: stockQuoteToDbModel(toUpdate),
       where: {
         id: latest.id,
       },
     });
   }
   const toInsert = fetched.filter(
-    x => !isSameDay(x.date, latest.quoteTimestamp)
+    x => !isSameDay(x.quoteTimestamp, latest.quoteTimestamp)
   );
   if (toInsert) {
     console.log('%s: inserting %d entries', stock.ticker, toInsert.length);
     await prisma.stockQuote.createMany({
-      data: toInsert.map(x => apiModelToDb(x)),
+      data: toInsert.map(x => stockQuoteToDbModel(x)),
     });
   }
 }
