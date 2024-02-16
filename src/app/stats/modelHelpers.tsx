@@ -13,7 +13,7 @@ import {
 } from '@/lib/model/transaction/amounts';
 import {
   ExchangedTransaction,
-  ExchangedTransactions,
+  ExchangedIntervalTransactions,
 } from '@/lib/ExchangedTransactions';
 import {type Interval} from 'date-fns';
 
@@ -35,7 +35,7 @@ function filterExcludedTransactions(
 export function useStatsPageProps(
   excludeCategories: number[],
   duration: Interval<Date>
-): {input: ExchangedTransactions; failed: Transaction[]} {
+): {input: ExchangedIntervalTransactions; failed: Transaction[]} {
   const {transactions, categories, bankAccounts, stocks, exchange} =
     useAllDatabaseDataContext();
   const displayCurrency = useDisplayCurrency();
@@ -79,7 +79,11 @@ export function useStatsPageProps(
     });
   }
   return {
-    input: new ExchangedTransactions(duration, exchanged, displayCurrency),
+    input: new ExchangedIntervalTransactions(
+      duration,
+      exchanged,
+      displayCurrency
+    ),
     failed,
   };
 }

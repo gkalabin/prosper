@@ -1,9 +1,9 @@
 'use client';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
-import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
+import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {isExpense} from '@/lib/model/transaction/Transaction';
 
-export function PeriodSummary({input}: {input: ExchangedTransactions}) {
+export function PeriodSummary({input}: {input: ExchangedIntervalTransactions}) {
   let expense = AmountWithCurrency.zero(input.currency());
   for (const {ownShare} of input.expenses()) {
     expense = expense.add(ownShare);

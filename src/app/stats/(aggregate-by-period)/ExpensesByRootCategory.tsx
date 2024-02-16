@@ -1,5 +1,5 @@
 import Charts from '@/components/charts/interface';
-import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
+import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {
   findRoot,
@@ -11,7 +11,7 @@ import {currencyAppendMap} from '@/lib/util/AppendMap';
 export function ExpensesByRootCategory({
   input,
 }: {
-  input: ExchangedTransactions;
+  input: ExchangedIntervalTransactions;
 }) {
   const {categories} = useAllDatabaseDataContext();
   const tree = makeCategoryTree(categories);

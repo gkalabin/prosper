@@ -23,12 +23,12 @@ import {
 } from '@/lib/context/AllDatabaseDataContext';
 import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
-import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
+import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {Granularity} from '@/lib/util/Granularity';
 import {Interval, endOfYear, startOfYear} from 'date-fns';
 import {useState} from 'react';
 
-function YearlyStats({input}: {input: ExchangedTransactions}) {
+function YearlyStats({input}: {input: ExchangedIntervalTransactions}) {
   return (
     <div className="space-y-4">
       <PeriodSummary input={input} />

@@ -1,7 +1,7 @@
 'use client';
 import Charts from '@/components/charts/interface';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
-import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
+import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries} from '@/lib/util/Timeseries';
 import {eachYearOfInterval} from 'date-fns';
@@ -9,7 +9,7 @@ import {eachYearOfInterval} from 'date-fns';
 export function YearlyCumulativeCashflow({
   input,
 }: {
-  input: ExchangedTransactions;
+  input: ExchangedIntervalTransactions;
 }) {
   const cashflow = new MoneyTimeseries(input.currency(), Granularity.YEARLY);
   for (const {t, ownShare} of input.income()) {

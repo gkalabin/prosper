@@ -30,7 +30,6 @@ export type ExchangedIncome = {
 
 export class ExchangedTransactions {
   constructor(
-    private readonly _interval: Interval,
     private readonly _exchanged: ExchangedTransaction[],
     private readonly _currency: Currency
   ) {
@@ -50,7 +49,7 @@ export class ExchangedTransactions {
     return this._currency!;
   }
 
-  expensesAllTime(): ExchangedExpense[] {
+  expenses(): ExchangedExpense[] {
     const result: ExchangedExpense[] = [];
     for (const x of this._exchanged) {
       if (!isExpense(x.t)) {
@@ -62,11 +61,7 @@ export class ExchangedTransactions {
     return result;
   }
 
-  expenses(): ExchangedExpense[] {
-    return this.expensesAllTime().filter(x => this.isWithinInterval(x.t));
-  }
-
-  incomeAllTime(): ExchangedIncome[] {
+  income(): ExchangedIncome[] {
     const result: ExchangedIncome[] = [];
     for (const x of this._exchanged) {
       if (!isIncome(x.t)) {
@@ -76,6 +71,39 @@ export class ExchangedTransactions {
       result.push({...x, t: x.t});
     }
     return result;
+  }
+}
+
+export class ExchangedIntervalTransactions {
+  private readonly _allTimeTransactions: ExchangedTransactions;
+  private readonly _interval: Interval;
+
+  constructor(
+    _interval: Interval,
+    _exchanged: ExchangedTransaction[],
+    _currency: Currency
+  ) {
+    this._allTimeTransactions = new ExchangedTransactions(
+      _exchanged,
+      _currency
+    );
+    this._interval = _interval;
+  }
+
+  currency(): Currency {
+    return this._allTimeTransactions.currency();
+  }
+
+  expensesAllTime(): ExchangedExpense[] {
+    return this._allTimeTransactions.expenses();
+  }
+
+  expenses(): ExchangedExpense[] {
+    return this.expensesAllTime().filter(x => this.isWithinInterval(x.t));
+  }
+
+  incomeAllTime(): ExchangedIncome[] {
+    return this._allTimeTransactions.income();
   }
 
   income(): ExchangedIncome[] {

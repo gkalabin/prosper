@@ -1,7 +1,7 @@
 'use client';
 import Charts from '@/components/charts/interface';
 import {NamedTimeseries} from '@/components/charts/interface/Interface';
-import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
+import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {
   Category,
@@ -14,7 +14,11 @@ import {DefaultMap} from '@/lib/util/DefaultMap';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries} from '@/lib/util/Timeseries';
 
-export function FanoutByRootCategory({input}: {input: ExchangedTransactions}) {
+export function FanoutByRootCategory({
+  input,
+}: {
+  input: ExchangedIntervalTransactions;
+}) {
   const {categories} = useAllDatabaseDataContext();
   return (
     <>
@@ -33,7 +37,7 @@ function ExpenseByCategory({
   input,
   root,
 }: {
-  input: ExchangedTransactions;
+  input: ExchangedIntervalTransactions;
   root: Category;
 }) {
   const {categories} = useAllDatabaseDataContext();
