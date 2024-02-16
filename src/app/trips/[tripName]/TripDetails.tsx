@@ -1,5 +1,4 @@
 'use client';
-import {Trip as DBTrip} from '@prisma/client';
 import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
 import {
   NotConfiguredYet,
@@ -16,49 +15,78 @@ import {
 import {AnchorLink} from '@/components/ui/anchors';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {
+  ExchangedTransaction,
+  ExchangedTransactions,
+} from '@/lib/ExchangedTransactions';
+import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
 } from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {Trip, tripModelFromDB} from '@/lib/model/Trip';
-import {Income} from '@/lib/model/transaction/Income';
-import {
-  Expense,
-  Transaction,
-  isExpense,
-  isIncome,
-} from '@/lib/model/transaction/Transaction';
+import {Transaction} from '@/lib/model/transaction/Transaction';
 import {
   amountAllParties,
   amountOwnShare,
 } from '@/lib/model/transaction/amounts';
+import {Trip as DBTrip} from '@prisma/client';
+
+function TripSpendingStats({
+  transactions,
+}: {
+  transactions: ExchangedTransactions;
+}) {
+  return (
+    <>
+      <h2 className="mt-4 text-xl leading-7">Expenses by category</h2>
+      <ChildCategoryFullAmountChart
+        title="Gross"
+        transactions={transactions.transactions().map(({t}) => t)}
+      />
+      <ChildCategoryOwnShareChart
+        title="Net"
+        transactions={transactions.transactions().map(({t}) => t)}
+      />
+    </>
+  );
+}
+
+function TripTextSummary({
+  transactions,
+}: {
+  transactions: ExchangedTransactions;
+}) {
+  let spentAllParties = AmountWithCurrency.zero(transactions.currency());
+  let spentOwnShare = AmountWithCurrency.zero(transactions.currency());
+  for (const {ownShare, allParties} of transactions.expenses()) {
+    spentAllParties = spentAllParties.add(allParties);
+    spentOwnShare = spentOwnShare.add(ownShare);
+  }
+  return (
+    <>
+      <div>Gross amount: {spentAllParties.format()}</div>
+      <div>
+        Net amount, own share only: {spentOwnShare.format()} (
+        {Math.round((100 * spentOwnShare.dollar()) / spentAllParties.dollar())}
+        %)
+      </div>
+    </>
+  );
+}
 
 function NonEmptyTripDetails(props: {trip: Trip}) {
   const {transactions: allTransactions} = useAllDatabaseDataContext();
   const displayCurrency = useDisplayCurrency();
   const {bankAccounts, stocks, exchange} = useAllDatabaseDataContext();
-  const transactions = allTransactions
-    .filter((tx): tx is Income | Expense => isIncome(tx) || isExpense(tx))
-    .filter(tx => tx.tripId == props.trip.id);
-
-  const failedToExchange: Transaction[] = [];
-  let fullAmount = AmountWithCurrency.zero(displayCurrency);
-  let ownAmount = AmountWithCurrency.zero(displayCurrency);
-  for (const t of transactions) {
-    let failed = false;
-    const all = amountAllParties(
-      t,
-      displayCurrency,
-      bankAccounts,
-      stocks,
-      exchange
-    );
-    if (all) {
-      fullAmount = fullAmount.add(all);
-    } else {
-      failed = true;
-      failedToExchange.push(t);
+  const exchanged: ExchangedTransaction[] = [];
+  const failed: Transaction[] = [];
+  for (const t of allTransactions) {
+    if (t.kind == 'Transfer') {
+      continue;
+    }
+    if (t.tripId != props.trip.id) {
+      continue;
     }
     const own = amountOwnShare(
       t,
@@ -67,34 +95,40 @@ function NonEmptyTripDetails(props: {trip: Trip}) {
       stocks,
       exchange
     );
-    if (own) {
-      ownAmount = ownAmount.add(own);
-    } else if (!failed) {
-      failedToExchange.push(t);
+    if (!own) {
+      failed.push(t);
+      continue;
     }
+    const all = amountAllParties(
+      t,
+      displayCurrency,
+      bankAccounts,
+      stocks,
+      exchange
+    );
+    if (!all) {
+      failed.push(t);
+      continue;
+    }
+    exchanged.push({
+      t,
+      ownShare: own,
+      allParties: all,
+    });
   }
+  const transactions = new ExchangedTransactions(exchanged, displayCurrency);
   return (
     <div>
       <AnchorLink href="/trips">Back to all trips</AnchorLink>
       <h1 className="text-xl leading-7">{props.trip.name}</h1>
-      <CurrencyExchangeFailed failedTransactions={failedToExchange} />
-      <div>Gross amount: {fullAmount.format()}</div>
-      <div>
-        Net amount, own share only: {ownAmount.format()} (
-        {Math.round((100 * ownAmount.dollar()) / fullAmount.dollar())}%)
-      </div>
-
-      <h2 className="mt-4 text-xl leading-7">Expenses by category</h2>
-
-      <ChildCategoryFullAmountChart title="Gross" transactions={transactions} />
-      <ChildCategoryOwnShareChart title="Net" transactions={transactions} />
-
+      <CurrencyExchangeFailed failedTransactions={failed} />
+      <TripTextSummary transactions={transactions} />
+      <TripSpendingStats transactions={transactions} />
       <h2 className="mt-4 text-xl leading-7">
-        Transactions ({transactions.length})
+        Transactions ({transactions.transactions().length})
       </h2>
-
       <SortableTransactionsList
-        transactions={transactions}
+        transactions={transactions.transactions().map(({t}) => t)}
         initialSorting={SortingMode.DATE_ASC}
       />
     </div>

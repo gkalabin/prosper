@@ -72,6 +72,10 @@ export class ExchangedTransactions {
     }
     return result;
   }
+
+  transactions(): ExchangedTransaction[] {
+    return [...this._exchanged];
+  }
 }
 
 export class ExchangedIntervalTransactions {
