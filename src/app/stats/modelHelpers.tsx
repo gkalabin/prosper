@@ -1,3 +1,8 @@
+import {
+  ExchangedIntervalTransactions,
+  ExchangedTransaction,
+  ExchangedTransactions,
+} from '@/lib/ExchangedTransactions';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {
@@ -11,10 +16,6 @@ import {
   amountAllParties,
   amountOwnShare,
 } from '@/lib/model/transaction/amounts';
-import {
-  ExchangedTransaction,
-  ExchangedIntervalTransactions,
-} from '@/lib/ExchangedTransactions';
 import {type Interval} from 'date-fns';
 
 function filterExcludedTransactions(
@@ -36,17 +37,32 @@ export function useStatsPageProps(
   excludeCategories: number[],
   duration: Interval<Date>
 ): {input: ExchangedIntervalTransactions; failed: Transaction[]} {
-  const {transactions, categories, bankAccounts, stocks, exchange} =
-    useAllDatabaseDataContext();
-  const displayCurrency = useDisplayCurrency();
+  const {transactions, categories} = useAllDatabaseDataContext();
   const filteredTransactions = filterExcludedTransactions(
     transactions,
     excludeCategories,
     categories
   );
+  const {input, failed} = useExchangedTransactions(filteredTransactions);
+  return {
+    input: new ExchangedIntervalTransactions(
+      duration,
+      input.transactions(),
+      input.currency()
+    ),
+    failed,
+  };
+}
+
+export function useExchangedTransactions(trasactions: Transaction[]): {
+  input: ExchangedTransactions;
+  failed: Transaction[];
+} {
+  const {bankAccounts, stocks, exchange} = useAllDatabaseDataContext();
+  const displayCurrency = useDisplayCurrency();
   const failed: Transaction[] = [];
   const exchanged: ExchangedTransaction[] = [];
-  for (const t of filteredTransactions) {
+  for (const t of trasactions) {
     if (t.kind == 'Transfer') {
       continue;
     }
@@ -79,11 +95,7 @@ export function useStatsPageProps(
     });
   }
   return {
-    input: new ExchangedIntervalTransactions(
-      duration,
-      exchanged,
-      displayCurrency
-    ),
+    input: new ExchangedTransactions(exchanged, displayCurrency),
     failed,
   };
 }

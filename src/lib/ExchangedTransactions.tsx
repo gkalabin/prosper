@@ -72,10 +72,13 @@ export class ExchangedTransactions {
     }
     return result;
   }
+
+  transactions(): ExchangedTransaction[] {
+    return [...this._exchanged];
+  }
 }
 
-export class ExchangedIntervalTransactions {
-  private readonly _allTimeTransactions: ExchangedTransactions;
+export class ExchangedIntervalTransactions extends ExchangedTransactions {
   private readonly _interval: Interval;
 
   constructor(
@@ -83,19 +86,12 @@ export class ExchangedIntervalTransactions {
     _exchanged: ExchangedTransaction[],
     _currency: Currency
   ) {
-    this._allTimeTransactions = new ExchangedTransactions(
-      _exchanged,
-      _currency
-    );
+    super(_exchanged, _currency);
     this._interval = _interval;
   }
 
-  currency(): Currency {
-    return this._allTimeTransactions.currency();
-  }
-
   expensesAllTime(): ExchangedExpense[] {
-    return this._allTimeTransactions.expenses();
+    return super.expenses();
   }
 
   expenses(): ExchangedExpense[] {
@@ -103,7 +99,7 @@ export class ExchangedIntervalTransactions {
   }
 
   incomeAllTime(): ExchangedIncome[] {
-    return this._allTimeTransactions.income();
+    return super.income();
   }
 
   income(): ExchangedIncome[] {
