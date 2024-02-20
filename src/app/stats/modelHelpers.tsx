@@ -1,3 +1,4 @@
+import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {
   ExchangedIntervalTransactions,
   ExchangedTransaction,
@@ -54,6 +55,21 @@ export function useStatsPageProps(
   };
 }
 
+export function useExchangedIntervalTransactions(
+  trasactions: Transaction[],
+  duration: Interval<Date>
+): {input: ExchangedIntervalTransactions; failed: Transaction[]} {
+  const {input, failed} = useExchangedTransactions(trasactions);
+  return {
+    input: new ExchangedIntervalTransactions(
+      duration,
+      input.transactions(),
+      input.currency()
+    ),
+    failed,
+  };
+}
+
 export function useExchangedTransactions(trasactions: Transaction[]): {
   input: ExchangedTransactions;
   failed: Transaction[];
@@ -64,6 +80,11 @@ export function useExchangedTransactions(trasactions: Transaction[]): {
   const exchanged: ExchangedTransaction[] = [];
   for (const t of trasactions) {
     if (t.kind == 'Transfer') {
+      exchanged.push({
+        t,
+        ownShare: AmountWithCurrency.zero(displayCurrency),
+        allParties: AmountWithCurrency.zero(displayCurrency),
+      });
       continue;
     }
     const own = amountOwnShare(

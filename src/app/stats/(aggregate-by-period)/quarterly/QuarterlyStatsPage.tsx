@@ -1,14 +1,14 @@
 'use client';
-import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
-import {ExcludedCategoriesSelector} from '@/app/stats/ExcludedCategoriesSelector';
-import {useStatsPageProps} from '@/app/stats/modelHelpers';
 import {ExpenseByChildCategory} from '@/app/stats/(aggregate-by-period)/ExpenseByChildCategory';
-import {ExpensesByRootCategory} from '@/app/stats/(aggregate-by-period)/ExpensesByRootCategory';
+import {RootCategoryBreakdownChart} from '@/app/stats/(aggregate-by-period)/ExpensesByRootCategory';
 import {IncomeByChildCategory} from '@/app/stats/(aggregate-by-period)/IncomeByChildCategory';
 import {Navigation} from '@/app/stats/(aggregate-by-period)/Navigation';
 import {PeriodSummary} from '@/app/stats/(aggregate-by-period)/PeriodSummary';
 import {TopVendorsBySpend} from '@/app/stats/(aggregate-by-period)/TopVendorsBySpend';
 import {TopVendorsByTransactionCount} from '@/app/stats/(aggregate-by-period)/TopVendorsByTransactionCount';
+import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
+import {ExcludedCategoriesSelector} from '@/app/stats/ExcludedCategoriesSelector';
+import {useStatsPageProps} from '@/app/stats/modelHelpers';
 import {
   NotConfiguredYet,
   isFullyConfigured,
@@ -17,13 +17,13 @@ import {
   SortableTransactionsList,
   SortingMode,
 } from '@/components/transactions/SortableTransactionsList';
+import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
 } from '@/lib/context/AllDatabaseDataContext';
 import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
-import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {Granularity} from '@/lib/util/Granularity';
 import {Interval, endOfQuarter, startOfQuarter} from 'date-fns';
 import {useState} from 'react';
@@ -40,7 +40,11 @@ export function QuarterlyStats({
         <h1 className="text-xl font-medium leading-7">
           Expenses ({input.expenses().length})
         </h1>
-        <ExpensesByRootCategory input={input} />
+        <RootCategoryBreakdownChart
+          title={'Expenses by root category'}
+          currency={input.currency()}
+          data={input.expenses()}
+        />
         <ExpenseByChildCategory input={input} />
         <SortableTransactionsList
           transactions={input.expenses().map(({t}) => t)}

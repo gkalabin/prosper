@@ -7,13 +7,25 @@ import {
   Transaction,
   isExpense,
   isIncome,
+  isTransfer,
 } from '@/lib/model/transaction/Transaction';
+import {Transfer} from '@/lib/model/transaction/Transfer';
 import {isWithinInterval, type Interval} from 'date-fns';
+
+export type TransactionWithAmount = {
+  t: Transaction;
+  a: AmountWithCurrency;
+};
 
 export type ExchangedTransaction = {
   t: Transaction;
   ownShare: AmountWithCurrency;
   allParties: AmountWithCurrency;
+};
+
+export type ExchangedTransfer = {
+  t: Transfer;
+  // Moving money between accounts results in net zero change.
 };
 
 export type ExchangedExpense = {
@@ -104,6 +116,13 @@ export class ExchangedIntervalTransactions extends ExchangedTransactions {
 
   income(): ExchangedIncome[] {
     return this.incomeAllTime().filter(x => this.isWithinInterval(x.t));
+  }
+
+  transfers(): ExchangedTransfer[] {
+    return this.transactions()
+      .map(({t}) => t)
+      .filter((t): t is Transfer => isTransfer(t))
+      .map(t => ({t}));
   }
 
   interval() {

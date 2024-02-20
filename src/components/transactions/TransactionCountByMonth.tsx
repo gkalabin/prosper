@@ -1,25 +1,22 @@
 import Charts from '@/components/charts/interface';
-import {Transaction} from '@/lib/model/transaction/Transaction';
+import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {Granularity} from '@/lib/util/Granularity';
 import {NumberTimeseries} from '@/lib/util/Timeseries';
-import {type Interval} from 'date-fns';
 
 export function TransactionCountByMonth({
-  transactions,
-  duration,
+  input,
 }: {
-  transactions: Transaction[];
-  duration: Interval;
+  input: ExchangedIntervalTransactions;
 }) {
   const data = new NumberTimeseries(Granularity.MONTHLY);
-  for (const t of transactions) {
+  for (const {t} of input.transactions()) {
     data.increment(t.timestampEpoch, 1);
   }
   return (
     <Charts.Bar
       title={'Number of transactions per month'}
       granularity={Granularity.MONTHLY}
-      interval={duration}
+      interval={input.interval()}
       data={data}
     />
   );

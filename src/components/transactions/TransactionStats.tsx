@@ -1,37 +1,20 @@
+import {RootCategoryBreakdownChart} from '@/app/stats/(aggregate-by-period)/ExpensesByRootCategory';
 import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
-import {
-  ChildCategoryFullAmountChart,
-  ChildCategoryOwnShareChart,
-} from '@/components/charts/CategoryPie';
-import {
-  MonthlyAllParties,
-  MonthlyOwnShare,
-} from '@/components/charts/MonthlySum';
-import {YearlyAllParties, YearlyOwnShare} from '@/components/charts/YearlySum';
+import {TimelineAmountsChart} from '@/app/stats/expense/TimelineAmountsChart';
+import {useExchangedIntervalTransactions} from '@/app/stats/modelHelpers';
 import {TransactionCountByMonth} from '@/components/transactions/TransactionCountByMonth';
 import {ButtonFormSecondary} from '@/components/ui/buttons';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
-import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
-import {Income} from '@/lib/model/transaction/Income';
+import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {
-  Expense,
   Transaction,
-  isExpense,
-  isIncome,
   isPersonalExpense,
   isThirdPartyExpense,
-  isTransfer,
 } from '@/lib/model/transaction/Transaction';
-import {
-  amountAllParties,
-  amountOwnShare,
-} from '@/lib/model/transaction/amounts';
-import {AppendMap} from '@/lib/util/AppendMap';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries, percentile} from '@/lib/util/Timeseries';
 import {capitalize} from '@/lib/util/util';
-import {differenceInMonths, startOfMonth} from 'date-fns';
+import {differenceInMonths} from 'date-fns';
 
 export function TransactionStats(props: {
   onClose: () => void;
@@ -61,14 +44,17 @@ function NonEmptyTransactionStats({
   onClose: () => void;
   transactions: Transaction[];
 }) {
+  const sorted = [...transactions].sort(
+    (a, b) => a.timestampEpoch - b.timestampEpoch
+  );
+  const [first, last] = [sorted[0], sorted[sorted.length - 1]];
+  const duration = {start: first.timestampEpoch, end: last.timestampEpoch};
+  const {input, failed} = useExchangedIntervalTransactions(sorted, duration);
   return (
     <>
-      <div className="col-span-6">
-        <TextSummary transactions={transactions} />
-      </div>
-
-      <Charts transactions={transactions} />
-
+      <CurrencyExchangeFailed failedTransactions={failed} />
+      <TextSummary input={input} />
+      <Charts input={input} />
       <div className="col-span-6">
         <ButtonFormSecondary onClick={onClose}>Close</ButtonFormSecondary>
       </div>
@@ -76,119 +62,72 @@ function NonEmptyTransactionStats({
   );
 }
 
-function TextSummary({transactions}: {transactions: Transaction[]}) {
-  const [first, last] = [
-    transactions[0],
-    transactions[transactions.length - 1],
-  ];
+function TextSummary({input}: {input: ExchangedIntervalTransactions}) {
   return (
-    <div className="col-span-6">
-      Matched {transactions.length} transactions over the last{' '}
-      {differenceInMonths(last.timestampEpoch, first.timestampEpoch)} months
+    <section className="col-span-6">
+      Matched {input.transactions().length} transactions over the last{' '}
+      {differenceInMonths(input.interval().end, input.interval().start)} months
       <div className="ml-2 text-sm text-slate-600">
         <div>
-          Personal: {transactions.filter(t => isPersonalExpense(t)).length}
+          Personal:{' '}
+          {input.expenses().filter(({t}) => isPersonalExpense(t)).length}
         </div>
         <div>
-          External: {transactions.filter(t => isThirdPartyExpense(t)).length}
+          External:{' '}
+          {input.expenses().filter(({t}) => isThirdPartyExpense(t)).length}
         </div>
-        <div>Transfers: {transactions.filter(t => isTransfer(t)).length}</div>
-        <div>Income: {transactions.filter(t => isIncome(t)).length}</div>
-        <div>First: {new Date(first.timestampEpoch).toISOString()}</div>
-        <div>Last: {new Date(last.timestampEpoch).toISOString()}</div>
+        <div>Transfers: {input.transfers().length}</div>
+        <div>Income: {input.income().length}</div>
+        <div>First: {new Date(input.interval().start).toISOString()}</div>
+        <div>Last: {new Date(input.interval().end).toISOString()}</div>
       </div>
-    </div>
+    </section>
   );
 }
 
-function Charts({transactions}: {transactions: Transaction[]}) {
-  const [first, last] = [
-    transactions[0],
-    transactions[transactions.length - 1],
-  ];
-  const duration = {start: first.timestampEpoch, end: last.timestampEpoch};
+function Charts({input}: {input: ExchangedIntervalTransactions}) {
   return (
     <div className="col-span-6">
-      <TransactionCountByMonth
-        duration={duration}
-        transactions={transactions}
-      />
+      <TransactionCountByMonth input={input} />
       <h1 className="mb-1 mt-4 text-xl font-medium leading-7">Expenses</h1>
-      <ExenseStats transactions={transactions} />
+      <IncomeOrExenseStats kind={'expense'} input={input} />
       <h1 className="mb-1 mt-4 text-xl font-medium leading-7">Income</h1>
-      <IncomeStats transactions={transactions} />
+      <IncomeOrExenseStats kind={'income'} input={input} />
     </div>
   );
 }
 
 function IncomeOrExenseStats({
-  transactions,
+  input,
+  kind,
 }: {
-  transactions: (Income | Expense)[];
+  input: ExchangedIntervalTransactions;
+  kind: 'expense' | 'income';
 }) {
-  const displayCurrency = useDisplayCurrency();
-  const {bankAccounts, stocks, exchange} = useAllDatabaseDataContext();
+  const transactions = kind == 'expense' ? input.expenses() : input.income();
   if (!transactions.length) {
     return <></>;
   }
-  const [first, last] = [
-    transactions[0],
-    transactions[transactions.length - 1],
-  ];
-  const spentOrReceived = first.kind == 'Income' ? 'income' : 'expense';
+  const spentOrReceived = kind == 'income' ? 'income' : 'expense';
   const spentOrReceivedCapital = capitalize(spentOrReceived);
-  const duration = {start: first.timestampEpoch, end: last.timestampEpoch};
-  const zero = AmountWithCurrency.zero(displayCurrency);
+  let totalGross = AmountWithCurrency.zero(input.currency());
+  let totalNet = AmountWithCurrency.zero(input.currency());
   const grossPerMonth = new MoneyTimeseries(
-    displayCurrency,
+    input.currency(),
     Granularity.MONTHLY
   );
-  const netPerMonth = new MoneyTimeseries(displayCurrency, Granularity.MONTHLY);
-  const grossPerCategory = new AppendMap<number, AmountWithCurrency>(
-    AmountWithCurrency.add,
-    zero
+  const netPerMonth = new MoneyTimeseries(
+    input.currency(),
+    Granularity.MONTHLY
   );
-  const netPerCategory = new AppendMap<number, AmountWithCurrency>(
-    AmountWithCurrency.add,
-    zero
-  );
-  const gross: AmountWithCurrency[] = [];
-  const net: AmountWithCurrency[] = [];
-  const failedToExchange: Transaction[] = [];
-  for (const t of transactions) {
-    const ts = startOfMonth(t.timestampEpoch);
-    const g = amountAllParties(
-      t,
-      displayCurrency,
-      bankAccounts,
-      stocks,
-      exchange
-    );
-    const n = amountOwnShare(
-      t,
-      displayCurrency,
-      bankAccounts,
-      stocks,
-      exchange
-    );
-    if (!g || !n) {
-      failedToExchange.push(t);
-      continue;
-    }
-    gross.push(g);
-    net.push(n);
-    netPerMonth.increment(ts, n);
-    grossPerMonth.increment(ts, g);
-    const cid = t.categoryId;
-    grossPerCategory.increment(cid, g);
-    netPerCategory.increment(cid, n);
+  for (const {t, ownShare, allParties} of transactions) {
+    totalNet = totalNet.add(ownShare);
+    netPerMonth.increment(t.timestampEpoch, ownShare);
+    totalGross = totalGross.add(allParties);
+    grossPerMonth.increment(t.timestampEpoch, allParties);
   }
-  const totalGross = gross.reduce((a, b) => a.add(b), zero);
-  const totalNet = net.reduce((a, b) => a.add(b), zero);
-
   return (
     <div>
-      <CurrencyExchangeFailed failedTransactions={failedToExchange} />
       <div className="mb-2 ml-2 text-sm text-slate-600">
         <div>
           Total: {totalGross.round().format()}(gross) /{' '}
@@ -217,44 +156,51 @@ function IncomeOrExenseStats({
           </div>
         </div>
       </div>
-      <YearlyAllParties
-        transactions={transactions}
+      <TimelineAmountsChart
         title={`Money ${spentOrReceived} gross (all parties)`}
-        duration={duration}
+        granularity={Granularity.YEARLY}
+        data={transactions.map(({t, allParties}) => ({
+          timestamp: t.timestampEpoch,
+          amount: allParties,
+        }))}
+        timeline={input.interval()}
+        currency={input.currency()}
       />
-      <YearlyOwnShare
-        transactions={transactions}
-        title={`"Money ${spentOrReceived} net (own share)"`}
-        duration={duration}
+      <TimelineAmountsChart
+        title={`Money ${spentOrReceived} net (own share)`}
+        granularity={Granularity.YEARLY}
+        data={transactions.map(({t, ownShare}) => ({
+          timestamp: t.timestampEpoch,
+          amount: ownShare,
+        }))}
+        timeline={input.interval()}
+        currency={input.currency()}
       />
-      <MonthlyAllParties
-        transactions={transactions}
-        title={`"Money ${spentOrReceived} gross (all parties)"`}
-        duration={duration}
+      <TimelineAmountsChart
+        title={`Money ${spentOrReceived} gross (all parties)`}
+        granularity={Granularity.MONTHLY}
+        data={transactions.map(({t, allParties}) => ({
+          timestamp: t.timestampEpoch,
+          amount: allParties,
+        }))}
+        timeline={input.interval()}
+        currency={input.currency()}
       />
-      <MonthlyOwnShare
-        transactions={transactions}
-        title={`"Money ${spentOrReceived} net (own share)"`}
-        duration={duration}
+      <TimelineAmountsChart
+        title={`Money ${spentOrReceived} net (own share)`}
+        granularity={Granularity.MONTHLY}
+        data={transactions.map(({t, ownShare}) => ({
+          timestamp: t.timestampEpoch,
+          amount: ownShare,
+        }))}
+        timeline={input.interval()}
+        currency={input.currency()}
       />
-      <ChildCategoryFullAmountChart
-        transactions={transactions}
-        title={`"${spentOrReceivedCapital} by category gross (all parties)"`}
-      />
-      <ChildCategoryOwnShareChart
-        transactions={transactions}
-        title={`"${spentOrReceivedCapital} by category net (own share)"`}
+      <RootCategoryBreakdownChart
+        title={`${spentOrReceivedCapital} by top level category net (own share)`}
+        currency={input.currency()}
+        data={transactions}
       />
     </div>
   );
-}
-
-function ExenseStats({transactions}: {transactions: Transaction[]}) {
-  const expenses = transactions.filter((t): t is Expense => isExpense(t));
-  return <IncomeOrExenseStats transactions={expenses} />;
-}
-
-function IncomeStats({transactions}: {transactions: Transaction[]}) {
-  const income = transactions.filter((t): t is Income => isIncome(t));
-  return <IncomeOrExenseStats transactions={income} />;
 }
