@@ -1,5 +1,5 @@
 'use client';
-import Charts from '@/components/charts/interface';
+import {Charts} from '@/components/charts/interface';
 import {Amount} from '@/lib/Amount';
 import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {currencyAppendMap} from '@/lib/util/AppendMap';

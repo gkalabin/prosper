@@ -1,4 +1,4 @@
-import Charts from '@/components/charts/interface';
+import {Charts} from '@/components/charts/interface';
 import {ExchangedExpense, ExchangedIncome} from '@/lib/ExchangedTransactions';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {

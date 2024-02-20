@@ -1,5 +1,5 @@
 'use client';
-import Charts from '@/components/charts/interface';
+import {Charts} from '@/components/charts/interface';
 import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries} from '@/lib/util/Timeseries';
