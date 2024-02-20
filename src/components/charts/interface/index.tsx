@@ -1,4 +1,4 @@
-import echarts from '@/components/charts/interface/Echarts';
-import {ChartsLibrary} from '@/components/charts/interface/Interface';
+import {ChartsLibrary} from '@/components/charts/interface/ChartsLibrary';
+import {Echarts} from '@/components/charts/interface/Echarts';
 
-export const Charts: ChartsLibrary = echarts;
+export const Charts: ChartsLibrary = Echarts;

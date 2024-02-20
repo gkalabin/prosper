@@ -5,7 +5,7 @@ import {
   StackedBarProps,
   TimeseriesMoneyProps,
   TimeseriesNumbersProps,
-} from '@/components/charts/interface/Interface';
+} from '@/components/charts/interface/ChartsLibrary';
 import {Currency, formatCurrency} from '@/lib/model/Currency';
 import {formatInterval, sliceInterval} from '@/lib/util/time';
 import {type EChartsOption} from 'echarts';
@@ -265,5 +265,4 @@ function StackedBar({
   );
 }
 
-const echartsImpl: ChartsLibrary = {Line, Bar, HorizontalBar, StackedBar};
-export default echartsImpl;
+export const Echarts: ChartsLibrary = {Line, Bar, HorizontalBar, StackedBar};

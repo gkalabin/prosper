@@ -43,12 +43,12 @@ export type NamedTimeseries = {
   series: MoneyTimeseries;
 };
 
-export type NamedAmount = {
+type NamedAmount = {
   name: string;
   amount: Amount;
 };
 
-export type NamedNumber = {
+type NamedNumber = {
   name: string;
   amount: number;
 };
