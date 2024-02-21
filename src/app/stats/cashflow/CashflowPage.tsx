@@ -1,15 +1,15 @@
 'use client';
 import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from '@/app/stats/ExcludedCategoriesSelector';
-import {MonthlyAverageCashflow} from '@/app/stats/cashflow/MonthlyAverageCashflow';
-import {MonthlyCashflow} from '@/app/stats/cashflow/MonthlyCashflow';
-import {MonthlyCumulativeCashflow} from '@/app/stats/cashflow/MonthlyCumulativeCashflow';
-import {YearlyCashflow} from '@/app/stats/cashflow/YearlyCashflow';
-import {YearlyCumulativeCashflow} from '@/app/stats/cashflow/YearlyCumulativeCashflow';
-import {MonthlySpend} from '@/app/stats/expense/MonthlySpend';
-import {YearlySpend} from '@/app/stats/expense/YearlySpend';
-import {MonthlyIncome} from '@/app/stats/income/MonthlyIncome';
-import {YearlyIncome} from '@/app/stats/income/YearlyIncome';
+import {MonthlyAverageCashflow} from '@/components/charts/MonthlyAverageCashflow';
+import {MonthlyCashflow} from '@/components/charts/MonthlyCashflow';
+import {MonthlyCumulativeCashflow} from '@/components/charts/MonthlyCumulativeCashflow';
+import {YearlyCashflow} from '@/components/charts/YearlyCashflow';
+import {YearlyCumulativeCashflow} from '@/components/charts/YearlyCumulativeCashflow';
+import {MonthlySpend} from '@/components/charts/MonthlySpend';
+import {YearlySpend} from '@/components/charts/YearlySpend';
+import {MonthlyIncome} from '@/components/charts/MonthlyIncome';
+import {YearlyIncome} from '@/components/charts/YearlyIncome';
 import {useStatsPageProps} from '@/app/stats/modelHelpers';
 import {DurationSelector, LAST_6_MONTHS} from '@/components/DurationSelector';
 import {

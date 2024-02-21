@@ -8,7 +8,7 @@ import {DefaultMap} from '@/lib/util/DefaultMap';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries} from '@/lib/util/Timeseries';
 
-export function IncomeByChildCategory({
+export function IncomeTimelineByChildCategory({
   input,
 }: {
   input: ExchangedIntervalTransactions;

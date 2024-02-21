@@ -1,5 +1,5 @@
 'use client';
-import {ExpenseByChildCategory} from '@/app/stats/(aggregate-by-period)/ExpenseByChildCategory';
+import {ExpenseByChildCategory} from '@/components/charts/ExpenseByChildCategory';
 import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
 import {useExchangedTransactions} from '@/app/stats/modelHelpers';
 import {

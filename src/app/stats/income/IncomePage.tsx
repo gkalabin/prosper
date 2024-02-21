@@ -1,10 +1,10 @@
 'use client';
 import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from '@/app/stats/ExcludedCategoriesSelector';
-import {AverageMonthlyIncome} from '@/app/stats/income/AverageMonthlyIncome';
-import {IncomeByChildCategory} from '@/app/stats/income/IncomeByChildCategory';
-import {MonthlyIncome} from '@/app/stats/income/MonthlyIncome';
-import {YearlyIncome} from '@/app/stats/income/YearlyIncome';
+import {AverageMonthlyIncome} from '@/components/charts/AverageMonthlyIncome';
+import {IncomeTimelineByChildCategory} from '@/components/charts/IncomeTimelineByChildCategory';
+import {MonthlyIncome} from '@/components/charts/MonthlyIncome';
+import {YearlyIncome} from '@/components/charts/YearlyIncome';
 import {useStatsPageProps} from '@/app/stats/modelHelpers';
 import {DurationSelector, LAST_6_MONTHS} from '@/components/DurationSelector';
 import {
@@ -36,7 +36,7 @@ function NonEmptyPageContent() {
       <MonthlyIncome input={input} />
       <AverageMonthlyIncome input={input} />
       <YearlyIncome input={input} />
-      <IncomeByChildCategory input={input} />
+      <IncomeTimelineByChildCategory input={input} />
     </div>
   );
 }

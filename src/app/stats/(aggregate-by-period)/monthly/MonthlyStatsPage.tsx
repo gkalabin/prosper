@@ -1,11 +1,11 @@
 'use client';
-import {ExpenseByChildCategory} from '@/app/stats/(aggregate-by-period)/ExpenseByChildCategory';
-import {RootCategoryBreakdownChart} from '@/app/stats/(aggregate-by-period)/ExpensesByRootCategory';
-import {IncomeByChildCategory} from '@/app/stats/(aggregate-by-period)/IncomeByChildCategory';
+import {ExpenseByChildCategory} from '@/components/charts/ExpenseByChildCategory';
+import {RootCategoryBreakdownChart} from '@/components/charts/ExpensesByRootCategory';
+import {IncomeByChildCategory} from '@/components/charts/IncomeByChildCategory';
 import {Navigation} from '@/app/stats/(aggregate-by-period)/Navigation';
 import {PeriodSummary} from '@/app/stats/(aggregate-by-period)/PeriodSummary';
-import {TopVendorsBySpend} from '@/app/stats/(aggregate-by-period)/TopVendorsBySpend';
-import {TopVendorsByTransactionCount} from '@/app/stats/(aggregate-by-period)/TopVendorsByTransactionCount';
+import {TopVendorsBySpend} from '@/components/charts/TopVendorsBySpend';
+import {TopVendorsByTransactionCount} from '@/components/charts/TopVendorsByTransactionCount';
 import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from '@/app/stats/ExcludedCategoriesSelector';
 import {useStatsPageProps} from '@/app/stats/modelHelpers';

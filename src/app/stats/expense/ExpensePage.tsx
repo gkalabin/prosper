@@ -1,12 +1,12 @@
 'use client';
 import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from '@/app/stats/ExcludedCategoriesSelector';
-import {AverageMonthlySpend} from '@/app/stats/expense/AverageMonthlySpend';
-import {ExpensesByChildCategory} from '@/app/stats/expense/ByChildCategory';
-import {ExpensesByRootCategory} from '@/app/stats/expense/ByRootCategory';
+import {AverageMonthlySpend} from '@/components/charts/AverageMonthlySpend';
+import {ExpensesByChildCategory} from '@/components/charts/ByChildCategory';
+import {ExpensesByRootCategory} from '@/components/charts/ByRootCategory';
 import {FanoutByRootCategory} from '@/app/stats/expense/FanoutByRootCategory';
-import {MonthlySpend} from '@/app/stats/expense/MonthlySpend';
-import {YearlySpend} from '@/app/stats/expense/YearlySpend';
+import {MonthlySpend} from '@/components/charts/MonthlySpend';
+import {YearlySpend} from '@/components/charts/YearlySpend';
 import {useStatsPageProps} from '@/app/stats/modelHelpers';
 import {DurationSelector, LAST_6_MONTHS} from '@/components/DurationSelector';
 import {
