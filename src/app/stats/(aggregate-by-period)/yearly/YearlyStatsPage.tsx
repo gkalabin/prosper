@@ -1,11 +1,6 @@
 'use client';
-import {ExpenseByChildCategory} from '@/components/charts/ExpenseByChildCategory';
-import {RootCategoryBreakdownChart} from '@/components/charts/ExpensesByRootCategory';
-import {IncomeByChildCategory} from '@/components/charts/IncomeByChildCategory';
 import {Navigation} from '@/app/stats/(aggregate-by-period)/Navigation';
 import {PeriodSummary} from '@/app/stats/(aggregate-by-period)/PeriodSummary';
-import {TopVendorsBySpend} from '@/components/charts/TopVendorsBySpend';
-import {TopVendorsByTransactionCount} from '@/components/charts/TopVendorsByTransactionCount';
 import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from '@/app/stats/ExcludedCategoriesSelector';
 import {useStatsPageProps} from '@/app/stats/modelHelpers';
@@ -13,6 +8,11 @@ import {
   NotConfiguredYet,
   isFullyConfigured,
 } from '@/components/NotConfiguredYet';
+import {ExpenseByChildCategory} from '@/components/charts/aggregate/ExpenseByCategory';
+import {RootCategoryBreakdownChart} from '@/components/charts/aggregate/ExpenseByTopCategory';
+import {IncomeByChildCategory} from '@/components/charts/aggregate/IncomeByCategory';
+import {TopVendorsBySpend} from '@/components/charts/aggregate/VendorsByAmount';
+import {TopVendorsByTransactionCount} from '@/components/charts/aggregate/VendorsByTransactionCount';
 import {
   SortableTransactionsList,
   SortingMode,

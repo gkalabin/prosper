@@ -1,11 +1,11 @@
 'use client';
-import {ExpenseByChildCategory} from '@/components/charts/ExpenseByChildCategory';
 import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
 import {useExchangedTransactions} from '@/app/stats/modelHelpers';
 import {
   NotConfiguredYet,
   isFullyConfigured,
 } from '@/components/NotConfiguredYet';
+import {ExpenseByChildCategory} from '@/components/charts/aggregate/ExpenseByCategory';
 import {
   SortableTransactionsList,
   SortingMode,

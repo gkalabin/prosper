@@ -1,16 +1,16 @@
 'use client';
 import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from '@/app/stats/ExcludedCategoriesSelector';
-import {AverageMonthlyIncome} from '@/components/charts/AverageMonthlyIncome';
-import {IncomeTimelineByChildCategory} from '@/components/charts/IncomeTimelineByChildCategory';
-import {MonthlyIncome} from '@/components/charts/MonthlyIncome';
-import {YearlyIncome} from '@/components/charts/YearlyIncome';
 import {useStatsPageProps} from '@/app/stats/modelHelpers';
 import {DurationSelector, LAST_6_MONTHS} from '@/components/DurationSelector';
 import {
   NotConfiguredYet,
   isFullyConfigured,
 } from '@/components/NotConfiguredYet';
+import {MonthlyIncome} from '@/components/charts/timeseries/MonthlyIncome';
+import {AverageMonthlyIncome} from '@/components/charts/timeseries/MonthlyIncomeAverage';
+import {IncomeTimelineByChildCategory} from '@/components/charts/timeseries/MonthlyIncomeByCategory';
+import {YearlyIncome} from '@/components/charts/timeseries/YearlyIncome';
 import {AllDatabaseDataContextProvider} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
