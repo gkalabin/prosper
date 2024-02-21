@@ -1,4 +1,4 @@
-import {Charts} from '@/components/charts/interface';
+import {Charts} from '@/components/charts';
 import {Amount} from '@/lib/Amount';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {Currency} from '@/lib/model/Currency';

@@ -1,4 +1,4 @@
-import {Charts} from '@/components/charts/interface';
+import {Charts} from '@/components/charts';
 import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries, runningAverage} from '@/lib/util/Timeseries';

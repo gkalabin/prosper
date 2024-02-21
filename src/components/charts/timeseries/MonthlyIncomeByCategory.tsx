@@ -1,6 +1,6 @@
 'use client';
-import {Charts} from '@/components/charts/interface';
-import {NamedTimeseries} from '@/components/charts/interface/ChartsLibrary';
+import {Charts} from '@/components/charts';
+import {NamedTimeseries} from '@/components/charts/ChartsLibrary';
 import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {getNameWithAncestors, makeCategoryTree} from '@/lib/model/Category';

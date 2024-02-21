@@ -5,7 +5,7 @@ import {
   StackedBarProps,
   TimeseriesMoneyProps,
   TimeseriesNumbersProps,
-} from '@/components/charts/interface/ChartsLibrary';
+} from '@/components/charts/ChartsLibrary';
 import {Currency, formatCurrency} from '@/lib/model/Currency';
 import {formatInterval, sliceInterval} from '@/lib/util/time';
 import {type EChartsOption} from 'echarts';

@@ -1,5 +1,5 @@
 'use client';
-import {Charts} from '@/components/charts/interface';
+import {Charts} from '@/components/charts';
 import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {getNameWithAncestors, makeCategoryTree} from '@/lib/model/Category';
