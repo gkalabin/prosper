@@ -1,16 +1,12 @@
 'use client';
 import {Charts} from '@/components/charts/interface';
+import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {getNameWithAncestors, makeCategoryTree} from '@/lib/model/Category';
 import {transactionCategory} from '@/lib/model/transaction/Transaction';
-import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {currencyAppendMap} from '@/lib/util/AppendMap';
 
-export function IncomeByChildCategory({
-  input,
-}: {
-  input: ExchangedIntervalTransactions;
-}) {
+export function IncomeByCategory({input}: {input: ExchangedTransactions}) {
   const {categories} = useAllDatabaseDataContext();
   const tree = makeCategoryTree(categories);
   const byId = currencyAppendMap<number>(input.currency());

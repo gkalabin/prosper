@@ -1,14 +1,14 @@
 'use client';
 import {Charts} from '@/components/charts/interface';
 import {NamedTimeseries} from '@/components/charts/interface/ChartsLibrary';
+import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {getNameWithAncestors, makeCategoryTree} from '@/lib/model/Category';
-import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {DefaultMap} from '@/lib/util/DefaultMap';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries} from '@/lib/util/Timeseries';
 
-export function IncomeTimelineByChildCategory({
+export function MonthlyIncomeByCategory({
   input,
 }: {
   input: ExchangedIntervalTransactions;

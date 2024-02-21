@@ -1,4 +1,3 @@
-'use client';
 import {Charts} from '@/components/charts/interface';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
@@ -6,7 +5,7 @@ import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries} from '@/lib/util/Timeseries';
 import {eachYearOfInterval} from 'date-fns';
 
-export function YearlyCumulativeCashflow({
+export function YearlyCashflowCumulative({
   input,
 }: {
   input: ExchangedIntervalTransactions;

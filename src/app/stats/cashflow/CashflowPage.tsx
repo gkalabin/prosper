@@ -8,13 +8,13 @@ import {
   isFullyConfigured,
 } from '@/components/NotConfiguredYet';
 import {MonthlyCashflow} from '@/components/charts/timeseries/MonthlyCashflow';
-import {MonthlyAverageCashflow} from '@/components/charts/timeseries/MonthlyCashflowAverage';
-import {MonthlyCumulativeCashflow} from '@/components/charts/timeseries/MonthlyCashflowCumulative';
-import {MonthlySpend} from '@/components/charts/timeseries/MonthlyExpense';
+import {MonthlyCashflowAverage} from '@/components/charts/timeseries/MonthlyCashflowAverage';
+import {MonthlyCashflowCumulative} from '@/components/charts/timeseries/MonthlyCashflowCumulative';
+import {MonthlyExpense} from '@/components/charts/timeseries/MonthlyExpense';
 import {MonthlyIncome} from '@/components/charts/timeseries/MonthlyIncome';
 import {YearlyCashflow} from '@/components/charts/timeseries/YearlyCashflow';
-import {YearlyCumulativeCashflow} from '@/components/charts/timeseries/YearlyCashflowCumulative';
-import {YearlySpend} from '@/components/charts/timeseries/YearlyExpense';
+import {YearlyCashflowCumulative} from '@/components/charts/timeseries/YearlyCashflowCumulative';
+import {YearlyExpense} from '@/components/charts/timeseries/YearlyExpense';
 import {YearlyIncome} from '@/components/charts/timeseries/YearlyIncome';
 import {AllDatabaseDataContextProvider} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
@@ -39,13 +39,13 @@ function NonEmptyPageContent() {
       />
       <CurrencyExchangeFailed failedTransactions={failed} />
       <MonthlyCashflow input={input} />
-      <MonthlyCumulativeCashflow input={input} />
-      <MonthlyAverageCashflow input={input} />
-      <MonthlySpend input={input} />
+      <MonthlyCashflowCumulative input={input} />
+      <MonthlyCashflowAverage input={input} />
+      <MonthlyExpense input={input} />
       <MonthlyIncome input={input} />
       <YearlyCashflow input={input} />
-      <YearlyCumulativeCashflow input={input} />
-      <YearlySpend input={input} />
+      <YearlyCashflowCumulative input={input} />
+      <YearlyExpense input={input} />
       <YearlyIncome input={input} />
     </div>
   );

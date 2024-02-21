@@ -8,11 +8,11 @@ import {
   NotConfiguredYet,
   isFullyConfigured,
 } from '@/components/NotConfiguredYet';
-import {MonthlySpend} from '@/components/charts/timeseries/MonthlyExpense';
-import {AverageMonthlySpend} from '@/components/charts/timeseries/MonthlyExpenseAverage';
-import {ExpensesByChildCategory} from '@/components/charts/timeseries/MonthlyExpenseByCategory';
-import {ExpensesByRootCategory} from '@/components/charts/timeseries/MonthlyExpenseByTopCategory';
-import {YearlySpend} from '@/components/charts/timeseries/YearlyExpense';
+import {MonthlyExpense} from '@/components/charts/timeseries/MonthlyExpense';
+import {MonthlyExpenseAverage} from '@/components/charts/timeseries/MonthlyExpenseAverage';
+import {MonthlyExpenseByCategory} from '@/components/charts/timeseries/MonthlyExpenseByCategory';
+import {MonthlyExpenseByTopCategory} from '@/components/charts/timeseries/MonthlyExpenseByTopCategory';
+import {YearlyExpense} from '@/components/charts/timeseries/YearlyExpense';
 import {AllDatabaseDataContextProvider} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
@@ -37,11 +37,11 @@ function NonEmptyPageContent() {
       />
       <CurrencyExchangeFailed failedTransactions={failed} />
       {/* Charts */}
-      <MonthlySpend input={input} />
-      <AverageMonthlySpend input={input} />
-      <YearlySpend input={input} />
-      <ExpensesByRootCategory input={input} />
-      <ExpensesByChildCategory input={input} />
+      <MonthlyExpense input={input} />
+      <MonthlyExpenseAverage input={input} />
+      <YearlyExpense input={input} />
+      <MonthlyExpenseByTopCategory input={input} />
+      <MonthlyExpenseByCategory input={input} />
       <FanoutByRootCategory input={input} />
     </div>
   );

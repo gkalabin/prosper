@@ -1,6 +1,7 @@
 'use client';
 import {Charts} from '@/components/charts/interface';
 import {NamedTimeseries} from '@/components/charts/interface/ChartsLibrary';
+import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {
   findRoot,
@@ -8,12 +9,11 @@ import {
   makeCategoryTree,
 } from '@/lib/model/Category';
 import {transactionCategory} from '@/lib/model/transaction/Transaction';
-import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {DefaultMap} from '@/lib/util/DefaultMap';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries} from '@/lib/util/Timeseries';
 
-export function ExpensesByRootCategory({
+export function MonthlyExpenseByTopCategory({
   input,
 }: {
   input: ExchangedIntervalTransactions;

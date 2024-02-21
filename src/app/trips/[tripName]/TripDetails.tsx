@@ -5,7 +5,7 @@ import {
   NotConfiguredYet,
   isFullyConfigured,
 } from '@/components/NotConfiguredYet';
-import {ExpenseByChildCategory} from '@/components/charts/aggregate/ExpenseByCategory';
+import {ExpenseByCategory} from '@/components/charts/aggregate/ExpenseByCategory';
 import {
   SortableTransactionsList,
   SortingMode,
@@ -25,7 +25,7 @@ function TripSpendingStats({input}: {input: ExchangedTransactions}) {
   return (
     <>
       <h2 className="mt-4 text-xl leading-7">Expenses by category</h2>
-      <ExpenseByChildCategory input={input} />
+      <ExpenseByCategory input={input} />
     </>
   );
 }

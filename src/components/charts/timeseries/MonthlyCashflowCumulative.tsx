@@ -6,7 +6,7 @@ import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries} from '@/lib/util/Timeseries';
 import {eachMonthOfInterval} from 'date-fns';
 
-export function MonthlyCumulativeCashflow({
+export function MonthlyCashflowCumulative({
   input,
 }: {
   input: ExchangedIntervalTransactions;

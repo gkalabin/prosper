@@ -3,7 +3,7 @@ import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {Granularity} from '@/lib/util/Granularity';
 import {NumberTimeseries} from '@/lib/util/Timeseries';
 
-export function TransactionCountByMonth({
+export function MonthlyTransactionCount({
   input,
 }: {
   input: ExchangedIntervalTransactions;

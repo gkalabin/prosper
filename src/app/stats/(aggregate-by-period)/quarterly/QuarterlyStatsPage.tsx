@@ -8,11 +8,11 @@ import {
   NotConfiguredYet,
   isFullyConfigured,
 } from '@/components/NotConfiguredYet';
-import {ExpenseByChildCategory} from '@/components/charts/aggregate/ExpenseByCategory';
-import {RootCategoryBreakdownChart} from '@/components/charts/aggregate/ExpenseByTopCategory';
-import {IncomeByChildCategory} from '@/components/charts/aggregate/IncomeByCategory';
-import {TopVendorsBySpend} from '@/components/charts/aggregate/VendorsByAmount';
-import {TopVendorsByTransactionCount} from '@/components/charts/aggregate/VendorsByTransactionCount';
+import {ExpenseByCategory} from '@/components/charts/aggregate/ExpenseByCategory';
+import {ExpenseByTopCategoryChart} from '@/components/charts/aggregate/ExpenseByTopCategory';
+import {IncomeByCategory} from '@/components/charts/aggregate/IncomeByCategory';
+import {VendorsByAmount} from '@/components/charts/aggregate/VendorsByAmount';
+import {VendorsByTransactionCount} from '@/components/charts/aggregate/VendorsByTransactionCount';
 import {
   SortableTransactionsList,
   SortingMode,
@@ -40,12 +40,12 @@ export function QuarterlyStats({
         <h1 className="text-xl font-medium leading-7">
           Expenses ({input.expenses().length})
         </h1>
-        <RootCategoryBreakdownChart
+        <ExpenseByTopCategoryChart
           title={'Expenses by root category'}
           currency={input.currency()}
           data={input.expenses()}
         />
-        <ExpenseByChildCategory input={input} />
+        <ExpenseByCategory input={input} />
         <SortableTransactionsList
           transactions={input.expenses().map(({t}) => t)}
           initialSorting={SortingMode.AMOUNT_DESC}
@@ -55,7 +55,7 @@ export function QuarterlyStats({
         <h1 className="text-xl font-medium leading-7">
           Income ({input.income().length})
         </h1>
-        <IncomeByChildCategory input={input} />
+        <IncomeByCategory input={input} />
         <SortableTransactionsList
           transactions={input.income().map(({t}) => t)}
           initialSorting={SortingMode.AMOUNT_DESC}
@@ -63,8 +63,8 @@ export function QuarterlyStats({
       </div>
       <div>
         <h1 className="text-xl font-medium leading-7">Vendors</h1>
-        <TopVendorsBySpend input={input} />
-        <TopVendorsByTransactionCount input={input} />
+        <VendorsByAmount input={input} />
+        <VendorsByTransactionCount input={input} />
       </div>
     </div>
   );

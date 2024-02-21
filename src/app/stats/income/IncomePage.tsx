@@ -8,8 +8,8 @@ import {
   isFullyConfigured,
 } from '@/components/NotConfiguredYet';
 import {MonthlyIncome} from '@/components/charts/timeseries/MonthlyIncome';
-import {AverageMonthlyIncome} from '@/components/charts/timeseries/MonthlyIncomeAverage';
-import {IncomeTimelineByChildCategory} from '@/components/charts/timeseries/MonthlyIncomeByCategory';
+import {MonthlyIncomeAverage} from '@/components/charts/timeseries/MonthlyIncomeAverage';
+import {MonthlyIncomeByCategory} from '@/components/charts/timeseries/MonthlyIncomeByCategory';
 import {YearlyIncome} from '@/components/charts/timeseries/YearlyIncome';
 import {AllDatabaseDataContextProvider} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
@@ -34,9 +34,9 @@ function NonEmptyPageContent() {
       />
       <CurrencyExchangeFailed failedTransactions={failed} />
       <MonthlyIncome input={input} />
-      <AverageMonthlyIncome input={input} />
+      <MonthlyIncomeAverage input={input} />
       <YearlyIncome input={input} />
-      <IncomeTimelineByChildCategory input={input} />
+      <MonthlyIncomeByCategory input={input} />
     </div>
   );
 }

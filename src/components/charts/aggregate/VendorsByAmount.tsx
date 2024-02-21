@@ -1,17 +1,13 @@
 'use client';
 import {Charts} from '@/components/charts/interface';
 import {Amount} from '@/lib/Amount';
-import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
+import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {currencyAppendMap} from '@/lib/util/AppendMap';
 import {topN} from '@/lib/util/stats';
 
 const TOP_N = 10;
 
-export function TopVendorsBySpend({
-  input,
-}: {
-  input: ExchangedIntervalTransactions;
-}) {
+export function VendorsByAmount({input}: {input: ExchangedTransactions}) {
   const byVendor = currencyAppendMap<string>(input.currency());
   for (const {t, ownShare} of input.expenses()) {
     byVendor.increment(t.vendor, ownShare);

@@ -9,17 +9,17 @@ import {
 import {Currency} from '@/lib/model/Currency';
 import {currencyAppendMap} from '@/lib/util/AppendMap';
 
-type RootCategoryBreakdownChartProps = {
+type ExpenseByTopCategoryChartProps = {
   title: string;
   currency: Currency;
   data: Array<ExchangedIncome | ExchangedExpense>;
 };
 
-export function RootCategoryBreakdownChart({
+export function ExpenseByTopCategoryChart({
   title,
   currency,
   data,
-}: RootCategoryBreakdownChartProps) {
+}: ExpenseByTopCategoryChartProps) {
   const {categories} = useAllDatabaseDataContext();
   const tree = makeCategoryTree(categories);
   const byId = currencyAppendMap<number>(currency);

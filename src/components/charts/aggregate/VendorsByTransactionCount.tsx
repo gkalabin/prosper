@@ -1,15 +1,15 @@
 'use client';
 import {Charts} from '@/components/charts/interface';
-import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
+import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {AppendMap} from '@/lib/util/AppendMap';
 import {topN} from '@/lib/util/stats';
 
 const TOP_N = 10;
 
-export function TopVendorsByTransactionCount({
+export function VendorsByTransactionCount({
   input,
 }: {
-  input: ExchangedIntervalTransactions;
+  input: ExchangedTransactions;
 }) {
   const counts = new AppendMap<string, number>((a, b) => a + b, 0);
   for (const {t} of input.expenses()) {

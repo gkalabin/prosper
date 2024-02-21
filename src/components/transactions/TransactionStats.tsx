@@ -1,7 +1,7 @@
 import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
 import {useExchangedIntervalTransactions} from '@/app/stats/modelHelpers';
-import {RootCategoryBreakdownChart} from '@/components/charts/aggregate/ExpenseByTopCategory';
-import {TransactionCountByMonth} from '@/components/charts/timeseries/MonthlyTransactionCount';
+import {ExpenseByTopCategoryChart} from '@/components/charts/aggregate/ExpenseByTopCategory';
+import {MonthlyTransactionCount} from '@/components/charts/timeseries/MonthlyTransactionCount';
 import {TimelineAmountsChart} from '@/components/charts/timeseries/TimelineAmountsChart';
 import {ButtonFormSecondary} from '@/components/ui/buttons';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
@@ -88,7 +88,7 @@ function TextSummary({input}: {input: ExchangedIntervalTransactions}) {
 function Charts({input}: {input: ExchangedIntervalTransactions}) {
   return (
     <div className="col-span-6">
-      <TransactionCountByMonth input={input} />
+      <MonthlyTransactionCount input={input} />
       <h1 className="mb-1 mt-4 text-xl font-medium leading-7">Expenses</h1>
       <IncomeOrExenseStats kind={'expense'} input={input} />
       <h1 className="mb-1 mt-4 text-xl font-medium leading-7">Income</h1>
@@ -196,7 +196,7 @@ function IncomeOrExenseStats({
         timeline={input.interval()}
         currency={input.currency()}
       />
-      <RootCategoryBreakdownChart
+      <ExpenseByTopCategoryChart
         title={`${spentOrReceivedCapital} by top level category net (own share)`}
         currency={input.currency()}
         data={transactions}

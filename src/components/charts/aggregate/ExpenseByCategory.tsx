@@ -6,11 +6,7 @@ import {getNameWithAncestors, makeCategoryTree} from '@/lib/model/Category';
 import {transactionCategory} from '@/lib/model/transaction/Transaction';
 import {currencyAppendMap} from '@/lib/util/AppendMap';
 
-export function ExpenseByChildCategory({
-  input,
-}: {
-  input: ExchangedTransactions;
-}) {
+export function ExpenseByCategory({input}: {input: ExchangedTransactions}) {
   const {categories} = useAllDatabaseDataContext();
   const tree = makeCategoryTree(categories);
   const byId = currencyAppendMap<number>(input.currency());
