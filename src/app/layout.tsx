@@ -1,10 +1,9 @@
-import Header from '@/components/Header';
-import {Metadata} from 'next';
 import '@/styles/global.css';
+import {Metadata} from 'next';
 
 export const metadata: Metadata = {
   title: 'Prosper',
-  description: 'Personal expense tracking',
+  description: 'Personal expense tracking app.',
   applicationName: 'Prosper',
   authors: {name: 'Gregory Kalabin'},
   robots: 'noindex, nofollow',
@@ -17,10 +16,7 @@ export default async function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        <Header />
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

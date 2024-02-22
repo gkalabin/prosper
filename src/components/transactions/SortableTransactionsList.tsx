@@ -1,4 +1,4 @@
-import {CurrencyExchangeFailed} from '@/app/stats/CurrencyExchangeFailed';
+import {CurrencyExchangeFailed} from '@/app/(authorised)/stats/CurrencyExchangeFailed';
 import {TransactionsList} from '@/components/transactions/TransactionsList';
 import {ButtonLink} from '@/components/ui/buttons';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
