@@ -1,9 +1,13 @@
+import {LOGIN_PAGE} from '@/lib/const';
 import prisma from '@/lib/prisma';
 import bcrypt from 'bcrypt';
 import {AuthOptions, User} from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 export const authOptions: AuthOptions = {
+  pages: {
+    signIn: LOGIN_PAGE,
+  },
   events: {
     async signIn(message) {
       console.log('[AUTH] signIn:', message);
