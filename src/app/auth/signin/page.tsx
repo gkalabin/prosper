@@ -1,4 +1,5 @@
 import {SignInForm} from '@/app/auth/signin/SignInForm';
+import {DEFAULT_AUTHENTICATED_PAGE} from '@/lib/const';
 import {Metadata} from 'next';
 import {getServerSession} from 'next-auth';
 import {getCsrfToken} from 'next-auth/react';
@@ -30,7 +31,7 @@ export default async function LoginPage() {
   }
   const session = await getServerSession();
   if (session) {
-    return redirect('/overview');
+    return redirect(DEFAULT_AUTHENTICATED_PAGE);
   }
   return (
     <div className="flex h-full w-full justify-center">

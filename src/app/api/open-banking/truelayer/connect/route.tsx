@@ -1,8 +1,9 @@
-import {Prisma} from '@prisma/client';
+import {DEFAULT_AUTHENTICATED_PAGE} from '@/lib/const';
 import {DB} from '@/lib/db';
 import prisma from '@/lib/prisma';
 import {getUserId} from '@/lib/user';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
+import {Prisma} from '@prisma/client';
 import {redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
 
@@ -61,7 +62,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       data: args,
       where: {bankId},
     });
-    return redirect(`/overview`);
+    return redirect(DEFAULT_AUTHENTICATED_PAGE);
   }
   await prisma.trueLayerToken.create({
     data: args,
