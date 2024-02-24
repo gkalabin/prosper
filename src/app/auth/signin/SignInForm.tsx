@@ -34,12 +34,12 @@ export function SignInForm({csrf}: {csrf: string}) {
       </div>
       <input name="csrfToken" type="hidden" defaultValue={csrf} />
       {wrongLoginOrPassword && (
-        <p className="mt-4 text-sm text-red-700">
+        <p className="mt-4 text-sm text-red-700" role="alert">
           Login or password is incorrect.
         </p>
       )}
       {otherError && (
-        <p className="mt-4 text-sm text-red-700">
+        <p className="mt-4 text-sm text-red-700" role="alert">
           Something went wrong. Please try again.
         </p>
       )}
