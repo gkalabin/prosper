@@ -82,6 +82,10 @@ resource "google_cloud_run_v2_service" "prosper" {
         value = random_password.nextauth_secret.result
       }
       env {
+        name  = "MAX_USERS_ALLOWED_TO_REGISTER"
+        value = "2"
+      }
+      env {
         name  = "TRUE_LAYER_CLIENT_ID"
         value = var.true_layer_client_id
       }
