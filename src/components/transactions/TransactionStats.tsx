@@ -1,5 +1,5 @@
-import {CurrencyExchangeFailed} from '@/app/(authorised)/stats/CurrencyExchangeFailed';
-import {useExchangedIntervalTransactions} from '@/app/(authorised)/stats/modelHelpers';
+import {CurrencyExchangeFailed} from '@/app/(authenticated)/stats/CurrencyExchangeFailed';
+import {useExchangedIntervalTransactions} from '@/app/(authenticated)/stats/modelHelpers';
 import {ExpenseByTopCategoryChart} from '@/components/charts/aggregate/ExpenseByTopCategory';
 import {MonthlyTransactionCount} from '@/components/charts/timeseries/MonthlyTransactionCount';
 import {TimelineAmountsChart} from '@/components/charts/timeseries/TimelineAmountsChart';
