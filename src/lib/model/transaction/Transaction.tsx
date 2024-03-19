@@ -175,3 +175,7 @@ export function transactionCategory(
   }
   return c;
 }
+
+export function transactionHasTrip(value: Transaction): value is TransactionWithTrip {
+  return !!(value as TransactionWithTrip).tripId;
+}

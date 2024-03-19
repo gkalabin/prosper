@@ -82,6 +82,14 @@ export const Input = forwardRef<
 });
 Input.displayName = 'Input';
 
+export const NumberInput = forwardRef<
+  HTMLInputElement,
+  React.InputHTMLAttributes<HTMLInputElement>
+>((props, ref) => {
+  return <Input ref={ref} {...props} />;
+});
+NumberInput.displayName = 'NumberInput';
+
 export const FormikInput = (
   props: React.InputHTMLAttributes<HTMLInputElement>
 ) => {

@@ -1,27 +1,27 @@
 'use client';
-import {BankAccountListItem} from '@/app/(authenticated)/overview/AccountListItem';
-import {accountsSum} from '@/app/(authenticated)/overview/modelHelpers';
-import {OpenBankingConnectionExpirationWarning} from '@/app/(authenticated)/overview/OpenBankingConnectionExpirationWarning';
-import {StatsWidget} from '@/app/(authenticated)/overview/StatsWidget';
+import { BankAccountListItem } from '@/app/(authenticated)/overview/AccountListItem';
+import { accountsSum } from '@/app/(authenticated)/overview/modelHelpers';
+import { OpenBankingConnectionExpirationWarning } from '@/app/(authenticated)/overview/OpenBankingConnectionExpirationWarning';
+import { StatsWidget } from '@/app/(authenticated)/overview/StatsWidget';
 import {
   isFullyConfigured,
   NotConfiguredYet,
 } from '@/components/NotConfiguredYet';
-import {AddTransactionForm} from '@/components/txform/AddTransactionForm';
-import {ButtonPagePrimary} from '@/components/ui/buttons';
+import { TransactionForm } from '@/components/txform/v2/TransactionForm';
+import { ButtonPagePrimary } from '@/components/ui/buttons';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
 } from '@/lib/context/AllDatabaseDataContext';
-import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
-import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
-import {accountsForBank, Bank} from '@/lib/model/BankAccount';
+import { useDisplayCurrency } from '@/lib/context/DisplaySettingsContext';
+import { AllDatabaseData } from '@/lib/model/AllDatabaseDataModel';
+import { accountsForBank, Bank } from '@/lib/model/BankAccount';
 import {
   useOpenBankingBalances,
   useOpenBankingTransactions,
 } from '@/lib/openbanking/context';
-import {onTransactionChange} from '@/lib/stateHelpers';
-import {useState} from 'react';
+import { onTransactionChange } from '@/lib/stateHelpers';
+import { useState } from 'react';
 
 export const BanksList = ({banks}: {banks: Bank[]}) => {
   return (
@@ -67,7 +67,7 @@ const BanksListItem = ({bank}: {bank: Bank}) => {
 };
 
 function NonEmptyPageContent() {
-  const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
+  const [showAddTransactionForm, setShowAddTransactionForm] = useState(true);
   const {banks, setDbData} = useAllDatabaseDataContext();
   const {isError: obBalancesError, isLoading: obBalancesLoading} =
     useOpenBankingBalances();
@@ -85,9 +85,9 @@ function NonEmptyPageContent() {
           </div>
         )}
         {showAddTransactionForm && (
-          <AddTransactionForm
+          <TransactionForm
             transaction={null}
-            onAddedOrUpdated={onTransactionChange(setDbData)}
+            onChange={onTransactionChange(setDbData)}
             onClose={() => setShowAddTransactionForm(false)}
           />
         )}
