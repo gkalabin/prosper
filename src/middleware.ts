@@ -6,3 +6,14 @@ export default withAuth({
     signIn: LOGIN_PAGE,
   },
 });
+
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - auth/signup (signup page)
+     * - api/signup (signup API route)
+     */
+    '/((?!auth/signup|api/signup).*)',
+  ],
+};
