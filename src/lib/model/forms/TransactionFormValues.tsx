@@ -1,12 +1,18 @@
-export enum FormMode {
+export enum FormModeOld {
   PERSONAL,
   EXTERNAL,
   TRANSFER,
   INCOME,
 }
 
+export enum FormMode {
+  EXPENSE,
+  TRANSFER,
+  INCOME,
+}
+
 export type TransactionFormValues = {
-  mode: FormMode;
+  mode: FormModeOld;
   timestamp: string;
   description: string;
   amount: number;

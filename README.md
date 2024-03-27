@@ -3,25 +3,21 @@
 ![build](https://github.com/gkalabin/prosper/actions/workflows/build.yml/badge.svg)
 ![tests](https://github.com/gkalabin/prosper/actions/workflows/tests.yml/badge.svg)
 
-## Setup
+Personal expense tracking app you can fully own. Built with:
 
-Requirements:
-
-- nodejs
-- mysql
+ - Nextjs
+ - Tailwindcss
+ - Mysql as the storage
+ - Terraform for deploying on GCP
 
 ### MySQL setup
 
+When running locally, create the user and grant it the right priviliges, something like:
+
 ```
-sudo mysql -e 'create database spentdb;'
-sudo mysql -e 'create user spent;'
-sudo mysql -e 'SET PASSWORD FOR spent = "somestrongpassword";'
-sudo mysql -e 'grant all PRIVILEGES on spentdb.* to spent;'
-sudo mysql spent < $(find ../spending-tracker-data-backups/database_backups/*sql | sort | tail -n1)
+$ sudo mysql -e 'create database prosperdb;'
+$ sudo mysql -e 'create user prosper;'
+$ sudo mysql -e 'SET PASSWORD FOR prosper = "somestrongpassword";'
+$ sudo mysql -e 'grant all PRIVILEGES on prosperdb.* to prosper;'
+$ npx prisma db push
 ```
-
-`.env` content:
-
-    DATABASE_URL="mysql://spent:somestrongpassword@localhost:3306/spentdb"
-
-TODO: add something

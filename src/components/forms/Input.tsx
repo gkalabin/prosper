@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import {Field, useField, useFormikContext} from 'formik';
-import {ChangeEvent, FocusEvent} from 'react';
+import {ChangeEvent, FocusEvent, forwardRef} from 'react';
 
 export interface LabelledInputProps {
   label: string;
@@ -63,10 +63,14 @@ const InputWithLabelUntyped = (
   );
 };
 
-export const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => {
+export const Input = forwardRef<
+  HTMLInputElement,
+  React.InputHTMLAttributes<HTMLInputElement>
+>((props, ref) => {
   const {className, ...otherProps} = props;
   return (
     <input
+      ref={ref}
       {...otherProps}
       className={classNames(
         className,
@@ -75,7 +79,16 @@ export const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => {
       )}
     />
   );
-};
+});
+Input.displayName = 'Input';
+
+export const NumberInput = forwardRef<
+  HTMLInputElement,
+  React.InputHTMLAttributes<HTMLInputElement>
+>((props, ref) => {
+  return <Input ref={ref} {...props} />;
+});
+NumberInput.displayName = 'NumberInput';
 
 export const FormikInput = (
   props: React.InputHTMLAttributes<HTMLInputElement>

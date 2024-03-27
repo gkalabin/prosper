@@ -25,7 +25,7 @@ import {
   mustFindCategory,
 } from '@/lib/model/Category';
 import {
-  FormMode,
+  FormModeOld,
   TransactionFormValues,
 } from '@/lib/model/forms/TransactionFormValues';
 import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
@@ -132,7 +132,7 @@ export const FormPersonalExpense = ({
     if (transaction) {
       return;
     }
-    if (mode == FormMode.PERSONAL) {
+    if (mode == FormModeOld.PERSONAL) {
       const account = bankAccounts.find(a => a.id == fromBankAccountId);
       if (account) {
         setFieldValue('isShared', account.joint);

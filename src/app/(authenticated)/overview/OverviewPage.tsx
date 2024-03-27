@@ -7,7 +7,7 @@ import {
   isFullyConfigured,
   NotConfiguredYet,
 } from '@/components/NotConfiguredYet';
-import {AddTransactionForm} from '@/components/txform/AddTransactionForm';
+import {TransactionForm} from '@/components/txform/v2/TransactionForm';
 import {ButtonPagePrimary} from '@/components/ui/buttons';
 import {
   AllDatabaseDataContextProvider,
@@ -66,13 +66,30 @@ const BanksListItem = ({bank}: {bank: Bank}) => {
   );
 };
 
-function NonEmptyPageContent() {
-  const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
-  const {banks, setDbData} = useAllDatabaseDataContext();
+function OpenBankingBalancesLoadingIndicator() {
   const {isError: obBalancesError, isLoading: obBalancesLoading} =
     useOpenBankingBalances();
   // Just trigger the loading of transactions, so they are cached for later.
   useOpenBankingTransactions();
+  return (
+    <>
+      {obBalancesError && (
+        <div className="rounded border bg-red-100 p-2 text-lg font-medium text-gray-900">
+          Error loading Open Banking balances
+        </div>
+      )}
+      {obBalancesLoading && (
+        <div className="rounded border bg-yellow-50 p-2 text-base font-normal text-gray-900">
+          Loading Open Banking balances...
+        </div>
+      )}
+    </>
+  );
+}
+
+function NonEmptyPageContent() {
+  const [showAddTransactionForm, setShowAddTransactionForm] = useState(true);
+  const {banks, setDbData} = useAllDatabaseDataContext();
   return (
     <div className="space-y-4">
       <StatsWidget />
@@ -85,23 +102,14 @@ function NonEmptyPageContent() {
           </div>
         )}
         {showAddTransactionForm && (
-          <AddTransactionForm
+          <TransactionForm
             transaction={null}
-            onAddedOrUpdated={onTransactionChange(setDbData)}
+            onChange={onTransactionChange(setDbData)}
             onClose={() => setShowAddTransactionForm(false)}
           />
         )}
       </div>
-      {obBalancesError && (
-        <div className="rounded border bg-red-100 p-2 text-lg font-medium text-gray-900">
-          Error loading Open Banking balances
-        </div>
-      )}
-      {obBalancesLoading && (
-        <div className="rounded border bg-yellow-50 p-2 text-base font-normal text-gray-900">
-          Loading Open Banking balances...
-        </div>
-      )}
+      <OpenBankingBalancesLoadingIndicator />
       <BanksList banks={banks} />
     </div>
   );

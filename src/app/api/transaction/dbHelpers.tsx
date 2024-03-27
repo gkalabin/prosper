@@ -7,7 +7,7 @@ import {
 } from '@prisma/client';
 import {TransactionWithTagIds} from '@/lib/model/AllDatabaseDataModel';
 import {
-  FormMode,
+  FormModeOld,
   TransactionFormValues,
 } from '@/lib/model/forms/TransactionFormValues';
 import {
@@ -82,7 +82,7 @@ export function commonTransactionDbData(
     payerOutgoingAmountCents: null,
   };
   switch (mode) {
-    case FormMode.PERSONAL:
+    case FormModeOld.PERSONAL:
       return {
         ...result,
         transactionType: TransactionType.PERSONAL_EXPENSE,
@@ -92,7 +92,7 @@ export function commonTransactionDbData(
         outgoingAccountId: fromBankAccountId,
         outgoingAmountCents: toCents(amount),
       };
-    case FormMode.EXTERNAL:
+    case FormModeOld.EXTERNAL:
       return {
         ...result,
         transactionType: TransactionType.THIRD_PARTY_EXPENSE,
@@ -102,7 +102,7 @@ export function commonTransactionDbData(
         ownShareAmountCents: toCents(ownShareAmount),
         payerOutgoingAmountCents: toCents(amount),
       };
-    case FormMode.TRANSFER:
+    case FormModeOld.TRANSFER:
       return {
         ...result,
         transactionType: TransactionType.TRANSFER,
@@ -111,7 +111,7 @@ export function commonTransactionDbData(
         incomingAccountId: toBankAccountId,
         incomingAmountCents: toCents(receivedAmount),
       };
-    case FormMode.INCOME:
+    case FormModeOld.INCOME:
       return {
         ...result,
         transactionType: TransactionType.INCOME,
@@ -164,7 +164,7 @@ export async function writeTrip({
   tx: Prisma.TransactionClient;
 }): Promise<Trip | null> {
   if (
-    ![FormMode.PERSONAL, FormMode.EXTERNAL].includes(form.mode) ||
+    ![FormModeOld.PERSONAL, FormModeOld.EXTERNAL].includes(form.mode) ||
     !form.tripName
   ) {
     data.tripId = null;
