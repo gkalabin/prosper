@@ -36,6 +36,10 @@ export type TransactionWithTrip = (Expense | Income) & {
   tripId: Required<number>;
 };
 
+export function hasTrip(value: Transaction): value is TransactionWithTrip {
+  return !!(value as TransactionWithTrip).tripId;
+}
+
 export function transactionModelFromDB(
   init: TransactionWithTagIds
 ): Transaction {

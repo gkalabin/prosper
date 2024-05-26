@@ -19,6 +19,7 @@ import {
 } from '@/lib/context/AllDatabaseDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {Trip, tripModelFromDB} from '@/lib/model/Trip';
+import {hasTrip} from '@/lib/model/transaction/Transaction';
 import {Trip as DBTrip} from '@prisma/client';
 
 function TripSpendingStats({input}: {input: ExchangedTransactions}) {
@@ -50,8 +51,11 @@ function TripTextSummary({input}: {input: ExchangedTransactions}) {
 }
 
 function NonEmptyTripDetails(props: {trip: Trip}) {
-  const {transactions: allTransactions} = useAllDatabaseDataContext();
-  const {input, failed} = useExchangedTransactions(allTransactions);
+  const {transactions} = useAllDatabaseDataContext();
+  const tripTransactions = transactions.filter(
+    t => hasTrip(t) && t.tripId === props.trip.id
+  );
+  const {input, failed} = useExchangedTransactions(tripTransactions);
   return (
     <div>
       <AnchorLink href="/trips">Back to all trips</AnchorLink>

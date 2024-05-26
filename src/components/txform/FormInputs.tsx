@@ -31,8 +31,8 @@ import {
 import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
 import {
   Transaction,
-  TransactionWithTrip,
   formatAmount,
+  hasTrip,
   isExpense,
   isIncome,
   otherPartyNameOrNull,
@@ -76,10 +76,6 @@ export const FormInputs = (props: {
     </>
   );
 };
-
-function hasTrip(value: Transaction): value is TransactionWithTrip {
-  return !!(value as TransactionWithTrip).tripId;
-}
 
 export const Trips = () => {
   const {transactions, trips} = useAllDatabaseDataContext();
