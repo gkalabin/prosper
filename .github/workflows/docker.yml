@@ -4,10 +4,6 @@ on:
   push:
     branches: 'main'
 
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: true
-
 jobs:
   build-push:
     name: Build and Push to Docker Hub
@@ -25,5 +21,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: gkalabin/prosper
-          labels: latest
+          tags: ${{ github.sha }}, latest
