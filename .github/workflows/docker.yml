@@ -21,4 +21,4 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ${{ github.sha }}, latest
+          tags: gkalabin/prosper:${{ github.sha }}, latest
