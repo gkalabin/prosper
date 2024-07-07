@@ -16,6 +16,11 @@ if [ -n "$(git status --porcelain)" ]; then
   exit 1
 fi
 
+# If there is no prosper FE running, start it without waiting for the next iteration.
+if [ -z "$(docker ps --filter name=prosper-fe --format '{{.ID}}')" ]; then
+  docker run --detach --rm --env-file .env --net host --name prosper-fe gkalabin/prosper:$(git rev-parse HEAD)
+fi
+
 while true; do
   sleep 60
   git fetch
@@ -42,5 +47,5 @@ while true; do
   git pull
   docker stop prosper-fe || true
   docker rm prosper-fe || true
-  docker run --detach --rm --env-file .env --net=host "$NEW_IMAGE"
+  docker run --detach --rm --env-file .env --net=host --name prosper-fe "$NEW_IMAGE"
 done
