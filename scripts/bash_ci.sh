@@ -37,8 +37,8 @@ while true; do
     echo "[$(date)] No incoming changes."
     continue
   fi
-  echo "[$(date)] Latest commit is $(git rev-parse HEAD), trying to update."
-  NEW_IMAGE="gkalabin/prosper:$(git rev-parse HEAD)"
+  echo "[$(date)] Latest commit is $(git rev-parse @{u}), trying to update."
+  NEW_IMAGE="gkalabin/prosper:$(git rev-parse @{u})"
   # If the pull fails probably the image is not built yet, skip the iteration and try again later.
   set +e
   docker pull "$NEW_IMAGE"
@@ -49,7 +49,7 @@ while true; do
     continue
   fi
   # If the migrations have changed, run them before restarting the app.
-  if [ -n "$(git diff --name-only $(git rev-parse HEAD) prisma/migrations)" ]; then
+  if [ -n "$(git diff --name-only $(git rev-parse @{u}) prisma/migrations)" ]; then
     echo "[$(date)] Migrations have changed, running DB migration."
     ./scripts/docker_migrate.sh --env .env --image "$NEW_IMAGE"
   fi
