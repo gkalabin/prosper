@@ -18,7 +18,16 @@ fi
 
 # If there is no prosper FE running, start it without waiting for the next iteration.
 if [ -z "$(docker ps --filter name=prosper-fe --format '{{.ID}}')" ]; then
-  docker run --detach --rm --env-file .env --net host --name prosper-fe gkalabin/prosper:$(git rev-parse HEAD)
+  # Try starting the prebuilt image, but if it fails, build the image ourselves.
+  IMAGE="gkalabin/prosper:$(git rev-parse HEAD)"
+  set +e
+  docker run --detach --rm --env-file .env --net host --name prosper-fe "$IMAGE"
+  if [ $? -ne 0 ]; then
+    cd "$(dirname "$0")/.."
+    docker build -f Dockerfile -t "$IMAGE" .
+    docker run --detach --rm --env-file .env --net host --name prosper-fe "$IMAGE"
+  fi
+  set -e
 fi
 
 while true; do
