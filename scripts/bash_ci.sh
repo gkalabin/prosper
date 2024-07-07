@@ -25,9 +25,12 @@ while true; do
   fi
   echo "[$(date)] Latest commit is $(git rev-parse HEAD), trying to update."
   NEW_IMAGE="gkalabin/prosper:$(git rev-parse HEAD)"
-  docker pull "$NEW_IMAGE"
   # If the pull fails probably the image is not built yet, skip the iteration and try again later.
-  if [ $? -ne 0 ]; then
+  set +e
+  docker pull "$NEW_IMAGE"
+  PULL_EXIT_CODE=$?
+  set -e
+  if [ "$PULL_EXIT_CODE" -ne 0 ]; then
     echo "[$(date)] Pull failed, retrying later."
     continue
   fi
