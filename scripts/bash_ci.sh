@@ -34,6 +34,11 @@ while true; do
     echo "[$(date)] Pull failed, retrying later."
     continue
   fi
+  # If the migrations have changed, run them before restarting the app.
+  if [ -n "$(git diff --name-only $(git rev-parse HEAD) prisma/migrations)" ]; then
+    echo "[$(date)] Migrations have changed, running DB migration."
+    ./scripts/docker_migrate.sh --env .env --image "$NEW_IMAGE"
+  fi
   git pull
   docker stop prosper-fe || true
   docker rm prosper-fe || true
