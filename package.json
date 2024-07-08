@@ -72,7 +72,7 @@
     "react-select": "^5.8.0",
     "swr": "^2.2.5",
     "uuid": "^9.0.1",
-    "yahoo-finance2": "^2.11.0",
+    "yahoo-finance2": "^2.11.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {
