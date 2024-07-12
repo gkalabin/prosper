@@ -64,7 +64,7 @@
     "date-fns": "^3.6.0",
     "echarts-for-react": "^3.0.2",
     "formik": "^2.4.6",
-    "next": "^14.1.4",
+    "next": "^14.2.5",
     "next-auth": "^4.24.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
