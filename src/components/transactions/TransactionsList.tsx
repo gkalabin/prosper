@@ -293,7 +293,7 @@ export const TransactionsList = (props: {
                 </button>
                 <button
                   onClick={() => setDisplayLimit(displayLimit + 100)}
-                  className=" ml-1 mr-2 text-indigo-600 hover:text-indigo-500"
+                  className="ml-1 mr-2 text-indigo-600 hover:text-indigo-500"
                 >
                   100
                 </button>
