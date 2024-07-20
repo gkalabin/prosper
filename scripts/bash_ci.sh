@@ -32,7 +32,8 @@ fi
 
 while true; do
   sleep 60
-  git fetch
+  # Try fetching the changes, but if there is no connection to the remote, skip the iteration and rety next time.
+  git fetch || continue
   if [ $(git rev-parse HEAD) = $(git rev-parse @{u}) ]; then
     echo "[$(date)] No incoming changes."
     continue
