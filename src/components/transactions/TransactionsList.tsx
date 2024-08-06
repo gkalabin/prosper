@@ -111,10 +111,8 @@ export const TransactionsListItem = ({
   categoryTree: CategoryTree;
   onUpdated: (response: TransactionAPIResponse) => void;
 }) => {
-  const [showRawDetails, setShowRawDetails] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-  const raw = JSON.stringify(t, null, 2);
   const {tags, bankAccounts, banks, stocks, trips} =
     useAllDatabaseDataContext();
   return (
@@ -223,30 +221,22 @@ export const TransactionsListItem = ({
           )}
         </div>
       )}
-
       {expanded && (
-        <div className="space-x-2 pl-1">
+        <div className="pl-1">
           {!showEditForm && (
             <ButtonLink onClick={() => setShowEditForm(true)}>Edit</ButtonLink>
           )}
-          <ButtonLink onClick={() => setShowRawDetails(!showRawDetails)}>
-            {showRawDetails ? 'Hide' : 'Show'} raw details
-          </ButtonLink>
         </div>
       )}
-
-      {expanded && showRawDetails && <pre className="text-xs">{raw}</pre>}
       {expanded && showEditForm && (
-        <div>
-          <AddTransactionForm
-            transaction={t}
-            onAddedOrUpdated={updated => {
-              onUpdated(updated);
-              setShowEditForm(false);
-            }}
-            onClose={() => setShowEditForm(false)}
-          />
-        </div>
+        <AddTransactionForm
+          transaction={t}
+          onAddedOrUpdated={updated => {
+            onUpdated(updated);
+            setShowEditForm(false);
+          }}
+          onClose={() => setShowEditForm(false)}
+        />
       )}
     </div>
   );
