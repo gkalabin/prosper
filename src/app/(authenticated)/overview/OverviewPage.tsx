@@ -8,7 +8,7 @@ import {
   NotConfiguredYet,
 } from '@/components/NotConfiguredYet';
 import {AddTransactionForm} from '@/components/txform/AddTransactionForm';
-import {ButtonPagePrimary} from '@/components/ui/buttons';
+import {Button} from '@/components/ui/button';
 import {
   AllDatabaseDataContextProvider,
   useAllDatabaseDataContext,
@@ -79,9 +79,9 @@ function NonEmptyPageContent() {
       <div className="mb-4">
         {!showAddTransactionForm && (
           <div className="flex justify-end">
-            <ButtonPagePrimary onClick={() => setShowAddTransactionForm(true)}>
+            <Button onClick={() => setShowAddTransactionForm(true)}>
               New Transaction
-            </ButtonPagePrimary>
+            </Button>
           </div>
         )}
         {showAddTransactionForm && (
