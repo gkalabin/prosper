@@ -1,13 +1,16 @@
 import classNames from 'classnames';
 import {Field, useFormikContext} from 'formik';
+import {forwardRef} from 'react';
 import {type CSSObjectWithLabel} from 'react-select';
 
-export const Select = (
-  props: React.SelectHTMLAttributes<HTMLSelectElement>
-) => {
+export const Select = forwardRef<
+  HTMLSelectElement,
+  React.SelectHTMLAttributes<HTMLSelectElement>
+>((props, ref) => {
   const {className, ...otherProps} = props;
   return (
     <select
+      ref={ref}
       {...otherProps}
       className={classNames(
         className,
@@ -18,7 +21,8 @@ export const Select = (
       {props.children}
     </select>
   );
-};
+});
+Select.displayName = 'Select';
 
 export const FormikSelect = (
   props: React.SelectHTMLAttributes<HTMLSelectElement>
