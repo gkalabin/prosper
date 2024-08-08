@@ -1,6 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
+cd "$(dirname "$0")/.."
+
 # Poor man's CI: infinitely polls the repo for updates and restarts the app;
 # If there are new commits in the main branch pulls the repo and starts a new
 # docker container in a detached mode using the commit hash as a tag.
