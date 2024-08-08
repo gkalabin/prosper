@@ -12,20 +12,10 @@ export function tagModelFromDB(init: DBTag): Tag {
   };
 }
 
-// export class Tag {
-//   private readonly _id: number;
-//   private readonly _name: string;
-//   private readonly _dbValue: DBTag;
-
-//   public constructor(init: DBTag) {
-//     this._dbValue = init;
-//     this._id = init.id;
-//     this._name = init.name;
-//   }
-//   id() {
-//     return this._id;
-//   }
-//   name() {
-//     return this._name;
-//   }
-// }
+export function mustFindTagByName(name: string, tags: Tag[]): Tag {
+  const found = tags.find(t => t.name == name);
+  if (!found) {
+    throw new Error(`Tag ${name} not found`);
+  }
+  return found;
+}

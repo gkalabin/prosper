@@ -21,6 +21,7 @@ import {Tag} from '@/lib/model/Tag';
 import {Trip} from '@/lib/model/Trip';
 import {
   FormMode,
+  FormModeOld,
   TransactionFormValues,
 } from '@/lib/model/forms/TransactionFormValues';
 import {Income} from '@/lib/model/transaction/Income';
@@ -46,9 +47,9 @@ export function toDateTimeLocal(d: Date | number) {
 export const formModeForTransaction = (t: Transaction) => {
   switch (t.kind) {
     case 'PersonalExpense':
-      return FormMode.PERSONAL;
+      return FormMode.EXPENSE;
     case 'ThirdPartyExpense':
-      return FormMode.EXTERNAL;
+      return FormMode.EXPENSE;
     case 'Transfer':
       return FormMode.TRANSFER;
     case 'Income':
@@ -59,9 +60,25 @@ export const formModeForTransaction = (t: Transaction) => {
   }
 };
 
+export const formModeOldForTransaction = (t: Transaction) => {
+  switch (t.kind) {
+    case 'PersonalExpense':
+      return FormModeOld.PERSONAL;
+    case 'ThirdPartyExpense':
+      return FormModeOld.EXTERNAL;
+    case 'Transfer':
+      return FormModeOld.TRANSFER;
+    case 'Income':
+      return FormModeOld.INCOME;
+    default:
+      const _exhaustiveCheck: never = t;
+      throw new Error(`Unknown transaction type for ${_exhaustiveCheck}`);
+  }
+};
+
 function initialValuesForPersonalExpense(
   t: PersonalExpense,
-  mode: FormMode,
+  mode: FormModeOld,
   displayCurrency: Currency,
   allTags: Tag[],
   allTrips: Trip[]
@@ -90,7 +107,7 @@ function initialValuesForPersonalExpense(
 
 function initialValuesForThirdPartyExpense(
   t: ThirdPartyExpense,
-  mode: FormMode,
+  mode: FormModeOld,
   allTags: Tag[],
   allTrips: Trip[],
   defaultAccountFrom: number,
@@ -119,7 +136,7 @@ function initialValuesForThirdPartyExpense(
 
 function initialValuesForTransfer(
   t: Transfer,
-  mode: FormMode,
+  mode: FormModeOld,
   displayCurrency: Currency,
   allTags: Tag[]
 ): TransactionFormValues {
@@ -146,7 +163,7 @@ function initialValuesForTransfer(
 
 function initialValuesForIncome(
   t: Income,
-  mode: FormMode,
+  mode: FormModeOld,
   displayCurrency: Currency,
   allTags: Tag[],
   allTrips: Trip[]
@@ -174,7 +191,7 @@ function initialValuesForIncome(
 
 function initialValuesForTransaction(
   t: Transaction,
-  mode: FormMode,
+  mode: FormModeOld,
   defaultAccountFrom: number,
   defaultAccountTo: number,
   displayCurrency: Currency,
@@ -216,7 +233,7 @@ function initialValuesForTransaction(
 }
 
 function initialValuesEmpty(
-  mode: FormMode,
+  mode: FormModeOld,
   defaultAccountFromId: number,
   defaultAccountToId: number,
   defaultCategoryId: number,
@@ -307,8 +324,8 @@ export const AddTransactionForm = (props: {
   const [prototype, setPrototype] = useState<TransactionPrototype | null>(null);
   const creatingNewTransaction = !props.transaction;
   const initialMode = props.transaction
-    ? formModeForTransaction(props.transaction)
-    : FormMode.PERSONAL;
+    ? formModeOldForTransaction(props.transaction)
+    : FormModeOld.PERSONAL;
   const {
     transactions,
     categories,

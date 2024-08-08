@@ -6,7 +6,7 @@ import {
   TextInputWithLabel,
 } from '@/components/forms/Input';
 import {FormikSelect, undoTailwindInputStyles} from '@/components/forms/Select';
-import {formModeForTransaction} from '@/components/txform/AddTransactionForm';
+import {formModeOldForTransaction} from '@/components/txform/AddTransactionForm';
 import {BankAccountSelect} from '@/components/txform/BankAccountSelect';
 import {FormExternalExpense} from '@/components/txform/FormExternalExpense';
 import {FormIncome} from '@/components/txform/FormIncome';
@@ -25,7 +25,7 @@ import {
 import {allCurrencies} from '@/lib/model/Currency';
 import {Trip} from '@/lib/model/Trip';
 import {
-  FormMode,
+  FormModeOld,
   TransactionFormValues,
 } from '@/lib/model/forms/TransactionFormValues';
 import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
@@ -59,20 +59,20 @@ export const FormInputs = (props: {
       return;
     }
     if (proto.type == 'deposit') {
-      setFieldValue('mode', FormMode.INCOME);
+      setFieldValue('mode', FormModeOld.INCOME);
     } else if (proto.type == 'withdrawal') {
-      setFieldValue('mode', FormMode.PERSONAL);
+      setFieldValue('mode', FormModeOld.PERSONAL);
     } else if (proto.type == 'transfer') {
-      setFieldValue('mode', FormMode.TRANSFER);
+      setFieldValue('mode', FormModeOld.TRANSFER);
     }
   }, [props.prototype, setFieldValue]);
 
   return (
     <>
-      {mode == FormMode.PERSONAL && <FormPersonalExpense {...props} />}
-      {mode == FormMode.EXTERNAL && <FormExternalExpense {...props} />}
-      {mode == FormMode.TRANSFER && <FormTransfer {...props} />}
-      {mode == FormMode.INCOME && <FormIncome {...props} />}
+      {mode == FormModeOld.PERSONAL && <FormPersonalExpense {...props} />}
+      {mode == FormModeOld.EXTERNAL && <FormExternalExpense {...props} />}
+      {mode == FormModeOld.TRANSFER && <FormTransfer {...props} />}
+      {mode == FormModeOld.INCOME && <FormIncome {...props} />}
     </>
   );
 };
@@ -181,7 +181,7 @@ export function Vendor() {
   } = useFormikContext<TransactionFormValues>();
   const {transactions} = useAllDatabaseDataContext();
   const transactionsForMode = transactions.filter(
-    x => formModeForTransaction(x) == mode
+    x => formModeOldForTransaction(x) == mode
   );
   const vendors = uniqMostFrequent(
     transactionsForMode
@@ -215,7 +215,7 @@ export function Description() {
   } = useFormikContext<TransactionFormValues>();
   const {transactions} = useAllDatabaseDataContext();
   const transactionsForMode = transactions.filter(
-    x => formModeForTransaction(x) == mode
+    x => formModeOldForTransaction(x) == mode
   );
   const descriptions = uniqMostFrequent(
     transactionsForMode.map(x => x.note).filter(x => x)

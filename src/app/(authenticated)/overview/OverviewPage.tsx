@@ -7,7 +7,7 @@ import {
   isFullyConfigured,
   NotConfiguredYet,
 } from '@/components/NotConfiguredYet';
-import {AddTransactionForm} from '@/components/txform/AddTransactionForm';
+import {TransactionForm} from '@/components/txform/v2/TransactionForm';
 import {Button} from '@/components/ui/button';
 import {
   AllDatabaseDataContextProvider,
@@ -102,9 +102,9 @@ function NonEmptyPageContent() {
           </div>
         )}
         {showAddTransactionForm && (
-          <AddTransactionForm
+          <TransactionForm
             transaction={null}
-            onAddedOrUpdated={onTransactionChange(setDbData)}
+            onChange={onTransactionChange(setDbData)}
             onClose={() => setShowAddTransactionForm(false)}
           />
         )}
