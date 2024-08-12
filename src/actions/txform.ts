@@ -8,26 +8,42 @@ import {assertDefined} from '@/lib/assert';
 import {Tag} from '@/lib/model/Tag';
 import prisma from '@/lib/prisma';
 import {
-  TransactionPrototype,
+  type TransactionPrototype,
+  TransactionPrototypeList,
+  transactionPrototypeListSchema,
   WithdrawalOrDepositPrototype,
 } from '@/lib/txsuggestions/TransactionPrototype';
 import {getUserId} from '@/lib/user';
 import {Prisma, Trip} from '@prisma/client';
 
-export default async function upsertTransaction(
-  protos: TransactionPrototype[],
+export async function upsertTransaction(
+  unsafeProtos: TransactionPrototypeList,
   unsafeData: TransactionFormSchema
 ) {
   const userId = await getUserId();
-  const validated = transactionFormValidationSchema.safeParse(unsafeData);
-  if (!validated.success) {
+  const validatedData = transactionFormValidationSchema.safeParse(unsafeData);
+  if (!validatedData.success) {
     return {
-      errors: validated.error.flatten().fieldErrors,
+      errors: validatedData.error.flatten().fieldErrors,
     };
   }
-  const data = validated.data;
+  const data = validatedData.data;
+  const validatedProtos =
+    transactionPrototypeListSchema.safeParse(unsafeProtos);
+  if (!validatedProtos.success) {
+    const fieldErrors = validatedProtos.error.flatten().fieldErrors;
+    return {
+      // Without Object.fromEntries, fieldErrors is not serializable as it contains [entries] and [iterator] properties.
+      errors: Object.fromEntries(
+        Object.entries(fieldErrors).map(([key, value]) => [
+          key,
+          Array.isArray(value) ? [...value] : value,
+        ])
+      ),
+    };
+  }
   if (data.expense) {
-    await createExpense(protos, userId, data);
+    await createExpense(validatedProtos.data, userId, data);
   }
   return {};
 }
