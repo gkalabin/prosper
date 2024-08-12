@@ -1,3 +1,4 @@
+// TODO: write tests.
 export function uniqMostFrequent<T>(items: T[]): T[] {
   const frequency = new Map<T, number>();
   items.forEach(x => frequency.set(x, (frequency.get(x) ?? 0) + 1));
