@@ -1,5 +1,5 @@
 'use client';
-import upsertTransaction from '@/actions/txform';
+import {upsertTransaction} from '@/actions/txform';
 import {TransactionAPIResponse} from '@/app/api/transaction/dbHelpers';
 import {FormTypeSelect} from '@/components/txform/v2/FormTypeSelect';
 import {

@@ -1,36 +1,54 @@
 import {Transaction as OpenBankingTransaction} from '@/lib/openbanking/interface';
+import {z} from 'zod';
 
-export type TransferPrototype = {
-  type: 'transfer';
-  withdrawal: WithdrawalPrototype;
-  deposit: DepositPrototype;
-};
+const withdrawalOrDepositFieldsSchema = z.object({
+  externalTransactionId: z.string(),
+  timestampEpoch: z.number().positive(),
+  description: z.string(),
+  originalDescription: z.string(),
+  absoluteAmountCents: z.number().positive(),
+  internalAccountId: z.number().positive(),
+});
 
-export interface WithdrawalPrototype extends WithdrawalOrDepositFields {
-  type: 'withdrawal';
-}
+const withdrawalPrototypeSchema = withdrawalOrDepositFieldsSchema.extend({
+  type: z.literal('withdrawal'),
+});
 
-export interface DepositPrototype extends WithdrawalOrDepositFields {
-  type: 'deposit';
-}
+const depositPrototypeSchema = withdrawalOrDepositFieldsSchema.extend({
+  type: z.literal('deposit'),
+});
 
-interface WithdrawalOrDepositFields {
-  externalTransactionId: string;
-  timestampEpoch: number;
-  description: string;
-  originalDescription: string;
-  absoluteAmountCents: number;
-  internalAccountId: number;
-}
+const transferPrototypeSchema = z.object({
+  type: z.literal('transfer'),
+  withdrawal: withdrawalPrototypeSchema,
+  deposit: depositPrototypeSchema,
+});
 
-export type WithdrawalOrDepositPrototype =
-  | WithdrawalPrototype
-  | DepositPrototype;
+const withdrawalOrDepositPrototypeSchema = z.union([
+  withdrawalPrototypeSchema,
+  depositPrototypeSchema,
+]);
 
-export type TransactionPrototype =
-  | WithdrawalPrototype
-  | DepositPrototype
-  | TransferPrototype;
+const transactionPrototypeSchema = z.union([
+  withdrawalPrototypeSchema,
+  depositPrototypeSchema,
+  transferPrototypeSchema,
+]);
+
+export const transactionPrototypeListSchema = z.array(
+  transactionPrototypeSchema
+);
+
+export type TransferPrototype = z.infer<typeof transferPrototypeSchema>;
+export type WithdrawalPrototype = z.infer<typeof withdrawalPrototypeSchema>;
+export type DepositPrototype = z.infer<typeof depositPrototypeSchema>;
+export type WithdrawalOrDepositPrototype = z.infer<
+  typeof withdrawalOrDepositPrototypeSchema
+>;
+export type TransactionPrototype = z.infer<typeof transactionPrototypeSchema>;
+export type TransactionPrototypeList = z.infer<
+  typeof transactionPrototypeListSchema
+>;
 
 export function fromOpenBankingTransaction(
   t: OpenBankingTransaction
