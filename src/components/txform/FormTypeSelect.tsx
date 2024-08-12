@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import {useFormikContext} from 'formik';
 import {
-  FormMode,
+  FormModeOld,
   TransactionFormValues,
 } from '@/lib/model/forms/TransactionFormValues';
 
@@ -40,32 +40,32 @@ export const FormTypeSelect = () => {
       <div className="rounded-md shadow-sm">
         <Button
           className={classNames('rounded-l-lg border')}
-          onClick={() => setFieldValue('mode', FormMode.PERSONAL)}
-          active={mode == FormMode.PERSONAL}
+          onClick={() => setFieldValue('mode', FormModeOld.PERSONAL)}
+          active={mode == FormModeOld.PERSONAL}
           disabled={isSubmitting}
         >
           Personal
         </Button>
         <Button
           className={classNames('border-b border-r border-t')}
-          onClick={() => setFieldValue('mode', FormMode.EXTERNAL)}
-          active={mode == FormMode.EXTERNAL}
+          onClick={() => setFieldValue('mode', FormModeOld.EXTERNAL)}
+          active={mode == FormModeOld.EXTERNAL}
           disabled={isSubmitting}
         >
           External
         </Button>
         <Button
           className={classNames('border-b border-r border-t')}
-          onClick={() => setFieldValue('mode', FormMode.TRANSFER)}
-          active={mode == FormMode.TRANSFER}
+          onClick={() => setFieldValue('mode', FormModeOld.TRANSFER)}
+          active={mode == FormModeOld.TRANSFER}
           disabled={isSubmitting}
         >
           Transfer
         </Button>
         <Button
           className={classNames('rounded-r-md border')}
-          onClick={() => setFieldValue('mode', FormMode.INCOME)}
-          active={mode == FormMode.INCOME}
+          onClick={() => setFieldValue('mode', FormModeOld.INCOME)}
+          active={mode == FormModeOld.INCOME}
           disabled={isSubmitting}
         >
           Income
