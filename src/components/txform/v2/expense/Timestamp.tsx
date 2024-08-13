@@ -1,8 +1,14 @@
-import {Input} from '@/components/forms/Input';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
-import {Controller, useFormContext} from 'react-hook-form';
-
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {Input} from '@/components/ui/input';
 import {format} from 'date-fns';
+import {useFormContext} from 'react-hook-form';
 
 function toDateTimeLocal(d: Date | number) {
   // 2022-12-19T18:05:59
@@ -14,37 +20,29 @@ export function Timestamp({
 }: {
   fieldName: 'expense.timestamp' | 'expense.repayment.timestamp';
 }) {
-  const {
-    control,
-    setValue,
-    formState: {isSubmitting},
-  } = useFormContext<TransactionFormSchema>();
+  const {control, setValue} = useFormContext<TransactionFormSchema>();
   return (
-    <div className="col-span-6">
-      <label
-        htmlFor="timestamp"
-        className="block text-sm font-medium text-gray-700"
-      >
-        Time
-      </label>
-      <Controller
-        name={fieldName}
-        control={control}
-        render={({field}) => (
-          <Input
-            type="datetime-local"
-            className="block w-full"
-            disabled={isSubmitting}
-            {...field}
-            value={toDateTimeLocal(field.value)}
-            onChange={e => {
-              const dateTimeLocalValue = e.target.value;
-              const d = new Date(dateTimeLocalValue);
-              setValue(fieldName, d);
-            }}
-          />
-        )}
-      />
-    </div>
+    <FormField
+      control={control}
+      name={fieldName}
+      render={({field}) => (
+        <FormItem className="col-span-6">
+          <FormLabel>Time</FormLabel>
+          <FormControl>
+            <Input
+              type="datetime-local"
+              {...field}
+              value={toDateTimeLocal(field.value)}
+              onChange={e => {
+                const dateTimeLocalValue = e.target.value;
+                const d = new Date(dateTimeLocalValue);
+                setValue(fieldName, d);
+              }}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   );
 }
