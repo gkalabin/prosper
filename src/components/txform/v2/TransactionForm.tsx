@@ -16,13 +16,14 @@ import {
   transactionFormValidationSchema,
 } from '@/components/txform/v2/types';
 import {ButtonFormPrimary, ButtonFormSecondary} from '@/components/ui/buttons';
+import {Form} from '@/components/ui/form';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
 import {Transaction} from '@/lib/model/transaction/Transaction';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useState} from 'react';
-import {FormProvider, useForm} from 'react-hook-form';
+import {useForm} from 'react-hook-form';
 
 export const TransactionForm = (props: {
   transaction: Transaction | null;
@@ -73,7 +74,7 @@ export const TransactionForm = (props: {
     //   - Form submission should disable form type selector and suggestions as well.
     //     The alternative is to keep track of isSubmitting state at the higher level,
     //     but it invalidates the purpose of incapsulating the form common logic.
-    <FormProvider {...form}>
+    <Form {...form}>
       <form onSubmit={onSubmit}>
         {/* Transaction suggestions only make sense when creating new transaction,
           they are hidden when updating an existing transaction.
@@ -116,6 +117,6 @@ export const TransactionForm = (props: {
           </ButtonFormPrimary>
         </div>
       </form>
-    </FormProvider>
+    </Form>
   );
 };
