@@ -1,53 +1,74 @@
-import {Input} from '@/components/forms/Input';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
-import {ButtonLink} from '@/components/ui/buttons';
+import {Button} from '@/components/ui/button';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {Input} from '@/components/ui/input';
 import {uniqMostFrequent} from '@/lib/collections';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {otherPartyNameOrNull} from '@/lib/model/transaction/Transaction';
 import {notEmpty} from '@/lib/util/util';
+import {useId, useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function Payer() {
-  const {register, setValue, watch} = useFormContext<TransactionFormSchema>();
+  const {setValue, watch, control, formState} =
+    useFormContext<TransactionFormSchema>();
   const share = watch('expense.shareType');
   const paidSelf =
     'PAID_SELF_SHARED' == share || 'PAID_SELF_NOT_SHARED' == share;
   const paidOther = !paidSelf;
   const {transactions} = useAllDatabaseDataContext();
-  const payers = uniqMostFrequent(
-    transactions.map(x => otherPartyNameOrNull(x)).filter(notEmpty)
-  );
+  const payers = useMemo(() => {
+    return uniqMostFrequent(
+      transactions.map(x => otherPartyNameOrNull(x)).filter(notEmpty)
+    );
+  }, [transactions]);
+  const payersListId = useId();
   if (!paidOther) {
     return <></>;
   }
   return (
-    <div className="col-span-6">
-      <label
-        htmlFor="payer"
-        className="block text-sm font-medium text-gray-700"
-      >
-        This expense was paid by
-      </label>
-      <Input
-        type="text"
-        list="payers"
-        className="block w-full"
-        {...register('expense.payer')}
-      />
-      <datalist id="payers">
-        {payers.map(v => (
-          <option key={v} value={v} />
-        ))}
-      </datalist>
-      <div className="text-xs">
-        or{' '}
-        <ButtonLink
-          onClick={() => setValue('expense.shareType', 'PAID_SELF_NOT_SHARED')}
-        >
-          I paid for this myself
-        </ButtonLink>
-        .
-      </div>
-    </div>
+    <FormField
+      control={control}
+      name="expense.payer"
+      render={({field}) => (
+        <FormItem className="col-span-6">
+          <FormLabel>This expense was paid by</FormLabel>
+          <FormControl>
+            <Input
+              type="text"
+              list={payersListId}
+              {...field}
+              value={field.value ?? ''}
+            />
+          </FormControl>
+          <FormMessage />
+          <div className="text-xs">
+            or{' '}
+            <Button
+              onClick={() =>
+                setValue('expense.shareType', 'PAID_SELF_NOT_SHARED')
+              }
+              variant="link"
+              size="inherit"
+              disabled={formState.isSubmitting}
+            >
+              I paid for this myself
+            </Button>
+            .
+          </div>
+          <datalist id={payersListId}>
+            {payers.map(v => (
+              <option key={v} value={v} />
+            ))}
+          </datalist>
+        </FormItem>
+      )}
+    />
   );
 }
