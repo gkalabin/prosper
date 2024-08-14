@@ -1,18 +1,16 @@
-import {Input} from '@/components/forms/Input';
 import {undoTailwindInputStyles} from '@/components/forms/Select';
 import {AccountFrom} from '@/components/txform/v2/expense/inputs/AccountFrom';
 import {Amount} from '@/components/txform/v2/expense/inputs/Amount';
 import {Category} from '@/components/txform/v2/expense/inputs/Category';
 import {Companion} from '@/components/txform/v2/expense/inputs/Companion';
 import {ExtraFields} from '@/components/txform/v2/expense/inputs/ExtraFields';
+import {OwnShareAmount} from '@/components/txform/v2/expense/inputs/OwnShareAmount';
 import {Payer} from '@/components/txform/v2/expense/inputs/Payer';
 import {RepaymentFields} from '@/components/txform/v2/expense/inputs/RepaymentFields';
 import {SplitTransactionToggle} from '@/components/txform/v2/expense/inputs/SplitTransactionToggle';
 import {Timestamp} from '@/components/txform/v2/expense/inputs/Timestamp';
 import {Vendor} from '@/components/txform/v2/expense/inputs/Vendor';
-import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
-import {ButtonLink} from '@/components/ui/buttons';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {Controller, useFormContext} from 'react-hook-form';
 import CreatableSelect from 'react-select/creatable';
@@ -35,97 +33,6 @@ export const ExpenseForm = () => {
     </>
   );
 };
-
-function OwnShareAmount() {
-  const {
-    formState: {isSubmitting},
-    getValues,
-  } = useFormContext<TransactionFormSchema>();
-  const {sharingType, isShared} = useSharingType();
-  if (!isShared) {
-    return <></>;
-  }
-  return (
-    <div className="col-span-3">
-      <label
-        htmlFor="ownShareAmountCents"
-        className="block text-sm font-medium text-gray-700"
-      >
-        {sharingType == 'PAID_SELF_SHARED' && <>My share</>}
-        {sharingType == 'PAID_OTHER_OWED' && (
-          <>My share (which I owe {getValues('expense.payer') || 'them'})</>
-        )}
-        {sharingType == 'PAID_OTHER_REPAID' && (
-          <>My share (which I paid back)</>
-        )}
-      </label>
-      <Controller
-        name="expense.ownShareAmount"
-        render={({field}) => (
-          <Input
-            {...field}
-            type="text"
-            inputMode="decimal"
-            className="block w-full"
-            onFocus={e => e.target.select()}
-            onChange={e =>
-              field.onChange(parseTextInputAsNumber(e.target.value))
-            }
-            disabled={isSubmitting}
-          />
-        )}
-      />
-      <RepaymentToggle />
-    </div>
-  );
-}
-
-function RepaymentToggle() {
-  const {getValues, setValue} = useFormContext<TransactionFormSchema>();
-  const {sharingType} = useSharingType();
-  return (
-    <>
-      {sharingType == 'PAID_OTHER_OWED' && (
-        <div className="text-xs">
-          or{' '}
-          <ButtonLink
-            onClick={() => {
-              setValue('expense.sharingType', 'PAID_OTHER_REPAID');
-              setValue(
-                'expense.repayment.accountId',
-                getValues('expense.accountId') ?? 0
-              );
-              setValue(
-                'expense.repayment.timestamp',
-                getValues('expense.timestamp')
-              );
-            }}
-          >
-            I&apos;ve already paid them back
-          </ButtonLink>
-          .
-        </div>
-      )}
-      {sharingType == 'PAID_OTHER_REPAID' && (
-        <div className="text-xs">
-          or{' '}
-          <ButtonLink
-            onClick={() => {
-              setValue('expense.sharingType', 'PAID_OTHER_OWED');
-              setValue(
-                'expense.accountId',
-                getValues('expense.repayment.accountId') ?? 0
-              );
-            }}
-          >
-            I owe them money
-          </ButtonLink>
-          .
-        </div>
-      )}
-    </>
-  );
-}
 
 function Tags() {
   const {control} = useFormContext<TransactionFormSchema>();
@@ -170,14 +77,4 @@ function Tags() {
       />
     </div>
   );
-}
-
-// TODO: write tests
-function parseTextInputAsNumber(v: string): number | string {
-  const normalised = v.replace(/,/g, '.');
-  const match = normalised.match(/^[0-9]+(\.[0-9]+)?$/);
-  if (!match) {
-    return v;
-  }
-  return +normalised;
 }
