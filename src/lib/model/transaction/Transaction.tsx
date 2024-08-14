@@ -1,4 +1,3 @@
-import {TransactionType} from '@prisma/client';
 import {TransactionWithTagIds} from '@/lib/model/AllDatabaseDataModel';
 import {
   Bank,
@@ -23,6 +22,7 @@ import {
 } from '@/lib/model/transaction/ThirdPartyExpense';
 import {Transfer, transferModelFromDB} from '@/lib/model/transaction/Transfer';
 import {notEmpty} from '@/lib/util/util';
+import {TransactionType} from '@prisma/client';
 
 export type Transaction =
   | PersonalExpense

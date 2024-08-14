@@ -1,3 +1,5 @@
+import {notEmpty} from '@/lib/util/util';
+
 // TODO: write tests.
 export function uniqMostFrequent<T>(items: T[]): T[] {
   const frequency = new Map<T, number>();
@@ -5,4 +7,10 @@ export function uniqMostFrequent<T>(items: T[]): T[] {
   return [...frequency.entries()]
     .sort(([_v1, f1], [_v2, f2]) => f2 - f1)
     .map(([value]) => value);
+}
+
+export function uniqMostFrequentIgnoringEmpty<T>(
+  items: (T | null | undefined)[]
+): T[] {
+  return uniqMostFrequent(items.filter(notEmpty));
 }
