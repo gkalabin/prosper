@@ -1,5 +1,5 @@
 import {Input} from '@/components/forms/Input';
-import {Trips} from '@/components/txform/v2/expense/Trips';
+import {Trips} from '@/components/txform/v2/expense/inputs/Trips';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {ButtonLink} from '@/components/ui/buttons';
 import {uniqMostFrequent} from '@/lib/collections';
