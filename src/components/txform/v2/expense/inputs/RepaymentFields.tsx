@@ -1,7 +1,15 @@
-import {Select, undoTailwindInputStyles} from '@/components/forms/Select';
+import {undoTailwindInputStyles} from '@/components/forms/Select';
 import {Timestamp} from '@/components/txform/v2/expense/inputs/Timestamp';
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {Select} from '@/components/ui/html-select';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
 import {fullAccountName} from '@/lib/model/BankAccount';
@@ -14,13 +22,6 @@ import {Controller, useFormContext} from 'react-hook-form';
 import ReactSelect from 'react-select';
 
 export function RepaymentFields() {
-  const {
-    register,
-    formState: {isSubmitting},
-    getValues,
-  } = useFormContext<TransactionFormSchema>();
-  const accounts = useDisplayBankAccounts();
-  const {banks} = useAllDatabaseDataContext();
   const {sharingType} = useSharingType();
   if (sharingType != 'PAID_OTHER_REPAID') {
     return <></>;
@@ -28,27 +29,7 @@ export function RepaymentFields() {
   return (
     <div className="col-span-6 space-y-2 rounded border bg-accent p-2 pl-4">
       <Timestamp fieldName="expense.repayment.timestamp" />
-      <div>
-        <label
-          htmlFor="accountId"
-          className="block text-sm font-medium text-gray-700"
-        >
-          I&apos;ve paid {getValues('expense.payer') || 'them'} from
-        </label>
-        <Select
-          className="block w-full"
-          disabled={isSubmitting}
-          {...register('expense.repayment.accountId', {
-            valueAsNumber: true,
-          })}
-        >
-          {accounts.map(x => (
-            <option key={x.id} value={x.id}>
-              {fullAccountName(x, banks)}
-            </option>
-          ))}
-        </Select>
-      </div>
+      <RepaymentAccountFrom />
       <div>
         <label
           htmlFor="repaymentCategoryId"
@@ -59,6 +40,43 @@ export function RepaymentFields() {
         <RepaymentCategory />
       </div>
     </div>
+  );
+}
+
+function RepaymentAccountFrom() {
+  const {getValues, control} = useFormContext<TransactionFormSchema>();
+  const {paidSelf} = useSharingType();
+  const accounts = useDisplayBankAccounts();
+  const {banks} = useAllDatabaseDataContext();
+  if (!paidSelf) {
+    return <></>;
+  }
+  return (
+    <FormField
+      control={control}
+      name="expense.repayment.accountId"
+      render={({field}) => (
+        <FormItem>
+          <FormLabel>
+            I&apos;ve paid {getValues('expense.payer') || 'them'} from
+          </FormLabel>
+          <FormControl>
+            <Select
+              {...field}
+              value={field.value?.toString()}
+              onChange={e => field.onChange(parseInt(e.target.value, 10))}
+            >
+              {accounts.map(x => (
+                <option key={x.id} value={x.id}>
+                  {fullAccountName(x, banks)}
+                </option>
+              ))}
+            </Select>
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   );
 }
 
