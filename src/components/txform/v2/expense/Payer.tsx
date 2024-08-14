@@ -9,10 +9,9 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
-import {uniqMostFrequent} from '@/lib/collections';
+import {uniqMostFrequentIgnoringEmpty} from '@/lib/collections';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
-import {otherPartyNameOrNull} from '@/lib/model/transaction/Transaction';
-import {notEmpty} from '@/lib/util/util';
+import {Transaction} from '@/lib/model/transaction/Transaction';
 import {useId, useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
@@ -20,12 +19,7 @@ export function Payer() {
   const {setValue, control, formState} =
     useFormContext<TransactionFormSchema>();
   const {paidOther} = useSharingType();
-  const {transactions} = useAllDatabaseDataContext();
-  const payers = useMemo(() => {
-    return uniqMostFrequent(
-      transactions.map(x => otherPartyNameOrNull(x)).filter(notEmpty)
-    );
-  }, [transactions]);
+  const payers = useUniqueFrequentPayers();
   const payersListId = useId();
   if (!paidOther) {
     return <></>;
@@ -68,5 +62,17 @@ export function Payer() {
         </FormItem>
       )}
     />
+  );
+}
+
+function payerOrNull(t: Transaction) {
+  return t.kind == 'ThirdPartyExpense' ? t.payer : null;
+}
+
+function useUniqueFrequentPayers(): string[] {
+  const {transactions} = useAllDatabaseDataContext();
+  return useMemo(
+    () => uniqMostFrequentIgnoringEmpty(transactions.map(payerOrNull)),
+    [transactions]
   );
 }
