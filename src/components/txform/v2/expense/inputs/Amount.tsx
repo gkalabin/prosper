@@ -1,39 +1,40 @@
-import {Input} from '@/components/forms/Input';
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
-import classNames from 'classnames';
-import {Controller, useFormContext} from 'react-hook-form';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {Input} from '@/components/ui/input';
+import {cn} from '@/lib/utils';
+import {useFormContext} from 'react-hook-form';
 
 export function Amount() {
-  const {
-    formState: {isSubmitting},
-  } = useFormContext<TransactionFormSchema>();
+  const {control} = useFormContext<TransactionFormSchema>();
   const {isShared} = useSharingType();
   return (
-    <div className={classNames(isShared ? 'col-span-3' : 'col-span-6')}>
-      <label
-        htmlFor="amountCents"
-        className="block text-sm font-medium text-gray-700"
-      >
-        Amount
-      </label>
-      <Controller
-        name="expense.amount"
-        render={({field}) => (
-          <Input
-            {...field}
-            type="text"
-            inputMode="decimal"
-            className="block w-full"
-            onFocus={e => e.target.select()}
-            onChange={e =>
-              field.onChange(parseTextInputAsNumber(e.target.value))
-            }
-            disabled={isSubmitting}
-          />
-        )}
-      />
-    </div>
+    <FormField
+      control={control}
+      name="expense.amount"
+      render={({field}) => (
+        <FormItem className={cn(isShared ? 'col-span-3' : 'col-span-6')}>
+          <FormLabel>Amount</FormLabel>
+          <FormControl>
+            <Input
+              type="text"
+              inputMode="decimal"
+              {...field}
+              onChange={e =>
+                field.onChange(parseTextInputAsNumber(e.target.value))
+              }
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   );
 }
 
