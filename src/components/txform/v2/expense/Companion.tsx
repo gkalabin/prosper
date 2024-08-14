@@ -1,19 +1,24 @@
 import {Input} from '@/components/forms/Input';
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
-import {uniqMostFrequent} from '@/lib/collections';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {uniqMostFrequentIgnoringEmpty} from '@/lib/collections';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {otherPartyNameOrNull} from '@/lib/model/transaction/Transaction';
-import {notEmpty} from '@/lib/util/util';
+import {useId, useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function Companion() {
-  const {register} = useFormContext<TransactionFormSchema>();
+  const {control} = useFormContext<TransactionFormSchema>();
   const {isShared, paidSelf} = useSharingType();
-  const {transactions} = useAllDatabaseDataContext();
-  const otherParties = uniqMostFrequent(
-    transactions.map(x => otherPartyNameOrNull(x)).filter(notEmpty)
-  );
+  const companions = useUniqueCompanions();
+  const listId = useId();
   if (!isShared) {
     return <></>;
   }
@@ -21,24 +26,36 @@ export function Companion() {
     return <div className="col-span-3"></div>;
   }
   return (
-    <div className="col-span-3">
-      <label
-        htmlFor="otherPartyName"
-        className="block text-sm font-medium text-gray-700"
-      >
-        Shared with
-      </label>
-      <Input
-        type="text"
-        list="companions"
-        className="block w-full"
-        {...register('expense.companion')}
-      />
-      <datalist id="companions">
-        {otherParties.map(v => (
-          <option key={v} value={v} />
-        ))}
-      </datalist>
-    </div>
+    <FormField
+      control={control}
+      name="expense.companion"
+      render={({field}) => (
+        <FormItem className="col-span-3">
+          <FormLabel>Shared with</FormLabel>
+          <FormControl>
+            <Input
+              type="text"
+              list={listId}
+              {...field}
+              value={field.value ?? ''}
+            />
+          </FormControl>
+          <FormMessage />
+          <datalist id={listId}>
+            {companions.map(v => (
+              <option key={v} value={v} />
+            ))}
+          </datalist>
+        </FormItem>
+      )}
+    />
+  );
+}
+
+function useUniqueCompanions(): string[] {
+  const {transactions} = useAllDatabaseDataContext();
+  return useMemo(
+    () => uniqMostFrequentIgnoringEmpty(transactions.map(otherPartyNameOrNull)),
+    [transactions]
   );
 }
