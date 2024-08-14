@@ -6,15 +6,12 @@ import {Companion} from '@/components/txform/v2/expense/Companion';
 import {ExtraFields} from '@/components/txform/v2/expense/ExtraFields';
 import {Payer} from '@/components/txform/v2/expense/Payer';
 import {RepaymentFields} from '@/components/txform/v2/expense/RepaymentFields';
+import {SplitTransactionToggle} from '@/components/txform/v2/expense/SplitTransactionToggle';
 import {Timestamp} from '@/components/txform/v2/expense/Timestamp';
 import {Vendor} from '@/components/txform/v2/expense/Vendor';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {ButtonLink} from '@/components/ui/buttons';
-import {uniqMostFrequent} from '@/lib/collections';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
-import {otherPartyNameOrNull} from '@/lib/model/transaction/Transaction';
-import {notEmpty} from '@/lib/util/util';
-import {Switch} from '@headlessui/react';
 import classNames from 'classnames';
 import {Controller, useFormContext} from 'react-hook-form';
 import CreatableSelect from 'react-select/creatable';
@@ -167,73 +164,6 @@ function RepaymentToggle() {
         </div>
       )}
     </>
-  );
-}
-
-function SplitTransactionToggle() {
-  const {
-    formState: {isSubmitting},
-    getValues,
-    setValue,
-    watch,
-  } = useFormContext<TransactionFormSchema>();
-  const share = watch('expense.shareType');
-  const shared =
-    'PAID_SELF_SHARED' == share ||
-    'PAID_OTHER_OWED' == share ||
-    'PAID_OTHER_REPAID' == share;
-  const paidSelf =
-    'PAID_SELF_SHARED' == share || 'PAID_SELF_NOT_SHARED' == share;
-  const paidOther = !paidSelf;
-  const {transactions} = useAllDatabaseDataContext();
-  const [mostFrequentCompanion] = uniqMostFrequent(
-    transactions.map(x => otherPartyNameOrNull(x)).filter(notEmpty)
-  );
-
-  return (
-    <div className="col-span-3 flex">
-      <Switch.Group>
-        <div className="flex items-center">
-          <div className="flex">
-            <Switch
-              checked={shared}
-              onChange={() => {
-                if (share == 'PAID_SELF_SHARED') {
-                  setValue('expense.shareType', 'PAID_SELF_NOT_SHARED');
-                  setValue('expense.companion', null);
-                  setValue(
-                    'expense.ownShareAmount',
-                    getValues('expense.amount')
-                  );
-                }
-                if (share == 'PAID_SELF_NOT_SHARED') {
-                  setValue('expense.shareType', 'PAID_SELF_SHARED');
-                  setValue('expense.companion', mostFrequentCompanion ?? '');
-                  setValue(
-                    'expense.ownShareAmount',
-                    getValues('expense.amount') / 2
-                  );
-                }
-              }}
-              className={classNames(
-                shared ? 'bg-indigo-700' : 'bg-gray-200',
-                'relative inline-flex h-6 w-11 items-center rounded-full disabled:opacity-30'
-              )}
-              disabled={isSubmitting || paidOther}
-            >
-              <span
-                className={`${shared ? 'translate-x-6' : 'translate-x-1'} inline-block h-4 w-4 transform rounded-full bg-white transition`}
-              />
-            </Switch>
-          </div>
-          <div className="ml-4 text-sm">
-            <Switch.Label className="font-medium text-gray-700">
-              Split transaction
-            </Switch.Label>
-          </div>
-        </div>
-      </Switch.Group>
-    </div>
   );
 }
 
