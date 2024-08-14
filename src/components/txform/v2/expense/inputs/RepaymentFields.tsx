@@ -1,5 +1,5 @@
 import {Select, undoTailwindInputStyles} from '@/components/forms/Select';
-import {Timestamp} from '@/components/txform/v2/expense/Timestamp';
+import {Timestamp} from '@/components/txform/v2/expense/inputs/Timestamp';
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';

@@ -1,19 +1,19 @@
 import {Input} from '@/components/forms/Input';
 import {undoTailwindInputStyles} from '@/components/forms/Select';
-import {AccountFrom} from '@/components/txform/v2/expense/AccountFrom';
-import {Category} from '@/components/txform/v2/expense/Category';
-import {Companion} from '@/components/txform/v2/expense/Companion';
-import {ExtraFields} from '@/components/txform/v2/expense/ExtraFields';
-import {Payer} from '@/components/txform/v2/expense/Payer';
-import {RepaymentFields} from '@/components/txform/v2/expense/RepaymentFields';
-import {SplitTransactionToggle} from '@/components/txform/v2/expense/SplitTransactionToggle';
-import {Timestamp} from '@/components/txform/v2/expense/Timestamp';
+import {AccountFrom} from '@/components/txform/v2/expense/inputs/AccountFrom';
+import {Amount} from '@/components/txform/v2/expense/inputs/Amount';
+import {Category} from '@/components/txform/v2/expense/inputs/Category';
+import {Companion} from '@/components/txform/v2/expense/inputs/Companion';
+import {ExtraFields} from '@/components/txform/v2/expense/inputs/ExtraFields';
+import {Payer} from '@/components/txform/v2/expense/inputs/Payer';
+import {RepaymentFields} from '@/components/txform/v2/expense/inputs/RepaymentFields';
+import {SplitTransactionToggle} from '@/components/txform/v2/expense/inputs/SplitTransactionToggle';
+import {Timestamp} from '@/components/txform/v2/expense/inputs/Timestamp';
+import {Vendor} from '@/components/txform/v2/expense/inputs/Vendor';
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
-import {Vendor} from '@/components/txform/v2/expense/Vendor';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {ButtonLink} from '@/components/ui/buttons';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
-import classNames from 'classnames';
 import {Controller, useFormContext} from 'react-hook-form';
 import CreatableSelect from 'react-select/creatable';
 
@@ -35,39 +35,6 @@ export const ExpenseForm = () => {
     </>
   );
 };
-
-function Amount() {
-  const {
-    formState: {isSubmitting},
-  } = useFormContext<TransactionFormSchema>();
-  const {isShared} = useSharingType();
-  return (
-    <div className={classNames(isShared ? 'col-span-3' : 'col-span-6')}>
-      <label
-        htmlFor="amountCents"
-        className="block text-sm font-medium text-gray-700"
-      >
-        Amount
-      </label>
-      <Controller
-        name="expense.amount"
-        render={({field}) => (
-          <Input
-            {...field}
-            type="text"
-            inputMode="decimal"
-            className="block w-full"
-            onFocus={e => e.target.select()}
-            onChange={e =>
-              field.onChange(parseTextInputAsNumber(e.target.value))
-            }
-            disabled={isSubmitting}
-          />
-        )}
-      />
-    </div>
-  );
-}
 
 function OwnShareAmount() {
   const {
