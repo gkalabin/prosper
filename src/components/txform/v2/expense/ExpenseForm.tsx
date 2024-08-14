@@ -8,6 +8,7 @@ import {Payer} from '@/components/txform/v2/expense/Payer';
 import {RepaymentFields} from '@/components/txform/v2/expense/RepaymentFields';
 import {SplitTransactionToggle} from '@/components/txform/v2/expense/SplitTransactionToggle';
 import {Timestamp} from '@/components/txform/v2/expense/Timestamp';
+import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
 import {Vendor} from '@/components/txform/v2/expense/Vendor';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {ButtonLink} from '@/components/ui/buttons';
@@ -38,15 +39,10 @@ export const ExpenseForm = () => {
 function Amount() {
   const {
     formState: {isSubmitting},
-    watch,
   } = useFormContext<TransactionFormSchema>();
-  const share = watch('expense.shareType');
-  const shared =
-    'PAID_SELF_SHARED' == share ||
-    'PAID_OTHER_OWED' == share ||
-    'PAID_OTHER_REPAID' == share;
+  const {isShared} = useSharingType();
   return (
-    <div className={classNames(shared ? 'col-span-3' : 'col-span-6')}>
+    <div className={classNames(isShared ? 'col-span-3' : 'col-span-6')}>
       <label
         htmlFor="amountCents"
         className="block text-sm font-medium text-gray-700"
@@ -77,14 +73,9 @@ function OwnShareAmount() {
   const {
     formState: {isSubmitting},
     getValues,
-    watch,
   } = useFormContext<TransactionFormSchema>();
-  const share = watch('expense.shareType');
-  const shared =
-    'PAID_SELF_SHARED' == share ||
-    'PAID_OTHER_OWED' == share ||
-    'PAID_OTHER_REPAID' == share;
-  if (!shared) {
+  const {sharingType, isShared} = useSharingType();
+  if (!isShared) {
     return <></>;
   }
   return (
@@ -93,11 +84,13 @@ function OwnShareAmount() {
         htmlFor="ownShareAmountCents"
         className="block text-sm font-medium text-gray-700"
       >
-        {share == 'PAID_SELF_SHARED' && <>My share</>}
-        {share == 'PAID_OTHER_OWED' && (
+        {sharingType == 'PAID_SELF_SHARED' && <>My share</>}
+        {sharingType == 'PAID_OTHER_OWED' && (
           <>My share (which I owe {getValues('expense.payer') || 'them'})</>
         )}
-        {share == 'PAID_OTHER_REPAID' && <>My share (which I paid back)</>}
+        {sharingType == 'PAID_OTHER_REPAID' && (
+          <>My share (which I paid back)</>
+        )}
       </label>
       <Controller
         name="expense.ownShareAmount"
@@ -121,16 +114,16 @@ function OwnShareAmount() {
 }
 
 function RepaymentToggle() {
-  const {getValues, setValue, watch} = useFormContext<TransactionFormSchema>();
-  const share = watch('expense.shareType');
+  const {getValues, setValue} = useFormContext<TransactionFormSchema>();
+  const {sharingType} = useSharingType();
   return (
     <>
-      {share == 'PAID_OTHER_OWED' && (
+      {sharingType == 'PAID_OTHER_OWED' && (
         <div className="text-xs">
           or{' '}
           <ButtonLink
             onClick={() => {
-              setValue('expense.shareType', 'PAID_OTHER_REPAID');
+              setValue('expense.sharingType', 'PAID_OTHER_REPAID');
               setValue(
                 'expense.repayment.accountId',
                 getValues('expense.accountId') ?? 0
@@ -146,12 +139,12 @@ function RepaymentToggle() {
           .
         </div>
       )}
-      {share == 'PAID_OTHER_REPAID' && (
+      {sharingType == 'PAID_OTHER_REPAID' && (
         <div className="text-xs">
           or{' '}
           <ButtonLink
             onClick={() => {
-              setValue('expense.shareType', 'PAID_OTHER_OWED');
+              setValue('expense.sharingType', 'PAID_OTHER_OWED');
               setValue(
                 'expense.accountId',
                 getValues('expense.repayment.accountId') ?? 0

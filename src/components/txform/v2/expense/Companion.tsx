@@ -1,4 +1,5 @@
 import {Input} from '@/components/forms/Input';
+import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {uniqMostFrequent} from '@/lib/collections';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
@@ -7,19 +8,13 @@ import {notEmpty} from '@/lib/util/util';
 import {useFormContext} from 'react-hook-form';
 
 export function Companion() {
-  const {register, watch} = useFormContext<TransactionFormSchema>();
-  const share = watch('expense.shareType');
-  const shared =
-    'PAID_SELF_SHARED' == share ||
-    'PAID_OTHER_OWED' == share ||
-    'PAID_OTHER_REPAID' == share;
-  const paidSelf =
-    'PAID_SELF_SHARED' == share || 'PAID_SELF_NOT_SHARED' == share;
+  const {register} = useFormContext<TransactionFormSchema>();
+  const {isShared, paidSelf} = useSharingType();
   const {transactions} = useAllDatabaseDataContext();
   const otherParties = uniqMostFrequent(
     transactions.map(x => otherPartyNameOrNull(x)).filter(notEmpty)
   );
-  if (!shared) {
+  if (!isShared) {
     return <></>;
   }
   if (!paidSelf) {

@@ -1,5 +1,6 @@
 import {Select, undoTailwindInputStyles} from '@/components/forms/Select';
 import {Timestamp} from '@/components/txform/v2/expense/Timestamp';
+import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
@@ -17,12 +18,11 @@ export function RepaymentFields() {
     register,
     formState: {isSubmitting},
     getValues,
-    watch,
   } = useFormContext<TransactionFormSchema>();
   const accounts = useDisplayBankAccounts();
   const {banks} = useAllDatabaseDataContext();
-  const share = watch('expense.shareType');
-  if (share != 'PAID_OTHER_REPAID') {
+  const {sharingType} = useSharingType();
+  if (sharingType != 'PAID_OTHER_REPAID') {
     return <></>;
   }
   return (

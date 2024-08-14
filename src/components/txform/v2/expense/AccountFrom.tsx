@@ -1,3 +1,4 @@
+import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {Button} from '@/components/ui/button';
 import {
@@ -14,11 +15,9 @@ import {fullAccountName} from '@/lib/model/BankAccount';
 import {useFormContext} from 'react-hook-form';
 
 export function AccountFrom() {
-  const {formState, setValue, watch, control} =
+  const {formState, setValue, control} =
     useFormContext<TransactionFormSchema>();
-  const share = watch('expense.shareType');
-  const paidSelf =
-    'PAID_SELF_SHARED' == share || 'PAID_SELF_NOT_SHARED' == share;
+  const {paidSelf} = useSharingType();
   const accounts = useDisplayBankAccounts();
   const {banks} = useAllDatabaseDataContext();
   if (!paidSelf) {
@@ -48,7 +47,7 @@ export function AccountFrom() {
           <div className="text-xs">
             or{' '}
             <Button
-              onClick={() => setValue('expense.shareType', 'PAID_OTHER_OWED')}
+              onClick={() => setValue('expense.sharingType', 'PAID_OTHER_OWED')}
               variant="link"
               size="inherit"
               disabled={formState.isSubmitting}

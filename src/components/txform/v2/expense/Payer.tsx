@@ -1,3 +1,4 @@
+import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {Button} from '@/components/ui/button';
 import {
@@ -16,12 +17,9 @@ import {useId, useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function Payer() {
-  const {setValue, watch, control, formState} =
+  const {setValue, control, formState} =
     useFormContext<TransactionFormSchema>();
-  const share = watch('expense.shareType');
-  const paidSelf =
-    'PAID_SELF_SHARED' == share || 'PAID_SELF_NOT_SHARED' == share;
-  const paidOther = !paidSelf;
+  const {paidOther} = useSharingType();
   const {transactions} = useAllDatabaseDataContext();
   const payers = useMemo(() => {
     return uniqMostFrequent(
@@ -52,7 +50,7 @@ export function Payer() {
             or{' '}
             <Button
               onClick={() =>
-                setValue('expense.shareType', 'PAID_SELF_NOT_SHARED')
+                setValue('expense.sharingType', 'PAID_SELF_NOT_SHARED')
               }
               variant="link"
               size="inherit"

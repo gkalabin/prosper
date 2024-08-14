@@ -1,4 +1,5 @@
-import {TransactionFormSchema} from '@/components/txform/v2/types';
+import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
+import {SharingType, TransactionFormSchema} from '@/components/txform/v2/types';
 import {
   FormControl,
   FormField,
@@ -11,53 +12,39 @@ import {uniqMostFrequent} from '@/lib/collections';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {otherPartyNameOrNull} from '@/lib/model/transaction/Transaction';
 import {notEmpty} from '@/lib/util/util';
-import {useCallback, useMemo} from 'react';
-import {useFormContext} from 'react-hook-form';
+import {
+  useFormContext,
+  UseFormGetValues,
+  UseFormSetValue,
+} from 'react-hook-form';
 
 export function SplitTransactionToggle() {
   const {
     formState: {isSubmitting},
     getValues,
     setValue,
-    watch,
     control,
   } = useFormContext<TransactionFormSchema>();
-  const share = watch('expense.shareType');
-  const shared =
-    'PAID_SELF_SHARED' == share ||
-    'PAID_OTHER_OWED' == share ||
-    'PAID_OTHER_REPAID' == share;
-  const paidSelf =
-    'PAID_SELF_SHARED' == share || 'PAID_SELF_NOT_SHARED' == share;
-  const paidOther = !paidSelf;
-  const {transactions} = useAllDatabaseDataContext();
-  const mostFrequentCompanion = useMemo(() => {
-    return uniqMostFrequent(
-      transactions.map(x => otherPartyNameOrNull(x)).filter(notEmpty)
-    )[0];
-  }, [transactions]);
-  const onChange = useCallback(() => {
-    if (share === 'PAID_SELF_SHARED') {
-      setValue('expense.shareType', 'PAID_SELF_NOT_SHARED');
-      setValue('expense.companion', null);
-      setValue('expense.ownShareAmount', getValues('expense.amount'));
-    } else if (share === 'PAID_SELF_NOT_SHARED') {
-      setValue('expense.shareType', 'PAID_SELF_SHARED');
-      setValue('expense.companion', mostFrequentCompanion ?? '');
-      setValue('expense.ownShareAmount', getValues('expense.amount') / 2);
-    }
-  }, [share, setValue, getValues, mostFrequentCompanion]);
+  const {sharingType, isShared, paidOther} = useSharingType();
+  const mostFrequentCompanion = useMostFrequentCompanion();
   return (
     <FormField
       control={control}
-      name={'expense.shareType'}
+      name={'expense.sharingType'}
       render={() => (
         <FormItem className="col-span-3 flex flex-row items-center">
           <FormControl className="w-11">
             <Switch
-              checked={shared}
+              checked={isShared}
               disabled={isSubmitting || paidOther}
-              onCheckedChange={onChange}
+              onCheckedChange={() =>
+                onChange({
+                  sharingType,
+                  setValue,
+                  getValues,
+                  defaultCompanion: mostFrequentCompanion,
+                })
+              }
             />
           </FormControl>
           <FormLabel className="ml-4">Split transaction</FormLabel>
@@ -66,4 +53,34 @@ export function SplitTransactionToggle() {
       )}
     />
   );
+}
+
+function useMostFrequentCompanion() {
+  const {transactions} = useAllDatabaseDataContext();
+  const [companion] = uniqMostFrequent(
+    transactions.map(x => otherPartyNameOrNull(x)).filter(notEmpty)
+  );
+  return companion;
+}
+
+function onChange({
+  sharingType,
+  setValue,
+  getValues,
+  defaultCompanion,
+}: {
+  sharingType: SharingType;
+  setValue: UseFormSetValue<TransactionFormSchema>;
+  getValues: UseFormGetValues<TransactionFormSchema>;
+  defaultCompanion?: string;
+}) {
+  if (sharingType === 'PAID_SELF_SHARED') {
+    setValue('expense.sharingType', 'PAID_SELF_NOT_SHARED');
+    setValue('expense.companion', null);
+    setValue('expense.ownShareAmount', getValues('expense.amount'));
+  } else if (sharingType === 'PAID_SELF_NOT_SHARED') {
+    setValue('expense.sharingType', 'PAID_SELF_SHARED');
+    setValue('expense.companion', defaultCompanion ?? '');
+    setValue('expense.ownShareAmount', getValues('expense.amount') / 2);
+  }
 }
