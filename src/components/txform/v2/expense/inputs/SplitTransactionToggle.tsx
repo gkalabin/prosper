@@ -8,10 +8,10 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {Switch} from '@/components/ui/switch';
-import {uniqMostFrequent} from '@/lib/collections';
+import {uniqMostFrequentIgnoringEmpty} from '@/lib/collections';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {otherPartyNameOrNull} from '@/lib/model/transaction/Transaction';
-import {notEmpty} from '@/lib/util/util';
+import {useMemo} from 'react';
 import {
   useFormContext,
   UseFormGetValues,
@@ -57,8 +57,9 @@ export function SplitTransactionToggle() {
 
 function useMostFrequentCompanion() {
   const {transactions} = useAllDatabaseDataContext();
-  const [companion] = uniqMostFrequent(
-    transactions.map(x => otherPartyNameOrNull(x)).filter(notEmpty)
+  const [companion] = useMemo(
+    () => uniqMostFrequentIgnoringEmpty(transactions.map(otherPartyNameOrNull)),
+    [transactions]
   );
   return companion;
 }
