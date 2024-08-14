@@ -65,13 +65,7 @@ function Tags() {
             isDisabled={field.disabled}
             {...field}
             value={field.value.map(v => ({label: v, value: v}))}
-            onChange={tags => {
-              field.onChange(tags.map(t => t.value));
-              console.log(
-                'set',
-                tags.map(t => t.value)
-              );
-            }}
+            onChange={tags => field.onChange(tags.map(t => t.value))}
           />
         )}
       />
