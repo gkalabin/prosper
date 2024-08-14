@@ -28,7 +28,7 @@ export const expenseFormValidationSchema = z.object({
   vendor: z.string(),
   companion: z.string().nullable(),
   payer: z.string().nullable(),
-  shareType: SharingType,
+  sharingType: SharingType,
   repayment: repaymentTransactionValidationSchema.nullable(),
   tagNames: z.array(z.string()),
   description: z.string().nullable(),

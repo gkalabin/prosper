@@ -81,9 +81,9 @@ function createTransactionInput(
   expense: ExpenseFormSchema,
   userId: number
 ): Prisma.TransactionUncheckedCreateInput {
-  const shareType = expense.shareType;
+  const {sharingType} = expense;
   const paidSelf =
-    shareType == 'PAID_SELF_SHARED' || shareType == 'PAID_SELF_NOT_SHARED';
+    sharingType == 'PAID_SELF_SHARED' || sharingType == 'PAID_SELF_NOT_SHARED';
   if (paidSelf) {
     const partialResult = {
       transactionType: 'PERSONAL_EXPENSE' as const,
@@ -103,7 +103,7 @@ function createTransactionInput(
       userId,
     };
 
-    switch (shareType) {
+    switch (sharingType) {
       case 'PAID_SELF_NOT_SHARED':
         return {
           ...partialResult,
@@ -119,7 +119,7 @@ function createTransactionInput(
         };
 
       default:
-        const _exhaustiveCheck: never = shareType;
+        const _exhaustiveCheck: never = sharingType;
         throw new Error(`Unexpected share type: ${_exhaustiveCheck}`);
     }
   }
