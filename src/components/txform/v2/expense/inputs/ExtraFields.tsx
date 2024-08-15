@@ -1,71 +1,45 @@
-import {Input} from '@/components/forms/Input';
-import {Trips} from '@/components/txform/v2/expense/inputs/Trips';
+import {Description} from '@/components/txform/v2/expense/inputs/Description';
+import {Trip} from '@/components/txform/v2/expense/inputs/Trip';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
-import {ButtonLink} from '@/components/ui/buttons';
-import {uniqMostFrequent} from '@/lib/collections';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
-import {notEmpty} from '@/lib/util/util';
+import {Button} from '@/components/ui/button';
 import {useState} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function ExtraFields() {
-  const {setValue} = useFormContext<TransactionFormSchema>();
+  const {setValue, formState} = useFormContext<TransactionFormSchema>();
   const [showNote, setShowNote] = useState(false);
   const [showTrip, setShowTrip] = useState(false);
   return (
     <>
       <div className="col-span-6 text-xs">
         Add a{' '}
-        <ButtonLink
+        <Button
           onClick={() => {
             setShowNote(!showNote);
-            setValue('expense.description', '');
+            setValue('expense.description', null);
           }}
+          variant="link"
+          size="inherit"
+          disabled={formState.isSubmitting}
         >
           note
-        </ButtonLink>{' '}
+        </Button>{' '}
         to this transaction or link it to a{' '}
-        <ButtonLink
+        <Button
           onClick={() => {
             setShowTrip(!showTrip);
-            setValue('expense.tripName', '');
+            setValue('expense.tripName', null);
           }}
+          variant="link"
+          size="inherit"
+          disabled={formState.isSubmitting}
         >
           trip
-        </ButtonLink>
+        </Button>
         .
       </div>
-      {showTrip && <Trips />}
+      {showTrip && <Trip />}
       {showNote && <Description />}
     </>
-  );
-}
-
-export function Description() {
-  const {register} = useFormContext<TransactionFormSchema>();
-  const {transactions} = useAllDatabaseDataContext();
-  const descriptions = uniqMostFrequent(
-    transactions.map(x => x.note).filter(notEmpty)
-  );
-  return (
-    <div className="col-span-6">
-      <label
-        htmlFor="description"
-        className="block text-sm font-medium text-gray-700"
-      >
-        Description
-      </label>
-      <Input
-        type="text"
-        list="descriptions"
-        className="block w-full"
-        {...register('expense.description')}
-      />
-      <datalist id="descriptions">
-        {descriptions.map(v => (
-          <option key={v} value={v} />
-        ))}
-      </datalist>
-    </div>
   );
 }
