@@ -1,3 +1,4 @@
+import {Badge} from '@/components/ui/badge';
 import {Button} from '@/components/ui/button';
 import {
   Command,
@@ -13,6 +14,7 @@ import {
   CheckIcon,
   ChevronUpDownIcon,
   PlusIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import {useMemo, useState} from 'react';
 
@@ -25,24 +27,16 @@ export function TagsSelect({
 }) {
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
-  const [newTags, setNewTags] = useState<string[]>([]);
   const existingTagNames = useExistingTagNames();
+  const newTags = value.filter(t => !existingTagNames.includes(t));
   const tagNames = [...newTags, ...existingTagNames];
   const shouldSuggestNewTag =
     searchInput &&
     !tagNames.some(
       existing => existing.toLowerCase() === searchInput.trim().toLowerCase()
     );
-  const registerNewTag = () => {
-    if (!shouldSuggestNewTag) {
-      throw new Error(
-        'Should not create new tag when input is empty or exists'
-      );
-    }
-    const newTag = searchInput.trim();
-    setNewTags([...newTags, newTag]);
-    return newTag;
-  };
+  const addTag = (tag: string) => onChange([...value, tag.trim()]);
+  const removeTag = (tag: string) => onChange(value.filter(t => t !== tag));
   return (
     <Popover modal={true} open={optionsOpen} onOpenChange={setOptionsOpen}>
       <PopoverTrigger asChild>
@@ -50,12 +44,16 @@ export function TagsSelect({
           variant="outline"
           role="combobox"
           className={cn(
-            'w-full justify-between',
+            'h-auto w-full p-2',
             !value.length && 'text-muted-foreground'
           )}
         >
-          {value.length ? value.join(', ') : 'Select or create tags'}
-          <ChevronUpDownIcon className="ml-2 h-5 w-5 shrink-0 opacity-50" />
+          <div className="flex w-full flex-row justify-between gap-2">
+            <div className="flex grow flex-wrap gap-2">
+              <SelectedTags value={value} onClick={removeTag} />
+            </div>
+            <ChevronUpDownIcon className="h-5 w-5 shrink-0 self-center opacity-50" />
+          </div>
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -77,7 +75,6 @@ export function TagsSelect({
                 onSelect={() => {
                   const selectedTags = [...value];
                   if (selectedTags.includes(tag)) {
-                    // Remove tag when already selected tag is clicked on.
                     selectedTags.splice(selectedTags.indexOf(tag), 1);
                   } else {
                     selectedTags.push(tag);
@@ -100,7 +97,7 @@ export function TagsSelect({
               <CommandItem
                 value={searchInput}
                 onSelect={() => {
-                  onChange([...value, registerNewTag()]);
+                  addTag(searchInput);
                   setOptionsOpen(false);
                   setSearchInput('');
                 }}
@@ -113,6 +110,41 @@ export function TagsSelect({
         </Command>
       </PopoverContent>
     </Popover>
+  );
+}
+
+function SelectedTags({
+  value,
+  onClick,
+}: {
+  value: string[];
+  onClick: (tag: string) => void;
+}) {
+  if (!value.length) {
+    return <span>Select or create tags</span>;
+  }
+  const Tag = ({tag}: {tag: string}) => (
+    <Badge variant="secondary">
+      {tag}
+      <Button
+        variant={'link'}
+        size={'inherit'}
+        className="ml-1 text-secondary-foreground"
+        onClick={e => {
+          e.stopPropagation();
+          onClick(tag);
+        }}
+      >
+        <XMarkIcon className="h-4 w-4" />
+      </Button>
+    </Badge>
+  );
+  return (
+    <>
+      {value.map(t => (
+        <Tag key={t} tag={t} />
+      ))}
+    </>
   );
 }
 
