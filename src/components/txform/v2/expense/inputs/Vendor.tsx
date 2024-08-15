@@ -1,46 +1,58 @@
 import {Input} from '@/components/forms/Input';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
-import {uniqMostFrequent} from '@/lib/collections';
+import {
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from '@/components/ui/form';
+import {uniqMostFrequentIgnoringEmpty} from '@/lib/collections';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
-import {isExpense, isIncome} from '@/lib/model/transaction/Transaction';
-import {notEmpty} from '@/lib/util/util';
+import {
+  isExpense,
+  isIncome,
+  Transaction,
+} from '@/lib/model/transaction/Transaction';
+import {useId, useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function Vendor() {
-  const {register} = useFormContext<TransactionFormSchema>();
+  const {control} = useFormContext<TransactionFormSchema>();
   const {transactions} = useAllDatabaseDataContext();
-  const vendors = uniqMostFrequent(
-    transactions
-      .map(x => {
-        if (isExpense(x)) {
-          return x.vendor;
-        }
-        if (isIncome(x)) {
-          return x.payer;
-        }
-        return null;
-      })
-      .filter(notEmpty)
+  const listId = useId();
+  const vendors = useMemo(
+    () => uniqMostFrequentIgnoringEmpty(transactions.map(vendorOrNull)),
+    [transactions]
   );
   return (
-    <div className="col-span-6">
-      <label
-        htmlFor="vendor"
-        className="block text-sm font-medium text-gray-700"
-      >
-        Vendor
-      </label>
-      <Input
-        type="text"
-        list="vendors"
-        className="block w-full"
-        {...register('expense.vendor')}
-      />
-      <datalist id="vendors">
-        {vendors.map(v => (
-          <option key={v} value={v} />
-        ))}
-      </datalist>
-    </div>
+    <FormField
+      control={control}
+      name="expense.vendor"
+      render={({field}) => (
+        <FormItem className="col-span-6">
+          <FormLabel>Vendor</FormLabel>
+          <FormControl>
+            <Input type="text" list={listId} {...field} />
+          </FormControl>
+          <FormMessage />
+          <datalist id={listId}>
+            {vendors.map(v => (
+              <option key={v} value={v} />
+            ))}
+          </datalist>
+        </FormItem>
+      )}
+    />
   );
+}
+
+function vendorOrNull(x: Transaction): string | null {
+  if (isExpense(x)) {
+    return x.vendor;
+  }
+  if (isIncome(x)) {
+    return x.payer;
+  }
+  return null;
 }
