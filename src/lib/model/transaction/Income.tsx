@@ -14,7 +14,7 @@ export type Income = {
   accountId: number;
   categoryId: number;
   tagsIds: number[];
-  tripId?: number;
+  tripId: number | null;
   refundGroupTransactionIds: number[];
 };
 
@@ -48,5 +48,6 @@ export function incomeModelFromDB(init: TransactionWithTagIds): Income {
     categoryId: init.categoryId,
     tagsIds: init.tags.map(t => t.id),
     refundGroupTransactionIds,
+    tripId: init.tripId,
   };
 }
