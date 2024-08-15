@@ -18,7 +18,10 @@ function toDateTimeLocal(d: Date | number) {
 export function Timestamp({
   fieldName,
 }: {
-  fieldName: 'expense.timestamp' | 'expense.repayment.timestamp';
+  fieldName:
+    | 'expense.timestamp'
+    | 'expense.repayment.timestamp'
+    | 'income.timestamp';
 }) {
   const {control, setValue} = useFormContext<TransactionFormSchema>();
   return (

@@ -7,21 +7,21 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {Transaction, isExpense} from '@/lib/model/transaction/Transaction';
+import {Transaction, isIncome} from '@/lib/model/transaction/Transaction';
 import {useCallback} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function Category() {
   const {control, getValues} = useFormContext<TransactionFormSchema>();
-  const vendor = getValues('expense.vendor') ?? '';
+  const payer = getValues('income.payer') ?? '';
   const matchesVendorIfAny = useCallback(
-    (t: Transaction) => !vendor || (isExpense(t) && t.vendor == vendor),
-    [vendor]
+    (t: Transaction) => !payer || (isIncome(t) && t.payer == payer),
+    [payer]
   );
   return (
     <FormField
       control={control}
-      name="expense.categoryId"
+      name="income.categoryId"
       render={({field}) => (
         <FormItem className="col-span-6">
           <FormLabel>Category</FormLabel>

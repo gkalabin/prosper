@@ -14,7 +14,7 @@ export function Tags() {
   return (
     <FormField
       control={control}
-      name="expense.tagNames"
+      name="income.tagNames"
       render={({field}) => (
         <FormItem className="col-span-6">
           <FormLabel>Tags</FormLabel>

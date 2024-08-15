@@ -7,6 +7,7 @@ export const incomeFormValidationSchema = z
     ownShareAmount: z.number().nonnegative(),
     accountId: z.number().int().positive(),
     categoryId: z.number().int().positive(),
+    isShared: z.boolean(),
     companion: z.string().nullable(),
     payer: z.string(),
     tagNames: z.array(z.string()),
