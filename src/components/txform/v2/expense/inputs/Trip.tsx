@@ -11,12 +11,11 @@ import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {hasTrip} from '@/lib/model/transaction/Transaction';
 import {Trip as TripModel} from '@/lib/model/Trip';
 import {isBefore} from 'date-fns';
-import {useId, useMemo} from 'react';
+import {useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function Trip() {
   const {control} = useFormContext<TransactionFormSchema>();
-  const listId = useId();
   const tripNames = useTripNames();
   return (
     <FormField
@@ -28,17 +27,12 @@ export function Trip() {
           <FormControl>
             <Input
               type="text"
-              list={listId}
+              datalist={tripNames}
               {...field}
               value={field.value ?? ''}
             />
           </FormControl>
           <FormMessage />
-          <datalist id={listId}>
-            {tripNames.map(v => (
-              <option key={v} value={v} />
-            ))}
-          </datalist>
         </FormItem>
       )}
     />

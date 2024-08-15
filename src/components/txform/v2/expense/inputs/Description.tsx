@@ -9,13 +9,12 @@ import {
 import {Input} from '@/components/ui/input';
 import {uniqMostFrequentIgnoringEmpty} from '@/lib/collections';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
-import {useId, useMemo} from 'react';
+import {useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function Description() {
   const {control} = useFormContext<TransactionFormSchema>();
   const {transactions} = useAllDatabaseDataContext();
-  const listId = useId();
   const descriptions = useMemo(
     () => uniqMostFrequentIgnoringEmpty(transactions.map(x => x.note)),
     [transactions]
@@ -30,17 +29,12 @@ export function Description() {
           <FormControl>
             <Input
               type="text"
-              list={listId}
+              datalist={descriptions}
               {...field}
               value={field.value ?? ''}
             />
           </FormControl>
           <FormMessage />
-          <datalist id={listId}>
-            {descriptions.map(v => (
-              <option key={v} value={v} />
-            ))}
-          </datalist>
         </FormItem>
       )}
     />
