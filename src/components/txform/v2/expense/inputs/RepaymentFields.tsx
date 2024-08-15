@@ -1,4 +1,4 @@
-import {undoTailwindInputStyles} from '@/components/forms/Select';
+import {CategorySelect} from '@/components/txform/v2/expense/inputs/CategorySelect';
 import {Timestamp} from '@/components/txform/v2/expense/inputs/Timestamp';
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
@@ -13,13 +13,9 @@ import {Select} from '@/components/ui/html-select';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
 import {fullAccountName} from '@/lib/model/BankAccount';
-import {
-  getNameWithAncestors,
-  makeCategoryTree,
-  mustFindCategory,
-} from '@/lib/model/Category';
-import {Controller, useFormContext} from 'react-hook-form';
-import ReactSelect from 'react-select';
+import {isExpense, Transaction} from '@/lib/model/transaction/Transaction';
+import {useCallback} from 'react';
+import {useFormContext} from 'react-hook-form';
 
 export function RepaymentFields() {
   const {sharingType} = useSharingType();
@@ -81,34 +77,30 @@ function RepaymentAccountFrom() {
 }
 
 function RepaymentCategory() {
-  const {control} = useFormContext<TransactionFormSchema>();
-  const {categories} = useAllDatabaseDataContext();
-  const tree = makeCategoryTree(categories);
+  const {control, getValues} = useFormContext<TransactionFormSchema>();
+  const vendor = getValues('expense.vendor') ?? '';
+  // TODO: change to filter by repayment categories.
+  const matchesVendorIfAny = useCallback(
+    (t: Transaction) => !vendor || (isExpense(t) && t.vendor == vendor),
+    [vendor]
+  );
   return (
-    <div className="col-span-6">
-      <label
-        className="block text-sm font-medium text-gray-700"
-        htmlFor="expense.repayment.categoryId"
-      >
-        Category
-      </label>
-      <Controller
-        name="expense.repayment.categoryId"
-        control={control}
-        render={({field}) => (
-          <ReactSelect
-            instanceId="repaymentCategoryId"
-            styles={undoTailwindInputStyles()}
-            options={categories}
-            getOptionLabel={c => getNameWithAncestors(c, tree)}
-            getOptionValue={c => getNameWithAncestors(c, tree)}
-            {...field}
-            value={mustFindCategory(field.value, categories)}
-            onChange={newValue => field.onChange(newValue!.id)}
-            isDisabled={field.disabled}
-          />
-        )}
-      />
-    </div>
+    <FormField
+      control={control}
+      name="expense.repayment.categoryId"
+      render={({field}) => (
+        <FormItem className="col-span-6">
+          <FormLabel>Category</FormLabel>
+          <FormControl>
+            <CategorySelect
+              value={field.value}
+              onChange={field.onChange}
+              relevantTransactionFilter={matchesVendorIfAny}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   );
 }
