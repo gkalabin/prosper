@@ -42,6 +42,7 @@ export function Payer() {
           <div className="text-xs">
             or{' '}
             <Button
+              type="button"
               onClick={() =>
                 setValue('expense.sharingType', 'PAID_SELF_NOT_SHARED')
               }

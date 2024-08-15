@@ -47,6 +47,7 @@ export function AccountFrom() {
           <div className="text-xs">
             or{' '}
             <Button
+              type="button"
               onClick={() => setValue('expense.sharingType', 'PAID_OTHER_OWED')}
               variant="link"
               size="inherit"
