@@ -1,12 +1,12 @@
-import {Input} from '@/components/forms/Input';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
 } from '@/components/ui/form';
+import {Input} from '@/components/ui/input';
 import {uniqMostFrequentIgnoringEmpty} from '@/lib/collections';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {
@@ -14,13 +14,12 @@ import {
   isIncome,
   Transaction,
 } from '@/lib/model/transaction/Transaction';
-import {useId, useMemo} from 'react';
+import {useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function Vendor() {
   const {control} = useFormContext<TransactionFormSchema>();
   const {transactions} = useAllDatabaseDataContext();
-  const listId = useId();
   const vendors = useMemo(
     () => uniqMostFrequentIgnoringEmpty(transactions.map(vendorOrNull)),
     [transactions]
@@ -33,14 +32,9 @@ export function Vendor() {
         <FormItem className="col-span-6">
           <FormLabel>Vendor</FormLabel>
           <FormControl>
-            <Input type="text" list={listId} {...field} />
+            <Input type="text" datalist={vendors} {...field} />
           </FormControl>
           <FormMessage />
-          <datalist id={listId}>
-            {vendors.map(v => (
-              <option key={v} value={v} />
-            ))}
-          </datalist>
         </FormItem>
       )}
     />

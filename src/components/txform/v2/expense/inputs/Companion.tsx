@@ -1,4 +1,3 @@
-import {Input} from '@/components/forms/Input';
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {
@@ -8,17 +7,17 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {Input} from '@/components/ui/input';
 import {uniqMostFrequentIgnoringEmpty} from '@/lib/collections';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {otherPartyNameOrNull} from '@/lib/model/transaction/Transaction';
-import {useId, useMemo} from 'react';
+import {useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function Companion() {
   const {control} = useFormContext<TransactionFormSchema>();
   const {isShared, paidSelf} = useSharingType();
   const companions = useUniqueCompanions();
-  const listId = useId();
   if (!isShared) {
     return <></>;
   }
@@ -35,17 +34,12 @@ export function Companion() {
           <FormControl>
             <Input
               type="text"
-              list={listId}
+              datalist={companions}
               {...field}
               value={field.value ?? ''}
             />
           </FormControl>
           <FormMessage />
-          <datalist id={listId}>
-            {companions.map(v => (
-              <option key={v} value={v} />
-            ))}
-          </datalist>
         </FormItem>
       )}
     />

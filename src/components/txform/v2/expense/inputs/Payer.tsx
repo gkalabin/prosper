@@ -12,7 +12,7 @@ import {Input} from '@/components/ui/input';
 import {uniqMostFrequentIgnoringEmpty} from '@/lib/collections';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {Transaction} from '@/lib/model/transaction/Transaction';
-import {useId, useMemo} from 'react';
+import {useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function Payer() {
@@ -20,7 +20,6 @@ export function Payer() {
     useFormContext<TransactionFormSchema>();
   const {paidOther} = useSharingType();
   const payers = useUniqueFrequentPayers();
-  const payersListId = useId();
   if (!paidOther) {
     return <></>;
   }
@@ -34,7 +33,7 @@ export function Payer() {
           <FormControl>
             <Input
               type="text"
-              list={payersListId}
+              datalist={payers}
               {...field}
               value={field.value ?? ''}
             />
@@ -54,11 +53,6 @@ export function Payer() {
             </Button>
             .
           </div>
-          <datalist id={payersListId}>
-            {payers.map(v => (
-              <option key={v} value={v} />
-            ))}
-          </datalist>
         </FormItem>
       )}
     />
