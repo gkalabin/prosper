@@ -22,6 +22,7 @@ export function expenseToIncome(
     companion: prev.companion,
     description: prev.description,
     parentTransactionId: null,
+    isShared: prev.sharingType != 'PAID_SELF_NOT_SHARED',
   };
   return values;
 }
@@ -38,6 +39,7 @@ export function transferToIncome(prev: TransferFormSchema): IncomeFormSchema {
     companion: null,
     description: null,
     parentTransactionId: null,
+    isShared: false,
   };
   return values;
 }

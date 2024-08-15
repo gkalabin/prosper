@@ -1,6 +1,6 @@
-import {CategorySelect} from '@/components/txform/v2/expense/inputs/CategorySelect';
-import {Timestamp} from '@/components/txform/v2/expense/inputs/Timestamp';
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
+import {CategorySelect} from '@/components/txform/v2/shared/CategorySelect';
+import {Timestamp} from '@/components/txform/v2/shared/Timestamp';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {
   FormControl,

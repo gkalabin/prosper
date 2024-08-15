@@ -8,8 +8,8 @@ import {Payer} from '@/components/txform/v2/expense/inputs/Payer';
 import {RepaymentFields} from '@/components/txform/v2/expense/inputs/RepaymentFields';
 import {SplitTransactionToggle} from '@/components/txform/v2/expense/inputs/SplitTransactionToggle';
 import {Tags} from '@/components/txform/v2/expense/inputs/Tags';
-import {Timestamp} from '@/components/txform/v2/expense/inputs/Timestamp';
 import {Vendor} from '@/components/txform/v2/expense/inputs/Vendor';
+import {Timestamp} from '@/components/txform/v2/shared/Timestamp';
 
 export function ExpenseForm() {
   return (

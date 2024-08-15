@@ -96,9 +96,7 @@ export const TransactionForm = (props: {
             disabled={form.formState.isSubmitting}
           />
           {formType == 'EXPENSE' && <ExpenseForm />}
-          {formType == 'INCOME' && (
-            <IncomeForm transaction={props.transaction} prototype={proto} />
-          )}
+          {formType == 'INCOME' && <IncomeForm />}
         </div>
 
         <div className="flex justify-end gap-2 bg-gray-50 px-4 py-3 sm:px-6">
