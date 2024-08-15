@@ -53,10 +53,10 @@ function LabelText() {
     return <>My share</>;
   }
   if (sharingType == 'PAID_OTHER_OWED') {
-    return <>My share (which I owe {payer})</>;
+    return <>I owe {payer}</>;
   }
   if (sharingType == 'PAID_OTHER_REPAID') {
-    return <>My share (which I paid back)</>;
+    return <>I paid {payer}</>;
   }
   throw new Error(`Unknown sharing type: ${sharingType}`);
 }

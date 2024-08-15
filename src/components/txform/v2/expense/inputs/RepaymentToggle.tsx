@@ -57,6 +57,8 @@ function setAlreadyRepaid({
 }) {
   setValue('expense.sharingType', 'PAID_OTHER_REPAID');
   setValue('expense.repayment.accountId', getValues('expense.accountId') ?? 0);
+  // TODO: set to the most frequently used repayment category.
+  setValue('expense.repayment.categoryId', getValues('expense.categoryId'));
   setValue('expense.repayment.timestamp', getValues('expense.timestamp'));
 }
 
@@ -69,4 +71,5 @@ function setOweMoney({
 }) {
   setValue('expense.sharingType', 'PAID_OTHER_OWED');
   setValue('expense.accountId', getValues('expense.repayment.accountId') ?? 0);
+  setValue('expense.repayment', null);
 }

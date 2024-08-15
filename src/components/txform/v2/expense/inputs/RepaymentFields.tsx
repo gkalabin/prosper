@@ -26,15 +26,7 @@ export function RepaymentFields() {
     <div className="col-span-6 space-y-2 rounded border bg-accent p-2 pl-4">
       <Timestamp fieldName="expense.repayment.timestamp" />
       <RepaymentAccountFrom />
-      <div>
-        <label
-          htmlFor="repaymentCategoryId"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Repayment transaction category
-        </label>
-        <RepaymentCategory />
-      </div>
+      <RepaymentCategory />
     </div>
   );
 }
