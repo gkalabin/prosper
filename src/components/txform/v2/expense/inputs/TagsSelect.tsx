@@ -41,6 +41,7 @@ export function TagsSelect({
     <Popover modal={true} open={optionsOpen} onOpenChange={setOptionsOpen}>
       <PopoverTrigger asChild>
         <Button
+          type="button"
           variant="outline"
           role="combobox"
           className={cn(
@@ -127,6 +128,7 @@ function SelectedTags({
     <Badge variant="secondary">
       {tag}
       <Button
+        type="button"
         variant={'link'}
         size={'inherit'}
         className="ml-1 text-secondary-foreground"

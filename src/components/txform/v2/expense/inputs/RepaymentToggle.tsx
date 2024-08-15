@@ -16,6 +16,7 @@ export function RepaymentToggle() {
       <div className="text-xs">
         or{' '}
         <Button
+          type="button"
           onClick={() => setAlreadyRepaid({setValue, getValues})}
           variant="link"
           size="inherit"
@@ -32,6 +33,7 @@ export function RepaymentToggle() {
       <div className="text-xs">
         or{' '}
         <Button
+          type="button"
           onClick={() => setOweMoney({setValue, getValues})}
           variant="link"
           size="inherit"

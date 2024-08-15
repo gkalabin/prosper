@@ -14,6 +14,7 @@ export function ExtraFields() {
       <div className="col-span-6 text-xs">
         Add a{' '}
         <Button
+          type="button"
           onClick={() => {
             setShowNote(!showNote);
             setValue('expense.description', null);
@@ -26,6 +27,7 @@ export function ExtraFields() {
         </Button>{' '}
         to this transaction or link it to a{' '}
         <Button
+          type="button"
           onClick={() => {
             setShowTrip(!showTrip);
             setValue('expense.tripName', null);
