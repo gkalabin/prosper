@@ -12,17 +12,23 @@ import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
 import {fullAccountName} from '@/lib/model/BankAccount';
 import {useFormContext} from 'react-hook-form';
 
-export function AccountTo() {
+export function Account({
+  fieldName,
+  label,
+}: {
+  fieldName: 'income.accountId' | 'expense.accountId';
+  label: string;
+}) {
   const {control} = useFormContext<TransactionFormSchema>();
   const accounts = useDisplayBankAccounts();
   const {banks} = useAllDatabaseDataContext();
   return (
     <FormField
       control={control}
-      name="income.accountId"
+      name={fieldName}
       render={({field}) => (
         <FormItem className="col-span-6">
-          <FormLabel>Money received to</FormLabel>
+          <FormLabel>{label}</FormLabel>
           <FormControl>
             <Select
               {...field}
