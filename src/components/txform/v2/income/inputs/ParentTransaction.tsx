@@ -101,18 +101,23 @@ function ParentTransactionSelect({
             ? makeOption({t: parentExpense, bankAccounts, stocks}).label
             : 'Select a transaction'}
           {value && (
-            <Button
-              type="button"
-              variant="link"
-              size="inherit"
+            <span
+              role="button"
+              tabIndex={0}
               className="text-secondary-foreground"
               onClick={e => {
                 e.stopPropagation();
                 onChange(null);
               }}
+              onKeyDown={e => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onChange(null);
+                }
+              }}
             >
               <XMarkIcon className="h-4 w-4" />
-            </Button>
+            </span>
           )}
           {!value && (
             <ChevronUpDownIcon className="ml-2 h-5 w-5 shrink-0 opacity-50" />

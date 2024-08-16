@@ -127,18 +127,23 @@ function SelectedTags({
   const Tag = ({tag}: {tag: string}) => (
     <Badge variant="secondary">
       {tag}
-      <Button
-        type="button"
-        variant="link"
-        size="inherit"
-        className="ml-1 text-secondary-foreground"
+      <span
+        role="button"
+        tabIndex={0}
+        className="text-secondary-foreground"
         onClick={e => {
           e.stopPropagation();
           onClick(tag);
         }}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick(tag);
+          }
+        }}
       >
         <XMarkIcon className="h-4 w-4" />
-      </Button>
+      </span>
     </Badge>
   );
   return (
