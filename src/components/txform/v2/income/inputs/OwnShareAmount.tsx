@@ -11,7 +11,11 @@ import {Input} from '@/components/ui/input';
 import {useFormContext} from 'react-hook-form';
 
 export function OwnShareAmount() {
-  const {control} = useFormContext<TransactionFormSchema>();
+  const {control, watch} = useFormContext<TransactionFormSchema>();
+  const isShared = watch('income.isShared');
+  if (!isShared) {
+    return null;
+  }
   return (
     <FormField
       control={control}
