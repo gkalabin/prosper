@@ -129,8 +129,8 @@ function SelectedTags({
       {tag}
       <Button
         type="button"
-        variant={'link'}
-        size={'inherit'}
+        variant="link"
+        size="inherit"
         className="ml-1 text-secondary-foreground"
         onClick={e => {
           e.stopPropagation();

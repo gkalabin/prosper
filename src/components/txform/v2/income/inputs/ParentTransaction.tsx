@@ -25,7 +25,11 @@ import {
 } from '@/lib/model/transaction/Transaction';
 import {shortRelativeDate} from '@/lib/TimeHelpers';
 import {cn} from '@/lib/utils';
-import {CheckIcon, ChevronUpDownIcon} from '@heroicons/react/24/outline';
+import {
+  CheckIcon,
+  ChevronUpDownIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 import {differenceInMonths} from 'date-fns';
 import {useMemo, useState} from 'react';
 import {useFormContext} from 'react-hook-form';
@@ -94,9 +98,25 @@ function ParentTransactionSelect({
           )}
         >
           {parentExpense
-            ? makeTransactionLabel({t: parentExpense, bankAccounts, stocks})
+            ? makeOption({t: parentExpense, bankAccounts, stocks}).label
             : 'Select a transaction'}
-          <ChevronUpDownIcon className="ml-2 h-5 w-5 shrink-0 opacity-50" />
+          {value && (
+            <Button
+              type="button"
+              variant="link"
+              size="inherit"
+              className="text-secondary-foreground"
+              onClick={e => {
+                e.stopPropagation();
+                onChange(null);
+              }}
+            >
+              <XMarkIcon className="h-4 w-4" />
+            </Button>
+          )}
+          {!value && (
+            <ChevronUpDownIcon className="ml-2 h-5 w-5 shrink-0 opacity-50" />
+          )}
         </Button>
       </PopoverTrigger>
       <PopoverContent
@@ -143,14 +163,11 @@ function FilteredTransactions({
       debouncedQuery,
       accountId
     );
-    return expenses.map(t => ({
-      id: t.id,
-      label: makeTransactionLabel({t, bankAccounts, stocks}),
-    }));
+    return expenses.map(t => makeOption({t, bankAccounts, stocks}));
   }, [transactions, debouncedQuery, accountId, bankAccounts, stocks]);
   return (
     <CommandList>
-      {options.map(({id, label}) => {
+      {options.map(({id, amount, vendor, date, label}) => {
         return (
           <CommandItem
             key={id}
@@ -159,13 +176,18 @@ function FilteredTransactions({
             // Label might not be unique, so add id to avoid duplicates.
             value={id + label}
           >
-            <CheckIcon
-              className={cn(
-                'mr-2 h-4 w-4',
-                value === id ? 'opacity-100' : 'opacity-0'
-              )}
-            />
-            {label}
+            <div className="flex w-full flex-row gap-2 pr-2">
+              <CheckIcon
+                className={cn(
+                  'h-4 w-4',
+                  value === id ? 'opacity-100' : 'opacity-0'
+                )}
+              />
+              <div className="grow">
+                {amount} {vendor}
+              </div>
+              <div className="text-sm text-muted-foreground">{date}</div>
+            </div>
           </CommandItem>
         );
       })}
@@ -196,7 +218,7 @@ function findRelevantExpenses(
   return recent;
 }
 
-function makeTransactionLabel({
+function makeOption({
   t,
   bankAccounts,
   stocks,
@@ -204,8 +226,14 @@ function makeTransactionLabel({
   t: PersonalExpense;
   bankAccounts: BankAccount[];
   stocks: Stock[];
-}): string {
+}) {
   const amount = formatAmount(t, bankAccounts, stocks);
   const date = shortRelativeDate(t.timestampEpoch);
-  return `${amount} ${t.vendor} ${date}`;
+  return {
+    id: t.id,
+    amount,
+    date,
+    vendor: t.vendor,
+    label: `${amount} ${t.vendor} ${date}`,
+  };
 }
