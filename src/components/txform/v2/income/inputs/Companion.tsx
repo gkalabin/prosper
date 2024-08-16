@@ -14,8 +14,12 @@ import {useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function Companion() {
-  const {control} = useFormContext<TransactionFormSchema>();
+  const {control, watch} = useFormContext<TransactionFormSchema>();
   const companions = useUniqueCompanions();
+  const isShared = watch('income.isShared');
+  if (!isShared) {
+    return null;
+  }
   return (
     <FormField
       control={control}
