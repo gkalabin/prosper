@@ -21,7 +21,8 @@ export function Timestamp({
   fieldName:
     | 'expense.timestamp'
     | 'expense.repayment.timestamp'
-    | 'income.timestamp';
+    | 'income.timestamp'
+    | 'transfer.timestamp';
 }) {
   const {control, setValue} = useFormContext<TransactionFormSchema>();
   return (

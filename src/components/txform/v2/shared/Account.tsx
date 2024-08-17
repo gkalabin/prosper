@@ -16,7 +16,11 @@ export function Account({
   fieldName,
   label,
 }: {
-  fieldName: 'income.accountId' | 'expense.accountId';
+  fieldName:
+    | 'income.accountId'
+    | 'expense.accountId'
+    | 'transfer.fromAccountId'
+    | 'transfer.toAccountId';
   label: string;
 }) {
   const {control} = useFormContext<TransactionFormSchema>();
