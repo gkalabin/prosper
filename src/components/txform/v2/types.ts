@@ -44,6 +44,7 @@ export const transferFormValidationSchema = z.object({
   toAccountId: z.number().int().positive(),
   categoryId: z.number().int().positive(),
   description: z.string().nullable(),
+  tagNames: z.array(z.string()),
 });
 export type TransferFormSchema = z.infer<typeof transferFormValidationSchema>;
 

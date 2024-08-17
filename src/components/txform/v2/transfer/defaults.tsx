@@ -19,6 +19,7 @@ export function expenseToTransfer(
     fromAccountId: prev.accountId ?? bankAccounts[0].id,
     toAccountId: prev.accountId ?? bankAccounts[0].id,
     description: prev.vendor,
+    tagNames: [...prev.tagNames],
   };
 }
 
@@ -31,5 +32,6 @@ export function incomeToTransfer(prev: IncomeFormSchema): TransferFormSchema {
     fromAccountId: prev.accountId,
     toAccountId: prev.accountId,
     description: prev.payer,
+    tagNames: [...prev.tagNames],
   };
 }

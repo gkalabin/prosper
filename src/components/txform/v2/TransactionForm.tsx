@@ -9,6 +9,7 @@ import {
 } from '@/components/txform/v2/defaults';
 import {ExpenseForm} from '@/components/txform/v2/expense/ExpenseForm';
 import {IncomeForm} from '@/components/txform/v2/income/IncomeForm';
+import {TransferForm} from '@/components/txform/v2/transfer/TransferForm';
 import {NewTransactionSuggestions} from '@/components/txform/v2/suggestions/NewTransactionSuggestions';
 import {
   type FormType,
@@ -96,6 +97,7 @@ export const TransactionForm = (props: {
             disabled={form.formState.isSubmitting}
           />
           {formType == 'EXPENSE' && <ExpenseForm />}
+          {formType == 'TRANSFER' && <TransferForm />}
           {formType == 'INCOME' && <IncomeForm />}
         </div>
 
