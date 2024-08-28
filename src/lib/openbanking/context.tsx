@@ -23,7 +23,6 @@ export const useOpenBankingBalances = () => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-      revalidateOnMount: false,
     }
   );
   return {
@@ -41,7 +40,6 @@ export const useOpenBankingTransactions = () => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-      revalidateOnMount: false,
     }
   );
   return {
