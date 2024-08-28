@@ -29,10 +29,12 @@ export async function fetchAccounts(
     })
       .then(response => response.json())
       .then(a => {
-        return {
+        const accountDetails: AccountDetails = {
           externalAccountId: aid,
           name: `${a.account.ownerName} (${a.account.currency} ${a.account.iban})`,
+          providerAccountType: 'ACCOUNT',
         };
+        return accountDetails;
       })
   );
 

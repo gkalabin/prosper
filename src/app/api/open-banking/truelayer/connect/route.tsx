@@ -7,6 +7,14 @@ import {Prisma} from '@prisma/client';
 import {redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
 
+const SCOPES = [
+  'accounts',
+  'balance',
+  'transactions',
+  'offline_access',
+  'cards',
+];
+
 export async function GET(request: NextRequest): Promise<Response> {
   const userId = await getUserId();
   const query = request.nextUrl.searchParams;
@@ -17,7 +25,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     if (!connectingBankId) {
       return new Response(`bankId must be an integer`, {status: 400});
     }
-    const authURL = `https://auth.truelayer.com/?response_type=code&client_id=${process.env.TRUE_LAYER_CLIENT_ID}&scope=accounts%20balance%20transactions%20offline_access&redirect_uri=${redirectURI}&state=${connectingBankId}`;
+    const authURL = `https://auth.truelayer.com/?response_type=code&client_id=${process.env.TRUE_LAYER_CLIENT_ID}&scope=${SCOPES.join(' ')}&redirect_uri=${redirectURI}&state=${connectingBankId}`;
     return redirect(authURL);
   }
   const bankId = positiveIntOrNull(query.get('state'));

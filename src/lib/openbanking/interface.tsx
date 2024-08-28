@@ -19,4 +19,5 @@ export interface Transaction {
 export interface AccountDetails {
   externalAccountId: string;
   name: string;
+  providerAccountType: string;
 }
