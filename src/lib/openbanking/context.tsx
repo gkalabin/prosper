@@ -19,7 +19,12 @@ export const useOpenBankingBalances = () => {
   const fetcher = (url: string) => fetch(url).then(r => r.json());
   const {data, error, isLoading} = useSWR<OpenBankingBalances>(
     '/api/open-banking/balances',
-    fetcher
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateOnMount: false,
+    }
   );
   return {
     balances: data?.balances,
@@ -32,7 +37,12 @@ export const useOpenBankingTransactions = () => {
   const fetcher = (url: string) => fetch(url).then(r => r.json());
   const {data, error, isLoading} = useSWR<OpenBankingTransactions>(
     '/api/open-banking/transactions',
-    fetcher
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateOnMount: false,
+    }
   );
   return {
     transactions: data?.transactions,
