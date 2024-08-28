@@ -24,6 +24,21 @@ export async function POST(
   if (!bank) {
     return new Response(`Not authenticated`, {status: 401});
   }
+  // Remove all the account mappings for the given bank, so reconnecting won't pick up old connected account ids.
+  {
+    const accountsToDisconnect = await db.bankAccountFindMany({
+      where: {
+        bankId,
+      },
+    });
+    await db.externalAccountMappingDeleteMany({
+      where: {
+        internalAccountId: {
+          in: accountsToDisconnect.map(a => a.id),
+        },
+      },
+    });
+  }
   {
     const [token] = await db.trueLayerTokenFindMany({
       where: {

@@ -103,6 +103,11 @@ export class DB {
   ) {
     return prisma.externalAccountMapping.findMany(this.whereUser(args ?? {}));
   }
+  externalAccountMappingDeleteMany(
+    args: Prisma.ExternalAccountMappingDeleteManyArgs
+  ) {
+    return prisma.externalAccountMapping.deleteMany(this.whereUser(args));
+  }
 
   async getOrCreateDbDisplaySettings() {
     const [existing] = await prisma.displaySettings.findMany(
