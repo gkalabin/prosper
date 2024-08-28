@@ -21,7 +21,7 @@ export function Amount() {
       control={control}
       name="transfer.amountSent"
       render={({field}) => (
-        <FormItem className={cn(sameUnit ? 'col-span-3' : 'col-span-6')}>
+        <FormItem className={cn(sameUnit ? 'col-span-6' : 'col-span-3')}>
           <FormLabel>{sameUnit ? 'Amount' : 'Amount Sent'}</FormLabel>
           <FormControl>
             <Input
