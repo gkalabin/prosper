@@ -156,6 +156,5 @@ function mostFrequentCategory(
   }
   // If there are no expenses at all, the most frequent value will not be defined,
   // so fall back to the first category in that case.
-  const categoryId = mostFrequent ?? categories[0].id;
-  return categoryId;
+  return categories[0].id;
 }
