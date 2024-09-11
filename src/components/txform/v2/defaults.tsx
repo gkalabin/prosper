@@ -6,11 +6,13 @@ import {
 } from '@/components/txform/v2/expense/defaults';
 import {
   expenseToIncome,
+  incomeFromPrototype,
   transferToIncome,
 } from '@/components/txform/v2/income/defaults';
 import {
   expenseToTransfer,
   incomeToTransfer,
+  transferFromPrototype,
 } from '@/components/txform/v2/transfer/defaults';
 import {FormType, TransactionFormSchema} from '@/components/txform/v2/types';
 import {assertDefined} from '@/lib/assert';
@@ -52,13 +54,27 @@ export function valuesForPrototype({
   transactions: Transaction[];
   categories: Category[];
 }): TransactionFormSchema {
-  if (proto.type === 'withdrawal') {
-    return {
-      formType: 'EXPENSE',
-      expense: expenseFromPrototype({proto, transactions, categories}),
-    };
+  const tt = proto.type;
+  switch (tt) {
+    case 'withdrawal':
+      return {
+        formType: 'EXPENSE',
+        expense: expenseFromPrototype({proto, transactions, categories}),
+      };
+    case 'deposit':
+      return {
+        formType: 'INCOME',
+        income: incomeFromPrototype({proto, transactions, categories}),
+      };
+    case 'transfer':
+      return {
+        formType: 'TRANSFER',
+        transfer: transferFromPrototype({proto, transactions, categories}),
+      };
+    default:
+      const _exhaustiveCheck: never = tt;
+      throw new Error(`Unsupported prototype type: ${_exhaustiveCheck}`);
   }
-  throw new Error('Not implemented');
 }
 
 export function valuesForNewType(
