@@ -18,6 +18,7 @@ model Transaction {
   id          Int      @id @default(autoincrement())
   timestamp   DateTime
   description String
+  // TODO: deprecate and remove this column.
   amountCents Int
 
   // categorisation
@@ -46,11 +47,29 @@ model Transaction {
   payerOutgoingAmountCents Int?
   currencyCode             String?
 
-  user                 User                   @relation(fields: [userId], references: [id])
-  userId               Int
-  createdAt            DateTime               @default(now())
-  updatedAt            DateTime               @updatedAt
-  TransactionPrototype TransactionPrototype[]
+  user                   User                   @relation(fields: [userId], references: [id])
+  userId                 Int
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  TransactionPrototype   TransactionPrototype[]
+  SourceTransactionLinks TransactionLinks[]     @relation(name: "SourceTransactionLinks")
+  LinkedTransactionLinks TransactionLinks[]     @relation(name: "LinkedTransactionLinks")
+}
+
+enum TransactionLinkType {
+  REFUND
+  REPAYMENT
+}
+
+model TransactionLinks {
+  id                  Int                 @id @default(autoincrement())
+  sourceTransaction   Transaction         @relation("SourceTransactionLinks", fields: [sourceTransactionId], references: [id])
+  sourceTransactionId Int
+  linkedTransaction   Transaction         @relation("LinkedTransactionLinks", fields: [linkedTransactionId], references: [id])
+  linkedTransactionId Int
+  linkType            TransactionLinkType
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
 }
 
 model BankAccount {
@@ -213,7 +232,7 @@ model ExternalAccountMapping {
 }
 
 model TransactionPrototype {
-  syntheticId            Int         @id @default(autoincrement())
+  syntheticId           Int         @id @default(autoincrement())
   // not unique as multiple users can share the same bank and import the same transaction
   externalId            String
   externalDescription   String
