@@ -24,7 +24,10 @@ export function incomeModelFromDB(init: TransactionWithTagIds): Income {
   if (init.ownShareAmountCents != init.incomingAmountCents) {
     assertDefined(init.incomingAmountCents);
     assertDefined(init.ownShareAmountCents);
-    assertDefined(init.otherPartyName);
+    assertDefined(
+      init.otherPartyName,
+      `otherPartyName is not defined for transaction id ${init.id}`
+    );
     companions.push({
       name: init.otherPartyName,
       amountCents: init.incomingAmountCents - init.ownShareAmountCents,
