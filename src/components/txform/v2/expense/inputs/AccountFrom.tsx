@@ -5,8 +5,7 @@ import {Button} from '@/components/ui/button';
 import {useFormContext} from 'react-hook-form';
 
 export function AccountFrom() {
-  const {formState, setValue, control} =
-    useFormContext<TransactionFormSchema>();
+  const {formState, setValue} = useFormContext<TransactionFormSchema>();
   const {paidSelf} = useSharingType();
   if (!paidSelf) {
     return <></>;

@@ -2,6 +2,7 @@ import {AccountFrom} from '@/components/txform/v2/expense/inputs/AccountFrom';
 import {Amount} from '@/components/txform/v2/expense/inputs/Amount';
 import {Category} from '@/components/txform/v2/expense/inputs/Category';
 import {Companion} from '@/components/txform/v2/expense/inputs/Companion';
+import {Currency} from '@/components/txform/v2/expense/inputs/Currency';
 import {ExtraFields} from '@/components/txform/v2/expense/inputs/ExtraFields';
 import {OwnShareAmount} from '@/components/txform/v2/expense/inputs/OwnShareAmount';
 import {Payer} from '@/components/txform/v2/expense/inputs/Payer';
@@ -19,6 +20,7 @@ export function ExpenseForm() {
       <Payer />
       <SplitTransactionToggle />
       <Companion />
+      <Currency />
       <Amount />
       <OwnShareAmount />
       <RepaymentFields />
