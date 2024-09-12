@@ -37,6 +37,7 @@ export function expenseFormEmpty({
     tripName: null,
     companion: null,
     payer: null,
+    currency: null,
     repayment: null,
   };
   return values;
@@ -68,6 +69,7 @@ export function expenseFromPrototype({
     tripName: null,
     companion: null,
     payer: null,
+    currency: null,
     repayment: null,
   };
   return values;
@@ -87,6 +89,7 @@ export function incomeToExpense(prev: IncomeFormSchema): ExpenseFormSchema {
     tripName: null,
     companion: null,
     payer: null,
+    currency: null,
     repayment: null,
   };
   return values;
@@ -106,6 +109,7 @@ export function transferToExpense(prev: TransferFormSchema): ExpenseFormSchema {
     tripName: null,
     companion: null,
     payer: null,
+    currency: null,
     repayment: null,
   };
   return values;
