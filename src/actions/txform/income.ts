@@ -62,8 +62,10 @@ function createTransactionInput(
     description: income.description ?? '',
     incomingAccountId: income.accountId,
     incomingAmountCents: toCents(income.amount),
-    ownShareAmountCents: toCents(income.ownShareAmount),
-    otherPartyName: income.companion,
+    ownShareAmountCents: income.isShared
+      ? toCents(income.ownShareAmount)
+      : toCents(income.amount),
+    otherPartyName: income.isShared ? income.companion : null,
     categoryId: income.categoryId,
     // TODO: deprecate and remove this column.
     amountCents: toCents(income.amount),
