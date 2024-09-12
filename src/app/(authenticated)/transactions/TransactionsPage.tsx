@@ -1,5 +1,4 @@
 'use client';
-import {ChartPieIcon, FunnelIcon} from '@heroicons/react/24/outline';
 import {
   NotConfiguredYet,
   isFullyConfigured,
@@ -13,20 +12,16 @@ import {
 import {TransactionStats} from '@/components/transactions/TransactionStats';
 import {TransactionsList} from '@/components/transactions/TransactionsList';
 import {ButtonPagePrimary} from '@/components/ui/buttons';
-import {Formik} from 'formik';
-import {
-  AllDatabaseDataContextProvider,
-  useAllDatabaseDataContext,
-} from '@/lib/context/AllDatabaseDataContext';
+import {AllDatabaseDataContextProvider} from '@/lib/context/AllDatabaseDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
-import {onTransactionChange} from '@/lib/stateHelpers';
+import {ChartPieIcon, FunnelIcon} from '@heroicons/react/24/outline';
+import {Formik} from 'formik';
 import {useState} from 'react';
 
 function NonEmptyPageContent() {
   const [showFiltersForm, setShowFiltersForm] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const {results: filteredTransactions, error} = useFilteredTransactions();
-  const {setDbData} = useAllDatabaseDataContext();
   return (
     <div className="space-y-4">
       <div className="flex justify-end gap-4">
@@ -61,10 +56,7 @@ function NonEmptyPageContent() {
           onClose={() => setShowStats(false)}
         />
       )}
-      <TransactionsList
-        transactions={filteredTransactions}
-        onTransactionUpdated={onTransactionChange(setDbData)}
-      />
+      <TransactionsList transactions={filteredTransactions} />
     </div>
   );
 }

@@ -17,7 +17,6 @@ import {Income} from '@/lib/model/transaction/Income';
 import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
 import {Transfer} from '@/lib/model/transaction/Transfer';
 import {useOpenBankingBalances} from '@/lib/openbanking/context';
-import {onTransactionChange} from '@/lib/stateHelpers';
 import {useState} from 'react';
 
 export const BankAccountListItem = ({account}: {account: BankAccount}) => {
@@ -63,7 +62,7 @@ export const BankAccountListItem = ({account}: {account: BankAccount}) => {
 };
 
 const BankAccountExtraDetails = ({account}: {account: BankAccount}) => {
-  const {setDbData, transactions, stocks} = useAllDatabaseDataContext();
+  const {transactions, stocks} = useAllDatabaseDataContext();
   const unit = accountUnit(account, stocks);
   const accountTransactions = transactions.filter(
     (t): t is PersonalExpense | Transfer | Income =>
@@ -82,10 +81,7 @@ const BankAccountExtraDetails = ({account}: {account: BankAccount}) => {
         </div>
       )}
       <div className="font-medium">Latest transactions</div>
-      <TransactionsList
-        transactions={accountTransactions}
-        onTransactionUpdated={onTransactionChange(setDbData)}
-      />
+      <TransactionsList transactions={accountTransactions} />
     </div>
   );
 };

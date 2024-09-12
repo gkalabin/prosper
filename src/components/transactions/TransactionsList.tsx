@@ -1,9 +1,5 @@
-import {ChevronDownIcon, ChevronRightIcon} from '@heroicons/react/24/outline';
-import {TransactionAPIResponse} from '@/app/api/transaction/dbHelpers';
-import classNames from 'classnames';
-import {AddTransactionForm} from '@/components/txform/AddTransactionForm';
+import {TransactionForm} from '@/components/txform/v2/TransactionForm';
 import {ButtonLink} from '@/components/ui/buttons';
-import {format} from 'date-fns';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {fullAccountName} from '@/lib/model/BankAccount';
@@ -33,6 +29,10 @@ import {
   ownShareAmountIgnoreRefunds,
   paidTotal,
 } from '@/lib/model/transaction/amounts';
+import {onTransactionChange} from '@/lib/stateHelpers';
+import {ChevronDownIcon, ChevronRightIcon} from '@heroicons/react/24/outline';
+import classNames from 'classnames';
+import {format} from 'date-fns';
 import {useState} from 'react';
 
 const TransactionTitle = ({t}: {t: Transaction}) => {
@@ -105,15 +105,13 @@ const TransactionAmount = (props: {transaction: Transaction}) => {
 export const TransactionsListItem = ({
   transaction: t,
   categoryTree,
-  onUpdated,
 }: {
   transaction: Transaction;
   categoryTree: CategoryTree;
-  onUpdated: (response: TransactionAPIResponse) => void;
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-  const {tags, bankAccounts, banks, stocks, trips} =
+  const {tags, bankAccounts, banks, stocks, trips, setDbData} =
     useAllDatabaseDataContext();
   return (
     <div className="p-2">
@@ -229,10 +227,10 @@ export const TransactionsListItem = ({
         </div>
       )}
       {expanded && showEditForm && (
-        <AddTransactionForm
+        <TransactionForm
           transaction={t}
-          onAddedOrUpdated={updated => {
-            onUpdated(updated);
+          onChange={updated => {
+            onTransactionChange(setDbData)(updated);
             setShowEditForm(false);
           }}
           onClose={() => setShowEditForm(false)}
@@ -244,7 +242,6 @@ export const TransactionsListItem = ({
 
 export const TransactionsList = (props: {
   transactions: Transaction[];
-  onTransactionUpdated: (response: TransactionAPIResponse) => void;
   displayLimit?: number;
 }) => {
   const [displayLimit, setDisplayLimit] = useState(props.displayLimit || 10);
@@ -263,7 +260,6 @@ export const TransactionsList = (props: {
               key={t.id}
               transaction={t}
               categoryTree={categoryTree}
-              onUpdated={props.onTransactionUpdated}
             />
           ))}
           <li className="bg-slate-50 p-2 text-center text-lg font-medium">
