@@ -10,12 +10,13 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {Select} from '@/components/ui/html-select';
+import {Input} from '@/components/ui/input';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
 import {fullAccountName} from '@/lib/model/BankAccount';
 import {isExpense, Transaction} from '@/lib/model/transaction/Transaction';
 import {useCallback} from 'react';
-import {useFormContext} from 'react-hook-form';
+import {useFormContext, useWatch} from 'react-hook-form';
 
 export function RepaymentFields() {
   const {sharingType} = useSharingType();
@@ -25,9 +26,29 @@ export function RepaymentFields() {
   return (
     <div className="col-span-6 space-y-2 rounded border bg-accent p-2 pl-4">
       <Timestamp fieldName="expense.repayment.timestamp" />
+      <RepaymentAmount />
       <RepaymentAccountFrom />
       <RepaymentCategory />
     </div>
+  );
+}
+
+function RepaymentAmount() {
+  const ownShareAmount = useWatch({
+    name: 'expense.ownShareAmount',
+  });
+  return (
+    <FormItem className="col-span-6">
+      <FormLabel>Amount repaid</FormLabel>
+      <FormControl>
+        <Input
+          type="text"
+          inputMode="decimal"
+          disabled={true}
+          value={ownShareAmount}
+        />
+      </FormControl>
+    </FormItem>
   );
 }
 

@@ -8,10 +8,10 @@ import {
   ExpenseFormSchema,
   TransactionFormSchema,
 } from '@/components/txform/v2/types';
-import {assertDefined} from '@/lib/assert';
+import {assert, assertDefined} from '@/lib/assert';
 import prisma from '@/lib/prisma';
 import {type TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
-import {Prisma} from '@prisma/client';
+import {Prisma, Transaction} from '@prisma/client';
 
 export async function createExpense(
   protos: TransactionPrototype[],
@@ -39,7 +39,42 @@ export async function createExpense(
       userId,
       tx,
     });
+    await maybeCreateRepaymentTransaction(tx, expense, transaction.id, userId);
   });
+}
+
+async function maybeCreateRepaymentTransaction(
+  tx: Prisma.TransactionClient,
+  expense: ExpenseFormSchema,
+  transactionId: number,
+  userId: number
+): Promise<Transaction | null> {
+  if (expense.sharingType != 'PAID_OTHER_REPAID') {
+    return null;
+  }
+  const repayment = expense.repayment;
+  assertDefined(repayment);
+  const data: Prisma.TransactionUncheckedCreateInput = {
+    transactionType: 'PERSONAL_EXPENSE' as const,
+    timestamp: repayment.timestamp,
+    categoryId: repayment.categoryId,
+    outgoingAccountId: repayment.accountId,
+    outgoingAmountCents: toCents(expense.ownShareAmount),
+    ownShareAmountCents: toCents(expense.ownShareAmount),
+    vendor: expense.payer,
+    description: 'Paid back for ' + expense.vendor,
+    // TODO: remove.
+    amountCents: toCents(expense.ownShareAmount),
+    userId,
+  };
+  const repaymentTx = await tx.transaction.create({data});
+  const linkData: Prisma.TransactionLinksUncheckedCreateInput = {
+    sourceTransactionId: transactionId,
+    linkedTransactionId: repaymentTx.id,
+    linkType: 'REPAYMENT',
+  };
+  await tx.transactionLinks.create({data: linkData});
+  return repaymentTx;
 }
 
 function createTransactionInput(
@@ -88,5 +123,27 @@ function createTransactionInput(
         throw new Error(`Unexpected share type: ${_exhaustiveCheck}`);
     }
   }
-  throw new Error('Not implemented');
+  assert(
+    sharingType == 'PAID_OTHER_OWED' || sharingType == 'PAID_OTHER_REPAID'
+  );
+  const result: Prisma.TransactionUncheckedCreateInput = {
+    transactionType: 'THIRD_PARTY_EXPENSE' as const,
+    timestamp: expense.timestamp,
+    description: expense.description ?? '',
+    payerOutgoingAmountCents: toCents(expense.amount),
+    ownShareAmountCents: toCents(expense.ownShareAmount),
+    amountCents: toCents(expense.amount),
+    categoryId: expense.categoryId,
+    vendor: expense.vendor,
+    payer: expense.payer,
+    tripId: null,
+    outgoingAccountId: null,
+    outgoingAmountCents: null,
+    incomingAccountId: null,
+    incomingAmountCents: null,
+    currencyCode: expense.currency,
+    otherPartyName: expense.companion,
+    userId,
+  };
+  return result;
 }
