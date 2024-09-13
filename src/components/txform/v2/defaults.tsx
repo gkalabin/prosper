@@ -1,32 +1,49 @@
 import {
   expenseFormEmpty,
   expenseFromPrototype,
+  expenseFromTransaction,
   incomeToExpense,
   transferToExpense,
 } from '@/components/txform/v2/expense/defaults';
 import {
   expenseToIncome,
   incomeFromPrototype,
+  incomeFromTransaction,
   transferToIncome,
 } from '@/components/txform/v2/income/defaults';
 import {
   expenseToTransfer,
   incomeToTransfer,
   transferFromPrototype,
+  transferFromTransaction,
 } from '@/components/txform/v2/transfer/defaults';
 import {FormType, TransactionFormSchema} from '@/components/txform/v2/types';
-import {assertDefined} from '@/lib/assert';
+import {assertDefined, assertNotDefined} from '@/lib/assert';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Category} from '@/lib/model/Category';
-import {Transaction} from '@/lib/model/transaction/Transaction';
+import {Tag} from '@/lib/model/Tag';
+import {
+  isIncome,
+  isTransfer,
+  Transaction,
+} from '@/lib/model/transaction/Transaction';
+import {TransactionLink} from '@/lib/model/TransactionLink';
+import {Trip} from '@/lib/model/Trip';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 
 export function useFormDefaults(
   tx: Transaction | null,
   proto: TransactionPrototype | null
 ): TransactionFormSchema {
-  const {transactions, categories, bankAccounts} = useAllDatabaseDataContext();
+  const {
+    transactions,
+    categories,
+    bankAccounts,
+    transactionLinks,
+    tags,
+    trips,
+  } = useAllDatabaseDataContext();
   // Initial values when creating new transaction from scratch.
   if (!tx && !proto) {
     return {
@@ -42,7 +59,44 @@ export function useFormDefaults(
     assertDefined(proto);
     return valuesForPrototype({proto, transactions, categories});
   }
-  throw new Error('Not implemented');
+  assertNotDefined(proto);
+  return valuesForTransaction(tx, transactionLinks, tags, trips);
+}
+
+function valuesForTransaction(
+  tx: Transaction,
+  transactionLinks: TransactionLink[],
+  tags: Tag[],
+  trips: Trip[]
+): TransactionFormSchema {
+  if (isIncome(tx)) {
+    return {
+      formType: 'INCOME',
+      income: incomeFromTransaction({
+        income: tx,
+        allTags: tags,
+        allLinks: transactionLinks,
+      }),
+    };
+  }
+  if (isTransfer(tx)) {
+    return {
+      formType: 'TRANSFER',
+      transfer: transferFromTransaction({
+        transfer: tx,
+        allTags: tags,
+      }),
+    };
+  }
+  return {
+    formType: 'EXPENSE',
+    expense: expenseFromTransaction({
+      expense: tx,
+      allTags: tags,
+      allLinks: transactionLinks,
+      allTrips: trips,
+    }),
+  };
 }
 
 export function valuesForPrototype({

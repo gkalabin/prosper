@@ -17,6 +17,9 @@ export const repaymentTransactionValidationSchema = z.object({
   categoryId: z.number().int().positive(),
   accountId: z.number().int().positive(),
 });
+export type RepaymentTransactionFormSchema = z.infer<
+  typeof repaymentTransactionValidationSchema
+>;
 
 // TODO: move this to expense form.
 export const expenseFormValidationSchema = z.object({

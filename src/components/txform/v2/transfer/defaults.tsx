@@ -7,7 +7,13 @@ import {assert} from '@/lib/assert';
 import {uniqMostFrequent} from '@/lib/collections';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Category} from '@/lib/model/Category';
-import {isTransfer, Transaction} from '@/lib/model/transaction/Transaction';
+import {Tag} from '@/lib/model/Tag';
+import {
+  isTransfer,
+  Transaction,
+  transactionTags,
+} from '@/lib/model/transaction/Transaction';
+import {Transfer} from '@/lib/model/transaction/Transfer';
 import {TransferPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {differenceInMonths} from 'date-fns';
 
@@ -60,6 +66,27 @@ export function transferFromPrototype({
     fromAccountId: withdrawal.internalAccountId,
     toAccountId: deposit.internalAccountId,
     tagNames: [],
+  };
+  return values;
+}
+
+export function transferFromTransaction({
+  transfer: t,
+  allTags,
+}: {
+  transfer: Transfer;
+  allTags: Tag[];
+}): TransferFormSchema {
+  const tags = transactionTags(t, allTags);
+  const values: TransferFormSchema = {
+    timestamp: new Date(t.timestampEpoch),
+    amountSent: t.sentAmountCents / 100,
+    amountReceived: t.receivedAmountCents / 100,
+    description: t.note,
+    categoryId: t.categoryId,
+    fromAccountId: t.fromAccountId,
+    toAccountId: t.toAccountId,
+    tagNames: tags.map(t => t.name),
   };
   return values;
 }

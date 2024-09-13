@@ -1,17 +1,30 @@
 import {IncomeFormSchema} from '@/components/txform/v2/income/validation';
 import {
   ExpenseFormSchema,
+  RepaymentTransactionFormSchema,
   TransferFormSchema,
 } from '@/components/txform/v2/types';
 import {assert} from '@/lib/assert';
 import {uniqMostFrequent} from '@/lib/collections';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Category} from '@/lib/model/Category';
+import {Tag} from '@/lib/model/Tag';
+import {ownShareAmountCentsIgnoreRefuds} from '@/lib/model/transaction/amounts';
+import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
+import {ThirdPartyExpense} from '@/lib/model/transaction/ThirdPartyExpense';
 import {
   Transaction,
   isExpense,
   isPersonalExpense,
+  isThirdPartyExpense,
+  transactionTags,
+  transactionTrip,
 } from '@/lib/model/transaction/Transaction';
+import {
+  TransactionLink,
+  TransactionLinkType,
+} from '@/lib/model/TransactionLink';
+import {Trip} from '@/lib/model/Trip';
 import {WithdrawalPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {differenceInMonths, startOfDay} from 'date-fns';
 
@@ -73,6 +86,78 @@ export function expenseFromPrototype({
     repayment: null,
   };
   return values;
+}
+
+export function expenseFromTransaction({
+  expense: t,
+  allTags,
+  allTrips,
+  allLinks,
+}: {
+  expense: PersonalExpense | ThirdPartyExpense;
+  allTags: Tag[];
+  allTrips: Trip[];
+  allLinks: TransactionLink[];
+}): ExpenseFormSchema {
+  const tags = transactionTags(t, allTags);
+  const trip = transactionTrip(t, allTrips);
+  const commonFields = {
+    timestamp: new Date(t.timestampEpoch),
+    amount: t.amountCents / 100,
+    ownShareAmount: ownShareAmountCentsIgnoreRefuds(t) / 100,
+    vendor: t.vendor,
+    categoryId: t.categoryId,
+    tagNames: tags.map(t => t.name),
+    description: t.note,
+    tripName: trip?.name ?? null,
+    companion: t.companions[0]?.name ?? null,
+  };
+  if (isThirdPartyExpense(t)) {
+    const repayment = findRepayment({expense: t, allLinks});
+    return {
+      ...commonFields,
+      sharingType: repayment ? 'PAID_OTHER_REPAID' : 'PAID_OTHER_OWED',
+      payer: t.payer,
+      currency: t.currencyCode,
+      repayment,
+      accountId: null,
+    };
+  }
+  const _exhaustiveCheck: PersonalExpense = t;
+  assert(_exhaustiveCheck.kind == 'PersonalExpense');
+  return {
+    ...commonFields,
+    accountId: t.accountId,
+    sharingType:
+      t.companions.length > 0 ? 'PAID_SELF_SHARED' : 'PAID_SELF_NOT_SHARED',
+    payer: null,
+    currency: null,
+    repayment: null,
+  };
+}
+
+function findRepayment({
+  expense: t,
+  allLinks,
+}: {
+  expense: PersonalExpense | ThirdPartyExpense;
+  allLinks: TransactionLink[];
+}): RepaymentTransactionFormSchema | null {
+  const repaymentLink = allLinks.find(
+    l => l.linkType == TransactionLinkType.DEBT_SETTLING && l.source.id == t.id
+  );
+  if (!repaymentLink) {
+    return null;
+  }
+  const repayment = repaymentLink.linked;
+  if (!isPersonalExpense(repayment)) {
+    throw new Error(`Repayment ${repayment.id} is not a personal expense`);
+  }
+  return {
+    timestamp: new Date(repayment.timestampEpoch),
+    accountId: repayment.accountId,
+    categoryId: repayment.categoryId,
+  };
 }
 
 export function incomeToExpense(prev: IncomeFormSchema): ExpenseFormSchema {

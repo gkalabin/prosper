@@ -8,7 +8,7 @@ import {
 import {Category} from '@/lib/model/Category';
 import {mustFindByCode} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';
-import {Tag} from '@/lib/model/Tag';
+import {mustFindTag, Tag} from '@/lib/model/Tag';
 import {Trip} from '@/lib/model/Trip';
 import {Unit, formatUnit} from '@/lib/model/Unit';
 import {Income, incomeModelFromDB} from '@/lib/model/transaction/Income';
@@ -99,13 +99,7 @@ export function transactionUnit(
 }
 
 export function transactionTags(t: Transaction, allTags: Tag[]): Tag[] {
-  const findTag = (tagId: number) => {
-    const found = allTags.find(tag => tag.id == tagId);
-    if (!found) {
-      console.error(`Cannot find tag ${tagId} for transaction ${t.id}`);
-    }
-    return found;
-  };
+  const findTag = (id: number) => mustFindTag(id, allTags);
   return t.tagsIds.map(findTag).filter(notEmpty);
 }
 
