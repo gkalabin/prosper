@@ -1,10 +1,10 @@
-import {Prisma} from '@prisma/client';
 import {
   AllDatabaseData,
   TransactionWithTagIds,
 } from '@/lib/model/AllDatabaseDataModel';
 import {USD} from '@/lib/model/Currency';
 import prisma from '@/lib/prisma';
+import {Prisma} from '@prisma/client';
 
 export class DB {
   private readonly userId: number;
@@ -41,6 +41,29 @@ export class DB {
         },
       },
     });
+  }
+  async transactionLinkFindAll() {
+    const transactionLinks = await prisma.transactionLink.findMany({
+      // Where either of the transactions has this user id.
+      where: {
+        OR: [
+          {sourceTransaction: {userId: this.userId}},
+          {linkedTransaction: {userId: this.userId}},
+        ],
+      },
+      include: {
+        sourceTransaction: true,
+        linkedTransaction: true,
+      },
+    });
+    // The links table has no information about the user as individual transactions have their own user id fields.
+    // Make sure all of the returned links have the same user id.
+    for (const l of transactionLinks) {
+      if (l.sourceTransaction.userId != l.linkedTransaction.userId) {
+        throw new Error(`Link ${l.id} has different user ids`);
+      }
+    }
+    return transactionLinks;
   }
   transactionPrototypeFindMany(args?: Prisma.TransactionPrototypeFindManyArgs) {
     return prisma.transactionPrototype.findMany(this.whereUser(args ?? {}));
@@ -148,6 +171,7 @@ export async function fetchAllDatabaseData(db: DB): Promise<AllDatabaseData> {
   await Promise.all(
     [
       async () => (data.dbTransactions = await db.transactionFindAll()),
+      async () => (data.dbTransactionLinks = await db.transactionLinkFindAll()),
       async () => (data.dbBanks = await db.bankFindMany()),
       async () => (data.dbTrips = await db.tripFindMany()),
       async () => (data.dbTags = await db.tagFindMany()),
