@@ -25,8 +25,11 @@ export async function getOrCreateTrip({
   return await tx.trip.create({data: tripNameAndUser});
 }
 
-export async function getOrCreateTags(
+export async function connectTags(
   tx: Prisma.TransactionClient,
+  data:
+    | Prisma.TransactionUncheckedCreateInput
+    | Prisma.TransactionUncheckedUpdateInput,
   tagNames: string[],
   userId: number
 ): Promise<Tag[]> {
@@ -45,7 +48,11 @@ export async function getOrCreateTags(
   const created = await Promise.all(
     newNames.map(name => tx.tag.create({data: {name, userId}}))
   );
-  return [...existing, ...created];
+  const allTags = [...existing, ...created];
+  if (allTags.length) {
+    data.tags = {connect: allTags.map(({id}) => ({id}))};
+  }
+  return allTags;
 }
 
 export async function writeUsedProtos({
