@@ -1,8 +1,6 @@
 import {connectTags, toCents, writeUsedProtos} from '@/actions/txform/shared';
-import {
-  TransactionFormSchema,
-  TransferFormSchema,
-} from '@/components/txform/v2/types';
+import {TransferFormSchema} from '@/components/txform/v2/transfer/types';
+import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {assertDefined} from '@/lib/assert';
 import prisma from '@/lib/prisma';
 import {type TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
