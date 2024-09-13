@@ -7,7 +7,18 @@ import {assert} from '@/lib/assert';
 import {uniqMostFrequent} from '@/lib/collections';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Category} from '@/lib/model/Category';
-import {isIncome, Transaction} from '@/lib/model/transaction/Transaction';
+import {Tag} from '@/lib/model/Tag';
+import {ownShareAmountCentsIgnoreRefuds} from '@/lib/model/transaction/amounts';
+import {Income} from '@/lib/model/transaction/Income';
+import {
+  isIncome,
+  Transaction,
+  transactionTags,
+} from '@/lib/model/transaction/Transaction';
+import {
+  TransactionLink,
+  TransactionLinkType,
+} from '@/lib/model/TransactionLink';
 import {DepositPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {differenceInMonths} from 'date-fns';
 
@@ -45,6 +56,35 @@ export function transferToIncome(prev: TransferFormSchema): IncomeFormSchema {
     description: null,
     parentTransactionId: null,
     isShared: false,
+  };
+  return values;
+}
+
+export function incomeFromTransaction({
+  income: t,
+  allLinks,
+  allTags,
+}: {
+  income: Income;
+  allLinks: TransactionLink[];
+  allTags: Tag[];
+}): IncomeFormSchema {
+  const tags = transactionTags(t, allTags);
+  const link = allLinks.find(
+    l => l.linkType == TransactionLinkType.REFUND && l.linked.id == t.id
+  );
+  const values: IncomeFormSchema = {
+    timestamp: new Date(t.timestampEpoch),
+    amount: t.amountCents / 100,
+    ownShareAmount: ownShareAmountCentsIgnoreRefuds(t) / 100,
+    payer: t.payer,
+    categoryId: t.categoryId,
+    accountId: t.accountId,
+    tagNames: tags.map(t => t.name),
+    description: t.note,
+    companion: t.companions[0]?.name ?? null,
+    parentTransactionId: link?.linked.id ?? null,
+    isShared: t.companions.length > 0,
   };
   return values;
 }
