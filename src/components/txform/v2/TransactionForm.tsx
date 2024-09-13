@@ -56,7 +56,9 @@ export const TransactionForm = (props: {
   };
   const onSubmit = form.handleSubmit(async (data: TransactionFormSchema) => {
     try {
-      const response = await upsertTransaction(proto ? [proto] : [], data);
+      const transactionId = props.transaction?.id ?? null;
+      const usedProtos = proto ? [proto] : [];
+      const response = await upsertTransaction(transactionId, usedProtos, data);
       if (response.errors) {
         console.error('Validation errors:', response);
       } else {

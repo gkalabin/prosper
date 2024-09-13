@@ -1,18 +1,22 @@
 'use server';
-import {createExpense} from '@/actions/txform/expense';
-import {createIncome} from '@/actions/txform/income';
-import {createTransfer} from '@/actions/txform/transfer';
+import {upsertExpense} from '@/actions/txform/expense';
+import {upsertIncome} from '@/actions/txform/income';
+import {upsertTransfer} from '@/actions/txform/transfer';
 import {
   TransactionFormSchema,
   transactionFormValidationSchema,
 } from '@/components/txform/v2/types';
+import {DB} from '@/lib/db';
 import {
   TransactionPrototypeList,
   transactionPrototypeListSchema,
 } from '@/lib/txsuggestions/TransactionPrototype';
 import {getUserId} from '@/lib/user';
+import {Transaction} from '@prisma/client';
+import {notFound} from 'next/navigation';
 
 export async function upsertTransaction(
+  transactionId: number | null,
   unsafeProtos: TransactionPrototypeList,
   unsafeData: TransactionFormSchema
 ) {
@@ -38,14 +42,27 @@ export async function upsertTransaction(
       ),
     };
   }
+  const db = new DB({userId});
+  let transaction: Transaction | null = null;
+  if (transactionId) {
+    transaction = await db.transactionById(transactionId);
+    if (!transaction) {
+      console.warn(`Transaction ${transactionId} is not found`);
+      return notFound();
+    }
+  }
   if (data.expense) {
-    await createExpense(validatedProtos.data, userId, data);
+    await upsertExpense(transaction, validatedProtos.data, userId, data);
+    return {};
   }
   if (data.transfer) {
-    await createTransfer(validatedProtos.data, userId, data);
+    await upsertTransfer(transaction, validatedProtos.data, userId, data);
+    return {};
   }
   if (data.income) {
-    await createIncome(validatedProtos.data, userId, data);
+    await upsertIncome(transaction, validatedProtos.data, userId, data);
+    return {};
   }
-  return {};
+  console.warn('No data found in the form', data);
+  throw new Error('Invalid form type');
 }
