@@ -68,12 +68,12 @@ async function maybeCreateRepaymentTransaction(
     userId,
   };
   const repaymentTx = await tx.transaction.create({data});
-  const linkData: Prisma.TransactionLinksUncheckedCreateInput = {
+  const linkData: Prisma.TransactionLinkUncheckedCreateInput = {
     sourceTransactionId: transactionId,
     linkedTransactionId: repaymentTx.id,
-    linkType: 'REPAYMENT',
+    linkType: 'DEBT_SETTLING',
   };
-  await tx.transactionLinks.create({data: linkData});
+  await tx.transactionLink.create({data: linkData});
   return repaymentTx;
 }
 

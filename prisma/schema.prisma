@@ -52,16 +52,16 @@ model Transaction {
   createdAt              DateTime               @default(now())
   updatedAt              DateTime               @updatedAt
   TransactionPrototype   TransactionPrototype[]
-  SourceTransactionLinks TransactionLinks[]     @relation(name: "SourceTransactionLinks")
-  LinkedTransactionLinks TransactionLinks[]     @relation(name: "LinkedTransactionLinks")
+  SourceTransactionLinks TransactionLink[]      @relation(name: "SourceTransactionLinks")
+  LinkedTransactionLinks TransactionLink[]      @relation(name: "LinkedTransactionLinks")
 }
 
 enum TransactionLinkType {
   REFUND
-  REPAYMENT
+  DEBT_SETTLING
 }
 
-model TransactionLinks {
+model TransactionLink {
   id                  Int                 @id @default(autoincrement())
   sourceTransaction   Transaction         @relation("SourceTransactionLinks", fields: [sourceTransactionId], references: [id])
   sourceTransactionId Int
