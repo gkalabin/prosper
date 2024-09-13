@@ -8,6 +8,7 @@ import {
   StockQuote,
   Tag,
   Transaction,
+  TransactionLink,
   TransactionPrototype,
   Trip,
 } from '@prisma/client';
@@ -21,6 +22,7 @@ export interface TransactionWithTagIds extends Transaction {
 
 export type AllDatabaseData = {
   dbTransactions: TransactionWithTagIds[];
+  dbTransactionLinks: TransactionLink[];
   dbTransactionPrototypes: TransactionPrototype[];
   dbCategories: Category[];
   dbBanks: Bank[];
@@ -32,6 +34,7 @@ export type AllDatabaseData = {
   dbDisplaySettings: DisplaySettings;
   dbStocks: Stock[];
 };
+
 export const useDisplayBankAccounts = () => {
   const {bankAccounts} = useAllDatabaseDataContext();
   return bankAccounts.filter(x => !x.archived);

@@ -1,12 +1,3 @@
-import {
-  Bank as DBBank,
-  BankAccount as DBBankAccount,
-  ExchangeRate as DBExchangeRate,
-  Stock as DBStock,
-  StockQuote as DBStockQuote,
-  TransactionPrototype,
-} from '@prisma/client';
-import {addDays, closestTo, isBefore, startOfDay} from 'date-fns';
 import {Amount} from '@/lib/Amount';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
@@ -24,11 +15,24 @@ import {
 import {Currency, NANOS_MULTIPLIER, mustFindByCode} from '@/lib/model/Currency';
 import {Stock, stockModelFromDB} from '@/lib/model/Stock';
 import {Tag, tagModelFromDB} from '@/lib/model/Tag';
-import {Trip, tripModelFromDB} from '@/lib/model/Trip';
 import {
   Transaction,
   transactionModelFromDB,
 } from '@/lib/model/transaction/Transaction';
+import {
+  TransactionLink,
+  transactionLinkModelFromDB,
+} from '@/lib/model/TransactionLink';
+import {Trip, tripModelFromDB} from '@/lib/model/Trip';
+import {
+  Bank as DBBank,
+  BankAccount as DBBankAccount,
+  ExchangeRate as DBExchangeRate,
+  Stock as DBStock,
+  StockQuote as DBStockQuote,
+  TransactionPrototype,
+} from '@prisma/client';
+import {addDays, closestTo, isBefore, startOfDay} from 'date-fns';
 
 export class StockAndCurrencyExchange {
   private readonly exchangeRates: ExchangeRates;
@@ -233,6 +237,7 @@ export type AllClientDataModel = {
   tags: Tag[];
   exchange: StockAndCurrencyExchange;
   transactionPrototypes: TransactionPrototype[];
+  transactionLinks: TransactionLink[];
 };
 
 function mustBank(bank: Bank | undefined, message: string): Bank {
@@ -296,6 +301,10 @@ export const modelFromDatabaseData = (
   const transactions: Transaction[] = dbData.dbTransactions
     .map(transactionModelFromDB)
     .sort(compareTransactions);
+
+  const transactionLinks = dbData.dbTransactionLinks.map(l =>
+    transactionLinkModelFromDB(l, transactions)
+  );
   return {
     banks,
     bankAccounts,
@@ -306,6 +315,7 @@ export const modelFromDatabaseData = (
     transactions,
     exchange,
     transactionPrototypes: dbData.dbTransactionPrototypes,
+    transactionLinks,
   };
 };
 
