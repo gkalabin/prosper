@@ -42,7 +42,7 @@ async function writeLinks(
   if (!income.parentTransactionId) {
     return;
   }
-  await tx.transactionLinks.create({
+  await tx.transactionLink.create({
     data: {
       sourceTransactionId: income.parentTransactionId,
       linkedTransactionId: transactionId,
