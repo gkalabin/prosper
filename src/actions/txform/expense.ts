@@ -4,14 +4,12 @@ import {
   toCents,
   writeUsedProtos,
 } from '@/actions/txform/shared';
-import {
-  ExpenseFormSchema,
-  TransactionFormSchema,
-} from '@/components/txform/v2/types';
+import {ExpenseFormSchema} from '@/components/txform/v2/expense/types';
+import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {assert, assertDefined} from '@/lib/assert';
 import prisma from '@/lib/prisma';
 import {type TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
-import {Prisma, Transaction, Trip} from '@prisma/client';
+import {Prisma, Transaction} from '@prisma/client';
 
 export async function upsertExpense(
   transaction: Transaction | null,

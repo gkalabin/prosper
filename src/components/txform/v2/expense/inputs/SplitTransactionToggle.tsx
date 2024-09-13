@@ -1,5 +1,6 @@
+import {SharingType} from '@/components/txform/v2/expense/types';
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
-import {SharingType, TransactionFormSchema} from '@/components/txform/v2/types';
+import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {
   FormControl,
   FormField,

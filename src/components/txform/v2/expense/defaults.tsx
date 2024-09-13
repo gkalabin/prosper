@@ -1,9 +1,9 @@
-import {IncomeFormSchema} from '@/components/txform/v2/income/validation';
 import {
   ExpenseFormSchema,
   RepaymentTransactionFormSchema,
-  TransferFormSchema,
-} from '@/components/txform/v2/types';
+} from '@/components/txform/v2/expense/types';
+import {IncomeFormSchema} from '@/components/txform/v2/income/types';
+import {TransferFormSchema} from '@/components/txform/v2/transfer/types';
 import {assert} from '@/lib/assert';
 import {uniqMostFrequent} from '@/lib/collections';
 import {BankAccount} from '@/lib/model/BankAccount';
