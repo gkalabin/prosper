@@ -1,6 +1,5 @@
 'use client';
 import {upsertTransaction} from '@/actions/txform/index';
-import {TransactionAPIResponse} from '@/app/api/transaction/dbHelpers';
 import {FormTypeSelect} from '@/components/txform/v2/FormTypeSelect';
 import {
   useFormDefaults,
@@ -21,6 +20,7 @@ import {Form} from '@/components/ui/form';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
 import {Transaction} from '@/lib/model/transaction/Transaction';
+import {onTransactionChange} from '@/lib/stateHelpers';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useState} from 'react';
@@ -28,13 +28,14 @@ import {useForm} from 'react-hook-form';
 
 export const TransactionForm = (props: {
   transaction: Transaction | null;
-  onChange: (response: TransactionAPIResponse) => void;
   onClose: () => void;
 }) => {
-  const {transactions, categories} = useAllDatabaseDataContext();
+  const {transactions, categories, setDbData} = useAllDatabaseDataContext();
   const bankAccounts = useDisplayBankAccounts();
   const [proto, setProto] = useState<TransactionPrototype | null>(null);
   const creatingNewTransaction = !props.transaction;
+  const defaultValues = useFormDefaults(props.transaction, proto);
+  const defaultValuesWithoutProto = useFormDefaults(props.transaction, null);
   // Form values update strategy:
   //  - Existing transaction is either set all the time or not defined. If it's set, there could be no prototype.
   //  - Prototype might be set only when creating new transaction.
@@ -44,7 +45,7 @@ export const TransactionForm = (props: {
   //    like a button which hides/shows some fields.
   const form = useForm<TransactionFormSchema>({
     resolver: zodResolver(transactionFormValidationSchema),
-    defaultValues: useFormDefaults(props.transaction, proto),
+    defaultValues,
   });
   const formType = form.watch('formType');
   const onFormTypeChange = (newFormType: FormType): void => {
@@ -59,13 +60,31 @@ export const TransactionForm = (props: {
       const transactionId = props.transaction?.id ?? null;
       const usedProtos = proto ? [proto] : [];
       const response = await upsertTransaction(transactionId, usedProtos, data);
-      if (response.errors) {
-        console.error('Validation errors:', response);
-      } else {
-        console.log('Form submitted successfully:', response);
+      if (response.status === 'SUCCESS') {
+        onTransactionChange(setDbData, response.dbUpdates);
+        if (props.transaction) {
+          // Close the form after updating the transaction.
+          props.onClose();
+        } else {
+          setProto(null);
+          form.reset(defaultValuesWithoutProto);
+        }
+        return;
       }
+      // Handle client errors
+      const {errors} = response;
+      Object.entries(errors).forEach(([field, messages]) => {
+        if (!messages) {
+          return;
+        }
+        form.setError(field as keyof TransactionFormSchema, {
+          message: messages.join(', '),
+        });
+      });
     } catch (error) {
-      console.error('Submission error:', error);
+      form.setError('root', {
+        message: 'Failed to save transaction. Server says: ' + error,
+      });
     }
   });
   return (

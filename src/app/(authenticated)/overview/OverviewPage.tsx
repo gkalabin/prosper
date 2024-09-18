@@ -20,7 +20,6 @@ import {
   useOpenBankingBalances,
   useOpenBankingTransactions,
 } from '@/lib/openbanking/context';
-import {onTransactionChange} from '@/lib/stateHelpers';
 import {useState} from 'react';
 
 export const BanksList = ({banks}: {banks: Bank[]}) => {
@@ -89,7 +88,7 @@ function OpenBankingBalancesLoadingIndicator() {
 
 function NonEmptyPageContent() {
   const [showAddTransactionForm, setShowAddTransactionForm] = useState(true);
-  const {banks, setDbData} = useAllDatabaseDataContext();
+  const {banks} = useAllDatabaseDataContext();
   return (
     <div className="space-y-4">
       <StatsWidget />
@@ -104,7 +103,6 @@ function NonEmptyPageContent() {
         {showAddTransactionForm && (
           <TransactionForm
             transaction={null}
-            onChange={onTransactionChange(setDbData)}
             onClose={() => setShowAddTransactionForm(false)}
           />
         )}

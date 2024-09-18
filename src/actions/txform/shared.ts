@@ -1,9 +1,25 @@
-import {Tag} from '@/lib/model/Tag';
+import {DatabaseUpdates} from '@/actions/txform/types';
 import {
   type TransactionPrototype,
   WithdrawalOrDepositPrototype,
 } from '@/lib/txsuggestions/TransactionPrototype';
-import {Prisma, Trip} from '@prisma/client';
+import {Prisma, Tag, Trip} from '@prisma/client';
+
+export type CommonCreateAndUpdateInput =
+  Prisma.TransactionUncheckedCreateInput &
+    Prisma.TransactionUncheckedUpdateInput;
+
+export function includeTagIds() {
+  return {
+    include: {
+      tags: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  };
+}
 
 export async function getOrCreateTrip({
   tx,
@@ -27,14 +43,13 @@ export async function getOrCreateTrip({
 
 export async function connectTags(
   tx: Prisma.TransactionClient,
-  data:
-    | Prisma.TransactionUncheckedCreateInput
-    | Prisma.TransactionUncheckedUpdateInput,
+  dbUpdates: DatabaseUpdates,
+  data: CommonCreateAndUpdateInput,
   tagNames: string[],
   userId: number
-): Promise<Tag[]> {
+): Promise<void> {
   if (!tagNames.length) {
-    return [];
+    return;
   }
   const existing: Tag[] = await tx.tag.findMany({
     where: {
@@ -52,19 +67,21 @@ export async function connectTags(
   if (allTags.length) {
     data.tags = {connect: allTags.map(({id}) => ({id}))};
   }
-  return allTags;
+  dbUpdates.tags.push(...created);
 }
 
 export async function writeUsedProtos({
+  tx,
+  dbUpdates,
   protos,
   transactionId,
   userId,
-  tx,
 }: {
+  tx: Prisma.TransactionClient;
+  dbUpdates: DatabaseUpdates;
   protos: TransactionPrototype[];
   transactionId: number;
   userId: number;
-  tx: Prisma.TransactionClient;
 }): Promise<void> {
   if (!protos.length) {
     return;
@@ -74,16 +91,41 @@ export async function writeUsedProtos({
   const plainProtos: WithdrawalOrDepositPrototype[] = protos.flatMap(proto =>
     proto.type == 'transfer' ? [proto.deposit, proto.withdrawal] : [proto]
   );
-  await tx.transactionPrototype.createMany({
-    data: plainProtos.map(
-      (proto): Prisma.TransactionPrototypeCreateManyInput => ({
+
+  const createSinglePrototype = async (proto: WithdrawalOrDepositPrototype) =>
+    await tx.transactionPrototype.create({
+      data: {
         internalTransactionId: transactionId,
-        externalDescription: proto.originalDescription,
         externalId: proto.externalTransactionId,
+        externalDescription: proto.originalDescription,
         userId,
-      })
-    ),
+      },
+    });
+
+  const created = await Promise.all(plainProtos.map(createSinglePrototype));
+  dbUpdates.prototypes.push(...created);
+}
+
+export async function deleteAllLinks(
+  tx: Prisma.TransactionClient,
+  dbUpdates: DatabaseUpdates,
+  transactionId: number
+) {
+  const links = await tx.transactionLink.findMany({
+    where: {
+      OR: [
+        {sourceTransactionId: transactionId},
+        {linkedTransactionId: transactionId},
+      ],
+    },
   });
+  if (links.length) {
+    const linkIds = links.map(({id}) => id);
+    await tx.transactionLink.deleteMany({where: {id: {in: linkIds}}});
+    linkIds.forEach(id => {
+      dbUpdates.transactionLinks[id] = null;
+    });
+  }
 }
 
 // TODO: move to util and write tests.

@@ -1,4 +1,12 @@
-import {connectTags, toCents, writeUsedProtos} from '@/actions/txform/shared';
+import {
+  CommonCreateAndUpdateInput,
+  connectTags,
+  deleteAllLinks,
+  includeTagIds,
+  toCents,
+  writeUsedProtos,
+} from '@/actions/txform/shared';
+import {DatabaseUpdates} from '@/actions/txform/types';
 import {IncomeFormSchema} from '@/components/txform/v2/income/types';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {assertDefined} from '@/lib/assert';
@@ -7,6 +15,7 @@ import {type TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototyp
 import {Prisma, Transaction} from '@prisma/client';
 
 export async function upsertIncome(
+  dbUpdates: DatabaseUpdates,
   transaction: Transaction | null,
   protos: TransactionPrototype[],
   userId: number,
@@ -16,41 +25,44 @@ export async function upsertIncome(
   assertDefined(income);
   const data = makeDbInput(income, userId);
   await prisma.$transaction(async tx => {
-    await connectTags(tx, data, income.tagNames, userId);
+    await connectTags(tx, dbUpdates, data, income.tagNames, userId);
     if (transaction) {
-      await update(tx, transaction, data, income);
+      await update(tx, dbUpdates, transaction, data, income);
     } else {
-      await create(tx, data, income, protos, userId);
+      await create(tx, dbUpdates, data, income, protos, userId);
     }
   });
 }
 
 async function create(
   tx: Prisma.TransactionClient,
-  data: Prisma.TransactionUncheckedCreateInput &
-    Prisma.TransactionUncheckedUpdateInput,
+  dbUpdates: DatabaseUpdates,
+  data: CommonCreateAndUpdateInput,
   income: IncomeFormSchema,
   protos: TransactionPrototype[],
   userId: number
 ) {
-  const transaction = await tx.transaction.create({data});
+  const transaction = await tx.transaction.create({...includeTagIds(), data});
+  dbUpdates.transactions[transaction.id] = transaction;
   await writeUsedProtos({
     tx,
+    dbUpdates,
     protos,
     transactionId: transaction.id,
     userId,
   });
-  await writeLinks(tx, income, transaction.id);
+  await writeLinks(tx, dbUpdates, income, transaction.id);
 }
 
 async function update(
   tx: Prisma.TransactionClient,
+  dbUpdates: DatabaseUpdates,
   transaction: Transaction,
-  data: Prisma.TransactionUncheckedCreateInput &
-    Prisma.TransactionUncheckedUpdateInput,
+  data: CommonCreateAndUpdateInput,
   income: IncomeFormSchema
 ) {
-  await tx.transaction.update({
+  const updated = await tx.transaction.update({
+    ...includeTagIds(),
     data: {
       ...data,
       // TODO: deprecate and remove this column.
@@ -58,35 +70,29 @@ async function update(
     },
     where: {id: transaction.id},
   });
+  dbUpdates.transactions[updated.id] = updated;
   // Remove all links, then re-add the one we want.
-  // Alternative is to query the links and update conditionally,
-  // but this is only useful for performance which is not a problem yet.
-  await tx.transactionLink.deleteMany({
-    where: {
-      OR: [
-        {sourceTransactionId: transaction.id},
-        {linkedTransactionId: transaction.id},
-      ],
-    },
-  });
-  await writeLinks(tx, income, transaction.id);
+  await deleteAllLinks(tx, dbUpdates, transaction.id);
+  await writeLinks(tx, dbUpdates, income, transaction.id);
 }
 
 async function writeLinks(
   tx: Prisma.TransactionClient,
+  dbUpdates: DatabaseUpdates,
   income: IncomeFormSchema,
   transactionId: number
 ) {
   if (!income.parentTransactionId) {
     return;
   }
-  await tx.transactionLink.create({
+  const newLink = await tx.transactionLink.create({
     data: {
       sourceTransactionId: income.parentTransactionId,
       linkedTransactionId: transactionId,
       linkType: 'REFUND' as const,
     },
   });
+  dbUpdates.transactionLinks[newLink.id] = newLink;
 }
 
 function makeDbInput(
