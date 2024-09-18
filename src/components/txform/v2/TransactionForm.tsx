@@ -122,20 +122,27 @@ export const TransactionForm = (props: {
           {formType == 'INCOME' && <IncomeForm />}
         </div>
 
-        <div className="flex justify-end gap-2 bg-gray-50 px-4 py-3 sm:px-6">
-          <ButtonFormSecondary className="self-start" onClick={props.onClose}>
-            Cancel
-          </ButtonFormSecondary>
-          <ButtonFormPrimary className="self-start" type="submit">
-            {creatingNewTransaction && form.formState.isSubmitting && 'Adding…'}
-            {creatingNewTransaction && !form.formState.isSubmitting && 'Add'}
-            {!creatingNewTransaction &&
-              form.formState.isSubmitting &&
-              'Updating…'}
-            {!creatingNewTransaction &&
-              !form.formState.isSubmitting &&
-              'Update'}
-          </ButtonFormPrimary>
+        <div className="flex justify-between gap-2 bg-slate-50 px-4 py-3 sm:px-6">
+          <div className="text-red-600">
+            {form.formState.errors.root?.message}
+          </div>
+          <div className="flex-none space-x-4">
+            <ButtonFormSecondary onClick={props.onClose}>
+              Cancel
+            </ButtonFormSecondary>
+            <ButtonFormPrimary type="submit">
+              {creatingNewTransaction &&
+                form.formState.isSubmitting &&
+                'Adding…'}
+              {creatingNewTransaction && !form.formState.isSubmitting && 'Add'}
+              {!creatingNewTransaction &&
+                form.formState.isSubmitting &&
+                'Updating…'}
+              {!creatingNewTransaction &&
+                !form.formState.isSubmitting &&
+                'Update'}
+            </ButtonFormPrimary>
+          </div>
         </div>
       </form>
     </Form>
