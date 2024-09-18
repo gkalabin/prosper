@@ -110,7 +110,7 @@ export const TransactionsListItem = ({
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-  const {tags, bankAccounts, banks, stocks, trips, setDbData} =
+  const {tags, bankAccounts, banks, stocks, trips} =
     useAllDatabaseDataContext();
   return (
     <div className="p-2">
