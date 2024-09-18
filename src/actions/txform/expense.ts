@@ -1,9 +1,12 @@
 import {
+  CommonCreateAndUpdateInput,
   connectTags,
   getOrCreateTrip,
+  includeTagIds,
   toCents,
   writeUsedProtos,
 } from '@/actions/txform/shared';
+import {DatabaseUpdates} from '@/actions/txform/types';
 import {ExpenseFormSchema} from '@/components/txform/v2/expense/types';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {assert, assertDefined} from '@/lib/assert';
@@ -12,6 +15,7 @@ import {type TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototyp
 import {Prisma, Transaction} from '@prisma/client';
 
 export async function upsertExpense(
+  dbUpdates: DatabaseUpdates,
   transaction: Transaction | null,
   protos: TransactionPrototype[],
   userId: number,
@@ -27,42 +31,52 @@ export async function upsertExpense(
       userId,
     });
     data.tripId = trip?.id;
-    await connectTags(tx, data, expense.tagNames, userId);
+    dbUpdates.trip = trip;
+    await connectTags(tx, dbUpdates, data, expense.tagNames, userId);
     if (transaction) {
-      await update(tx, transaction, data, expense, userId);
+      await update(tx, dbUpdates, transaction, data, expense, userId);
     } else {
-      await create(tx, data, expense, protos, userId);
+      await create(tx, dbUpdates, data, expense, protos, userId);
     }
   });
 }
 
 async function create(
   tx: Prisma.TransactionClient,
-  data: Prisma.TransactionUncheckedCreateInput &
-    Prisma.TransactionUncheckedUpdateInput,
+  dbUpdates: DatabaseUpdates,
+  data: CommonCreateAndUpdateInput,
   expense: ExpenseFormSchema,
   protos: TransactionPrototype[],
   userId: number
 ) {
-  const transaction = await tx.transaction.create({data});
+  const transaction = await tx.transaction.create({...includeTagIds(), data});
+  dbUpdates.transactions[transaction.id] = transaction;
   await writeUsedProtos({
+    tx,
+    dbUpdates,
     protos,
     transactionId: transaction.id,
     userId,
-    tx,
   });
-  await maybeCreateRepaymentTransaction(tx, expense, transaction.id, userId);
+  await maybeCreateRepaymentTransaction(
+    tx,
+    dbUpdates,
+    expense,
+    transaction.id,
+    userId
+  );
 }
 
 async function update(
   tx: Prisma.TransactionClient,
+  dbUpdates: DatabaseUpdates,
   transaction: Transaction,
-  data: Prisma.TransactionUncheckedCreateInput &
-    Prisma.TransactionUncheckedUpdateInput,
+  data: CommonCreateAndUpdateInput,
   expense: ExpenseFormSchema,
   userId: number
 ) {
-  await tx.transaction.update({
+  const updated = await tx.transaction.update({
+    ...includeTagIds(),
     data: {
       ...data,
       // TODO: deprecate and remove this column.
@@ -70,6 +84,7 @@ async function update(
     },
     where: {id: transaction.id},
   });
+  dbUpdates.transactions[updated.id] = updated;
   const links = await tx.transactionLink.findMany({
     where: {
       OR: [
@@ -82,27 +97,40 @@ async function update(
     l =>
       l.linkType == 'DEBT_SETTLING' && l.sourceTransactionId == transaction.id
   );
+  // A simpler approach is to drop everything (links and transactions) and recreate them,
+  // but this would make the ids of the repayment transaction change when modifying anything within,
+  // so a more sophisticated approach is needed which looks into the current and the futuree state.
   if (repayment && expense.sharingType == 'PAID_OTHER_REPAID') {
     // There is a repayment transaction and it is staying, update it.
     const repaymentData = makeRepaymentDbData(expense, userId);
-    await tx.transaction.update({
+    const updatedRepayment = await tx.transaction.update({
+      ...includeTagIds(),
       data: repaymentData,
       where: {
         id: repayment.linkedTransactionId,
       },
     });
+    dbUpdates.transactions[updatedRepayment.id] = updatedRepayment;
   } else if (!repayment && expense.sharingType == 'PAID_OTHER_REPAID') {
     // No repayment exists and we need one, create it.
-    await maybeCreateRepaymentTransaction(tx, expense, transaction.id, userId);
+    await maybeCreateRepaymentTransaction(
+      tx,
+      dbUpdates,
+      expense,
+      transaction.id,
+      userId
+    );
   } else if (repayment) {
     // There is a repayment and we don't need one, remove the link and the linked transaction.
     assert(expense.sharingType != 'PAID_OTHER_REPAID');
     await tx.transactionLink.delete({where: {id: repayment.id}});
+    dbUpdates.transactionLinks[repayment.id] = null;
     await tx.transaction.delete({
       where: {
         id: repayment.linkedTransactionId,
       },
     });
+    dbUpdates.transactions[repayment.linkedTransactionId] = null;
   } else {
     // No repayment and we don't need one, do nothing.
     assert(!repayment);
@@ -114,10 +142,14 @@ async function update(
     .map(({id}) => id);
   // Remove all links except the one we've handled before.
   await tx.transactionLink.deleteMany({where: {id: {in: allLinkIds}}});
+  allLinkIds.forEach(id => {
+    dbUpdates.transactionLinks[id] = null;
+  });
 }
 
 async function maybeCreateRepaymentTransaction(
   tx: Prisma.TransactionClient,
+  dbUpdates: DatabaseUpdates,
   expense: ExpenseFormSchema,
   transactionId: number,
   userId: number
@@ -128,13 +160,15 @@ async function maybeCreateRepaymentTransaction(
   const repayment = expense.repayment;
   assertDefined(repayment);
   const data = makeRepaymentDbData(expense, userId);
-  const repaymentTx = await tx.transaction.create({data});
+  const repaymentTx = await tx.transaction.create({...includeTagIds(), data});
+  dbUpdates.transactions[repaymentTx.id] = repaymentTx;
   const linkData: Prisma.TransactionLinkUncheckedCreateInput = {
     sourceTransactionId: transactionId,
     linkedTransactionId: repaymentTx.id,
     linkType: 'DEBT_SETTLING',
   };
-  await tx.transactionLink.create({data: linkData});
+  const newLink = await tx.transactionLink.create({data: linkData});
+  dbUpdates.transactionLinks[newLink.id] = newLink;
   return repaymentTx;
 }
 

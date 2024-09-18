@@ -29,7 +29,6 @@ import {
   ownShareAmountIgnoreRefunds,
   paidTotal,
 } from '@/lib/model/transaction/amounts';
-import {onTransactionChange} from '@/lib/stateHelpers';
 import {ChevronDownIcon, ChevronRightIcon} from '@heroicons/react/24/outline';
 import classNames from 'classnames';
 import {format} from 'date-fns';
@@ -229,10 +228,6 @@ export const TransactionsListItem = ({
       {expanded && showEditForm && (
         <TransactionForm
           transaction={t}
-          onChange={updated => {
-            onTransactionChange(setDbData)(updated);
-            setShowEditForm(false);
-          }}
           onClose={() => setShowEditForm(false)}
         />
       )}

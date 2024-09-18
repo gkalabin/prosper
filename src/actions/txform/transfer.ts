@@ -1,4 +1,12 @@
-import {connectTags, toCents, writeUsedProtos} from '@/actions/txform/shared';
+import {
+  CommonCreateAndUpdateInput,
+  connectTags,
+  deleteAllLinks,
+  includeTagIds,
+  toCents,
+  writeUsedProtos,
+} from '@/actions/txform/shared';
+import {DatabaseUpdates} from '@/actions/txform/types';
 import {TransferFormSchema} from '@/components/txform/v2/transfer/types';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {assertDefined} from '@/lib/assert';
@@ -7,34 +15,37 @@ import {type TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototyp
 import {Prisma, Transaction} from '@prisma/client';
 
 export async function upsertTransfer(
+  dbUpdates: DatabaseUpdates,
   transaction: Transaction | null,
   protos: TransactionPrototype[],
   userId: number,
   form: TransactionFormSchema
-) {
+): Promise<void> {
   const transfer = form.transfer;
   assertDefined(transfer);
   const data = makeDbInput(transfer, userId);
   await prisma.$transaction(async tx => {
-    await connectTags(tx, data, transfer.tagNames, userId);
+    await connectTags(tx, dbUpdates, data, transfer.tagNames, userId);
     if (transaction) {
-      await update(tx, transaction, data);
+      await update(tx, dbUpdates, transaction, data);
     } else {
-      await create(tx, data, protos, userId);
+      await create(tx, dbUpdates, data, protos, userId);
     }
   });
 }
 
 async function create(
   tx: Prisma.TransactionClient,
-  data: Prisma.TransactionUncheckedCreateInput &
-    Prisma.TransactionUncheckedUpdateInput,
+  dbUpdates: DatabaseUpdates,
+  data: CommonCreateAndUpdateInput,
   protos: TransactionPrototype[],
   userId: number
 ) {
-  const transaction = await tx.transaction.create({data});
+  const transaction = await tx.transaction.create({...includeTagIds(), data});
+  dbUpdates.transactions[transaction.id] = transaction;
   await writeUsedProtos({
     tx,
+    dbUpdates,
     protos,
     transactionId: transaction.id,
     userId,
@@ -43,11 +54,12 @@ async function create(
 
 async function update(
   tx: Prisma.TransactionClient,
+  dbUpdates: DatabaseUpdates,
   transaction: Transaction,
-  data: Prisma.TransactionUncheckedCreateInput &
-    Prisma.TransactionUncheckedUpdateInput
+  data: CommonCreateAndUpdateInput
 ) {
-  await tx.transaction.update({
+  const updated = await tx.transaction.update({
+    ...includeTagIds(),
     data: {
       ...data,
       // TODO: deprecate and remove this column.
@@ -55,15 +67,9 @@ async function update(
     },
     where: {id: transaction.id},
   });
+  dbUpdates.transactions[transaction.id] = updated;
   // Transfers cannot have any links, so just remove all the links.
-  await tx.transactionLink.deleteMany({
-    where: {
-      OR: [
-        {sourceTransactionId: transaction.id},
-        {linkedTransactionId: transaction.id},
-      ],
-    },
-  });
+  await deleteAllLinks(tx, dbUpdates, transaction.id);
 }
 
 function makeDbInput(
