@@ -1,23 +1,20 @@
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
+import {useSharingTypeActions} from '@/components/txform/v2/expense/useSharingTypeActions';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {Button} from '@/components/ui/button';
-import {
-  useFormContext,
-  UseFormGetValues,
-  UseFormSetValue,
-} from 'react-hook-form';
+import {useFormContext} from 'react-hook-form';
 
 export function RepaymentToggle() {
-  const {getValues, setValue, formState} =
-    useFormContext<TransactionFormSchema>();
+  const {formState} = useFormContext<TransactionFormSchema>();
   const {sharingType} = useSharingType();
+  const {setAlreadyRepaid, setOweMoney} = useSharingTypeActions();
   if (sharingType == 'PAID_OTHER_OWED') {
     return (
       <div className="text-xs">
         or{' '}
         <Button
           type="button"
-          onClick={() => setAlreadyRepaid({setValue, getValues})}
+          onClick={setAlreadyRepaid}
           variant="link"
           size="inherit"
           disabled={formState.isSubmitting}
@@ -34,7 +31,7 @@ export function RepaymentToggle() {
         or{' '}
         <Button
           type="button"
-          onClick={() => setOweMoney({setValue, getValues})}
+          onClick={setOweMoney}
           variant="link"
           size="inherit"
           disabled={formState.isSubmitting}
@@ -46,30 +43,4 @@ export function RepaymentToggle() {
     );
   }
   return <></>;
-}
-
-function setAlreadyRepaid({
-  setValue,
-  getValues,
-}: {
-  setValue: UseFormSetValue<TransactionFormSchema>;
-  getValues: UseFormGetValues<TransactionFormSchema>;
-}) {
-  setValue('expense.sharingType', 'PAID_OTHER_REPAID');
-  setValue('expense.repayment.accountId', getValues('expense.accountId') ?? 0);
-  // TODO: set to the most frequently used repayment category.
-  setValue('expense.repayment.categoryId', getValues('expense.categoryId'));
-  setValue('expense.repayment.timestamp', getValues('expense.timestamp'));
-}
-
-function setOweMoney({
-  setValue,
-  getValues,
-}: {
-  setValue: UseFormSetValue<TransactionFormSchema>;
-  getValues: UseFormGetValues<TransactionFormSchema>;
-}) {
-  setValue('expense.sharingType', 'PAID_OTHER_OWED');
-  setValue('expense.accountId', getValues('expense.repayment.accountId') ?? 0);
-  setValue('expense.repayment', null);
 }

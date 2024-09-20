@@ -1,4 +1,5 @@
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
+import {useSharingTypeActions} from '@/components/txform/v2/expense/useSharingTypeActions';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {Button} from '@/components/ui/button';
 import {
@@ -16,15 +17,10 @@ import {useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function Payer() {
-  const {setValue, control, formState} =
-    useFormContext<TransactionFormSchema>();
+  const {control, formState} = useFormContext<TransactionFormSchema>();
   const {paidOther} = useSharingType();
   const payers = useUniqueFrequentPayers();
-  const setPaidSelf = () => {
-    setValue('expense.sharingType', 'PAID_SELF_NOT_SHARED');
-    setValue('expense.repayment', null);
-    setValue('expense.companion', null);
-  };
+  const {setPaidSelf} = useSharingTypeActions();
   if (!paidOther) {
     return <></>;
   }

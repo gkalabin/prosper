@@ -1,6 +1,5 @@
-import {SharingType} from '@/components/txform/v2/expense/types';
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
-import {mostFrequentCompanion} from '@/components/txform/v2/prefill';
+import {useSharingTypeActions} from '@/components/txform/v2/expense/useSharingTypeActions';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {
   FormControl,
@@ -10,23 +9,15 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {Switch} from '@/components/ui/switch';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
-import {useMemo} from 'react';
-import {
-  useFormContext,
-  UseFormGetValues,
-  UseFormSetValue,
-} from 'react-hook-form';
+import {useFormContext} from 'react-hook-form';
 
 export function SplitTransactionToggle() {
   const {
     formState: {isSubmitting},
-    getValues,
-    setValue,
     control,
   } = useFormContext<TransactionFormSchema>();
-  const {sharingType, isShared, paidOther} = useSharingType();
-  const mostFrequentCompanion = useMostFrequentCompanion();
+  const {isShared, paidOther} = useSharingType();
+  const {toggleSplitTransaction} = useSharingTypeActions();
   return (
     <FormField
       control={control}
@@ -37,14 +28,7 @@ export function SplitTransactionToggle() {
             <Switch
               checked={isShared}
               disabled={isSubmitting || paidOther}
-              onCheckedChange={() =>
-                onChange({
-                  sharingType,
-                  setValue,
-                  getValues,
-                  defaultCompanion: mostFrequentCompanion,
-                })
-              }
+              onCheckedChange={toggleSplitTransaction}
             />
           </FormControl>
           <FormLabel className="ml-4">Split transaction</FormLabel>
@@ -53,34 +37,4 @@ export function SplitTransactionToggle() {
       )}
     />
   );
-}
-
-function useMostFrequentCompanion() {
-  const {transactions} = useAllDatabaseDataContext();
-  return useMemo(
-    () => mostFrequentCompanion(transactions) ?? '',
-    [transactions]
-  );
-}
-
-function onChange({
-  sharingType,
-  setValue,
-  getValues,
-  defaultCompanion,
-}: {
-  sharingType: SharingType;
-  setValue: UseFormSetValue<TransactionFormSchema>;
-  getValues: UseFormGetValues<TransactionFormSchema>;
-  defaultCompanion?: string;
-}) {
-  if (sharingType === 'PAID_SELF_SHARED') {
-    setValue('expense.sharingType', 'PAID_SELF_NOT_SHARED');
-    setValue('expense.companion', null);
-    setValue('expense.ownShareAmount', getValues('expense.amount'));
-  } else if (sharingType === 'PAID_SELF_NOT_SHARED') {
-    setValue('expense.sharingType', 'PAID_SELF_SHARED');
-    setValue('expense.companion', defaultCompanion ?? '');
-    setValue('expense.ownShareAmount', getValues('expense.amount') / 2);
-  }
 }
