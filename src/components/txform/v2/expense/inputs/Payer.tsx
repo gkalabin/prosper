@@ -20,6 +20,11 @@ export function Payer() {
     useFormContext<TransactionFormSchema>();
   const {paidOther} = useSharingType();
   const payers = useUniqueFrequentPayers();
+  const setPaidSelf = () => {
+    setValue('expense.sharingType', 'PAID_SELF_NOT_SHARED');
+    setValue('expense.repayment', null);
+    setValue('expense.companion', null);
+  };
   if (!paidOther) {
     return <></>;
   }
@@ -43,9 +48,7 @@ export function Payer() {
             or{' '}
             <Button
               type="button"
-              onClick={() =>
-                setValue('expense.sharingType', 'PAID_SELF_NOT_SHARED')
-              }
+              onClick={setPaidSelf}
               variant="link"
               size="inherit"
               disabled={formState.isSubmitting}

@@ -11,12 +11,13 @@ import {SplitTransactionToggle} from '@/components/txform/v2/expense/inputs/Spli
 import {Tags} from '@/components/txform/v2/expense/inputs/Tags';
 import {Vendor} from '@/components/txform/v2/expense/inputs/Vendor';
 import {Timestamp} from '@/components/txform/v2/shared/Timestamp';
+import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 
-export function ExpenseForm() {
+export function ExpenseForm({proto}: {proto: TransactionPrototype | null}) {
   return (
     <>
       <Timestamp fieldName="expense.timestamp" />
-      <AccountFrom />
+      <AccountFrom proto={proto} />
       <Payer />
       <SplitTransactionToggle />
       <Companion />

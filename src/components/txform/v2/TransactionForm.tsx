@@ -119,7 +119,7 @@ export const TransactionForm = (props: {
             setValue={onFormTypeChange}
             disabled={form.formState.isSubmitting}
           />
-          {formType == 'EXPENSE' && <ExpenseForm />}
+          {formType == 'EXPENSE' && <ExpenseForm proto={proto} />}
           {formType == 'TRANSFER' && <TransferForm />}
           {formType == 'INCOME' && <IncomeForm />}
         </div>
