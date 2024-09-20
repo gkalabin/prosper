@@ -10,13 +10,23 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
-import {useFormContext} from 'react-hook-form';
+import {centsToDollar} from '@/lib/util/util';
+import {useEffect} from 'react';
+import {useFormContext, useWatch} from 'react-hook-form';
 
 export function OwnShareAmount() {
-  const {control} = useFormContext<TransactionFormSchema>();
+  const {control, setValue} = useFormContext<TransactionFormSchema>();
   const {isShared} = useSharingType();
+  const amount = useWatch({control, name: 'expense.amount', exact: true});
+  useEffect(() => {
+    if (!isShared) {
+      setValue('expense.ownShareAmount', amount);
+    } else {
+      setValue('expense.ownShareAmount', centsToDollar((100 * amount) / 2));
+    }
+  }, [setValue, isShared, amount]);
   if (!isShared) {
-    return <></>;
+    return null;
   }
   return (
     <FormField
