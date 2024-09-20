@@ -39,6 +39,16 @@ export function parseAmountAsCents(s: string): number {
   return sign * cents;
 }
 
+// TODO: add tests.
+export function centsToDollar(cents: number): number {
+  return Math.round(cents) / 100;
+}
+
+// TODO: add tests.
+export function dollarToCents(dollar: number): number {
+  return Math.round(dollar * 100);
+}
+
 export function removeQuotes(s: string): string {
   if (s.startsWith('"') && s.endsWith('"')) {
     return s.substring(1, s.length - 1);

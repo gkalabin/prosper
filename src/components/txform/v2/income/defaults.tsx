@@ -18,6 +18,7 @@ import {
   TransactionLinkType,
 } from '@/lib/model/TransactionLink';
 import {DepositPrototype} from '@/lib/txsuggestions/TransactionPrototype';
+import {dollarToCents} from '@/lib/util/util';
 import {differenceInMonths} from 'date-fns';
 
 export function expenseToIncome(
@@ -91,15 +92,21 @@ export function incomeFromPrototype({
   proto,
   transactions,
   categories,
+  bankAccounts,
 }: {
   proto: DepositPrototype;
   transactions: Transaction[];
   categories: Category[];
+  bankAccounts: BankAccount[];
 }): IncomeFormSchema {
+  const account = bankAccounts.find(a => a.id == proto.internalAccountId);
+  const isShared = account?.joint ?? false;
   const values: IncomeFormSchema = {
     timestamp: new Date(proto.timestampEpoch),
-    amount: proto.absoluteAmountCents / 100,
-    ownShareAmount: 0,
+    amount: dollarToCents(proto.absoluteAmountCents),
+    ownShareAmount: dollarToCents(
+      isShared ? proto.absoluteAmountCents / 2 : proto.absoluteAmountCents
+    ),
     payer: proto.description,
     categoryId: mostFrequentCategory(
       transactions,
@@ -107,11 +114,11 @@ export function incomeFromPrototype({
       proto.description
     ),
     accountId: proto.internalAccountId,
+    isShared,
     tagNames: [],
     description: null,
     companion: null,
     parentTransactionId: null,
-    isShared: false,
   };
   return values;
 }

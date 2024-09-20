@@ -1,5 +1,6 @@
 import {SharingType} from '@/components/txform/v2/expense/types';
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
+import {mostFrequentCompanion} from '@/components/txform/v2/prefill';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {
   FormControl,
@@ -9,9 +10,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {Switch} from '@/components/ui/switch';
-import {uniqMostFrequentIgnoringEmpty} from '@/lib/collections';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
-import {otherPartyNameOrNull} from '@/lib/model/transaction/Transaction';
 import {useMemo} from 'react';
 import {
   useFormContext,
@@ -58,11 +57,10 @@ export function SplitTransactionToggle() {
 
 function useMostFrequentCompanion() {
   const {transactions} = useAllDatabaseDataContext();
-  const [companion] = useMemo(
-    () => uniqMostFrequentIgnoringEmpty(transactions.map(otherPartyNameOrNull)),
+  return useMemo(
+    () => mostFrequentCompanion(transactions) ?? '',
     [transactions]
   );
-  return companion;
 }
 
 function onChange({

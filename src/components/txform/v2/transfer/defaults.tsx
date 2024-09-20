@@ -13,6 +13,7 @@ import {
 } from '@/lib/model/transaction/Transaction';
 import {Transfer} from '@/lib/model/transaction/Transfer';
 import {TransferPrototype} from '@/lib/txsuggestions/TransactionPrototype';
+import {centsToDollar} from '@/lib/util/util';
 import {differenceInMonths} from 'date-fns';
 
 export function expenseToTransfer(
@@ -57,8 +58,8 @@ export function transferFromPrototype({
   const {withdrawal, deposit} = proto;
   const values: TransferFormSchema = {
     timestamp: new Date(withdrawal.timestampEpoch),
-    amountSent: withdrawal.absoluteAmountCents / 100,
-    amountReceived: deposit.absoluteAmountCents / 100,
+    amountSent: centsToDollar(withdrawal.absoluteAmountCents),
+    amountReceived: centsToDollar(deposit.absoluteAmountCents),
     description: withdrawal.description,
     categoryId: mostFrequentCategory(transactions, categories),
     fromAccountId: withdrawal.internalAccountId,
@@ -78,8 +79,8 @@ export function transferFromTransaction({
   const tags = transactionTags(t, allTags);
   const values: TransferFormSchema = {
     timestamp: new Date(t.timestampEpoch),
-    amountSent: t.sentAmountCents / 100,
-    amountReceived: t.receivedAmountCents / 100,
+    amountSent: centsToDollar(t.sentAmountCents),
+    amountReceived: centsToDollar(t.receivedAmountCents),
     description: t.note,
     categoryId: t.categoryId,
     fromAccountId: t.fromAccountId,
