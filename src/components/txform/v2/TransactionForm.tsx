@@ -53,7 +53,9 @@ export const TransactionForm = (props: {
   };
   const onPrototypeChange = (proto: TransactionPrototype): void => {
     setProto(proto);
-    form.reset(valuesForPrototype({proto, categories, transactions}));
+    form.reset(
+      valuesForPrototype({proto, bankAccounts, categories, transactions})
+    );
   };
   const onSubmit = form.handleSubmit(async (data: TransactionFormSchema) => {
     try {
@@ -123,7 +125,7 @@ export const TransactionForm = (props: {
         </div>
 
         <div className="flex justify-between gap-2 bg-slate-50 px-4 py-3 sm:px-6">
-          <div className="text-red-600">
+          <div className="text-sm font-medium text-destructive">
             {form.formState.errors.root?.message}
           </div>
           <div className="flex-none space-x-4">

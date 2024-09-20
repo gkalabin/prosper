@@ -57,7 +57,7 @@ export function useFormDefaults(
   }
   if (!tx) {
     assertDefined(proto);
-    return valuesForPrototype({proto, transactions, categories});
+    return valuesForPrototype({proto, transactions, categories, bankAccounts});
   }
   assertNotDefined(proto);
   return valuesForTransaction(tx, transactionLinks, tags, trips);
@@ -103,22 +103,34 @@ export function valuesForPrototype({
   proto,
   transactions,
   categories,
+  bankAccounts,
 }: {
   proto: TransactionPrototype;
   transactions: Transaction[];
   categories: Category[];
+  bankAccounts: BankAccount[];
 }): TransactionFormSchema {
   const tt = proto.type;
   switch (tt) {
     case 'withdrawal':
       return {
         formType: 'EXPENSE',
-        expense: expenseFromPrototype({proto, transactions, categories}),
+        expense: expenseFromPrototype({
+          proto,
+          bankAccounts,
+          transactions,
+          categories,
+        }),
       };
     case 'deposit':
       return {
         formType: 'INCOME',
-        income: incomeFromPrototype({proto, transactions, categories}),
+        income: incomeFromPrototype({
+          proto,
+          bankAccounts,
+          transactions,
+          categories,
+        }),
       };
     case 'transfer':
       return {

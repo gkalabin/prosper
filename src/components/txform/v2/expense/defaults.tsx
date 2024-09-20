@@ -3,6 +3,7 @@ import {
   RepaymentTransactionFormSchema,
 } from '@/components/txform/v2/expense/types';
 import {IncomeFormSchema} from '@/components/txform/v2/income/types';
+import {mostFrequentCompanion} from '@/components/txform/v2/prefill';
 import {TransferFormSchema} from '@/components/txform/v2/transfer/types';
 import {assert} from '@/lib/assert';
 import {uniqMostFrequent} from '@/lib/collections';
@@ -26,6 +27,7 @@ import {
 } from '@/lib/model/TransactionLink';
 import {Trip} from '@/lib/model/Trip';
 import {WithdrawalPrototype} from '@/lib/txsuggestions/TransactionPrototype';
+import {centsToDollar} from '@/lib/util/util';
 import {differenceInMonths, startOfDay} from 'date-fns';
 
 export function expenseFormEmpty({
@@ -60,15 +62,22 @@ export function expenseFromPrototype({
   proto,
   transactions,
   categories,
+  bankAccounts,
 }: {
   proto: WithdrawalPrototype;
   transactions: Transaction[];
   categories: Category[];
+  bankAccounts: BankAccount[];
 }): ExpenseFormSchema {
+  const account = bankAccounts.find(a => a.id == proto.internalAccountId);
+  const shared = account?.joint ?? false;
+  const companion = shared ? mostFrequentCompanion(transactions) : null;
   const values: ExpenseFormSchema = {
     timestamp: new Date(proto.timestampEpoch),
-    amount: proto.absoluteAmountCents / 100,
-    ownShareAmount: 0,
+    amount: centsToDollar(proto.absoluteAmountCents),
+    ownShareAmount: centsToDollar(
+      shared ? proto.absoluteAmountCents / 2 : proto.absoluteAmountCents
+    ),
     vendor: proto.description,
     categoryId: mostFrequentCategory(
       transactions,
@@ -76,11 +85,11 @@ export function expenseFromPrototype({
       proto.description
     ),
     accountId: proto.internalAccountId,
+    sharingType: shared ? 'PAID_SELF_SHARED' : 'PAID_SELF_NOT_SHARED',
+    companion,
     tagNames: [],
-    sharingType: 'PAID_SELF_NOT_SHARED',
     description: null,
     tripName: null,
-    companion: null,
     payer: null,
     currency: null,
     repayment: null,
