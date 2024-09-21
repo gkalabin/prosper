@@ -7,14 +7,16 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {uniqMostFrequent} from '@/lib/collections';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {Transaction, isIncome} from '@/lib/model/transaction/Transaction';
-import {useCallback} from 'react';
-import {useFormContext} from 'react-hook-form';
+import {useCallback, useEffect} from 'react';
+import {useFormContext, useWatch} from 'react-hook-form';
 
 export function Category() {
   const {control, getValues} = useFormContext<TransactionFormSchema>();
   const payer = getValues('income.payer') ?? '';
-  const matchesVendorIfAny = useCallback(
+  const matchesPayerIfAny = useCallback(
     (t: Transaction) => !payer || (isIncome(t) && t.payer == payer),
     [payer]
   );
@@ -29,12 +31,45 @@ export function Category() {
             <CategorySelect
               value={field.value}
               onChange={field.onChange}
-              relevantTransactionFilter={matchesVendorIfAny}
+              relevantTransactionFilter={matchesPayerIfAny}
             />
           </FormControl>
           <FormMessage />
+          <UpdateCategoryOnPayerChange />
         </FormItem>
       )}
     />
   );
+}
+
+function UpdateCategoryOnPayerChange() {
+  const {control, setValue} = useFormContext<TransactionFormSchema>();
+  const {transactions} = useAllDatabaseDataContext();
+  const payer = useWatch({control, name: 'income.payer', exact: true});
+  useEffect(() => {
+    const mostFrequent = mostFrequentCategoryId({payer, transactions});
+    if (mostFrequent) {
+      setValue('income.categoryId', mostFrequent);
+    }
+  }, [setValue, payer, transactions]);
+  return null;
+}
+
+function mostFrequentCategoryId({
+  payer,
+  transactions,
+}: {
+  payer: string;
+  transactions: Transaction[];
+}): number | null {
+  const matchesPayer = (s: string) =>
+    payer.trim().toLowerCase() == s.trim().toLowerCase();
+
+  const relevantTransactions = transactions.filter(
+    t => isIncome(t) && matchesPayer(t.payer)
+  );
+  const [mostFrequentCategoryId] = uniqMostFrequent(
+    relevantTransactions.map(t => t.categoryId)
+  );
+  return mostFrequentCategoryId || null;
 }
