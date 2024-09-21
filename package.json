@@ -55,7 +55,7 @@
     "@headlessui/react": "^2.1.2",
     "@heroicons/react": "^2.1.5",
     "@hookform/resolvers": "^3.9.0",
-    "@prisma/client": "^5.16.1",
+    "@prisma/client": "^5.19.1",
     "@radix-ui/react-slot": "^1.1.0",
     "@types/echarts": "^4.9.22",
     "@typescript-eslint/eslint-plugin": "^6.19.1",
