@@ -14,6 +14,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   }
   const found: SearchResult = await yahooFinance.search(q, {newsCount: 0});
   const stocks: StockFormValue[] = found.quotes
+    .filter(x => x.isYahooFinance)
     // Remove currencies as there is an internal list of currencies in the Currency class.
     .filter(x => x.quoteType !== 'CURRENCY')
     .map(
