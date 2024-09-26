@@ -4,15 +4,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 # Poor man's CI: infinitely polls the repo for updates and restarts the app;
-# If there are new commits in the main branch pulls the repo and starts a new
+# If there are new commits in the current branch pulls the repo and starts a new
 # docker container in a detached mode using the commit hash as a tag.
 
-# To avoid running this script at the wrong place by accident,
-# explicitly require it to be run on the main branch with no changes.
-if [ $(git rev-parse --abbrev-ref HEAD) != "main" ]; then
-  echo "Not on the main branch, exiting."
-  exit 1
-fi
 if [ -n "$(git status --porcelain)" ]; then
   echo "There are uncommitted changes, exiting."
   exit 1
@@ -20,17 +14,21 @@ fi
 
 # If there is no prosper FE running, start it without waiting for the next iteration.
 if [ -z "$(docker ps --filter name=prosper-fe --format '{{.ID}}')" ]; then
+  echo "No prosper FE container running, starting one from docker registry."
   # Try starting the prebuilt image, but if it fails, build the image ourselves.
   IMAGE="gkalabin/prosper:$(git rev-parse HEAD)"
   set +e
   docker run --detach --rm --env-file .env --net host --name prosper-fe "$IMAGE"
   if [ $? -ne 0 ]; then
+    echo "Failed to start the prebuilt image, building the image ourselves."
     cd "$(dirname "$0")/.."
     docker build -f Dockerfile -t "$IMAGE" .
     docker run --detach --rm --env-file .env --net host --name prosper-fe "$IMAGE"
   fi
   set -e
 fi
+
+echo "[$(date)] Watching for changes in branch $(git branch --show-current)."
 
 while true; do
   sleep 60
