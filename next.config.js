@@ -6,7 +6,7 @@ const nextConfig = {
   output: 'standalone',
   experimental: {
     serverActions: {
-      allowedOrigins: [process.env.PUBLIC_APP_HOST].filter(x => x != undefined),
+      allowedOrigins: ['staging.prspr.xyz'],
     },
   },
 };
