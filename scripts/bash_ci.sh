@@ -54,7 +54,8 @@ while true; do
     echo "[$(date)] Migrations have changed, running DB migration."
     ./scripts/docker_migrate.sh --env .env --image "$NEW_IMAGE"
   fi
-  git pull
+  # Use rebase to handle force pushes in development branches, e.g. after rebasing on top of main.
+  git pull --rebase
   docker stop prosper-fe || true
   docker rm prosper-fe || true
   docker run --detach --rm --env-file .env --net=host --name prosper-fe "$NEW_IMAGE"
