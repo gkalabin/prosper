@@ -70,10 +70,6 @@ resource "google_cloud_run_v2_service" "prosper" {
         value = local.db_name
       }
       env {
-        name  = "PUBLIC_APP_HOST"
-        value = var.domain_name
-      }
-      env {
         name  = "PUBLIC_APP_URL"
         value = "https://${var.domain_name}"
       }
