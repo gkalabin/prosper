@@ -30,6 +30,8 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: gkalabin/prosper:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   tag-latest:
     name: Tag Image as Latest
