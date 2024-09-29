@@ -18,7 +18,7 @@ import {
   makeCategoryTree,
   mustFindCategory,
 } from '@/lib/model/Category';
-import {Transaction, isExpense} from '@/lib/model/transaction/Transaction';
+import {Transaction} from '@/lib/model/transaction/Transaction';
 import {cn} from '@/lib/utils';
 import {CheckIcon, ChevronUpDownIcon} from '@heroicons/react/24/outline';
 import {differenceInMonths} from 'date-fns';
@@ -143,26 +143,23 @@ function mostFrequentCategories(
   allTransactions: Transaction[],
   matchingFilter: (t: Transaction) => boolean
 ): number[] {
-  const expenses = allTransactions.filter(isExpense);
-  const matching = expenses.filter(matchingFilter);
+  const matching = allTransactions.filter(matchingFilter);
   const now = new Date();
-  const matchingRecent = matching.filter(
-    x => differenceInMonths(now, x.timestampEpoch) <= 3
-  );
-  // Start with categories for recent transactions matching vendor.
+  const isRecent: (t: Transaction) => boolean = x =>
+    differenceInMonths(now, x.timestampEpoch) <= 3;
+  const matchingRecent = matching.filter(isRecent);
+  // Start with categories for transactions matching the relevant transactions predicate made recently.
   let result = uniqMostFrequent(matchingRecent.map(t => t.categoryId));
   if (result.length >= MAX_MOST_FREQUENT) {
     return result;
   }
-  // Expand to all transactions matching vendor.
+  // If too few matches are found, drop the recency requirement and add matching transactions from all time.
   result = appendNew(result, uniqMostFrequent(matching.map(t => t.categoryId)));
   if (result.length >= MAX_MOST_FREQUENT) {
     return result;
   }
-  // At this stage, just add all categories for recent transactions.
-  const recent = expenses.filter(
-    x => differenceInMonths(now, x.timestampEpoch) <= 3
-  );
+  // If still too few matches, just add recent transactions.
+  const recent = allTransactions.filter(isRecent);
   return appendNew(result, uniqMostFrequent(recent.map(t => t.categoryId)));
 }
 
