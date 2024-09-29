@@ -39,12 +39,18 @@ export function expenseFormEmpty({
   categories: Category[];
   bankAccounts: BankAccount[];
 }): ExpenseFormSchema {
+  assert(categories.length > 0);
+  // If there are no expenses at all, the most frequent value will not be defined,
+  // so fall back to the first category in that case.
+  assert(categories.length > 0);
+  const categoryId =
+    mostFrequentCategory(transactions, null) ?? categories[0].id;
   const values: ExpenseFormSchema = {
     timestamp: startOfDay(new Date()),
     amount: 0,
     ownShareAmount: 0,
     vendor: '',
-    categoryId: mostFrequentCategory(transactions, categories, null),
+    categoryId,
     accountId: mostFrequentAccount(transactions, bankAccounts),
     tagNames: [],
     sharingType: 'PAID_SELF_NOT_SHARED',
@@ -72,6 +78,11 @@ export function expenseFromPrototype({
   const account = bankAccounts.find(a => a.id == proto.internalAccountId);
   const shared = account?.joint ?? false;
   const companion = shared ? mostFrequentCompanion(transactions) : null;
+  // If there are no expenses at all, the most frequent value will not be defined,
+  // so fall back to the first category in that case.
+  assert(categories.length > 0);
+  const categoryId =
+    mostFrequentCategory(transactions, proto.description) ?? categories[0].id;
   const values: ExpenseFormSchema = {
     timestamp: new Date(proto.timestampEpoch),
     amount: centsToDollar(proto.absoluteAmountCents),
@@ -79,11 +90,7 @@ export function expenseFromPrototype({
       shared ? proto.absoluteAmountCents / 2 : proto.absoluteAmountCents
     ),
     vendor: proto.description,
-    categoryId: mostFrequentCategory(
-      transactions,
-      categories,
-      proto.description
-    ),
+    categoryId,
     accountId: proto.internalAccountId,
     sharingType: shared ? 'PAID_SELF_SHARED' : 'PAID_SELF_NOT_SHARED',
     companion,
@@ -169,13 +176,24 @@ function findRepayment({
   };
 }
 
-export function incomeToExpense(prev: IncomeFormSchema): ExpenseFormSchema {
+export function incomeToExpense({
+  prev,
+  transactions,
+}: {
+  prev: IncomeFormSchema;
+  transactions: Transaction[];
+}): ExpenseFormSchema {
+  // Prefer the most frequent category based on the new vendor value.
+  // When switching the form type the user is expecting to see changes in the form and the
+  // most frequent value is more likely to be useful compared to the previous mode's category.
+  const categoryId =
+    mostFrequentCategory(transactions, prev.payer) ?? prev.categoryId;
   const values: ExpenseFormSchema = {
     timestamp: prev.timestamp,
     amount: prev.amount,
     ownShareAmount: prev.ownShareAmount,
     vendor: prev.payer,
-    categoryId: prev.categoryId,
+    categoryId,
     accountId: prev.accountId,
     tagNames: prev.tagNames,
     sharingType: prev.companion ? 'PAID_SELF_SHARED' : 'PAID_SELF_NOT_SHARED',
@@ -189,13 +207,24 @@ export function incomeToExpense(prev: IncomeFormSchema): ExpenseFormSchema {
   return values;
 }
 
-export function transferToExpense(prev: TransferFormSchema): ExpenseFormSchema {
+export function transferToExpense({
+  prev,
+  transactions,
+}: {
+  prev: TransferFormSchema;
+  transactions: Transaction[];
+}): ExpenseFormSchema {
+  // Prefer the most frequent category based on the new vendor value.
+  // When switching the form type the user is expecting to see changes in the form and the
+  // most frequent value is more likely to be useful compared to the previous mode's category.
+  const categoryId =
+    mostFrequentCategory(transactions, prev.description) ?? prev.categoryId;
   const values: ExpenseFormSchema = {
     timestamp: prev.timestamp,
     amount: prev.amountSent,
     ownShareAmount: prev.amountSent,
     vendor: prev.description ?? '',
-    categoryId: prev.categoryId,
+    categoryId,
     accountId: prev.fromAccountId,
     tagNames: [],
     sharingType: 'PAID_SELF_NOT_SHARED',
@@ -234,10 +263,8 @@ function recent(t: Transaction): boolean {
 
 function mostFrequentCategory(
   transactions: Transaction[],
-  categories: Category[],
   vendor: string | null
-) {
-  assert(categories.length > 0);
+): number | null {
   if (vendor) {
     const expenses = transactions
       .filter(isExpense)
@@ -252,7 +279,5 @@ function mostFrequentCategory(
   if (mostFrequent) {
     return mostFrequent;
   }
-  // If there are no expenses at all, the most frequent value will not be defined,
-  // so fall back to the first category in that case.
-  return categories[0].id;
+  return null;
 }

@@ -146,7 +146,9 @@ export function valuesForPrototype({
 export function valuesForNewType(
   prevForm: TransactionFormSchema,
   next: FormType | null,
-  bankAccounts: BankAccount[]
+  bankAccounts: BankAccount[],
+  categories: Category[],
+  transactions: Transaction[]
 ): TransactionFormSchema {
   const prev = prevForm.formType;
   if (prev == next) {
@@ -156,42 +158,62 @@ export function valuesForNewType(
     assertDefined(prevForm.expense);
     return {
       formType: next,
-      income: expenseToIncome(prevForm.expense, bankAccounts),
+      income: expenseToIncome({
+        prev: prevForm.expense,
+        bankAccounts,
+        transactions,
+      }),
     };
   }
   if (prev == 'EXPENSE' && next == 'TRANSFER') {
     assertDefined(prevForm.expense);
     return {
       formType: next,
-      transfer: expenseToTransfer(prevForm.expense, bankAccounts),
+      transfer: expenseToTransfer({
+        prev: prevForm.expense,
+        bankAccounts,
+        transactions,
+      }),
     };
   }
   if (prev == 'INCOME' && next == 'EXPENSE') {
     assertDefined(prevForm.income);
     return {
       formType: next,
-      expense: incomeToExpense(prevForm.income),
+      expense: incomeToExpense({
+        prev: prevForm.income,
+        transactions,
+      }),
     };
   }
   if (prev == 'INCOME' && next == 'TRANSFER') {
     assertDefined(prevForm.income);
     return {
       formType: next,
-      transfer: incomeToTransfer(prevForm.income),
+      transfer: incomeToTransfer({
+        prev: prevForm.income,
+        transactions,
+      }),
     };
   }
   if (prev == 'TRANSFER' && next == 'EXPENSE') {
     assertDefined(prevForm.transfer);
     return {
       formType: next,
-      expense: transferToExpense(prevForm.transfer),
+      expense: transferToExpense({
+        prev: prevForm.transfer,
+        transactions,
+      }),
     };
   }
   if (prev == 'TRANSFER' && next == 'INCOME') {
     assertDefined(prevForm.transfer);
     return {
       formType: next,
-      income: transferToIncome(prevForm.transfer),
+      income: transferToIncome({
+        prev: prevForm.transfer,
+        transactions,
+      }),
     };
   }
   throw new Error(`Unsupported form type transition: ${prev} -> ${next}`);

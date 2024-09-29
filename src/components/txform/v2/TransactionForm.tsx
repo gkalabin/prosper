@@ -49,7 +49,15 @@ export const TransactionForm = (props: {
   });
   const formType = form.watch('formType');
   const onFormTypeChange = (newFormType: FormType): void => {
-    form.reset(valuesForNewType(form.getValues(), newFormType, bankAccounts));
+    form.reset(
+      valuesForNewType(
+        form.getValues(),
+        newFormType,
+        bankAccounts,
+        categories,
+        transactions
+      )
+    );
   };
   const onPrototypeChange = (proto: TransactionPrototype): void => {
     setProto(proto);

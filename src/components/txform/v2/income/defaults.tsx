@@ -21,17 +21,27 @@ import {DepositPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {centsToDollar} from '@/lib/util/util';
 import {differenceInMonths} from 'date-fns';
 
-export function expenseToIncome(
-  prev: ExpenseFormSchema,
-  bankAccounts: BankAccount[]
-): IncomeFormSchema {
+export function expenseToIncome({
+  prev,
+  bankAccounts,
+  transactions,
+}: {
+  prev: ExpenseFormSchema;
+  bankAccounts: BankAccount[];
+  transactions: Transaction[];
+}): IncomeFormSchema {
   assert(bankAccounts.length > 0);
+  // Prefer the most frequent category based on the new payer value.
+  // When switching the form type the user is expecting to see changes in the form and the
+  // most frequent value is more likely to be useful compared to the previous mode's category.
+  const categoryId =
+    mostFrequentCategory(transactions, prev.vendor) ?? prev.categoryId;
   const values: IncomeFormSchema = {
     timestamp: prev.timestamp,
     amount: prev.amount,
     ownShareAmount: prev.ownShareAmount,
     payer: prev.vendor,
-    categoryId: prev.categoryId,
+    categoryId,
     accountId: prev.accountId ?? bankAccounts[0].id,
     tagNames: [],
     companion: prev.companion,
@@ -42,13 +52,24 @@ export function expenseToIncome(
   return values;
 }
 
-export function transferToIncome(prev: TransferFormSchema): IncomeFormSchema {
+export function transferToIncome({
+  prev,
+  transactions,
+}: {
+  prev: TransferFormSchema;
+  transactions: Transaction[];
+}): IncomeFormSchema {
+  // Prefer the most frequent category based on the new payer value.
+  // When switching the form type the user is expecting to see changes in the form and the
+  // most frequent value is more likely to be useful compared to the previous mode's category.
+  const categoryId =
+    mostFrequentCategory(transactions, prev.description) ?? prev.categoryId;
   const values: IncomeFormSchema = {
     timestamp: prev.timestamp,
     amount: prev.amountSent,
     ownShareAmount: prev.amountSent,
     payer: prev.description ?? '',
-    categoryId: prev.categoryId,
+    categoryId,
     accountId: prev.fromAccountId,
     tagNames: [],
     companion: null,
@@ -101,6 +122,11 @@ export function incomeFromPrototype({
 }): IncomeFormSchema {
   const account = bankAccounts.find(a => a.id == proto.internalAccountId);
   const isShared = account?.joint ?? false;
+  // If there are no income transactions at all, the most frequent value will not be defined,
+  // so fall back to the first category in that case.
+  assert(categories.length > 0);
+  const categoryId =
+    mostFrequentCategory(transactions, proto.description) ?? categories[0].id;
   const values: IncomeFormSchema = {
     timestamp: new Date(proto.timestampEpoch),
     amount: centsToDollar(proto.absoluteAmountCents),
@@ -108,11 +134,7 @@ export function incomeFromPrototype({
       isShared ? proto.absoluteAmountCents / 2 : proto.absoluteAmountCents
     ),
     payer: proto.description,
-    categoryId: mostFrequentCategory(
-      transactions,
-      categories,
-      proto.description
-    ),
+    categoryId,
     accountId: proto.internalAccountId,
     isShared,
     tagNames: [],
@@ -130,10 +152,8 @@ function recent(t: Transaction): boolean {
 
 function mostFrequentCategory(
   transactions: Transaction[],
-  categories: Category[],
   payer: string | null
-) {
-  assert(categories.length > 0);
+): number | null {
   if (payer) {
     const expenses = transactions
       .filter(isIncome)
@@ -148,7 +168,5 @@ function mostFrequentCategory(
   if (mostFrequent) {
     return mostFrequent;
   }
-  // If there are no income transactions at all, the most frequent value will not be defined,
-  // so fall back to the first category in that case.
-  return categories[0].id;
+  return null;
 }
