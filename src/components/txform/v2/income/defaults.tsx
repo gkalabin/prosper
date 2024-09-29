@@ -18,7 +18,7 @@ import {
   TransactionLinkType,
 } from '@/lib/model/TransactionLink';
 import {DepositPrototype} from '@/lib/txsuggestions/TransactionPrototype';
-import {dollarToCents} from '@/lib/util/util';
+import {centsToDollar} from '@/lib/util/util';
 import {differenceInMonths} from 'date-fns';
 
 export function expenseToIncome(
@@ -103,8 +103,8 @@ export function incomeFromPrototype({
   const isShared = account?.joint ?? false;
   const values: IncomeFormSchema = {
     timestamp: new Date(proto.timestampEpoch),
-    amount: dollarToCents(proto.absoluteAmountCents),
-    ownShareAmount: dollarToCents(
+    amount: centsToDollar(proto.absoluteAmountCents),
+    ownShareAmount: centsToDollar(
       isShared ? proto.absoluteAmountCents / 2 : proto.absoluteAmountCents
     ),
     payer: proto.description,
