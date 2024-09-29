@@ -14,7 +14,7 @@ import {cn} from '@/lib/utils';
 import {useFormContext} from 'react-hook-form';
 
 export function Amount() {
-  const {control, setValue} = useFormContext<TransactionFormSchema>();
+  const {control} = useFormContext<TransactionFormSchema>();
   const sameUnit = useAccountUnitsEqual();
   return (
     <FormField
@@ -28,12 +28,9 @@ export function Amount() {
               type="text"
               inputMode="decimal"
               {...field}
-              onChange={e => {
-                field.onChange(parseTextInputAsNumber(e.target.value));
-                if (sameUnit) {
-                  setValue('transfer.amountReceived', field.value);
-                }
-              }}
+              onChange={e =>
+                field.onChange(parseTextInputAsNumber(e.target.value))
+              }
             />
           </FormControl>
           <FormMessage />

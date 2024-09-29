@@ -9,11 +9,22 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
-import {useFormContext} from 'react-hook-form';
+import {useEffect} from 'react';
+import {useFormContext, useWatch} from 'react-hook-form';
 
 export function AmountReceived() {
-  const {control} = useFormContext<TransactionFormSchema>();
+  const {control, setValue} = useFormContext<TransactionFormSchema>();
   const sameUnit = useAccountUnitsEqual();
+  const amountSent = useWatch({
+    control,
+    name: 'transfer.amountSent',
+    exact: true,
+  });
+  useEffect(() => {
+    if (sameUnit) {
+      setValue('transfer.amountReceived', amountSent);
+    }
+  }, [setValue, sameUnit, amountSent]);
   if (sameUnit) {
     return null;
   }
