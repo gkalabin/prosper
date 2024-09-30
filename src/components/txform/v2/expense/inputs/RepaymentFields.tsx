@@ -1,3 +1,4 @@
+import {getMostFrequentlyUsed} from '@/components/txform/v2/expense/inputs/Category';
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
 import {CategorySelect} from '@/components/txform/v2/shared/CategorySelect';
 import {Timestamp} from '@/components/txform/v2/shared/Timestamp';
@@ -14,7 +15,6 @@ import {Input} from '@/components/ui/input';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
 import {fullAccountName} from '@/lib/model/BankAccount';
-import {isExpense, Transaction} from '@/lib/model/transaction/Transaction';
 import {useCallback} from 'react';
 import {useFormContext, useWatch} from 'react-hook-form';
 
@@ -90,12 +90,13 @@ function RepaymentAccountFrom() {
 }
 
 function RepaymentCategory() {
+  const {transactions} = useAllDatabaseDataContext();
   const {control, getValues} = useFormContext<TransactionFormSchema>();
   const vendor = getValues('expense.vendor') ?? '';
   // TODO: change to filter by repayment categories.
-  const matchesVendorIfAny = useCallback(
-    (t: Transaction) => !vendor || (isExpense(t) && t.vendor == vendor),
-    [vendor]
+  const getMostFrequentlyUsedCallback = useCallback(
+    () => getMostFrequentlyUsed({vendor, transactions}),
+    [vendor, transactions]
   );
   return (
     <FormField
@@ -108,7 +109,7 @@ function RepaymentCategory() {
             <CategorySelect
               value={field.value}
               onChange={field.onChange}
-              relevantTransactionFilter={matchesVendorIfAny}
+              getMostFrequentlyUsed={getMostFrequentlyUsedCallback}
             />
           </FormControl>
           <FormMessage />
