@@ -18,6 +18,9 @@ import {
 } from '@heroicons/react/24/outline';
 import {useMemo, useState} from 'react';
 
+const NEW_TAG_PREFIX = 'new:';
+const EXISTING_TAG_PREFIX = 'existing:';
+
 export function TagsSelect({
   value,
   onChange,
@@ -61,13 +64,13 @@ export function TagsSelect({
         className="max-h-[--radix-popover-content-available-height] w-[--radix-popover-trigger-width] p-0"
         side="bottom"
       >
-        <Command>
+        <Command filter={tagSearchRanking}>
           <CommandList>
             <CommandEmpty>No tags found.</CommandEmpty>
             {tagNames.map(tag => (
               <CommandItem
                 key={tag}
-                value={tag}
+                value={EXISTING_TAG_PREFIX + tag}
                 onSelect={() => {
                   const selectedTags = [...value];
                   if (selectedTags.includes(tag)) {
@@ -91,7 +94,7 @@ export function TagsSelect({
             ))}
             {shouldSuggestNewTag && (
               <CommandItem
-                value={searchInput}
+                value={NEW_TAG_PREFIX + searchInput}
                 onSelect={() => {
                   addTag(searchInput);
                   setOptionsOpen(false);
@@ -117,6 +120,24 @@ export function TagsSelect({
       </PopoverContent>
     </Popover>
   );
+}
+
+function tagSearchRanking(value: string, search: string): number {
+  search = search.trim();
+  value = value.trim();
+  if (!search) {
+    // Search query is empty, everything matches.
+    return 1;
+  }
+  if (value.startsWith(NEW_TAG_PREFIX)) {
+    // Use smaller weight to move the suggestion to create a new tag to be the last in the list.
+    return 1;
+  }
+  value = value.replace(EXISTING_TAG_PREFIX, '');
+  if (value.toLowerCase().includes(search.toLowerCase())) {
+    return 1;
+  }
+  return 0;
 }
 
 function SelectedTags({
