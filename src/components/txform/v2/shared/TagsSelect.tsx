@@ -62,11 +62,6 @@ export function TagsSelect({
         side="bottom"
       >
         <Command>
-          <CommandInput
-            placeholder="Search or create tag..."
-            value={searchInput}
-            onValueChange={setSearchInput}
-          />
           <CommandList>
             <CommandEmpty>No tags found.</CommandEmpty>
             {tagNames.map(tag => (
@@ -108,6 +103,16 @@ export function TagsSelect({
               </CommandItem>
             )}
           </CommandList>
+          {/* 
+          On mobile when tags field is clicked, the input is focused on.
+          This brings up the keyboard and it narrows the view space.
+          To avoid the input being far away from the tags component, place the input last.
+           */}
+          <CommandInput
+            placeholder="Search or create tag..."
+            value={searchInput}
+            onValueChange={setSearchInput}
+          />
         </Command>
       </PopoverContent>
     </Popover>
