@@ -22,7 +22,7 @@ export function OwnShareAmount() {
     if (!isShared) {
       setValue('expense.ownShareAmount', amount);
     } else {
-      setValue('expense.ownShareAmount', centsToDollar((100 * amount) / 2));
+      setValue('expense.ownShareAmount', centsToDollar(amount / 2));
     }
   }, [setValue, isShared, amount]);
   if (!isShared) {
