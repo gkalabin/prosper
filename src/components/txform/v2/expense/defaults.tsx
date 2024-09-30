@@ -10,7 +10,7 @@ import {uniqMostFrequent} from '@/lib/collections';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Category} from '@/lib/model/Category';
 import {Tag} from '@/lib/model/Tag';
-import {ownShareAmountCentsIgnoreRefuds} from '@/lib/model/transaction/amounts';
+import {ownShareAmountCentsIgnoreRefunds} from '@/lib/model/transaction/amounts';
 import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
 import {ThirdPartyExpense} from '@/lib/model/transaction/ThirdPartyExpense';
 import {
@@ -119,7 +119,7 @@ export function expenseFromTransaction({
   const commonFields = {
     timestamp: new Date(t.timestampEpoch),
     amount: t.amountCents / 100,
-    ownShareAmount: ownShareAmountCentsIgnoreRefuds(t) / 100,
+    ownShareAmount: ownShareAmountCentsIgnoreRefunds(t) / 100,
     vendor: t.vendor,
     categoryId: t.categoryId,
     tagNames: tags.map(t => t.name),

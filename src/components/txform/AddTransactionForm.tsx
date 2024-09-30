@@ -35,7 +35,7 @@ import {
   transactionTrip,
 } from '@/lib/model/transaction/Transaction';
 import {Transfer} from '@/lib/model/transaction/Transfer';
-import {ownShareAmountCentsIgnoreRefuds} from '@/lib/model/transaction/amounts';
+import {ownShareAmountCentsIgnoreRefunds} from '@/lib/model/transaction/amounts';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {useState} from 'react';
 
@@ -90,7 +90,7 @@ function initialValuesForPersonalExpense(
     vendor: t.vendor,
     otherPartyName: otherPartyNameOrNull(t) ?? '',
     amount: t.amountCents / 100,
-    ownShareAmount: ownShareAmountCentsIgnoreRefuds(t) / 100,
+    ownShareAmount: ownShareAmountCentsIgnoreRefunds(t) / 100,
     receivedAmount: t.amountCents / 100,
     fromBankAccountId: t.accountId,
     toBankAccountId: t.accountId,
@@ -120,7 +120,7 @@ function initialValuesForThirdPartyExpense(
     vendor: t.vendor,
     otherPartyName: otherPartyNameOrNull(t) ?? '',
     amount: t.amountCents / 100,
-    ownShareAmount: ownShareAmountCentsIgnoreRefuds(t) / 100,
+    ownShareAmount: ownShareAmountCentsIgnoreRefunds(t) / 100,
     receivedAmount: t.amountCents / 100,
     fromBankAccountId: defaultAccountFrom,
     toBankAccountId: defaultAccountTo,
@@ -175,7 +175,7 @@ function initialValuesForIncome(
     vendor: t.payer,
     otherPartyName: otherPartyNameOrNull(t) ?? '',
     amount: t.amountCents / 100,
-    ownShareAmount: ownShareAmountCentsIgnoreRefuds(t) / 100,
+    ownShareAmount: ownShareAmountCentsIgnoreRefunds(t) / 100,
     receivedAmount: t.amountCents / 100,
     fromBankAccountId: t.accountId,
     toBankAccountId: t.accountId,
