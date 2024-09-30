@@ -10,15 +10,17 @@ import {
 import {uniqMostFrequent} from '@/lib/collections';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {Transaction, isExpense} from '@/lib/model/transaction/Transaction';
+import {appendNewItems} from '@/lib/util/util';
 import {useCallback, useEffect} from 'react';
 import {useFormContext, useWatch} from 'react-hook-form';
 
 export function Category() {
+  const {transactions} = useAllDatabaseDataContext();
   const {control, getValues} = useFormContext<TransactionFormSchema>();
   const vendor = getValues('expense.vendor');
-  const matchesVendorIfAny = useCallback(
-    (t: Transaction) => !vendor || (isExpense(t) && t.vendor == vendor),
-    [vendor]
+  const getMostFrequentlyUsedCallback = useCallback(
+    () => getMostFrequentlyUsed({vendor, transactions}),
+    [vendor, transactions]
   );
   return (
     <FormField
@@ -31,7 +33,7 @@ export function Category() {
             <CategorySelect
               value={field.value}
               onChange={field.onChange}
-              relevantTransactionFilter={matchesVendorIfAny}
+              getMostFrequentlyUsed={getMostFrequentlyUsedCallback}
             />
           </FormControl>
           <FormMessage />
@@ -47,7 +49,7 @@ function UpdateCategoryOnVendorChange() {
   const {transactions} = useAllDatabaseDataContext();
   const vendor = useWatch({control, name: 'expense.vendor', exact: true});
   useEffect(() => {
-    const mostFrequent = mostFrequentCategoryId({vendor, transactions});
+    const [mostFrequent] = getMostFrequentlyUsed({vendor, transactions});
     if (mostFrequent) {
       setValue('expense.categoryId', mostFrequent);
     }
@@ -55,21 +57,21 @@ function UpdateCategoryOnVendorChange() {
   return null;
 }
 
-function mostFrequentCategoryId({
+export function getMostFrequentlyUsed({
   vendor,
   transactions,
 }: {
   vendor: string;
   transactions: Transaction[];
-}): number | null {
+}): number[] {
+  const expenses = transactions.filter(isExpense);
   const matchesVendor = (s: string) =>
-    vendor.trim().toLowerCase() == s.trim().toLowerCase();
-
-  const relevantExpenses = transactions.filter(
-    t => isExpense(t) && matchesVendor(t.vendor)
+    !vendor || vendor.trim().toLowerCase() == s.trim().toLowerCase();
+  const mostRelevant = uniqMostFrequent(
+    expenses.filter(t => matchesVendor(t.vendor)).map(t => t.categoryId)
   );
-  const [mostFrequentCategoryId] = uniqMostFrequent(
-    relevantExpenses.map(t => t.categoryId)
+  return appendNewItems(
+    mostRelevant,
+    uniqMostFrequent(expenses.map(t => t.categoryId))
   );
-  return mostFrequentCategoryId || null;
 }

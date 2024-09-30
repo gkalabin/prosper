@@ -49,6 +49,13 @@ export function dollarToCents(dollar: number): number {
   return Math.round(dollar * 100);
 }
 
+// TODO: add tests.
+export function appendNewItems(target: number[], newItems: number[]): number[] {
+  const existing = new Set(target);
+  const newUnseen = newItems.filter(x => !existing.has(x));
+  return [...target, ...newUnseen];
+}
+
 export function removeQuotes(s: string): string {
   if (s.startsWith('"') && s.endsWith('"')) {
     return s.substring(1, s.length - 1);
