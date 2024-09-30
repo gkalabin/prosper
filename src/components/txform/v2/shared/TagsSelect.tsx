@@ -131,7 +131,7 @@ function tagSearchRanking(value: string, search: string): number {
   }
   if (value.startsWith(NEW_TAG_PREFIX)) {
     // Use smaller weight to move the suggestion to create a new tag to be the last in the list.
-    return 1;
+    return 0.1;
   }
   value = value.replace(EXISTING_TAG_PREFIX, '');
   if (value.toLowerCase().includes(search.toLowerCase())) {
