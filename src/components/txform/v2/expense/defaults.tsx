@@ -39,7 +39,6 @@ export function expenseFormEmpty({
   categories: Category[];
   bankAccounts: BankAccount[];
 }): ExpenseFormSchema {
-  assert(categories.length > 0);
   // If there are no expenses at all, the most frequent value will not be defined,
   // so fall back to the first category in that case.
   assert(categories.length > 0);
