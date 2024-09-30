@@ -5,8 +5,8 @@ import {ExtraFields} from '@/components/txform/v2/income/inputs/ExtraFields';
 import {OwnShareAmount} from '@/components/txform/v2/income/inputs/OwnShareAmount';
 import {Payer} from '@/components/txform/v2/income/inputs/Payer';
 import {SplitTransactionToggle} from '@/components/txform/v2/income/inputs/SplitTransactionToggle';
-import {Tags} from '@/components/txform/v2/income/inputs/Tags';
 import {Account} from '@/components/txform/v2/shared/Account';
+import {Tags} from '@/components/txform/v2/shared/Tags';
 import {Timestamp} from '@/components/txform/v2/shared/Timestamp';
 
 export function IncomeForm() {
@@ -19,7 +19,7 @@ export function IncomeForm() {
       <Amount />
       <OwnShareAmount />
       <Payer />
-      <Tags />
+      <Tags fieldName="income.tagNames" />
       <Category />
       <ExtraFields />
     </>

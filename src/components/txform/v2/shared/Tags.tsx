@@ -9,12 +9,16 @@ import {
 } from '@/components/ui/form';
 import {useFormContext} from 'react-hook-form';
 
-export function Tags() {
+export function Tags({
+  fieldName,
+}: {
+  fieldName: 'expense.tagNames' | 'income.tagNames' | 'transfer.tagNames';
+}) {
   const {control} = useFormContext<TransactionFormSchema>();
   return (
     <FormField
       control={control}
-      name="transfer.tagNames"
+      name={fieldName}
       render={({field}) => (
         <FormItem className="col-span-6">
           <FormLabel>Tags</FormLabel>

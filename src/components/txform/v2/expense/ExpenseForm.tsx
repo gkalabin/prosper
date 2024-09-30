@@ -8,8 +8,8 @@ import {OwnShareAmount} from '@/components/txform/v2/expense/inputs/OwnShareAmou
 import {Payer} from '@/components/txform/v2/expense/inputs/Payer';
 import {RepaymentFields} from '@/components/txform/v2/expense/inputs/RepaymentFields';
 import {SplitTransactionToggle} from '@/components/txform/v2/expense/inputs/SplitTransactionToggle';
-import {Tags} from '@/components/txform/v2/expense/inputs/Tags';
 import {Vendor} from '@/components/txform/v2/expense/inputs/Vendor';
+import {Tags} from '@/components/txform/v2/shared/Tags';
 import {Timestamp} from '@/components/txform/v2/shared/Timestamp';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 
@@ -26,7 +26,7 @@ export function ExpenseForm({proto}: {proto: TransactionPrototype | null}) {
       <OwnShareAmount />
       <RepaymentFields />
       <Vendor />
-      <Tags />
+      <Tags fieldName="expense.tagNames" />
       <Category />
       <ExtraFields />
     </>

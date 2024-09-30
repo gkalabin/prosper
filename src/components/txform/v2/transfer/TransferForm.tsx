@@ -1,10 +1,10 @@
 import {Account} from '@/components/txform/v2/shared/Account';
+import {Tags} from '@/components/txform/v2/shared/Tags';
 import {Timestamp} from '@/components/txform/v2/shared/Timestamp';
 import {Amount} from '@/components/txform/v2/transfer/inputs/Amount';
 import {AmountReceived} from '@/components/txform/v2/transfer/inputs/AmountReceived';
 import {Category} from '@/components/txform/v2/transfer/inputs/Category';
 import {Description} from '@/components/txform/v2/transfer/inputs/Description';
-import {Tags} from '@/components/txform/v2/transfer/inputs/Tags';
 
 export function TransferForm() {
   return (
@@ -15,7 +15,7 @@ export function TransferForm() {
       <Amount />
       <AmountReceived />
       <Description />
-      <Tags />
+      <Tags fieldName="transfer.tagNames" />
       <Category />
     </>
   );
