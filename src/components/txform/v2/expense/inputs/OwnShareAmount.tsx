@@ -1,6 +1,6 @@
-import {parseTextInputAsNumber} from '@/components/txform/v2/expense/inputs/Amount';
 import {RepaymentToggle} from '@/components/txform/v2/expense/inputs/RepaymentToggle';
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
+import {MoneyInput} from '@/components/txform/v2/shared/MoneyInput';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {
   FormControl,
@@ -9,7 +9,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {Input} from '@/components/ui/input';
 import {centsToDollar, dollarToCents} from '@/lib/util/util';
 import {useEffect} from 'react';
 import {useFormContext, useWatch} from 'react-hook-form';
@@ -19,13 +18,15 @@ export function OwnShareAmount() {
   const {isShared} = useSharingType();
   const amount = useWatch({control, name: 'expense.amount', exact: true});
   useEffect(() => {
+    // Do not pass down NaN from amount to ownShare.
+    const safeAmount = isNaN(amount) ? 0 : amount;
     if (!isShared) {
-      setValue('expense.ownShareAmount', amount);
+      setValue('expense.ownShareAmount', safeAmount);
     } else {
       setValue(
         'expense.ownShareAmount',
         // Converting to cents and back to dollars to avoid fractional cents, for example when splitting 1.11.
-        centsToDollar(dollarToCents(amount) / 2)
+        centsToDollar(dollarToCents(safeAmount) / 2)
       );
     }
   }, [setValue, isShared, amount]);
@@ -42,14 +43,7 @@ export function OwnShareAmount() {
             <LabelText />
           </FormLabel>
           <FormControl>
-            <Input
-              type="text"
-              inputMode="decimal"
-              {...field}
-              onChange={e =>
-                field.onChange(parseTextInputAsNumber(e.target.value))
-              }
-            />
+            <MoneyInput {...field} />
           </FormControl>
           <FormMessage />
           <RepaymentToggle />

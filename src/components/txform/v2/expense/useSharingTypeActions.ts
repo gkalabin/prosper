@@ -82,14 +82,13 @@ export function useSharingTypeActions() {
 
   const toggleSplitTransaction = () => {
     const sharingType = getValues('expense.sharingType');
+    // ownShareAmount is set by a custom hook, no need to set it here.
     if (sharingType === 'PAID_SELF_SHARED') {
       setValue('expense.sharingType', 'PAID_SELF_NOT_SHARED');
       setValue('expense.companion', null);
-      setValue('expense.ownShareAmount', getValues('expense.amount'));
     } else if (sharingType === 'PAID_SELF_NOT_SHARED') {
       setValue('expense.sharingType', 'PAID_SELF_SHARED');
       setValue('expense.companion', defaultCompanion ?? '');
-      setValue('expense.ownShareAmount', getValues('expense.amount') / 2);
     }
   };
 

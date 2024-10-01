@@ -32,7 +32,12 @@ export function Vendor() {
         <FormItem className="col-span-6">
           <FormLabel>Vendor</FormLabel>
           <FormControl>
-            <Input type="text" datalist={vendors} {...field} />
+            <Input
+              type="text"
+              datalist={vendors}
+              {...field}
+              onFocus={e => e.target.select()}
+            />
           </FormControl>
           <FormMessage />
         </FormItem>

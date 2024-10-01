@@ -1,4 +1,5 @@
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
+import {MoneyInput} from '@/components/txform/v2/shared/MoneyInput';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {
   FormControl,
@@ -7,7 +8,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {Input} from '@/components/ui/input';
 import {cn} from '@/lib/utils';
 import {useFormContext} from 'react-hook-form';
 
@@ -22,28 +22,11 @@ export function Amount() {
         <FormItem className={cn(isShared ? 'col-span-3' : 'col-span-6')}>
           <FormLabel>Amount</FormLabel>
           <FormControl>
-            <Input
-              type="text"
-              inputMode="decimal"
-              {...field}
-              onChange={e =>
-                field.onChange(parseTextInputAsNumber(e.target.value))
-              }
-            />
+            <MoneyInput {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>
       )}
     />
   );
-}
-
-// TODO: write tests
-export function parseTextInputAsNumber(v: string): number | string {
-  const normalised = v.replace(/,/g, '.');
-  const match = normalised.match(/^[0-9]+(\.[0-9]+)?$/);
-  if (!match) {
-    return v;
-  }
-  return +normalised;
 }

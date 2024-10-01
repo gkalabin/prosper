@@ -24,7 +24,12 @@ export function Payer() {
         <FormItem className="col-span-6">
           <FormLabel>Payer</FormLabel>
           <FormControl>
-            <Input type="text" datalist={payers} {...field} />
+            <Input
+              type="text"
+              datalist={payers}
+              {...field}
+              onFocus={e => e.target.select()}
+            />
           </FormControl>
           <FormMessage />
         </FormItem>

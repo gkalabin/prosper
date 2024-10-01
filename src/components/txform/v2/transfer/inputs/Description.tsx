@@ -32,6 +32,7 @@ export function Description() {
               datalist={descriptions}
               {...field}
               value={field.value ?? ''}
+              onFocus={e => e.target.select()}
             />
           </FormControl>
           <FormMessage />

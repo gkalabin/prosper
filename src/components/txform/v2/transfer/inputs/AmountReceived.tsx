@@ -1,4 +1,4 @@
-import {parseTextInputAsNumber} from '@/components/txform/v2/expense/inputs/Amount';
+import {MoneyInput} from '@/components/txform/v2/shared/MoneyInput';
 import {useAccountUnitsEqual} from '@/components/txform/v2/transfer/inputs/Amount';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {
@@ -8,7 +8,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {Input} from '@/components/ui/input';
 import {useEffect} from 'react';
 import {useFormContext, useWatch} from 'react-hook-form';
 
@@ -36,14 +35,7 @@ export function AmountReceived() {
         <FormItem className="col-span-3">
           <FormLabel>Amount Received</FormLabel>
           <FormControl>
-            <Input
-              type="text"
-              inputMode="decimal"
-              {...field}
-              onChange={e =>
-                field.onChange(parseTextInputAsNumber(e.target.value))
-              }
-            />
+            <MoneyInput {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>
