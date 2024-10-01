@@ -6,9 +6,11 @@ import {useState} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function ExtraFields() {
-  const {setValue, formState} = useFormContext<TransactionFormSchema>();
-  const [showNote, setShowNote] = useState(false);
-  const [showTrip, setShowTrip] = useState(false);
+  const {setValue, watch, formState} = useFormContext<TransactionFormSchema>();
+  const tripName = watch('expense.tripName');
+  const description = watch('expense.description');
+  const [showNote, setShowNote] = useState(!!description);
+  const [showTrip, setShowTrip] = useState(!!tripName);
   return (
     <>
       <div className="col-span-6 text-xs">
@@ -16,8 +18,11 @@ export function ExtraFields() {
         <Button
           type="button"
           onClick={() => {
-            setShowNote(!showNote);
-            setValue('expense.description', null);
+            const shouldShowNote = !showNote;
+            setShowNote(shouldShowNote);
+            if (!shouldShowNote) {
+              setValue('expense.description', null);
+            }
           }}
           variant="link"
           size="inherit"
@@ -29,8 +34,11 @@ export function ExtraFields() {
         <Button
           type="button"
           onClick={() => {
-            setShowTrip(!showTrip);
-            setValue('expense.tripName', null);
+            const shouldShowTrip = !showTrip;
+            setShowTrip(shouldShowTrip);
+            if (!shouldShowTrip) {
+              setValue('expense.tripName', null);
+            }
           }}
           variant="link"
           size="inherit"

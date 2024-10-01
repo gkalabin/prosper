@@ -6,9 +6,11 @@ import {useState} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function ExtraFields() {
-  const {setValue, formState} = useFormContext<TransactionFormSchema>();
-  const [showNote, setShowNote] = useState(false);
-  const [showParent, setShowParent] = useState(false);
+  const {setValue, watch, formState} = useFormContext<TransactionFormSchema>();
+  const note = watch('income.description');
+  const parentTransactionId = watch('income.parentTransactionId');
+  const [showNote, setShowNote] = useState(!!note);
+  const [showParent, setShowParent] = useState(!!parentTransactionId);
   return (
     <>
       <div className="col-span-6 text-xs">
@@ -16,8 +18,11 @@ export function ExtraFields() {
         <Button
           type="button"
           onClick={() => {
-            setShowNote(!showNote);
-            setValue('income.description', null);
+            const shouldShowNote = !showNote;
+            setShowNote(shouldShowNote);
+            if (!shouldShowNote) {
+              setValue('income.description', null);
+            }
           }}
           variant="link"
           size="inherit"
@@ -29,8 +34,11 @@ export function ExtraFields() {
         <Button
           type="button"
           onClick={() => {
-            setShowParent(!showParent);
-            setValue('income.parentTransactionId', null);
+            const shouldShowParent = !showParent;
+            setShowParent(shouldShowParent);
+            if (!shouldShowParent) {
+              setValue('income.parentTransactionId', null);
+            }
           }}
           variant="link"
           size="inherit"
