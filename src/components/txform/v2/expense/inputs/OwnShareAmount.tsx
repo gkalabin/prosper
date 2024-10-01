@@ -10,7 +10,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
-import {centsToDollar} from '@/lib/util/util';
+import {centsToDollar, dollarToCents} from '@/lib/util/util';
 import {useEffect} from 'react';
 import {useFormContext, useWatch} from 'react-hook-form';
 
@@ -22,7 +22,11 @@ export function OwnShareAmount() {
     if (!isShared) {
       setValue('expense.ownShareAmount', amount);
     } else {
-      setValue('expense.ownShareAmount', centsToDollar(amount / 2));
+      setValue(
+        'expense.ownShareAmount',
+        // Converting to cents and back to dollars to avoid fractional cents, for example when splitting 1.11.
+        centsToDollar(dollarToCents(amount) / 2)
+      );
     }
   }, [setValue, isShared, amount]);
   if (!isShared) {

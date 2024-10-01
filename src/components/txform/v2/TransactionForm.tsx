@@ -137,10 +137,16 @@ export const TransactionForm = (props: {
             {form.formState.errors.root?.message}
           </div>
           <div className="flex-none space-x-4">
-            <ButtonFormSecondary onClick={props.onClose}>
+            <ButtonFormSecondary
+              onClick={props.onClose}
+              disabled={form.formState.isSubmitting}
+            >
               Cancel
             </ButtonFormSecondary>
-            <ButtonFormPrimary type="submit">
+            <ButtonFormPrimary
+              type="submit"
+              disabled={form.formState.isSubmitting}
+            >
               {creatingNewTransaction &&
                 form.formState.isSubmitting &&
                 'Adding…'}
