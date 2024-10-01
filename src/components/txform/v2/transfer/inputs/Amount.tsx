@@ -1,4 +1,4 @@
-import {parseTextInputAsNumber} from '@/components/txform/v2/expense/inputs/Amount';
+import {MoneyInput} from '@/components/txform/v2/shared/MoneyInput';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {
   FormControl,
@@ -7,7 +7,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {Input} from '@/components/ui/input';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {accountUnitsEqual, mustFindBankAccount} from '@/lib/model/BankAccount';
 import {cn} from '@/lib/utils';
@@ -24,14 +23,7 @@ export function Amount() {
         <FormItem className={cn(sameUnit ? 'col-span-6' : 'col-span-3')}>
           <FormLabel>{sameUnit ? 'Amount' : 'Amount Sent'}</FormLabel>
           <FormControl>
-            <Input
-              type="text"
-              inputMode="decimal"
-              {...field}
-              onChange={e =>
-                field.onChange(parseTextInputAsNumber(e.target.value))
-              }
-            />
+            <MoneyInput {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>
