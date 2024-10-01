@@ -198,7 +198,7 @@ export function incomeToExpense({
     sharingType: prev.companion ? 'PAID_SELF_SHARED' : 'PAID_SELF_NOT_SHARED',
     description: null,
     tripName: null,
-    companion: null,
+    companion: prev.companion,
     payer: null,
     currency: null,
     repayment: null,
