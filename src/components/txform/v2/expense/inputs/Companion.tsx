@@ -18,11 +18,8 @@ export function Companion() {
   const {control} = useFormContext<TransactionFormSchema>();
   const {isShared, paidSelf} = useSharingType();
   const companions = useUniqueCompanions();
-  if (!isShared) {
-    return <></>;
-  }
-  if (!paidSelf) {
-    return <div className="col-span-3"></div>;
+  if (!isShared || !paidSelf) {
+    return null;
   }
   return (
     <FormField
