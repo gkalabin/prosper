@@ -1,10 +1,10 @@
 import {Account} from '@/components/txform/v2/shared/Account';
+import {Description} from '@/components/txform/v2/shared/Description';
 import {Tags} from '@/components/txform/v2/shared/Tags';
 import {Timestamp} from '@/components/txform/v2/shared/Timestamp';
 import {Amount} from '@/components/txform/v2/transfer/inputs/Amount';
 import {AmountReceived} from '@/components/txform/v2/transfer/inputs/AmountReceived';
 import {Category} from '@/components/txform/v2/transfer/inputs/Category';
-import {Description} from '@/components/txform/v2/transfer/inputs/Description';
 
 export function TransferForm() {
   return (
@@ -14,7 +14,7 @@ export function TransferForm() {
       <Account fieldName="transfer.toAccountId" label="Money received to" />
       <Amount />
       <AmountReceived />
-      <Description />
+      <Description fieldName="transfer.description" />
       <Tags fieldName="transfer.tagNames" />
       <Category />
     </>

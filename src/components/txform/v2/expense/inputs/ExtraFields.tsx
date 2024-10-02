@@ -1,5 +1,5 @@
-import {Description} from '@/components/txform/v2/expense/inputs/Description';
 import {Trip} from '@/components/txform/v2/expense/inputs/Trip';
+import {Description} from '@/components/txform/v2/shared/Description';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {Button} from '@/components/ui/button';
 import {useState} from 'react';
@@ -49,7 +49,7 @@ export function ExtraFields() {
         .
       </div>
       {showTrip && <Trip />}
-      {showNote && <Description />}
+      {showNote && <Description fieldName="expense.description" />}
     </>
   );
 }
