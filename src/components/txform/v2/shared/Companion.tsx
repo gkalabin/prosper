@@ -13,17 +13,17 @@ import {otherPartyNameOrNull} from '@/lib/model/transaction/Transaction';
 import {useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
-export function Companion() {
-  const {control, watch} = useFormContext<TransactionFormSchema>();
+export function Companion({
+  fieldName,
+}: {
+  fieldName: 'expense.companion' | 'income.companion';
+}) {
+  const {control} = useFormContext<TransactionFormSchema>();
   const companions = useUniqueCompanions();
-  const isShared = watch('income.isShared');
-  if (!isShared) {
-    return null;
-  }
   return (
     <FormField
       control={control}
-      name="income.companion"
+      name={fieldName}
       render={({field}) => (
         <FormItem className="col-span-3">
           <FormLabel>Shared with</FormLabel>
