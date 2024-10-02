@@ -9,27 +9,11 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {centsToDollar, dollarToCents} from '@/lib/util/util';
-import {useEffect} from 'react';
-import {useFormContext, useWatch} from 'react-hook-form';
+import {useFormContext} from 'react-hook-form';
 
 export function OwnShareAmount() {
-  const {control, setValue} = useFormContext<TransactionFormSchema>();
+  const {control} = useFormContext<TransactionFormSchema>();
   const {isShared} = useSharingType();
-  const amount = useWatch({control, name: 'expense.amount', exact: true});
-  useEffect(() => {
-    // Do not pass down NaN from amount to ownShare.
-    const safeAmount = isNaN(amount) ? 0 : amount;
-    if (!isShared) {
-      setValue('expense.ownShareAmount', safeAmount);
-    } else {
-      setValue(
-        'expense.ownShareAmount',
-        // Converting to cents and back to dollars to avoid fractional cents, for example when splitting 1.11.
-        centsToDollar(dollarToCents(safeAmount) / 2)
-      );
-    }
-  }, [setValue, isShared, amount]);
   if (!isShared) {
     return null;
   }

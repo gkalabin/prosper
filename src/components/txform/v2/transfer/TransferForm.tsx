@@ -5,6 +5,7 @@ import {Timestamp} from '@/components/txform/v2/shared/Timestamp';
 import {Amount} from '@/components/txform/v2/transfer/inputs/Amount';
 import {AmountReceived} from '@/components/txform/v2/transfer/inputs/AmountReceived';
 import {Category} from '@/components/txform/v2/transfer/inputs/Category';
+import {UpdateReceivedAmountOnAmountChange} from '@/components/txform/v2/transfer/inputs/UpdateReceivedAmountOnAmountChange';
 
 export function TransferForm() {
   return (
@@ -17,6 +18,8 @@ export function TransferForm() {
       <Description fieldName="transfer.description" />
       <Tags fieldName="transfer.tagNames" />
       <Category />
+
+      <UpdateReceivedAmountOnAmountChange />
     </>
   );
 }
