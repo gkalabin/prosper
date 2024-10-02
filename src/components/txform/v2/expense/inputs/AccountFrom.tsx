@@ -11,7 +11,7 @@ export function AccountFrom({proto}: {proto: TransactionPrototype | null}) {
   const {paidSelf} = useSharingType();
   const {setPaidOther} = useSharingTypeActions();
   if (!paidSelf) {
-    return <></>;
+    return null;
   }
   return (
     <>

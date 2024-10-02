@@ -7,11 +7,13 @@ import {OwnShareAmount} from '@/components/txform/v2/expense/inputs/OwnShareAmou
 import {Payer} from '@/components/txform/v2/expense/inputs/Payer';
 import {RepaymentFields} from '@/components/txform/v2/expense/inputs/RepaymentFields';
 import {SplitTransactionToggle} from '@/components/txform/v2/expense/inputs/SplitTransactionToggle';
+import {UpdateCategoryOnVendorChange} from '@/components/txform/v2/expense/inputs/UpdateCategoryOnVendorChange';
 import {Vendor} from '@/components/txform/v2/expense/inputs/Vendor';
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
 import {Companion} from '@/components/txform/v2/shared/Companion';
 import {Tags} from '@/components/txform/v2/shared/Tags';
 import {Timestamp} from '@/components/txform/v2/shared/Timestamp';
+import {UpdateOwnShareOnAmountChange as CommonUpdateOwnShareOnAmountChange} from '@/components/txform/v2/shared/UpdateOwnShareOnAmountChange';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 
 export function ExpenseForm({proto}: {proto: TransactionPrototype | null}) {
@@ -30,6 +32,9 @@ export function ExpenseForm({proto}: {proto: TransactionPrototype | null}) {
       <Tags fieldName="expense.tagNames" />
       <Category />
       <ExtraFields />
+
+      <UpdateCategoryOnVendorChange />
+      <UpdateOwnShareOnAmountChange />
     </>
   );
 }
@@ -40,4 +45,14 @@ function MaybeEmptyCompanion() {
     return null;
   }
   return <Companion fieldName="expense.companion" />;
+}
+
+function UpdateOwnShareOnAmountChange() {
+  return (
+    <CommonUpdateOwnShareOnAmountChange
+      isShared={useSharingType().isShared}
+      amountFieldName="expense.amount"
+      ownShareFieldName="expense.ownShareAmount"
+    />
+  );
 }
