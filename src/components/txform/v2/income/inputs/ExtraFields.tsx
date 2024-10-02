@@ -1,5 +1,5 @@
-import {Description} from '@/components/txform/v2/income/inputs/Description';
 import {ParentTransaction} from '@/components/txform/v2/income/inputs/ParentTransaction';
+import {Description} from '@/components/txform/v2/shared/Description';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {Button} from '@/components/ui/button';
 import {useState} from 'react';
@@ -48,7 +48,7 @@ export function ExtraFields() {
         </Button>
         .
       </div>
-      {showNote && <Description />}
+      {showNote && <Description fieldName="income.description" />}
       {showParent && <ParentTransaction />}
     </>
   );

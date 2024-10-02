@@ -12,7 +12,14 @@ import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
-export function Description() {
+export function Description({
+  fieldName,
+}: {
+  fieldName:
+    | 'expense.description'
+    | 'income.description'
+    | 'transfer.description';
+}) {
   const {control} = useFormContext<TransactionFormSchema>();
   const {transactions} = useAllDatabaseDataContext();
   const descriptions = useMemo(
@@ -22,7 +29,7 @@ export function Description() {
   return (
     <FormField
       control={control}
-      name="income.description"
+      name={fieldName}
       render={({field}) => (
         <FormItem className="col-span-6">
           <FormLabel>Description</FormLabel>
@@ -32,6 +39,7 @@ export function Description() {
               datalist={descriptions}
               {...field}
               value={field.value ?? ''}
+              onFocus={e => e.target.select()}
             />
           </FormControl>
           <FormMessage />
