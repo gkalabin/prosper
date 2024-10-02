@@ -22,7 +22,7 @@ export function Payer() {
   const payers = useUniqueFrequentPayers();
   const {setPaidSelf} = useSharingTypeActions();
   if (!paidOther) {
-    return <></>;
+    return null;
   }
   return (
     <FormField

@@ -21,7 +21,7 @@ import {useFormContext, useWatch} from 'react-hook-form';
 export function RepaymentFields() {
   const {sharingType} = useSharingType();
   if (sharingType != 'PAID_OTHER_REPAID') {
-    return <></>;
+    return null;
   }
   return (
     <div className="col-span-6 space-y-2 rounded border bg-accent p-2 pl-4">
@@ -54,12 +54,8 @@ function RepaymentAmount() {
 
 function RepaymentAccountFrom() {
   const {getValues, control} = useFormContext<TransactionFormSchema>();
-  const {paidSelf} = useSharingType();
   const accounts = useDisplayBankAccounts();
   const {banks} = useAllDatabaseDataContext();
-  if (!paidSelf) {
-    return <></>;
-  }
   return (
     <FormField
       control={control}

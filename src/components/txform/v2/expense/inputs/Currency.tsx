@@ -15,7 +15,7 @@ export function Currency() {
   const {control} = useFormContext<TransactionFormSchema>();
   const {paidSelf} = useSharingType();
   if (paidSelf) {
-    return <></>;
+    return null;
   }
   return (
     <FormField

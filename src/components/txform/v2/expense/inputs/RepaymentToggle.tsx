@@ -42,5 +42,5 @@ export function RepaymentToggle() {
       </div>
     );
   }
-  return <></>;
+  return null;
 }
