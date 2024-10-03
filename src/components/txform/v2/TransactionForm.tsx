@@ -2,6 +2,7 @@
 import {upsertTransaction} from '@/actions/txform/index';
 import {FormTypeSelect} from '@/components/txform/v2/FormTypeSelect';
 import {
+  emptyValuesForType,
   useFormDefaults,
   valuesForNewType,
   valuesForPrototype,
@@ -35,7 +36,6 @@ export const TransactionForm = (props: {
   const [proto, setProto] = useState<TransactionPrototype | null>(null);
   const creatingNewTransaction = !props.transaction;
   const defaultValues = useFormDefaults(props.transaction, proto);
-  const defaultValuesWithoutProto = useFormDefaults(props.transaction, null);
   // Form values update strategy:
   //  - Existing transaction is either set all the time or not defined. If it's set, there could be no prototype.
   //  - Prototype might be set only when creating new transaction.
@@ -54,7 +54,6 @@ export const TransactionForm = (props: {
         form.getValues(),
         newFormType,
         bankAccounts,
-        categories,
         transactions
       )
     );
@@ -77,7 +76,14 @@ export const TransactionForm = (props: {
           props.onClose();
         } else {
           setProto(null);
-          form.reset(defaultValuesWithoutProto);
+          form.reset(
+            emptyValuesForType({
+              formType,
+              transactions,
+              bankAccounts,
+              categories,
+            })
+          );
         }
         return;
       }

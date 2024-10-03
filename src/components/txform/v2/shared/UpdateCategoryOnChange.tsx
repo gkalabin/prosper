@@ -1,6 +1,8 @@
-import {TransactionFilterFn} from '@/components/txform/v2/shared/useTopCategoryIds';
+import {
+  topCategoriesMatchAll,
+  TransactionFilterFn,
+} from '@/components/txform/v2/shared/useTopCategoryIds';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
-import {uniqMostFrequent} from '@/lib/collections';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useEffect} from 'react';
 import {useFormContext} from 'react-hook-form';
@@ -17,8 +19,11 @@ export function UpdateCategoryOnChange({
   const {setValue} = useFormContext<TransactionFormSchema>();
   const {transactions} = useAllDatabaseDataContext();
   useEffect(() => {
-    const filtered = transactions.filter(t => filters.every(f => f(t)));
-    const [mostFrequent] = uniqMostFrequent(filtered.map(t => t.categoryId));
+    const [mostFrequent] = topCategoriesMatchAll({
+      transactions,
+      filters,
+      want: 1,
+    });
     if (mostFrequent) {
       // Update the category all the time, even when user touched the field. The reasoning is the following:
       //  - User fills in the form top to bottom, the vendor input is before category.

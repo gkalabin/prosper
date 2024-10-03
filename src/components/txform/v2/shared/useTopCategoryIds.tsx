@@ -33,7 +33,7 @@ export function matchesPayer(payer: string) {
 
 export type TransactionFilterFn = (t: Transaction) => boolean;
 
-export function useTopCategoryIds({
+export function useTopCategoriesMatchMost({
   filters,
   want,
 }: {
@@ -41,10 +41,10 @@ export function useTopCategoryIds({
   want: number;
 }): number[] {
   const {transactions} = useAllDatabaseDataContext();
-  return findTopCategoryIds({filters, want, transactions});
+  return topCategoriesMatchMost({filters, want, transactions});
 }
 
-export function findTopCategoryIds({
+export function topCategoriesMatchMost({
   filters,
   want,
   transactions,
@@ -63,4 +63,18 @@ export function findTopCategoryIds({
     current.pop();
   }
   return result;
+}
+
+export function topCategoriesMatchAll({
+  filters,
+  want,
+  transactions,
+}: {
+  filters: TransactionFilterFn[];
+  want: number;
+  transactions: Transaction[];
+}): number[] {
+  const filtered = transactions.filter(t => filters.every(f => f(t)));
+  const result = uniqMostFrequent(filtered.map(t => t.categoryId));
+  return result.slice(0, want);
 }

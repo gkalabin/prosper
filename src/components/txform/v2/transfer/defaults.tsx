@@ -1,8 +1,12 @@
 import {ExpenseFormSchema} from '@/components/txform/v2/expense/types';
 import {IncomeFormSchema} from '@/components/txform/v2/income/types';
+import {mostFrequentBankAccount} from '@/components/txform/v2/prefill';
+import {
+  isRecent,
+  topCategoriesMatchMost,
+} from '@/components/txform/v2/shared/useTopCategoryIds';
 import {TransferFormSchema} from '@/components/txform/v2/transfer/types';
 import {assert} from '@/lib/assert';
-import {uniqMostFrequent} from '@/lib/collections';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Category} from '@/lib/model/Category';
 import {Tag} from '@/lib/model/Tag';
@@ -14,7 +18,43 @@ import {
 import {Transfer} from '@/lib/model/transaction/Transfer';
 import {TransferPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {centsToDollar} from '@/lib/util/util';
-import {differenceInMonths} from 'date-fns';
+import {startOfDay} from 'date-fns';
+
+export function transferFormEmpty({
+  transactions,
+  categories,
+  bankAccounts,
+}: {
+  transactions: Transaction[];
+  categories: Category[];
+  bankAccounts: BankAccount[];
+}): TransferFormSchema {
+  const categoryId =
+    topCategoriesMatchMost({
+      transactions,
+      filters: [isTransfer, isRecent],
+      want: 1,
+    })[0] ?? categories[0].id;
+  const values: TransferFormSchema = {
+    timestamp: startOfDay(new Date()),
+    amountSent: 0,
+    amountReceived: 0,
+    categoryId,
+    fromAccountId: mostFrequentBankAccount({
+      transactions,
+      bankAccounts,
+      transactionToAccountId: t => (isTransfer(t) ? t.fromAccountId : null),
+    }),
+    toAccountId: mostFrequentBankAccount({
+      transactions,
+      bankAccounts,
+      transactionToAccountId: t => (isTransfer(t) ? t.toAccountId : null),
+    }),
+    description: null,
+    tagNames: [],
+  };
+  return values;
+}
 
 export function expenseToTransfer({
   prev,
@@ -29,7 +69,12 @@ export function expenseToTransfer({
   // Prefer the most frequent category to the value from the previous form type.
   // When switching the form type the user is expecting to see changes in the form and the
   // most frequent value is more likely to be useful compared to the previous mode's category.
-  const categoryId = mostFrequentCategory(transactions) ?? prev.categoryId;
+  const categoryId =
+    topCategoriesMatchMost({
+      transactions,
+      filters: [isTransfer, isRecent],
+      want: 1,
+    })[0] ?? prev.categoryId;
   return {
     timestamp: prev.timestamp,
     amountSent: prev.amount,
@@ -52,7 +97,12 @@ export function incomeToTransfer({
   // Prefer the most frequent category to the value from the previous form type.
   // When switching the form type the user is expecting to see changes in the form and the
   // most frequent value is more likely to be useful compared to the previous mode's category.
-  const categoryId = mostFrequentCategory(transactions) ?? prev.categoryId;
+  const categoryId =
+    topCategoriesMatchMost({
+      transactions,
+      filters: [isTransfer, isRecent],
+      want: 1,
+    })[0] ?? prev.categoryId;
   return {
     timestamp: prev.timestamp,
     amountSent: prev.amount,
@@ -78,7 +128,12 @@ export function transferFromPrototype({
   // If there are no transfers at all, the most frequent value will not be defined,
   // so fall back to the first category in that case.
   assert(categories.length > 0);
-  const categoryId = mostFrequentCategory(transactions) ?? categories[0].id;
+  const categoryId =
+    topCategoriesMatchMost({
+      transactions,
+      filters: [isTransfer, isRecent],
+      want: 1,
+    })[0] ?? categories[0].id;
   const values: TransferFormSchema = {
     timestamp: new Date(withdrawal.timestampEpoch),
     amountSent: centsToDollar(withdrawal.absoluteAmountCents),
@@ -111,18 +166,4 @@ export function transferFromTransaction({
     tagNames: tags.map(t => t.name),
   };
   return values;
-}
-
-function recent(t: Transaction): boolean {
-  const now = new Date();
-  return differenceInMonths(now, t.timestampEpoch) < 3;
-}
-
-function mostFrequentCategory(transactions: Transaction[]): number | null {
-  const transfers = transactions.filter(recent).filter(isTransfer);
-  const [mostFrequent] = uniqMostFrequent(transfers.map(t => t.categoryId));
-  if (mostFrequent) {
-    return mostFrequent;
-  }
-  return null;
 }
