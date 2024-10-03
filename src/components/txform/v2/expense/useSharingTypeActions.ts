@@ -90,7 +90,7 @@ export function useSharingTypeActions() {
       setValue('expense.companion', null);
     } else if (sharingType === 'PAID_SELF_NOT_SHARED') {
       setValue('expense.sharingType', 'PAID_SELF_SHARED');
-      setValue('expense.companion', defaultCompanion ?? '');
+      setValue('expense.companion', defaultCompanion);
     }
   };
 

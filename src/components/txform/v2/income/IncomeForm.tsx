@@ -64,7 +64,7 @@ function MaybeEmptyCompanion() {
   if (!isShared) {
     return null;
   }
-  return <Companion fieldName="expense.companion" />;
+  return <Companion fieldName="income.companion" />;
 }
 
 function UpdateOwnShareOnAmountChange() {
