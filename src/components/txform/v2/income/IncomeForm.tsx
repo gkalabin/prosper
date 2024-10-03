@@ -3,7 +3,6 @@ import {ExtraFields} from '@/components/txform/v2/income/inputs/ExtraFields';
 import {OwnShareAmount} from '@/components/txform/v2/income/inputs/OwnShareAmount';
 import {Payer} from '@/components/txform/v2/income/inputs/Payer';
 import {SplitTransactionToggle} from '@/components/txform/v2/income/inputs/SplitTransactionToggle';
-import {UpdateCategoryOnPayerChange} from '@/components/txform/v2/income/inputs/UpdateCategoryOnPayerChange';
 import {Account} from '@/components/txform/v2/shared/Account';
 import {Companion} from '@/components/txform/v2/shared/Companion';
 import {Tags} from '@/components/txform/v2/shared/Tags';
@@ -17,6 +16,7 @@ import {
   matchesPayer,
 } from '@/components/txform/v2/shared/useTopCategoryIds';
 import {isIncome} from '@/lib/model/transaction/Transaction';
+import {UpdateCategoryOnChange} from '@/components/txform/v2/shared/UpdateCategoryOnChange';
 
 export function IncomeForm() {
   return (
@@ -35,6 +35,16 @@ export function IncomeForm() {
       <UpdateCategoryOnPayerChange />
       <UpdateOwnShareOnAmountChange />
     </>
+  );
+}
+
+function UpdateCategoryOnPayerChange() {
+  const payer = useWatch({name: 'income.payer', exact: true});
+  return (
+    <UpdateCategoryOnChange
+      fieldName="income.categoryId"
+      filters={[isIncome, matchesPayer(payer)]}
+    />
   );
 }
 
