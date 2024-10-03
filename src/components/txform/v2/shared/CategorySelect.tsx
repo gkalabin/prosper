@@ -43,7 +43,7 @@ export function CategorySelect({
           type="button"
           variant="outline"
           role="combobox"
-          className="w-full justify-between"
+          className="w-full justify-between p-2 text-base font-normal"
         >
           {getNameWithAncestors(mustFindCategory(value, categories), tree)}
           <ChevronUpDownIcon className="ml-2 h-5 w-5 shrink-0 opacity-50" />
