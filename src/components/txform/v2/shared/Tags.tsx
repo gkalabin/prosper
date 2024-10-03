@@ -14,7 +14,7 @@ export function Tags({
 }: {
   fieldName: 'expense.tagNames' | 'income.tagNames' | 'transfer.tagNames';
 }) {
-  const {control} = useFormContext<TransactionFormSchema>();
+  const {control, formState} = useFormContext<TransactionFormSchema>();
   return (
     <FormField
       control={control}
@@ -23,7 +23,11 @@ export function Tags({
         <FormItem className="col-span-6">
           <FormLabel>Tags</FormLabel>
           <FormControl>
-            <TagsSelect value={field.value} onChange={field.onChange} />
+            <TagsSelect
+              value={field.value}
+              onChange={field.onChange}
+              disabled={formState.isSubmitting}
+            />
           </FormControl>
           <FormMessage />
         </FormItem>
