@@ -1,6 +1,11 @@
-import {getMostFrequentlyUsed} from '@/components/txform/v2/income/inputs/Category';
+import {
+  findTopCategoryIds,
+  isRecent,
+  matchesPayer,
+} from '@/components/txform/v2/shared/useTopCategoryIds';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {isIncome} from '@/lib/model/transaction/Transaction';
 import {useEffect} from 'react';
 import {useFormContext, useWatch} from 'react-hook-form';
 
@@ -11,7 +16,11 @@ export function UpdateCategoryOnPayerChange() {
   const {transactions} = useAllDatabaseDataContext();
   const payer = useWatch({control, name: 'income.payer', exact: true});
   useEffect(() => {
-    const [mostFrequent] = getMostFrequentlyUsed({payer, transactions});
+    const [mostFrequent] = findTopCategoryIds({
+      transactions,
+      filters: [isIncome, matchesPayer(payer), isRecent],
+      want: 1,
+    });
     if (mostFrequent) {
       // Update the category all the time, even when user touched the field. The reasoning is the following:
       //  - User fills in the form top to bottom, the vendor input is before category.
