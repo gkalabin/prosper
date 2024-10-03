@@ -1,4 +1,6 @@
+import {assert} from '@/lib/assert';
 import {uniqMostFrequentIgnoringEmpty} from '@/lib/collections';
+import {BankAccount} from '@/lib/model/BankAccount';
 import {
   otherPartyNameOrNull,
   Transaction,
@@ -41,4 +43,27 @@ export function mostFrequentRepaymentCategories(
     return [];
   }
   return uniqMostFrequentIgnoringEmpty(links.map(l => l.linked.categoryId));
+}
+
+export function mostFrequentBankAccount({
+  transactions,
+  bankAccounts,
+  transactionToAccountId,
+}: {
+  transactions: Transaction[];
+  bankAccounts: BankAccount[];
+  transactionToAccountId: (t: Transaction) => number | null;
+}) {
+  assert(bankAccounts.length > 0);
+  const [mostFrequent] = uniqMostFrequentIgnoringEmpty(
+    transactions.map(transactionToAccountId)
+  );
+  if (mostFrequent) {
+    return mostFrequent;
+  }
+  // If no relevant transactions found, the most frequent value will not be defined,
+  // so fall back to the first visible account in that case.
+  const accountId =
+    bankAccounts.filter(a => !a.archived)[0]?.id ?? bankAccounts[0].id;
+  return accountId;
 }

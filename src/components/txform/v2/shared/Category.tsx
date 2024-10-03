@@ -1,7 +1,7 @@
 import {CategorySelect} from '@/components/txform/v2/shared/CategorySelect';
 import {
   TransactionFilterFn,
-  useTopCategoryIds,
+  useTopCategoriesMatchMost,
 } from '@/components/txform/v2/shared/useTopCategoryIds';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {
@@ -21,7 +21,7 @@ export function Category({
   filters: TransactionFilterFn[];
 }) {
   const {control} = useFormContext<TransactionFormSchema>();
-  const mostFrequentlyUsedCategoryIds = useTopCategoryIds({
+  const mostFrequentlyUsedCategoryIds = useTopCategoriesMatchMost({
     filters,
     want: 5,
   });

@@ -3,10 +3,17 @@ import {
   RepaymentTransactionFormSchema,
 } from '@/components/txform/v2/expense/types';
 import {IncomeFormSchema} from '@/components/txform/v2/income/types';
-import {mostFrequentCompanion} from '@/components/txform/v2/prefill';
+import {
+  mostFrequentBankAccount,
+  mostFrequentCompanion,
+} from '@/components/txform/v2/prefill';
+import {
+  isRecent,
+  matchesVendor,
+  topCategoriesMatchMost,
+} from '@/components/txform/v2/shared/useTopCategoryIds';
 import {TransferFormSchema} from '@/components/txform/v2/transfer/types';
 import {assert} from '@/lib/assert';
-import {uniqMostFrequent} from '@/lib/collections';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Category} from '@/lib/model/Category';
 import {Tag} from '@/lib/model/Tag';
@@ -28,7 +35,7 @@ import {
 import {Trip} from '@/lib/model/Trip';
 import {WithdrawalPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {centsToDollar} from '@/lib/util/util';
-import {differenceInMonths, startOfDay} from 'date-fns';
+import {startOfDay} from 'date-fns';
 
 export function expenseFormEmpty({
   transactions,
@@ -43,14 +50,22 @@ export function expenseFormEmpty({
   // so fall back to the first category in that case.
   assert(categories.length > 0);
   const categoryId =
-    mostFrequentCategory(transactions, null) ?? categories[0].id;
+    topCategoriesMatchMost({
+      transactions,
+      filters: [isExpense, isRecent],
+      want: 1,
+    })[0] ?? categories[0].id;
   const values: ExpenseFormSchema = {
     timestamp: startOfDay(new Date()),
     amount: 0,
     ownShareAmount: 0,
     vendor: '',
     categoryId,
-    accountId: mostFrequentAccount(transactions, bankAccounts),
+    accountId: mostFrequentBankAccount({
+      transactions,
+      bankAccounts,
+      transactionToAccountId: t => (isPersonalExpense(t) ? t.accountId : null),
+    }),
     tagNames: [],
     sharingType: 'PAID_SELF_NOT_SHARED',
     description: null,
@@ -81,7 +96,11 @@ export function expenseFromPrototype({
   // so fall back to the first category in that case.
   assert(categories.length > 0);
   const categoryId =
-    mostFrequentCategory(transactions, proto.description) ?? categories[0].id;
+    topCategoriesMatchMost({
+      transactions,
+      filters: [isExpense, matchesVendor(proto.description), isRecent],
+      want: 1,
+    })[0] ?? categories[0].id;
   const values: ExpenseFormSchema = {
     timestamp: new Date(proto.timestampEpoch),
     amount: centsToDollar(proto.absoluteAmountCents),
@@ -186,7 +205,11 @@ export function incomeToExpense({
   // When switching the form type the user is expecting to see changes in the form and the
   // most frequent value is more likely to be useful compared to the previous mode's category.
   const categoryId =
-    mostFrequentCategory(transactions, prev.payer) ?? prev.categoryId;
+    topCategoriesMatchMost({
+      transactions,
+      filters: [isExpense, matchesVendor(prev.payer), isRecent],
+      want: 1,
+    })[0] ?? prev.categoryId;
   const values: ExpenseFormSchema = {
     timestamp: prev.timestamp,
     amount: prev.amount,
@@ -213,16 +236,21 @@ export function transferToExpense({
   prev: TransferFormSchema;
   transactions: Transaction[];
 }): ExpenseFormSchema {
+  const vendor = prev.description ?? '';
   // Prefer the most frequent category based on the new vendor value.
   // When switching the form type the user is expecting to see changes in the form and the
   // most frequent value is more likely to be useful compared to the previous mode's category.
   const categoryId =
-    mostFrequentCategory(transactions, prev.description) ?? prev.categoryId;
+    topCategoriesMatchMost({
+      transactions,
+      filters: [isExpense, matchesVendor(vendor), isRecent],
+      want: 1,
+    })[0] ?? prev.categoryId;
   const values: ExpenseFormSchema = {
     timestamp: prev.timestamp,
     amount: prev.amountSent,
     ownShareAmount: prev.amountSent,
-    vendor: prev.description ?? '',
+    vendor,
     categoryId,
     accountId: prev.fromAccountId,
     tagNames: [],
@@ -235,48 +263,4 @@ export function transferToExpense({
     repayment: null,
   };
   return values;
-}
-
-function mostFrequentAccount(
-  transactions: Transaction[],
-  bankAccounts: BankAccount[]
-) {
-  assert(bankAccounts.length > 0);
-  const [mostFrequent] = uniqMostFrequent(
-    transactions.filter(isPersonalExpense).map(t => t.accountId)
-  );
-  if (mostFrequent) {
-    return mostFrequent;
-  }
-  // If there are no personal expenses at all, the most frequent value will not be defined,
-  // so fall back to the first visible account in that case.
-  const accountId =
-    bankAccounts.filter(a => !a.archived)[0]?.id ?? bankAccounts[0].id;
-  return accountId;
-}
-
-function recent(t: Transaction): boolean {
-  const now = new Date();
-  return differenceInMonths(now, t.timestampEpoch) < 3;
-}
-
-function mostFrequentCategory(
-  transactions: Transaction[],
-  vendor: string | null
-): number | null {
-  if (vendor) {
-    const expenses = transactions
-      .filter(isExpense)
-      .filter(t => t.vendor == vendor);
-    const [mostFrequent] = uniqMostFrequent(expenses.map(t => t.categoryId));
-    if (mostFrequent) {
-      return mostFrequent;
-    }
-  }
-  const expenses = transactions.filter(recent).filter(isExpense);
-  const [mostFrequent] = uniqMostFrequent(expenses.map(t => t.categoryId));
-  if (mostFrequent) {
-    return mostFrequent;
-  }
-  return null;
 }
