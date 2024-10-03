@@ -53,7 +53,7 @@ export function CategorySelect({
         className="max-h-[--radix-popover-content-available-height] w-[--radix-popover-trigger-width] p-0"
         side="bottom"
       >
-        <Command>
+        <Command filter={filterCategories}>
           <CommandInput placeholder="Search category..." />
           <CommandList>
             <CommandEmpty>No category found.</CommandEmpty>
@@ -130,4 +130,17 @@ function useOptions({
     ];
   }, [mostFrequentlyUsedCategoryIds, categories, tree]);
   return groups;
+}
+
+function filterCategories(value: string, search: string): number {
+  search = search.trim();
+  value = value.trim();
+  if (!search) {
+    // Search query is empty, everything matches.
+    return 1;
+  }
+  if (value.toLowerCase().includes(search.toLowerCase())) {
+    return 1;
+  }
+  return 0;
 }
