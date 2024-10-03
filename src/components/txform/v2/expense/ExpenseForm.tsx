@@ -1,6 +1,5 @@
 import {AccountFrom} from '@/components/txform/v2/expense/inputs/AccountFrom';
 import {Amount} from '@/components/txform/v2/expense/inputs/Amount';
-import {Category} from '@/components/txform/v2/expense/inputs/Category';
 import {Currency} from '@/components/txform/v2/expense/inputs/Currency';
 import {ExtraFields} from '@/components/txform/v2/expense/inputs/ExtraFields';
 import {OwnShareAmount} from '@/components/txform/v2/expense/inputs/OwnShareAmount';
@@ -10,11 +9,18 @@ import {SplitTransactionToggle} from '@/components/txform/v2/expense/inputs/Spli
 import {UpdateCategoryOnVendorChange} from '@/components/txform/v2/expense/inputs/UpdateCategoryOnVendorChange';
 import {Vendor} from '@/components/txform/v2/expense/inputs/Vendor';
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
+import {Category as CategoryCommon} from '@/components/txform/v2/shared/Category';
 import {Companion} from '@/components/txform/v2/shared/Companion';
 import {Tags} from '@/components/txform/v2/shared/Tags';
 import {Timestamp} from '@/components/txform/v2/shared/Timestamp';
 import {UpdateOwnShareOnAmountChange as CommonUpdateOwnShareOnAmountChange} from '@/components/txform/v2/shared/UpdateOwnShareOnAmountChange';
+import {
+  isRecent,
+  matchesVendor,
+} from '@/components/txform/v2/shared/useTopCategoryIds';
+import {isExpense} from '@/lib/model/transaction/Transaction';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
+import {useWatch} from 'react-hook-form';
 
 export function ExpenseForm({proto}: {proto: TransactionPrototype | null}) {
   return (
@@ -36,6 +42,16 @@ export function ExpenseForm({proto}: {proto: TransactionPrototype | null}) {
       <UpdateCategoryOnVendorChange />
       <UpdateOwnShareOnAmountChange />
     </>
+  );
+}
+
+function Category() {
+  const vendor = useWatch({name: 'expense.vendor', exact: true});
+  return (
+    <CategoryCommon
+      fieldName="expense.categoryId"
+      filters={[isExpense, matchesVendor(vendor), isRecent]}
+    />
   );
 }
 
