@@ -87,11 +87,8 @@ function RepaymentAccountFrom() {
 function RepaymentCategory() {
   const {transactionLinks} = useAllDatabaseDataContext();
   const {control} = useFormContext<TransactionFormSchema>();
-  const mostFrequentlyUsedCategoryIds = mostFrequentRepaymentCategories(
-    transactionLinks
-  )
-    // Take just the top 5 values.
-    .slice(0, 5);
+  const mostFrequentlyUsedCategoryIds =
+    mostFrequentRepaymentCategories(transactionLinks);
   return (
     <FormField
       control={control}
