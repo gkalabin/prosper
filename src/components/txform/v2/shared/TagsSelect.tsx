@@ -48,7 +48,7 @@ export function TagsSelect({
           variant="outline"
           role="combobox"
           className={cn(
-            'h-auto w-full p-2',
+            'h-auto w-full p-2 text-base',
             !value.length && 'text-muted-foreground'
           )}
         >
