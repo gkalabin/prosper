@@ -85,8 +85,8 @@ function RepaymentAccountFrom() {
 }
 
 function RepaymentCategory() {
+  const {control, formState} = useFormContext<TransactionFormSchema>();
   const {transactionLinks} = useAllDatabaseDataContext();
-  const {control} = useFormContext<TransactionFormSchema>();
   const mostFrequentlyUsedCategoryIds =
     mostFrequentRepaymentCategories(transactionLinks);
   return (
@@ -101,6 +101,7 @@ function RepaymentCategory() {
               value={field.value}
               onChange={field.onChange}
               mostFrequentlyUsedCategoryIds={mostFrequentlyUsedCategoryIds}
+              disabled={formState.isSubmitting}
             />
           </FormControl>
           <FormMessage />

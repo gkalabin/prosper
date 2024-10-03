@@ -24,9 +24,11 @@ const EXISTING_TAG_PREFIX = 'existing:';
 export function TagsSelect({
   value,
   onChange,
+  disabled,
 }: {
   value: string[];
   onChange: (value: string[]) => void;
+  disabled: boolean;
 }) {
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
@@ -51,6 +53,7 @@ export function TagsSelect({
             'h-auto w-full p-2 text-base',
             !value.length && 'text-muted-foreground'
           )}
+          disabled={disabled}
         >
           <div className="flex w-full flex-row justify-between gap-2">
             <div className="flex grow flex-wrap gap-2">

@@ -27,10 +27,12 @@ export function CategorySelect({
   mostFrequentlyUsedCategoryIds,
   value,
   onChange,
+  disabled,
 }: {
   mostFrequentlyUsedCategoryIds: Array<number>;
   value: number;
   onChange: (id: number) => void;
+  disabled: boolean;
 }) {
   const [optionsOpen, setOptionsOpen] = useState(false);
   const {categories} = useAllDatabaseDataContext();
@@ -44,6 +46,7 @@ export function CategorySelect({
           variant="outline"
           role="combobox"
           className="w-full justify-between p-2 text-base font-normal"
+          disabled={disabled}
         >
           {getNameWithAncestors(mustFindCategory(value, categories), tree)}
           <ChevronUpDownIcon className="ml-2 h-5 w-5 shrink-0 opacity-50" />

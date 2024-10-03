@@ -20,7 +20,7 @@ export function Category({
   fieldName: 'expense.categoryId' | 'income.categoryId' | 'transfer.categoryId';
   filters: TransactionFilterFn[];
 }) {
-  const {control} = useFormContext<TransactionFormSchema>();
+  const {control, formState} = useFormContext<TransactionFormSchema>();
   const mostFrequentlyUsedCategoryIds = useTopCategoriesMatchMost({
     filters,
     want: 5,
@@ -37,6 +37,7 @@ export function Category({
               value={field.value}
               onChange={field.onChange}
               mostFrequentlyUsedCategoryIds={mostFrequentlyUsedCategoryIds}
+              disabled={formState.isSubmitting}
             />
           </FormControl>
           <FormMessage />
