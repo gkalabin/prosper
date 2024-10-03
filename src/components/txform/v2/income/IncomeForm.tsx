@@ -1,5 +1,4 @@
 import {Amount} from '@/components/txform/v2/income/inputs/Amount';
-import {Category} from '@/components/txform/v2/income/inputs/Category';
 import {ExtraFields} from '@/components/txform/v2/income/inputs/ExtraFields';
 import {OwnShareAmount} from '@/components/txform/v2/income/inputs/OwnShareAmount';
 import {Payer} from '@/components/txform/v2/income/inputs/Payer';
@@ -8,10 +7,16 @@ import {UpdateCategoryOnPayerChange} from '@/components/txform/v2/income/inputs/
 import {Account} from '@/components/txform/v2/shared/Account';
 import {Companion} from '@/components/txform/v2/shared/Companion';
 import {Tags} from '@/components/txform/v2/shared/Tags';
+import {Category as CategoryCommon} from '@/components/txform/v2/shared/Category';
 import {Timestamp} from '@/components/txform/v2/shared/Timestamp';
 import {UpdateOwnShareOnAmountChange as CommonUpdateOwnShareOnAmountChange} from '@/components/txform/v2/shared/UpdateOwnShareOnAmountChange';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
-import {useFormContext} from 'react-hook-form';
+import {useFormContext, useWatch} from 'react-hook-form';
+import {
+  isRecent,
+  matchesPayer,
+} from '@/components/txform/v2/shared/useTopCategoryIds';
+import {isIncome} from '@/lib/model/transaction/Transaction';
 
 export function IncomeForm() {
   return (
@@ -30,6 +35,16 @@ export function IncomeForm() {
       <UpdateCategoryOnPayerChange />
       <UpdateOwnShareOnAmountChange />
     </>
+  );
+}
+
+function Category() {
+  const payer = useWatch({name: 'income.payer', exact: true});
+  return (
+    <CategoryCommon
+      fieldName="income.categoryId"
+      filters={[isIncome, matchesPayer(payer), isRecent]}
+    />
   );
 }
 

@@ -1,7 +1,6 @@
 import {CategorySelect} from '@/components/txform/v2/shared/CategorySelect';
 import {
-  isRecent,
-  matchesPayer,
+  TransactionFilterFn,
   useTopCategoryIds,
 } from '@/components/txform/v2/shared/useTopCategoryIds';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
@@ -12,20 +11,24 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {isIncome} from '@/lib/model/transaction/Transaction';
 import {useFormContext} from 'react-hook-form';
 
-export function Category() {
-  const {control, getValues} = useFormContext<TransactionFormSchema>();
-  const payer = getValues('income.payer') ?? '';
+export function Category({
+  fieldName,
+  filters,
+}: {
+  fieldName: 'expense.categoryId' | 'income.categoryId' | 'transfer.categoryId';
+  filters: TransactionFilterFn[];
+}) {
+  const {control} = useFormContext<TransactionFormSchema>();
   const mostFrequentlyUsedCategoryIds = useTopCategoryIds({
-    filters: [isIncome, matchesPayer(payer), isRecent],
+    filters,
     want: 5,
   });
   return (
     <FormField
       control={control}
-      name="income.categoryId"
+      name={fieldName}
       render={({field}) => (
         <FormItem className="col-span-6">
           <FormLabel>Category</FormLabel>
