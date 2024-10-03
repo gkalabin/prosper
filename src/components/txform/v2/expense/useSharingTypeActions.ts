@@ -1,7 +1,7 @@
 import {
   mostFrequentCompanion,
   mostFrequentPayer,
-  mostFrequentRepaymentCategory,
+  mostFrequentRepaymentCategories,
 } from '@/components/txform/v2/prefill';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
@@ -43,7 +43,9 @@ export function useSharingTypeActions() {
       setValue('expense.repayment.timestamp', new Date(proto.timestampEpoch));
       setValue(
         'expense.repayment.categoryId',
-        mostFrequentRepaymentCategory(transactionLinks) ?? categoryId
+        // Calculate the most frequent repayment category right here and not at the top of the function
+        // to avoid unnecessary computations in case the user never needs this value.
+        mostFrequentRepaymentCategories(transactionLinks)[0] ?? categoryId
       );
     } else {
       setValue('expense.sharingType', 'PAID_OTHER_OWED');
@@ -66,7 +68,7 @@ export function useSharingTypeActions() {
     );
     setValue(
       'expense.repayment.categoryId',
-      mostFrequentRepaymentCategory(transactionLinks) ?? categoryId
+      mostFrequentRepaymentCategories(transactionLinks)[0] ?? categoryId
     );
     setValue('expense.repayment.timestamp', getValues('expense.timestamp'));
   };

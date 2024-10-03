@@ -1,4 +1,5 @@
 import {CategorySelect} from '@/components/txform/v2/shared/CategorySelect';
+import {useTopCategoryIds} from '@/components/txform/v2/shared/useTopCategoryIds';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {
   FormControl,
@@ -7,20 +8,15 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {uniqMostFrequent} from '@/lib/collections';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {isTransfer} from '@/lib/model/transaction/Transaction';
-import {useCallback} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function Category() {
-  const {transactions} = useAllDatabaseDataContext();
   const {control} = useFormContext<TransactionFormSchema>();
-  const getMostFrequentlyUsedCallback = useCallback(
-    () =>
-      uniqMostFrequent(transactions.filter(isTransfer).map(t => t.categoryId)),
-    [transactions]
-  );
+  const mostFrequentlyUsedCategoryIds = useTopCategoryIds({
+    filters: [isTransfer],
+    want: 5,
+  });
   return (
     <FormField
       control={control}
@@ -32,7 +28,7 @@ export function Category() {
             <CategorySelect
               value={field.value}
               onChange={field.onChange}
-              getMostFrequentlyUsed={getMostFrequentlyUsedCallback}
+              mostFrequentlyUsedCategoryIds={mostFrequentlyUsedCategoryIds}
             />
           </FormControl>
           <FormMessage />

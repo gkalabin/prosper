@@ -1,5 +1,5 @@
-import {getMostFrequentlyUsed} from '@/components/txform/v2/expense/inputs/Category';
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
+import {mostFrequentRepaymentCategories} from '@/components/txform/v2/prefill';
 import {CategorySelect} from '@/components/txform/v2/shared/CategorySelect';
 import {Timestamp} from '@/components/txform/v2/shared/Timestamp';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
@@ -15,7 +15,6 @@ import {Input} from '@/components/ui/input';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
 import {fullAccountName} from '@/lib/model/BankAccount';
-import {useCallback} from 'react';
 import {useFormContext, useWatch} from 'react-hook-form';
 
 export function RepaymentFields() {
@@ -86,14 +85,13 @@ function RepaymentAccountFrom() {
 }
 
 function RepaymentCategory() {
-  const {transactions} = useAllDatabaseDataContext();
-  const {control, getValues} = useFormContext<TransactionFormSchema>();
-  const vendor = getValues('expense.vendor') ?? '';
-  // TODO: change to filter by repayment categories.
-  const getMostFrequentlyUsedCallback = useCallback(
-    () => getMostFrequentlyUsed({vendor, transactions}),
-    [vendor, transactions]
-  );
+  const {transactionLinks} = useAllDatabaseDataContext();
+  const {control} = useFormContext<TransactionFormSchema>();
+  const mostFrequentlyUsedCategoryIds = mostFrequentRepaymentCategories(
+    transactionLinks
+  )
+    // Take just the top 5 values.
+    .slice(0, 5);
   return (
     <FormField
       control={control}
@@ -105,7 +103,7 @@ function RepaymentCategory() {
             <CategorySelect
               value={field.value}
               onChange={field.onChange}
-              getMostFrequentlyUsed={getMostFrequentlyUsedCallback}
+              mostFrequentlyUsedCategoryIds={mostFrequentlyUsedCategoryIds}
             />
           </FormControl>
           <FormMessage />

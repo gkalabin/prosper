@@ -31,17 +31,14 @@ export function mostFrequentPayer(transactions: Transaction[]): string | null {
   return null;
 }
 
-export function mostFrequentRepaymentCategory(
+export function mostFrequentRepaymentCategories(
   transactionLinks: TransactionLink[]
-): number | null {
+): number[] {
   const links = transactionLinks.filter(
     l => l.linkType == TransactionLinkType.DEBT_SETTLING
   );
   if (links.length == 0) {
-    return null;
+    return [];
   }
-  const [categoryId] = uniqMostFrequentIgnoringEmpty(
-    links.map(l => l.linked.categoryId)
-  );
-  return categoryId || null;
+  return uniqMostFrequentIgnoringEmpty(links.map(l => l.linked.categoryId));
 }

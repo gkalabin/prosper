@@ -24,18 +24,18 @@ import {useMemo, useState} from 'react';
 const MAX_MOST_FREQUENT = 5;
 
 export function CategorySelect({
+  mostFrequentlyUsedCategoryIds,
   value,
   onChange,
-  getMostFrequentlyUsed,
 }: {
+  mostFrequentlyUsedCategoryIds: Array<number>;
   value: number;
   onChange: (id: number) => void;
-  getMostFrequentlyUsed: () => Array<number>;
 }) {
   const [optionsOpen, setOptionsOpen] = useState(false);
   const {categories} = useAllDatabaseDataContext();
   const tree = useMemo(() => makeCategoryTree(categories), [categories]);
-  const groups = useOptions({getMostFrequentlyUsed, tree});
+  const groups = useOptions({mostFrequentlyUsedCategoryIds, tree});
   return (
     <Popover modal={true} open={optionsOpen} onOpenChange={setOptionsOpen}>
       <PopoverTrigger asChild>
@@ -92,15 +92,18 @@ type CategoryOptions = Array<{
 }>;
 
 function useOptions({
-  getMostFrequentlyUsed,
+  mostFrequentlyUsedCategoryIds,
   tree,
 }: {
-  getMostFrequentlyUsed: () => Array<number>;
+  mostFrequentlyUsedCategoryIds: Array<number>;
   tree: CategoryTree;
 }): CategoryOptions {
   const {categories} = useAllDatabaseDataContext();
   const groups = useMemo(() => {
-    const mostFrequentIds = getMostFrequentlyUsed().slice(0, MAX_MOST_FREQUENT);
+    const mostFrequentIds = mostFrequentlyUsedCategoryIds.slice(
+      0,
+      MAX_MOST_FREQUENT
+    );
     const mostFrequent = mostFrequentIds.map(id =>
       mustFindCategory(id, categories)
     );
@@ -125,6 +128,6 @@ function useOptions({
         options: categories.map(toOption),
       },
     ];
-  }, [getMostFrequentlyUsed, categories, tree]);
+  }, [mostFrequentlyUsedCategoryIds, categories, tree]);
   return groups;
 }
