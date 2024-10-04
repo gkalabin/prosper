@@ -7,7 +7,7 @@ import {
   isFullyConfigured,
   NotConfiguredYet,
 } from '@/components/NotConfiguredYet';
-import {TransactionForm} from '@/components/txform/v2/TransactionForm';
+import {TransactionForm} from '@/components/txform/TransactionForm';
 import {Button} from '@/components/ui/button';
 import {
   AllDatabaseDataContextProvider,
