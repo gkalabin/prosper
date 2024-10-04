@@ -1,9 +1,11 @@
 import {
-  CommonCreateAndUpdateInput,
   connectTags,
+  CreateInput,
   getOrCreateTrip,
   includeTagIds,
   toCents,
+  UpdateInput,
+  updateTags,
   writeUsedProtos,
 } from '@/actions/txform/shared';
 import {DatabaseUpdates} from '@/actions/txform/types';
@@ -23,19 +25,23 @@ export async function upsertExpense(
 ) {
   const expense = form.expense;
   assertDefined(expense);
-  const data = makeDbInput(expense, userId);
+  const common = makeDbInput(expense, userId);
   await prisma.$transaction(async tx => {
     const trip = await getOrCreateTrip({
       tx,
       tripName: expense.tripName,
       userId,
     });
-    data.tripId = trip?.id;
     dbUpdates.trip = trip;
-    await connectTags(tx, dbUpdates, data, expense.tagNames, userId);
     if (transaction) {
+      const data: UpdateInput = common;
+      data.tripId = {set: trip?.id ?? null};
+      await updateTags(tx, dbUpdates, data, expense.tagNames, userId);
       await update(tx, dbUpdates, transaction, data, expense, userId);
     } else {
+      const data: CreateInput = common;
+      data.tripId = trip?.id;
+      await connectTags(tx, dbUpdates, common, expense.tagNames, userId);
       await create(tx, dbUpdates, data, expense, protos, userId);
     }
   });
@@ -44,7 +50,7 @@ export async function upsertExpense(
 async function create(
   tx: Prisma.TransactionClient,
   dbUpdates: DatabaseUpdates,
-  data: CommonCreateAndUpdateInput,
+  data: CreateInput,
   expense: ExpenseFormSchema,
   protos: TransactionPrototype[],
   userId: number
@@ -71,7 +77,7 @@ async function update(
   tx: Prisma.TransactionClient,
   dbUpdates: DatabaseUpdates,
   transaction: Transaction,
-  data: CommonCreateAndUpdateInput,
+  data: UpdateInput,
   expense: ExpenseFormSchema,
   userId: number
 ) {
@@ -102,7 +108,7 @@ async function update(
   // so a more sophisticated approach is needed which looks into the current and the futuree state.
   if (repayment && expense.sharingType == 'PAID_OTHER_REPAID') {
     // There is a repayment transaction and it is staying, update it.
-    const repaymentData = makeRepaymentDbData(expense, userId);
+    const repaymentData: UpdateInput = makeRepaymentDbData(expense, userId);
     const updatedRepayment = await tx.transaction.update({
       ...includeTagIds(),
       data: repaymentData,
@@ -159,7 +165,7 @@ async function maybeCreateRepaymentTransaction(
   }
   const repayment = expense.repayment;
   assertDefined(repayment);
-  const data = makeRepaymentDbData(expense, userId);
+  const data: CreateInput = makeRepaymentDbData(expense, userId);
   const repaymentTx = await tx.transaction.create({...includeTagIds(), data});
   dbUpdates.transactions[repaymentTx.id] = repaymentTx;
   const linkData: Prisma.TransactionLinkUncheckedCreateInput = {
@@ -172,10 +178,7 @@ async function maybeCreateRepaymentTransaction(
   return repaymentTx;
 }
 
-function makeDbInput(
-  expense: ExpenseFormSchema,
-  userId: number
-): Prisma.TransactionUncheckedCreateInput {
+function makeDbInput(expense: ExpenseFormSchema, userId: number) {
   const {sharingType} = expense;
   const paidSelf =
     sharingType == 'PAID_SELF_SHARED' || sharingType == 'PAID_SELF_NOT_SHARED';
@@ -221,7 +224,7 @@ function makeDbInput(
   assert(
     sharingType == 'PAID_OTHER_OWED' || sharingType == 'PAID_OTHER_REPAID'
   );
-  const result: Prisma.TransactionUncheckedCreateInput = {
+  const result = {
     transactionType: 'THIRD_PARTY_EXPENSE' as const,
     timestamp: expense.timestamp,
     description: expense.description ?? '',
@@ -243,14 +246,10 @@ function makeDbInput(
   return result;
 }
 
-function makeRepaymentDbData(
-  expense: ExpenseFormSchema,
-  userId: number
-): Prisma.TransactionUncheckedCreateInput &
-  Prisma.TransactionUncheckedUpdateInput {
+function makeRepaymentDbData(expense: ExpenseFormSchema, userId: number) {
   const repayment = expense.repayment;
   assertDefined(repayment);
-  const data: Prisma.TransactionUncheckedCreateInput = {
+  const data = {
     transactionType: 'PERSONAL_EXPENSE' as const,
     timestamp: repayment.timestamp,
     categoryId: repayment.categoryId,

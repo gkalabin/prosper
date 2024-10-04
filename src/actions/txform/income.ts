@@ -1,9 +1,11 @@
 import {
-  CommonCreateAndUpdateInput,
   connectTags,
+  CreateInput,
   deleteAllLinks,
   includeTagIds,
   toCents,
+  UpdateInput,
+  updateTags,
   writeUsedProtos,
 } from '@/actions/txform/shared';
 import {DatabaseUpdates} from '@/actions/txform/types';
@@ -23,12 +25,15 @@ export async function upsertIncome(
 ) {
   const income = form.income;
   assertDefined(income);
-  const data = makeDbInput(income, userId);
+  const common = makeDbInput(income, userId);
   await prisma.$transaction(async tx => {
-    await connectTags(tx, dbUpdates, data, income.tagNames, userId);
     if (transaction) {
+      const data: UpdateInput = common;
+      await updateTags(tx, dbUpdates, data, income.tagNames, userId);
       await update(tx, dbUpdates, transaction, data, income);
     } else {
+      const data: CreateInput = common;
+      await connectTags(tx, dbUpdates, data, income.tagNames, userId);
       await create(tx, dbUpdates, data, income, protos, userId);
     }
   });
@@ -37,7 +42,7 @@ export async function upsertIncome(
 async function create(
   tx: Prisma.TransactionClient,
   dbUpdates: DatabaseUpdates,
-  data: CommonCreateAndUpdateInput,
+  data: CreateInput,
   income: IncomeFormSchema,
   protos: TransactionPrototype[],
   userId: number
@@ -58,7 +63,7 @@ async function update(
   tx: Prisma.TransactionClient,
   dbUpdates: DatabaseUpdates,
   transaction: Transaction,
-  data: CommonCreateAndUpdateInput,
+  data: UpdateInput,
   income: IncomeFormSchema
 ) {
   const updated = await tx.transaction.update({
@@ -95,11 +100,8 @@ async function writeLinks(
   dbUpdates.transactionLinks[newLink.id] = newLink;
 }
 
-function makeDbInput(
-  income: IncomeFormSchema,
-  userId: number
-): Prisma.TransactionUncheckedCreateInput {
-  const result: Prisma.TransactionUncheckedCreateInput = {
+function makeDbInput(income: IncomeFormSchema, userId: number) {
+  return {
     transactionType: 'INCOME' as const,
     timestamp: income.timestamp,
     payer: income.payer,
@@ -121,5 +123,4 @@ function makeDbInput(
     currencyCode: null,
     userId,
   };
-  return result;
 }
