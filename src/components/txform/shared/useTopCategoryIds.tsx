@@ -8,7 +8,7 @@ import {
 import {appendNewItems} from '@/lib/util/util';
 import {differenceInMonths} from 'date-fns';
 
-export function all(t: Transaction) {
+export function all(_unused: Transaction) {
   return true;
 }
 
