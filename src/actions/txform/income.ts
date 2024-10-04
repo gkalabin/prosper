@@ -7,8 +7,8 @@ import {
   writeUsedProtos,
 } from '@/actions/txform/shared';
 import {DatabaseUpdates} from '@/actions/txform/types';
-import {IncomeFormSchema} from '@/components/txform/v2/income/types';
-import {TransactionFormSchema} from '@/components/txform/v2/types';
+import {IncomeFormSchema} from '@/components/txform/income/types';
+import {TransactionFormSchema} from '@/components/txform/types';
 import {assertDefined} from '@/lib/assert';
 import prisma from '@/lib/prisma';
 import {type TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';

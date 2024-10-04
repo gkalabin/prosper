@@ -1,4 +1,4 @@
-import {TransactionFormSchema} from '@/components/txform/v2/types';
+import {TransactionFormSchema} from '@/components/txform/types';
 import {TransactionWithTagIds} from '@/lib/model/AllDatabaseDataModel';
 import {
   Tag as DBTag,

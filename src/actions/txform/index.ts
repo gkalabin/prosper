@@ -9,7 +9,7 @@ import {
 import {
   TransactionFormSchema,
   transactionFormValidationSchema,
-} from '@/components/txform/v2/types';
+} from '@/components/txform/types';
 import {DB} from '@/lib/db';
 import {
   TransactionPrototype,

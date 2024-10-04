@@ -1,4 +1,4 @@
-import {TransactionForm} from '@/components/txform/v2/TransactionForm';
+import {TransactionForm} from '@/components/txform/TransactionForm';
 import {ButtonLink} from '@/components/ui/buttons';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';

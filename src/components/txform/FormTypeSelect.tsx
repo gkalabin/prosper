@@ -1,9 +1,5 @@
+import {FormType} from '@/components/txform/types';
 import classNames from 'classnames';
-import {useFormikContext} from 'formik';
-import {
-  FormModeOld,
-  TransactionFormValues,
-} from '@/lib/model/forms/TransactionFormValues';
 
 const Button = (
   props: React.ButtonHTMLAttributes<HTMLButtonElement> & {active: boolean}
@@ -12,6 +8,7 @@ const Button = (
   return (
     <button
       type="button"
+      // TODO: use cn() and disabled: class name prefix.
       className={classNames(
         className,
         props.disabled
@@ -29,44 +26,39 @@ const Button = (
   );
 };
 
-export const FormTypeSelect = () => {
-  const {
-    values: {mode},
-    setFieldValue,
-    isSubmitting,
-  } = useFormikContext<TransactionFormValues>();
+export const FormTypeSelect = ({
+  value,
+  setValue,
+  disabled,
+}: {
+  value: FormType;
+  setValue: (newValue: FormType) => void;
+  disabled: boolean;
+}) => {
   return (
     <div className="col-span-6 flex justify-center">
       <div className="rounded-md shadow-sm">
         <Button
           className={classNames('rounded-l-lg border')}
-          onClick={() => setFieldValue('mode', FormModeOld.PERSONAL)}
-          active={mode == FormModeOld.PERSONAL}
-          disabled={isSubmitting}
+          onClick={() => setValue('EXPENSE')}
+          active={value == 'EXPENSE'}
+          disabled={disabled}
         >
-          Personal
+          Expense
         </Button>
         <Button
           className={classNames('border-b border-r border-t')}
-          onClick={() => setFieldValue('mode', FormModeOld.EXTERNAL)}
-          active={mode == FormModeOld.EXTERNAL}
-          disabled={isSubmitting}
-        >
-          External
-        </Button>
-        <Button
-          className={classNames('border-b border-r border-t')}
-          onClick={() => setFieldValue('mode', FormModeOld.TRANSFER)}
-          active={mode == FormModeOld.TRANSFER}
-          disabled={isSubmitting}
+          onClick={() => setValue('TRANSFER')}
+          active={value == 'TRANSFER'}
+          disabled={disabled}
         >
           Transfer
         </Button>
         <Button
           className={classNames('rounded-r-md border')}
-          onClick={() => setFieldValue('mode', FormModeOld.INCOME)}
-          active={mode == FormModeOld.INCOME}
-          disabled={isSubmitting}
+          onClick={() => setValue('INCOME')}
+          active={value == 'INCOME'}
+          disabled={disabled}
         >
           Income
         </Button>
