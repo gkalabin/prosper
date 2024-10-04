@@ -3,9 +3,9 @@ import {Category as CategoryCommon} from '@/components/txform/v2/shared/Category
 import {Description} from '@/components/txform/v2/shared/Description';
 import {Tags} from '@/components/txform/v2/shared/Tags';
 import {Timestamp} from '@/components/txform/v2/shared/Timestamp';
-import {Amount} from '@/components/txform/v2/transfer/inputs/Amount';
-import {AmountReceived} from '@/components/txform/v2/transfer/inputs/AmountReceived';
-import {UpdateReceivedAmountOnAmountChange} from '@/components/txform/v2/transfer/inputs/UpdateReceivedAmountOnAmountChange';
+import {Amount} from '@/components/txform/v2/transfer/Amount';
+import {AmountReceived} from '@/components/txform/v2/transfer/AmountReceived';
+import {UpdateReceivedAmountOnAmountChange} from '@/components/txform/v2/transfer/UpdateReceivedAmountOnAmountChange';
 import {isTransfer} from '@/lib/model/transaction/Transaction';
 
 export function TransferForm() {

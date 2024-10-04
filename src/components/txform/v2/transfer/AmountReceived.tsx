@@ -1,5 +1,5 @@
 import {MoneyInput} from '@/components/txform/v2/shared/MoneyInput';
-import {useAccountUnitsEqual} from '@/components/txform/v2/transfer/inputs/Amount';
+import {useAccountUnitsEqual} from '@/components/txform/v2/transfer/Amount';
 import {TransactionFormSchema} from '@/components/txform/v2/types';
 import {
   FormControl,
