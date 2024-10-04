@@ -110,7 +110,7 @@ export const TransactionsListItem = ({
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-  const {tags, bankAccounts, banks, stocks, trips} =
+  const {tags, bankAccounts, banks, stocks, trips, transactionLinks} =
     useAllDatabaseDataContext();
   return (
     <div className="p-2">
@@ -216,6 +216,7 @@ export const TransactionsListItem = ({
               {trips.find(trip => trip.id == t.tripId)?.name ?? 'Unknown trip'}
             </div>
           )}
+          <Links transaction={t} />
         </div>
       )}
       {expanded && (
@@ -234,6 +235,34 @@ export const TransactionsListItem = ({
     </div>
   );
 };
+
+function Links({transaction: {id}}: {transaction: Transaction}) {
+  const {transactionLinks} = useAllDatabaseDataContext();
+  const source = transactionLinks.filter(link => link.source.id == id);
+  const linked = transactionLinks.filter(link => link.linked.id == id);
+  if (!source.length && !linked.length) {
+    return null;
+  }
+  const sourceUI = source.map(link => (
+    <li key={'src:' + link.linked.id}>
+      Transaction {link.linked.id} is linked as {link.linkType}
+    </li>
+  ));
+  const linkedUI = linked.map(link => (
+    <li key={'lnk:' + link.source.id}>
+      Refers to {link.source.id} as {link.linkType}
+    </li>
+  ));
+  return (
+    <div>
+      <div>Links:</div>
+      <ul className="ml-4 list-disc">
+        {sourceUI}
+        {linkedUI}
+      </ul>
+    </div>
+  );
+}
 
 export const TransactionsList = (props: {
   transactions: Transaction[];
