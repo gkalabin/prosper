@@ -31,6 +31,6 @@ export function UpdateCategoryOnChange({
       //  - After the form is submitted, the process repeats. The user is expected to fill in the vendor first.
       setValue(fieldName, mostFrequent);
     }
-  }, [setValue, filters, transactions]);
+  }, [fieldName, setValue, filters, transactions]);
   return null;
 }

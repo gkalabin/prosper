@@ -1,4 +1,3 @@
-import {useSharingType} from '@/components/txform/expense/useSharingType';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {centsToDollar, dollarToCents} from '@/lib/util/util';
 import {useEffect} from 'react';
@@ -27,6 +26,6 @@ export function UpdateOwnShareOnAmountChange({
         centsToDollar(dollarToCents(safeAmount) / 2)
       );
     }
-  }, [setValue, isShared, amount]);
+  }, [ownShareFieldName, setValue, isShared, amount]);
   return null;
 }
