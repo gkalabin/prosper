@@ -8,10 +8,6 @@ import {
 import {appendNewItems} from '@/lib/util/util';
 import {differenceInMonths} from 'date-fns';
 
-export function all(_unused: Transaction) {
-  return true;
-}
-
 export function isRecent(t: Transaction) {
   const now = new Date();
   return differenceInMonths(now, t.timestampEpoch) < 3;
