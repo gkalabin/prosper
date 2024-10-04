@@ -1,4 +1,4 @@
-import {RepaymentToggle} from '@/components/txform/v2/expense/inputs/RepaymentToggle';
+import {RepaymentToggle} from '@/components/txform/v2/expense/RepaymentToggle';
 import {useSharingType} from '@/components/txform/v2/expense/useSharingType';
 import {MoneyInput} from '@/components/txform/v2/shared/MoneyInput';
 import {TransactionFormSchema} from '@/components/txform/v2/types';

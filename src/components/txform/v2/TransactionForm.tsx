@@ -9,7 +9,7 @@ import {
 } from '@/components/txform/v2/defaults';
 import {ExpenseForm} from '@/components/txform/v2/expense/ExpenseForm';
 import {IncomeForm} from '@/components/txform/v2/income/IncomeForm';
-import {NewTransactionSuggestions} from '@/components/txform/v2/suggestions/NewTransactionSuggestions';
+import {NewTransactionSuggestions} from '@/components/txform/v2/NewTransactionSuggestions';
 import {TransferForm} from '@/components/txform/v2/transfer/TransferForm';
 import {
   type FormType,
