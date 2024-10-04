@@ -5,9 +5,9 @@ import {
 } from '@/lib/txsuggestions/TransactionPrototype';
 import {Prisma, Tag, Trip} from '@prisma/client';
 
-export type CommonCreateAndUpdateInput =
-  Prisma.TransactionUncheckedCreateInput &
-    Prisma.TransactionUncheckedUpdateInput;
+export type CreateInput = Prisma.TransactionUncheckedCreateInput;
+
+export type UpdateInput = Prisma.TransactionUncheckedUpdateInput;
 
 export function includeTagIds() {
   return {
@@ -41,15 +41,14 @@ export async function getOrCreateTrip({
   return await tx.trip.create({data: tripNameAndUser});
 }
 
-export async function connectTags(
+async function fetchOrCreateTags(
   tx: Prisma.TransactionClient,
   dbUpdates: DatabaseUpdates,
-  data: CommonCreateAndUpdateInput,
   tagNames: string[],
   userId: number
-): Promise<void> {
+): Promise<Tag[]> {
   if (!tagNames.length) {
-    return;
+    return [];
   }
   const existing: Tag[] = await tx.tag.findMany({
     where: {
@@ -63,11 +62,30 @@ export async function connectTags(
   const created = await Promise.all(
     newNames.map(name => tx.tag.create({data: {name, userId}}))
   );
-  const allTags = [...existing, ...created];
-  if (allTags.length) {
-    data.tags = {connect: allTags.map(({id}) => ({id}))};
-  }
   dbUpdates.tags.push(...created);
+  return [...existing, ...created];
+}
+
+export async function connectTags(
+  tx: Prisma.TransactionClient,
+  dbUpdates: DatabaseUpdates,
+  data: CreateInput,
+  tagNames: string[],
+  userId: number
+): Promise<void> {
+  const allTags = await fetchOrCreateTags(tx, dbUpdates, tagNames, userId);
+  data.tags = {connect: allTags.map(({id}) => ({id}))};
+}
+
+export async function updateTags(
+  tx: Prisma.TransactionClient,
+  dbUpdates: DatabaseUpdates,
+  data: UpdateInput,
+  tagNames: string[],
+  userId: number
+): Promise<void> {
+  const allTags = await fetchOrCreateTags(tx, dbUpdates, tagNames, userId);
+  data.tags = {set: allTags.map(({id}) => ({id}))};
 }
 
 export async function writeUsedProtos({

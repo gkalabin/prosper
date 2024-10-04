@@ -1,9 +1,11 @@
 import {
-  CommonCreateAndUpdateInput,
   connectTags,
+  CreateInput,
   deleteAllLinks,
   includeTagIds,
   toCents,
+  UpdateInput,
+  updateTags,
   writeUsedProtos,
 } from '@/actions/txform/shared';
 import {DatabaseUpdates} from '@/actions/txform/types';
@@ -23,12 +25,15 @@ export async function upsertTransfer(
 ): Promise<void> {
   const transfer = form.transfer;
   assertDefined(transfer);
-  const data = makeDbInput(transfer, userId);
+  const common = makeDbInput(transfer, userId);
   await prisma.$transaction(async tx => {
-    await connectTags(tx, dbUpdates, data, transfer.tagNames, userId);
     if (transaction) {
+      const data: UpdateInput = common;
+      await updateTags(tx, dbUpdates, data, transfer.tagNames, userId);
       await update(tx, dbUpdates, transaction, data);
     } else {
+      const data: CreateInput = common;
+      await connectTags(tx, dbUpdates, data, transfer.tagNames, userId);
       await create(tx, dbUpdates, data, protos, userId);
     }
   });
@@ -37,7 +42,7 @@ export async function upsertTransfer(
 async function create(
   tx: Prisma.TransactionClient,
   dbUpdates: DatabaseUpdates,
-  data: CommonCreateAndUpdateInput,
+  data: CreateInput,
   protos: TransactionPrototype[],
   userId: number
 ) {
@@ -56,7 +61,7 @@ async function update(
   tx: Prisma.TransactionClient,
   dbUpdates: DatabaseUpdates,
   transaction: Transaction,
-  data: CommonCreateAndUpdateInput
+  data: UpdateInput
 ) {
   const updated = await tx.transaction.update({
     ...includeTagIds(),
@@ -72,12 +77,8 @@ async function update(
   await deleteAllLinks(tx, dbUpdates, transaction.id);
 }
 
-function makeDbInput(
-  transfer: TransferFormSchema,
-  userId: number
-): Prisma.TransactionUncheckedCreateInput &
-  Prisma.TransactionUncheckedUpdateInput {
-  const result: Prisma.TransactionUncheckedCreateInput = {
+function makeDbInput(transfer: TransferFormSchema, userId: number) {
+  return {
     transactionType: 'TRANSFER' as const,
     timestamp: transfer.timestamp,
     description: transfer.description ?? '',
@@ -95,5 +96,4 @@ function makeDbInput(
     currencyCode: null,
     userId,
   };
-  return result;
 }
