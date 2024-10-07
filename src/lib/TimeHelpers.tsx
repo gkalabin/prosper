@@ -14,8 +14,3 @@ export function shortRelativeDate(d: Date | number) {
   // Nov 19 '22
   return format(d, "MMM dd ''yy");
 }
-
-export function formatMonth(d: Date | number): string {
-  // Nov 2022
-  return format(d, 'MMM yyyy');
-}
