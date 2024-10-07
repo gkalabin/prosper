@@ -110,7 +110,7 @@ export const TransactionsListItem = ({
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-  const {tags, bankAccounts, banks, stocks, trips, transactionLinks} =
+  const {tags, bankAccounts, banks, stocks, trips} =
     useAllDatabaseDataContext();
   return (
     <div className="p-2">
@@ -216,7 +216,8 @@ export const TransactionsListItem = ({
               {trips.find(trip => trip.id == t.tripId)?.name ?? 'Unknown trip'}
             </div>
           )}
-          <Links transaction={t} />
+          <DebtRepaymentDetails transaction={t} />
+          <RefundDetails transaction={t} />
         </div>
       )}
       {expanded && (
@@ -236,32 +237,83 @@ export const TransactionsListItem = ({
   );
 };
 
-function Links({transaction: {id}}: {transaction: Transaction}) {
+function DebtRepaymentDetails({transaction: {id}}: {transaction: Transaction}) {
   const {transactionLinks} = useAllDatabaseDataContext();
-  const source = transactionLinks.filter(link => link.source.id == id);
-  const linked = transactionLinks.filter(link => link.linked.id == id);
-  if (!source.length && !linked.length) {
+  const debts = transactionLinks
+    .filter(l => l.kind == 'DEBT_SETTLING')
+    .filter(l => l.id == id);
+  if (!debts.length) {
     return null;
   }
-  const sourceUI = source.map(link => (
-    <li key={'src:' + link.linked.id}>
-      Transaction {link.linked.id} is linked as {link.linkType}
-    </li>
-  ));
-  const linkedUI = linked.map(link => (
-    <li key={'lnk:' + link.source.id}>
-      Refers to {link.source.id} as {link.linkType}
-    </li>
-  ));
-  return (
+  if (debts.length > 1) {
+    return (
+      <div className="text-destructive">
+        Multiple debt links found: {debts.map(d => d.id).join(', ')}
+      </div>
+    );
+  }
+  const {id: linkId, expense, repayment} = debts[0];
+  if (id == expense.id) {
+    return (
+      <div>
+        <div>This expense was repaid in</div>
+        <div className="ml-4">
+          {repayment.vendor} on {format(repayment.timestampEpoch, 'yyyy-MM-dd')}
+        </div>
+      </div>
+    );
+  }
+  if (id == repayment.id) {
     <div>
-      <div>Links:</div>
-      <ul className="ml-4 list-disc">
-        {sourceUI}
-        {linkedUI}
-      </ul>
-    </div>
-  );
+      <div>This transaction is a repayment for</div>
+      <div className="ml-4">
+        {expense.vendor} paid by {expense.payer} on{' '}
+        {format(expense.timestampEpoch, 'yyyy-MM-dd')}
+      </div>
+    </div>;
+  }
+  throw new Error(`Link ${linkId} is not connected to transaction ${id}`);
+}
+
+function RefundDetails({transaction: {id}}: {transaction: Transaction}) {
+  const {transactionLinks} = useAllDatabaseDataContext();
+  const links = transactionLinks
+    .filter(l => l.kind == 'REFUND')
+    .filter(l => l.id == id);
+  if (!links.length) {
+    return null;
+  }
+  if (links.length > 1) {
+    return (
+      <div className="text-destructive">
+        Multiple refund links found: {links.map(d => d.id).join(', ')}
+      </div>
+    );
+  }
+  const {id: linkId, expense, refunds} = links[0];
+  if (id == expense.id) {
+    return (
+      <div>
+        <div>This expense was refunded in</div>
+        <ul className="ml-4 list-disc">
+          {refunds.map(r => (
+            <li key={r.id}>
+              {r.payer} on {format(r.timestampEpoch, 'yyyy-MM-dd')}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+  if (refunds.some(r => r.id == id)) {
+    <div>
+      <div>This transaction is a refund for</div>
+      <div className="ml-4">
+        {expense.vendor} on {format(expense.timestampEpoch, 'yyyy-MM-dd')}
+      </div>
+    </div>;
+  }
+  throw new Error(`Link ${linkId} is not connected to transaction ${id}`);
 }
 
 export const TransactionsList = (props: {

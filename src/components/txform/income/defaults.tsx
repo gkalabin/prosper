@@ -18,10 +18,7 @@ import {
   Transaction,
   transactionTags,
 } from '@/lib/model/transaction/Transaction';
-import {
-  TransactionLink,
-  TransactionLinkType,
-} from '@/lib/model/TransactionLink';
+import {TransactionLink} from '@/lib/model/TransactionLink';
 import {DepositPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {centsToDollar} from '@/lib/util/util';
 import {startOfDay} from 'date-fns';
@@ -141,8 +138,8 @@ export function incomeFromTransaction({
   allTags: Tag[];
 }): IncomeFormSchema {
   const tags = transactionTags(t, allTags);
-  const link = allLinks.find(
-    l => l.linkType == TransactionLinkType.REFUND && l.linked.id == t.id
+  const refunds = allLinks.find(
+    l => l.kind == 'REFUND' && l.refunds.some(r => r.id == t.id)
   );
   const values: IncomeFormSchema = {
     timestamp: new Date(t.timestampEpoch),
@@ -154,7 +151,7 @@ export function incomeFromTransaction({
     tagNames: tags.map(t => t.name),
     description: t.note,
     companion: t.companions[0]?.name ?? null,
-    parentTransactionId: link?.linked.id ?? null,
+    parentTransactionId: refunds?.expense.id ?? null,
     isShared: t.companions.length > 0,
   };
   return values;

@@ -302,8 +302,9 @@ export const modelFromDatabaseData = (
     .map(transactionModelFromDB)
     .sort(compareTransactions);
 
-  const transactionLinks = dbData.dbTransactionLinks.map(l =>
-    transactionLinkModelFromDB(l, transactions)
+  const transactionLinks = transactionLinkModelFromDB(
+    dbData.dbTransactionLinks,
+    transactions
   );
   return {
     banks,
