@@ -241,7 +241,7 @@ function DebtRepaymentDetails({transaction: {id}}: {transaction: Transaction}) {
   const {transactionLinks} = useAllDatabaseDataContext();
   const debts = transactionLinks
     .filter(l => l.kind == 'DEBT_SETTLING')
-    .filter(l => l.id == id);
+    .filter(l => l.expense.id == id || l.repayment.id == id);
   if (!debts.length) {
     return null;
   }
@@ -264,13 +264,15 @@ function DebtRepaymentDetails({transaction: {id}}: {transaction: Transaction}) {
     );
   }
   if (id == repayment.id) {
-    <div>
-      <div>This transaction is a repayment for</div>
-      <div className="ml-4">
-        {expense.vendor} paid by {expense.payer} on{' '}
-        {format(expense.timestampEpoch, 'yyyy-MM-dd')}
+    return (
+      <div>
+        <div>This transaction is a repayment for</div>
+        <div className="ml-4">
+          {expense.vendor} paid by {expense.payer} on{' '}
+          {format(expense.timestampEpoch, 'yyyy-MM-dd')}
+        </div>
       </div>
-    </div>;
+    );
   }
   throw new Error(`Link ${linkId} is not connected to transaction ${id}`);
 }
@@ -279,7 +281,7 @@ function RefundDetails({transaction: {id}}: {transaction: Transaction}) {
   const {transactionLinks} = useAllDatabaseDataContext();
   const links = transactionLinks
     .filter(l => l.kind == 'REFUND')
-    .filter(l => l.id == id);
+    .filter(l => l.expense.id == id || l.refunds.some(r => r.id == id));
   if (!links.length) {
     return null;
   }
@@ -306,12 +308,14 @@ function RefundDetails({transaction: {id}}: {transaction: Transaction}) {
     );
   }
   if (refunds.some(r => r.id == id)) {
-    <div>
-      <div>This transaction is a refund for</div>
-      <div className="ml-4">
-        {expense.vendor} on {format(expense.timestampEpoch, 'yyyy-MM-dd')}
+    return (
+      <div>
+        <div>This transaction is a refund for</div>
+        <div className="ml-4">
+          {expense.vendor} on {format(expense.timestampEpoch, 'yyyy-MM-dd')}
+        </div>
       </div>
-    </div>;
+    );
   }
   throw new Error(`Link ${linkId} is not connected to transaction ${id}`);
 }
