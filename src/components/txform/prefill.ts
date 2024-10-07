@@ -5,10 +5,7 @@ import {
   otherPartyNameOrNull,
   Transaction,
 } from '@/lib/model/transaction/Transaction';
-import {
-  TransactionLink,
-  TransactionLinkType,
-} from '@/lib/model/TransactionLink';
+import {TransactionLink} from '@/lib/model/TransactionLink';
 
 export function mostFrequentCompanion(
   transactions: Transaction[]
@@ -36,13 +33,11 @@ export function mostFrequentPayer(transactions: Transaction[]): string | null {
 export function mostFrequentRepaymentCategories(
   transactionLinks: TransactionLink[]
 ): number[] {
-  const links = transactionLinks.filter(
-    l => l.linkType == TransactionLinkType.DEBT_SETTLING
-  );
+  const links = transactionLinks.filter(l => l.kind == 'DEBT_SETTLING');
   if (links.length == 0) {
     return [];
   }
-  return uniqMostFrequentIgnoringEmpty(links.map(l => l.linked.categoryId));
+  return uniqMostFrequentIgnoringEmpty(links.map(l => l.repayment.categoryId));
 }
 
 export function mostFrequentBankAccount({

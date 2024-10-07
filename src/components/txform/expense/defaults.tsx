@@ -28,10 +28,7 @@ import {
   transactionTags,
   transactionTrip,
 } from '@/lib/model/transaction/Transaction';
-import {
-  TransactionLink,
-  TransactionLinkType,
-} from '@/lib/model/TransactionLink';
+import {TransactionLink} from '@/lib/model/TransactionLink';
 import {Trip} from '@/lib/model/Trip';
 import {WithdrawalPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {centsToDollar} from '@/lib/util/util';
@@ -177,20 +174,16 @@ function findRepayment({
   expense: PersonalExpense | ThirdPartyExpense;
   allLinks: TransactionLink[];
 }): RepaymentTransactionFormSchema | null {
-  const repaymentLink = allLinks.find(
-    l => l.linkType == TransactionLinkType.DEBT_SETTLING && l.source.id == t.id
-  );
-  if (!repaymentLink) {
+  const link = allLinks
+    .filter(l => l.kind == 'DEBT_SETTLING')
+    .find(l => l.expense.id == t.id);
+  if (!link) {
     return null;
   }
-  const repayment = repaymentLink.linked;
-  if (!isPersonalExpense(repayment)) {
-    throw new Error(`Repayment ${repayment.id} is not a personal expense`);
-  }
   return {
-    timestamp: new Date(repayment.timestampEpoch),
-    accountId: repayment.accountId,
-    categoryId: repayment.categoryId,
+    timestamp: new Date(link.repayment.timestampEpoch),
+    accountId: link.repayment.accountId,
+    categoryId: link.repayment.categoryId,
   };
 }
 
