@@ -1,4 +1,5 @@
 import {
+  mostFrequentBankAccount,
   mostFrequentCompanion,
   mostFrequentPayer,
   mostFrequentRepaymentCategories,
@@ -7,6 +8,7 @@ import {TransactionFormSchema} from '@/components/txform/types';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {BankAccount} from '@/lib/model/BankAccount';
+import {isPersonalExpense} from '@/lib/model/transaction/Transaction';
 import {
   TransactionPrototype,
   WithdrawalOrDepositPrototype,
@@ -20,8 +22,19 @@ export function useSharingTypeActions() {
   const defaultPayer = useMostFrequentPayer();
   const defaultCompanion = useMostFrequentCompanion();
   const displayCurrency = useDisplayCurrency();
-  const {transactionLinks, bankAccounts} = useAllDatabaseDataContext();
+  const {transactionLinks, bankAccounts, transactions} =
+    useAllDatabaseDataContext();
   const categoryId = getValues('expense.categoryId');
+
+  // Use functions to avoid calculating these values when user never needs them.
+  const defaultBankAccount = () =>
+    mostFrequentBankAccount({
+      transactions,
+      bankAccounts,
+      transactionToAccountId: t => (isPersonalExpense(t) ? t.accountId : null),
+    });
+  const defaultRepaymentCategory = () =>
+    mostFrequentRepaymentCategories(transactionLinks)[0] ?? categoryId;
 
   const setPaidOther = (anyProto: TransactionPrototype | null) => {
     const proto: WithdrawalOrDepositPrototype | null =
@@ -41,12 +54,7 @@ export function useSharingTypeActions() {
       );
       setValue('expense.repayment.accountId', proto.internalAccountId);
       setValue('expense.repayment.timestamp', new Date(proto.timestampEpoch));
-      setValue(
-        'expense.repayment.categoryId',
-        // Calculate the most frequent repayment category right here and not at the top of the function
-        // to avoid unnecessary computations in case the user never needs this value.
-        mostFrequentRepaymentCategories(transactionLinks)[0] ?? categoryId
-      );
+      setValue('expense.repayment.categoryId', defaultRepaymentCategory());
     } else {
       setValue('expense.sharingType', 'PAID_OTHER_OWED');
       setValue('expense.currency', displayCurrency.code);
@@ -56,29 +64,26 @@ export function useSharingTypeActions() {
 
   const setPaidSelf = () => {
     setValue('expense.sharingType', 'PAID_SELF_NOT_SHARED');
+    // Account id might be null when going from transaction paid by someone else to paid by self.
+    // Make sure to set a value to avoid having invalid form state.
+    setValue(
+      'expense.accountId',
+      getValues('expense.accountId') ?? defaultBankAccount()
+    );
     setValue('expense.repayment', null);
     setValue('expense.companion', null);
   };
 
   const setAlreadyRepaid = () => {
     setValue('expense.sharingType', 'PAID_OTHER_REPAID');
-    setValue(
-      'expense.repayment.accountId',
-      getValues('expense.accountId') ?? 0
-    );
-    setValue(
-      'expense.repayment.categoryId',
-      mostFrequentRepaymentCategories(transactionLinks)[0] ?? categoryId
-    );
+    setValue('expense.repayment.accountId', defaultBankAccount());
+    setValue('expense.repayment.categoryId', defaultRepaymentCategory());
     setValue('expense.repayment.timestamp', getValues('expense.timestamp'));
   };
 
   const setOweMoney = () => {
     setValue('expense.sharingType', 'PAID_OTHER_OWED');
-    setValue(
-      'expense.accountId',
-      getValues('expense.repayment.accountId') ?? 0
-    );
+    setValue('expense.accountId', null);
     setValue('expense.repayment', null);
   };
 
