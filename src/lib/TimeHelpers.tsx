@@ -7,11 +7,10 @@ export function shortRelativeDate(d: Date | number) {
     // 2 days ago
     return formatDistance(d, today, {includeSeconds: false, addSuffix: true});
   }
-  // Nov 19
-  return format(d, 'MMM dd');
-}
-
-export function formatMonth(d: Date | number): string {
-  // Nov 2022
-  return format(d, 'MMM yyyy');
+  if (new Date(d).getFullYear() === today.getFullYear()) {
+    // Nov 19
+    return format(d, 'MMM dd');
+  }
+  // Nov 19 '22
+  return format(d, "MMM dd ''yy");
 }

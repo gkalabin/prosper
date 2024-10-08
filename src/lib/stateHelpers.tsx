@@ -1,25 +1,50 @@
-import {TransactionAPIResponse} from '@/app/api/transaction/dbHelpers';
+import {DatabaseUpdates} from '@/actions/txform/types';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {SetStateAction} from 'react';
 
-export function onTransactionChange(setDbData: Setter<AllDatabaseData>) {
-  return ({transaction, trip, tags, prototypes}: TransactionAPIResponse) => {
-    setDbData(old => {
-      let updatedTrips = [...old.dbTrips];
-      if (trip) {
-        updatedTrips = updateOrAppend(updatedTrips, trip);
+export function onTransactionChange(
+  setDbData: Setter<AllDatabaseData>,
+  {trip, tags, prototypes, transactionLinks, transactions}: DatabaseUpdates
+) {
+  setDbData(old => {
+    // Add new trip if any.
+    let updatedTrips = [...old.dbTrips];
+    if (trip) {
+      updatedTrips = updateOrAppend(updatedTrips, trip);
+    }
+    // Add all newly added tags.
+    let updatedTags = [...old.dbTags];
+    tags.forEach(t => (updatedTags = updateOrAppend(updatedTags, t)));
+    // Add all newly added prototypes.
+    const updatedPrototypes = [...old.dbTransactionPrototypes, ...prototypes];
+    // Update the transactions.
+    let updatedTransactions = [...old.dbTransactions];
+    Object.entries(transactions).forEach(([id, transaction]) => {
+      if (transaction) {
+        updatedTransactions = updateOrAppend(updatedTransactions, transaction);
+      } else {
+        updatedTransactions = updatedTransactions.filter(
+          t => t.id !== Number(id)
+        );
       }
-      let updatedTags = [...old.dbTags];
-      tags.forEach(t => (updatedTags = updateOrAppend(updatedTags, t)));
-      const updatedPrototypes = [...old.dbTransactionPrototypes, ...prototypes];
-      return Object.assign({}, old, {
-        dbTransactions: updateOrAppend(old.dbTransactions, transaction),
-        dbTrips: updatedTrips,
-        dbTags: updatedTags,
-        dbTransactionPrototypes: updatedPrototypes,
-      });
     });
-  };
+    // Update the transaction links.
+    let updatedLinks = [...old.dbTransactionLinks];
+    Object.entries(transactionLinks).forEach(([id, link]) => {
+      if (link) {
+        updatedLinks = updateOrAppend(updatedLinks, link);
+      } else {
+        updatedLinks = updatedLinks.filter(l => l.id !== Number(id));
+      }
+    });
+    return Object.assign({}, old, {
+      dbTransactions: updatedTransactions,
+      dbTransactionLinks: updatedLinks,
+      dbTrips: updatedTrips,
+      dbTags: updatedTags,
+      dbTransactionPrototypes: updatedPrototypes,
+    });
+  });
 }
 
 export function updateOrAppend<T extends {id: unknown}>(

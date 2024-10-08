@@ -24,9 +24,18 @@ export function personalExpenseModelFromDB(
   assert(init.transactionType == TransactionType.PERSONAL_EXPENSE);
   const companions = [];
   if (init.ownShareAmountCents != init.outgoingAmountCents) {
-    assertDefined(init.amountCents);
-    assertDefined(init.ownShareAmountCents);
-    assertDefined(init.otherPartyName);
+    assertDefined(
+      init.amountCents,
+      `amountCents is not defined for transaction ${init.id}`
+    );
+    assertDefined(
+      init.ownShareAmountCents,
+      `ownShareAmountCents is not defined for transaction id ${init.id}`
+    );
+    assertDefined(
+      init.otherPartyName,
+      `otherPartyName is not defined for transaction id ${init.id}`
+    );
     companions.push({
       name: init.otherPartyName,
       amountCents: init.amountCents - init.ownShareAmountCents,
@@ -34,8 +43,14 @@ export function personalExpenseModelFromDB(
   }
   // TODO: fill for expenses.
   const refundGroupTransactionIds: number[] = [];
-  assertDefined(init.vendor);
-  assertDefined(init.outgoingAccountId);
+  assertDefined(
+    init.vendor,
+    `vendor is not defined for transaction id ${init.id}`
+  );
+  assertDefined(
+    init.outgoingAccountId,
+    `outgoingAccountId is not defined for transaction id ${init.id}`
+  );
   return {
     kind: 'PersonalExpense',
     id: init.id,

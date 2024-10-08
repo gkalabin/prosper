@@ -1,9 +1,4 @@
-import {TransactionPrototype as DBTransactionPrototype} from '@prisma/client';
-import assert from 'assert';
-import classNames from 'classnames';
 import {ButtonLink} from '@/components/ui/buttons';
-import {format} from 'date-fns';
-import {useFormikContext} from 'formik';
 import {uniqMostFrequent} from '@/lib/collections';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
@@ -30,6 +25,10 @@ import {
   WithdrawalOrDepositPrototype,
 } from '@/lib/txsuggestions/TransactionPrototype';
 import {combineTransfers} from '@/lib/txsuggestions/TransfersDetection';
+import {TransactionPrototype as DBTransactionPrototype} from '@prisma/client';
+import assert from 'assert';
+import classNames from 'classnames';
+import {format} from 'date-fns';
 import {useEffect, useState} from 'react';
 
 export function fillMostCommonDescriptions(input: {
@@ -75,6 +74,7 @@ export function fillMostCommonDescriptions(input: {
 export const NewTransactionSuggestions = (props: {
   activePrototype: TransactionPrototype | null;
   onItemClick: (t: TransactionPrototype) => void;
+  disabled: boolean;
 }) => {
   const {transactions, isError, isLoading} = useOpenBankingTransactions();
   if (isError) {
@@ -102,6 +102,7 @@ const NonEmptyNewTransactionSuggestions = (props: {
   openBankingTransactions: WithdrawalOrDepositPrototype[];
   activePrototype: TransactionPrototype | null;
   onItemClick: (t: TransactionPrototype) => void;
+  disabled: boolean;
 }) => {
   const {transactions, banks, transactionPrototypes} =
     useAllDatabaseDataContext();
@@ -157,7 +158,7 @@ const NonEmptyNewTransactionSuggestions = (props: {
             <div key={account.id} className="ml-2 inline-block">
               <ButtonLink
                 onClick={() => setActiveAccount(account)}
-                disabled={account.id == activeAccount?.id}
+                disabled={props.disabled || account.id == activeAccount?.id}
               >
                 {fullAccountName(account, banks)}
               </ButtonLink>
@@ -171,6 +172,7 @@ const NonEmptyNewTransactionSuggestions = (props: {
         activePrototype={props.activePrototype}
         onItemClick={props.onItemClick}
         bankAccount={activeAccount}
+        disabled={props.disabled}
       />
     </div>
   );
@@ -181,6 +183,7 @@ function SuggestionsList(props: {
   bankAccount: BankAccount;
   activePrototype: TransactionPrototype | null;
   onItemClick: (t: TransactionPrototype) => void;
+  disabled: boolean;
 }) {
   const items = props.items.sort(
     (a, b) =>
@@ -217,6 +220,7 @@ function SuggestionsList(props: {
           isActive={sameProto(proto, props.activePrototype)}
           bankAccount={props.bankAccount}
           onClick={props.onItemClick}
+          disabled={props.disabled}
         />
       ))}
       <div className="p-2 text-sm">
@@ -225,14 +229,14 @@ function SuggestionsList(props: {
         Display{' '}
         <ButtonLink
           onClick={() => setLimit(Math.min(limit + 5, items.length))}
-          disabled={limit >= items.length}
+          disabled={props.disabled || limit >= items.length}
         >
           more
         </ButtonLink>
         {' or '}
         <ButtonLink
           onClick={() => setLimit(limit - 5)}
-          disabled={displayItems.length <= 5}
+          disabled={props.disabled || displayItems.length <= 5}
         >
           less
         </ButtonLink>{' '}
@@ -273,13 +277,14 @@ function SuggestionItem({
   isActive,
   bankAccount,
   onClick,
+  disabled,
 }: {
   proto: TransactionPrototype;
   isActive: boolean;
   bankAccount: BankAccount;
   onClick: (t: TransactionPrototype) => void;
+  disabled: boolean;
 }) {
-  const {isSubmitting} = useFormikContext();
   const {transactions, transactionPrototypes, bankAccounts, banks, stocks} =
     useAllDatabaseDataContext();
   const singleOpProto = singleOperationProto(proto, bankAccount);
@@ -293,7 +298,7 @@ function SuggestionItem({
     t => t.id == usedProto?.internalTransactionId
   );
   const handleClick = () => {
-    if (isSubmitting) {
+    if (disabled) {
       return;
     }
     onClick(proto);

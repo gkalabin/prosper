@@ -1,9 +1,5 @@
-import {ChevronDownIcon, ChevronRightIcon} from '@heroicons/react/24/outline';
-import {TransactionAPIResponse} from '@/app/api/transaction/dbHelpers';
-import classNames from 'classnames';
-import {AddTransactionForm} from '@/components/txform/AddTransactionForm';
+import {TransactionForm} from '@/components/txform/TransactionForm';
 import {ButtonLink} from '@/components/ui/buttons';
-import {format} from 'date-fns';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {fullAccountName} from '@/lib/model/BankAccount';
@@ -33,6 +29,9 @@ import {
   ownShareAmountIgnoreRefunds,
   paidTotal,
 } from '@/lib/model/transaction/amounts';
+import {ChevronDownIcon, ChevronRightIcon} from '@heroicons/react/24/outline';
+import classNames from 'classnames';
+import {format} from 'date-fns';
 import {useState} from 'react';
 
 const TransactionTitle = ({t}: {t: Transaction}) => {
@@ -105,11 +104,9 @@ const TransactionAmount = (props: {transaction: Transaction}) => {
 export const TransactionsListItem = ({
   transaction: t,
   categoryTree,
-  onUpdated,
 }: {
   transaction: Transaction;
   categoryTree: CategoryTree;
-  onUpdated: (response: TransactionAPIResponse) => void;
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
@@ -219,6 +216,8 @@ export const TransactionsListItem = ({
               {trips.find(trip => trip.id == t.tripId)?.name ?? 'Unknown trip'}
             </div>
           )}
+          <DebtRepaymentDetails transaction={t} />
+          <RefundDetails transaction={t} />
         </div>
       )}
       {expanded && (
@@ -229,12 +228,8 @@ export const TransactionsListItem = ({
         </div>
       )}
       {expanded && showEditForm && (
-        <AddTransactionForm
+        <TransactionForm
           transaction={t}
-          onAddedOrUpdated={updated => {
-            onUpdated(updated);
-            setShowEditForm(false);
-          }}
           onClose={() => setShowEditForm(false)}
         />
       )}
@@ -242,9 +237,91 @@ export const TransactionsListItem = ({
   );
 };
 
+function DebtRepaymentDetails({transaction: {id}}: {transaction: Transaction}) {
+  const {transactionLinks} = useAllDatabaseDataContext();
+  const debts = transactionLinks
+    .filter(l => l.kind == 'DEBT_SETTLING')
+    .filter(l => l.expense.id == id || l.repayment.id == id);
+  if (!debts.length) {
+    return null;
+  }
+  if (debts.length > 1) {
+    return (
+      <div className="text-destructive">
+        Multiple debt links found: {debts.map(d => d.id).join(', ')}
+      </div>
+    );
+  }
+  const {id: linkId, expense, repayment} = debts[0];
+  if (id == expense.id) {
+    return (
+      <div>
+        <div>This expense was repaid in</div>
+        <div className="ml-4">
+          {repayment.vendor} on {format(repayment.timestampEpoch, 'yyyy-MM-dd')}
+        </div>
+      </div>
+    );
+  }
+  if (id == repayment.id) {
+    return (
+      <div>
+        <div>This transaction is a repayment for</div>
+        <div className="ml-4">
+          {expense.vendor} paid by {expense.payer} on{' '}
+          {format(expense.timestampEpoch, 'yyyy-MM-dd')}
+        </div>
+      </div>
+    );
+  }
+  throw new Error(`Link ${linkId} is not connected to transaction ${id}`);
+}
+
+function RefundDetails({transaction: {id}}: {transaction: Transaction}) {
+  const {transactionLinks} = useAllDatabaseDataContext();
+  const links = transactionLinks
+    .filter(l => l.kind == 'REFUND')
+    .filter(l => l.expense.id == id || l.refunds.some(r => r.id == id));
+  if (!links.length) {
+    return null;
+  }
+  if (links.length > 1) {
+    return (
+      <div className="text-destructive">
+        Multiple refund links found: {links.map(d => d.id).join(', ')}
+      </div>
+    );
+  }
+  const {id: linkId, expense, refunds} = links[0];
+  if (id == expense.id) {
+    return (
+      <div>
+        <div>This expense was refunded in</div>
+        <ul className="ml-4 list-disc">
+          {refunds.map(r => (
+            <li key={r.id}>
+              {r.payer} on {format(r.timestampEpoch, 'yyyy-MM-dd')}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+  if (refunds.some(r => r.id == id)) {
+    return (
+      <div>
+        <div>This transaction is a refund for</div>
+        <div className="ml-4">
+          {expense.vendor} on {format(expense.timestampEpoch, 'yyyy-MM-dd')}
+        </div>
+      </div>
+    );
+  }
+  throw new Error(`Link ${linkId} is not connected to transaction ${id}`);
+}
+
 export const TransactionsList = (props: {
   transactions: Transaction[];
-  onTransactionUpdated: (response: TransactionAPIResponse) => void;
   displayLimit?: number;
 }) => {
   const [displayLimit, setDisplayLimit] = useState(props.displayLimit || 10);
@@ -263,7 +340,6 @@ export const TransactionsList = (props: {
               key={t.id}
               transaction={t}
               categoryTree={categoryTree}
-              onUpdated={props.onTransactionUpdated}
             />
           ))}
           <li className="bg-slate-50 p-2 text-center text-lg font-medium">
