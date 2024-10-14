@@ -4,19 +4,25 @@ import {
   isFullyConfigured,
 } from '@/components/NotConfiguredYet';
 import {
+  FiltersFormSchema,
+  filtersFormValidationSchema,
+} from '@/components/transactions/filters/FiltersFormSchema';
+import {useFilteredTransactions} from '@/components/transactions/filters/TransactionFilters';
+import {
   SearchForAnythingInput,
   TransactionFiltersForm,
-  initialTransactionFilters,
-  useFilteredTransactions,
-} from '@/components/transactions/TransactionFilters';
-import {TransactionStats} from '@/components/transactions/TransactionStats';
+} from '@/components/transactions/filters/TransactionFiltersForm';
+import {UpdateQueryOnFormChange} from '@/components/transactions/filters/UpdateQueryOnFormChange';
 import {TransactionsList} from '@/components/transactions/TransactionsList';
+import {TransactionStats} from '@/components/transactions/TransactionStats';
 import {ButtonPagePrimary} from '@/components/ui/buttons';
+import {Form} from '@/components/ui/form';
 import {AllDatabaseDataContextProvider} from '@/lib/context/AllDatabaseDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {ChartPieIcon, FunnelIcon} from '@heroicons/react/24/outline';
-import {Formik} from 'formik';
+import {zodResolver} from '@hookform/resolvers/zod';
 import {useState} from 'react';
+import {useForm} from 'react-hook-form';
 
 function NonEmptyPageContent() {
   const [showFiltersForm, setShowFiltersForm] = useState(false);
@@ -62,14 +68,30 @@ function NonEmptyPageContent() {
 }
 
 export function TransactionsPage({dbData}: {dbData: AllDatabaseData}) {
+  const form = useForm<FiltersFormSchema>({
+    resolver: zodResolver(filtersFormValidationSchema),
+    defaultValues: {
+      query: '',
+      transactionTypes: [],
+      vendor: '',
+      timeFrom: '',
+      timeTo: '',
+      accountIds: [],
+      categoryIds: [],
+      tripNames: [],
+      tagIds: [],
+      allTagsShouldMatch: false,
+    },
+  });
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }
   return (
-    <AllDatabaseDataContextProvider dbData={dbData}>
-      <Formik onSubmit={() => {}} initialValues={initialTransactionFilters}>
+    <Form {...form}>
+      <AllDatabaseDataContextProvider dbData={dbData}>
+        <UpdateQueryOnFormChange />
         <NonEmptyPageContent />
-      </Formik>
-    </AllDatabaseDataContextProvider>
+      </AllDatabaseDataContextProvider>
+    </Form>
   );
 }
