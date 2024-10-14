@@ -4,19 +4,20 @@ import {OwnShareAmount} from '@/components/txform/income/OwnShareAmount';
 import {Payer} from '@/components/txform/income/Payer';
 import {SplitTransactionToggle} from '@/components/txform/income/SplitTransactionToggle';
 import {Account} from '@/components/txform/shared/Account';
+import {Category as CategoryCommon} from '@/components/txform/shared/Category';
 import {Companion} from '@/components/txform/shared/Companion';
 import {Tags} from '@/components/txform/shared/Tags';
-import {Category as CategoryCommon} from '@/components/txform/shared/Category';
 import {Timestamp} from '@/components/txform/shared/Timestamp';
+import {UpdateCategoryOnChange} from '@/components/txform/shared/UpdateCategoryOnChange';
 import {UpdateOwnShareOnAmountChange as CommonUpdateOwnShareOnAmountChange} from '@/components/txform/shared/UpdateOwnShareOnAmountChange';
-import {TransactionFormSchema} from '@/components/txform/types';
-import {useFormContext, useWatch} from 'react-hook-form';
 import {
   isRecent,
   matchesPayer,
 } from '@/components/txform/shared/useTopCategoryIds';
+import {TransactionFormSchema} from '@/components/txform/types';
 import {isIncome} from '@/lib/model/transaction/Transaction';
-import {UpdateCategoryOnChange} from '@/components/txform/shared/UpdateCategoryOnChange';
+import {useMemo} from 'react';
+import {useFormContext, useWatch} from 'react-hook-form';
 
 export function IncomeForm() {
   return (
@@ -40,22 +41,19 @@ export function IncomeForm() {
 
 function UpdateCategoryOnPayerChange() {
   const payer = useWatch({name: 'income.payer', exact: true});
+  const filters = useMemo(() => [isIncome, matchesPayer(payer)], [payer]);
   return (
-    <UpdateCategoryOnChange
-      fieldName="income.categoryId"
-      filters={[isIncome, matchesPayer(payer)]}
-    />
+    <UpdateCategoryOnChange fieldName="income.categoryId" filters={filters} />
   );
 }
 
 function Category() {
   const payer = useWatch({name: 'income.payer', exact: true});
-  return (
-    <CategoryCommon
-      fieldName="income.categoryId"
-      filters={[isIncome, matchesPayer(payer), isRecent]}
-    />
+  const filters = useMemo(
+    () => [isIncome, matchesPayer(payer), isRecent],
+    [payer]
   );
+  return <CategoryCommon fieldName="income.categoryId" filters={filters} />;
 }
 
 function MaybeEmptyCompanion() {
