@@ -20,6 +20,7 @@ import {
 } from '@/components/txform/shared/useTopCategoryIds';
 import {isExpense} from '@/lib/model/transaction/Transaction';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
+import {useMemo} from 'react';
 import {useWatch} from 'react-hook-form';
 
 export function ExpenseForm({proto}: {proto: TransactionPrototype | null}) {
@@ -47,22 +48,19 @@ export function ExpenseForm({proto}: {proto: TransactionPrototype | null}) {
 
 function UpdateCategoryOnVendorChange() {
   const vendor = useWatch({name: 'expense.vendor', exact: true});
+  const filters = useMemo(() => [isExpense, matchesVendor(vendor)], [vendor]);
   return (
-    <UpdateCategoryOnChange
-      fieldName="expense.categoryId"
-      filters={[isExpense, matchesVendor(vendor)]}
-    />
+    <UpdateCategoryOnChange fieldName="expense.categoryId" filters={filters} />
   );
 }
 
 function Category() {
   const vendor = useWatch({name: 'expense.vendor', exact: true});
-  return (
-    <CategoryCommon
-      fieldName="expense.categoryId"
-      filters={[isExpense, matchesVendor(vendor), isRecent]}
-    />
+  const filters = useMemo(
+    () => [isExpense, matchesVendor(vendor), isRecent],
+    [vendor]
   );
+  return <CategoryCommon fieldName="expense.categoryId" filters={filters} />;
 }
 
 function MaybeEmptyCompanion() {
