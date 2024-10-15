@@ -20,7 +20,7 @@ import {
   transferFromTransaction,
 } from '@/components/txform/transfer/defaults';
 import {FormType, TransactionFormSchema} from '@/components/txform/types';
-import {assertDefined, assertNotDefined} from '@/lib/assert';
+import {assertDefined} from '@/lib/assert';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Category} from '@/lib/model/Category';
@@ -34,10 +34,7 @@ import {TransactionLink} from '@/lib/model/TransactionLink';
 import {Trip} from '@/lib/model/Trip';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 
-export function useFormDefaults(
-  tx: Transaction | null,
-  proto: TransactionPrototype | null
-): TransactionFormSchema {
+export function useFormDefaults(tx: Transaction | null): TransactionFormSchema {
   const {
     transactions,
     categories,
@@ -47,7 +44,7 @@ export function useFormDefaults(
     trips,
   } = useAllDatabaseDataContext();
   // Initial values when creating new transaction from scratch.
-  if (!tx && !proto) {
+  if (!tx) {
     return {
       formType: 'EXPENSE',
       expense: expenseFormEmpty({
@@ -57,11 +54,6 @@ export function useFormDefaults(
       }),
     };
   }
-  if (!tx) {
-    assertDefined(proto);
-    return valuesForPrototype({proto, transactions, categories, bankAccounts});
-  }
-  assertNotDefined(proto);
   return valuesForTransaction(tx, transactionLinks, tags, trips);
 }
 
