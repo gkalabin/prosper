@@ -1,13 +1,12 @@
 'use client';
 import {upsertTransaction} from '@/actions/txform/index';
-import {FormTypeSelect} from '@/components/txform/FormTypeSelect';
 import {
   emptyValuesForType,
   useFormDefaults,
   valuesForNewType,
-  valuesForPrototype,
 } from '@/components/txform/defaults';
 import {ExpenseForm} from '@/components/txform/expense/ExpenseForm';
+import {FormTypeSelect} from '@/components/txform/FormTypeSelect';
 import {IncomeForm} from '@/components/txform/income/IncomeForm';
 import {NewTransactionSuggestions} from '@/components/txform/NewTransactionSuggestions';
 import {TransferForm} from '@/components/txform/transfer/TransferForm';
@@ -35,7 +34,6 @@ export const TransactionForm = (props: {
   const bankAccounts = useDisplayBankAccounts();
   const [proto, setProto] = useState<TransactionPrototype | null>(null);
   const creatingNewTransaction = !props.transaction;
-  const defaultValues = useFormDefaults(props.transaction, proto);
   // Form values update strategy:
   //  - Existing transaction is either set all the time or not defined. If it's set, there could be no prototype.
   //  - Prototype might be set only when creating new transaction.
@@ -45,7 +43,10 @@ export const TransactionForm = (props: {
   //    like a button which hides/shows some fields.
   const form = useForm<TransactionFormSchema>({
     resolver: zodResolver(transactionFormValidationSchema),
-    defaultValues,
+    // Default values used only when the form renders initially,
+    // when this happens the proto is always null,
+    // so proto is not used for default values calculation.
+    defaultValues: useFormDefaults(props.transaction),
   });
   const formType = form.watch('formType');
   const onFormTypeChange = (newFormType: FormType): void => {
@@ -56,12 +57,6 @@ export const TransactionForm = (props: {
         bankAccounts,
         transactions
       )
-    );
-  };
-  const onPrototypeChange = (proto: TransactionPrototype): void => {
-    setProto(proto);
-    form.reset(
-      valuesForPrototype({proto, bankAccounts, categories, transactions})
     );
   };
   const onSubmit = form.handleSubmit(async (data: TransactionFormSchema) => {
@@ -104,69 +99,74 @@ export const TransactionForm = (props: {
     }
   });
   return (
-    // The form provider is at a very high level and includes the forms for all
-    // the form types (expense, income, transfer), selector for the form type
-    // and the transaction suggestions. This is necessary because
-    //   - The form type selector and suggestions don't make sense without the form.
-    //     Semantially they are a part of the form.
-    //   - Form submission should disable form type selector and suggestions as well.
-    //     The alternative is to keep track of isSubmitting state at the higher level,
-    //     but it invalidates the purpose of incapsulating the form common logic.
-    <Form {...form}>
-      <form onSubmit={onSubmit}>
-        {/* Transaction suggestions only make sense when creating new transaction,
+    <>
+      {/* Transaction suggestions only make sense when creating new transaction,
           they are hidden when updating an existing transaction.
        */}
-        {creatingNewTransaction && (
-          <div className="mb-2">
-            <NewTransactionSuggestions
-              activePrototype={proto}
-              onItemClick={onPrototypeChange}
-              disabled={form.formState.isSubmitting}
-            />
-          </div>
-        )}
-
-        <div className="grid grid-cols-6 gap-x-6 gap-y-3">
-          <FormTypeSelect
-            value={formType}
-            setValue={onFormTypeChange}
+      {creatingNewTransaction && (
+        <div className="mb-2">
+          <NewTransactionSuggestions
+            activePrototype={proto}
+            onItemClick={setProto}
             disabled={form.formState.isSubmitting}
           />
-          {formType == 'EXPENSE' && <ExpenseForm proto={proto} />}
-          {formType == 'TRANSFER' && <TransferForm />}
-          {formType == 'INCOME' && <IncomeForm />}
         </div>
+      )}
 
-        <div className="flex justify-between gap-2 bg-slate-50 px-4 py-3 sm:px-6">
-          <div className="text-sm font-medium text-destructive">
-            {form.formState.errors.root?.message}
-          </div>
-          <div className="flex-none space-x-4">
-            <ButtonFormSecondary
-              onClick={props.onClose}
+      {/**The form provider is at a very high level and includes the forms for all
+          the form types (expense, income, transfer) and selector for the form types.
+          This is necessary because
+            - The form type selector and suggestions don't make sense without the form.
+              Semantially they are a part of the form.
+            - Form submission should disable form type selector and suggestions as well.
+              The alternative is to keep track of isSubmitting state at the higher level,
+              but it invalidates the purpose of incapsulating the form common logic.
+    */}
+      <Form {...form}>
+        <form onSubmit={onSubmit}>
+          <div className="grid grid-cols-6 gap-x-6 gap-y-3">
+            <FormTypeSelect
+              value={formType}
+              setValue={onFormTypeChange}
               disabled={form.formState.isSubmitting}
-            >
-              Cancel
-            </ButtonFormSecondary>
-            <ButtonFormPrimary
-              type="submit"
-              disabled={form.formState.isSubmitting}
-            >
-              {creatingNewTransaction &&
-                form.formState.isSubmitting &&
-                'Adding…'}
-              {creatingNewTransaction && !form.formState.isSubmitting && 'Add'}
-              {!creatingNewTransaction &&
-                form.formState.isSubmitting &&
-                'Updating…'}
-              {!creatingNewTransaction &&
-                !form.formState.isSubmitting &&
-                'Update'}
-            </ButtonFormPrimary>
+            />
+            {formType == 'EXPENSE' && <ExpenseForm proto={proto} />}
+            {formType == 'TRANSFER' && <TransferForm />}
+            {formType == 'INCOME' && <IncomeForm />}
           </div>
-        </div>
-      </form>
-    </Form>
+
+          <div className="flex justify-between gap-2 bg-slate-50 px-4 py-3 sm:px-6">
+            <div className="text-sm font-medium text-destructive">
+              {form.formState.errors.root?.message}
+            </div>
+            <div className="flex-none space-x-4">
+              <ButtonFormSecondary
+                onClick={props.onClose}
+                disabled={form.formState.isSubmitting}
+              >
+                Cancel
+              </ButtonFormSecondary>
+              <ButtonFormPrimary
+                type="submit"
+                disabled={form.formState.isSubmitting}
+              >
+                {creatingNewTransaction &&
+                  form.formState.isSubmitting &&
+                  'Adding…'}
+                {creatingNewTransaction &&
+                  !form.formState.isSubmitting &&
+                  'Add'}
+                {!creatingNewTransaction &&
+                  form.formState.isSubmitting &&
+                  'Updating…'}
+                {!creatingNewTransaction &&
+                  !form.formState.isSubmitting &&
+                  'Update'}
+              </ButtonFormPrimary>
+            </div>
+          </div>
+        </form>
+      </Form>
+    </>
   );
 };
