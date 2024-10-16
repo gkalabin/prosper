@@ -2,7 +2,7 @@ import {
   FiltersFormSchema,
   TransactionType,
 } from '@/components/transactions/filters/FiltersFormSchema';
-import {MultiSelect} from '@/components/transactions/filters/MultiSelect';
+import {MultiSelect} from '@/components/MultiSelect';
 import {Button} from '@/components/ui/button';
 import {
   FormControl,

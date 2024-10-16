@@ -48,7 +48,7 @@ export function MultiSelect<T>({
           variant="outline"
           role="combobox"
           className={cn(
-            'h-10 w-full p-2 text-base',
+            'h-auto min-h-10 w-full p-2 text-base',
             !value.length && 'text-muted-foreground'
           )}
           disabled={disabled}
