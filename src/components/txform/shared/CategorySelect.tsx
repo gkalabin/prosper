@@ -45,7 +45,7 @@ export function CategorySelect({
           type="button"
           variant="outline"
           role="combobox"
-          className="h-10 w-full justify-between p-2 text-base font-normal"
+          className="h-auto min-h-10 w-full justify-between p-2 text-base font-normal"
           disabled={disabled}
         >
           {getNameWithAncestors(mustFindCategory(value, categories), tree)}
