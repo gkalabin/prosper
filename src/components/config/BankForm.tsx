@@ -8,60 +8,56 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {Select} from '@/components/ui/html-select';
 import {Input} from '@/components/ui/input';
 import {
-  CategoryFormSchema,
-  categoryFormValidationSchema,
-} from '@/lib/form-types/CategoryFormSchema';
-import {
-  Category,
-  getNameWithAncestors,
-  makeCategoryTree,
-} from '@/lib/model/Category';
+  BankFormSchema,
+  bankFormValidationSchema,
+} from '@/lib/form-types/BankFormSchema';
+import {Bank} from '@/lib/model/BankAccount';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {Category as DBCategory} from '@prisma/client';
+import {Bank as DBBank} from '@prisma/client';
 import {useState} from 'react';
 import {useForm} from 'react-hook-form';
 
-export const CategoryForm = ({
-  category,
-  categories,
+export const BankForm = ({
+  bank,
+  displayOrder,
   onAddedOrUpdated,
   onClose,
 }: {
-  category?: Category;
-  categories: Category[];
-  onAddedOrUpdated: (addedOrUpdated: DBCategory) => void;
+  bank?: Bank;
+  displayOrder: number;
+  onAddedOrUpdated: (x: DBBank) => void;
   onClose: () => void;
 }) => {
   const [apiError, setApiError] = useState('');
-  const handleSubmit = async (values: CategoryFormSchema) => {
+  const isCreate = !bank;
+
+  const handleSubmit = async (values: BankFormSchema) => {
     setApiError('');
     try {
-      const response = await fetch(
-        `/api/config/category/${category?.id ?? ''}`,
+      const dbDbank = await fetch(
+        `/api/config/bank/${isCreate ? '' : bank.id}`,
         {
-          method: category ? 'PUT' : 'POST',
+          method: isCreate ? 'POST' : 'PUT',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify(values),
         }
       );
-      onAddedOrUpdated(await response.json());
+      onAddedOrUpdated(await dbDbank.json());
     } catch (error) {
-      setApiError(`Failed to update: ${error}`);
+      setApiError(`Failed to add: ${error}`);
     }
   };
 
-  const form = useForm<CategoryFormSchema>({
-    resolver: zodResolver(categoryFormValidationSchema),
+  const form = useForm<BankFormSchema>({
+    resolver: zodResolver(bankFormValidationSchema),
     defaultValues: {
-      name: category?.name ?? '',
-      displayOrder: category?.displayOrder ?? categories.length * 100,
-      parentCategoryId: category?.parentCategoryId ?? undefined,
+      name: bank?.name ?? '',
+      displayOrder: bank?.displayOrder ?? displayOrder,
     },
   });
-  const categoryTree = makeCategoryTree(categories);
+
   return (
     <Form {...form}>
       <form
@@ -73,7 +69,7 @@ export const CategoryForm = ({
           name="name"
           render={({field}) => (
             <FormItem>
-              <FormLabel>Category Name</FormLabel>
+              <FormLabel>Bank Name</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
@@ -81,6 +77,7 @@ export const CategoryForm = ({
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="displayOrder"
@@ -89,26 +86,6 @@ export const CategoryForm = ({
               <FormLabel>Display order (smaller on top)</FormLabel>
               <FormControl>
                 <Input type="number" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="parentCategoryId"
-          render={({field}) => (
-            <FormItem>
-              <FormLabel>Parent Category</FormLabel>
-              <FormControl>
-                <Select {...field}>
-                  <option value="null">No parent</option>
-                  {categories.map(category => (
-                    <option key={category.id} value={category.id}>
-                      {getNameWithAncestors(category, categoryTree)}
-                    </option>
-                  ))}
-                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -123,7 +100,7 @@ export const CategoryForm = ({
             Cancel
           </Button>
           <Button type="submit" disabled={form.formState.isSubmitting}>
-            <AddOrUpdateButtonText add={!category} />
+            <AddOrUpdateButtonText add={isCreate} />
           </Button>
         </div>
         {apiError && <span>{apiError}</span>}
