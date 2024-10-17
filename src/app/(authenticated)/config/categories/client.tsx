@@ -1,8 +1,5 @@
 'use client';
-import {ChevronDownIcon, ChevronRightIcon} from '@heroicons/react/24/outline';
-import {Category as DBCategory} from '@prisma/client';
-import classNames from 'classnames';
-import {AddOrEditCategoryForm} from '@/components/config/AddOrEditCategoryForm';
+import {CategoryForm} from '@/components/config/CategoryForm';
 import {ButtonLink, ButtonPagePrimary} from '@/components/ui/buttons';
 import {
   Category,
@@ -13,6 +10,9 @@ import {
   sortCategories,
 } from '@/lib/model/Category';
 import {updateState} from '@/lib/stateHelpers';
+import {ChevronDownIcon, ChevronRightIcon} from '@heroicons/react/24/outline';
+import {Category as DBCategory} from '@prisma/client';
+import classNames from 'classnames';
 import {useState} from 'react';
 
 const CategoriesList = (props: {
@@ -94,7 +94,7 @@ const EditableCategoryListItem = ({
           )}
         </div>
         {showEditForm && (
-          <AddOrEditCategoryForm
+          <CategoryForm
             category={category}
             categories={allCategories}
             onAddedOrUpdated={x => {
@@ -148,7 +148,7 @@ export function CategoriesConfigPage({
               Add New Category
             </div>
             <div className="ml-4">
-              <AddOrEditCategoryForm
+              <CategoryForm
                 categories={categories}
                 onAddedOrUpdated={x => {
                   setShowAddForm(false);

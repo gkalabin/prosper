@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/buttons';
 import {Form, Formik} from 'formik';
 import {Bank} from '@/lib/model/BankAccount';
-import {BankFormValues} from '@/lib/model/forms/BankFormValues';
+import {BankFormValues} from '@/lib/form-types/BankFormValues';
 import {useState} from 'react';
 
 export const AddOrEditBankForm = ({

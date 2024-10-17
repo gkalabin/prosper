@@ -1,5 +1,5 @@
 import {DB} from '@/lib/db';
-import {UpdateBankRequest} from '@/lib/model/forms/BankFormValues';
+import {UpdateBankRequest} from '@/lib/form-types/BankFormValues';
 import {getUserId} from '@/lib/user';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {NextRequest, NextResponse} from 'next/server';

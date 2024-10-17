@@ -1,4 +1,4 @@
-import {CreateBankRequest} from '@/lib/model/forms/BankFormValues';
+import {CreateBankRequest} from '@/lib/form-types/BankFormValues';
 import prisma from '@/lib/prisma';
 import {getUserId} from '@/lib/user';
 import {NextRequest, NextResponse} from 'next/server';

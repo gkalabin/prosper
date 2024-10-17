@@ -1,6 +1,6 @@
 import {fillUnitData} from '@/app/api/config/bank-account/fillUnitData';
 import {DB} from '@/lib/db';
-import {UpdateBankAccountRequest} from '@/lib/model/forms/BankAccountFormValues';
+import {UpdateBankAccountRequest} from '@/lib/form-types/BankAccountFormValues';
 import prisma from '@/lib/prisma';
 import {getUserId} from '@/lib/user';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
