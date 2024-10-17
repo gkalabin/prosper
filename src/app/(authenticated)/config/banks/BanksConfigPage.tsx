@@ -1,18 +1,9 @@
 'use client';
-import {
-  Bank as DBBank,
-  BankAccount as DBBankAccount,
-  DisplaySettings as DBDisplaySettings,
-  NordigenToken as DBNordigenToken,
-  StarlingToken as DBStarlingToken,
-  Stock as DBStock,
-  TrueLayerToken as DBTrueLayerToken,
-} from '@prisma/client';
 import {ConfigureOpenBankingConnectionLink} from '@/app/(authenticated)/config/banks/ConfigureOpenBankingConnectionLink';
 import {DisconnectOpenBankingLink} from '@/app/(authenticated)/config/banks/DisconnectOpenBankingLink';
 import {ReconnectOpenBankingLink} from '@/app/(authenticated)/config/banks/ReconnectOpenBankingLink';
 import {AddOrEditAccountForm} from '@/components/config/AddOrEditAccountForm';
-import {AddOrEditBankForm} from '@/components/config/AddOrEditBankForm';
+import {BankForm} from '@/components/config/BankForm';
 import {
   AnchorLink,
   ButtonLink,
@@ -23,6 +14,15 @@ import {DisplaySettingsContextProvider} from '@/lib/context/DisplaySettingsConte
 import {Bank, BankAccount} from '@/lib/model/BankAccount';
 import {Stock} from '@/lib/model/Stock';
 import {updateState} from '@/lib/stateHelpers';
+import {
+  Bank as DBBank,
+  BankAccount as DBBankAccount,
+  DisplaySettings as DBDisplaySettings,
+  NordigenToken as DBNordigenToken,
+  StarlingToken as DBStarlingToken,
+  Stock as DBStock,
+  TrueLayerToken as DBTrueLayerToken,
+} from '@prisma/client';
 import {useState} from 'react';
 
 const BanksList = (props: {
@@ -103,13 +103,13 @@ function BanksListItem({
 
         {editBankFormDisplayed && (
           <div className="ml-2 mt-2">
-            <AddOrEditBankForm
+            <BankForm
               bank={bank}
               onAddedOrUpdated={x => {
                 onBankUpdated(x);
                 setEditBankFormDisplayed(false);
               }}
-              onCancelClick={() => setEditBankFormDisplayed(false)}
+              onClose={() => setEditBankFormDisplayed(false)}
               displayOrder={0}
             />
           </div>
@@ -335,13 +335,13 @@ export function BanksConfigPage({
       <>
         {formDisplayed && (
           <div className="mt-4 rounded-md border p-2">
-            <AddOrEditBankForm
+            <BankForm
               displayOrder={banks.length * 100}
               onAddedOrUpdated={x => {
                 onBankAddedOrUpdated(x);
                 setFormDisplayed(false);
               }}
-              onCancelClick={() => setFormDisplayed(false)}
+              onClose={() => setFormDisplayed(false)}
             />
           </div>
         )}
