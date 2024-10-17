@@ -1,4 +1,4 @@
-import {displaySettingsFormValidationSchema} from '@/app/(authenticated)/config/display-settings/DisplaySettingsFormSchema';
+import {displaySettingsFormValidationSchema} from '@/lib/form-types/DisplaySettingsFormSchema';
 import {DB} from '@/lib/db';
 import {findByCode} from '@/lib/model/Currency';
 import prisma from '@/lib/prisma';

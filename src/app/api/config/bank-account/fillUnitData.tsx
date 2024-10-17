@@ -1,5 +1,5 @@
+import {AccountUnitFormValue} from '@/lib/form-types/BankAccountFormValues';
 import {findByCode} from '@/lib/model/Currency';
-import {AccountUnitFormValue} from '@/lib/model/forms/BankAccountFormValues';
 import prisma from '@/lib/prisma';
 import {Prisma} from '@prisma/client';
 import yahooFinance from 'yahoo-finance2';

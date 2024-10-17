@@ -1,4 +1,4 @@
-import {StockFormValue} from '@/lib/model/forms/BankAccountFormValues';
+import {StockFormValue} from '@/lib/form-types/BankAccountFormValues';
 import {getUserId} from '@/lib/user';
 import {NextRequest, NextResponse} from 'next/server';
 import yahooFinance from 'yahoo-finance2';

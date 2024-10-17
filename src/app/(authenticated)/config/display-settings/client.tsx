@@ -1,8 +1,4 @@
 'use client';
-import {
-  DisplaySettingsFormSchema,
-  displaySettingsFormValidationSchema,
-} from '@/app/(authenticated)/config/display-settings/DisplaySettingsFormSchema';
 import {MultiSelect} from '@/components/MultiSelect';
 import {Button} from '@/components/ui/button';
 import {
@@ -15,6 +11,10 @@ import {
 } from '@/components/ui/form';
 import {Select} from '@/components/ui/html-select';
 import {DisplaySettings} from '@/lib/displaySettings';
+import {
+  DisplaySettingsFormSchema,
+  displaySettingsFormValidationSchema,
+} from '@/lib/form-types/DisplaySettingsFormSchema';
 import {
   categoryModelFromDB,
   getNameWithAncestors,
