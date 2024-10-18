@@ -4,6 +4,7 @@ import {
   emptyValuesForType,
   useFormDefaults,
   valuesForNewType,
+  valuesForPrototype,
 } from '@/components/txform/defaults';
 import {ExpenseForm} from '@/components/txform/expense/ExpenseForm';
 import {FormTypeSelect} from '@/components/txform/FormTypeSelect';
@@ -23,7 +24,7 @@ import {Transaction} from '@/lib/model/transaction/Transaction';
 import {onTransactionChange} from '@/lib/stateHelpers';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {useState} from 'react';
+import {useCallback, useState} from 'react';
 import {useForm} from 'react-hook-form';
 
 export const TransactionForm = (props: {
@@ -59,6 +60,15 @@ export const TransactionForm = (props: {
       )
     );
   };
+  const onPrototypeChange = useCallback(
+    (proto: TransactionPrototype): void => {
+      setProto(proto);
+      form.reset(
+        valuesForPrototype({proto, bankAccounts, categories, transactions})
+      );
+    },
+    [bankAccounts, categories, form, transactions]
+  );
   const onSubmit = form.handleSubmit(async (data: TransactionFormSchema) => {
     try {
       const transactionId = props.transaction?.id ?? null;
@@ -107,7 +117,7 @@ export const TransactionForm = (props: {
         <div className="mb-2">
           <NewTransactionSuggestions
             activePrototype={proto}
-            onItemClick={setProto}
+            onItemClick={onPrototypeChange}
             disabled={form.formState.isSubmitting}
           />
         </div>
