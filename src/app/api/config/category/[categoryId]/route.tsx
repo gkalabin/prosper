@@ -1,22 +1,29 @@
-import {Prisma} from '@prisma/client';
 import {DB} from '@/lib/db';
-import {UpdateCategoryRequest} from '@/lib/model/forms/CategoryFormValues';
+import {categoryFormValidationSchema} from '@/lib/form-types/CategoryFormSchema';
 import prisma from '@/lib/prisma';
 import {getUserId} from '@/lib/user';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
+import {Prisma} from '@prisma/client';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function PUT(
   request: NextRequest,
   {params}: {params: {categoryId: string}}
 ): Promise<Response> {
+  const userId = await getUserId();
+  const validatedData = categoryFormValidationSchema.safeParse(
+    await request.json()
+  );
+  if (!validatedData.success) {
+    return new Response(`Invalid form`, {
+      status: 400,
+    });
+  }
+  const {name, parentCategoryId, displayOrder} = validatedData.data;
   const categoryId = positiveIntOrNull(params.categoryId);
   if (!categoryId) {
     return new Response(`categoryId must be an integer`, {status: 400});
   }
-  const {name, parentCategoryId, displayOrder} =
-    (await request.json()) as UpdateCategoryRequest;
-  const userId = await getUserId();
   // Verify user has access.
   const db = new DB({userId});
   const found = await db.categoryFindMany({

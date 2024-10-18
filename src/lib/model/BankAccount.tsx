@@ -1,8 +1,7 @@
-import {Bank as DBBank, BankAccount as DBBankAccount} from '@prisma/client';
 import {mustFindByCode} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';
-
 import {Unit} from '@/lib/model/Unit';
+import {Bank as DBBank, BankAccount as DBBankAccount} from '@prisma/client';
 
 export type Bank = {
   id: number;
@@ -85,4 +84,25 @@ export function fullAccountName(account: BankAccount, banks: Bank[]): string {
     );
   }
   return `${bank.name}: ${account.name}`;
+}
+
+export function mustFindBankAccount(
+  accounts: BankAccount[],
+  id: number
+): BankAccount {
+  const account = accounts.find(a => a.id === id);
+  if (!account) {
+    throw new Error(`Account ${id} not found`);
+  }
+  return account;
+}
+
+export function accountUnitsEqual(a: BankAccount, b: BankAccount): boolean {
+  if (a.currencyCode && b.currencyCode) {
+    return a.currencyCode === b.currencyCode;
+  }
+  if (a.stockId && b.stockId) {
+    return a.stockId === b.stockId;
+  }
+  return false;
 }

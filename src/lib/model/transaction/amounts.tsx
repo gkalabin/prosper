@@ -22,7 +22,7 @@ export function paidTotal(
   });
 }
 
-export function ownShareAmountCentsIgnoreRefuds(
+export function ownShareAmountCentsIgnoreRefunds(
   t: PersonalExpense | ThirdPartyExpense | Income
 ): number {
   const otherPartiesAmountCents = t.companions
@@ -37,7 +37,7 @@ export function ownShareAmountIgnoreRefunds(
   stocks: Stock[]
 ): AmountWithUnit {
   return new AmountWithUnit({
-    amountCents: ownShareAmountCentsIgnoreRefuds(t),
+    amountCents: ownShareAmountCentsIgnoreRefunds(t),
     unit: transactionUnit(t, bankAccounts, stocks),
   });
 }
@@ -73,7 +73,7 @@ export function amountOwnShare(
 ): AmountWithCurrency | undefined {
   const unit = transactionUnit(t, bankAccounts, stocks);
   const ownShare = new Amount({
-    amountCents: ownShareAmountCentsIgnoreRefuds(t),
+    amountCents: ownShareAmountCentsIgnoreRefunds(t),
   });
 
   if (isCurrency(unit)) {

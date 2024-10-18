@@ -3,8 +3,8 @@ import {TransactionsList} from '@/components/transactions/TransactionsList';
 import {ButtonLink} from '@/components/ui/buttons';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {StockAndCurrencyExchange} from '@/lib/ClientSideModel';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {assertDefined} from '@/lib/assert';
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Currency} from '@/lib/model/Currency';
@@ -13,7 +13,6 @@ import {isCurrency, isStock} from '@/lib/model/Unit';
 import {Transaction, isTransfer} from '@/lib/model/transaction/Transaction';
 import {amountSent} from '@/lib/model/transaction/Transfer';
 import {amountAllParties} from '@/lib/model/transaction/amounts';
-import {onTransactionChange} from '@/lib/stateHelpers';
 import {useState} from 'react';
 
 export enum SortingMode {
@@ -71,8 +70,7 @@ export const SortableTransactionsList = (props: {
   const [sorting, setSorting] = useState(
     props.initialSorting ?? SortingMode.DATE_ASC
   );
-  const {setDbData, bankAccounts, stocks, exchange} =
-    useAllDatabaseDataContext();
+  const {bankAccounts, stocks, exchange} = useAllDatabaseDataContext();
   const displayCurrency = useDisplayCurrency();
   if (props.transactions.length == 0) {
     return <div>No transactions.</div>;
@@ -148,11 +146,7 @@ export const SortableTransactionsList = (props: {
 
       <div>
         <CurrencyExchangeFailed failedTransactions={failedToExchange} />
-        <TransactionsList
-          transactions={sortedTransactions}
-          onTransactionUpdated={onTransactionChange(setDbData)}
-          displayLimit={10}
-        />
+        <TransactionsList transactions={sortedTransactions} displayLimit={10} />
       </div>
     </>
   );

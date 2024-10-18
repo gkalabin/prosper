@@ -14,7 +14,7 @@ export type Income = {
   accountId: number;
   categoryId: number;
   tagsIds: number[];
-  tripId?: number;
+  tripId: number | null;
   refundGroupTransactionIds: number[];
 };
 
@@ -24,7 +24,10 @@ export function incomeModelFromDB(init: TransactionWithTagIds): Income {
   if (init.ownShareAmountCents != init.incomingAmountCents) {
     assertDefined(init.incomingAmountCents);
     assertDefined(init.ownShareAmountCents);
-    assertDefined(init.otherPartyName);
+    assertDefined(
+      init.otherPartyName,
+      `otherPartyName is not defined for transaction id ${init.id}`
+    );
     companions.push({
       name: init.otherPartyName,
       amountCents: init.incomingAmountCents - init.ownShareAmountCents,
@@ -48,5 +51,6 @@ export function incomeModelFromDB(init: TransactionWithTagIds): Income {
     categoryId: init.categoryId,
     tagsIds: init.tags.map(t => t.id),
     refundGroupTransactionIds,
+    tripId: init.tripId,
   };
 }

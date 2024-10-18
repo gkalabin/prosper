@@ -16,7 +16,7 @@ import {
   BankAccountFormValues,
   CurrencyFormValue,
   StockFormValue,
-} from '@/lib/model/forms/BankAccountFormValues';
+} from '@/lib/form-types/BankAccountFormValues';
 import {useEffect, useState} from 'react';
 import Async from 'react-select/async';
 
