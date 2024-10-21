@@ -16,6 +16,8 @@ import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {fullAccountName} from '@/lib/model/BankAccount';
 import {getNameWithAncestors, makeCategoryTree} from '@/lib/model/Category';
 import {useFormContext} from 'react-hook-form';
+import {Checkbox} from '@/components/ui/html-checkbox';
+import {cn} from '@/lib/utils';
 
 export function SearchForAnythingInput() {
   const {control} = useFormContext<FiltersFormSchema>();
@@ -68,6 +70,7 @@ export function TransactionFiltersForm(props: {onClose: () => void}) {
     {value: 'transfer', label: 'Transfer'},
     {value: 'income', label: 'Income'},
   ];
+  console.log(cn('w-full', 'w-4'));
   return (
     <div className="grid grid-cols-6 gap-6 bg-white p-2 shadow sm:rounded-md sm:p-6">
       <div className="col-span-6 text-xl font-medium leading-7">Filters</div>
@@ -180,16 +183,12 @@ export function TransactionFiltersForm(props: {onClose: () => void}) {
         name="allTagsShouldMatch"
         render={({field}) => (
           <FormItem className="col-span-6 flex flex-row gap-4">
-            <div className="w-4">
-              <FormControl>
-                <input
-                  type="checkbox"
-                  className="rounded-md border border-input bg-background ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  onChange={e => field.onChange(e.target.checked)}
-                  checked={field.value}
-                />
-              </FormControl>
-            </div>
+            <FormControl className="w-4">
+              <Checkbox
+                checked={field.value}
+                onChange={e => field.onChange(e.target.checked)}
+              />
+            </FormControl>
             <FormLabel className="grow">Match all tags</FormLabel>
           </FormItem>
         )}
