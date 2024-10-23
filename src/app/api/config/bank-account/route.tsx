@@ -1,14 +1,22 @@
 import {Prisma} from '@prisma/client';
 import {fillUnitData} from '@/app/api/config/bank-account/fillUnitData';
-import {CreateBankAccountRequest} from '@/lib/form-types/BankAccountFormValues';
+import {accountFormValidationSchema} from '@/lib/form-types/AccountFormSchema';
 import prisma from '@/lib/prisma';
 import {getUserId} from '@/lib/user';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function POST(request: NextRequest): Promise<Response> {
   const userId = await getUserId();
+  const validatedData = accountFormValidationSchema.safeParse(
+    await request.json()
+  );
+  if (!validatedData.success) {
+    return new Response(`Invalid form`, {
+      status: 400,
+    });
+  }
   const {name, displayOrder, bankId, unit, isJoint, initialBalance} =
-    (await request.json()) as CreateBankAccountRequest;
+    validatedData.data;
   const data: Prisma.BankAccountUncheckedCreateInput = {
     name,
     displayOrder,

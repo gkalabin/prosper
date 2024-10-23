@@ -19,7 +19,7 @@ import {Bank as DBBank} from '@prisma/client';
 import {useState} from 'react';
 import {useForm} from 'react-hook-form';
 
-export const BankForm = ({
+export function BankForm({
   bank,
   displayOrder,
   onAddedOrUpdated,
@@ -29,7 +29,7 @@ export const BankForm = ({
   displayOrder: number;
   onAddedOrUpdated: (x: DBBank) => void;
   onClose: () => void;
-}) => {
+}) {
   const [apiError, setApiError] = useState('');
   const isCreate = !bank;
 
@@ -91,6 +91,11 @@ export const BankForm = ({
             </FormItem>
           )}
         />
+
+        {apiError && (
+          <div className="text-sm font-medium text-destructive">{apiError}</div>
+        )}
+
         <div className="flex justify-end gap-2">
           <Button
             onClick={onClose}
@@ -103,8 +108,7 @@ export const BankForm = ({
             <AddOrUpdateButtonText add={isCreate} />
           </Button>
         </div>
-        {apiError && <span>{apiError}</span>}
       </form>
     </Form>
   );
-};
+}

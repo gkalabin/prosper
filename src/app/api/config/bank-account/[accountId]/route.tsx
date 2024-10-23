@@ -1,6 +1,6 @@
 import {fillUnitData} from '@/app/api/config/bank-account/fillUnitData';
 import {DB} from '@/lib/db';
-import {UpdateBankAccountRequest} from '@/lib/form-types/BankAccountFormValues';
+import {accountFormValidationSchema} from '@/lib/form-types/AccountFormSchema';
 import prisma from '@/lib/prisma';
 import {getUserId} from '@/lib/user';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
@@ -10,13 +10,21 @@ export async function PUT(
   request: NextRequest,
   {params}: {params: {accountId: string}}
 ): Promise<Response> {
+  const userId = await getUserId();
   const accountId = positiveIntOrNull(params.accountId);
   if (!accountId) {
     return new Response(`accountId must be an integer`, {status: 400});
   }
-  const {name, displayOrder, unit, isArchived, isJoint, initialBalance} =
-    (await request.json()) as UpdateBankAccountRequest;
-  const userId = await getUserId();
+  const validatedData = accountFormValidationSchema.safeParse(
+    await request.json()
+  );
+  if (!validatedData.success) {
+    return new Response(`Invalid form`, {
+      status: 400,
+    });
+  }
+  const {name, displayOrder, unit, isJoint, isArchived, initialBalance} =
+    validatedData.data;
   // Verify user has access.
   const db = new DB({userId});
   const found = await db.bankAccountFindMany({

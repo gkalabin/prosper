@@ -1,8 +1,8 @@
 'use client';
+import {AccountForm} from '@/app/(authenticated)/config/banks/AccountForm';
 import {ConfigureOpenBankingConnectionLink} from '@/app/(authenticated)/config/banks/ConfigureOpenBankingConnectionLink';
 import {DisconnectOpenBankingLink} from '@/app/(authenticated)/config/banks/DisconnectOpenBankingLink';
 import {ReconnectOpenBankingLink} from '@/app/(authenticated)/config/banks/ReconnectOpenBankingLink';
-import {AddOrEditAccountForm} from '@/components/config/AddOrEditAccountForm';
 import {BankForm} from '@/components/config/BankForm';
 import {
   AnchorLink,
@@ -129,7 +129,7 @@ function BanksListItem({
           </ButtonLink>
         )}
         {newAccountFormDisplayed && (
-          <AddOrEditAccountForm
+          <AccountForm
             bank={bank}
             bankAccounts={bankAccounts}
             stocks={stocks}
@@ -266,7 +266,7 @@ const AccountListItem = (props: {
       </div>
       {formDisplayed && (
         <div className="ml-2">
-          <AddOrEditAccountForm
+          <AccountForm
             bank={props.bank}
             bankAccounts={props.bankAccounts}
             bankAccount={props.account}

@@ -1,4 +1,4 @@
-import {AccountUnitFormValue} from '@/lib/form-types/BankAccountFormValues';
+import {UnitSchema} from '@/lib/form-types/AccountFormSchema';
 import {findByCode} from '@/lib/model/Currency';
 import prisma from '@/lib/prisma';
 import {Prisma} from '@prisma/client';
@@ -6,7 +6,7 @@ import yahooFinance from 'yahoo-finance2';
 import {type Quote} from 'yahoo-finance2/dist/esm/src/modules/quote';
 
 export async function fillUnitData(
-  unit: AccountUnitFormValue,
+  unit: UnitSchema,
   data:
     | Prisma.BankAccountUncheckedCreateInput
     | Prisma.BankAccountUncheckedUpdateInput

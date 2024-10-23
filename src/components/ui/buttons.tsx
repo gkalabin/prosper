@@ -1,8 +1,7 @@
 import classNames from 'classnames';
-import {useFormikContext} from 'formik';
 import Link from 'next/link';
-
 import React, {forwardRef} from 'react';
+import {useFormContext} from 'react-hook-form';
 
 export const ButtonLink = (
   props: React.ButtonHTMLAttributes<HTMLButtonElement>
@@ -72,14 +71,6 @@ export const ButtonPagePrimary = (
   );
 };
 
-export const FormikButtonFormPrimary = (
-  props: React.ButtonHTMLAttributes<HTMLButtonElement>
-) => {
-  const {isSubmitting} = useFormikContext();
-  const {disabled, ...rest} = props;
-  return <ButtonFormPrimary disabled={isSubmitting || disabled} {...rest} />;
-};
-
 export const ButtonFormPrimary = (
   props: React.ButtonHTMLAttributes<HTMLButtonElement>
 ) => {
@@ -96,14 +87,6 @@ export const ButtonFormPrimary = (
       {props.children}
     </button>
   );
-};
-
-export const FormikButtonFormSecondary = (
-  props: React.ButtonHTMLAttributes<HTMLButtonElement>
-) => {
-  const {isSubmitting} = useFormikContext();
-  const {disabled, ...rest} = props;
-  return <ButtonFormSecondary disabled={isSubmitting || disabled} {...rest} />;
 };
 
 export const ButtonFormSecondary = (
@@ -126,9 +109,9 @@ export const ButtonFormSecondary = (
 };
 
 export const AddOrUpdateButtonText = ({add}: {add: boolean}) => {
-  const {isSubmitting} = useFormikContext();
+  const {formState} = useFormContext();
   if (add) {
-    return <>{isSubmitting ? 'Adding…' : 'Add'}</>;
+    return <>{formState.isSubmitting ? 'Adding…' : 'Add'}</>;
   }
-  return <>{isSubmitting ? 'Updating…' : 'Update'}</>;
+  return <>{formState.isSubmitting ? 'Updating…' : 'Update'}</>;
 };

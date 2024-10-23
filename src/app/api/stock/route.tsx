@@ -1,4 +1,9 @@
-import {StockFormValue} from '@/lib/form-types/BankAccountFormValues';
+import {
+  CurrencyUnitSchema,
+  StockUnitSchema,
+  UnitSchema,
+} from '@/lib/form-types/AccountFormSchema';
+import {allCurrencies} from '@/lib/model/Currency';
 import {getUserId} from '@/lib/user';
 import {NextRequest, NextResponse} from 'next/server';
 import yahooFinance from 'yahoo-finance2';
@@ -13,12 +18,12 @@ export async function GET(request: NextRequest): Promise<Response> {
     return new Response(`query 'q' cannot be empty`, {status: 400});
   }
   const found: SearchResult = await yahooFinance.search(q, {newsCount: 0});
-  const stocks: StockFormValue[] = found.quotes
+  const stocks: StockUnitSchema[] = found.quotes
     .filter(x => x.isYahooFinance)
     // Remove currencies as there is an internal list of currencies in the Currency class.
     .filter(x => x.quoteType !== 'CURRENCY')
     .map(
-      (x): StockFormValue => ({
+      (x): StockUnitSchema => ({
         kind: 'stock',
         exchange: x.exchange,
         ticker: x.symbol,
@@ -26,5 +31,13 @@ export async function GET(request: NextRequest): Promise<Response> {
       })
     )
     .filter(x => x.exchange && x.ticker);
-  return NextResponse.json(stocks);
+
+  const currencies: CurrencyUnitSchema[] = allCurrencies()
+    .filter(c => c.code.toLowerCase().includes(q.toLowerCase()))
+    .map(c => ({
+      kind: 'currency',
+      currencyCode: c.code,
+    }));
+  const response: UnitSchema[] = [...stocks, ...currencies];
+  return NextResponse.json(response);
 }
