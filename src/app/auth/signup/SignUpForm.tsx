@@ -1,13 +1,19 @@
 'use client';
-import {Input} from '@/components/forms/Input';
-import {ButtonPagePrimary} from '@/components/ui/buttons';
+import {Button} from '@/components/ui/button';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {Input} from '@/components/ui/input';
 import {
   signupFormValidationSchema,
   signupResponseSchema,
   type SignUpForm as SignUpFormValues,
 } from '@/lib/model/signup-form';
 import {zodResolver} from '@hookform/resolvers/zod';
-import classNames from 'classnames';
 import {signIn} from 'next-auth/react';
 import {useState} from 'react';
 import {SubmitHandler, useForm} from 'react-hook-form';
@@ -17,10 +23,10 @@ const genericError = 'Registration failed, please try again.';
 export function SignUpForm() {
   const [inProgress, setInProgress] = useState(false);
   const {
-    register,
     handleSubmit,
     formState: {errors},
     setError,
+    control,
   } = useForm<SignUpFormValues>({
     resolver: zodResolver(signupFormValidationSchema),
   });
@@ -55,90 +61,54 @@ export function SignUpForm() {
     }
   };
   return (
-    <form
-      method="post"
-      action="/api/auth/signup"
-      onSubmit={handleSubmit(onSubmit)}
-    >
-      <div>
-        <label
-          htmlFor="login"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Login
-        </label>
-        <Input
-          type="text"
-          id="login"
-          className={classNames(
-            'block w-full',
-            errors.login && 'border-red-500'
-          )}
-          disabled={inProgress}
-          {...register('login')}
-        />
-        {errors.login && (
-          <p className="mt-2 text-sm text-red-700" role="alert">
-            {errors.login.message}
-          </p>
+    <form onSubmit={handleSubmit(onSubmit)} className="gap-y-4">
+      <FormField
+        control={control}
+        name="login"
+        render={({field}) => (
+          <FormItem>
+            <FormLabel>Login</FormLabel>
+            <FormControl>
+              <Input {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
         )}
-      </div>
-      <div className="mt-4">
-        <label
-          htmlFor="password"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Password
-        </label>
-        <Input
-          type="password"
-          className={classNames(
-            'block w-full',
-            errors.password && 'border-red-500'
-          )}
-          disabled={inProgress}
-          {...register('password')}
-        />
-        {errors.password && (
-          <p className="mt-2 text-sm text-red-700" role="alert">
-            {errors.password.message}
-          </p>
+      />
+      <FormField
+        control={control}
+        name="password"
+        render={({field}) => (
+          <FormItem>
+            <FormLabel>Password</FormLabel>
+            <FormControl>
+              <Input type="password" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
         )}
-      </div>
-      <div className="mt-4">
-        <label
-          htmlFor="confirmPassword"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Confirm Password
-        </label>
-        <Input
-          type="password"
-          className={classNames(
-            'block w-full',
-            errors.confirmPassword && 'border-red-500'
-          )}
-          disabled={inProgress}
-          {...register('confirmPassword')}
-        />
-        {errors.confirmPassword && (
-          <p className="mt-2 text-sm text-red-700" role="alert">
-            {errors.confirmPassword.message}
-          </p>
+      />
+      <FormField
+        control={control}
+        name="confirmPassword"
+        render={({field}) => (
+          <FormItem>
+            <FormLabel>Confirm Password</FormLabel>
+            <FormControl>
+              <Input type="password" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
         )}
-      </div>
+      />
       {errors.root && (
-        <p className="mt-2 text-sm text-red-700" role="alert">
+        <div className="text-sm font-medium text-destructive">
           {errors.root.message}
-        </p>
+        </div>
       )}
-      <ButtonPagePrimary
-        type="submit"
-        className="mt-6 w-full"
-        disabled={inProgress}
-      >
+      <Button type="submit" className="mt-6 w-full" disabled={inProgress}>
         {inProgress ? 'Creating account...' : 'Create account'}
-      </ButtonPagePrimary>
+      </Button>
     </form>
   );
 }
