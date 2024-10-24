@@ -4,11 +4,8 @@ import {ConfigureOpenBankingConnectionLink} from '@/app/(authenticated)/config/b
 import {DisconnectOpenBankingLink} from '@/app/(authenticated)/config/banks/DisconnectOpenBankingLink';
 import {ReconnectOpenBankingLink} from '@/app/(authenticated)/config/banks/ReconnectOpenBankingLink';
 import {BankForm} from '@/components/config/BankForm';
-import {
-  AnchorLink,
-  ButtonLink,
-  ButtonPagePrimary,
-} from '@/components/ui/buttons';
+import {Button} from '@/components/ui/button';
+import {AnchorLink} from '@/components/ui/buttons';
 import {banksModelFromDatabaseData} from '@/lib/ClientSideModel';
 import {DisplaySettingsContextProvider} from '@/lib/context/DisplaySettingsContext';
 import {Bank, BankAccount} from '@/lib/model/BankAccount';
@@ -87,9 +84,12 @@ function BanksListItem({
               {editBankFormDisplayed ? `Editing ${bank.name}` : bank.name}
             </h1>
             {!editBankFormDisplayed && (
-              <ButtonLink onClick={() => setEditBankFormDisplayed(true)}>
+              <Button
+                variant="link"
+                onClick={() => setEditBankFormDisplayed(true)}
+              >
                 Edit
-              </ButtonLink>
+              </Button>
             )}
           </div>
           {!editBankFormDisplayed && (
@@ -124,9 +124,12 @@ function BanksListItem({
           onAccountUpdated={onAccountAddedOrUpdated}
         />
         {!newAccountFormDisplayed && (
-          <ButtonLink onClick={() => setNewAccountFormDisplayed(true)}>
+          <Button
+            variant="link"
+            onClick={() => setNewAccountFormDisplayed(true)}
+          >
             Add New Account
-          </ButtonLink>
+          </Button>
         )}
         {newAccountFormDisplayed && (
           <AccountForm
@@ -259,9 +262,13 @@ const AccountListItem = (props: {
       <div>
         <span className="text-lg">{props.account.name}</span>
         {!formDisplayed && (
-          <ButtonLink className="ml-2" onClick={() => setFormDisplayed(true)}>
+          <Button
+            variant="link"
+            className="ml-2"
+            onClick={() => setFormDisplayed(true)}
+          >
             Edit
-          </ButtonLink>
+          </Button>
         )}
       </div>
       {formDisplayed && (
@@ -326,9 +333,7 @@ export function BanksConfigPage({
       <>
         {!formDisplayed && (
           <div className="flex justify-end">
-            <ButtonPagePrimary onClick={() => setFormDisplayed(true)}>
-              Add New Bank
-            </ButtonPagePrimary>
+            <Button onClick={() => setFormDisplayed(true)}>Add New Bank</Button>
           </div>
         )}
       </>

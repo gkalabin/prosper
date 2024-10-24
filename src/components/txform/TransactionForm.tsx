@@ -16,7 +16,7 @@ import {
   TransactionFormSchema,
   transactionFormValidationSchema,
 } from '@/components/txform/types';
-import {ButtonFormPrimary, ButtonFormSecondary} from '@/components/ui/buttons';
+import {Button} from '@/components/ui/button';
 import {Form} from '@/components/ui/form';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
@@ -150,16 +150,14 @@ export const TransactionForm = (props: {
               {form.formState.errors.root?.message}
             </div>
             <div className="flex-none space-x-4">
-              <ButtonFormSecondary
+              <Button
+                variant="secondary"
                 onClick={props.onClose}
                 disabled={form.formState.isSubmitting}
               >
                 Cancel
-              </ButtonFormSecondary>
-              <ButtonFormPrimary
-                type="submit"
-                disabled={form.formState.isSubmitting}
-              >
+              </Button>
+              <Button type="submit" disabled={form.formState.isSubmitting}>
                 {creatingNewTransaction &&
                   form.formState.isSubmitting &&
                   'Adding…'}
@@ -172,7 +170,7 @@ export const TransactionForm = (props: {
                 {!creatingNewTransaction &&
                   !form.formState.isSubmitting &&
                   'Update'}
-              </ButtonFormPrimary>
+              </Button>
             </div>
           </div>
         </form>

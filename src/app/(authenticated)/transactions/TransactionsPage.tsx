@@ -15,7 +15,7 @@ import {
 import {UpdateQueryOnFormChange} from '@/components/transactions/filters/UpdateQueryOnFormChange';
 import {TransactionsList} from '@/components/transactions/TransactionsList';
 import {TransactionStats} from '@/components/transactions/TransactionStats';
-import {ButtonPagePrimary} from '@/components/ui/buttons';
+import {Button} from '@/components/ui/button';
 import {Form} from '@/components/ui/form';
 import {AllDatabaseDataContextProvider} from '@/lib/context/AllDatabaseDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
@@ -31,14 +31,14 @@ function NonEmptyPageContent() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end gap-4">
-        <ButtonPagePrimary onClick={() => setShowFiltersForm(!showFiltersForm)}>
+        <Button onClick={() => setShowFiltersForm(!showFiltersForm)}>
           <FunnelIcon className="mr-2 inline h-4 w-4" />
           Filters
-        </ButtonPagePrimary>
-        <ButtonPagePrimary onClick={() => setShowStats(!showStats)}>
+        </Button>
+        <Button onClick={() => setShowStats(!showStats)}>
           <ChartPieIcon className="mr-2 inline h-4 w-4" />
           Stats
-        </ButtonPagePrimary>
+        </Button>
       </div>
       {showFiltersForm && (
         <TransactionFiltersForm onClose={() => setShowFiltersForm(false)} />

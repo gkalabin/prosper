@@ -3,7 +3,7 @@ import {useExchangedIntervalTransactions} from '@/app/(authenticated)/stats/mode
 import {ExpenseByTopCategoryChart} from '@/components/charts/aggregate/ExpenseByTopCategory';
 import {MonthlyTransactionCount} from '@/components/charts/timeseries/MonthlyTransactionCount';
 import {TimelineAmountsChart} from '@/components/charts/timeseries/TimelineAmountsChart';
-import {ButtonFormSecondary} from '@/components/ui/buttons';
+import {Button} from '@/components/ui/button';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {
@@ -56,7 +56,9 @@ function NonEmptyTransactionStats({
       <TextSummary input={input} />
       <Charts input={input} />
       <div className="col-span-6">
-        <ButtonFormSecondary onClick={onClose}>Close</ButtonFormSecondary>
+        <Button variant="secondary" onClick={onClose}>
+          Close
+        </Button>
       </div>
     </>
   );

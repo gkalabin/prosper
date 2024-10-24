@@ -1,6 +1,6 @@
 'use client';
 import {CategoryForm} from '@/components/config/CategoryForm';
-import {ButtonLink, ButtonPagePrimary} from '@/components/ui/buttons';
+import {Button} from '@/components/ui/button';
 import {
   Category,
   categoryModelFromDB,
@@ -90,7 +90,9 @@ const EditableCategoryListItem = ({
             </span>
           </div>
           {!showEditForm && (
-            <ButtonLink onClick={() => setShowEditForm(true)}>Edit</ButtonLink>
+            <Button variant="link" onClick={() => setShowEditForm(true)}>
+              Edit
+            </Button>
           )}
         </div>
         {showEditForm && (
@@ -138,9 +140,7 @@ export function CategoriesConfigPage({
       />
       <div className="my-6">
         {!showAddForm && (
-          <ButtonPagePrimary onClick={() => setShowAddForm(true)}>
-            Add new category
-          </ButtonPagePrimary>
+          <Button onClick={() => setShowAddForm(true)}>Add new category</Button>
         )}
         {showAddForm && (
           <>
