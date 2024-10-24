@@ -1,7 +1,8 @@
 'use client';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
 import {Bank as DBBank} from '@prisma/client';
-import {Input} from '@/components/forms/Input';
-import {ButtonFormPrimary} from '@/components/ui/buttons';
 import {useState} from 'react';
 
 export function ConnectForm({dbBank}: {dbBank: DBBank}) {
@@ -17,12 +18,7 @@ export function ConnectForm({dbBank}: {dbBank: DBBank}) {
         className="mt-4 space-y-4"
       >
         <div>
-          <label
-            htmlFor="token"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Personal token
-          </label>
+          <Label htmlFor="token">Personal token</Label>
           <Input
             id="token"
             type="text"
@@ -33,9 +29,9 @@ export function ConnectForm({dbBank}: {dbBank: DBBank}) {
           />
         </div>
         <div className="flex justify-end">
-          <ButtonFormPrimary type="submit" disabled={!token}>
+          <Button type="submit" disabled={!token}>
             Connect
-          </ButtonFormPrimary>
+          </Button>
         </div>
       </form>
     </>

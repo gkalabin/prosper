@@ -1,6 +1,6 @@
 'use client';
-import {Input} from '@/components/forms/Input';
-import {ButtonPagePrimary} from '@/components/ui/buttons';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
 import {useSearchParams} from 'next/navigation';
 
 export function SignInForm({csrf}: {csrf: string}) {
@@ -43,9 +43,9 @@ export function SignInForm({csrf}: {csrf: string}) {
           Something went wrong. Please try again.
         </p>
       )}
-      <ButtonPagePrimary type="submit" className="mt-6 w-full">
+      <Button type="submit" className="mt-6 w-full">
         Sign in
-      </ButtonPagePrimary>
+      </Button>
     </form>
   );
 }

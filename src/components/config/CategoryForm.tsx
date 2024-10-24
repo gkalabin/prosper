@@ -126,7 +126,9 @@ export const CategoryForm = ({
             <AddOrUpdateButtonText add={!category} />
           </Button>
         </div>
-        {apiError && <span>{apiError}</span>}
+        {apiError && (
+          <div className="text-sm font-medium text-destructive">{apiError}</div>
+        )}
       </form>
     </Form>
   );
