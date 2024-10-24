@@ -1,6 +1,7 @@
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {cn} from '@/lib/utils';
 import {
   Popover,
   PopoverButton,
@@ -9,7 +10,6 @@ import {
 } from '@headlessui/react';
 import {ChevronDownIcon} from '@heroicons/react/20/solid';
 import {CheckIcon} from '@heroicons/react/24/outline';
-import classNames from 'classnames';
 import {
   format,
   isEqual,
@@ -122,7 +122,7 @@ export function DurationSelector({
                     >
                       <div className="text-sm font-medium text-gray-900">
                         <CheckIcon
-                          className={classNames(
+                          className={cn(
                             intervalsEqual(duration, opt.interval)
                               ? 'visible'
                               : 'invisible',

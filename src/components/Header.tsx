@@ -1,4 +1,6 @@
 'use client';
+import {AnchorUnstyled} from '@/components/ui/buttons';
+import {cn} from '@/lib/utils';
 import {Disclosure, Menu, Transition} from '@headlessui/react';
 import {
   BanknotesIcon,
@@ -6,8 +8,6 @@ import {
   UserCircleIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import classNames from 'classnames';
-import {AnchorUnstyled} from '@/components/ui/buttons';
 import {SessionProvider, signIn, signOut, useSession} from 'next-auth/react';
 import {usePathname} from 'next/navigation';
 import {Fragment} from 'react';
@@ -64,7 +64,7 @@ function HeaderImpl() {
                       <AnchorUnstyled
                         href={item.href}
                         key={item.name}
-                        className={classNames(
+                        className={cn(
                           isActive(item)
                             ? 'bg-gray-900 text-white'
                             : 'text-gray-300 hover:bg-gray-700 hover:text-white',
@@ -101,7 +101,7 @@ function HeaderImpl() {
                         {({active}) => (
                           <AnchorUnstyled
                             href="/config"
-                            className={classNames(
+                            className={cn(
                               active ? 'bg-gray-100' : '',
                               'block px-4 py-2 text-sm text-gray-700'
                             )}
@@ -116,7 +116,7 @@ function HeaderImpl() {
                           {({active}) => (
                             <a
                               onClick={() => signIn()}
-                              className={classNames(
+                              className={cn(
                                 active ? 'bg-gray-100' : '',
                                 'block cursor-pointer px-4 py-2 text-sm text-gray-700'
                               )}
@@ -136,7 +136,7 @@ function HeaderImpl() {
                               </span>
                               <a
                                 onClick={() => signOut()}
-                                className={classNames(
+                                className={cn(
                                   active ? 'bg-gray-100' : '',
                                   'block cursor-pointer py-2 pl-6 pr-4 text-sm text-gray-700'
                                 )}
@@ -160,7 +160,7 @@ function HeaderImpl() {
                 <AnchorUnstyled href={item.href} key={item.name}>
                   <Disclosure.Button
                     key={item.name}
-                    className={classNames(
+                    className={cn(
                       isActive(item)
                         ? 'bg-gray-900 text-white'
                         : 'text-gray-300 hover:bg-gray-700 hover:text-white',

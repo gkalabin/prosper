@@ -1,4 +1,4 @@
-import classNames from 'classnames';
+import {cn} from '@/lib/utils';
 import Link from 'next/link';
 import React, {forwardRef} from 'react';
 
@@ -21,7 +21,7 @@ export const AnchorLink = (
   const {className, ...rest} = props;
   return (
     <AnchorUnstyled
-      className={classNames(
+      className={cn(
         className,
         'font-medium text-indigo-600 hover:text-indigo-500'
       )}
@@ -38,7 +38,7 @@ export const ExternalAnchorLink = (
   const {className, ...rest} = props;
   return (
     <a
-      className={classNames(
+      className={cn(
         className,
         'font-medium text-indigo-600 hover:text-indigo-500'
       )}

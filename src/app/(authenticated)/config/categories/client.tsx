@@ -10,9 +10,9 @@ import {
   sortCategories,
 } from '@/lib/model/Category';
 import {updateState} from '@/lib/stateHelpers';
+import {cn} from '@/lib/utils';
 import {ChevronDownIcon, ChevronRightIcon} from '@heroicons/react/24/outline';
 import {Category as DBCategory} from '@prisma/client';
-import classNames from 'classnames';
 import {useState} from 'react';
 
 const CategoriesList = (props: {
@@ -59,10 +59,10 @@ const EditableCategoryListItem = ({
   return (
     <>
       <div
-        className={classNames(
+        className={cn(
           'my-2 rounded-md border p-3 shadow',
           // https://stackoverflow.com/questions/69687530/dynamically-build-classnames-in-tailwindcss:
-          // make following classNames available for JIT: ml-4 ml-8 ml-12 ml-16 ml-20 ml-24 ml-28 ml-32 ml-36 ml-40
+          // make following class names available for JIT: ml-4 ml-8 ml-12 ml-16 ml-20 ml-24 ml-28 ml-32 ml-36 ml-40
           'ml-' + depth * 4
         )}
       >
@@ -78,7 +78,7 @@ const EditableCategoryListItem = ({
               <ChevronRightIcon className="inline h-5 w-5" />
             )}
             <span
-              className={classNames(
+              className={cn(
                 depth == 0 && 'text-xl font-medium',
                 depth == 1 && 'text-lg',
                 depth > 1 && 'text-base font-light',

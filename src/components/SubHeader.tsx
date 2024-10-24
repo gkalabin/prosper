@@ -1,6 +1,6 @@
 'use client';
-import classNames from 'classnames';
 import {AnchorUnstyled} from '@/components/ui/buttons';
+import {cn} from '@/lib/utils';
 import {usePathname} from 'next/navigation';
 import {useState} from 'react';
 
@@ -88,7 +88,7 @@ function Button({
 function ButtonContent({text, isActive}: {text: string; isActive: boolean}) {
   return (
     <div
-      className={classNames(
+      className={cn(
         isActive
           ? 'bg-gray-800 text-white'
           : 'text-gray-300 hover:bg-gray-700 hover:text-white',

@@ -29,8 +29,8 @@ import {
   ownShareAmountIgnoreRefunds,
   paidTotal,
 } from '@/lib/model/transaction/amounts';
+import {cn} from '@/lib/utils';
 import {ChevronDownIcon, ChevronRightIcon} from '@heroicons/react/24/outline';
-import classNames from 'classnames';
 import {format} from 'date-fns';
 import {useState} from 'react';
 
@@ -131,7 +131,7 @@ export const TransactionsListItem = ({
           </div>
         </div>
         <div
-          className={classNames('self-center pr-2 text-lg', {
+          className={cn('self-center pr-2 text-lg', {
             'text-green-900': isIncome(t),
           })}
         >

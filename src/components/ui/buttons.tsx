@@ -1,4 +1,4 @@
-import classNames from 'classnames';
+import {cn} from '@/lib/utils';
 import Link from 'next/link';
 import React, {forwardRef} from 'react';
 import {useFormContext} from 'react-hook-form';
@@ -10,7 +10,7 @@ export const ButtonLink = (
     <button
       type="button"
       {...props}
-      className={classNames(
+      className={cn(
         props.className,
         props.disabled ? 'opacity-30' : 'hover:text-indigo-500',
         'font-medium text-indigo-600'
@@ -40,7 +40,7 @@ export const AnchorLink = (
   const {className, ...rest} = props;
   return (
     <AnchorUnstyled
-      className={classNames(
+      className={cn(
         className,
         'font-medium text-indigo-600 hover:text-indigo-500'
       )}
@@ -58,7 +58,7 @@ export const ButtonPagePrimary = (
     <button
       type="button"
       {...props}
-      className={classNames(
+      className={cn(
         props.className,
         props.disabled
           ? 'opacity-30'
@@ -78,7 +78,7 @@ export const ButtonFormPrimary = (
   return (
     <button
       {...rest}
-      className={classNames(
+      className={cn(
         className,
         props.disabled ? 'opacity-30' : 'hover:bg-indigo-700',
         'inline-flex justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'
@@ -97,7 +97,7 @@ export const ButtonFormSecondary = (
     <button
       type="button"
       {...rest}
-      className={classNames(
+      className={cn(
         className,
         props.disabled ? 'opacity-30' : 'hover:bg-gray-50',
         'inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2'

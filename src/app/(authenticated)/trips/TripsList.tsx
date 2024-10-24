@@ -1,5 +1,4 @@
 'use client';
-import classNames from 'classnames';
 import {
   isFullyConfigured,
   NotConfiguredYet,
@@ -25,6 +24,7 @@ import {
   Transaction,
 } from '@/lib/model/transaction/Transaction';
 import {Trip} from '@/lib/model/Trip';
+import {cn} from '@/lib/utils';
 
 function tripTotalSpend(
   tripId: number,
@@ -140,7 +140,7 @@ function NonEmptyTripsList() {
       {tripsByTs.map(t => (
         <div
           key={t.id}
-          className={classNames({
+          className={cn({
             'text-xl leading-7': p100Trips.includes(t.id),
             'text-lg leading-7': p75Trips.includes(t.id),
             'text-base leading-7': p50Trips.includes(t.id),

@@ -25,9 +25,9 @@ import {
   WithdrawalOrDepositPrototype,
 } from '@/lib/txsuggestions/TransactionPrototype';
 import {combineTransfers} from '@/lib/txsuggestions/TransfersDetection';
+import {cn} from '@/lib/utils';
 import {TransactionPrototype as DBTransactionPrototype} from '@prisma/client';
 import assert from 'assert';
-import classNames from 'classnames';
 import {format} from 'date-fns';
 import {useEffect, useState} from 'react';
 
@@ -312,10 +312,10 @@ function SuggestionItem({
   const otherAccount = bankAccounts.find(a => a.id == otherAccountId);
   const unit = accountUnit(bankAccount, stocks);
   return (
-    <div className={classNames({'bg-gray-100': isActive})}>
+    <div className={cn({'bg-gray-100': isActive})}>
       <div className="flex px-2 py-1">
         <div
-          className={classNames('flex grow cursor-pointer', {
+          className={cn('flex grow cursor-pointer', {
             'text-slate-500': isActive,
             'opacity-25': !!usedProto,
           })}
@@ -335,7 +335,7 @@ function SuggestionItem({
           </div>
 
           <div
-            className={classNames('self-center pr-2 text-lg', {
+            className={cn('self-center pr-2 text-lg', {
               'text-green-900': singleOpProto.type == 'deposit',
             })}
           >

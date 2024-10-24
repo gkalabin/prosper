@@ -1,5 +1,5 @@
 import {FormType} from '@/components/txform/types';
-import classNames from 'classnames';
+import {cn} from '@/lib/utils';
 
 const Button = (
   props: React.ButtonHTMLAttributes<HTMLButtonElement> & {active: boolean}
@@ -8,8 +8,7 @@ const Button = (
   return (
     <button
       type="button"
-      // TODO: use cn() and disabled: class name prefix.
-      className={classNames(
+      className={cn(
         className,
         props.disabled
           ? 'opacity-30'
@@ -39,7 +38,7 @@ export const FormTypeSelect = ({
     <div className="col-span-6 flex justify-center">
       <div className="rounded-md shadow-sm">
         <Button
-          className={classNames('rounded-l-lg border')}
+          className={cn('rounded-l-lg border')}
           onClick={() => setValue('EXPENSE')}
           active={value == 'EXPENSE'}
           disabled={disabled}
@@ -47,7 +46,7 @@ export const FormTypeSelect = ({
           Expense
         </Button>
         <Button
-          className={classNames('border-b border-r border-t')}
+          className={cn('border-b border-r border-t')}
           onClick={() => setValue('TRANSFER')}
           active={value == 'TRANSFER'}
           disabled={disabled}
@@ -55,7 +54,7 @@ export const FormTypeSelect = ({
           Transfer
         </Button>
         <Button
-          className={classNames('rounded-r-md border')}
+          className={cn('rounded-r-md border')}
           onClick={() => setValue('INCOME')}
           active={value == 'INCOME'}
           disabled={disabled}
