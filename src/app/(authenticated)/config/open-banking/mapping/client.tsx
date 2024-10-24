@@ -1,17 +1,17 @@
 'use client';
+import {AccountMappingRequest} from '@/app/api/open-banking/mapping/route';
+import {Button} from '@/components/ui/button';
+import {Select} from '@/components/ui/html-select';
+import {banksModelFromDatabaseData} from '@/lib/ClientSideModel';
+import {accountUnit} from '@/lib/model/BankAccount';
+import {Unit, isCurrency} from '@/lib/model/Unit';
+import {AccountDetails} from '@/lib/openbanking/interface';
 import {
   Bank as DBBank,
   BankAccount as DBBankAccount,
   Stock as DBStock,
   ExternalAccountMapping,
 } from '@prisma/client';
-import {AccountMappingRequest} from '@/app/api/open-banking/mapping/route';
-import {Select} from '@/components/forms/Select';
-import {ButtonFormPrimary} from '@/components/ui/buttons';
-import {banksModelFromDatabaseData} from '@/lib/ClientSideModel';
-import {accountUnit} from '@/lib/model/BankAccount';
-import {Unit, isCurrency} from '@/lib/model/Unit';
-import {AccountDetails} from '@/lib/openbanking/interface';
 import {useState} from 'react';
 
 function UnitName({unit}: {unit: Unit}) {
@@ -115,13 +115,9 @@ export function OpenBankingMappingConfigPage({
         </div>
       ))}
       {apiError && <span className="text-red-500">{apiError}</span>}
-      <ButtonFormPrimary
-        onClick={handleSubmit}
-        disabled={requestInFlight}
-        type="submit"
-      >
+      <Button onClick={handleSubmit} disabled={requestInFlight} type="submit">
         {requestInFlight ? 'Saving…' : 'Save'}
-      </ButtonFormPrimary>
+      </Button>
     </>
   );
 }
