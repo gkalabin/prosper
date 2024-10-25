@@ -1,5 +1,4 @@
 import {Button} from '@/components/ui/button';
-import {AddOrUpdateButtonText} from '@/components/ui/buttons';
 import {
   Form,
   FormControl,
@@ -13,6 +12,7 @@ import {
   BankFormSchema,
   bankFormValidationSchema,
 } from '@/lib/form-types/BankFormSchema';
+import {AddOrUpdateButtonText} from '@/lib/i18n';
 import {Bank} from '@/lib/model/BankAccount';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {Bank as DBBank} from '@prisma/client';

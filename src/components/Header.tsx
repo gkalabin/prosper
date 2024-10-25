@@ -1,7 +1,14 @@
 'use client';
-import {AnchorUnstyled} from '@/components/ui/buttons';
 import {cn} from '@/lib/utils';
-import {Disclosure, Menu, Transition} from '@headlessui/react';
+import {
+  Disclosure,
+  DisclosureButton,
+  DisclosurePanel,
+  Menu,
+  MenuItem,
+  MenuItems,
+  Transition,
+} from '@headlessui/react';
 import {
   BanknotesIcon,
   Bars3Icon,
@@ -9,6 +16,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import {SessionProvider, signIn, signOut, useSession} from 'next-auth/react';
+import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {Fragment} from 'react';
 
@@ -61,7 +69,7 @@ function HeaderImpl() {
                 <div className="hidden sm:ml-6 sm:block">
                   <div className="flex space-x-4">
                     {navigation.map(item => (
-                      <AnchorUnstyled
+                      <Link
                         href={item.href}
                         key={item.name}
                         className={cn(
@@ -73,7 +81,7 @@ function HeaderImpl() {
                         aria-current={isActive(item) ? 'page' : undefined}
                       >
                         {item.name}
-                      </AnchorUnstyled>
+                      </Link>
                     ))}
                   </div>
                 </div>
@@ -96,20 +104,20 @@ function HeaderImpl() {
                     leaveFrom="transform opacity-100 scale-100"
                     leaveTo="transform opacity-0 scale-95"
                   >
-                    <Menu.Items className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                      <Menu.Item>
-                        {({active}) => (
-                          <AnchorUnstyled
+                    <MenuItems className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <MenuItem>
+                        {({focus}) => (
+                          <Link
                             href="/config"
                             className={cn(
-                              active ? 'bg-gray-100' : '',
+                              focus ? 'bg-gray-100' : '',
                               'block px-4 py-2 text-sm text-gray-700'
                             )}
                           >
                             Config
-                          </AnchorUnstyled>
+                          </Link>
                         )}
-                      </Menu.Item>
+                      </MenuItem>
 
                       {!session?.user.name && (
                         <Menu.Item>
@@ -147,18 +155,18 @@ function HeaderImpl() {
                           )}
                         </Menu.Item>
                       )}
-                    </Menu.Items>
+                    </MenuItems>
                   </Transition>
                 </Menu>
               </div>
             </div>
           </div>
 
-          <Disclosure.Panel className="sm:hidden">
+          <DisclosurePanel className="sm:hidden">
             <div className="space-y-1 px-2 pb-3 pt-2">
               {navigation.map(item => (
-                <AnchorUnstyled href={item.href} key={item.name}>
-                  <Disclosure.Button
+                <Link href={item.href} key={item.name}>
+                  <DisclosureButton
                     key={item.name}
                     className={cn(
                       isActive(item)
@@ -169,11 +177,11 @@ function HeaderImpl() {
                     aria-current={isActive(item) ? 'page' : undefined}
                   >
                     {item.name}
-                  </Disclosure.Button>
-                </AnchorUnstyled>
+                  </DisclosureButton>
+                </Link>
               ))}
             </div>
-          </Disclosure.Panel>
+          </DisclosurePanel>
         </>
       )}
     </Disclosure>

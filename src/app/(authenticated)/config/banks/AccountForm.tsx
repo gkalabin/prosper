@@ -1,6 +1,5 @@
 import {UnitSelect} from '@/app/(authenticated)/config/banks/UnitSelect';
 import {Button} from '@/components/ui/button';
-import {AddOrUpdateButtonText} from '@/components/ui/buttons';
 import {
   Form,
   FormControl,
@@ -17,6 +16,7 @@ import {
   accountFormValidationSchema,
   UnitSchema,
 } from '@/lib/form-types/AccountFormSchema';
+import {AddOrUpdateButtonText} from '@/lib/i18n';
 import {Bank, BankAccount} from '@/lib/model/BankAccount';
 import {mustFindByCode} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';

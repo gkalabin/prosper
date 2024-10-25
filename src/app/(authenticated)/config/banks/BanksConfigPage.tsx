@@ -5,7 +5,6 @@ import {DisconnectOpenBankingLink} from '@/app/(authenticated)/config/banks/Disc
 import {ReconnectOpenBankingLink} from '@/app/(authenticated)/config/banks/ReconnectOpenBankingLink';
 import {BankForm} from '@/components/config/BankForm';
 import {Button} from '@/components/ui/button';
-import {AnchorLink} from '@/components/ui/buttons';
 import {banksModelFromDatabaseData} from '@/lib/ClientSideModel';
 import {DisplaySettingsContextProvider} from '@/lib/context/DisplaySettingsContext';
 import {Bank, BankAccount} from '@/lib/model/BankAccount';
@@ -20,6 +19,7 @@ import {
   Stock as DBStock,
   TrueLayerToken as DBTrueLayerToken,
 } from '@prisma/client';
+import Link from 'next/link';
 import {useState} from 'react';
 
 const BanksList = (props: {
@@ -165,22 +165,27 @@ const BankConnections = ({
     return (
       <div>
         Connect with{' '}
-        <AnchorLink
-          href={`/config/open-banking/starling/connect?bankId=${bank.id}`}
-        >
-          Starling (UK),
-        </AnchorLink>{' '}
-        <AnchorLink
-          href={`/api/open-banking/truelayer/connect?bankId=${bank.id}`}
-        >
-          TrueLayer (UK)
-        </AnchorLink>{' '}
+        <Button variant="link" size="inherit" asChild>
+          <Link
+            href={`/config/open-banking/starling/connect?bankId=${bank.id}`}
+          >
+            Starling (UK)
+          </Link>
+        </Button>
+        ,{' '}
+        <Button variant="link" size="inherit" asChild>
+          <Link href={`/api/open-banking/truelayer/connect?bankId=${bank.id}`}>
+            TrueLayer (UK)
+          </Link>{' '}
+        </Button>
         or{' '}
-        <AnchorLink
-          href={`/config/open-banking/nordigen/connect?bankId=${bank.id}`}
-        >
-          Nordigen (EU+UK)
-        </AnchorLink>
+        <Button variant="link" size="inherit" asChild>
+          <Link
+            href={`/config/open-banking/nordigen/connect?bankId=${bank.id}`}
+          >
+            Nordigen (EU+UK)
+          </Link>
+        </Button>
       </div>
     );
   }

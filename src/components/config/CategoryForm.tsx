@@ -1,5 +1,4 @@
 import {Button} from '@/components/ui/button';
-import {AddOrUpdateButtonText} from '@/components/ui/buttons';
 import {
   Form,
   FormControl,
@@ -14,6 +13,7 @@ import {
   CategoryFormSchema,
   categoryFormValidationSchema,
 } from '@/lib/form-types/CategoryFormSchema';
+import {AddOrUpdateButtonText} from '@/lib/i18n';
 import {
   Category,
   getNameWithAncestors,

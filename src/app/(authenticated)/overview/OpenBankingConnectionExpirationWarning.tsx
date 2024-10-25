@@ -1,8 +1,9 @@
 'use client';
-import {AnchorLink} from '@/components/ui/buttons';
-import {differenceInDays} from 'date-fns';
+import {Button} from '@/components/ui/button';
 import {Bank} from '@/lib/model/BankAccount';
 import {useOpenBankingExpirations} from '@/lib/openbanking/context';
+import {differenceInDays} from 'date-fns';
+import Link from 'next/link';
 
 export function OpenBankingConnectionExpirationWarning({bank}: {bank: Bank}) {
   const {expirations} = useOpenBankingExpirations();
@@ -28,9 +29,11 @@ export function OpenBankingConnectionExpirationWarning({bank}: {bank: Bank}) {
   return (
     <div className="text-sm font-light text-gray-700">
       {text}{' '}
-      <AnchorLink href={`/api/open-banking/reconnect?bankId=${bank.id}`}>
-        Reconnect
-      </AnchorLink>
+      <Button variant="link" size="inherit" asChild>
+        <Link href={`/api/open-banking/reconnect?bankId=${bank.id}`}>
+          Reconnect
+        </Link>
+      </Button>
     </div>
   );
 }

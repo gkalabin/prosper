@@ -1,6 +1,6 @@
 'use client';
-import {AnchorUnstyled} from '@/components/ui/buttons';
 import {cn} from '@/lib/utils';
+import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {useState} from 'react';
 
@@ -74,12 +74,12 @@ function Button({
         </button>
       )}
       {item.path && (
-        <AnchorUnstyled href={item.path}>
+        <Link href={item.path}>
           <ButtonContent
             text={item.title}
             isActive={item.title == active?.title}
           />
-        </AnchorUnstyled>
+        </Link>
       )}
     </>
   );
