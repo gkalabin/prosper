@@ -1,5 +1,5 @@
 'use client';
-import {CategoryForm} from '@/components/config/CategoryForm';
+import {CategoryForm} from '@/app/(authenticated)/config/categories/CategoryForm';
 import {Button} from '@/components/ui/button';
 import {
   Category,

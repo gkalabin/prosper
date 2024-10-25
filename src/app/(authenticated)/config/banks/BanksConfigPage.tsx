@@ -1,9 +1,9 @@
 'use client';
 import {AccountForm} from '@/app/(authenticated)/config/banks/AccountForm';
+import {BankForm} from '@/app/(authenticated)/config/banks/BankForm';
 import {ConfigureOpenBankingConnectionLink} from '@/app/(authenticated)/config/banks/ConfigureOpenBankingConnectionLink';
 import {DisconnectOpenBankingLink} from '@/app/(authenticated)/config/banks/DisconnectOpenBankingLink';
 import {ReconnectOpenBankingLink} from '@/app/(authenticated)/config/banks/ReconnectOpenBankingLink';
-import {BankForm} from '@/components/config/BankForm';
 import {Button} from '@/components/ui/button';
 import {banksModelFromDatabaseData} from '@/lib/ClientSideModel';
 import {DisplaySettingsContextProvider} from '@/lib/context/DisplaySettingsContext';
