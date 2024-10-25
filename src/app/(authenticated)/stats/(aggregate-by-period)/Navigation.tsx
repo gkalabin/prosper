@@ -1,8 +1,8 @@
 'use client';
-import {ButtonLink} from '@/components/ui/buttons';
-import {type Interval} from 'date-fns';
+import {Button} from '@/components/ui/button';
 import {Granularity} from '@/lib/util/Granularity';
 import {formatInterval, intervalsEqual, sliceInterval} from '@/lib/util/time';
+import {type Interval} from 'date-fns';
 
 export function Navigation({
   timeline,
@@ -22,13 +22,15 @@ export function Navigation({
   return (
     <div className="space-x-2">
       {slices.map(i => (
-        <ButtonLink
+        <Button
+          variant="link"
+          size="inherit"
           key={i.start.toString()}
           onClick={() => setSelected(i)}
           disabled={intervalsEqual(selected, i)}
         >
           {formatInterval(i)}
-        </ButtonLink>
+        </Button>
       ))}
     </div>
   );

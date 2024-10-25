@@ -1,5 +1,5 @@
 import {TransactionForm} from '@/components/txform/TransactionForm';
-import {ButtonLink} from '@/components/ui/buttons';
+import {Button} from '@/components/ui/button';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {fullAccountName} from '@/lib/model/BankAccount';
@@ -223,7 +223,13 @@ export const TransactionsListItem = ({
       {expanded && (
         <div className="pl-1">
           {!showEditForm && (
-            <ButtonLink onClick={() => setShowEditForm(true)}>Edit</ButtonLink>
+            <Button
+              variant="link"
+              size="inherit"
+              onClick={() => setShowEditForm(true)}
+            >
+              Edit
+            </Button>
           )}
         </div>
       )}

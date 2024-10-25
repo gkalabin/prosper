@@ -1,4 +1,4 @@
-import {ButtonLink} from '@/components/ui/buttons';
+import {Button} from '@/components/ui/button';
 import {Bank} from '@/lib/model/BankAccount';
 import {useState} from 'react';
 
@@ -27,13 +27,15 @@ export function DisconnectOpenBankingLink({bank}: {bank: Bank}) {
 
   return (
     <>
-      <ButtonLink
-        className="text-red-600 hover:text-red-500"
+      <Button
+        variant="link"
+        size="inherit"
+        className="text-destructive"
         onClick={onClick}
         disabled={disconnecting}
       >
         {disconnecting ? 'Disconnecting...' : 'Disconnect'}
-      </ButtonLink>
+      </Button>
       {error && <div className="text-red-600">{error}</div>}
     </>
   );

@@ -3,24 +3,6 @@ import Link from 'next/link';
 import React, {forwardRef} from 'react';
 import {useFormContext} from 'react-hook-form';
 
-export const ButtonLink = (
-  props: React.ButtonHTMLAttributes<HTMLButtonElement>
-) => {
-  return (
-    <button
-      type="button"
-      {...props}
-      className={cn(
-        props.className,
-        props.disabled ? 'opacity-30' : 'hover:text-indigo-500',
-        'font-medium text-indigo-600'
-      )}
-    >
-      {props.children}
-    </button>
-  );
-};
-
 export const AnchorUnstyled = forwardRef<
   HTMLAnchorElement,
   React.AnchorHTMLAttributes<HTMLAnchorElement>

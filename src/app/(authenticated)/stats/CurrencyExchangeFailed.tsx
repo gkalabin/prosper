@@ -1,6 +1,5 @@
 'use client';
-import {ButtonLink} from '@/components/ui/buttons';
-import {format} from 'date-fns';
+import {Button} from '@/components/ui/button';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {fullAccountName} from '@/lib/model/BankAccount';
@@ -18,6 +17,7 @@ import {
   outgoingBankAccount,
 } from '@/lib/model/transaction/Transfer';
 import {paidTotal} from '@/lib/model/transaction/amounts';
+import {format} from 'date-fns';
 import {useState} from 'react';
 
 export const TransactionTitle = ({t}: {t: Transaction}) => {
@@ -94,7 +94,13 @@ export function CurrencyExchangeFailed({
       {failedTransactions.length > visibleTransactions.length && (
         <div>
           And {failedTransactions.length - visibleTransactions.length} more.{' '}
-          <ButtonLink onClick={() => setShowAll(true)}>Show all</ButtonLink>
+          <Button
+            variant="link"
+            size="inherit"
+            onClick={() => setShowAll(true)}
+          >
+            Show all
+          </Button>
         </div>
       )}
     </div>

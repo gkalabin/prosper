@@ -1,4 +1,4 @@
-import {ButtonLink} from '@/components/ui/buttons';
+import {Button} from '@/components/ui/button';
 import {uniqMostFrequent} from '@/lib/collections';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
@@ -156,12 +156,14 @@ const NonEmptyNewTransactionSuggestions = (props: {
         <div className="space-x-2">
           {accountsWithData.map(account => (
             <div key={account.id} className="ml-2 inline-block">
-              <ButtonLink
+              <Button
+                variant="link"
+                size="inherit"
                 onClick={() => setActiveAccount(account)}
                 disabled={props.disabled || account.id == activeAccount?.id}
               >
                 {fullAccountName(account, banks)}
-              </ButtonLink>
+              </Button>
             </div>
           ))}
         </div>
@@ -227,19 +229,23 @@ function SuggestionsList(props: {
         Showing {displayItems.length} out of {items.length} items.
         <br />
         Display{' '}
-        <ButtonLink
+        <Button
+          variant="link"
+          size="inherit"
           onClick={() => setLimit(Math.min(limit + 5, items.length))}
           disabled={props.disabled || limit >= items.length}
         >
           more
-        </ButtonLink>
+        </Button>
         {' or '}
-        <ButtonLink
+        <Button
+          variant="link"
+          size="inherit"
           onClick={() => setLimit(limit - 5)}
           disabled={props.disabled || displayItems.length <= 5}
         >
           less
-        </ButtonLink>{' '}
+        </Button>{' '}
         entries.
       </div>
     </div>

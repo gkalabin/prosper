@@ -1,6 +1,6 @@
 import {CurrencyExchangeFailed} from '@/app/(authenticated)/stats/CurrencyExchangeFailed';
 import {TransactionsList} from '@/components/transactions/TransactionsList';
-import {ButtonLink} from '@/components/ui/buttons';
+import {Button} from '@/components/ui/button';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {StockAndCurrencyExchange} from '@/lib/ClientSideModel';
 import {assertDefined} from '@/lib/assert';
@@ -119,7 +119,9 @@ export const SortableTransactionsList = (props: {
     <>
       <div className="mb-2 text-xs">
         Sort by{' '}
-        <ButtonLink
+        <Button
+          variant="link"
+          size="inherit"
           onClick={() =>
             setSorting(
               sorting == SortingMode.DATE_ASC
@@ -129,9 +131,11 @@ export const SortableTransactionsList = (props: {
           }
         >
           date
-        </ButtonLink>
+        </Button>
         ,{' '}
-        <ButtonLink
+        <Button
+          variant="link"
+          size="inherit"
           onClick={() =>
             setSorting(
               sorting == SortingMode.AMOUNT_DESC
@@ -141,7 +145,7 @@ export const SortableTransactionsList = (props: {
           }
         >
           amount
-        </ButtonLink>
+        </Button>
       </div>
 
       <div>
