@@ -3,7 +3,7 @@ import {
   isFullyConfigured,
   NotConfiguredYet,
 } from '@/components/NotConfiguredYet';
-import {AnchorLink} from '@/components/ui/anchors';
+import {Button} from '@/components/ui/button';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {StockAndCurrencyExchange} from '@/lib/ClientSideModel';
 import {
@@ -25,6 +25,7 @@ import {
 } from '@/lib/model/transaction/Transaction';
 import {Trip} from '@/lib/model/Trip';
 import {cn} from '@/lib/utils';
+import Link from 'next/link';
 
 function tripTotalSpend(
   tripId: number,
@@ -147,9 +148,11 @@ function NonEmptyTripsList() {
             'text-sm leading-7': p25Trips.includes(t.id),
           })}
         >
-          <AnchorLink href={`/trips/${t.name}`}>
-            {t.name} <TripTotal trip={t} />
-          </AnchorLink>
+          <Button variant="link" size="inherit" asChild>
+            <Link href={`/trips/${t.name}`}>
+              {t.name} <TripTotal trip={t} />
+            </Link>
+          </Button>
         </div>
       ))}
     </>

@@ -10,7 +10,7 @@ import {
   SortableTransactionsList,
   SortingMode,
 } from '@/components/transactions/SortableTransactionsList';
-import {AnchorLink} from '@/components/ui/anchors';
+import {Button} from '@/components/ui/button';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {
@@ -21,6 +21,7 @@ import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {Trip, tripModelFromDB} from '@/lib/model/Trip';
 import {hasTrip} from '@/lib/model/transaction/Transaction';
 import {Trip as DBTrip} from '@prisma/client';
+import Link from 'next/link';
 
 function TripSpendingStats({input}: {input: ExchangedTransactions}) {
   return (
@@ -58,7 +59,9 @@ function NonEmptyTripDetails(props: {trip: Trip}) {
   const {input, failed} = useExchangedTransactions(tripTransactions);
   return (
     <div>
-      <AnchorLink href="/trips">Back to all trips</AnchorLink>
+      <Button variant="link" size="inherit" asChild>
+        <Link href="/trips">Back to all trips</Link>
+      </Button>
       <h1 className="text-xl leading-7">{props.trip.name}</h1>
       <CurrencyExchangeFailed failedTransactions={failed} />
       <TripTextSummary input={input} />
