@@ -176,7 +176,7 @@ const BankConnections = ({
         <Button variant="link" size="inherit" asChild>
           <Link href={`/api/open-banking/truelayer/connect?bankId=${bank.id}`}>
             TrueLayer (UK)
-          </Link>{' '}
+          </Link>
         </Button>
         or{' '}
         <Button variant="link" size="inherit" asChild>
