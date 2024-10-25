@@ -90,7 +90,11 @@ const EditableCategoryListItem = ({
             </span>
           </div>
           {!showEditForm && (
-            <Button variant="link" onClick={() => setShowEditForm(true)}>
+            <Button
+              variant="link"
+              size="inherit"
+              onClick={() => setShowEditForm(true)}
+            >
               Edit
             </Button>
           )}

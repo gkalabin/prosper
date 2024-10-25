@@ -86,6 +86,7 @@ function BanksListItem({
             {!editBankFormDisplayed && (
               <Button
                 variant="link"
+                size="inherit"
                 onClick={() => setEditBankFormDisplayed(true)}
               >
                 Edit
@@ -126,6 +127,7 @@ function BanksListItem({
         {!newAccountFormDisplayed && (
           <Button
             variant="link"
+            size="inherit"
             onClick={() => setNewAccountFormDisplayed(true)}
           >
             Add New Account
@@ -264,6 +266,7 @@ const AccountListItem = (props: {
         {!formDisplayed && (
           <Button
             variant="link"
+            size="inherit"
             className="ml-2"
             onClick={() => setFormDisplayed(true)}
           >
