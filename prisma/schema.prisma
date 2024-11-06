@@ -18,8 +18,6 @@ model Transaction {
   id          Int      @id @default(autoincrement())
   timestamp   DateTime
   description String
-  // TODO: deprecate and remove this column.
-  amountCents Int
 
   // categorisation
   tags       Tag[]

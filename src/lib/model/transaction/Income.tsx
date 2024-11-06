@@ -20,10 +20,12 @@ export type Income = {
 
 export function incomeModelFromDB(init: TransactionWithTagIds): Income {
   assert(init.transactionType == TransactionType.INCOME);
+  assertDefined(init.payer);
+  assertDefined(init.incomingAccountId);
+  assertDefined(init.incomingAmountCents);
+  assertDefined(init.ownShareAmountCents);
   const companions: TransactionCompanion[] = [];
   if (init.ownShareAmountCents != init.incomingAmountCents) {
-    assertDefined(init.incomingAmountCents);
-    assertDefined(init.ownShareAmountCents);
     assertDefined(
       init.otherPartyName,
       `otherPartyName is not defined for transaction id ${init.id}`
@@ -37,14 +39,12 @@ export function incomeModelFromDB(init: TransactionWithTagIds): Income {
   if (init.transactionToBeRepayedId) {
     refundGroupTransactionIds.push(init.transactionToBeRepayedId);
   }
-  assertDefined(init.payer);
-  assertDefined(init.incomingAccountId);
   return {
     kind: 'Income',
     id: init.id,
     timestampEpoch: new Date(init.timestamp).getTime(),
     payer: init.payer,
-    amountCents: init.amountCents,
+    amountCents: init.incomingAmountCents,
     companions,
     note: init.description,
     accountId: init.incomingAccountId,

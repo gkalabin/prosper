@@ -187,7 +187,6 @@ function makeDbInput(expense: ExpenseFormSchema, userId: number) {
       transactionType: 'PERSONAL_EXPENSE' as const,
       timestamp: expense.timestamp,
       description: expense.description ?? '',
-      amountCents: toCents(expense.amount),
       categoryId: expense.categoryId,
       vendor: expense.vendor,
       payer: null,
@@ -230,7 +229,6 @@ function makeDbInput(expense: ExpenseFormSchema, userId: number) {
     description: expense.description ?? '',
     payerOutgoingAmountCents: toCents(expense.amount),
     ownShareAmountCents: toCents(expense.ownShareAmount),
-    amountCents: toCents(expense.amount),
     categoryId: expense.categoryId,
     vendor: expense.vendor,
     payer: expense.payer,
@@ -258,8 +256,6 @@ function makeRepaymentDbData(expense: ExpenseFormSchema, userId: number) {
     ownShareAmountCents: toCents(expense.ownShareAmount),
     vendor: expense.payer,
     description: 'Paid back for ' + expense.vendor,
-    // TODO: remove.
-    amountCents: toCents(expense.ownShareAmount),
     userId,
   };
   return data;

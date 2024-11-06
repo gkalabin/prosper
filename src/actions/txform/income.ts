@@ -113,8 +113,6 @@ function makeDbInput(income: IncomeFormSchema, userId: number) {
       : toCents(income.amount),
     otherPartyName: income.isShared ? income.companion : null,
     categoryId: income.categoryId,
-    // TODO: deprecate and remove this column.
-    amountCents: toCents(income.amount),
     outgoingAccountId: null,
     outgoingAmountCents: null,
     vendor: null,

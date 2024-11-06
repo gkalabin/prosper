@@ -1,7 +1,7 @@
-import {TransactionType} from '@prisma/client';
 import {assert, assertDefined} from '@/lib/assert';
 import {TransactionWithTagIds} from '@/lib/model/AllDatabaseDataModel';
 import {TransactionCompanion} from '@/lib/model/transaction/TransactionCompanion';
+import {TransactionType} from '@prisma/client';
 
 export type PersonalExpense = {
   kind: 'PersonalExpense';
@@ -22,27 +22,14 @@ export function personalExpenseModelFromDB(
   init: TransactionWithTagIds
 ): PersonalExpense {
   assert(init.transactionType == TransactionType.PERSONAL_EXPENSE);
-  const companions = [];
-  if (init.ownShareAmountCents != init.outgoingAmountCents) {
-    assertDefined(
-      init.amountCents,
-      `amountCents is not defined for transaction ${init.id}`
-    );
-    assertDefined(
-      init.ownShareAmountCents,
-      `ownShareAmountCents is not defined for transaction id ${init.id}`
-    );
-    assertDefined(
-      init.otherPartyName,
-      `otherPartyName is not defined for transaction id ${init.id}`
-    );
-    companions.push({
-      name: init.otherPartyName,
-      amountCents: init.amountCents - init.ownShareAmountCents,
-    });
-  }
-  // TODO: fill for expenses.
-  const refundGroupTransactionIds: number[] = [];
+  assertDefined(
+    init.outgoingAmountCents,
+    `outgoingAmountCents is not defined for transaction ${init.id}`
+  );
+  assertDefined(
+    init.ownShareAmountCents,
+    `ownShareAmountCents is not defined for transaction id ${init.id}`
+  );
   assertDefined(
     init.vendor,
     `vendor is not defined for transaction id ${init.id}`
@@ -51,12 +38,25 @@ export function personalExpenseModelFromDB(
     init.outgoingAccountId,
     `outgoingAccountId is not defined for transaction id ${init.id}`
   );
+  const companions = [];
+  if (init.ownShareAmountCents != init.outgoingAmountCents) {
+    assertDefined(
+      init.otherPartyName,
+      `otherPartyName is not defined for transaction id ${init.id}`
+    );
+    companions.push({
+      name: init.otherPartyName,
+      amountCents: init.outgoingAmountCents - init.ownShareAmountCents,
+    });
+  }
+  // TODO: fill for expenses.
+  const refundGroupTransactionIds: number[] = [];
   return {
     kind: 'PersonalExpense',
     id: init.id,
     timestampEpoch: new Date(init.timestamp).getTime(),
     vendor: init.vendor,
-    amountCents: init.amountCents,
+    amountCents: init.outgoingAmountCents,
     companions,
     note: init.description,
     accountId: init.outgoingAccountId,

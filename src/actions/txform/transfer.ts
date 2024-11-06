@@ -87,8 +87,6 @@ function makeDbInput(transfer: TransferFormSchema, userId: number) {
     incomingAccountId: transfer.toAccountId,
     incomingAmountCents: toCents(transfer.amountReceived),
     categoryId: transfer.categoryId,
-    // TODO: deprecate and remove this column.
-    amountCents: toCents(transfer.amountSent),
     vendor: null,
     payer: null,
     tripId: null,
