@@ -1,6 +1,9 @@
 import {ExpenseFormSchema} from '@/components/txform/expense/types';
 import {IncomeFormSchema} from '@/components/txform/income/types';
-import {mostFrequentBankAccount} from '@/components/txform/prefill';
+import {
+  mostFrequentBankAccount,
+  mostFrequentCompanion,
+} from '@/components/txform/prefill';
 import {
   isRecent,
   matchesPayer,
@@ -170,6 +173,7 @@ export function incomeFromPrototype({
 }): IncomeFormSchema {
   const account = bankAccounts.find(a => a.id == proto.internalAccountId);
   const isShared = account?.joint ?? false;
+  const companion = isShared ? mostFrequentCompanion(transactions) : null;
   const payer = proto.description;
   // If there are no income transactions at all, the most frequent value will not be defined,
   // so fall back to the first category in that case.
@@ -192,7 +196,7 @@ export function incomeFromPrototype({
     isShared,
     tagNames: [],
     description: null,
-    companion: null,
+    companion,
     parentTransactionId: null,
   };
   return values;
