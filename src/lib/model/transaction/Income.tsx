@@ -1,7 +1,7 @@
-import {TransactionType} from '@prisma/client';
 import {assert, assertDefined} from '@/lib/assert';
 import {TransactionWithTagIds} from '@/lib/model/AllDatabaseDataModel';
 import {TransactionCompanion} from '@/lib/model/transaction/TransactionCompanion';
+import {TransactionType} from '@prisma/client';
 
 export type Income = {
   kind: 'Income';
@@ -15,7 +15,6 @@ export type Income = {
   categoryId: number;
   tagsIds: number[];
   tripId: number | null;
-  refundGroupTransactionIds: number[];
 };
 
 export function incomeModelFromDB(init: TransactionWithTagIds): Income {
@@ -35,10 +34,6 @@ export function incomeModelFromDB(init: TransactionWithTagIds): Income {
       amountCents: init.incomingAmountCents - init.ownShareAmountCents,
     });
   }
-  const refundGroupTransactionIds: number[] = [];
-  if (init.transactionToBeRepayedId) {
-    refundGroupTransactionIds.push(init.transactionToBeRepayedId);
-  }
   return {
     kind: 'Income',
     id: init.id,
@@ -50,7 +45,6 @@ export function incomeModelFromDB(init: TransactionWithTagIds): Income {
     accountId: init.incomingAccountId,
     categoryId: init.categoryId,
     tagsIds: init.tags.map(t => t.id),
-    refundGroupTransactionIds,
     tripId: init.tripId,
   };
 }

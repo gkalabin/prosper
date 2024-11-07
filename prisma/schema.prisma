@@ -24,11 +24,6 @@ model Transaction {
   category   Category @relation(fields: [categoryId], references: [id])
   categoryId Int
 
-  // refunds and debt repayments
-  transactionToBeRepayed   Transaction?  @relation("Repayments", fields: [transactionToBeRepayedId], references: [id])
-  transactionToBeRepayedId Int?
-  repayments               Transaction[] @relation("Repayments")
-
   transactionType          TransactionType?
   vendor                   String?
   payer                    String?

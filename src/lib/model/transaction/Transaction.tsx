@@ -110,11 +110,6 @@ export function transactionTrip(
   return allTrips.find(trip => trip.id == t.tripId) ?? null;
 }
 
-// @deprecated
-export function parentTransactionId(t: Income): number | null {
-  return t.refundGroupTransactionIds.filter(id => id != t.id)[0] ?? null;
-}
-
 export function isPersonalExpense(t: Transaction): t is PersonalExpense {
   return t.kind === 'PersonalExpense';
 }

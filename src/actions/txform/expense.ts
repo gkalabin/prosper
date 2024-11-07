@@ -83,11 +83,7 @@ async function update(
 ) {
   const updated = await tx.transaction.update({
     ...includeTagIds(),
-    data: {
-      ...data,
-      // TODO: deprecate and remove this column.
-      transactionToBeRepayedId: {set: null},
-    },
+    data,
     where: {id: transaction.id},
   });
   dbUpdates.transactions[updated.id] = updated;
