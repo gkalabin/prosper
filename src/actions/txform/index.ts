@@ -16,7 +16,7 @@ import {
   TransactionPrototypeList,
   transactionPrototypeListSchema,
 } from '@/lib/txsuggestions/TransactionPrototype';
-import {getUserId} from '@/lib/user';
+import {getUserId} from '@/lib/auth/user';
 import {Transaction} from '@prisma/client';
 
 export async function upsertTransaction(

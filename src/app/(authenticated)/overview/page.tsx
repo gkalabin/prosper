@@ -2,7 +2,7 @@ import {OverviewPage} from '@/app/(authenticated)/overview/OverviewPage';
 import {DB, fetchAllDatabaseData} from '@/lib/db';
 import {addLatestExchangeRates} from '@/lib/exchangeRatesBackfill';
 import {addLatestStockQuotes} from '@/lib/stockQuotesBackfill';
-import {getUserId} from '@/lib/user';
+import {getUserId} from '@/lib/auth/user';
 import {Metadata} from 'next';
 
 export const metadata: Metadata = {

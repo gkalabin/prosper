@@ -4,7 +4,7 @@ import {
   AccountBalance,
   ConnectionExpiration,
 } from '@/lib/openbanking/interface';
-import {getUserId} from '@/lib/user';
+import {getUserId} from '@/lib/auth/user';
 import {NextResponse} from 'next/server';
 
 export interface OpenBankingBalances {

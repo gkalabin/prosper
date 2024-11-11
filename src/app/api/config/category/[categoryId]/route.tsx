@@ -1,7 +1,7 @@
 import {DB} from '@/lib/db';
 import {categoryFormValidationSchema} from '@/lib/form-types/CategoryFormSchema';
 import prisma from '@/lib/prisma';
-import {getUserId} from '@/lib/user';
+import {getUserId} from '@/lib/auth/user';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {Prisma} from '@prisma/client';
 import {NextRequest, NextResponse} from 'next/server';

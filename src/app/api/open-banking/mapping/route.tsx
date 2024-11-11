@@ -1,6 +1,6 @@
 import {DB} from '@/lib/db';
 import prisma from '@/lib/prisma';
-import {getUserId} from '@/lib/user';
+import {getUserId} from '@/lib/auth/user';
 import {NextRequest, NextResponse} from 'next/server';
 
 export interface AccountMappingRequest {

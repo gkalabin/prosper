@@ -1,6 +1,6 @@
 import {QuarterlyStatsPage} from '@/app/(authenticated)/stats/(aggregate-by-period)/quarterly/QuarterlyStatsPage';
 import {DB, fetchAllDatabaseData} from '@/lib/db';
-import {getUserId} from '@/lib/user';
+import {getUserId} from '@/lib/auth/user';
 import {Metadata} from 'next';
 
 export const metadata: Metadata = {

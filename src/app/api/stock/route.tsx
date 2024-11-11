@@ -4,7 +4,7 @@ import {
   UnitSchema,
 } from '@/lib/form-types/AccountFormSchema';
 import {allCurrencies} from '@/lib/model/Currency';
-import {getUserId} from '@/lib/user';
+import {getUserId} from '@/lib/auth/user';
 import {NextRequest, NextResponse} from 'next/server';
 import yahooFinance from 'yahoo-finance2';
 import {type SearchResult} from 'yahoo-finance2/dist/esm/src/modules/search';

@@ -2,7 +2,7 @@ import {fillUnitData} from '@/app/api/config/bank-account/fillUnitData';
 import {DB} from '@/lib/db';
 import {accountFormValidationSchema} from '@/lib/form-types/AccountFormSchema';
 import prisma from '@/lib/prisma';
-import {getUserId} from '@/lib/user';
+import {getUserId} from '@/lib/auth/user';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {NextRequest, NextResponse} from 'next/server';
 

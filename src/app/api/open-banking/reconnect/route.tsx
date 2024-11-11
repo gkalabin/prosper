@@ -3,7 +3,7 @@ import {
   AccountBalance,
   ConnectionExpiration,
 } from '@/lib/openbanking/interface';
-import {getUserId} from '@/lib/user';
+import {getUserId} from '@/lib/auth/user';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';

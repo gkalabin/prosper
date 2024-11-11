@@ -1,6 +1,6 @@
 import {categoryFormValidationSchema} from '@/lib/form-types/CategoryFormSchema';
 import prisma from '@/lib/prisma';
-import {getUserId} from '@/lib/user';
+import {getUserId} from '@/lib/auth/user';
 import {Prisma} from '@prisma/client';
 import {NextRequest, NextResponse} from 'next/server';
 

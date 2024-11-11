@@ -1,6 +1,6 @@
 import {TripDetails} from '@/app/(authenticated)/trips/[tripName]/TripDetails';
 import {DB, fetchAllDatabaseData} from '@/lib/db';
-import {getUserId} from '@/lib/user';
+import {getUserId} from '@/lib/auth/user';
 import {Metadata} from 'next';
 import {redirect} from 'next/navigation';
 

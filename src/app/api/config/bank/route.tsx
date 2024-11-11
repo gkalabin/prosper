@@ -1,6 +1,6 @@
 import {bankFormValidationSchema} from '@/lib/form-types/BankFormSchema';
 import prisma from '@/lib/prisma';
-import {getUserId} from '@/lib/user';
+import {getUserId} from '@/lib/auth/user';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function POST(request: NextRequest): Promise<Response> {

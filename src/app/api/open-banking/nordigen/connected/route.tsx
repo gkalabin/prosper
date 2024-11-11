@@ -1,6 +1,6 @@
 import {DB} from '@/lib/db';
 import prisma from '@/lib/prisma';
-import {getUserId} from '@/lib/user';
+import {getUserId} from '@/lib/auth/user';
 import {redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
 

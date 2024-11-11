@@ -4,7 +4,7 @@ import {DB} from '@/lib/db';
 import {NORDIGEN_COUNTRIES} from '@/lib/openbanking/nordigen/countries';
 import {Institution} from '@/lib/openbanking/nordigen/institution';
 import {getOrCreateToken} from '@/lib/openbanking/nordigen/token';
-import {getUserId} from '@/lib/user';
+import {getUserId} from '@/lib/auth/user';
 import {
   firstPositiveIntOrNull,
   firstValueOrNull,

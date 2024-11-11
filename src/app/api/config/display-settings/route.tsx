@@ -2,7 +2,7 @@ import {displaySettingsFormValidationSchema} from '@/lib/form-types/DisplaySetti
 import {DB} from '@/lib/db';
 import {findByCode} from '@/lib/model/Currency';
 import prisma from '@/lib/prisma';
-import {getUserId} from '@/lib/user';
+import {getUserId} from '@/lib/auth/user';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function PUT(request: NextRequest): Promise<Response> {
