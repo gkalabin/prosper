@@ -1,6 +1,6 @@
 import {TripDetails} from '@/app/(authenticated)/trips/[tripName]/TripDetails';
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB, fetchAllDatabaseData} from '@/lib/db';
-import {getUserId} from '@/lib/auth/user';
 import {Metadata} from 'next';
 import {redirect} from 'next/navigation';
 
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Page({params}: {params: {tripName: string}}) {
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const db = new DB({userId});
   const data = await fetchAllDatabaseData(db);
   const tripName = params.tripName;

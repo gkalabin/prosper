@@ -1,6 +1,6 @@
 import {BanksConfigPage} from '@/app/(authenticated)/config/banks/BanksConfigPage';
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB} from '@/lib/db';
-import {getUserId} from '@/lib/auth/user';
 import {Metadata} from 'next';
 
 export const metadata: Metadata = {
@@ -35,7 +35,7 @@ async function getData(userId: number) {
 }
 
 export default async function Page() {
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const data = await getData(userId);
   return (
     <BanksConfigPage

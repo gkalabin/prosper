@@ -1,15 +1,15 @@
 import {
-  differenceInHours,
-  differenceInMilliseconds,
-  differenceInMinutes,
-} from 'date-fns';
-import {
   DepositPrototype,
   TransactionPrototype,
   TransferPrototype,
   WithdrawalOrDepositPrototype,
   WithdrawalPrototype,
 } from '@/lib/txsuggestions/TransactionPrototype';
+import {
+  differenceInHours,
+  differenceInMilliseconds,
+  differenceInMinutes,
+} from 'date-fns';
 
 export function combineTransfers(
   prototypes: WithdrawalOrDepositPrototype[]

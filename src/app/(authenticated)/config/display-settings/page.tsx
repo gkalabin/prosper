@@ -1,6 +1,6 @@
 import {DisplaySettingsPage} from '@/app/(authenticated)/config/display-settings/client';
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB} from '@/lib/db';
-import {getUserId} from '@/lib/auth/user';
 import {Metadata} from 'next';
 
 export const metadata: Metadata = {
@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const db = new DB({userId});
   const dbDisplaySettings = await db.getOrCreateDbDisplaySettings();
   const dbCategories = await db.categoryFindMany();

@@ -1,5 +1,5 @@
-import {ExternalAccountMapping, TrueLayerToken} from '@prisma/client';
 import {Transaction} from '@/lib/openbanking/interface';
+import {ExternalAccountMapping, TrueLayerToken} from '@prisma/client';
 
 export async function fetchTransactions(
   token: TrueLayerToken,

@@ -1,12 +1,12 @@
-import {Prisma} from '@prisma/client';
 import {fillUnitData} from '@/app/api/config/bank-account/fillUnitData';
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {accountFormValidationSchema} from '@/lib/form-types/AccountFormSchema';
 import prisma from '@/lib/prisma';
-import {getUserId} from '@/lib/auth/user';
+import {Prisma} from '@prisma/client';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function POST(request: NextRequest): Promise<Response> {
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const validatedData = accountFormValidationSchema.safeParse(
     await request.json()
   );

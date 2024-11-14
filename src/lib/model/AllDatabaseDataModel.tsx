@@ -1,3 +1,4 @@
+import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {
   Bank,
   BankAccount,
@@ -12,7 +13,6 @@ import {
   TransactionPrototype,
   Trip,
 } from '@prisma/client';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 
 export interface TransactionWithTagIds extends Transaction {
   tags: {

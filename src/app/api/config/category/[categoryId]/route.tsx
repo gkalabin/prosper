@@ -1,7 +1,7 @@
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB} from '@/lib/db';
 import {categoryFormValidationSchema} from '@/lib/form-types/CategoryFormSchema';
 import prisma from '@/lib/prisma';
-import {getUserId} from '@/lib/auth/user';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {Prisma} from '@prisma/client';
 import {NextRequest, NextResponse} from 'next/server';
@@ -10,7 +10,7 @@ export async function PUT(
   request: NextRequest,
   {params}: {params: {categoryId: string}}
 ): Promise<Response> {
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const validatedData = categoryFormValidationSchema.safeParse(
     await request.json()
   );

@@ -1,8 +1,8 @@
 import {fillUnitData} from '@/app/api/config/bank-account/fillUnitData';
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB} from '@/lib/db';
 import {accountFormValidationSchema} from '@/lib/form-types/AccountFormSchema';
 import prisma from '@/lib/prisma';
-import {getUserId} from '@/lib/auth/user';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {NextRequest, NextResponse} from 'next/server';
 
@@ -10,7 +10,7 @@ export async function PUT(
   request: NextRequest,
   {params}: {params: {accountId: string}}
 ): Promise<Response> {
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const accountId = positiveIntOrNull(params.accountId);
   if (!accountId) {
     return new Response(`accountId must be an integer`, {status: 400});

@@ -10,13 +10,13 @@ import {
   TransactionFormSchema,
   transactionFormValidationSchema,
 } from '@/components/txform/types';
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB} from '@/lib/db';
 import {
   TransactionPrototype,
   TransactionPrototypeList,
   transactionPrototypeListSchema,
 } from '@/lib/txsuggestions/TransactionPrototype';
-import {getUserId} from '@/lib/auth/user';
 import {Transaction} from '@prisma/client';
 
 export async function upsertTransaction(
@@ -24,7 +24,7 @@ export async function upsertTransaction(
   unsafeProtos: TransactionPrototypeList,
   unsafeData: TransactionFormSchema
 ): Promise<UpsertTransactionAPIResponse> {
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const validatedData = transactionFormValidationSchema.safeParse(unsafeData);
   if (!validatedData.success) {
     return {

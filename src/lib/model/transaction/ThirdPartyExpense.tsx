@@ -1,7 +1,7 @@
-import {TransactionType} from '@prisma/client';
 import {assert, assertDefined} from '@/lib/assert';
 import {TransactionWithTagIds} from '@/lib/model/AllDatabaseDataModel';
 import {TransactionCompanion} from '@/lib/model/transaction/TransactionCompanion';
+import {TransactionType} from '@prisma/client';
 
 export type ThirdPartyExpense = {
   kind: 'ThirdPartyExpense';

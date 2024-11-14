@@ -1,10 +1,3 @@
-import {
-  ExternalAccountMapping,
-  NordigenToken,
-  StarlingToken,
-  TrueLayerToken,
-} from '@prisma/client';
-import {isBefore} from 'date-fns';
 import {DB} from '@/lib/db';
 import {
   AccountBalance,
@@ -28,6 +21,13 @@ import {
   fromOpenBankingTransaction,
 } from '@/lib/txsuggestions/TransactionPrototype';
 import {notEmpty} from '@/lib/util/util';
+import {
+  ExternalAccountMapping,
+  NordigenToken,
+  StarlingToken,
+  TrueLayerToken,
+} from '@prisma/client';
+import {isBefore} from 'date-fns';
 
 type Token = TrueLayerToken | NordigenToken | StarlingToken;
 

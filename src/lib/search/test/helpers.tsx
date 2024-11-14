@@ -1,10 +1,10 @@
-import {expect} from '@jest/globals';
 import {Bank, BankAccount} from '@/lib/model/BankAccount';
 import {Category} from '@/lib/model/Category';
 import {Tag} from '@/lib/model/Tag';
 import {Trip} from '@/lib/model/Trip';
 import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
 import {Transaction} from '@/lib/model/transaction/Transaction';
+import {expect} from '@jest/globals';
 import {SearchParams, search} from '../search';
 
 let nextId = 1;

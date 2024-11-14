@@ -1,6 +1,6 @@
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB} from '@/lib/db';
 import {bankFormValidationSchema} from '@/lib/form-types/BankFormSchema';
-import {getUserId} from '@/lib/auth/user';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {NextRequest, NextResponse} from 'next/server';
 
@@ -8,7 +8,7 @@ export async function PUT(
   request: NextRequest,
   {params}: {params: {bankId: string}}
 ): Promise<Response> {
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const validatedData = bankFormValidationSchema.safeParse(
     await request.json()
   );

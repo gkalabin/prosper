@@ -1,10 +1,10 @@
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB} from '@/lib/db';
 import {fetchBalances, getExpirations} from '@/lib/openbanking/fetchall';
 import {
   AccountBalance,
   ConnectionExpiration,
 } from '@/lib/openbanking/interface';
-import {getUserId} from '@/lib/auth/user';
 import {NextResponse} from 'next/server';
 
 export interface OpenBankingBalances {
@@ -13,7 +13,7 @@ export interface OpenBankingBalances {
 }
 
 export async function GET(): Promise<Response> {
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const db = new DB({userId});
   const result: OpenBankingBalances = {
     balances: await fetchBalances(db),

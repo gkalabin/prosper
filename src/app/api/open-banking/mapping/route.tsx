@@ -1,6 +1,6 @@
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB} from '@/lib/db';
 import prisma from '@/lib/prisma';
-import {getUserId} from '@/lib/auth/user';
 import {NextRequest, NextResponse} from 'next/server';
 
 export interface AccountMappingRequest {
@@ -14,7 +14,7 @@ export interface AccountMappingRequest {
 export async function POST(request: NextRequest): Promise<Response> {
   const input: AccountMappingRequest = await request.json();
   const {bankId, mapping: mappingRaw} = input;
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const db = new DB({userId});
   const [bank] = await db.bankFindMany({where: {id: bankId}});
   if (!bank) {

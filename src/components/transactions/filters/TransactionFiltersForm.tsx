@@ -1,8 +1,8 @@
+import {MultiSelect} from '@/components/MultiSelect';
 import {
   FiltersFormSchema,
   TransactionType,
 } from '@/components/transactions/filters/FiltersFormSchema';
-import {MultiSelect} from '@/components/MultiSelect';
 import {Button} from '@/components/ui/button';
 import {
   FormControl,
@@ -11,13 +11,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {Checkbox} from '@/components/ui/html-checkbox';
 import {Input} from '@/components/ui/input';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {fullAccountName} from '@/lib/model/BankAccount';
 import {getNameWithAncestors, makeCategoryTree} from '@/lib/model/Category';
-import {useFormContext} from 'react-hook-form';
-import {Checkbox} from '@/components/ui/html-checkbox';
 import {cn} from '@/lib/utils';
+import {useFormContext} from 'react-hook-form';
 
 export function SearchForAnythingInput() {
   const {control} = useFormContext<FiltersFormSchema>();

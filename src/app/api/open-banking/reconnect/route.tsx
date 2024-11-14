@@ -1,9 +1,9 @@
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB} from '@/lib/db';
 import {
   AccountBalance,
   ConnectionExpiration,
 } from '@/lib/openbanking/interface';
-import {getUserId} from '@/lib/auth/user';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   if (!bankId) {
     return new Response(`bankId must be an integer`, {status: 400});
   }
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const db = new DB({userId});
   {
     const [token] = await db.trueLayerTokenFindMany({

@@ -1,5 +1,5 @@
-import {DisplaySettings as DBDisplaySettings} from '@prisma/client';
 import {Currency, mustFindByCode} from '@/lib/model/Currency';
+import {DisplaySettings as DBDisplaySettings} from '@prisma/client';
 
 export class DisplaySettings {
   private readonly _displayCurrency: Currency;

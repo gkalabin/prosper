@@ -1,9 +1,9 @@
-import {expect, test} from '@jest/globals';
 import {
   firstPositiveIntOrNull,
   firstValueOrNull,
   positiveIntOrNull,
 } from '@/lib/util/searchParams';
+import {expect, test} from '@jest/globals';
 
 describe('positiveIntOrNull', () => {
   test.each<{input: string | null; expected: string | null}>`

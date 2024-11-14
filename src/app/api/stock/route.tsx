@@ -1,17 +1,17 @@
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {
   CurrencyUnitSchema,
   StockUnitSchema,
   UnitSchema,
 } from '@/lib/form-types/AccountFormSchema';
 import {allCurrencies} from '@/lib/model/Currency';
-import {getUserId} from '@/lib/auth/user';
 import {NextRequest, NextResponse} from 'next/server';
 import yahooFinance from 'yahoo-finance2';
 import {type SearchResult} from 'yahoo-finance2/dist/esm/src/modules/search';
 
 export async function GET(request: NextRequest): Promise<Response> {
   // Make sure the user is authenticated.
-  await getUserId();
+  await getUserIdOrRedirect();
   const searchParams = request.nextUrl.searchParams;
   const q = searchParams.get('q');
   if (!q) {

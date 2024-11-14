@@ -1,10 +1,10 @@
 import {CountriesSelector} from '@/app/(authenticated)/config/open-banking/nordigen/connect/CountriesSelector';
 import {InstitutionSelector} from '@/app/(authenticated)/config/open-banking/nordigen/connect/InstitutionSelector';
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB} from '@/lib/db';
 import {NORDIGEN_COUNTRIES} from '@/lib/openbanking/nordigen/countries';
 import {Institution} from '@/lib/openbanking/nordigen/institution';
 import {getOrCreateToken} from '@/lib/openbanking/nordigen/token';
-import {getUserId} from '@/lib/auth/user';
 import {
   firstPositiveIntOrNull,
   firstValueOrNull,
@@ -25,7 +25,7 @@ export default async function Page({
   if (!bankId) {
     return notFound();
   }
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const db = new DB({userId});
   const [dbBank] = await db.bankFindMany({
     where: {

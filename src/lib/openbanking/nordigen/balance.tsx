@@ -1,5 +1,5 @@
-import {ExternalAccountMapping, NordigenToken} from '@prisma/client';
 import {AccountBalance} from '@/lib/openbanking/interface';
+import {ExternalAccountMapping, NordigenToken} from '@prisma/client';
 
 export async function fetchBalance(
   token: NordigenToken,

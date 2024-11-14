@@ -1,10 +1,10 @@
-import {expect, test} from '@jest/globals';
 import {
   capitalize as capitalise,
   notEmpty,
   parseAmountAsCents,
   removeQuotes,
 } from '@/lib/util/util';
+import {expect, test} from '@jest/globals';
 
 describe('parseAmountAsCents', () => {
   test.each(['', ' ', ' 1', '1.', '.1', '1.123', 'x'])(

@@ -1,6 +1,6 @@
-import {Category as DBCategory} from '@prisma/client';
 import {assertDefined} from '@/lib/assert';
-import {byDisplayOrderThenId as byDisplayOrderThenId} from '@/lib/util/util';
+import {byDisplayOrderThenId} from '@/lib/util/util';
+import {Category as DBCategory} from '@prisma/client';
 
 export const TEST_ONLY = {
   getAncestors,

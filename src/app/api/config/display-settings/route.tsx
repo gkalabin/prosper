@@ -1,12 +1,12 @@
-import {displaySettingsFormValidationSchema} from '@/lib/form-types/DisplaySettingsFormSchema';
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB} from '@/lib/db';
+import {displaySettingsFormValidationSchema} from '@/lib/form-types/DisplaySettingsFormSchema';
 import {findByCode} from '@/lib/model/Currency';
 import prisma from '@/lib/prisma';
-import {getUserId} from '@/lib/auth/user';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function PUT(request: NextRequest): Promise<Response> {
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const validatedData = displaySettingsFormValidationSchema.safeParse(
     await request.json()
   );

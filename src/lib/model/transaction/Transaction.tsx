@@ -8,7 +8,7 @@ import {
 import {Category} from '@/lib/model/Category';
 import {mustFindByCode} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';
-import {mustFindTag, Tag} from '@/lib/model/Tag';
+import {Tag, mustFindTag} from '@/lib/model/Tag';
 import {Trip} from '@/lib/model/Trip';
 import {Unit, formatUnit} from '@/lib/model/Unit';
 import {Income, incomeModelFromDB} from '@/lib/model/transaction/Income';

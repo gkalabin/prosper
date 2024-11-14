@@ -1,6 +1,6 @@
 import {YearlyStatsPage} from '@/app/(authenticated)/stats/(aggregate-by-period)/yearly/YearlyStatsPage';
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB, fetchAllDatabaseData} from '@/lib/db';
-import {getUserId} from '@/lib/auth/user';
 import {Metadata} from 'next';
 
 export const metadata: Metadata = {
@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const db = new DB({userId});
   const data = await fetchAllDatabaseData(db);
   return <YearlyStatsPage dbData={data} />;

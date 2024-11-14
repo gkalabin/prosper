@@ -1,4 +1,3 @@
-import {expect, test} from '@jest/globals';
 import {
   Category,
   TEST_ONLY,
@@ -9,6 +8,7 @@ import {
   sortCategories,
   subtreeIncludes,
 } from '@/lib/model/Category';
+import {expect, test} from '@jest/globals';
 
 const {getAncestors} = TEST_ONLY;
 

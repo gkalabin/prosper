@@ -1,7 +1,7 @@
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB} from '@/lib/db';
 import {getOrCreateToken} from '@/lib/openbanking/nordigen/token';
 import prisma from '@/lib/prisma';
-import {getUserId} from '@/lib/auth/user';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     return new Response(`institutionId is missing`, {status: 400});
   }
   const redirectURI = `${process.env.PUBLIC_APP_URL}/api/open-banking/nordigen/connected`;
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const db = new DB({userId});
   const [bank] = await db.bankFindMany({where: {id: bankId}});
   if (!bank) {

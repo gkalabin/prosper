@@ -1,7 +1,7 @@
-import {ExternalAccountMapping, StarlingToken} from '@prisma/client';
-import {addMinutes, subMonths} from 'date-fns';
 import {Transaction} from '@/lib/openbanking/interface';
 import {parseExternalAccountId} from '@/lib/openbanking/starling/account';
+import {ExternalAccountMapping, StarlingToken} from '@prisma/client';
+import {addMinutes, subMonths} from 'date-fns';
 
 export async function fetchTransactions(
   token: StarlingToken,

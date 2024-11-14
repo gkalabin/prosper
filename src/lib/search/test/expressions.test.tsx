@@ -1,10 +1,10 @@
-import {test} from '@jest/globals';
 import {
   clearModel,
   expectSearch,
   modelParams,
   tx,
 } from '@/lib/search/test/helpers';
+import {test} from '@jest/globals';
 
 beforeEach(clearModel);
 

@@ -1,6 +1,6 @@
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB} from '@/lib/db';
 import prisma from '@/lib/prisma';
-import {getUserId} from '@/lib/auth/user';
 import {redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
 
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   if (!ref) {
     return new Response(`ref is missing`, {status: 400});
   }
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const db = new DB({userId});
   const requisition = await db.nordigenRequisitionFindFirst({
     where: {id: ref},

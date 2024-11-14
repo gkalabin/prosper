@@ -1,6 +1,6 @@
 import {ConnectForm} from '@/app/(authenticated)/config/open-banking/starling/connect/ConnectForm';
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB} from '@/lib/db';
-import {getUserId} from '@/lib/auth/user';
 import {firstPositiveIntOrNull} from '@/lib/util/searchParams';
 import {Metadata} from 'next';
 import {notFound} from 'next/navigation';
@@ -31,7 +31,7 @@ export default async function Page({
   if (!bankId) {
     return notFound();
   }
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const {dbBank} = await getData(userId, bankId);
   return <ConnectForm dbBank={dbBank} />;
 }

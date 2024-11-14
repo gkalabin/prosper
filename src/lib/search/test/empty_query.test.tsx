@@ -1,4 +1,3 @@
-import {expect, test} from '@jest/globals';
 import {fallbackSearch} from '@/lib/search/search';
 import {
   clearModel,
@@ -6,6 +5,7 @@ import {
   modelParams,
   tx,
 } from '@/lib/search/test/helpers';
+import {expect, test} from '@jest/globals';
 
 beforeEach(clearModel);
 

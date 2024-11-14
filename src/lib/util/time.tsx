@@ -1,3 +1,4 @@
+import {Granularity} from '@/lib/util/Granularity';
 import {
   eachMonthOfInterval,
   eachQuarterOfInterval,
@@ -7,16 +8,15 @@ import {
   endOfYear,
   format,
   isSameDay,
+  isSameMonth,
+  isSameQuarter,
+  isSameWeek,
+  isSameYear,
   startOfMonth,
   startOfQuarter,
   startOfYear,
   type Interval,
-  isSameMonth,
-  isSameQuarter,
-  isSameYear,
-  isSameWeek,
 } from 'date-fns';
-import {Granularity} from '@/lib/util/Granularity';
 
 function dateFunctionsForGranularity(granularity: Granularity): {
   slice: (i: Interval<Date>) => Date[];

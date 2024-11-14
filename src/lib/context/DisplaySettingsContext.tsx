@@ -1,7 +1,7 @@
-import {DisplaySettings as DBDisplaySettings} from '@prisma/client';
 import {DisplaySettings} from '@/lib/displaySettings';
 import {Currency} from '@/lib/model/Currency';
 import {Setter} from '@/lib/stateHelpers';
+import {DisplaySettings as DBDisplaySettings} from '@prisma/client';
 import {createContext, useContext, useState} from 'react';
 
 type SettableDisplaySettings = {

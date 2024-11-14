@@ -1,5 +1,5 @@
-import {TrueLayerToken} from '@prisma/client';
 import {AccountDetails} from '@/lib/openbanking/interface';
+import {TrueLayerToken} from '@prisma/client';
 
 export async function fetchAccounts(
   token: TrueLayerToken

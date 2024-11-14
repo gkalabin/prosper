@@ -1,7 +1,7 @@
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB} from '@/lib/db';
 import {deleteToken as deleteTokenNordigen} from '@/lib/openbanking/nordigen/token';
 import {deleteToken as deleteTokenTrueLayer} from '@/lib/openbanking/truelayer/token';
-import {getUserId} from '@/lib/auth/user';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {RedirectType, redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
@@ -14,7 +14,7 @@ export async function POST(
   if (!bankId) {
     return new Response(`bankId must be an integer`, {status: 400});
   }
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const db = new DB({userId});
   const [bank] = await db.bankFindMany({
     where: {

@@ -1,7 +1,7 @@
 import {OpenBankingMappingConfigPage} from '@/app/(authenticated)/config/open-banking/mapping/client';
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB} from '@/lib/db';
 import {fetchAccountsForBank} from '@/lib/openbanking/fetchall';
-import {getUserId} from '@/lib/auth/user';
 import {firstPositiveIntOrNull} from '@/lib/util/searchParams';
 import {Metadata} from 'next';
 import {notFound} from 'next/navigation';
@@ -53,7 +53,7 @@ export default async function Page({
   if (!bankId) {
     return notFound();
   }
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const data = await getData(userId, bankId);
   if (!data?.externalAccounts?.length) {
     return (

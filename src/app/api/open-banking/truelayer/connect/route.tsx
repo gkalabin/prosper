@@ -1,14 +1,14 @@
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DEFAULT_AUTHENTICATED_PAGE} from '@/lib/const';
 import {DB} from '@/lib/db';
 import prisma from '@/lib/prisma';
-import {getUserId} from '@/lib/auth/user';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {Prisma} from '@prisma/client';
 import {redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
 
 export async function GET(request: NextRequest): Promise<Response> {
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   const query = request.nextUrl.searchParams;
   const code = query.get('code');
   const redirectURI = `${process.env.PUBLIC_APP_URL}/api/open-banking/truelayer/connect`;

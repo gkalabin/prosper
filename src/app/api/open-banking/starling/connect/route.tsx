@@ -1,7 +1,7 @@
-import {addYears} from 'date-fns';
+import {getUserIdOrRedirect} from '@/lib/auth/user';
 import prisma from '@/lib/prisma';
-import {getUserId} from '@/lib/auth/user';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
+import {addYears} from 'date-fns';
 import {redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
 
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest): Promise<Response> {
     return new Response(`token is required`, {status: 400});
   }
   const farFuture = addYears(new Date(), 100).toISOString();
-  const userId = await getUserId();
+  const userId = await getUserIdOrRedirect();
   await prisma.starlingToken.create({
     data: {
       access: token,
