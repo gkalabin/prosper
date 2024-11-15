@@ -1,6 +1,9 @@
+import {hasCapacityToSignUp} from '@/actions/auth/signup';
 import {SignUpForm} from '@/app/auth/signup/SignUpForm';
+import {DEFAULT_AUTHENTICATED_PAGE} from '@/lib/auth/const';
+import {getCurrentSession} from '@/lib/auth/user';
+import {ExclamationTriangleIcon} from '@heroicons/react/24/outline';
 import {Metadata} from 'next';
-import {getServerSession} from 'next-auth';
 import {redirect} from 'next/navigation';
 
 export const metadata: Metadata = {
@@ -8,9 +11,13 @@ export const metadata: Metadata = {
 };
 
 export default async function LoginPage() {
-  const session = await getServerSession();
-  if (session) {
-    return redirect('/overview');
+  const {user} = await getCurrentSession();
+  if (user) {
+    return redirect(DEFAULT_AUTHENTICATED_PAGE);
+  }
+  const hasCapacity = await hasCapacityToSignUp();
+  if (!hasCapacity) {
+    return <NoCapacityError />;
   }
   return (
     <div className="flex h-full w-full justify-center">
@@ -26,6 +33,15 @@ export default async function LoginPage() {
 
         <SignUpForm />
       </main>
+    </div>
+  );
+}
+
+function NoCapacityError() {
+  return (
+    <div className="m-6 rounded border bg-red-300 p-4 font-medium">
+      <ExclamationTriangleIcon className="mr-2 inline-block h-6 w-6" /> New
+      registrations not allowed.
     </div>
   );
 }

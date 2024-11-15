@@ -1,8 +1,3 @@
-resource "random_password" "nextauth_secret" {
-  length  = 42
-  special = false
-}
-
 resource "google_service_account" "runner" {
   account_id   = "runner"
   display_name = "Account to run the main prosper app"
@@ -72,14 +67,6 @@ resource "google_cloud_run_v2_service" "prosper" {
       env {
         name  = "PUBLIC_APP_URL"
         value = "https://${var.domain_name}"
-      }
-      env {
-        name  = "NEXTAUTH_URL"
-        value = "https://${var.domain_name}"
-      }
-      env {
-        name  = "NEXTAUTH_SECRET"
-        value = random_password.nextauth_secret.result
       }
       env {
         name  = "MAX_USERS_ALLOWED_TO_REGISTER"

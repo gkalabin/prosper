@@ -1,19 +1,55 @@
-import {LOGIN_PAGE} from '@/lib/const';
-import {withAuth} from 'next-auth/middleware';
+import {COOKIE_NAME, COOKIE_TTL_DAYS, SIGN_OUT_URL} from '@/lib/auth/const';
+import {isProd} from '@/lib/util/env';
+import type {NextRequest} from 'next/server';
+import {NextResponse} from 'next/server';
 
-export default withAuth({
-  pages: {
-    signIn: LOGIN_PAGE,
-  },
-});
+const FORBIDDEN = new NextResponse(null, {status: 403});
 
-export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - auth/signup (signup page)
-     * - api/signup (signup API route)
-     */
-    '/((?!auth/signup|api/signup).*)',
-  ],
-};
+export async function middleware(request: NextRequest): Promise<NextResponse> {
+  // Do not interfere with sign-out flow, allow it straight away.
+  if (request.nextUrl.pathname == SIGN_OUT_URL) {
+    return NextResponse.next();
+  }
+  // Only extend cookie expiration on GET requests since we can be sure
+  // a new session wasn't set when handling the request.
+  if (request.method === 'GET') {
+    const response = NextResponse.next();
+    extendAuthCookie(request, response);
+    return response;
+  }
+  const sameOrigin = isSameOrigin(request);
+  if (!sameOrigin) {
+    return FORBIDDEN;
+  }
+  return NextResponse.next();
+}
+
+function extendAuthCookie(request: NextRequest, response: NextResponse): void {
+  const token = request.cookies.get(COOKIE_NAME)?.value ?? null;
+  if (!token) {
+    return;
+  }
+  response.cookies.set(COOKIE_NAME, token, {
+    path: '/',
+    maxAge: 60 * 60 * 24 * COOKIE_TTL_DAYS,
+    sameSite: 'lax',
+    httpOnly: true,
+    secure: isProd(),
+  });
+}
+
+function isSameOrigin(request: NextRequest): boolean {
+  const originHeader = request.headers.get('Origin');
+  // NOTE: You may need to use `X-Forwarded-Host` instead
+  const hostHeader = request.headers.get('Host');
+  if (originHeader === null || hostHeader === null) {
+    return false;
+  }
+  let origin: URL;
+  try {
+    origin = new URL(originHeader);
+  } catch {
+    return false;
+  }
+  return origin.host === hostHeader;
+}
