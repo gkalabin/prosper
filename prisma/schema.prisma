@@ -81,7 +81,6 @@ model BankAccount {
   // Joint accounts are owned by 2 people and personal value of such accounts is half of the balance.
   joint Boolean @default(false)
 
-  // TODO: move to a separate table
   initialBalanceCents Int @default(0)
 
   user                   User                     @relation(fields: [userId], references: [id])
@@ -175,7 +174,7 @@ model DisplaySettings {
 
 model User {
   id                     Int                      @id @default(autoincrement())
-  login                  String
+  login                  String                   @unique
   password               String
   createdAt              DateTime                 @default(now())
   updatedAt              DateTime                 @updatedAt
@@ -192,6 +191,14 @@ model User {
   NordigenRequisition    NordigenRequisition[]
   ExternalAccountMapping ExternalAccountMapping[]
   StarlingToken          StarlingToken[]
+  Session                Session[]
+}
+
+model Session {
+  id        String   @id
+  userId    Int
+  expiresAt DateTime
+  user User @relation(references: [id], fields: [userId], onDelete: Cascade)
 }
 
 model ExchangeRate {

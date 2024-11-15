@@ -1,10 +1,13 @@
 'use client';
+import {SIGN_IN_URL, SIGN_OUT_URL} from '@/lib/auth/const';
+import {isProd} from '@/lib/util/env';
 import {cn} from '@/lib/utils';
 import {
   Disclosure,
   DisclosureButton,
   DisclosurePanel,
   Menu,
+  MenuButton,
   MenuItem,
   MenuItems,
   Transition,
@@ -15,21 +18,11 @@ import {
   UserCircleIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import {SessionProvider, signIn, signOut, useSession} from 'next-auth/react';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
 import {Fragment} from 'react';
 
-export default function Header() {
-  return (
-    <SessionProvider>
-      <HeaderImpl />
-    </SessionProvider>
-  );
-}
-
-function HeaderImpl() {
-  const {data: session} = useSession();
+export default function Header({login}: {login: string}) {
   const pathname = usePathname();
   const isActive = ({href}: {href: string}) => {
     return href === pathname;
@@ -43,21 +36,24 @@ function HeaderImpl() {
   ];
 
   return (
-    <Disclosure as="nav" className="bg-gray-800">
+    <Disclosure
+      as="nav"
+      className={cn(isProd() ? 'bg-gray-800' : 'bg-orange-700')}
+    >
       {({open}) => (
         <>
           <div className="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
             <div className="relative flex h-16 items-center justify-between">
               <div className="absolute inset-y-0 left-0 flex items-center sm:hidden">
                 {/* Mobile menu button*/}
-                <Disclosure.Button className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                <DisclosureButton className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
                   <span className="sr-only">Open main menu</span>
                   {open ? (
                     <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
                   ) : (
                     <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
                   )}
-                </Disclosure.Button>
+                </DisclosureButton>
               </div>
               <div className="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
                 <div className="flex flex-shrink-0 items-center">
@@ -90,10 +86,10 @@ function HeaderImpl() {
                 {/* Profile dropdown */}
                 <Menu as="div" className="relative ml-3">
                   <div>
-                    <Menu.Button className="flex rounded-full bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
+                    <MenuButton className="flex rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-gray-800">
                       <span className="sr-only">Open user menu</span>
                       <UserCircleIcon className="h-8 w-8 rounded-full text-white" />
-                    </Menu.Button>
+                    </MenuButton>
                   </div>
                   <Transition
                     as={Fragment}
@@ -119,33 +115,33 @@ function HeaderImpl() {
                         )}
                       </MenuItem>
 
-                      {!session?.user.name && (
-                        <Menu.Item>
-                          {({active}) => (
+                      {!login && (
+                        <MenuItem>
+                          {({focus}) => (
                             <a
-                              onClick={() => signIn()}
+                              href={SIGN_IN_URL}
                               className={cn(
-                                active ? 'bg-gray-100' : '',
+                                focus ? 'bg-gray-100' : '',
                                 'block cursor-pointer px-4 py-2 text-sm text-gray-700'
                               )}
                             >
                               Sign In
                             </a>
                           )}
-                        </Menu.Item>
+                        </MenuItem>
                       )}
 
-                      {session?.user.name && (
-                        <Menu.Item>
-                          {({active}) => (
+                      {login && (
+                        <MenuItem>
+                          {({focus}) => (
                             <>
                               <span className="block px-4 py-2 text-sm text-gray-700">
-                                Signed in as <i>{session?.user.name}</i>
+                                Signed in as <i>{login}</i>
                               </span>
                               <a
-                                onClick={() => signOut()}
+                                href={SIGN_OUT_URL}
                                 className={cn(
-                                  active ? 'bg-gray-100' : '',
+                                  focus ? 'bg-gray-100' : '',
                                   'block cursor-pointer py-2 pl-6 pr-4 text-sm text-gray-700'
                                 )}
                               >
@@ -153,7 +149,7 @@ function HeaderImpl() {
                               </a>
                             </>
                           )}
-                        </Menu.Item>
+                        </MenuItem>
                       )}
                     </MenuItems>
                   </Transition>

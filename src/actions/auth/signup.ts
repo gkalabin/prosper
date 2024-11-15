@@ -1,117 +1,89 @@
-import {authOptions} from '@/app/api/auth/[...nextauth]/authOptions';
-import {assertDefined} from '@/lib/assert';
+'use server';
 import {
   SignUpForm,
-  SignUpResponse,
   signupFormValidationSchema,
-} from '@/lib/model/signup-form';
+} from '@/app/auth/signup/signup-form-schema';
+import {assertDefined} from '@/lib/assert';
+import {COOKIE_TTL_DAYS, DEFAULT_AUTHENTICATED_PAGE} from '@/lib/auth/const';
+import {setSessionTokenCookie} from '@/lib/auth/cookies';
+import {createSession, generateSessionToken} from '@/lib/auth/session';
+import {getCurrentSession} from '@/lib/auth/user';
 import prisma from '@/lib/prisma';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {Prisma, User} from '@prisma/client';
 import bcrypt from 'bcrypt';
-import {getServerSession} from 'next-auth/next';
+import {addDays} from 'date-fns';
 import {redirect} from 'next/navigation';
-import {NextRequest} from 'next/server';
 
-const genericBadRequest: SignUpResponse = {
+const genericBadRequest = {
   success: false,
-  name: 'root',
-  message: 'Failed to create the user, please try again.',
+  error: 'Failed to create the user, please try again.',
 };
 
-const atCapacityResponse: SignUpResponse = {
-  success: false,
-  name: 'root',
-  message: 'Maximum number of allowed users reached.',
+const atCapacityResponse = {
+  success: false as const,
+  error: 'Maximum number of allowed users reached.',
 };
 
-let atCapacity = false;
-
-export async function POST(request: NextRequest): Promise<Response> {
-  if (atCapacity) {
-    return new Response(JSON.stringify(atCapacityResponse), {
-      status: 403,
-    });
-  }
+export async function hasCapacityToSignUp(): Promise<boolean> {
   const maxUsers = positiveIntOrNull(
     process.env.MAX_USERS_ALLOWED_TO_REGISTER ?? null
   );
   if (!maxUsers) {
-    return new Response(JSON.stringify(atCapacityResponse), {
-      status: 403,
-    });
+    return false;
   }
   const usersCount = await prisma.user.count();
-  if (usersCount >= maxUsers) {
-    atCapacity = true;
-    return new Response(JSON.stringify(atCapacityResponse), {
-      status: 403,
-    });
+  return usersCount < maxUsers;
+}
+
+export async function signUp(
+  unsafeData: SignUpForm
+): Promise<{success: true} | {success: false; error: string}> {
+  // Validate if the user can be created.
+  const hasCapacity = await hasCapacityToSignUp();
+  if (!hasCapacity) {
+    return atCapacityResponse;
   }
-  const session = await getServerSession(authOptions);
-  if (session?.user?.id) {
-    return redirect('/overview');
+  const {user: loggedInUser} = await getCurrentSession();
+  if (loggedInUser) {
+    return redirect(DEFAULT_AUTHENTICATED_PAGE);
   }
-  // Parse and validate the request.
-  let form: SignUpForm | null = null;
-  try {
-    const json = await request.json();
-    const parsed = signupFormValidationSchema.safeParse(json);
-    if (!parsed.success) {
-      // TODO: return the validation result to the client, so it can display
-      // the error messages in the form.
-      return new Response(JSON.stringify(genericBadRequest), {
-        status: 400,
-      });
-    }
-    form = parsed.data;
-  } catch (e) {
-    return new Response(JSON.stringify(genericBadRequest), {
-      status: 400,
-    });
+  const parsed = signupFormValidationSchema.safeParse(unsafeData);
+  if (!parsed.success) {
+    return genericBadRequest;
   }
+  const {login, password} = parsed.data;
   // Create the user.
   const rounds = 10 + Math.round(5 * Math.random());
   // This is a heavy operation, make sure to run it outside of the transaction.
-  const hash = await bcrypt.hash(form.password, rounds);
-  const {
-    statusCode,
-    response,
-  }: {statusCode: 200 | 400; response: SignUpResponse} =
-    await prisma.$transaction(async tx => {
-      assertDefined(form);
-      const existingUser = await tx.user.findFirst({
-        where: {
-          login: form.login,
-        },
-      });
-      if (existingUser) {
-        return {
-          statusCode: 400,
-          response: {
-            success: false,
-            name: 'login',
-            message: 'User with this login already exists.',
-          },
-        };
-      }
-      const user = await tx.user.create({
-        data: {
-          login: form.login,
-          password: hash,
-        },
-      });
-      await createCategories(tx, user, defaultCategories);
+  const passwordHash = await bcrypt.hash(password, rounds);
+  const txResult = await prisma.$transaction(async tx => {
+    const existingUser = await tx.user.findFirst({where: {login}});
+    if (existingUser) {
       return {
-        statusCode: 200,
-        response: {
-          success: true,
-        },
+        user: null,
+        error: 'User with this login already exists.',
       };
+    }
+    const user = await tx.user.create({
+      data: {
+        login,
+        password: passwordHash,
+      },
     });
-  return new Response(JSON.stringify(response), {
-    status: statusCode,
+    await createCategories(tx, user, defaultCategories);
+    return {user, error: null};
   });
+  if (!txResult.user) {
+    return {success: false, error: txResult.error};
+  }
+  const dbUser = txResult.user;
+  // User successfully created. Add new session.
+  const token = generateSessionToken();
+  const expiration = addDays(new Date(), COOKIE_TTL_DAYS);
+  await createSession(token, dbUser.id, expiration);
+  setSessionTokenCookie(token, expiration);
+  return {success: true};
 }
 
 const defaultCategories = [

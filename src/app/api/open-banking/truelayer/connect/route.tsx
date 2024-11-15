@@ -1,5 +1,5 @@
+import {DEFAULT_AUTHENTICATED_PAGE} from '@/lib/auth/const';
 import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DEFAULT_AUTHENTICATED_PAGE} from '@/lib/const';
 import {DB} from '@/lib/db';
 import prisma from '@/lib/prisma';
 import {positiveIntOrNull} from '@/lib/util/searchParams';

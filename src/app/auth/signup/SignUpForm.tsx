@@ -1,6 +1,12 @@
 'use client';
+import {signUp} from '@/actions/auth/signup';
+import {
+  signupFormValidationSchema,
+  type SignUpForm as SignUpFormValues,
+} from '@/app/auth/signup/signup-form-schema';
 import {Button} from '@/components/ui/button';
 import {
+  Form,
   FormControl,
   FormField,
   FormItem,
@@ -8,107 +14,100 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
-import {
-  signupFormValidationSchema,
-  signupResponseSchema,
-  type SignUpForm as SignUpFormValues,
-} from '@/lib/model/signup-form';
+import {POST_SIGNUP_PAGE} from '@/lib/auth/const';
+import {waitUntilNavigationComplete} from '@/lib/auth/util';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {signIn} from 'next-auth/react';
-import {useState} from 'react';
+import {useRouter} from 'next/navigation';
 import {SubmitHandler, useForm} from 'react-hook-form';
 
 const genericError = 'Registration failed, please try again.';
 
 export function SignUpForm() {
-  const [inProgress, setInProgress] = useState(false);
+  const form = useForm<SignUpFormValues>({
+    resolver: zodResolver(signupFormValidationSchema),
+    defaultValues: {
+      login: '',
+      password: '',
+      confirmPassword: '',
+    },
+  });
   const {
     handleSubmit,
-    formState: {errors},
+    formState: {isSubmitting, errors},
     setError,
     control,
-  } = useForm<SignUpFormValues>({
-    resolver: zodResolver(signupFormValidationSchema),
-  });
+  } = form;
+  const router = useRouter();
   const onSubmit: SubmitHandler<SignUpFormValues> = async data => {
-    setInProgress(true);
     try {
-      const response = await fetch('/api/signup', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      });
-      const json = await response.json();
-      const parsed = signupResponseSchema.safeParse(json);
-      if (!parsed.success) {
-        setInProgress(false);
-        setError('root', {message: genericError});
+      const response = await signUp(data);
+      if (response.success) {
+        router.push(POST_SIGNUP_PAGE);
+        await waitUntilNavigationComplete();
         return;
       }
-      if (!parsed.data.success) {
-        setInProgress(false);
-        setError(parsed.data.name, {message: parsed.data.message});
-        return;
-      }
-      await signIn('credentials', {
-        login: data.login,
-        password: data.password,
-        redirect: true,
-        callbackUrl: '/config/banks',
-      });
+      setError('root', {message: response.error});
     } catch (e) {
-      setInProgress(false);
       setError('root', {message: genericError});
     }
   };
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="gap-y-4">
-      <FormField
-        control={control}
-        name="login"
-        render={({field}) => (
-          <FormItem>
-            <FormLabel>Login</FormLabel>
-            <FormControl>
-              <Input {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
+    <Form {...form}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={control}
+          name="login"
+          render={({field}) => (
+            <FormItem>
+              <FormLabel>Login</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={control}
+          name="password"
+          render={({field}) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input type="password" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={control}
+          name="confirmPassword"
+          render={({field}) => (
+            <FormItem>
+              <FormLabel>Confirm Password</FormLabel>
+              <FormControl>
+                <Input type="password" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {errors.root && (
+          <div className="text-sm font-medium text-destructive">
+            {errors.root.message}
+          </div>
         )}
-      />
-      <FormField
-        control={control}
-        name="password"
-        render={({field}) => (
-          <FormItem>
-            <FormLabel>Password</FormLabel>
-            <FormControl>
-              <Input type="password" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={control}
-        name="confirmPassword"
-        render={({field}) => (
-          <FormItem>
-            <FormLabel>Confirm Password</FormLabel>
-            <FormControl>
-              <Input type="password" {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      {errors.root && (
-        <div className="text-sm font-medium text-destructive">
-          {errors.root.message}
+        <div>
+          <Button
+            type="submit"
+            className="mt-6 block w-full"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Creating account...' : 'Create account'}
+          </Button>
         </div>
-      )}
-      <Button type="submit" className="mt-6 w-full" disabled={inProgress}>
-        {inProgress ? 'Creating account...' : 'Create account'}
-      </Button>
-    </form>
+      </form>
+    </Form>
   );
 }
