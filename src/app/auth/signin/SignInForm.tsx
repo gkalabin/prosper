@@ -39,7 +39,8 @@ export function SignInForm() {
       }
       form.setError('root', {message: result.error});
     } catch (e) {
-      form.setError('root', {message: `Login failed: ${e}`});
+      console.error('Login failed: ', e);
+      form.setError('root', {message: 'Login failed, please try again.'});
     }
   });
   return (
@@ -80,7 +81,7 @@ export function SignInForm() {
           className="mt-2 w-full"
           disabled={form.formState.isSubmitting}
         >
-          Sign in
+          {form.formState.isSubmitting ? 'Signing in...' : 'Sign in'}
         </Button>
       </form>
     </Form>

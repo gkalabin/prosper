@@ -20,8 +20,6 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {useRouter} from 'next/navigation';
 import {SubmitHandler, useForm} from 'react-hook-form';
 
-const genericError = 'Registration failed, please try again.';
-
 export function SignUpForm() {
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signupFormValidationSchema),
@@ -48,7 +46,8 @@ export function SignUpForm() {
       }
       setError('root', {message: response.error});
     } catch (e) {
-      setError('root', {message: genericError});
+      console.error('Sign up failed: ', e);
+      setError('root', {message: 'Registration failed, please try again.'});
     }
   };
   return (

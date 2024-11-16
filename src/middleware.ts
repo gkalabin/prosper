@@ -40,14 +40,6 @@ function extendAuthCookie(request: NextRequest, response: NextResponse): void {
 
 function isSameOrigin(request: NextRequest): boolean {
   const originHeader = request.headers.get('Origin');
-  console.log(
-    'CSRF check',
-    JSON.stringify(
-      [...request.headers.entries()].map(([k, v]) => ({k, v})),
-      null,
-      2
-    )
-  );
   const sameOrigin = (host: string | null): boolean => {
     if (originHeader === null || host === null) {
       return false;
