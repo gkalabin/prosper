@@ -40,16 +40,20 @@ function extendAuthCookie(request: NextRequest, response: NextResponse): void {
 
 function isSameOrigin(request: NextRequest): boolean {
   const originHeader = request.headers.get('Origin');
-  // NOTE: You may need to use `X-Forwarded-Host` instead
-  const hostHeader = request.headers.get('Host');
-  if (originHeader === null || hostHeader === null) {
-    return false;
-  }
-  let origin: URL;
-  try {
-    origin = new URL(originHeader);
-  } catch {
-    return false;
-  }
-  return origin.host === hostHeader;
+  const sameOrigin = (host: string | null): boolean => {
+    if (originHeader === null || host === null) {
+      return false;
+    }
+    let origin: URL;
+    try {
+      origin = new URL(originHeader);
+    } catch {
+      return false;
+    }
+    return origin.host === host;
+  };
+  return (
+    sameOrigin(request.headers.get('Host')) ||
+    sameOrigin(request.headers.get('X-Forwarded-Host'))
+  );
 }
