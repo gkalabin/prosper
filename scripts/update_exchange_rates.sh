@@ -11,4 +11,4 @@ if [[ -z "$ADMIN_HANDLER_SECRET" ]]; then
   exit 1
 fi
 
-curl -X POST -H "Authorization: Bearer $ADMIN_HANDLER_SECRET" "http://127.0.0.1:3000/api/_ratesz"
+curl -I -X POST -H "Authorization: Bearer $ADMIN_HANDLER_SECRET" "http://127.0.0.1:3000/api/_ratesz"
