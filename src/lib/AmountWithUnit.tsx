@@ -83,10 +83,10 @@ export class AmountWithUnit {
   }
 
   public add(other: AmountWithUnit): AmountWithUnit {
+    this.assertSameUnit(other);
     if (!other || other.isZero()) {
       return this;
     }
-    this.assertSameUnit(other);
     return new AmountWithUnit({
       amountCents: this.amount.add(other.amount).cents(),
       unit: this.unit,
@@ -94,11 +94,10 @@ export class AmountWithUnit {
   }
 
   public subtract(other: AmountWithUnit): AmountWithUnit {
-    // TODO: do not short circuit before asserting the same unit
+    this.assertSameUnit(other);
     if (!other || other.isZero()) {
       return this;
     }
-    this.assertSameUnit(other);
     return new AmountWithUnit({
       amountCents: this.amount.subtract(other.amount).cents(),
       unit: this.unit,
