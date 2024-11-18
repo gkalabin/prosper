@@ -1,11 +1,9 @@
+import {NO_HISTORY_LOOK_BACK_DAYS} from '@/lib/asset-rates/backfill';
 import {Currency, NANOS_MULTIPLIER, allCurrencies} from '@/lib/model/Currency';
 import prisma from '@/lib/prisma';
 import {addDays, differenceInHours, format, isSameDay} from 'date-fns';
 import yahooFinance from 'yahoo-finance2';
 import {type HistoricalRowHistory} from 'yahoo-finance2/dist/esm/src/modules/historical';
-
-const UPDATE_FREQUENCY_HOURS = 6;
-const NO_HISTORY_LOOK_BACK_DAYS = 30;
 
 export async function fetchExchangeRates({
   startDate,
@@ -28,20 +26,31 @@ export async function fetchExchangeRates({
   return r;
 }
 
-export async function addLatestExchangeRates() {
+/**
+ * @param refreshIntervalHours How often to update the latest rate. If the rate is newer than this, it's not updated.
+ */
+export async function addLatestExchangeRates(refreshIntervalHours: number) {
   const timingLabel = 'Exchange rate backfill ' + new Date().getTime();
   console.time(timingLabel);
   const backfillPromises: Promise<void>[] = [];
   for (const sell of allCurrencies()) {
     for (const buy of allCurrencies()) {
-      backfillPromises.push(backfill({sell, buy}));
+      backfillPromises.push(backfill({sell, buy, refreshIntervalHours}));
     }
   }
   await Promise.allSettled(backfillPromises);
   console.timeEnd(timingLabel);
 }
 
-async function backfill({sell, buy}: {sell: Currency; buy: Currency}) {
+async function backfill({
+  sell,
+  buy,
+  refreshIntervalHours,
+}: {
+  sell: Currency;
+  buy: Currency;
+  refreshIntervalHours: number;
+}) {
   if (sell.code == buy.code) {
     return;
   }
@@ -98,7 +107,7 @@ async function backfill({sell, buy}: {sell: Currency; buy: Currency}) {
     // Latest rate is of today, decide to update it if it's fresh or not.
     // rateTimestamp is just a date and always a midnight, so use updatedAt for the latest update time
     const ageHours = differenceInHours(now, latest.updatedAt);
-    if (ageHours < UPDATE_FREQUENCY_HOURS) {
+    if (ageHours < refreshIntervalHours) {
       console.warn(
         '%s->%s: rate for %s is still fresh, updated %d hours ago on %s',
         sell.code,

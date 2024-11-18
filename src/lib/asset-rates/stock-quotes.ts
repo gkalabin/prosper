@@ -1,10 +1,8 @@
+import {NO_HISTORY_LOOK_BACK_DAYS} from '@/lib/asset-rates/backfill';
 import prisma from '@/lib/prisma';
 import {Stock as DBStock, Prisma} from '@prisma/client';
 import {addDays, differenceInHours, format, isSameDay} from 'date-fns';
 import yahooFinance from 'yahoo-finance2';
-
-const UPDATE_FREQUENCY_HOURS = 6;
-const NO_HISTORY_LOOK_BACK_DAYS = 30;
 
 type StockQuote = {
   stockId: number;
@@ -55,7 +53,11 @@ function stockQuoteToDbModel(x: StockQuote): Prisma.StockQuoteCreateManyInput {
   };
 }
 
-export async function addLatestStockQuotes() {
+/**
+ *
+ * @param refreshIntervalHours How often to update the latest rate. If the rate is newer than this, it's not updated.
+ */
+export async function addLatestStockQuotes(refreshIntervalHours: number) {
   console.log('Starting stock quotes backfill');
   const timingLabel = 'Stock quotes backfill ' + new Date().getTime();
   console.time(timingLabel);
@@ -63,7 +65,7 @@ export async function addLatestStockQuotes() {
   await Promise.allSettled(
     dbStocks.map(async s => {
       try {
-        await backfill(s);
+        await backfill(s, refreshIntervalHours);
       } catch (err) {
         console.error('Error backfilling %s', s.ticker, err);
       }
@@ -72,7 +74,7 @@ export async function addLatestStockQuotes() {
   console.timeEnd(timingLabel);
 }
 
-async function backfill(stock: DBStock) {
+async function backfill(stock: DBStock, refreshIntervalHours: number) {
   console.log('backfilling %s', stock.ticker);
   const now = new Date();
   const latest = await prisma.stockQuote.findFirst({
@@ -111,7 +113,7 @@ async function backfill(stock: DBStock) {
     // Latest rate is of today, decide to update it if it's fresh or not.
     // quoteTimestamp is just a date and always a midnight, so use updatedAt for the latest update time
     const ageHours = differenceInHours(now, latest.updatedAt);
-    if (ageHours < UPDATE_FREQUENCY_HOURS) {
+    if (ageHours < refreshIntervalHours) {
       console.warn(
         '%s: rate for %s is still fresh, updated %d hours ago on %s',
         stock.ticker,
