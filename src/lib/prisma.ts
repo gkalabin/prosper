@@ -14,6 +14,6 @@ const prisma = globalThis.prisma ?? prismaClientSingleton();
 
 export default prisma;
 
-if (isProd()) {
+if (!isProd()) {
   globalThis.prisma = prisma;
 }
