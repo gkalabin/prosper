@@ -3,7 +3,6 @@ import {
   CreateInput,
   deleteAllLinks,
   includeTagIds,
-  toCents,
   UpdateInput,
   updateTags,
   writeUsedProtos,
@@ -14,6 +13,7 @@ import {TransactionFormSchema} from '@/components/txform/types';
 import {assertDefined} from '@/lib/assert';
 import prisma from '@/lib/prisma';
 import {type TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
+import {dollarToCents} from '@/lib/util/util';
 import {Prisma, Transaction} from '@prisma/client';
 
 export async function upsertIncome(
@@ -103,10 +103,10 @@ function makeDbInput(income: IncomeFormSchema, userId: number) {
     payer: income.payer,
     description: income.description ?? '',
     incomingAccountId: income.accountId,
-    incomingAmountCents: toCents(income.amount),
+    incomingAmountCents: dollarToCents(income.amount),
     ownShareAmountCents: income.isShared
-      ? toCents(income.ownShareAmount)
-      : toCents(income.amount),
+      ? dollarToCents(income.ownShareAmount)
+      : dollarToCents(income.amount),
     otherPartyName: income.isShared ? income.companion : null,
     categoryId: income.categoryId,
     outgoingAccountId: null,

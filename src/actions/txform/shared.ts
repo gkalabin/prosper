@@ -145,6 +145,3 @@ export async function deleteAllLinks(
     });
   }
 }
-
-// TODO: move to util and write tests.
-export const toCents = (x: number): number => Math.round(x * 100);

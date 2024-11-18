@@ -3,7 +3,6 @@ import {
   CreateInput,
   deleteAllLinks,
   includeTagIds,
-  toCents,
   UpdateInput,
   updateTags,
   writeUsedProtos,
@@ -14,6 +13,7 @@ import {TransactionFormSchema} from '@/components/txform/types';
 import {assertDefined} from '@/lib/assert';
 import prisma from '@/lib/prisma';
 import {type TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
+import {dollarToCents} from '@/lib/util/util';
 import {Prisma, Transaction} from '@prisma/client';
 
 export async function upsertTransfer(
@@ -79,9 +79,9 @@ function makeDbInput(transfer: TransferFormSchema, userId: number) {
     timestamp: transfer.timestamp,
     description: transfer.description ?? '',
     outgoingAccountId: transfer.fromAccountId,
-    outgoingAmountCents: toCents(transfer.amountSent),
+    outgoingAmountCents: dollarToCents(transfer.amountSent),
     incomingAccountId: transfer.toAccountId,
-    incomingAmountCents: toCents(transfer.amountReceived),
+    incomingAmountCents: dollarToCents(transfer.amountReceived),
     categoryId: transfer.categoryId,
     vendor: null,
     payer: null,

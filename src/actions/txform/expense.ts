@@ -3,7 +3,6 @@ import {
   CreateInput,
   getOrCreateTrip,
   includeTagIds,
-  toCents,
   UpdateInput,
   updateTags,
   writeUsedProtos,
@@ -14,6 +13,7 @@ import {TransactionFormSchema} from '@/components/txform/types';
 import {assert, assertDefined} from '@/lib/assert';
 import prisma from '@/lib/prisma';
 import {type TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
+import {dollarToCents} from '@/lib/util/util';
 import {Prisma, Transaction} from '@prisma/client';
 
 export async function upsertExpense(
@@ -188,7 +188,7 @@ function makeDbInput(expense: ExpenseFormSchema, userId: number) {
       payer: null,
       tripId: null,
       outgoingAccountId: expense.accountId,
-      outgoingAmountCents: toCents(expense.amount),
+      outgoingAmountCents: dollarToCents(expense.amount),
       incomingAccountId: null,
       incomingAmountCents: null,
       payerOutgoingAmountCents: null,
@@ -201,14 +201,14 @@ function makeDbInput(expense: ExpenseFormSchema, userId: number) {
         return {
           ...partialResult,
           otherPartyName: null,
-          ownShareAmountCents: toCents(expense.amount),
+          ownShareAmountCents: dollarToCents(expense.amount),
         };
 
       case 'PAID_SELF_SHARED':
         return {
           ...partialResult,
           otherPartyName: expense.companion,
-          ownShareAmountCents: toCents(expense.ownShareAmount ?? 0),
+          ownShareAmountCents: dollarToCents(expense.ownShareAmount ?? 0),
         };
 
       default:
@@ -223,8 +223,8 @@ function makeDbInput(expense: ExpenseFormSchema, userId: number) {
     transactionType: 'THIRD_PARTY_EXPENSE' as const,
     timestamp: expense.timestamp,
     description: expense.description ?? '',
-    payerOutgoingAmountCents: toCents(expense.amount),
-    ownShareAmountCents: toCents(expense.ownShareAmount),
+    payerOutgoingAmountCents: dollarToCents(expense.amount),
+    ownShareAmountCents: dollarToCents(expense.ownShareAmount),
     categoryId: expense.categoryId,
     vendor: expense.vendor,
     payer: expense.payer,
@@ -248,8 +248,8 @@ function makeRepaymentDbData(expense: ExpenseFormSchema, userId: number) {
     timestamp: repayment.timestamp,
     categoryId: repayment.categoryId,
     outgoingAccountId: repayment.accountId,
-    outgoingAmountCents: toCents(expense.ownShareAmount),
-    ownShareAmountCents: toCents(expense.ownShareAmount),
+    outgoingAmountCents: dollarToCents(expense.ownShareAmount),
+    ownShareAmountCents: dollarToCents(expense.ownShareAmount),
     vendor: expense.payer,
     description: 'Paid back for ' + expense.vendor,
     userId,
