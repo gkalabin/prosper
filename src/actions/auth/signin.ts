@@ -11,6 +11,7 @@ import {
   generateSessionToken,
 } from '@/lib/auth/session';
 import prisma from '@/lib/prisma';
+import {logRequest} from '@/lib/util/log';
 import bcrypt from 'bcrypt';
 import {addDays} from 'date-fns';
 
@@ -26,6 +27,7 @@ const AUTH_OK = {
 export async function signIn(
   unsafeData: SignInFormSchema
 ): Promise<{success: true} | {success: false; error: string}> {
+  logRequest('signIn');
   const validatedFields = signInFormSchema.safeParse(unsafeData);
   if (!validatedFields.success) {
     return AUTH_FAILED;
@@ -40,6 +42,7 @@ export async function signIn(
     return AUTH_FAILED;
   }
   // Auth OK, set session.
+  logRequest('signIn', `success by ${login}`);
   const token = generateSessionToken();
   const expiration = addDays(new Date(), COOKIE_TTL_DAYS);
   await createSession(token, dbUser.id, expiration);

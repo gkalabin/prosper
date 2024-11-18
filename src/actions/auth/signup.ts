@@ -9,6 +9,7 @@ import {setSessionTokenCookie} from '@/lib/auth/cookies';
 import {createSession, generateSessionToken} from '@/lib/auth/session';
 import {getCurrentSession} from '@/lib/auth/user';
 import prisma from '@/lib/prisma';
+import {logRequest} from '@/lib/util/log';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {Prisma, User} from '@prisma/client';
 import bcrypt from 'bcrypt';
@@ -39,6 +40,7 @@ export async function hasCapacityToSignUp(): Promise<boolean> {
 export async function signUp(
   unsafeData: SignUpForm
 ): Promise<{success: true} | {success: false; error: string}> {
+  logRequest('signUp');
   // Validate if the user can be created.
   const hasCapacity = await hasCapacityToSignUp();
   if (!hasCapacity) {
@@ -79,6 +81,7 @@ export async function signUp(
   }
   const dbUser = txResult.user;
   // User successfully created. Add new session.
+  logRequest('signUp', `success by ${login}`);
   const token = generateSessionToken();
   const expiration = addDays(new Date(), COOKIE_TTL_DAYS);
   await createSession(token, dbUser.id, expiration);
