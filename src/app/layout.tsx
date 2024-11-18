@@ -1,11 +1,14 @@
 import {cn} from '@/lib/utils';
 import '@/styles/global.css';
 import {Metadata} from 'next';
-import {Open_Sans as FontSans} from 'next/font/google';
+import localFont from 'next/font/local';
 
-const fontSans = FontSans({
-  subsets: ['cyrillic', 'latin', 'math', 'symbols'],
-  variable: '--font-sans',
+// Downloaded from https://fonts.google.com/specimen/Open+Sans.
+const openSans = localFont({
+  src: [
+    {path: './_fonts/OpenSans.ttf'},
+    {path: './_fonts/OpenSans-Italic.ttf', style: 'italic'},
+  ],
 });
 
 export const metadata: Metadata = {
@@ -26,8 +29,8 @@ export default async function RootLayout({
       <head />
       <body
         className={cn(
-          'min-h-screen bg-background font-sans antialiased',
-          fontSans.variable
+          'min-h-screen bg-background antialiased',
+          openSans.className
         )}
       >
         {children}
