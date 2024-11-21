@@ -1,4 +1,5 @@
 'use client';
+import {useHideBalancesContext} from '@/app/(authenticated)/overview/context/hide-balances';
 import {
   accountBalance,
   transactionBelongsToAccount,
@@ -17,36 +18,11 @@ import {Income} from '@/lib/model/transaction/Income';
 import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
 import {Transfer} from '@/lib/model/transaction/Transfer';
 import {useOpenBankingBalances} from '@/lib/openbanking/context';
+import {cn} from '@/lib/utils';
 import {useState} from 'react';
 
-export const BankAccountListItem = ({account}: {account: BankAccount}) => {
+export function BankAccountListItem({account}: {account: BankAccount}) {
   const [showExtraDetails, setShowExtraDetails] = useState(false);
-  const {transactions, stocks} = useAllDatabaseDataContext();
-  const appBalance = accountBalance(account, transactions, stocks);
-  const unit = accountUnit(account, stocks);
-  let balanceText = <span>{appBalance.format()}</span>;
-  const {balances} = useOpenBankingBalances();
-  const obBalance = balances?.find(b => b.internalAccountId === account.id);
-  if (obBalance) {
-    const obAmount = new AmountWithUnit({
-      amountCents: obBalance.balanceCents,
-      unit,
-    });
-    const delta = appBalance.subtract(obAmount);
-    if (delta.isZero()) {
-      balanceText = (
-        <span className="text-green-600">{appBalance.format()}</span>
-      );
-    } else {
-      balanceText = (
-        <>
-          <span className="text-red-600">{appBalance.format()}</span>{' '}
-          {delta.abs().format()} unaccounted{' '}
-          {delta.isNegative() ? 'income' : 'expense'}
-        </>
-      );
-    }
-  }
   return (
     <div className="flex flex-col py-2 pl-6 pr-2">
       <div
@@ -54,12 +30,61 @@ export const BankAccountListItem = ({account}: {account: BankAccount}) => {
         onClick={() => setShowExtraDetails(!showExtraDetails)}
       >
         <span className="text-base font-normal">{account.name}</span>
-        <span className="ml-2 text-sm font-light">{balanceText}</span>
+        <span className="ml-2 text-sm font-light">
+          <Balance account={account} />
+        </span>
       </div>
       {showExtraDetails && <BankAccountExtraDetails account={account} />}
     </div>
   );
-};
+}
+
+function Balance({account}: {account: BankAccount}) {
+  const {balances} = useOpenBankingBalances();
+  const {stocks} = useAllDatabaseDataContext();
+  const obBalance = balances?.find(b => b.internalAccountId === account.id);
+  if (!obBalance) {
+    return <LocalOnlyBalance account={account} />;
+  }
+  const unit = accountUnit(account, stocks);
+  const remoteBalance = new AmountWithUnit({
+    amountCents: obBalance.balanceCents,
+    unit,
+  });
+  return <BalanceWithRemote account={account} remoteBalance={remoteBalance} />;
+}
+
+function LocalOnlyBalance({account}: {account: BankAccount}) {
+  const hideBalances = useHideBalancesContext();
+  const {transactions, stocks} = useAllDatabaseDataContext();
+  if (hideBalances) {
+    return null;
+  }
+  const appBalance = accountBalance(account, transactions, stocks);
+  return <span>{appBalance.format()}</span>;
+}
+
+function BalanceWithRemote({
+  account,
+  remoteBalance,
+}: {
+  account: BankAccount;
+  remoteBalance: AmountWithUnit;
+}) {
+  const hideBalances = useHideBalancesContext();
+  const {transactions, stocks} = useAllDatabaseDataContext();
+  const localBalance = accountBalance(account, transactions, stocks);
+  const delta = localBalance.subtract(remoteBalance);
+  return (
+    <>
+      <span className={cn(delta.isZero() ? 'text-green-600' : 'text-red-600')}>
+        {hideBalances ? '' : localBalance.format()}
+      </span>{' '}
+      {delta.abs().format()} unaccounted{' '}
+      {delta.isNegative() ? 'income' : 'expense'}
+    </>
+  );
+}
 
 const BankAccountExtraDetails = ({account}: {account: BankAccount}) => {
   const {transactions, stocks} = useAllDatabaseDataContext();

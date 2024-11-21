@@ -1,4 +1,5 @@
 'use client';
+import {useHideBalancesContext} from '@/app/(authenticated)/overview/context/hide-balances';
 import {accountsSum} from '@/app/(authenticated)/overview/modelHelpers';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
@@ -9,6 +10,7 @@ export function StatsWidget() {
   const displayCurrency = useDisplayCurrency();
   const {bankAccounts, transactions, exchange, stocks} =
     useAllDatabaseDataContext();
+  const hideBalances = useHideBalancesContext();
   const total = accountsSum(
     bankAccounts,
     displayCurrency,
@@ -16,7 +18,7 @@ export function StatsWidget() {
     transactions,
     stocks
   );
-  if (!total) {
+  if (!total || hideBalances) {
     return <></>;
   }
   const totalCash = accountsSum(
