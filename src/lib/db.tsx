@@ -1,3 +1,4 @@
+import {updateRatesFallback} from '@/lib/asset-rates/backfill';
 import {
   AllDatabaseData,
   TransactionWithTagIds,
@@ -187,5 +188,6 @@ export async function fetchAllDatabaseData(db: DB): Promise<AllDatabaseData> {
           await db.transactionPrototypeFindMany()),
     ].map(f => f())
   );
+  await updateRatesFallback(data);
   return data;
 }
