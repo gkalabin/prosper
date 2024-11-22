@@ -19,20 +19,23 @@ import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
 import {Transfer} from '@/lib/model/transaction/Transfer';
 import {useOpenBankingBalances} from '@/lib/openbanking/context';
 import {cn} from '@/lib/utils';
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  CheckCircleIcon,
+} from '@heroicons/react/24/outline';
 import {useState} from 'react';
 
 export function BankAccountListItem({account}: {account: BankAccount}) {
   const [showExtraDetails, setShowExtraDetails] = useState(false);
   return (
-    <div className="flex flex-col py-2 pl-6 pr-2">
+    <div>
       <div
-        className="cursor-pointer"
+        className="flex cursor-pointer items-center justify-between"
         onClick={() => setShowExtraDetails(!showExtraDetails)}
       >
-        <span className="text-base font-normal">{account.name}</span>
-        <span className="ml-2 text-sm font-light">
-          <Balance account={account} />
-        </span>
+        <div>{account.name}</div>
+        <Balance account={account} />
       </div>
       {showExtraDetails && <BankAccountExtraDetails account={account} />}
     </div>
@@ -61,7 +64,7 @@ function LocalOnlyBalance({account}: {account: BankAccount}) {
     return null;
   }
   const appBalance = accountBalance(account, transactions, stocks);
-  return <span>{appBalance.format()}</span>;
+  return <div>{appBalance.format()}</div>;
 }
 
 function BalanceWithRemote({
@@ -76,13 +79,27 @@ function BalanceWithRemote({
   const localBalance = accountBalance(account, transactions, stocks);
   const delta = localBalance.subtract(remoteBalance);
   return (
-    <>
-      <span className={cn(delta.isZero() ? 'text-green-600' : 'text-red-600')}>
-        {hideBalances ? '' : localBalance.format()}
-      </span>{' '}
-      {delta.abs().format()} unaccounted{' '}
-      {delta.isNegative() ? 'income' : 'expense'}
-    </>
+    <div className="flex flex-col items-end">
+      <div
+        className={cn(
+          'flex items-center gap-1',
+          delta.isZero() ? 'text-green-600' : 'text-red-600'
+        )}
+      >
+        <div>{hideBalances ? '' : localBalance.format()}</div>
+        {delta.isZero() && <CheckCircleIcon className="h-4 w-4" />}
+      </div>
+      {!delta.isZero() && (
+        <div className="flex items-center gap-1 text-xs font-light text-muted-foreground">
+          {delta.isNegative() ? (
+            <ArrowUpIcon className="h-2.5 w-2.5" />
+          ) : (
+            <ArrowDownIcon className="h-2.5 w-2.5" />
+          )}
+          {delta.abs().format()}
+        </div>
+      )}
+    </div>
   );
 }
 
