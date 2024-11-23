@@ -13,8 +13,9 @@ import {
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
-import {Bank, accountsForBank} from '@/lib/model/BankAccount';
+import {Bank, accountsForBank, bankPageURL} from '@/lib/model/BankAccount';
 import {cn} from '@/lib/utils';
+import Link from 'next/link';
 
 const ITEM_BORDER_COLORS = [
   'bg-red-400',
@@ -53,7 +54,9 @@ export function BanksListItem({bank}: {bank: Bank}) {
       <CardHeader>
         <CardTitle>
           <div className="flex justify-between">
-            <div>{bank.name}</div>
+            <div>
+              <Link href={bankPageURL(bank)}>{bank.name}</Link>
+            </div>
             <Balance amount={bankTotal} />
           </div>
         </CardTitle>

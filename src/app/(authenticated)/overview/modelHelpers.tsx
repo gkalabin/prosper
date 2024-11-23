@@ -57,6 +57,7 @@ export function accountBalance(
   });
 }
 
+// TODO: move to the model folder.
 export function accountsSum(
   accounts: BankAccount[],
   targetCurrency: Currency,

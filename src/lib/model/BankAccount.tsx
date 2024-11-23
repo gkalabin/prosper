@@ -24,6 +24,17 @@ export function accountsForBank(
   return accounts.filter(a => a.bankId == bank.id);
 }
 
+export function bankPageURL(bank: Bank): string {
+  const name = bank.name
+    .replace(/ /g, '-')
+    .replace(/[^a-zA-Z0-9-]/g, '')
+    .toLowerCase();
+  if (!name) {
+    return `/bank/${bank.id}`;
+  }
+  return `/bank/${bank.id}/${encodeURIComponent(name)}`;
+}
+
 export type BankAccount = {
   id: number;
   name: string;
