@@ -1,6 +1,8 @@
 'use client';
-import {BankAccountListItem} from '@/app/(authenticated)/overview/accounts';
-import {useHideBalancesContext} from '@/app/(authenticated)/overview/context/hide-balances';
+import {
+  AccountBalance,
+  BankBalance,
+} from '@/app/(authenticated)/overview/balance';
 import {accountsSum} from '@/app/(authenticated)/overview/modelHelpers';
 import {OpenBankingConnectionExpirationWarning} from '@/app/(authenticated)/overview/OpenBankingConnectionExpirationWarning';
 import {
@@ -10,10 +12,15 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
-import {Bank, accountsForBank, bankPageURL} from '@/lib/model/BankAccount';
+import {
+  Bank,
+  BankAccount,
+  accountPageURL,
+  accountsForBank,
+  bankPageURL,
+} from '@/lib/model/BankAccount';
 import {cn} from '@/lib/utils';
 import Link from 'next/link';
 
@@ -49,6 +56,7 @@ export function BanksListItem({bank}: {bank: Bank}) {
     transactions,
     stocks
   );
+  const activeAccounts = accounts.filter(a => !a.archived);
   return (
     <Card>
       <CardHeader>
@@ -57,7 +65,7 @@ export function BanksListItem({bank}: {bank: Bank}) {
             <div>
               <Link href={bankPageURL(bank)}>{bank.name}</Link>
             </div>
-            <Balance amount={bankTotal} />
+            <BankBalance amount={bankTotal} />
           </div>
         </CardTitle>
         <CardDescription>
@@ -66,33 +74,37 @@ export function BanksListItem({bank}: {bank: Bank}) {
       </CardHeader>
       <CardContent>
         <div className="divide-y divide-gray-200">
-          {accounts
-            .filter(a => !a.archived)
-            .map((account, i) => (
-              <div key={account.id} className="flex gap-2 py-3">
-                <div
-                  className={cn(
-                    'w-1 rounded',
-                    ITEM_BORDER_COLORS[i % ITEM_BORDER_COLORS.length]
-                  )}
-                >
-                  &nbsp;
-                </div>
-                <div className="grow p-1">
-                  <BankAccountListItem account={account} />
-                </div>
-              </div>
-            ))}
+          {activeAccounts.map((account, i) => (
+            <BankAccountListItem
+              key={account.id}
+              account={account}
+              bank={bank}
+              colorIndex={i}
+            />
+          ))}
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function Balance({amount}: {amount: AmountWithCurrency | undefined}) {
-  const hideBalances = useHideBalancesContext();
-  if (!amount || hideBalances) {
-    return null;
-  }
-  return <>{amount.round().format()}</>;
+export function BankAccountListItem({
+  account,
+  bank,
+  colorIndex,
+}: {
+  account: BankAccount;
+  bank: Bank;
+  colorIndex: number;
+}) {
+  const listColor = ITEM_BORDER_COLORS[colorIndex % ITEM_BORDER_COLORS.length];
+  return (
+    <div key={account.id} className="flex items-stretch gap-2 py-3">
+      <div className={cn('w-1 rounded', listColor)}>&nbsp;</div>
+      <div className="flex min-h-12 grow cursor-pointer items-center justify-between p-1">
+        <Link href={accountPageURL(account, bank)}>{account.name}</Link>
+        <AccountBalance account={account} />
+      </div>
+    </div>
+  );
 }

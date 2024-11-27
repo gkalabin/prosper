@@ -1,3 +1,4 @@
+import {assert} from '@/lib/assert';
 import {mustFindByCode} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';
 import {Unit} from '@/lib/model/Unit';
@@ -24,15 +25,33 @@ export function accountsForBank(
   return accounts.filter(a => a.bankId == bank.id);
 }
 
-export function bankPageURL(bank: Bank): string {
-  const name = bank.name
+function nameForURL(name: string): string {
+  return name
     .replace(/ /g, '-')
     .replace(/[^a-zA-Z0-9-]/g, '')
     .toLowerCase();
+}
+
+export function bankPageURL(bank: Bank): string {
+  const name = nameForURL(bank.name);
   if (!name) {
     return `/bank/${bank.id}`;
   }
   return `/bank/${bank.id}/${encodeURIComponent(name)}`;
+}
+
+export function accountPageURL(account: BankAccount, bank: Bank): string {
+  assert(
+    account.bankId == bank.id,
+    `Bank ${bank.id} doesn't match account bank ${account.bankId}`
+  );
+  const accountName = nameForURL(account.name);
+  if (!accountName) {
+    return `/account/${account.id}`;
+  }
+  const bankName = nameForURL(bank.name);
+  const name = bankName ? `${accountName}-${bankName}` : accountName;
+  return `/account/${account.id}/${encodeURIComponent(name)}`;
 }
 
 export type BankAccount = {

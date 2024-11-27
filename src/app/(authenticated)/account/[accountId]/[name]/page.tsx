@@ -1,32 +1,32 @@
-import {BankPage} from '@/app/(authenticated)/bank/[bankId]/[name]/bank-page';
+import {AccountPage} from '@/app/(authenticated)/account/[accountId]/[name]/account-page';
 import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB, fetchAllDatabaseData} from '@/lib/db';
 import {logRequest} from '@/lib/util/log';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
-import {Bank} from '@prisma/client';
+import {BankAccount} from '@prisma/client';
 import {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 
-type Props = {params: {bankId: string}};
+type Props = {params: {accountId: string}};
 
-async function fetchBank(props: Props): Promise<Bank | null> {
+async function fetchAccount(props: Props): Promise<BankAccount | null> {
   const userId = await getUserIdOrRedirect();
-  const bankId = positiveIntOrNull(props.params.bankId);
-  if (!bankId) {
+  const accountId = positiveIntOrNull(props.params.accountId);
+  if (!accountId) {
     return null;
   }
   const db = new DB({userId});
-  const [bank] = await db.bankFindMany({where: {id: bankId}});
-  return bank ? bank : null;
+  const [account] = await db.bankAccountFindMany({where: {id: accountId}});
+  return account ? account : null;
 }
 
 export async function generateMetadata({params}: Props): Promise<Metadata> {
-  const bank = await fetchBank({params});
-  if (!bank) {
+  const account = await fetchAccount({params});
+  if (!account) {
     return notFound();
   }
   return {
-    title: bank.name + ' - Prosper',
+    title: account.name + ' - Prosper',
   };
 }
 
@@ -34,12 +34,12 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 // nice, but the actual bank is identified by a separate id parameter.
 export default async function Page({params}: Props) {
   const userId = await getUserIdOrRedirect();
-  const bank = await fetchBank({params});
-  if (!bank) {
+  const account = await fetchAccount({params});
+  if (!account) {
     return notFound();
   }
-  logRequest('bank', `userId:${userId} bankId:${bank.id}`);
+  logRequest('account', `userId:${userId} accountId:${account.id}`);
   const db = new DB({userId});
   const data = await fetchAllDatabaseData(db);
-  return <BankPage dbData={data} dbBank={bank} />;
+  return <AccountPage dbData={data} dbAccount={account} />;
 }
