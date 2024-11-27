@@ -99,12 +99,16 @@ export function BankAccountListItem({
 }) {
   const listColor = ITEM_BORDER_COLORS[colorIndex % ITEM_BORDER_COLORS.length];
   return (
-    <div key={account.id} className="flex items-stretch gap-2 py-3">
-      <div className={cn('w-1 rounded', listColor)}>&nbsp;</div>
-      <div className="flex min-h-12 grow cursor-pointer items-center justify-between p-1">
-        <Link href={accountPageURL(account, bank)}>{account.name}</Link>
-        <AccountBalance account={account} />
-      </div>
+    <div>
+      <Link href={accountPageURL(account, bank)}>
+        <div key={account.id} className="flex items-stretch gap-2 py-3">
+          <div className={cn('w-1 rounded', listColor)}>&nbsp;</div>
+          <div className="flex min-h-12 grow items-center justify-between p-1">
+            <div>{account.name}</div>
+            <AccountBalance account={account} />
+          </div>
+        </div>
+      </Link>
     </div>
   );
 }
