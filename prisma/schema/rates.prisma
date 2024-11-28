@@ -1,0 +1,19 @@
+model ExchangeRate {
+  id               Int      @id @default(autoincrement())
+  currencyCodeFrom String
+  currencyCodeTo   String
+  rateTimestamp    DateTime
+  rateNanos        BigInt
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model StockQuote {
+  id             Int      @id @default(autoincrement())
+  stock          Stock    @relation(fields: [stockId], references: [id])
+  stockId        Int
+  quoteTimestamp DateTime
+  value          Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

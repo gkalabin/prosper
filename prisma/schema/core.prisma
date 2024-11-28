@@ -1,0 +1,129 @@
+model BankAccount {
+  id           Int     @id @default(autoincrement())
+  name         String
+  bank         Bank    @relation(fields: [bankId], references: [id])
+  bankId       Int
+  currencyCode String?
+  stock        Stock?  @relation(fields: [stockId], references: [id])
+  stockId      Int?
+
+  // UI configuration
+  displayOrder Int     @default(0)
+  archived     Boolean @default(false)
+
+  // Joint accounts are owned by 2 people and personal value of such accounts is half of the balance.
+  joint Boolean @default(false)
+
+  initialBalanceCents Int @default(0)
+
+  user                   User                     @relation(fields: [userId], references: [id])
+  userId                 Int
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  ExternalAccountMapping ExternalAccountMapping[]
+  outgoingTransactions   Transaction[]            @relation("OutgoingTransactions")
+  incomingTransactions   Transaction[]            @relation("IncomingTransactions")
+}
+
+model Bank {
+  id           Int           @id @default(autoincrement())
+  name         String
+  displayOrder Int           @default(0)
+  accounts     BankAccount[]
+
+  user                User                 @relation(fields: [userId], references: [id])
+  userId              Int
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  NordigenRequisition NordigenRequisition?
+  NordigenToken       NordigenToken?
+  TrueLayerToken      TrueLayerToken?
+  StarlingToken       StarlingToken?
+}
+
+model Stock {
+  id           Int           @id @default(autoincrement())
+  name         String
+  exchange     String
+  ticker       String
+  currencyCode String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  BankAccount  BankAccount[]
+  StockQuote   StockQuote[]
+}
+
+model Category {
+  id           Int    @id @default(autoincrement())
+  name         String
+  displayOrder Int    @default(0)
+
+  // Categories can have children and a parent
+  parentCategory   Category?  @relation("ParentCategory", fields: [parentCategoryId], references: [id])
+  parentCategoryId Int?
+  children         Category[] @relation("ParentCategory")
+
+  transactions Transaction[]
+
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tag {
+  id           Int           @id @default(autoincrement())
+  name         String
+  transactions Transaction[]
+  user         User          @relation(fields: [userId], references: [id])
+  userId       Int
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Trip {
+  id          Int           @id @default(autoincrement())
+  name        String
+  country     String?
+  city        String?
+  destination String?
+  start       DateTime?
+  end         DateTime?
+  user        User          @relation(fields: [userId], references: [id])
+  userId      Int
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  Transaction Transaction[]
+}
+
+model DisplaySettings {
+  displayCurrencyCode       String
+  excludeCategoryIdsInStats String
+  user                      User     @relation(fields: [userId], references: [id])
+  userId                    Int      @unique
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+}
+
+model ExternalAccountMapping {
+  internalAccountId Int         @unique
+  externalAccountId String
+  userId            Int
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  bankAccount       BankAccount @relation(fields: [internalAccountId], references: [id])
+  user              User        @relation(fields: [userId], references: [id])
+}
+
+model TransactionPrototype {
+  syntheticId           Int         @id @default(autoincrement())
+  // not unique as multiple users can share the same bank and import the same transaction
+  externalId            String
+  externalDescription   String
+  internalTransaction   Transaction @relation(fields: [internalTransactionId], references: [id])
+  internalTransactionId Int
+  user                  User        @relation(fields: [userId], references: [id])
+  userId                Int
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+}

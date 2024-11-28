@@ -1,0 +1,28 @@
+model User {
+  id                     Int                      @id @default(autoincrement())
+  login                  String                   @unique
+  password               String
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  Bank                   Bank[]
+  Trip                   Trip[]
+  Tag                    Tag[]
+  Category               Category[]
+  Transaction            Transaction[]
+  BankAccount            BankAccount[]
+  DisplaySettings        DisplaySettings?
+  TransactionPrototype   TransactionPrototype[]
+  TrueLayerToken         TrueLayerToken[]
+  NordigenToken          NordigenToken[]
+  NordigenRequisition    NordigenRequisition[]
+  ExternalAccountMapping ExternalAccountMapping[]
+  StarlingToken          StarlingToken[]
+  Session                Session[]
+}
+
+model Session {
+  id        String   @id
+  userId    Int
+  expiresAt DateTime
+  user User @relation(references: [id], fields: [userId], onDelete: Cascade)
+}
