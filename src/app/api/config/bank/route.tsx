@@ -14,16 +14,20 @@ export async function POST(request: NextRequest): Promise<Response> {
     });
   }
   const {name, displayOrder} = validatedData.data;
-  const result = await prisma.bank.create({
-    data: {
-      name,
-      displayOrder,
-      user: {
-        connect: {
-          id: userId,
+  const result = await prisma.$transaction(async tx => {
+    const iid = (await tx.bank.count({where: {userId}})) + 1;
+    return await tx.bank.create({
+      data: {
+        name,
+        displayOrder,
+        iid,
+        user: {
+          connect: {
+            id: userId,
+          },
         },
       },
-    },
+    });
   });
   return NextResponse.json(result);
 }

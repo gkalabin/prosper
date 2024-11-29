@@ -1,9 +1,13 @@
-import {fillUnitData} from '@/app/api/config/bank-account/fillUnitData';
+import {
+  getOrCreateUnitId,
+  setUnitData,
+} from '@/app/api/config/bank-account/unit';
 import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB} from '@/lib/db';
 import {accountFormValidationSchema} from '@/lib/form-types/AccountFormSchema';
 import prisma from '@/lib/prisma';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
+import {Prisma} from '@prisma/client';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function PUT(
@@ -36,14 +40,15 @@ export async function PUT(
     return new Response(`Not authenticated`, {status: 401});
   }
   // Perform update.
-  const data = {
+  const data: Prisma.BankAccountUncheckedUpdateInput = {
     name,
     displayOrder,
     archived: isArchived,
     joint: isJoint,
     initialBalanceCents: Math.round(initialBalance * 100),
   };
-  await fillUnitData(unit, data);
+  const unitId = await getOrCreateUnitId(unit);
+  setUnitData(unitId, data);
   const result = await prisma.bankAccount.update({
     data: data,
     where: {id: accountId},

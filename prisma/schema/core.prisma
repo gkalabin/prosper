@@ -1,8 +1,9 @@
 model BankAccount {
   id           Int     @id @default(autoincrement())
+  iid          Int
   name         String
-  bank         Bank    @relation(fields: [bankId], references: [id])
-  bankId       Int
+  bankIid      Int
+  bank        Bank    @relation(fields: [bankIid, userId], references: [iid, userId])
   currencyCode String?
   stock        Stock?  @relation(fields: [stockId], references: [id])
   stockId      Int?
@@ -23,10 +24,13 @@ model BankAccount {
   ExternalAccountMapping ExternalAccountMapping[]
   outgoingTransactions   Transaction[]            @relation("OutgoingTransactions")
   incomingTransactions   Transaction[]            @relation("IncomingTransactions")
+
+  @@unique(fields: [userId, iid])
 }
 
 model Bank {
   id           Int           @id @default(autoincrement())
+  iid          Int
   name         String
   displayOrder Int           @default(0)
   accounts     BankAccount[]
@@ -39,6 +43,8 @@ model Bank {
   NordigenToken       NordigenToken?
   TrueLayerToken      TrueLayerToken?
   StarlingToken       StarlingToken?
+
+  @@unique(fields: [userId, iid])
 }
 
 model Stock {
@@ -55,6 +61,7 @@ model Stock {
 
 model Category {
   id           Int    @id @default(autoincrement())
+  iid          Int
   name         String
   displayOrder Int    @default(0)
 
@@ -69,6 +76,8 @@ model Category {
   userId    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique(fields: [userId, iid])
 }
 
 model Tag {

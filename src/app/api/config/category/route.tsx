@@ -15,12 +15,20 @@ export async function POST(request: NextRequest): Promise<Response> {
     });
   }
   const {name, parentCategoryId, displayOrder} = validatedData.data;
-  const dbArgs: Prisma.CategoryCreateArgs = {
-    data: {name, displayOrder, userId},
-  };
-  if (parentCategoryId) {
-    dbArgs.data.parentCategoryId = +parentCategoryId;
-  }
-  const result = await prisma.category.create(dbArgs);
+
+  const result = await prisma.$transaction(async tx => {
+    const iid = (await tx.category.count({where: {userId}})) + 1;
+    const data: Prisma.CategoryUncheckedCreateInput = {
+      iid,
+      name,
+      displayOrder,
+      userId,
+    };
+    if (parentCategoryId) {
+      data.parentCategoryId = +parentCategoryId;
+    }
+    return await tx.category.create({data});
+  });
+
   return NextResponse.json(result);
 }

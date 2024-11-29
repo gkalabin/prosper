@@ -5,15 +5,36 @@ import {Prisma} from '@prisma/client';
 import yahooFinance from 'yahoo-finance2';
 import {type Quote} from 'yahoo-finance2/dist/esm/src/modules/quote';
 
-export async function fillUnitData(
-  unit: UnitSchema,
+type UnitId =
+  | {
+      kind: 'currency';
+      currencyCode: string;
+    }
+  | {
+      kind: 'stock';
+      stockId: number;
+    };
+
+export function setUnitData(
+  unitId: UnitId,
   data:
     | Prisma.BankAccountUncheckedCreateInput
     | Prisma.BankAccountUncheckedUpdateInput
-): Promise<void> {
+): void {
+  const unitIdKind = unitId.kind;
+  if (unitIdKind == 'currency') {
+    data.currencyCode = unitId.currencyCode;
+  } else if (unitIdKind == 'stock') {
+    data.stockId = unitId.stockId;
+  } else {
+    const _exhaustivenessCheck: never = unitIdKind;
+    throw new Error(`Unknown unit kind: ${_exhaustivenessCheck}`);
+  }
+}
+
+export async function getOrCreateUnitId(unit: UnitSchema): Promise<UnitId> {
   if (unit.kind === 'currency') {
-    data.currencyCode = unit.currencyCode;
-    return;
+    return {kind: 'currency', currencyCode: unit.currencyCode};
   }
   if (unit.kind !== 'stock') {
     throw new Error('unknown unit kind: ' + unit);
@@ -25,8 +46,7 @@ export async function fillUnitData(
     },
   });
   if (existingStock) {
-    data.stockId = existingStock.id;
-    return;
+    return {kind: 'stock', stockId: existingStock.id};
   }
   const quote: Quote = await yahooFinance.quote(unit.ticker);
   if (!quote) {
@@ -49,5 +69,5 @@ export async function fillUnitData(
       name: quote.longName ?? quote.shortName ?? quote.symbol,
     },
   });
-  data.stockId = newStock.id;
+  return {kind: 'stock', stockId: newStock.id};
 }

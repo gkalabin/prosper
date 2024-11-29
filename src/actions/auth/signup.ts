@@ -166,6 +166,7 @@ async function createCategories(
   // advancing level down with every iteration. It is guaranteed to have the
   // necessary parent category id available on the every step.
   const existingCategories = new Map<string, number>();
+  let iid = 1;
   for (let i = 0; i < maxLevel; i++) {
     const names = categoriesByLevel.get(i)!;
     for (const fullName of names) {
@@ -173,6 +174,7 @@ async function createCategories(
       const data: Prisma.CategoryUncheckedCreateInput = {
         name: segments[segments.length - 1],
         userId: user.id,
+        iid: iid++,
       };
       if (segments.length > 1) {
         const parentName = segments.slice(0, segments.length - 1).join('>');

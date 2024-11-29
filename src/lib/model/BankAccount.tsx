@@ -5,14 +5,14 @@ import {Unit} from '@/lib/model/Unit';
 import {Bank as DBBank, BankAccount as DBBankAccount} from '@prisma/client';
 
 export type Bank = {
-  id: number;
+  iid: number;
   name: string;
   displayOrder: number;
 };
 
 export function bankModelFromDB(init: DBBank): Bank {
   return {
-    id: init.id,
+    iid: init.iid,
     name: init.name,
     displayOrder: init.displayOrder,
   };
@@ -35,15 +35,15 @@ function nameForURL(name: string): string {
 export function bankPageURL(bank: Bank): string {
   const name = nameForURL(bank.name);
   if (!name) {
-    return `/bank/${bank.id}`;
+    return `/bank/${bank.iid}`;
   }
-  return `/bank/${bank.id}/${encodeURIComponent(name)}`;
+  return `/bank/${bank.iid}/${encodeURIComponent(name)}`;
 }
 
 export function accountPageURL(account: BankAccount, bank: Bank): string {
   assert(
-    account.bankId == bank.id,
-    `Bank ${bank.id} doesn't match account bank ${account.bankId}`
+    account.bankId == bank.iid,
+    `Bank ${bank.iid} doesn't match account bank ${account.bankId}`
   );
   const accountName = nameForURL(account.name);
   if (!accountName) {
