@@ -1,5 +1,5 @@
 import {assert} from '@/lib/assert';
-import {DB} from '@/lib/db';
+import {DB, invalidateCache} from '@/lib/db';
 import prisma from '@/lib/prisma';
 import {NordigenRequisition, NordigenToken} from '@prisma/client';
 import {addSeconds, isBefore} from 'date-fns';
@@ -39,13 +39,15 @@ async function createToken(db: DB, bankId: number): Promise<NordigenToken> {
     userId: db.getUserId(),
     bankId,
   };
-  return await prisma.nordigenToken.upsert({
+  const result = await prisma.nordigenToken.upsert({
     create: data,
     update: data,
     where: {
       bankId,
     },
   });
+  await invalidateCache(db.getUserId());
+  return result;
 }
 
 export async function refreshToken(
@@ -83,6 +85,7 @@ export async function refreshToken(
       id: token.id,
     },
   });
+  await invalidateCache(db.getUserId());
   return updatedToken;
 }
 

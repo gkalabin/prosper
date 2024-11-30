@@ -1,5 +1,5 @@
 import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB} from '@/lib/db';
+import {DB, invalidateCache} from '@/lib/db';
 import prisma from '@/lib/prisma';
 import {NextRequest, NextResponse} from 'next/server';
 
@@ -48,5 +48,6 @@ export async function POST(request: NextRequest): Promise<Response> {
       },
     });
   });
+  await invalidateCache(userId);
   return NextResponse.json(result);
 }

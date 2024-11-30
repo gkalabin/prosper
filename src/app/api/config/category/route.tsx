@@ -2,6 +2,7 @@ import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {categoryFormValidationSchema} from '@/lib/form-types/CategoryFormSchema';
 import prisma from '@/lib/prisma';
 import {Prisma} from '@prisma/client';
+import {invalidateCache} from '@/lib/db';
 import {NextRequest, NextResponse} from 'next/server';
 
 export async function POST(request: NextRequest): Promise<Response> {
@@ -22,5 +23,6 @@ export async function POST(request: NextRequest): Promise<Response> {
     dbArgs.data.parentCategoryId = +parentCategoryId;
   }
   const result = await prisma.category.create(dbArgs);
+  await invalidateCache(userId);
   return NextResponse.json(result);
 }

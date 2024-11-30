@@ -1,4 +1,4 @@
-import {DB} from '@/lib/db';
+import {DB, invalidateCache} from '@/lib/db';
 import prisma from '@/lib/prisma';
 import {TrueLayerToken} from '@prisma/client';
 import {addDays, addSeconds} from 'date-fns';
@@ -56,6 +56,7 @@ export async function refreshToken(
       id: token.id,
     },
   });
+  await invalidateCache(db.getUserId());
   return newToken;
 }
 

@@ -6,6 +6,8 @@ import {
 import {USD} from '@/lib/model/Currency';
 import prisma from '@/lib/prisma';
 import {Prisma} from '@prisma/client';
+import {hoursToSeconds} from 'date-fns';
+import {revalidateTag, unstable_cache} from 'next/cache';
 
 export class DB {
   private readonly userId: number;
@@ -75,7 +77,8 @@ export class DB {
   tagFindMany(args?: Prisma.TagFindManyArgs) {
     return prisma.tag.findMany(this.whereUser(args ?? {}));
   }
-  bankUpdate(args: Prisma.BankUpdateArgs) {
+  async bankUpdate(args: Prisma.BankUpdateArgs) {
+    await invalidateCache(this.userId);
     return prisma.bank.update(args);
   }
   bankFindMany(args?: Prisma.BankFindManyArgs) {
@@ -107,19 +110,22 @@ export class DB {
   nordigenTokenFindMany(args?: Prisma.NordigenTokenFindFirstArgs) {
     return prisma.nordigenToken.findMany(this.whereUser(args ?? {}));
   }
-  nordigenTokenDelete(args: Prisma.NordigenTokenDeleteArgs) {
+  async nordigenTokenDelete(args: Prisma.NordigenTokenDeleteArgs) {
+    await invalidateCache(this.userId);
     return prisma.nordigenToken.delete(this.whereUser(args));
   }
   nordigenRequisitionFindFirst(args: Prisma.NordigenRequisitionFindFirstArgs) {
     return prisma.nordigenRequisition.findFirst(this.whereUser(args));
   }
-  nordigenRequisitionDelete(args: Prisma.NordigenRequisitionDeleteArgs) {
+  async nordigenRequisitionDelete(args: Prisma.NordigenRequisitionDeleteArgs) {
+    await invalidateCache(this.userId);
     return prisma.nordigenRequisition.delete(this.whereUser(args));
   }
   starlingTokenFindMany(args?: Prisma.StarlingTokenFindFirstArgs) {
     return prisma.starlingToken.findMany(this.whereUser(args ?? {}));
   }
-  starlingTokenDelete(args: Prisma.StarlingTokenDeleteArgs) {
+  async starlingTokenDelete(args: Prisma.StarlingTokenDeleteArgs) {
+    await invalidateCache(this.userId);
     return prisma.starlingToken.delete(this.whereUser(args));
   }
   externalAccountMappingFindMany(
@@ -127,9 +133,10 @@ export class DB {
   ) {
     return prisma.externalAccountMapping.findMany(this.whereUser(args ?? {}));
   }
-  externalAccountMappingDeleteMany(
+  async externalAccountMappingDeleteMany(
     args: Prisma.ExternalAccountMappingDeleteManyArgs
   ) {
+    await invalidateCache(this.userId);
     return prisma.externalAccountMapping.deleteMany(this.whereUser(args));
   }
 
@@ -147,6 +154,7 @@ export class DB {
         userId: this.userId,
       },
     });
+    await invalidateCache(this.userId);
     return created;
   }
 
@@ -167,27 +175,109 @@ export class DB {
 
 type UserIdFilter = {where?: {userId?: number | Prisma.IntFilter<string>}};
 
+// This is a hack for BigInt serialization requiredd by nextjs unstable_cache.
+declare global {
+  interface BigInt {
+    toJSON(): number;
+  }
+}
+BigInt.prototype.toJSON = function () {
+  return Number(this);
+};
+
+const getFromCacheOrFetch = unstable_cache(
+  async (id: number) => {
+    console.log(`[db] CACHE MISS for userId:${id}`);
+    const db = new DB({userId: id});
+    return await fetchAllDatabaseDataImpl(db);
+  },
+  [],
+  {
+    tags: ['all-db-data'],
+    // Defense in depth for forgotten cache invalidation.
+    revalidate: hoursToSeconds(1),
+  }
+);
+
+export async function invalidateCache(userId: number) {
+  console.log(`[db] INVALIDATE CACHE for userId:${userId}`);
+  revalidateTag(`all-db-data`);
+}
+
 export async function fetchAllDatabaseData(db: DB): Promise<AllDatabaseData> {
+  return await getFromCacheOrFetch(db.getUserId());
+}
+
+async function fetchAllDatabaseDataImpl(db: DB): Promise<AllDatabaseData> {
   const data = {} as AllDatabaseData;
+  const timeLabel = (label: string) =>
+    `[db] ${label} fetch for userId:${db.getUserId()}`;
   await Promise.all(
     [
-      async () => (data.dbTransactions = await db.transactionFindAll()),
-      async () => (data.dbTransactionLinks = await db.transactionLinkFindAll()),
-      async () => (data.dbBanks = await db.bankFindMany()),
-      async () => (data.dbTrips = await db.tripFindMany()),
-      async () => (data.dbTags = await db.tagFindMany()),
-      async () => (data.dbBankAccounts = await db.bankAccountFindMany()),
-      async () => (data.dbCategories = await db.categoryFindMany()),
-      async () =>
-        (data.dbDisplaySettings = await db.getOrCreateDbDisplaySettings()),
-      async () => (data.dbExchangeRates = await db.exchangeRateFindMany()),
-      async () => (data.dbStockQuotes = await db.stockQuoteFindMany()),
-      async () => (data.dbStocks = await db.stocksFindMany()),
-      async () =>
-        (data.dbTransactionPrototypes =
-          await db.transactionPrototypeFindMany()),
+      async () => {
+        console.time(timeLabel('dbTransactions'));
+        data.dbTransactions = await db.transactionFindAll();
+        console.timeEnd(timeLabel('dbTransactions'));
+      },
+      async () => {
+        console.time(timeLabel('dbTransactionLinks'));
+        data.dbTransactionLinks = await db.transactionLinkFindAll();
+        console.timeEnd(timeLabel('dbTransactionLinks'));
+      },
+      async () => {
+        console.time(timeLabel('dbBanks'));
+        data.dbBanks = await db.bankFindMany();
+        console.timeEnd(timeLabel('dbBanks'));
+      },
+      async () => {
+        console.time(timeLabel('dbTrips'));
+        data.dbTrips = await db.tripFindMany();
+        console.timeEnd(timeLabel('dbTrips'));
+      },
+      async () => {
+        console.time(timeLabel('dbTags'));
+        data.dbTags = await db.tagFindMany();
+        console.timeEnd(timeLabel('dbTags'));
+      },
+      async () => {
+        console.time(timeLabel('dbBankAccounts'));
+        data.dbBankAccounts = await db.bankAccountFindMany();
+        console.timeEnd(timeLabel('dbBankAccounts'));
+      },
+      async () => {
+        console.time(timeLabel('dbCategories'));
+        data.dbCategories = await db.categoryFindMany();
+        console.timeEnd(timeLabel('dbCategories'));
+      },
+      async () => {
+        console.time(timeLabel('dbDisplaySettings'));
+        data.dbDisplaySettings = await db.getOrCreateDbDisplaySettings();
+        console.timeEnd(timeLabel('dbDisplaySettings'));
+      },
+      async () => {
+        console.time(timeLabel('dbExchangeRates'));
+        data.dbExchangeRates = await db.exchangeRateFindMany();
+        console.timeEnd(timeLabel('dbExchangeRates'));
+      },
+      async () => {
+        console.time(timeLabel('dbStockQuotes'));
+        data.dbStockQuotes = await db.stockQuoteFindMany();
+        console.timeEnd(timeLabel('dbStockQuotes'));
+      },
+      async () => {
+        console.time(timeLabel('dbStocks'));
+        data.dbStocks = await db.stocksFindMany();
+        console.timeEnd(timeLabel('dbStocks'));
+      },
+      async () => {
+        console.time(timeLabel('dbTransactionPrototypes'));
+        data.dbTransactionPrototypes = await db.transactionPrototypeFindMany();
+        console.timeEnd(timeLabel('dbTransactionPrototypes'));
+      },
     ].map(f => f())
   );
+  console.time(timeLabel('updateRatesFallback'));
   await updateRatesFallback(data);
+  console.timeEnd(timeLabel('updateRatesFallback'));
   return data;
 }

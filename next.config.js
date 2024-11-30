@@ -17,6 +17,9 @@ const nextConfig = {
     },
     taint: true,
   },
+  cacheHandler: require.resolve(
+    'next/dist/server/lib/incremental-cache/file-system-cache.js'
+  ),
 };
 
 module.exports = nextConfig;

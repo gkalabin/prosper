@@ -1,5 +1,5 @@
 import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB} from '@/lib/db';
+import {DB, invalidateCache} from '@/lib/db';
 import prisma from '@/lib/prisma';
 import {redirect} from 'next/navigation';
 import {NextRequest} from 'next/server';
@@ -30,5 +30,6 @@ export async function GET(request: NextRequest): Promise<Response> {
       id: requisition.id,
     },
   });
+  await invalidateCache(userId);
   return redirect(`/config/open-banking/mapping?bankId=${bank.id}`);
 }

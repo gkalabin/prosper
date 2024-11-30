@@ -1,7 +1,7 @@
-import {differenceInHours} from 'date-fns';
 import {addLatestExchangeRates} from '@/lib/asset-rates/currency-rates';
 import {addLatestStockQuotes} from '@/lib/asset-rates/stock-quotes';
-
+import {invalidateCache} from '@/lib/db';
+import {differenceInHours} from 'date-fns';
 export const REFRESH_INTERVAL_HOURS = 6;
 export const NO_HISTORY_LOOK_BACK_DAYS = 30;
 
@@ -35,4 +35,5 @@ export async function updateRatesFallback({
     await addLatestExchangeRates(REFRESH_INTERVAL_HOURS * 2),
     await addLatestStockQuotes(REFRESH_INTERVAL_HOURS * 2),
   ]);
+  await invalidateCache(-1);
 }

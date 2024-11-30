@@ -1,5 +1,6 @@
 import {fillUnitData} from '@/app/api/config/bank-account/fillUnitData';
 import {getUserIdOrRedirect} from '@/lib/auth/user';
+import {invalidateCache} from '@/lib/db';
 import {accountFormValidationSchema} from '@/lib/form-types/AccountFormSchema';
 import prisma from '@/lib/prisma';
 import {Prisma} from '@prisma/client';
@@ -29,5 +30,6 @@ export async function POST(request: NextRequest): Promise<Response> {
   const result = await prisma.bankAccount.create({
     data: data,
   });
+  await invalidateCache(userId);
   return NextResponse.json(result);
 }

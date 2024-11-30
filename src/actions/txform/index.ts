@@ -11,7 +11,7 @@ import {
   transactionFormValidationSchema,
 } from '@/components/txform/types';
 import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB} from '@/lib/db';
+import {DB, invalidateCache} from '@/lib/db';
 import {
   TransactionPrototype,
   TransactionPrototypeList,
@@ -56,6 +56,7 @@ export async function upsertTransaction(
   };
   if (data.expense) {
     await upsertExpense(dbUpdates, transaction, protos, userId, data);
+    await invalidateCache(userId);
     return {
       status: 'SUCCESS',
       dbUpdates,
@@ -63,6 +64,7 @@ export async function upsertTransaction(
   }
   if (data.transfer) {
     await upsertTransfer(dbUpdates, transaction, protos, userId, data);
+    await invalidateCache(userId);
     return {
       status: 'SUCCESS',
       dbUpdates,
@@ -70,6 +72,7 @@ export async function upsertTransaction(
   }
   if (data.income) {
     await upsertIncome(dbUpdates, transaction, protos, userId, data);
+    await invalidateCache(userId);
     return {
       status: 'SUCCESS',
       dbUpdates,
