@@ -44,7 +44,7 @@ export function NewTransactionFormDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
-      <DialogContent className="h-screen py-12 sm:h-auto sm:max-w-md">
+      <DialogContent className="h-screen py-16 sm:h-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
             {transaction ? 'Update transaction' : 'Create new transaction'}
