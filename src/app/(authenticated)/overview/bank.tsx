@@ -101,7 +101,7 @@ export function BankAccountListItem({
   return (
     <div>
       <Link href={accountPageURL(account, bank)}>
-        <div key={account.id} className="flex items-stretch gap-2 py-3">
+        <div key={account.id} className="flex items-stretch gap-2 py-2.5">
           <div className={cn('w-1 rounded', listColor)}>&nbsp;</div>
           <div className="flex min-h-12 grow items-center justify-between p-1">
             <div>{account.name}</div>
