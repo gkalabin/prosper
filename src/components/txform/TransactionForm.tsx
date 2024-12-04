@@ -17,6 +17,12 @@ import {
   transactionFormValidationSchema,
 } from '@/components/txform/types';
 import {Button} from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {Form} from '@/components/ui/form';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
@@ -27,10 +33,36 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import {useCallback, useState} from 'react';
 import {useForm} from 'react-hook-form';
 
-export const TransactionForm = (props: {
+export function NewTransactionFormDialog({
+  transaction,
+  open,
+  onOpenChange,
+}: {
+  transaction: Transaction | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
+      <DialogContent className="h-screen sm:h-auto sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>
+            {transaction ? 'Update transaction' : 'Create new transaction'}
+          </DialogTitle>
+        </DialogHeader>
+        <TransactionForm
+          transaction={transaction}
+          onClose={() => onOpenChange(false)}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function TransactionForm(props: {
   transaction: Transaction | null;
   onClose: () => void;
-}) => {
+}) {
   const {transactions, categories, setDbData} = useAllDatabaseDataContext();
   const bankAccounts = useDisplayBankAccounts();
   const [proto, setProto] = useState<TransactionPrototype | null>(null);
@@ -145,12 +177,13 @@ export const TransactionForm = (props: {
             {formType == 'INCOME' && <IncomeForm />}
           </div>
 
-          <div className="flex justify-between gap-2 bg-slate-50 px-4 py-3 sm:px-6">
+          <div className="mt-4 flex justify-between gap-2 border-t py-4">
             <div className="text-sm font-medium text-destructive">
               {form.formState.errors.root?.message}
             </div>
             <div className="flex-none space-x-4">
               <Button
+                type="button"
                 variant="secondary"
                 onClick={props.onClose}
                 disabled={form.formState.isSubmitting}
@@ -177,4 +210,4 @@ export const TransactionForm = (props: {
       </Form>
     </>
   );
-};
+}

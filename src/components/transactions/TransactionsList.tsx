@@ -1,4 +1,4 @@
-import {TransactionForm} from '@/components/txform/TransactionForm';
+import {NewTransactionFormDialog} from '@/components/txform/TransactionForm';
 import {Button} from '@/components/ui/button';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
@@ -222,21 +222,20 @@ export const TransactionsListItem = ({
       )}
       {expanded && (
         <div className="pl-1">
-          {!showEditForm && (
-            <Button
-              variant="link"
-              size="inherit"
-              onClick={() => setShowEditForm(true)}
-            >
-              Edit
-            </Button>
-          )}
+          <Button
+            variant="link"
+            size="inherit"
+            onClick={() => setShowEditForm(true)}
+          >
+            Edit
+          </Button>
         </div>
       )}
-      {expanded && showEditForm && (
-        <TransactionForm
+      {showEditForm && (
+        <NewTransactionFormDialog
           transaction={t}
-          onClose={() => setShowEditForm(false)}
+          open={showEditForm}
+          onOpenChange={setShowEditForm}
         />
       )}
     </div>

@@ -10,7 +10,7 @@ import {
   isFullyConfigured,
   NotConfiguredYet,
 } from '@/components/NotConfiguredYet';
-import {TransactionForm} from '@/components/txform/TransactionForm';
+import {NewTransactionFormDialog} from '@/components/txform/TransactionForm';
 import {Button} from '@/components/ui/button';
 import {
   AllDatabaseDataContextProvider,
@@ -25,48 +25,47 @@ function NonEmptyPageContent({
 }: {
   hideBalances: boolean;
 }) {
-  const [showAddTransactionForm, setShowAddTransactionForm] = useState(true);
   const [hideBalances, setHideBalances] =
     useHideBalancesFlag(initialHideBalances);
   const {banks} = useAllDatabaseDataContext();
+  const [newTransactionDialogOpen, setNewTransactionDialogOpen] =
+    useState(false);
   return (
-    <HideBalancesContext.Provider value={hideBalances}>
-      <div className="space-y-4">
-        <div className="flex justify-end gap-4">
-          <Button onClick={() => setHideBalances(!hideBalances)}>
-            {!hideBalances && (
-              <>
-                <EyeSlashIcon className="mr-2 h-4 w-4" />
-                Hide balances
-              </>
-            )}
-            {hideBalances && (
-              <>
-                <EyeIcon className="mr-2 h-4 w-4" />
-                Show balances
-              </>
-            )}
-          </Button>
-
-          {!showAddTransactionForm && (
-            <Button onClick={() => setShowAddTransactionForm(true)}>
+    <>
+      <HideBalancesContext.Provider value={hideBalances}>
+        <div className="space-y-4">
+          <div className="flex justify-end gap-4">
+            <Button onClick={() => setHideBalances(!hideBalances)}>
+              {!hideBalances && (
+                <>
+                  <EyeSlashIcon className="mr-2 h-4 w-4" />
+                  Hide balances
+                </>
+              )}
+              {hideBalances && (
+                <>
+                  <EyeIcon className="mr-2 h-4 w-4" />
+                  Show balances
+                </>
+              )}
+            </Button>
+            <Button onClick={() => setNewTransactionDialogOpen(true)}>
               New Transaction
             </Button>
-          )}
+          </div>
+          <StatsWidget />
+          <OpenBankingBalancesLoadingIndicator />
+          {banks.map(bank => (
+            <BanksListItem key={bank.id} bank={bank} />
+          ))}
         </div>
-        <StatsWidget />
-        {showAddTransactionForm && (
-          <TransactionForm
-            transaction={null}
-            onClose={() => setShowAddTransactionForm(false)}
-          />
-        )}
-        <OpenBankingBalancesLoadingIndicator />
-        {banks.map(bank => (
-          <BanksListItem key={bank.id} bank={bank} />
-        ))}
-      </div>
-    </HideBalancesContext.Provider>
+      </HideBalancesContext.Provider>
+      <NewTransactionFormDialog
+        transaction={null}
+        open={newTransactionDialogOpen}
+        onOpenChange={setNewTransactionDialogOpen}
+      />
+    </>
   );
 }
 

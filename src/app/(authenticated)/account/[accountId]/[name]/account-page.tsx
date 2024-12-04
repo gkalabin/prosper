@@ -6,7 +6,7 @@ import {
   NotConfiguredYet,
 } from '@/components/NotConfiguredYet';
 import {TransactionsList} from '@/components/transactions/TransactionsList';
-import {TransactionForm} from '@/components/txform/TransactionForm';
+import {NewTransactionFormDialog} from '@/components/txform/TransactionForm';
 import {Button} from '@/components/ui/button';
 import {
   AllDatabaseDataContextProvider,
@@ -22,7 +22,8 @@ import {useState} from 'react';
 
 function NonEmptyPageContent({accountId}: {accountId: number}) {
   const {transactions, bankAccounts} = useAllDatabaseDataContext();
-  const [showAddTransactionForm, setShowAddTransactionForm] = useState(false);
+  const [newTransactionDialogOpen, setNewTransactionDialogOpen] =
+    useState(false);
   const account = bankAccounts.find(account => account.id === accountId);
   if (!account) {
     return notFound();
@@ -37,25 +38,22 @@ function NonEmptyPageContent({accountId}: {accountId: number}) {
     <div className="space-y-6 p-6">
       <header className="flex justify-between">
         <h1 className="text-3xl font-semibold leading-7">{account.name}</h1>
-        {!showAddTransactionForm && (
-          <Button onClick={() => setShowAddTransactionForm(true)}>
-            New Transaction
-          </Button>
-        )}
+        <Button onClick={() => setNewTransactionDialogOpen(true)}>
+          New Transaction
+        </Button>
       </header>
       <main className="space-y-4">
-        {showAddTransactionForm && (
-          <TransactionForm
-            transaction={null}
-            onClose={() => setShowAddTransactionForm(false)}
-          />
-        )}
         <BalanceCard account={account} />
         <div>
           <h2 className="text-sm font-medium">Latest transactions</h2>
           <TransactionsList transactions={accountTransactions} />
         </div>
       </main>
+      <NewTransactionFormDialog
+        transaction={null}
+        open={newTransactionDialogOpen}
+        onOpenChange={setNewTransactionDialogOpen}
+      />
     </div>
   );
 }
