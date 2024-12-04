@@ -52,8 +52,8 @@
     ]
   },
   "dependencies": {
-    "@headlessui/react": "^2.1.8",
-    "@heroicons/react": "^2.1.5",
+    "@headlessui/react": "^2.2.0",
+    "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^3.9.0",
     "@prisma/client": "^5.19.1",
     "@radix-ui/react-dialog": "^1.1.2",
@@ -67,7 +67,7 @@
     "bcrypt": "^5.1.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "cmdk": "^1.0.0",
+    "cmdk": "^1.0.4",
     "date-fns": "^3.6.0",
     "echarts-for-react": "^3.0.2",
     "next": "^14.2.13",
