@@ -1,6 +1,7 @@
 import {fillUnitData} from '@/app/api/config/bank-account/fillUnitData';
 import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB, invalidateCache} from '@/lib/db';
+import {DB} from '@/lib/db';
+import {invalidateCoreDataCache} from '@/lib/db/cache';
 import {accountFormValidationSchema} from '@/lib/form-types/AccountFormSchema';
 import prisma from '@/lib/prisma';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
@@ -48,6 +49,6 @@ export async function PUT(
     data: data,
     where: {id: accountId},
   });
-  await invalidateCache(userId);
+  await invalidateCoreDataCache(userId);
   return NextResponse.json(result);
 }

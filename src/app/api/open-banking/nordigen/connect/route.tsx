@@ -1,5 +1,5 @@
 import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB, invalidateCache} from '@/lib/db';
+import {DB} from '@/lib/db';
 import {getOrCreateToken} from '@/lib/openbanking/nordigen/token';
 import prisma from '@/lib/prisma';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
@@ -61,6 +61,5 @@ export async function GET(request: NextRequest): Promise<Response> {
       bankId,
     },
   });
-  await invalidateCache(userId);
   return redirect(requisition.link);
 }

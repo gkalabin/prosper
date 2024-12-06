@@ -1,5 +1,6 @@
 import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB, invalidateCache} from '@/lib/db';
+import {DB} from '@/lib/db';
+import {invalidateCoreDataCache} from '@/lib/db/cache';
 import {displaySettingsFormValidationSchema} from '@/lib/form-types/DisplaySettingsFormSchema';
 import {findByCode} from '@/lib/model/Currency';
 import prisma from '@/lib/prisma';
@@ -43,6 +44,6 @@ export async function PUT(request: NextRequest): Promise<Response> {
     },
     where: {userId},
   });
-  await invalidateCache(userId);
+  await invalidateCoreDataCache(userId);
   return NextResponse.json(result);
 }

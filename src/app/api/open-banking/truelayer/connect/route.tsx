@@ -1,6 +1,6 @@
 import {DEFAULT_AUTHENTICATED_PAGE} from '@/lib/auth/const';
 import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB, invalidateCache} from '@/lib/db';
+import {DB} from '@/lib/db';
 import prisma from '@/lib/prisma';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
 import {Prisma} from '@prisma/client';
@@ -62,12 +62,10 @@ export async function GET(request: NextRequest): Promise<Response> {
       data: args,
       where: {bankId},
     });
-    await invalidateCache(userId);
     return redirect(DEFAULT_AUTHENTICATED_PAGE);
   }
   await prisma.trueLayerToken.create({
     data: args,
   });
-  await invalidateCache(userId);
   return redirect(`/config/open-banking/mapping?bankId=${bankId}`);
 }

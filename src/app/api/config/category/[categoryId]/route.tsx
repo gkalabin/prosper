@@ -1,5 +1,6 @@
 import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB, invalidateCache} from '@/lib/db';
+import {DB} from '@/lib/db';
+import {invalidateCoreDataCache} from '@/lib/db/cache';
 import {categoryFormValidationSchema} from '@/lib/form-types/CategoryFormSchema';
 import prisma from '@/lib/prisma';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
@@ -43,6 +44,6 @@ export async function PUT(
     dbArgs.data.parentCategoryId = +parentCategoryId;
   }
   const result = await prisma.category.update(dbArgs);
-  await invalidateCache(userId);
+  await invalidateCoreDataCache(userId);
   return NextResponse.json(result);
 }
