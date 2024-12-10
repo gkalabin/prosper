@@ -1,4 +1,5 @@
 import {MoneyInput} from '@/components/txform/shared/MoneyInput';
+import {NewBalanceNote} from '@/components/txform/shared/NewBalanceNote';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {
   FormControl,
@@ -8,7 +9,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {cn} from '@/lib/utils';
-import {useFormContext} from 'react-hook-form';
+import {useFormContext, useWatch} from 'react-hook-form';
 
 export function Amount() {
   const {control, watch} = useFormContext<TransactionFormSchema>();
@@ -24,8 +25,15 @@ export function Amount() {
             <MoneyInput {...field} />
           </FormControl>
           <FormMessage />
+          <NewBalanceNoteWrapper />
         </FormItem>
       )}
     />
   );
+}
+
+function NewBalanceNoteWrapper() {
+  const amount = useWatch({name: 'income.amount', exact: true});
+  const accountId = useWatch({name: 'income.accountId', exact: true});
+  return <NewBalanceNote amount={amount} accountId={accountId} />;
 }
