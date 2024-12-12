@@ -154,7 +154,7 @@ function SelectedTags({
     return <span>Select or create tags</span>;
   }
   const Tag = ({tag}: {tag: string}) => (
-    <Badge variant="secondary">
+    <Badge variant="secondary" className="font-medium">
       {tag}
       <span
         role="button"

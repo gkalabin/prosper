@@ -1,6 +1,5 @@
 import {useSharingType} from '@/components/txform/expense/useSharingType';
 import {MoneyInput} from '@/components/txform/shared/MoneyInput';
-import {NewBalanceNote} from '@/components/txform/shared/NewBalanceNote';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {
   FormControl,
@@ -10,7 +9,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {cn} from '@/lib/utils';
-import {useFormContext, useWatch} from 'react-hook-form';
+import {useFormContext} from 'react-hook-form';
 
 export function Amount() {
   const {control} = useFormContext<TransactionFormSchema>();
@@ -26,19 +25,8 @@ export function Amount() {
             <MoneyInput {...field} />
           </FormControl>
           <FormMessage />
-          <PaidSelfNewBalanceNote />
         </FormItem>
       )}
     />
   );
-}
-
-function PaidSelfNewBalanceNote() {
-  const {paidSelf} = useSharingType();
-  const amount = useWatch({name: 'expense.amount', exact: true});
-  const accountId = useWatch({name: 'expense.accountId', exact: true});
-  if (!paidSelf) {
-    return null;
-  }
-  return <NewBalanceNote amount={-amount} accountId={accountId} />;
 }

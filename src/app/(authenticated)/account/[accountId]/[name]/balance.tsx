@@ -177,7 +177,6 @@ function OpenBankingBalanceDelta({account}: {account: BankAccount}) {
     return (
       <div className="flex items-center gap-1 text-green-600">
         <CheckCircleIcon className="h-4 w-4" /> matches connected balance
-        balance
       </div>
     );
   }

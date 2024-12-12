@@ -41,12 +41,16 @@ export function NewBalanceNote({
     unit: localBalance.getUnit(),
   });
   return (
-    <div className="flex flex-row gap-2 text-xs">
-      <div className="font-medium">{text ? text : 'New balance:'}</div>
-      <AccountBalanceText
-        localBalance={newLocalBalance}
-        remoteBalance={remoteBalance}
-      />
+    <div className="flex flex-row items-center gap-2 text-xs">
+      <div className="whitespace-nowrap font-medium">
+        {text ? text : 'New balance:'}
+      </div>
+      <div className="flex flex-wrap justify-evenly gap-1.5">
+        <AccountBalanceText
+          localBalance={newLocalBalance}
+          remoteBalance={remoteBalance}
+        />
+      </div>
     </div>
   );
 }
@@ -63,10 +67,10 @@ function AccountBalanceText({
   }
   const delta = localBalance.subtract(remoteBalance);
   return (
-    <div className="flex gap-2">
+    <>
       <div
         className={cn(
-          'flex items-center gap-1',
+          'flex items-center gap-1 whitespace-nowrap',
           delta.isZero() ? 'text-green-600' : 'text-red-600'
         )}
       >
@@ -74,7 +78,7 @@ function AccountBalanceText({
         {delta.isZero() && <CheckCircleIcon className="h-4 w-4" />}
       </div>
       {!delta.isZero() && (
-        <div className="flex items-center gap-1 text-xs font-light text-muted-foreground">
+        <div className="flex items-center gap-0.5 whitespace-nowrap text-xs font-light text-muted-foreground">
           {delta.isNegative() ? (
             <ArrowUpIcon className="h-2.5 w-2.5" />
           ) : (
@@ -83,6 +87,6 @@ function AccountBalanceText({
           {delta.abs().format()}
         </div>
       )}
-    </div>
+    </>
   );
 }
