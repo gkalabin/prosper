@@ -1,5 +1,10 @@
 import {Amount} from '@/lib/Amount';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
+import {
+  CoreData as CoreDataDB,
+  MarketData as MarketDataDB,
+  TransactionData as TransactionDataDB,
+} from '@/lib/db/fetch';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {
   Bank,
@@ -17,7 +22,7 @@ import {Stock, stockModelFromDB} from '@/lib/model/Stock';
 import {Tag, tagModelFromDB} from '@/lib/model/Tag';
 import {
   Transaction,
-  transactionModelFromDB,
+  transactionModelFromDB as singleTransactionModelFromDB,
 } from '@/lib/model/transaction/Transaction';
 import {
   TransactionLink,
@@ -227,6 +232,25 @@ export class StockQuotes {
   }
 }
 
+export type CoreDataModel = {
+  categories: Category[];
+  banks: Bank[];
+  bankAccounts: BankAccount[];
+  stocks: Stock[];
+  trips: Trip[];
+  tags: Tag[];
+};
+
+export type TransactionDataModel = {
+  transactions: Transaction[];
+  transactionPrototypes: TransactionPrototype[];
+  transactionLinks: TransactionLink[];
+};
+
+export type MarketDataModel = {
+  exchange: StockAndCurrencyExchange;
+};
+
 export type AllClientDataModel = {
   transactions: Transaction[];
   categories: Category[];
@@ -279,6 +303,51 @@ export const banksModelFromDatabaseData = (
   return [banks, bankAccounts, stocks];
 };
 
+export function coreModelFromDB(dbData: CoreDataDB): CoreDataModel {
+  const categories = sortCategories(
+    dbData.dbCategories.map(categoryModelFromDB)
+  );
+  const [banks, bankAccounts, stocks] = banksModelFromDatabaseData(
+    dbData.dbBanks,
+    dbData.dbBankAccounts,
+    dbData.dbStocks
+  );
+  const trips = dbData.dbTrips.map(tripModelFromDB);
+  const tags = dbData.dbTags.map(tagModelFromDB);
+  return {
+    banks,
+    bankAccounts,
+    stocks,
+    categories,
+    trips,
+    tags,
+  };
+}
+
+export function transactionModelFromDB(
+  dbData: TransactionDataDB
+): TransactionDataModel {
+  const transactions: Transaction[] = dbData.dbTransactions
+    .map(singleTransactionModelFromDB)
+    .sort(compareTransactions);
+  const transactionLinks = transactionLinkModelFromDB(
+    dbData.dbTransactionLinks,
+    transactions
+  );
+  return {
+    transactions,
+    transactionPrototypes: dbData.dbTransactionPrototypes,
+    transactionLinks,
+  };
+}
+
+export function marketModelFromDB(dbData: MarketDataDB): MarketDataModel {
+  const exchangeRates = new ExchangeRates(dbData.dbExchangeRates);
+  const stockQuotes = new StockQuotes(dbData.dbStockQuotes);
+  const exchange = new StockAndCurrencyExchange(exchangeRates, stockQuotes);
+  return {exchange};
+}
+
 export const modelFromDatabaseData = (
   dbData: AllDatabaseData
 ): AllClientDataModel => {
@@ -299,7 +368,7 @@ export const modelFromDatabaseData = (
   const tags = dbData.dbTags.map(tagModelFromDB);
 
   const transactions: Transaction[] = dbData.dbTransactions
-    .map(transactionModelFromDB)
+    .map(singleTransactionModelFromDB)
     .sort(compareTransactions);
 
   const transactionLinks = transactionLinkModelFromDB(

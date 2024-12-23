@@ -13,12 +13,19 @@ async function getLogin() {
   return user.login;
 }
 
-export default async function Layout({children}: {children: React.ReactNode}) {
+export default async function Layout({
+  modal,
+  children,
+}: {
+  modal: React.ReactNode;
+  children: React.ReactNode;
+}) {
   const login = await getLogin();
   return (
     <>
       <Header login={login} />
       {children}
+      {modal}
     </>
   );
 }

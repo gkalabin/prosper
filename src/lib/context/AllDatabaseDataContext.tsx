@@ -1,36 +1,38 @@
-import {AllClientDataModel, modelFromDatabaseData} from '@/lib/ClientSideModel';
+import {
+  CoreDataContextProvider,
+  useCoreDataContext,
+} from '@/lib/context/CoreDataContext';
 import {DisplaySettingsContextProvider} from '@/lib/context/DisplaySettingsContext';
+import {
+  MarketDataContextProvider,
+  useMarketDataContext,
+} from '@/lib/context/MarketDataContext';
+import {
+  TransactionDataContextProvider,
+  useTransactionDataContext,
+} from '@/lib/context/TransactionDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
-import {Setter} from '@/lib/stateHelpers';
-import {createContext, useContext, useState} from 'react';
-
-const AllDatabaseDataContext = createContext<
-  AllClientDataModel & {
-    setDbData: Setter<AllDatabaseData>;
-  }
->(
-  null as unknown as AllClientDataModel & {
-    setDbData: Setter<AllDatabaseData>;
-  }
-);
 
 export const AllDatabaseDataContextProvider = (props: {
   dbData: AllDatabaseData;
   children: JSX.Element | JSX.Element[];
 }) => {
-  const [dbDataState, setDbData] = useState(props.dbData);
-  const model = modelFromDatabaseData(dbDataState);
   return (
-    <DisplaySettingsContextProvider
-      initialDbSettings={props.dbData.dbDisplaySettings}
-    >
-      <AllDatabaseDataContext.Provider value={{...model, setDbData}}>
-        {props.children}
-      </AllDatabaseDataContext.Provider>
+    <DisplaySettingsContextProvider dbSettings={props.dbData.dbDisplaySettings}>
+      <CoreDataContextProvider dbData={props.dbData}>
+        <TransactionDataContextProvider dbData={props.dbData}>
+          <MarketDataContextProvider dbData={props.dbData}>
+            {props.children}
+          </MarketDataContextProvider>
+        </TransactionDataContextProvider>
+      </CoreDataContextProvider>
     </DisplaySettingsContextProvider>
   );
 };
 
 export const useAllDatabaseDataContext = () => {
-  return useContext(AllDatabaseDataContext);
+  const core = useCoreDataContext();
+  const transaction = useTransactionDataContext();
+  const market = useMarketDataContext();
+  return {...core, ...transaction, ...market};
 };

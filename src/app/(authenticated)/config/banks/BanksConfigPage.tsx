@@ -326,7 +326,7 @@ export function BanksConfigPage({
   );
 
   return (
-    <DisplaySettingsContextProvider initialDbSettings={dbDisplaySettings}>
+    <DisplaySettingsContextProvider dbSettings={dbDisplaySettings}>
       <BanksList
         banks={banks}
         bankAccounts={bankAccounts}

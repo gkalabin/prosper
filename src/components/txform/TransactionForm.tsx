@@ -20,6 +20,7 @@ import {Button} from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -27,7 +28,6 @@ import {Form} from '@/components/ui/form';
 import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
 import {Transaction} from '@/lib/model/transaction/Transaction';
-import {onTransactionChange} from '@/lib/stateHelpers';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useCallback, useState} from 'react';
@@ -49,6 +49,10 @@ export function NewTransactionFormDialog({
           <DialogTitle>
             {transaction ? 'Update transaction' : 'Create new transaction'}
           </DialogTitle>
+          <DialogDescription>
+            Use the form below to{' '}
+            {transaction ? 'update transaction' : 'create a new transaction'}
+          </DialogDescription>
         </DialogHeader>
         <TransactionForm
           transaction={transaction}
@@ -59,11 +63,11 @@ export function NewTransactionFormDialog({
   );
 }
 
-function TransactionForm(props: {
+export function TransactionForm(props: {
   transaction: Transaction | null;
   onClose: () => void;
 }) {
-  const {transactions, categories, setDbData} = useAllDatabaseDataContext();
+  const {transactions, categories} = useAllDatabaseDataContext();
   const bankAccounts = useDisplayBankAccounts();
   const [proto, setProto] = useState<TransactionPrototype | null>(null);
   const creatingNewTransaction = !props.transaction;
@@ -107,7 +111,6 @@ function TransactionForm(props: {
       const usedProtos = proto ? [proto] : [];
       const response = await upsertTransaction(transactionId, usedProtos, data);
       if (response.status === 'SUCCESS') {
-        onTransactionChange(setDbData, response.dbUpdates);
         if (props.transaction) {
           // Close the form after updating the transaction.
           props.onClose();

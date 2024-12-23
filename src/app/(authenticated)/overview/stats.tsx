@@ -1,23 +1,26 @@
 'use client';
-import {useHideBalancesContext} from '@/app/(authenticated)/overview/context/hide-balances';
+import {useHideBalances} from '@/app/(authenticated)/overview/hide-balances';
 import {accountsSum} from '@/app/(authenticated)/overview/modelHelpers';
+import {useExchangedTransactions} from '@/app/(authenticated)/stats/modelHelpers';
 import {Card, CardContent} from '@/components/ui/card';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {useMarketDataContext} from '@/lib/context/MarketDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {
   isExpense,
   isIncome,
   Transaction,
 } from '@/lib/model/transaction/Transaction';
 import {differenceInDays} from 'date-fns';
-import {useExchangedTransactions} from '../stats/modelHelpers';
 
 export function StatsWidget() {
   const displayCurrency = useDisplayCurrency();
-  const {bankAccounts, transactions, exchange, stocks} =
-    useAllDatabaseDataContext();
-  const hideBalances = useHideBalancesContext();
+  const {bankAccounts, stocks} = useCoreDataContext();
+  const {transactions} = useTransactionDataContext();
+  const {exchange} = useMarketDataContext();
+  const hideBalances = useHideBalances();
   const total = accountsSum(
     bankAccounts,
     displayCurrency,
@@ -44,7 +47,7 @@ export function StatsWidget() {
 }
 
 export function Last30DaysIncomeExpense() {
-  const {transactions} = useAllDatabaseDataContext();
+  const {transactions} = useTransactionDataContext();
   const now = Date.now();
   const last30days = (t: Transaction) =>
     differenceInDays(now, t.timestampEpoch) <= 30;

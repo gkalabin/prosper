@@ -1,12 +1,10 @@
 import {DisplaySettings} from '@/lib/displaySettings';
 import {Currency} from '@/lib/model/Currency';
-import {Setter} from '@/lib/stateHelpers';
 import {DisplaySettings as DBDisplaySettings} from '@prisma/client';
-import {createContext, useContext, useState} from 'react';
+import {createContext, useContext} from 'react';
 
 type SettableDisplaySettings = {
   displaySettings: DisplaySettings;
-  setDbDisplaySettings: Setter<DBDisplaySettings>;
 };
 
 const DisplaySettingsContext = createContext<SettableDisplaySettings>(
@@ -14,17 +12,12 @@ const DisplaySettingsContext = createContext<SettableDisplaySettings>(
 );
 
 export const DisplaySettingsContextProvider = (props: {
-  initialDbSettings: DBDisplaySettings;
+  dbSettings: DBDisplaySettings;
   children: JSX.Element | JSX.Element[];
 }) => {
-  const [dbDisplaySettings, setDbDisplaySettings] = useState(
-    props.initialDbSettings
-  );
-  const displaySettings = new DisplaySettings(dbDisplaySettings);
+  const displaySettings = new DisplaySettings(props.dbSettings);
   return (
-    <DisplaySettingsContext.Provider
-      value={{displaySettings, setDbDisplaySettings}}
-    >
+    <DisplaySettingsContext.Provider value={{displaySettings}}>
       {props.children}
     </DisplaySettingsContext.Provider>
   );

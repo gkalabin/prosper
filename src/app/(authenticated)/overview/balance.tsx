@@ -1,9 +1,10 @@
 'use client';
-import {useHideBalancesContext} from '@/app/(authenticated)/overview/context/hide-balances';
+import {useHideBalances} from '@/app/(authenticated)/overview/hide-balances';
 import {accountBalance} from '@/app/(authenticated)/overview/modelHelpers';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {BankAccount, accountUnit} from '@/lib/model/BankAccount';
 import {useOpenBankingBalances} from '@/lib/openbanking/context';
 import {cn} from '@/lib/utils';
@@ -18,7 +19,7 @@ export function BankBalance({
 }: {
   amount: AmountWithCurrency | undefined;
 }) {
-  const hideBalances = useHideBalancesContext();
+  const hideBalances = useHideBalances();
   if (!amount || hideBalances) {
     return null;
   }
@@ -27,7 +28,7 @@ export function BankBalance({
 
 export function AccountBalance({account}: {account: BankAccount}) {
   const {balances} = useOpenBankingBalances();
-  const {stocks} = useAllDatabaseDataContext();
+  const {stocks} = useCoreDataContext();
   const obBalance = balances?.find(b => b.internalAccountId === account.id);
   if (!obBalance) {
     return <LocalBalance account={account} />;
@@ -41,8 +42,9 @@ export function AccountBalance({account}: {account: BankAccount}) {
 }
 
 function LocalBalance({account}: {account: BankAccount}) {
-  const hideBalances = useHideBalancesContext();
-  const {transactions, stocks} = useAllDatabaseDataContext();
+  const hideBalances = useHideBalances();
+  const {stocks} = useCoreDataContext();
+  const {transactions} = useTransactionDataContext();
   if (hideBalances) {
     return null;
   }
@@ -57,8 +59,9 @@ function RemoteBalance({
   account: BankAccount;
   remoteBalance: AmountWithUnit;
 }) {
-  const hideBalances = useHideBalancesContext();
-  const {transactions, stocks} = useAllDatabaseDataContext();
+  const hideBalances = useHideBalances();
+  const {stocks} = useCoreDataContext();
+  const {transactions} = useTransactionDataContext();
   const localBalance = accountBalance(account, transactions, stocks);
   const delta = localBalance.subtract(remoteBalance);
   return (

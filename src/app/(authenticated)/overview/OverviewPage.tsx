@@ -1,71 +1,43 @@
 'use client';
 import {BanksListItem} from '@/app/(authenticated)/overview/bank';
 import {
-  HideBalancesContext,
-  useHideBalancesFlag,
-} from '@/app/(authenticated)/overview/context/hide-balances';
+  HideBalancesContextProvider,
+  ToggleHideBalancesButton,
+} from '@/app/(authenticated)/overview/hide-balances';
 import {OpenBankingBalancesLoadingIndicator} from '@/app/(authenticated)/overview/OpenBankingBalancesLoadingIndicator';
 import {StatsWidget} from '@/app/(authenticated)/overview/stats';
 import {
   isFullyConfigured,
   NotConfiguredYet,
 } from '@/components/NotConfiguredYet';
-import {NewTransactionFormDialog} from '@/components/txform/TransactionForm';
 import {Button} from '@/components/ui/button';
 import {
-  AllDatabaseDataContextProvider,
-  useAllDatabaseDataContext,
-} from '@/lib/context/AllDatabaseDataContext';
+  CoreDataContextProvider,
+  useCoreDataContext,
+} from '@/lib/context/CoreDataContext';
+import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
+import {TransactionDataContextProvider} from '@/lib/context/TransactionDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
-import {EyeIcon, EyeSlashIcon} from '@heroicons/react/24/solid';
-import {useState} from 'react';
+import Link from 'next/link';
 
-function NonEmptyPageContent({
-  hideBalances: initialHideBalances,
-}: {
-  hideBalances: boolean;
-}) {
-  const [hideBalances, setHideBalances] =
-    useHideBalancesFlag(initialHideBalances);
-  const {banks} = useAllDatabaseDataContext();
-  const [newTransactionDialogOpen, setNewTransactionDialogOpen] =
-    useState(false);
+function NonEmptyPageContent({hideBalances}: {hideBalances: boolean}) {
+  const {banks} = useCoreDataContext();
   return (
-    <>
-      <HideBalancesContext.Provider value={hideBalances}>
-        <div className="space-y-4">
-          <div className="flex justify-end gap-4">
-            <Button onClick={() => setHideBalances(!hideBalances)}>
-              {!hideBalances && (
-                <>
-                  <EyeSlashIcon className="mr-2 h-4 w-4" />
-                  Hide balances
-                </>
-              )}
-              {hideBalances && (
-                <>
-                  <EyeIcon className="mr-2 h-4 w-4" />
-                  Show balances
-                </>
-              )}
-            </Button>
-            <Button onClick={() => setNewTransactionDialogOpen(true)}>
-              New Transaction
-            </Button>
-          </div>
-          <StatsWidget />
-          <OpenBankingBalancesLoadingIndicator />
-          {banks.map(bank => (
-            <BanksListItem key={bank.id} bank={bank} />
-          ))}
+    <HideBalancesContextProvider initialHideBalances={hideBalances}>
+      <div className="space-y-4">
+        <div className="flex justify-end gap-4">
+          <ToggleHideBalancesButton />
+          <Button asChild>
+            <Link href="/new">New Transaction</Link>
+          </Button>
         </div>
-      </HideBalancesContext.Provider>
-      <NewTransactionFormDialog
-        transaction={null}
-        open={newTransactionDialogOpen}
-        onOpenChange={setNewTransactionDialogOpen}
-      />
-    </>
+        <StatsWidget />
+        <OpenBankingBalancesLoadingIndicator />
+        {banks.map(bank => (
+          <BanksListItem key={bank.id} bank={bank} />
+        ))}
+      </div>
+    </HideBalancesContextProvider>
   );
 }
 
@@ -80,8 +52,12 @@ export function OverviewPage({
     return <NotConfiguredYet />;
   }
   return (
-    <AllDatabaseDataContextProvider dbData={dbData}>
-      <NonEmptyPageContent hideBalances={hideBalances} />
-    </AllDatabaseDataContextProvider>
+    <CoreDataContextProvider dbData={dbData}>
+      <TransactionDataContextProvider dbData={dbData}>
+        <MarketDataContextProvider dbData={dbData}>
+          <NonEmptyPageContent hideBalances={hideBalances} />
+        </MarketDataContextProvider>
+      </TransactionDataContextProvider>
+    </CoreDataContextProvider>
   );
 }
