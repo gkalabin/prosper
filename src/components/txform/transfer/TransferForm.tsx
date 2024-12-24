@@ -7,10 +7,10 @@ import {Timestamp} from '@/components/txform/shared/Timestamp';
 import {Amount} from '@/components/txform/transfer/Amount';
 import {AmountReceived} from '@/components/txform/transfer/AmountReceived';
 import {UpdateReceivedAmountOnAmountChange} from '@/components/txform/transfer/UpdateReceivedAmountOnAmountChange';
-import {isTransfer} from '@/lib/model/transaction/Transaction';
+import {isTransfer, Transaction} from '@/lib/model/transaction/Transaction';
 import {useWatch} from 'react-hook-form';
 
-export function TransferForm() {
+export function TransferForm({transaction}: {transaction: Transaction | null}) {
   return (
     <>
       <Timestamp fieldName="transfer.timestamp" />
@@ -18,7 +18,7 @@ export function TransferForm() {
       <Account fieldName="transfer.toAccountId" label="Money received to" />
       <Amount />
       <AmountReceived />
-      <NewBalancesNote />
+      <NewBalancesNote transaction={transaction} />
       <Description fieldName="transfer.description" />
       <Tags fieldName="transfer.tagNames" />
       <Category />
@@ -34,28 +34,42 @@ function Category() {
   );
 }
 
-function NewBalancesNote() {
+function NewBalancesNote({transaction}: {transaction: Transaction | null}) {
   return (
     <>
       <div className="col-span-6 -my-1 text-xs font-medium">New Balances</div>
       <div className="col-span-3">
-        <NewBalanceFrom />
+        <NewBalanceFrom transaction={transaction} />
       </div>
       <div className="col-span-3">
-        <NewBalanceTo />
+        <NewBalanceTo transaction={transaction} />
       </div>
     </>
   );
 }
 
-function NewBalanceFrom() {
+function NewBalanceFrom({transaction}: {transaction: Transaction | null}) {
   const amount = useWatch({name: 'transfer.amountSent', exact: true});
   const accountId = useWatch({name: 'transfer.fromAccountId', exact: true});
-  return <NewBalanceNote text="From:" amount={-amount} accountId={accountId} />;
+  return (
+    <NewBalanceNote
+      text="From:"
+      amount={-amount}
+      accountId={accountId}
+      transaction={transaction}
+    />
+  );
 }
 
-function NewBalanceTo() {
+function NewBalanceTo({transaction}: {transaction: Transaction | null}) {
   const amount = useWatch({name: 'transfer.amountReceived', exact: true});
   const accountId = useWatch({name: 'transfer.toAccountId', exact: true});
-  return <NewBalanceNote text="To:" amount={amount} accountId={accountId} />;
+  return (
+    <NewBalanceNote
+      text="To:"
+      amount={amount}
+      accountId={accountId}
+      transaction={transaction}
+    />
+  );
 }

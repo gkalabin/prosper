@@ -2,7 +2,14 @@ import {accountBalance} from '@/app/(authenticated)/overview/modelHelpers';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
+import {
+  isIncome,
+  isPersonalExpense,
+  isTransfer,
+  Transaction,
+} from '@/lib/model/transaction/Transaction';
 import {useOpenBankingBalances} from '@/lib/openbanking/context';
+import {dollarToCents} from '@/lib/util/util';
 import {cn} from '@/lib/utils';
 import {
   ArrowDownIcon,
@@ -10,14 +17,41 @@ import {
   CheckCircleIcon,
 } from '@heroicons/react/24/outline';
 
+function existingAmountCents({
+  accountId,
+  transaction,
+}: {
+  accountId: number;
+  transaction: Transaction | null;
+}) {
+  if (!transaction) {
+    return 0;
+  }
+  if (isPersonalExpense(transaction) && transaction.accountId == accountId) {
+    return transaction.amountCents;
+  }
+  if (isIncome(transaction) && transaction.accountId == accountId) {
+    return -transaction.amountCents;
+  }
+  if (isTransfer(transaction) && transaction.fromAccountId == accountId) {
+    return transaction.sentAmountCents;
+  }
+  if (isTransfer(transaction) && transaction.toAccountId == accountId) {
+    return -transaction.receivedAmountCents;
+  }
+  return 0;
+}
+
 export function NewBalanceNote({
   text,
   amount,
   accountId,
+  transaction,
 }: {
   text?: string;
   amount: number;
   accountId: number;
+  transaction: Transaction | null;
 }) {
   const {stocks, bankAccounts} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
@@ -38,8 +72,10 @@ export function NewBalanceNote({
         unit: localBalance.getUnit(),
       })
     : null;
+  const newAmount = dollarToCents(amount);
+  const existingAmount = existingAmountCents({accountId, transaction});
   const newLocalBalance = new AmountWithUnit({
-    amountCents: localBalance.cents() + Math.round(amount * 100),
+    amountCents: localBalance.cents() + newAmount + existingAmount,
     unit: localBalance.getUnit(),
   });
   return (

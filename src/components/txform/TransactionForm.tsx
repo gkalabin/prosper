@@ -177,9 +177,15 @@ export function TransactionForm(props: {
               setValue={onFormTypeChange}
               disabled={form.formState.isSubmitting}
             />
-            {formType == 'EXPENSE' && <ExpenseForm proto={proto} />}
-            {formType == 'TRANSFER' && <TransferForm />}
-            {formType == 'INCOME' && <IncomeForm />}
+            {formType == 'EXPENSE' && (
+              <ExpenseForm transaction={props.transaction} proto={proto} />
+            )}
+            {formType == 'TRANSFER' && (
+              <TransferForm transaction={props.transaction} />
+            )}
+            {formType == 'INCOME' && (
+              <IncomeForm transaction={props.transaction} />
+            )}
           </div>
 
           <div className="mt-4 flex justify-between gap-2 border-t py-4">

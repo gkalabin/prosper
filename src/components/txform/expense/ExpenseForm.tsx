@@ -19,12 +19,18 @@ import {
   isRecent,
   matchesVendor,
 } from '@/components/txform/shared/useTopCategoryIds';
-import {isExpense} from '@/lib/model/transaction/Transaction';
+import {isExpense, Transaction} from '@/lib/model/transaction/Transaction';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {useMemo} from 'react';
 import {useWatch} from 'react-hook-form';
 
-export function ExpenseForm({proto}: {proto: TransactionPrototype | null}) {
+export function ExpenseForm({
+  proto,
+  transaction,
+}: {
+  proto: TransactionPrototype | null;
+  transaction: Transaction | null;
+}) {
   return (
     <>
       <Timestamp fieldName="expense.timestamp" />
@@ -35,7 +41,7 @@ export function ExpenseForm({proto}: {proto: TransactionPrototype | null}) {
       <Currency />
       <Amount />
       <OwnShareAmount />
-      <PaidSelfNewBalanceNote />
+      <PaidSelfNewBalanceNote transaction={transaction} />
       <RepaymentFields />
       <Vendor />
       <Tags fieldName="expense.tagNames" />
@@ -83,7 +89,11 @@ function UpdateOwnShareOnAmountChange() {
   );
 }
 
-function PaidSelfNewBalanceNote() {
+function PaidSelfNewBalanceNote({
+  transaction,
+}: {
+  transaction: Transaction | null;
+}) {
   const {paidSelf} = useSharingType();
   const amount = useWatch({name: 'expense.amount', exact: true});
   const accountId = useWatch({name: 'expense.accountId', exact: true});
@@ -92,7 +102,11 @@ function PaidSelfNewBalanceNote() {
   }
   return (
     <div className="col-span-6">
-      <NewBalanceNote amount={-amount} accountId={accountId} />
+      <NewBalanceNote
+        transaction={transaction}
+        amount={-amount}
+        accountId={accountId}
+      />
     </div>
   );
 }

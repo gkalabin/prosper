@@ -6,6 +6,7 @@ import {SplitTransactionToggle} from '@/components/txform/income/SplitTransactio
 import {Account} from '@/components/txform/shared/Account';
 import {Category as CategoryCommon} from '@/components/txform/shared/Category';
 import {Companion} from '@/components/txform/shared/Companion';
+import {NewBalanceNote} from '@/components/txform/shared/NewBalanceNote';
 import {Tags} from '@/components/txform/shared/Tags';
 import {Timestamp} from '@/components/txform/shared/Timestamp';
 import {UpdateCategoryOnChange} from '@/components/txform/shared/UpdateCategoryOnChange';
@@ -15,11 +16,11 @@ import {
   matchesPayer,
 } from '@/components/txform/shared/useTopCategoryIds';
 import {TransactionFormSchema} from '@/components/txform/types';
-import {isIncome} from '@/lib/model/transaction/Transaction';
+import {isIncome, Transaction} from '@/lib/model/transaction/Transaction';
 import {useMemo} from 'react';
 import {useFormContext, useWatch} from 'react-hook-form';
 
-export function IncomeForm() {
+export function IncomeForm({transaction}: {transaction: Transaction | null}) {
   return (
     <>
       <Timestamp fieldName="income.timestamp" />
@@ -28,6 +29,7 @@ export function IncomeForm() {
       <MaybeEmptyCompanion />
       <Amount />
       <OwnShareAmount />
+      <NewBalanceNoteWrapper transaction={transaction} />
       <Payer />
       <Tags fieldName="income.tagNames" />
       <Category />
@@ -72,6 +74,22 @@ function UpdateOwnShareOnAmountChange() {
       isShared={watch('income.isShared')}
       amountFieldName="income.amount"
       ownShareFieldName="income.ownShareAmount"
+    />
+  );
+}
+
+function NewBalanceNoteWrapper({
+  transaction,
+}: {
+  transaction: Transaction | null;
+}) {
+  const amount = useWatch({name: 'income.amount', exact: true});
+  const accountId = useWatch({name: 'income.accountId', exact: true});
+  return (
+    <NewBalanceNote
+      amount={amount}
+      accountId={accountId}
+      transaction={transaction}
     />
   );
 }
