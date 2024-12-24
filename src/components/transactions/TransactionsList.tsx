@@ -1,7 +1,8 @@
 import {NewTransactionFormDialog} from '@/components/txform/TransactionForm';
 import {Button} from '@/components/ui/button';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {fullAccountName} from '@/lib/model/BankAccount';
 import {
   CategoryTree,
@@ -35,7 +36,7 @@ import {format} from 'date-fns';
 import {useState} from 'react';
 
 const TransactionTitle = ({t}: {t: Transaction}) => {
-  const {banks, bankAccounts} = useAllDatabaseDataContext();
+  const {banks, bankAccounts} = useCoreDataContext();
   if (isTransfer(t)) {
     const from = outgoingBankAccount(t, bankAccounts);
     const to = incomingBankAccount(t, bankAccounts);
@@ -76,7 +77,7 @@ const TransactionTitle = ({t}: {t: Transaction}) => {
 };
 
 const TransactionAmount = (props: {transaction: Transaction}) => {
-  const {bankAccounts, stocks} = useAllDatabaseDataContext();
+  const {bankAccounts, stocks} = useCoreDataContext();
   const t = props.transaction;
   switch (t.kind) {
     case 'PersonalExpense':
@@ -110,8 +111,7 @@ export const TransactionsListItem = ({
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
-  const {tags, bankAccounts, banks, stocks, trips} =
-    useAllDatabaseDataContext();
+  const {tags, banks, trips, bankAccounts, stocks} = useCoreDataContext();
   return (
     <div className="p-2">
       <div
@@ -243,7 +243,7 @@ export const TransactionsListItem = ({
 };
 
 function DebtRepaymentDetails({transaction: {id}}: {transaction: Transaction}) {
-  const {transactionLinks} = useAllDatabaseDataContext();
+  const {transactionLinks} = useTransactionDataContext();
   const debts = transactionLinks
     .filter(l => l.kind == 'DEBT_SETTLING')
     .filter(l => l.expense.id == id || l.repayment.id == id);
@@ -283,7 +283,7 @@ function DebtRepaymentDetails({transaction: {id}}: {transaction: Transaction}) {
 }
 
 function RefundDetails({transaction: {id}}: {transaction: Transaction}) {
-  const {transactionLinks} = useAllDatabaseDataContext();
+  const {transactionLinks} = useTransactionDataContext();
   const links = transactionLinks
     .filter(l => l.kind == 'REFUND')
     .filter(l => l.expense.id == id || l.refunds.some(r => r.id == id));
@@ -330,7 +330,7 @@ export const TransactionsList = (props: {
   displayLimit?: number;
 }) => {
   const [displayLimit, setDisplayLimit] = useState(props.displayLimit || 10);
-  const {categories} = useAllDatabaseDataContext();
+  const {categories} = useCoreDataContext();
   if (!props.transactions?.length) {
     return <div>No transactions.</div>;
   }

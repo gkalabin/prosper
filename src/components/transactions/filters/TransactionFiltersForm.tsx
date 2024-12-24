@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/form';
 import {Checkbox} from '@/components/ui/html-checkbox';
 import {Input} from '@/components/ui/input';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {fullAccountName} from '@/lib/model/BankAccount';
 import {getNameWithAncestors, makeCategoryTree} from '@/lib/model/Category';
 import {cn} from '@/lib/utils';
@@ -45,7 +45,7 @@ export function TransactionFiltersForm(props: {onClose: () => void}) {
     categories: allCategories,
     trips,
     tags,
-  } = useAllDatabaseDataContext();
+  } = useCoreDataContext();
   const {control} = useFormContext<FiltersFormSchema>();
   const bankAccountOptions = bankAccounts.map(a => ({
     value: a.id,

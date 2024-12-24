@@ -1,7 +1,7 @@
 'use client';
 import {MultiSelect} from '@/components/MultiSelect';
 import {Label} from '@/components/ui/label';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {getNameWithAncestors, makeCategoryTree} from '@/lib/model/Category';
 
 export function ExcludedCategoriesSelector({
@@ -11,7 +11,7 @@ export function ExcludedCategoriesSelector({
   excludedIds: number[];
   setExcludedIds: (newValue: number[]) => void;
 }) {
-  const {categories} = useAllDatabaseDataContext();
+  const {categories} = useCoreDataContext();
   const tree = makeCategoryTree(categories);
   const categoryOptions = categories.map(c => ({
     value: c.id,

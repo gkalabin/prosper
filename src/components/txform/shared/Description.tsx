@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
 import {uniqMostFrequentIgnoringEmpty} from '@/lib/collections';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
@@ -21,7 +21,7 @@ export function Description({
     | 'transfer.description';
 }) {
   const {control} = useFormContext<TransactionFormSchema>();
-  const {transactions} = useAllDatabaseDataContext();
+  const {transactions} = useTransactionDataContext();
   const descriptions = useMemo(
     () => uniqMostFrequentIgnoringEmpty(transactions.map(x => x.note)),
     [transactions]

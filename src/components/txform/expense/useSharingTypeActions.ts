@@ -5,8 +5,9 @@ import {
   mostFrequentRepaymentCategories,
 } from '@/components/txform/prefill';
 import {TransactionFormSchema} from '@/components/txform/types';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {isPersonalExpense} from '@/lib/model/transaction/Transaction';
 import {
@@ -22,8 +23,8 @@ export function useSharingTypeActions() {
   const defaultPayer = useMostFrequentPayer();
   const defaultCompanion = useMostFrequentCompanion();
   const displayCurrency = useDisplayCurrency();
-  const {transactionLinks, bankAccounts, transactions} =
-    useAllDatabaseDataContext();
+  const {transactionLinks, transactions} = useTransactionDataContext();
+  const {bankAccounts} = useCoreDataContext();
   const categoryId = getValues('expense.categoryId');
 
   // Use functions to avoid calculating these values when user never needs them.
@@ -123,12 +124,12 @@ function currencyCodeForProto(
 }
 
 function useMostFrequentPayer() {
-  const {transactions} = useAllDatabaseDataContext();
+  const {transactions} = useTransactionDataContext();
   return useMemo(() => mostFrequentPayer(transactions) ?? '', [transactions]);
 }
 
 function useMostFrequentCompanion() {
-  const {transactions} = useAllDatabaseDataContext();
+  const {transactions} = useTransactionDataContext();
   return useMemo(
     () => mostFrequentCompanion(transactions) ?? '',
     [transactions]

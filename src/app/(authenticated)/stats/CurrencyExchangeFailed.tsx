@@ -1,6 +1,6 @@
 'use client';
 import {Button} from '@/components/ui/button';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {fullAccountName} from '@/lib/model/BankAccount';
 import {
@@ -21,7 +21,7 @@ import {format} from 'date-fns';
 import {useState} from 'react';
 
 export const TransactionTitle = ({t}: {t: Transaction}) => {
-  const {banks, bankAccounts, stocks} = useAllDatabaseDataContext();
+  const {banks, stocks, bankAccounts} = useCoreDataContext();
   const date = format(t.timestampEpoch, 'MMM dd');
   if (isTransfer(t)) {
     const from = outgoingBankAccount(t, bankAccounts);

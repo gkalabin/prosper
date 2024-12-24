@@ -12,8 +12,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {useMarketDataContext} from '@/lib/context/MarketDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {
   Bank,
   BankAccount,
@@ -46,8 +48,9 @@ const ITEM_BORDER_COLORS = [
 
 export function BanksListItem({bank}: {bank: Bank}) {
   const displayCurrency = useDisplayCurrency();
-  const {exchange, stocks, transactions, bankAccounts} =
-    useAllDatabaseDataContext();
+  const {stocks, bankAccounts} = useCoreDataContext();
+  const {exchange} = useMarketDataContext();
+  const {transactions} = useTransactionDataContext();
   const accounts = accountsForBank(bank, bankAccounts);
   const bankTotal = accountsSum(
     accounts,

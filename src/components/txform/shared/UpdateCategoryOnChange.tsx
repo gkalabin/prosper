@@ -3,7 +3,7 @@ import {
   TransactionFilterFn,
 } from '@/components/txform/shared/useTopCategoryIds';
 import {TransactionFormSchema} from '@/components/txform/types';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {useEffect} from 'react';
 import {useFormContext} from 'react-hook-form';
 
@@ -17,7 +17,7 @@ export function UpdateCategoryOnChange({
   filters: TransactionFilterFn[];
 }) {
   const {setValue} = useFormContext<TransactionFormSchema>();
-  const {transactions} = useAllDatabaseDataContext();
+  const {transactions} = useTransactionDataContext();
   useEffect(() => {
     const [mostFrequent] = topCategoriesMatchAll({
       transactions,

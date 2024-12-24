@@ -2,7 +2,7 @@
 import {Charts} from '@/components/charts';
 import {NamedTimeseries} from '@/components/charts/ChartsLibrary';
 import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {getNameWithAncestors, makeCategoryTree} from '@/lib/model/Category';
 import {DefaultMap} from '@/lib/util/DefaultMap';
 import {Granularity} from '@/lib/util/Granularity';
@@ -13,7 +13,7 @@ export function MonthlyExpenseByCategory({
 }: {
   input: ExchangedIntervalTransactions;
 }) {
-  const {categories} = useAllDatabaseDataContext();
+  const {categories} = useCoreDataContext();
   const tree = makeCategoryTree(categories);
   const newEmptySeries = () =>
     new MoneyTimeseries(input.currency(), Granularity.MONTHLY);

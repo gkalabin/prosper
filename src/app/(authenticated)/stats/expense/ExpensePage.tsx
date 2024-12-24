@@ -13,8 +13,10 @@ import {MonthlyExpenseAverage} from '@/components/charts/timeseries/MonthlyExpen
 import {MonthlyExpenseByCategory} from '@/components/charts/timeseries/MonthlyExpenseByCategory';
 import {MonthlyExpenseByTopCategory} from '@/components/charts/timeseries/MonthlyExpenseByTopCategory';
 import {YearlyExpense} from '@/components/charts/timeseries/YearlyExpense';
-import {AllDatabaseDataContextProvider} from '@/lib/context/AllDatabaseDataContext';
+import {CoreDataContextProvider} from '@/lib/context/CoreDataContext';
 import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
+import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
+import {TransactionDataContextProvider} from '@/lib/context/TransactionDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {useState} from 'react';
 
@@ -52,8 +54,12 @@ export function ExpensePage({dbData}: {dbData: AllDatabaseData}) {
     return <NotConfiguredYet />;
   }
   return (
-    <AllDatabaseDataContextProvider dbData={dbData}>
-      <NonEmptyPageContent />
-    </AllDatabaseDataContextProvider>
+    <CoreDataContextProvider dbData={dbData}>
+      <TransactionDataContextProvider dbData={dbData}>
+        <MarketDataContextProvider dbData={dbData}>
+          <NonEmptyPageContent />
+        </MarketDataContextProvider>
+      </TransactionDataContextProvider>
+    </CoreDataContextProvider>
   );
 }

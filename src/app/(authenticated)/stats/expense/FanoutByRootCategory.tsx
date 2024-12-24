@@ -2,7 +2,7 @@
 import {Charts} from '@/components/charts';
 import {NamedTimeseries} from '@/components/charts/ChartsLibrary';
 import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {
   Category,
   getNameWithAncestors,
@@ -19,7 +19,7 @@ export function FanoutByRootCategory({
 }: {
   input: ExchangedIntervalTransactions;
 }) {
-  const {categories} = useAllDatabaseDataContext();
+  const {categories} = useCoreDataContext();
   return (
     <>
       <h2 className="my-2 text-2xl font-medium leading-5">
@@ -40,7 +40,7 @@ function ExpenseByCategory({
   input: ExchangedIntervalTransactions;
   root: Category;
 }) {
-  const {categories} = useAllDatabaseDataContext();
+  const {categories} = useCoreDataContext();
   const tree = makeCategoryTree(categories);
   const newEmptySeries = () =>
     new MoneyTimeseries(input.currency(), Granularity.MONTHLY);

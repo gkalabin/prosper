@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
 import {uniqMostFrequentIgnoringEmpty} from '@/lib/collections';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {Transaction} from '@/lib/model/transaction/Transaction';
 import {useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
@@ -43,7 +43,7 @@ function payerOrNull(t: Transaction) {
 }
 
 function useUniqueFrequentPayers(): string[] {
-  const {transactions} = useAllDatabaseDataContext();
+  const {transactions} = useTransactionDataContext();
   return useMemo(
     () => uniqMostFrequentIgnoringEmpty(transactions.map(payerOrNull)),
     [transactions]

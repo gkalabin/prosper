@@ -13,10 +13,12 @@ import {
 import {Button} from '@/components/ui/button';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
+import {CoreDataContextProvider} from '@/lib/context/CoreDataContext';
+import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
 import {
-  AllDatabaseDataContextProvider,
-  useAllDatabaseDataContext,
-} from '@/lib/context/AllDatabaseDataContext';
+  TransactionDataContextProvider,
+  useTransactionDataContext,
+} from '@/lib/context/TransactionDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {Trip, tripModelFromDB} from '@/lib/model/Trip';
 import {hasTrip} from '@/lib/model/transaction/Transaction';
@@ -52,7 +54,7 @@ function TripTextSummary({input}: {input: ExchangedTransactions}) {
 }
 
 function NonEmptyTripDetails(props: {trip: Trip}) {
-  const {transactions} = useAllDatabaseDataContext();
+  const {transactions} = useTransactionDataContext();
   const tripTransactions = transactions.filter(
     t => hasTrip(t) && t.tripId === props.trip.id
   );
@@ -89,8 +91,12 @@ export function TripDetails({
   }
   const trip = tripModelFromDB(dbTrip);
   return (
-    <AllDatabaseDataContextProvider dbData={dbData}>
-      <NonEmptyTripDetails trip={trip} />
-    </AllDatabaseDataContextProvider>
+    <CoreDataContextProvider dbData={dbData}>
+      <TransactionDataContextProvider dbData={dbData}>
+        <MarketDataContextProvider dbData={dbData}>
+          <NonEmptyTripDetails trip={trip} />
+        </MarketDataContextProvider>
+      </TransactionDataContextProvider>
+    </CoreDataContextProvider>
   );
 }

@@ -1,6 +1,7 @@
 import {accountBalance} from '@/app/(authenticated)/overview/modelHelpers';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {useOpenBankingBalances} from '@/lib/openbanking/context';
 import {cn} from '@/lib/utils';
 import {
@@ -18,7 +19,8 @@ export function NewBalanceNote({
   amount: number;
   accountId: number;
 }) {
-  const {bankAccounts, transactions, stocks} = useAllDatabaseDataContext();
+  const {stocks, bankAccounts} = useCoreDataContext();
+  const {transactions} = useTransactionDataContext();
   const {balances} = useOpenBankingBalances();
   const amountCents = Math.round(amount * 100);
   if (!Number.isInteger(amountCents)) {

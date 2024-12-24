@@ -1,4 +1,4 @@
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {
   Bank,
   BankAccount,
@@ -36,6 +36,6 @@ export type AllDatabaseData = {
 };
 
 export const useDisplayBankAccounts = () => {
-  const {bankAccounts} = useAllDatabaseDataContext();
+  const {bankAccounts} = useCoreDataContext();
   return bankAccounts.filter(x => !x.archived);
 };

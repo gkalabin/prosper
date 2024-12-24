@@ -17,7 +17,9 @@ import {TransactionsList} from '@/components/transactions/TransactionsList';
 import {TransactionStats} from '@/components/transactions/TransactionStats';
 import {Button} from '@/components/ui/button';
 import {Form} from '@/components/ui/form';
-import {AllDatabaseDataContextProvider} from '@/lib/context/AllDatabaseDataContext';
+import {CoreDataContextProvider} from '@/lib/context/CoreDataContext';
+import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
+import {TransactionDataContextProvider} from '@/lib/context/TransactionDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {ChartPieIcon, FunnelIcon} from '@heroicons/react/24/outline';
 import {zodResolver} from '@hookform/resolvers/zod';
@@ -88,10 +90,14 @@ export function TransactionsPage({dbData}: {dbData: AllDatabaseData}) {
   }
   return (
     <Form {...form}>
-      <AllDatabaseDataContextProvider dbData={dbData}>
-        <UpdateQueryOnFormChange />
-        <NonEmptyPageContent />
-      </AllDatabaseDataContextProvider>
+      <CoreDataContextProvider dbData={dbData}>
+        <TransactionDataContextProvider dbData={dbData}>
+          <MarketDataContextProvider dbData={dbData}>
+            <UpdateQueryOnFormChange />
+            <NonEmptyPageContent />
+          </MarketDataContextProvider>
+        </TransactionDataContextProvider>
+      </CoreDataContextProvider>
     </Form>
   );
 }

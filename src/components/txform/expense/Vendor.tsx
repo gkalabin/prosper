@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
 import {uniqMostFrequentIgnoringEmpty} from '@/lib/collections';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {
   isExpense,
   isIncome,
@@ -19,7 +19,7 @@ import {useFormContext} from 'react-hook-form';
 
 export function Vendor() {
   const {control} = useFormContext<TransactionFormSchema>();
-  const {transactions} = useAllDatabaseDataContext();
+  const {transactions} = useTransactionDataContext();
   const vendors = useMemo(
     () => uniqMostFrequentIgnoringEmpty(transactions.map(vendorOrNull)),
     [transactions]

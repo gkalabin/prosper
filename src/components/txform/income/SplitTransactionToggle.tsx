@@ -8,7 +8,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {Switch} from '@/components/ui/switch';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
@@ -43,7 +43,7 @@ export function SplitTransactionToggle() {
 }
 
 function useMostFrequentCompanion() {
-  const {transactions} = useAllDatabaseDataContext();
+  const {transactions} = useTransactionDataContext();
   return useMemo(
     () => mostFrequentCompanion(transactions) ?? '',
     [transactions]

@@ -25,7 +25,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {Form} from '@/components/ui/form';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
 import {Transaction} from '@/lib/model/transaction/Transaction';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
@@ -67,7 +68,8 @@ export function TransactionForm(props: {
   transaction: Transaction | null;
   onClose: () => void;
 }) {
-  const {transactions, categories} = useAllDatabaseDataContext();
+  const {categories} = useCoreDataContext();
+  const {transactions} = useTransactionDataContext();
   const bankAccounts = useDisplayBankAccounts();
   const [proto, setProto] = useState<TransactionPrototype | null>(null);
   const creatingNewTransaction = !props.transaction;

@@ -9,9 +9,14 @@ import {TransactionsList} from '@/components/transactions/TransactionsList';
 import {NewTransactionFormDialog} from '@/components/txform/TransactionForm';
 import {Button} from '@/components/ui/button';
 import {
-  AllDatabaseDataContextProvider,
-  useAllDatabaseDataContext,
-} from '@/lib/context/AllDatabaseDataContext';
+  CoreDataContextProvider,
+  useCoreDataContext,
+} from '@/lib/context/CoreDataContext';
+import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
+import {
+  TransactionDataContextProvider,
+  useTransactionDataContext,
+} from '@/lib/context/TransactionDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {Income} from '@/lib/model/transaction/Income';
 import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
@@ -21,7 +26,8 @@ import {notFound} from 'next/navigation';
 import {useState} from 'react';
 
 function NonEmptyPageContent({accountId}: {accountId: number}) {
-  const {transactions, bankAccounts} = useAllDatabaseDataContext();
+  const {transactions} = useTransactionDataContext();
+  const {bankAccounts} = useCoreDataContext();
   const [newTransactionDialogOpen, setNewTransactionDialogOpen] =
     useState(false);
   const account = bankAccounts.find(account => account.id === accountId);
@@ -69,8 +75,12 @@ export function AccountPage({
     return <NotConfiguredYet />;
   }
   return (
-    <AllDatabaseDataContextProvider dbData={dbData}>
-      <NonEmptyPageContent accountId={dbAccount.id} />
-    </AllDatabaseDataContextProvider>
+    <CoreDataContextProvider dbData={dbData}>
+      <TransactionDataContextProvider dbData={dbData}>
+        <MarketDataContextProvider dbData={dbData}>
+          <NonEmptyPageContent accountId={dbAccount.id} />
+        </MarketDataContextProvider>
+      </TransactionDataContextProvider>
+    </CoreDataContextProvider>
   );
 }

@@ -7,7 +7,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {accountUnitsEqual, mustFindBankAccount} from '@/lib/model/BankAccount';
 import {cn} from '@/lib/utils';
 import {useFormContext} from 'react-hook-form';
@@ -34,7 +34,7 @@ export function Amount() {
 
 export function useAccountUnitsEqual() {
   const {watch} = useFormContext<TransactionFormSchema>();
-  const {bankAccounts} = useAllDatabaseDataContext();
+  const {bankAccounts} = useCoreDataContext();
   const fromAccount = mustFindBankAccount(
     bankAccounts,
     watch('transfer.fromAccountId')

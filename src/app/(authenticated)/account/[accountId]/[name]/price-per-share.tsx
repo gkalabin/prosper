@@ -1,12 +1,12 @@
 'use client';
 import {Amount} from '@/lib/Amount';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {useMarketDataContext} from '@/lib/context/MarketDataContext';
 import {mustFindByCode} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';
 
 export function PricePerShare({stock}: {stock: Stock}) {
-  const {exchange} = useAllDatabaseDataContext();
+  const {exchange} = useMarketDataContext();
   const displayCurrency = useDisplayCurrency();
   const now = new Date();
   const stockCurrency = mustFindByCode(stock.currencyCode);

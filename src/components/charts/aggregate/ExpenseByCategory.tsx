@@ -1,13 +1,13 @@
 'use client';
 import {Charts} from '@/components/charts';
 import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {getNameWithAncestors, makeCategoryTree} from '@/lib/model/Category';
 import {transactionCategory} from '@/lib/model/transaction/Transaction';
 import {currencyAppendMap} from '@/lib/util/AppendMap';
 
 export function ExpenseByCategory({input}: {input: ExchangedTransactions}) {
-  const {categories} = useAllDatabaseDataContext();
+  const {categories} = useCoreDataContext();
   const tree = makeCategoryTree(categories);
   const byId = currencyAppendMap<number>(input.currency());
   for (const {t, ownShare} of input.expenses()) {

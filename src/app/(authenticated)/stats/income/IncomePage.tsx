@@ -11,8 +11,10 @@ import {MonthlyIncome} from '@/components/charts/timeseries/MonthlyIncome';
 import {MonthlyIncomeAverage} from '@/components/charts/timeseries/MonthlyIncomeAverage';
 import {MonthlyIncomeByCategory} from '@/components/charts/timeseries/MonthlyIncomeByCategory';
 import {YearlyIncome} from '@/components/charts/timeseries/YearlyIncome';
-import {AllDatabaseDataContextProvider} from '@/lib/context/AllDatabaseDataContext';
+import {CoreDataContextProvider} from '@/lib/context/CoreDataContext';
 import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
+import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
+import {TransactionDataContextProvider} from '@/lib/context/TransactionDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {useState} from 'react';
 
@@ -46,8 +48,12 @@ export function IncomePage({dbData}: {dbData: AllDatabaseData}) {
     return <NotConfiguredYet />;
   }
   return (
-    <AllDatabaseDataContextProvider dbData={dbData}>
-      <NonEmptyPageContent />
-    </AllDatabaseDataContextProvider>
+    <CoreDataContextProvider dbData={dbData}>
+      <TransactionDataContextProvider dbData={dbData}>
+        <MarketDataContextProvider dbData={dbData}>
+          <NonEmptyPageContent />
+        </MarketDataContextProvider>
+      </TransactionDataContextProvider>
+    </CoreDataContextProvider>
   );
 }

@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
 import {uniqMostFrequentIgnoringEmpty} from '@/lib/collections';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {otherPartyNameOrNull} from '@/lib/model/transaction/Transaction';
 import {useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
@@ -43,7 +43,7 @@ export function Companion({
 }
 
 function useUniqueCompanions(): string[] {
-  const {transactions} = useAllDatabaseDataContext();
+  const {transactions} = useTransactionDataContext();
   return useMemo(
     () => uniqMostFrequentIgnoringEmpty(transactions.map(otherPartyNameOrNull)),
     [transactions]

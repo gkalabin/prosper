@@ -6,8 +6,10 @@ import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {assert} from '@/lib/assert';
 import {StockAndCurrencyExchange} from '@/lib/ClientSideModel';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {useMarketDataContext} from '@/lib/context/MarketDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {accountUnit, BankAccount} from '@/lib/model/BankAccount';
 import {Currency, mustFindByCode} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';
@@ -110,7 +112,9 @@ function getAccountBalanceInStockCurrency({
 }
 
 export function BalanceCard({account}: {account: BankAccount}) {
-  const {stocks, transactions, exchange} = useAllDatabaseDataContext();
+  const {stocks} = useCoreDataContext();
+  const {transactions} = useTransactionDataContext();
+  const {exchange} = useMarketDataContext();
   const displayCurrency = useDisplayCurrency();
   const balance = accountBalance(account, transactions, stocks);
   const inDisplayCurrency = getAccountBalanceInDisplayCurrency({
@@ -157,7 +161,8 @@ export function BalanceCard({account}: {account: BankAccount}) {
 }
 
 function OpenBankingBalanceDelta({account}: {account: BankAccount}) {
-  const {stocks, transactions} = useAllDatabaseDataContext();
+  const {stocks} = useCoreDataContext();
+  const {transactions} = useTransactionDataContext();
   const {balances, isLoading} = useOpenBankingBalances();
   if (isLoading) {
     return <div>Loading balance from the bank...</div>;

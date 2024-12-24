@@ -4,8 +4,10 @@ import {
   ExchangedTransaction,
   ExchangedTransactions,
 } from '@/lib/ExchangedTransactions';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {useMarketDataContext} from '@/lib/context/MarketDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {
   Category,
   getDescendants,
@@ -38,7 +40,8 @@ export function useStatsPageProps(
   excludeCategories: number[],
   duration: Interval<Date>
 ): {input: ExchangedIntervalTransactions; failed: Transaction[]} {
-  const {transactions, categories} = useAllDatabaseDataContext();
+  const {categories} = useCoreDataContext();
+  const {transactions} = useTransactionDataContext();
   const filteredTransactions = filterExcludedTransactions(
     transactions,
     excludeCategories,
@@ -74,7 +77,8 @@ export function useExchangedTransactions(trasactions: Transaction[]): {
   input: ExchangedTransactions;
   failed: Transaction[];
 } {
-  const {bankAccounts, stocks, exchange} = useAllDatabaseDataContext();
+  const {bankAccounts, stocks} = useCoreDataContext();
+  const {exchange} = useMarketDataContext();
   const displayCurrency = useDisplayCurrency();
   const failed: Transaction[] = [];
   const exchanged: ExchangedTransaction[] = [];

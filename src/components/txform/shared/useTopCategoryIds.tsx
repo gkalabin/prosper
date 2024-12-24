@@ -1,5 +1,5 @@
 import {uniqMostFrequent} from '@/lib/collections';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {
   isExpense,
   isIncome,
@@ -36,7 +36,7 @@ export function useTopCategoriesMatchMost({
   filters: TransactionFilterFn[];
   want: number;
 }): number[] {
-  const {transactions} = useAllDatabaseDataContext();
+  const {transactions} = useTransactionDataContext();
   return topCategoriesMatchMost({filters, want, transactions});
 }
 

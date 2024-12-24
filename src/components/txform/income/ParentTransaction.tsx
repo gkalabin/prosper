@@ -14,7 +14,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Stock} from '@/lib/model/Stock';
 import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
@@ -67,7 +68,8 @@ function ParentTransactionSelect({
   accountId: number;
   onChange: (id: number | null) => void;
 }) {
-  const {transactions, bankAccounts, stocks} = useAllDatabaseDataContext();
+  const {bankAccounts, stocks} = useCoreDataContext();
+  const {transactions} = useTransactionDataContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [optionsOpen, setOptionsOpen] = useState(false);
 
@@ -161,7 +163,8 @@ function FilteredTransactions({
   accountId: number;
 }) {
   const [debouncedQuery] = useDebounce(query, 200);
-  const {transactions, bankAccounts, stocks} = useAllDatabaseDataContext();
+  const {bankAccounts, stocks} = useCoreDataContext();
+  const {transactions} = useTransactionDataContext();
   const options = useMemo(() => {
     const expenses = findRelevantExpenses(
       transactions,

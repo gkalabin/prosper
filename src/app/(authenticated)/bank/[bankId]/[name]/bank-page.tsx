@@ -8,10 +8,18 @@ import {
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {
-  AllDatabaseDataContextProvider,
-  useAllDatabaseDataContext,
-} from '@/lib/context/AllDatabaseDataContext';
+  CoreDataContextProvider,
+  useCoreDataContext,
+} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {
+  MarketDataContextProvider,
+  useMarketDataContext,
+} from '@/lib/context/MarketDataContext';
+import {
+  TransactionDataContextProvider,
+  useTransactionDataContext,
+} from '@/lib/context/TransactionDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {accountsForBank} from '@/lib/model/BankAccount';
 import {CurrencyDollarIcon} from '@heroicons/react/24/outline';
@@ -20,8 +28,9 @@ import {notFound} from 'next/navigation';
 
 function NonEmptyPageContent({bankId}: {bankId: number}) {
   const displayCurrency = useDisplayCurrency();
-  const {banks, exchange, stocks, transactions, bankAccounts} =
-    useAllDatabaseDataContext();
+  const {banks, stocks, bankAccounts} = useCoreDataContext();
+  const {exchange} = useMarketDataContext();
+  const {transactions} = useTransactionDataContext();
   const bank = banks.find(bank => bank.id === bankId);
   if (!bank) {
     return notFound();
@@ -76,8 +85,12 @@ export function BankPage({
     return <NotConfiguredYet />;
   }
   return (
-    <AllDatabaseDataContextProvider dbData={dbData}>
-      <NonEmptyPageContent bankId={dbBank.id} />
-    </AllDatabaseDataContextProvider>
+    <CoreDataContextProvider dbData={dbData}>
+      <TransactionDataContextProvider dbData={dbData}>
+        <MarketDataContextProvider dbData={dbData}>
+          <NonEmptyPageContent bankId={dbBank.id} />
+        </MarketDataContextProvider>
+      </TransactionDataContextProvider>
+    </CoreDataContextProvider>
   );
 }

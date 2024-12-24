@@ -7,10 +7,18 @@ import {Button} from '@/components/ui/button';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {StockAndCurrencyExchange} from '@/lib/ClientSideModel';
 import {
-  AllDatabaseDataContextProvider,
-  useAllDatabaseDataContext,
-} from '@/lib/context/AllDatabaseDataContext';
+  CoreDataContextProvider,
+  useCoreDataContext,
+} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {
+  MarketDataContextProvider,
+  useMarketDataContext,
+} from '@/lib/context/MarketDataContext';
+import {
+  TransactionDataContextProvider,
+  useTransactionDataContext,
+} from '@/lib/context/TransactionDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Currency} from '@/lib/model/Currency';
@@ -65,8 +73,9 @@ function tripTotalSpend(
 }
 
 function TripTotal({trip}: {trip: Trip}) {
-  const {transactions, bankAccounts, stocks, exchange} =
-    useAllDatabaseDataContext();
+  const {bankAccounts, stocks} = useCoreDataContext();
+  const {transactions} = useTransactionDataContext();
+  const {exchange} = useMarketDataContext();
   const displayCurrency = useDisplayCurrency();
   const total = tripTotalSpend(
     trip.id,
@@ -83,8 +92,9 @@ function TripTotal({trip}: {trip: Trip}) {
 }
 
 function NonEmptyTripsList() {
-  const {trips, transactions, bankAccounts, stocks, exchange} =
-    useAllDatabaseDataContext();
+  const {trips, bankAccounts, stocks} = useCoreDataContext();
+  const {transactions} = useTransactionDataContext();
+  const {exchange} = useMarketDataContext();
   const displayCurrency = useDisplayCurrency();
   const travelTransactions = transactions
     .filter((tx): tx is Expense | Income => isExpense(tx) || isIncome(tx))
@@ -164,8 +174,12 @@ export function TripsList({dbData}: {dbData: AllDatabaseData}) {
     return <NotConfiguredYet />;
   }
   return (
-    <AllDatabaseDataContextProvider dbData={dbData}>
-      <NonEmptyTripsList />
-    </AllDatabaseDataContextProvider>
+    <CoreDataContextProvider dbData={dbData}>
+      <TransactionDataContextProvider dbData={dbData}>
+        <MarketDataContextProvider dbData={dbData}>
+          <NonEmptyTripsList />
+        </MarketDataContextProvider>
+      </TransactionDataContextProvider>
+    </CoreDataContextProvider>
   );
 }

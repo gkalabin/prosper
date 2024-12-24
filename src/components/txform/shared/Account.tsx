@@ -7,7 +7,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {Select} from '@/components/ui/html-select';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
 import {fullAccountName} from '@/lib/model/BankAccount';
 import {useFormContext} from 'react-hook-form';
@@ -25,7 +25,7 @@ export function Account({
 }) {
   const {control} = useFormContext<TransactionFormSchema>();
   const accounts = useDisplayBankAccounts();
-  const {banks} = useAllDatabaseDataContext();
+  const {banks} = useCoreDataContext();
   return (
     <FormField
       control={control}

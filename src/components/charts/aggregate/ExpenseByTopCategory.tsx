@@ -1,6 +1,6 @@
 import {Charts} from '@/components/charts';
 import {ExchangedExpense, ExchangedIncome} from '@/lib/ExchangedTransactions';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {
   findRoot,
   makeCategoryTree,
@@ -20,7 +20,7 @@ export function ExpenseByTopCategoryChart({
   currency,
   data,
 }: ExpenseByTopCategoryChartProps) {
-  const {categories} = useAllDatabaseDataContext();
+  const {categories} = useCoreDataContext();
   const tree = makeCategoryTree(categories);
   const byId = currencyAppendMap<number>(currency);
   for (const {t, ownShare} of data) {

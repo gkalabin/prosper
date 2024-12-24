@@ -7,7 +7,8 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {hasTrip} from '@/lib/model/transaction/Transaction';
 import {Trip as TripModel} from '@/lib/model/Trip';
 import {isBefore} from 'date-fns';
@@ -40,7 +41,8 @@ export function Trip() {
 }
 
 function useTripNames() {
-  const {transactions, trips} = useAllDatabaseDataContext();
+  const {transactions} = useTransactionDataContext();
+  const {trips} = useCoreDataContext();
   return useMemo(() => {
     const tripLastUsageDate = new Map<number, number>();
     transactions.filter(hasTrip).forEach(x => {

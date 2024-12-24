@@ -8,7 +8,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {
   Category as CategoryModel,
   CategoryTree,
@@ -35,7 +35,7 @@ export function CategorySelect({
   disabled: boolean;
 }) {
   const [optionsOpen, setOptionsOpen] = useState(false);
-  const {categories} = useAllDatabaseDataContext();
+  const {categories} = useCoreDataContext();
   const tree = useMemo(() => makeCategoryTree(categories), [categories]);
   const groups = useOptions({mostFrequentlyUsedCategoryIds, tree});
   return (
@@ -101,7 +101,7 @@ function useOptions({
   mostFrequentlyUsedCategoryIds: Array<number>;
   tree: CategoryTree;
 }): CategoryOptions {
-  const {categories} = useAllDatabaseDataContext();
+  const {categories} = useCoreDataContext();
   const groups = useMemo(() => {
     const mostFrequentIds = mostFrequentlyUsedCategoryIds.slice(
       0,

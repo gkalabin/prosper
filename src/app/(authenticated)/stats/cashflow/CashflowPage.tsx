@@ -16,8 +16,10 @@ import {YearlyCashflow} from '@/components/charts/timeseries/YearlyCashflow';
 import {YearlyCashflowCumulative} from '@/components/charts/timeseries/YearlyCashflowCumulative';
 import {YearlyExpense} from '@/components/charts/timeseries/YearlyExpense';
 import {YearlyIncome} from '@/components/charts/timeseries/YearlyIncome';
-import {AllDatabaseDataContextProvider} from '@/lib/context/AllDatabaseDataContext';
+import {CoreDataContextProvider} from '@/lib/context/CoreDataContext';
 import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
+import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
+import {TransactionDataContextProvider} from '@/lib/context/TransactionDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {useState} from 'react';
 
@@ -56,8 +58,12 @@ export function CashflowPage({dbData}: {dbData: AllDatabaseData}) {
     return <NotConfiguredYet />;
   }
   return (
-    <AllDatabaseDataContextProvider dbData={dbData}>
-      <NonEmptyPageContent />
-    </AllDatabaseDataContextProvider>
+    <CoreDataContextProvider dbData={dbData}>
+      <TransactionDataContextProvider dbData={dbData}>
+        <MarketDataContextProvider dbData={dbData}>
+          <NonEmptyPageContent />
+        </MarketDataContextProvider>
+      </TransactionDataContextProvider>
+    </CoreDataContextProvider>
   );
 }

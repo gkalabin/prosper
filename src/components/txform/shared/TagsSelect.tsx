@@ -8,7 +8,8 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {cn} from '@/lib/utils';
 import {
   CheckIcon,
@@ -185,7 +186,8 @@ function SelectedTags({
 }
 
 function useExistingTagNames() {
-  const {transactions, tags} = useAllDatabaseDataContext();
+  const {tags} = useCoreDataContext();
+  const {transactions} = useTransactionDataContext();
   return useMemo(() => {
     const tagFrequency = new Map<number, number>(tags.map(tag => [tag.id, 0]));
     transactions

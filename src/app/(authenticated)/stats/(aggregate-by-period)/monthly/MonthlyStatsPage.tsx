@@ -18,11 +18,13 @@ import {
   SortingMode,
 } from '@/components/transactions/SortableTransactionsList';
 import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
-import {
-  AllDatabaseDataContextProvider,
-  useAllDatabaseDataContext,
-} from '@/lib/context/AllDatabaseDataContext';
+import {CoreDataContextProvider} from '@/lib/context/CoreDataContext';
 import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
+import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
+import {
+  TransactionDataContextProvider,
+  useTransactionDataContext,
+} from '@/lib/context/TransactionDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {Granularity} from '@/lib/util/Granularity';
 import {Interval, endOfMonth, startOfMonth} from 'date-fns';
@@ -65,7 +67,7 @@ export function MonthlyStats({input}: {input: ExchangedIntervalTransactions}) {
 }
 
 function NonEmptyPageContent() {
-  const {transactions} = useAllDatabaseDataContext();
+  const {transactions} = useTransactionDataContext();
   const {displaySettings} = useDisplaySettingsContext();
   const [excludeCategories, setExcludeCategories] = useState(
     displaySettings.excludeCategoryIdsInStats()
@@ -106,8 +108,12 @@ export function MonthlyStatsPage({dbData}: {dbData: AllDatabaseData}) {
     return <NotConfiguredYet />;
   }
   return (
-    <AllDatabaseDataContextProvider dbData={dbData}>
-      <NonEmptyPageContent />
-    </AllDatabaseDataContextProvider>
+    <CoreDataContextProvider dbData={dbData}>
+      <TransactionDataContextProvider dbData={dbData}>
+        <MarketDataContextProvider dbData={dbData}>
+          <NonEmptyPageContent />
+        </MarketDataContextProvider>
+      </TransactionDataContextProvider>
+    </CoreDataContextProvider>
   );
 }

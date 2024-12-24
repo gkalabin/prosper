@@ -4,8 +4,9 @@ import {Button} from '@/components/ui/button';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {StockAndCurrencyExchange} from '@/lib/ClientSideModel';
 import {assertDefined} from '@/lib/assert';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {useMarketDataContext} from '@/lib/context/MarketDataContext';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Currency} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';
@@ -70,7 +71,8 @@ export const SortableTransactionsList = (props: {
   const [sorting, setSorting] = useState(
     props.initialSorting ?? SortingMode.DATE_ASC
   );
-  const {bankAccounts, stocks, exchange} = useAllDatabaseDataContext();
+  const {bankAccounts, stocks} = useCoreDataContext();
+  const {exchange} = useMarketDataContext();
   const displayCurrency = useDisplayCurrency();
   if (props.transactions.length == 0) {
     return <div>No transactions.</div>;

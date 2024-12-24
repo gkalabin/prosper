@@ -1,6 +1,6 @@
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {cn} from '@/lib/utils';
 import {
   Popover,
@@ -30,7 +30,7 @@ export const LAST_12_MONTHS: Interval = {
 };
 
 function useFirstTransactionMonth() {
-  const {transactions} = useAllDatabaseDataContext();
+  const {transactions} = useTransactionDataContext();
   const [firstTransaction] = [...transactions].sort(
     (a, b) => a.timestampEpoch - b.timestampEpoch
   );

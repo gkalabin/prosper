@@ -21,7 +21,8 @@ import {
 } from '@/components/txform/transfer/defaults';
 import {FormType, TransactionFormSchema} from '@/components/txform/types';
 import {assertDefined} from '@/lib/assert';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Category} from '@/lib/model/Category';
 import {Tag} from '@/lib/model/Tag';
@@ -35,14 +36,8 @@ import {Trip} from '@/lib/model/Trip';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 
 export function useFormDefaults(tx: Transaction | null): TransactionFormSchema {
-  const {
-    transactions,
-    categories,
-    bankAccounts,
-    transactionLinks,
-    tags,
-    trips,
-  } = useAllDatabaseDataContext();
+  const {categories, bankAccounts, tags, trips} = useCoreDataContext();
+  const {transactions, transactionLinks} = useTransactionDataContext();
   // Initial values when creating new transaction from scratch.
   if (!tx) {
     return {

@@ -1,11 +1,11 @@
 import {BankAccountListItem} from '@/app/(authenticated)/overview/bank';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {accountsForBank, Bank} from '@/lib/model/BankAccount';
 import {RectangleStackIcon} from '@heroicons/react/24/outline';
 
 export function Accounts({bank}: {bank: Bank}) {
-  const {bankAccounts} = useAllDatabaseDataContext();
+  const {bankAccounts} = useCoreDataContext();
   // TODO: show archived accounts too, but with a different style.
   const accounts = accountsForBank(bank, bankAccounts).filter(a => !a.archived);
   return (

@@ -12,7 +12,8 @@ import {
 } from '@/components/ui/form';
 import {Select} from '@/components/ui/html-select';
 import {Input} from '@/components/ui/input';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
 import {fullAccountName} from '@/lib/model/BankAccount';
 import {useFormContext, useWatch} from 'react-hook-form';
@@ -54,7 +55,7 @@ function RepaymentAmount() {
 function RepaymentAccountFrom() {
   const {getValues, control} = useFormContext<TransactionFormSchema>();
   const accounts = useDisplayBankAccounts();
-  const {banks} = useAllDatabaseDataContext();
+  const {banks} = useCoreDataContext();
   return (
     <FormField
       control={control}
@@ -86,7 +87,7 @@ function RepaymentAccountFrom() {
 
 function RepaymentCategory() {
   const {control, formState} = useFormContext<TransactionFormSchema>();
-  const {transactionLinks} = useAllDatabaseDataContext();
+  const {transactionLinks} = useTransactionDataContext();
   const mostFrequentlyUsedCategoryIds =
     mostFrequentRepaymentCategories(transactionLinks);
   return (

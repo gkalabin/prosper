@@ -1,6 +1,7 @@
 import {Button} from '@/components/ui/button';
 import {uniqMostFrequent} from '@/lib/collections';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
 import {
   Bank,
@@ -104,8 +105,8 @@ const NonEmptyNewTransactionSuggestions = (props: {
   onItemClick: (t: TransactionPrototype) => void;
   disabled: boolean;
 }) => {
-  const {transactions, banks, transactionPrototypes} =
-    useAllDatabaseDataContext();
+  const {transactions, transactionPrototypes} = useTransactionDataContext();
+  const {banks} = useCoreDataContext();
   const bankAccounts = useDisplayBankAccounts();
   const withdrawalsOrDeposits = fillMostCommonDescriptions({
     transactions,
@@ -291,8 +292,8 @@ function SuggestionItem({
   onClick: (t: TransactionPrototype) => void;
   disabled: boolean;
 }) {
-  const {transactions, transactionPrototypes, bankAccounts, banks, stocks} =
-    useAllDatabaseDataContext();
+  const {transactions, transactionPrototypes} = useTransactionDataContext();
+  const {banks, bankAccounts, stocks} = useCoreDataContext();
   const singleOpProto = singleOperationProto(proto, bankAccount);
   const usedProto = transactionPrototypes.find(p =>
     proto.type != 'transfer'

@@ -1,5 +1,6 @@
 import {FiltersFormSchema} from '@/components/transactions/filters/FiltersFormSchema';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {Transaction} from '@/lib/model/transaction/Transaction';
 import {
   QuerySyntaxError,
@@ -14,13 +15,13 @@ export function useFilteredTransactions(): {
   error?: QuerySyntaxError;
 } {
   const {
-    transactions,
     banks,
     bankAccounts,
     categories: allCategories,
     trips,
     tags,
-  } = useAllDatabaseDataContext();
+  } = useCoreDataContext();
+  const {transactions} = useTransactionDataContext();
   const {watch} = useFormContext<FiltersFormSchema>();
   const query = watch('query');
   const searchParams: SearchParams = {

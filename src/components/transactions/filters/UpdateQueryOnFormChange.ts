@@ -1,5 +1,5 @@
 import {FiltersFormSchema} from '@/components/transactions/filters/FiltersFormSchema';
-import {useAllDatabaseDataContext} from '@/lib/context/AllDatabaseDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {Tag} from '@/lib/model/Tag';
 import {notEmpty} from '@/lib/util/util';
 import {format} from 'date-fns';
@@ -7,7 +7,7 @@ import {useEffect, useMemo} from 'react';
 import {useFormContext, useWatch} from 'react-hook-form';
 
 export function UpdateQueryOnFormChange() {
-  const {tags} = useAllDatabaseDataContext();
+  const {tags} = useCoreDataContext();
   const {setValue} = useFormContext<FiltersFormSchema>();
   const [
     transactionTypes,
