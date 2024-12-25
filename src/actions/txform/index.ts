@@ -12,7 +12,10 @@ import {
 } from '@/components/txform/types';
 import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB} from '@/lib/db';
-import {invalidateTransactionDataCache} from '@/lib/db/cache';
+import {
+  invalidateCoreDataCache,
+  invalidateTransactionDataCache,
+} from '@/lib/db/cache';
 import {
   TransactionPrototype,
   TransactionPrototypeList,
@@ -55,9 +58,14 @@ export async function upsertTransaction(
     trip: null,
     prototypes: [],
   };
+  const invalidateCache = async () => {
+    // Invalidate the core data cache because new tags or trips might be created.
+    await invalidateCoreDataCache(userId);
+    await invalidateTransactionDataCache(userId);
+  };
   if (data.expense) {
     await upsertExpense(dbUpdates, transaction, protos, userId, data);
-    await invalidateTransactionDataCache(userId);
+    invalidateCache();
     return {
       status: 'SUCCESS',
       dbUpdates,
@@ -65,7 +73,7 @@ export async function upsertTransaction(
   }
   if (data.transfer) {
     await upsertTransfer(dbUpdates, transaction, protos, userId, data);
-    await invalidateTransactionDataCache(userId);
+    invalidateCache();
     return {
       status: 'SUCCESS',
       dbUpdates,
@@ -73,7 +81,7 @@ export async function upsertTransaction(
   }
   if (data.income) {
     await upsertIncome(dbUpdates, transaction, protos, userId, data);
-    await invalidateTransactionDataCache(userId);
+    invalidateCache();
     return {
       status: 'SUCCESS',
       dbUpdates,
