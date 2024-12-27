@@ -16,6 +16,7 @@ import {
   ArrowUpIcon,
   CheckCircleIcon,
 } from '@heroicons/react/24/outline';
+import {useFormContext} from 'react-hook-form';
 
 function existingAmountCents({
   accountId,
@@ -56,6 +57,9 @@ export function NewBalanceNote({
   const {stocks, bankAccounts} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
   const {balances} = useOpenBankingBalances();
+  const {
+    formState: {isSubmitting},
+  } = useFormContext();
   const amountCents = Math.round(amount * 100);
   if (!Number.isInteger(amountCents)) {
     return null;
@@ -79,10 +83,13 @@ export function NewBalanceNote({
     unit: localBalance.getUnit(),
   });
   return (
-    <div className="flex flex-row items-center gap-2 text-xs">
-      <div className="whitespace-nowrap font-medium">
-        {text ? text : 'New balance:'}
-      </div>
+    <div
+      className={cn(
+        'flex flex-row items-center gap-2 text-xs',
+        isSubmitting && 'opacity-50'
+      )}
+    >
+      <div className="whitespace-nowrap">{text ? text : 'New balance:'}</div>
       <div className="flex flex-wrap justify-evenly gap-1.5">
         <AccountBalanceText
           localBalance={newLocalBalance}
