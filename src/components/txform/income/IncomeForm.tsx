@@ -86,10 +86,12 @@ function NewBalanceNoteWrapper({
   const amount = useWatch({name: 'income.amount', exact: true});
   const accountId = useWatch({name: 'income.accountId', exact: true});
   return (
-    <NewBalanceNote
-      amount={amount}
-      accountId={accountId}
-      transaction={transaction}
-    />
+    <div className="col-span-6">
+      <NewBalanceNote
+        amount={amount}
+        accountId={accountId}
+        transaction={transaction}
+      />
+    </div>
   );
 }
