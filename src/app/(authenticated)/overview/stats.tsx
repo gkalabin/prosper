@@ -3,6 +3,7 @@ import {useHideBalances} from '@/app/(authenticated)/overview/hide-balances';
 import {accountsSum} from '@/app/(authenticated)/overview/modelHelpers';
 import {useExchangedTransactions} from '@/app/(authenticated)/stats/modelHelpers';
 import {Card, CardContent} from '@/components/ui/card';
+import SpoilerText from '@/components/ui/spoiler-text';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
@@ -31,15 +32,18 @@ export function StatsWidget() {
   if (!total || hideBalances) {
     return <></>;
   }
+  const totalFormatted = total.round().format();
   return (
     <>
       <div className="py-5">
         <div className="text-2xl font-bold">Your total balance</div>
-        <div className="text-3xl font-bold">
-          <div className="inline-block bg-gradient-to-r from-indigo-600 via-purple-500 via-55% to-orange-400 bg-clip-text text-transparent">
-            {total.round().format()}
+        <SpoilerText textLength={totalFormatted.length}>
+          <div className="text-3xl font-bold">
+            <div className="inline-block bg-gradient-to-r from-indigo-600 via-purple-500 via-55% to-orange-400 bg-clip-text text-transparent">
+              {totalFormatted}
+            </div>
           </div>
-        </div>
+        </SpoilerText>
       </div>
       <Last30DaysIncomeExpense />
     </>

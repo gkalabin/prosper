@@ -62,10 +62,24 @@ const config = {
           from: {height: 'var(--radix-accordion-content-height)'},
           to: {height: '0'},
         },
+        'float-dot': {
+          '0%': {
+            opacity: '0',
+            transform: 'translate(0, 0)',
+          },
+          '10%': {
+            opacity: '1',
+          },
+          '100%': {
+            opacity: '0',
+            transform: 'translate(var(--tx), var(--ty))',
+          },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'float-dot': 'float-dot 2s infinite ease-in-out',
       },
     },
   },
