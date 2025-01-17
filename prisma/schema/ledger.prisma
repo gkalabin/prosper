@@ -1,0 +1,116 @@
+enum AccountTypeNEW {
+  // An ASSET account represents resources owned or controlled 
+  // that are expected to yield future economic benefits.
+  ASSET
+
+  // A LIABILITY account represents obligations to transfer 
+  // resources or provide services to other entities in the future.
+  LIABILITY
+
+  // An EQUITY account represents the residual interest in the assets 
+  // of an entity after deducting liabilities (e.g., shareholder or owner equity).
+  EQUITY
+
+  // An INCOME account tracks earnings from various sources (e.g., 
+  // sales revenue, interest income), which increase equity over time.
+  INCOME
+
+  // An EXPENSE account tracks costs incurred in the process of 
+  // generating revenue (e.g., rent, utilities), which decrease equity over time.
+  EXPENSE
+}
+
+enum AccountOwnershipNEW {
+  SELF_OWNED
+  OWNED_BY_OTHER
+  JOINT_HALF
+}
+
+enum TransactionLinkTypeNEW {
+  REFUND
+  DEBT_SETTLING
+}
+
+model AccountNEW {
+  id        Int                 @id @default(autoincrement())
+  name      String
+  type      AccountTypeNEW
+  ownership AccountOwnershipNEW
+
+  currencyCode String?
+  stock        Stock?  @relation(fields: [stockId], references: [id])
+  stockId      Int?
+
+  bank   Bank? @relation(fields: [bankId], references: [id])
+  bankId Int?
+
+  archived     Boolean @default(false)
+  displayOrder Int     @default(0)
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  TransactionLines       TransactionLineNEW[]
+  ExternalAccountMapping ExternalAccountMappingNEW?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TransactionNEW {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  timestamp   DateTime
+  description String
+
+  tripId Int?
+  trip   Trip? @relation(fields: [tripId], references: [id])
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  lines                TransactionLineNEW[]
+  tags                 Tag[]
+  sourceLinks          TransactionLinkNEW[]      @relation("SourceTransactionLinks")
+  linkedLinks          TransactionLinkNEW[]      @relation("LinkedTransactionLinks")
+  TransactionPrototype TransactionPrototypeNEW[]
+}
+
+model TransactionLineNEW {
+  id Int @id @default(autoincrement())
+
+  transactionId Int
+  transaction   TransactionNEW @relation(fields: [transactionId], references: [id])
+
+  accountId Int
+  account   AccountNEW @relation(fields: [accountId], references: [id])
+
+  categoryId Int?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  counterparty String?
+
+  // Amounts in the account's currency
+  debitCents  Int? @default(0)
+  creditCents Int? @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Link two ledger transactions, e.g., a reimbursement or debt settlement
+model TransactionLinkNEW {
+  id                  Int                    @id @default(autoincrement())
+  sourceTransactionId Int
+  sourceTransaction   TransactionNEW         @relation("SourceTransactionLinks", fields: [sourceTransactionId], references: [id])
+  linkedTransactionId Int
+  linkedTransaction   TransactionNEW         @relation("LinkedTransactionLinks", fields: [linkedTransactionId], references: [id])
+  linkType            TransactionLinkTypeNEW
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -18,6 +18,10 @@ model User {
   ExternalAccountMapping ExternalAccountMapping[]
   StarlingToken          StarlingToken[]
   Session                Session[]
+  ExternalAccountMappingNEW ExternalAccountMappingNEW[]
+  TransactionPrototypeNEW   TransactionPrototypeNEW[]
+  TransactionNEW            TransactionNEW[]
+  Account                   AccountNEW[]
 }
 
 model Session {
