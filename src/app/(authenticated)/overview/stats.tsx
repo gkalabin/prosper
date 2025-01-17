@@ -1,5 +1,5 @@
 'use client';
-import {useHideBalances} from '@/app/(authenticated)/overview/hide-balances';
+import {MaybeHiddenText} from '@/app/(authenticated)/overview/hide-balances';
 import {accountsSum} from '@/app/(authenticated)/overview/modelHelpers';
 import {useExchangedTransactions} from '@/app/(authenticated)/stats/modelHelpers';
 import {Card, CardContent} from '@/components/ui/card';
@@ -20,7 +20,6 @@ export function StatsWidget() {
   const {bankAccounts, stocks} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
   const {exchange} = useMarketDataContext();
-  const hideBalances = useHideBalances();
   const total = accountsSum(
     bankAccounts,
     displayCurrency,
@@ -28,18 +27,21 @@ export function StatsWidget() {
     transactions,
     stocks
   );
-  if (!total || hideBalances) {
+  if (!total) {
     return <></>;
   }
+  const totalFormatted = total.round().format();
   return (
     <>
       <div className="py-5">
         <div className="text-2xl font-bold">Your total balance</div>
-        <div className="text-3xl font-bold">
-          <div className="inline-block bg-gradient-to-r from-indigo-600 via-purple-500 via-55% to-orange-400 bg-clip-text text-transparent">
-            {total.round().format()}
+        <MaybeHiddenText textLength={totalFormatted.length}>
+          <div className="text-3xl font-bold">
+            <div className="inline-block bg-gradient-to-r from-indigo-600 via-purple-500 via-55% to-orange-400 bg-clip-text text-transparent">
+              {totalFormatted}
+            </div>
           </div>
-        </div>
+        </MaybeHiddenText>
       </div>
       <Last30DaysIncomeExpense />
     </>

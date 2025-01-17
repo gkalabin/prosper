@@ -11,6 +11,7 @@ import {
   NotConfiguredYet,
 } from '@/components/NotConfiguredYet';
 import {Button} from '@/components/ui/button';
+import SpoilerText from '@/components/ui/spoiler-text';
 import {
   CoreDataContextProvider,
   useCoreDataContext,
