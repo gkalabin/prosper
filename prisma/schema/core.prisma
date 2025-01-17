@@ -30,6 +30,7 @@ model Bank {
   name         String
   displayOrder Int           @default(0)
   accounts     BankAccount[]
+  accountsNEW  AccountNEW[]
 
   user                User                 @relation(fields: [userId], references: [id])
   userId              Int
@@ -51,6 +52,7 @@ model Stock {
   updatedAt    DateTime      @updatedAt
   BankAccount  BankAccount[]
   StockQuote   StockQuote[]
+  BankAccountNEW AccountNEW[]
 }
 
 model Category {
@@ -64,6 +66,7 @@ model Category {
   children         Category[] @relation("ParentCategory")
 
   transactions Transaction[]
+  TransactionLine TransactionLineNEW[]
 
   user      User     @relation(fields: [userId], references: [id])
   userId    Int
@@ -75,6 +78,7 @@ model Tag {
   id           Int           @id @default(autoincrement())
   name         String
   transactions Transaction[]
+  transactionsNEW TransactionNEW[]
   user         User          @relation(fields: [userId], references: [id])
   userId       Int
   createdAt    DateTime      @default(now())
@@ -94,6 +98,7 @@ model Trip {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   Transaction Transaction[]
+  TransactionNEW TransactionNEW[]
 }
 
 model DisplaySettings {
@@ -115,6 +120,16 @@ model ExternalAccountMapping {
   user              User        @relation(fields: [userId], references: [id])
 }
 
+model ExternalAccountMappingNEW {
+  internalAccountId Int        @unique
+  externalAccountId String
+  userId            Int
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  account           AccountNEW @relation(fields: [internalAccountId], references: [id])
+  user              User       @relation(fields: [userId], references: [id])
+}
+
 model TransactionPrototype {
   syntheticId           Int         @id @default(autoincrement())
   // not unique as multiple users can share the same bank and import the same transaction
@@ -126,4 +141,17 @@ model TransactionPrototype {
   userId                Int
   createdAt             DateTime    @default(now())
   updatedAt             DateTime    @updatedAt
+}
+
+model TransactionPrototypeNEW {
+  syntheticId           Int            @id @default(autoincrement())
+  // not unique as multiple users can share the same bank and import the same transaction
+  externalId            String
+  externalDescription   String
+  internalTransaction   TransactionNEW @relation(fields: [internalTransactionId], references: [id])
+  internalTransactionId Int
+  user                  User           @relation(fields: [userId], references: [id])
+  userId                Int
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
 }
