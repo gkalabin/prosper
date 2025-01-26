@@ -9,7 +9,7 @@ export function fetchTransactions(
     method: 'GET',
     headers: {Authorization: `Bearer ${token.access}`},
   };
-  const url = `https://ob.nordigen.com/api/v2/accounts/${mapping.externalAccountId}/transactions/`;
+  const url = `https://bankaccountdata.gocardless.com/api/v2/accounts/${mapping.externalAccountId}/transactions/`;
   return fetch(url, init)
     .then(r => r.json())
     .then(x => decode({response: x, accountId: mapping.internalAccountId}));

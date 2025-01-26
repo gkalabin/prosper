@@ -10,7 +10,7 @@ export async function fetchAccounts(
     return [];
   }
   const response = await fetch(
-    `https://ob.nordigen.com/api/v2/requisitions/${requisition.requisitionId}/`,
+    `https://bankaccountdata.gocardless.com/api/v2/requisitions/${requisition.requisitionId}/`,
     {
       method: 'GET',
       headers: {Authorization: `Bearer ${token.access}`},
@@ -23,10 +23,13 @@ export async function fetchAccounts(
   // TODO: define the interface for the external API response.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const fetches = response.accounts.map((aid: any) =>
-    fetch(`https://ob.nordigen.com/api/v2/accounts/${aid}/details/`, {
-      method: 'GET',
-      headers: {Authorization: `Bearer ${token.access}`},
-    })
+    fetch(
+      `https://bankaccountdata.gocardless.com/api/v2/accounts/${aid}/details/`,
+      {
+        method: 'GET',
+        headers: {Authorization: `Bearer ${token.access}`},
+      }
+    )
       .then(response => response.json())
       .then(a => {
         return {

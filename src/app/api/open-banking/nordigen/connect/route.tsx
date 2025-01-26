@@ -26,18 +26,21 @@ export async function GET(request: NextRequest): Promise<Response> {
   }
   const reference = uuidv4();
   const token = await getOrCreateToken(db, bankId);
-  const response = await fetch(`https://ob.nordigen.com/api/v2/requisitions/`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token.access}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      redirect: redirectURI,
-      institution_id: institutionId,
-      reference,
-    }),
-  });
+  const response = await fetch(
+    `https://bankaccountdata.gocardless.com/api/v2/requisitions/`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token.access}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        redirect: redirectURI,
+        institution_id: institutionId,
+        reference,
+      }),
+    }
+  );
   if (Math.round(response.status / 100) * 100 !== 200) {
     return new Response(
       `Failed to create requisition (status ${

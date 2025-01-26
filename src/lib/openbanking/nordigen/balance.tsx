@@ -6,7 +6,7 @@ export async function fetchBalance(
   mapping: ExternalAccountMapping
 ): Promise<AccountBalance> {
   const response = await fetch(
-    `https://ob.nordigen.com/api/v2/accounts/${mapping.externalAccountId}/balances/`,
+    `https://bankaccountdata.gocardless.com/api/v2/accounts/${mapping.externalAccountId}/balances/`,
     {
       method: 'GET',
       headers: {Authorization: `Bearer ${token.access}`},

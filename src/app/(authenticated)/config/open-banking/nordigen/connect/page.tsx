@@ -44,7 +44,7 @@ export default async function Page({
   }
   const token = await getOrCreateToken(db, bankId);
   const institutionsResponse = await fetch(
-    `https://ob.nordigen.com/api/v2/institutions/?country=${country}`,
+    `https://bankaccountdata.gocardless.com/api/v2/institutions/?country=${country}`,
     {
       method: 'GET',
       headers: {Authorization: `Bearer ${token.access}`},

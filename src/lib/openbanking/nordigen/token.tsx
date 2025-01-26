@@ -3,6 +3,7 @@ import {DB} from '@/lib/db';
 import prisma from '@/lib/prisma';
 import {NordigenRequisition, NordigenToken} from '@prisma/client';
 import {addSeconds, isBefore} from 'date-fns';
+import {z} from 'zod';
 
 export async function getOrCreateToken(db: DB, bankId: number) {
   const now = new Date();
@@ -20,16 +21,35 @@ export async function getOrCreateToken(db: DB, bankId: number) {
   return refreshToken(db, token);
 }
 
+const tokenResponseSchema = z.object({
+  access: z.string(),
+  access_expires: z.number(),
+  refresh: z.string(),
+  refresh_expires: z.number(),
+});
+
 async function createToken(db: DB, bankId: number): Promise<NordigenToken> {
-  const r = await fetch(`https://ob.nordigen.com/api/v2/token/new/`, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      secret_id: process.env.NORDIGEN_SECRET_ID,
-      secret_key: process.env.NORDIGEN_SECRET_KEY,
-    }),
-  });
-  const {access, access_expires, refresh, refresh_expires} = await r.json();
+  const r = await fetch(
+    `https://bankaccountdata.gocardless.com/api/v2/token/new/`,
+    {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        secret_id: process.env.NORDIGEN_SECRET_ID,
+        secret_key: process.env.NORDIGEN_SECRET_KEY,
+      }),
+    }
+  );
+  if (r.status !== 200) {
+    const text = await r.text();
+    throw new Error(`Failed to create Nordigen token (${r.status}): ${text}`);
+  }
+  const rawJson = await r.json();
+  const parsed = tokenResponseSchema.safeParse(rawJson);
+  if (!parsed.success) {
+    throw new Error(`Invalid response from Nordigen: ${parsed.error.message}`);
+  }
+  const {access, access_expires, refresh, refresh_expires} = parsed.data;
   const now = new Date();
   const data = {
     access,
@@ -53,11 +73,14 @@ export async function refreshToken(
   db: DB,
   token: NordigenToken
 ): Promise<NordigenToken> {
-  const fetched = await fetch(`https://ob.nordigen.com/api/v2/token/refresh/`, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({refresh: token.refresh}),
-  });
+  const fetched = await fetch(
+    `https://bankaccountdata.gocardless.com/api/v2/token/refresh/`,
+    {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({refresh: token.refresh}),
+    }
+  );
   if (fetched.status !== 200) {
     const [bank] = await db.bankFindMany({
       where: {
@@ -97,7 +120,7 @@ export async function deleteToken(
     `bankId mismatch: token bank id is ${token.bankId}, requisition bank id is ${requisition.bankId}`
   );
   const response = await fetch(
-    `https://ob.nordigen.com/api/v2/requisitions/${requisition.requisitionId}/`,
+    `https://bankaccountdata.gocardless.com/api/v2/requisitions/${requisition.requisitionId}/`,
     {
       method: 'DELETE',
       headers: {Authorization: `Bearer ${token.access}`},
