@@ -21,6 +21,7 @@ import {useMemo} from 'react';
 import {useFormContext, useWatch} from 'react-hook-form';
 
 export function IncomeForm({transaction}: {transaction: Transaction | null}) {
+  const isCreatingNewTransaction = !transaction;
   return (
     <>
       <Timestamp fieldName="income.timestamp" />
@@ -35,7 +36,10 @@ export function IncomeForm({transaction}: {transaction: Transaction | null}) {
       <Category />
       <ExtraFields />
 
-      <UpdateCategoryOnPayerChange />
+      {/* When editing transactions, do not update category automatically.
+      The user might not notice the automatic updates and then unintentionally
+      change the category when they only mean to change the payer. */}
+      {isCreatingNewTransaction && <UpdateCategoryOnPayerChange />}
       <UpdateOwnShareOnAmountChange />
     </>
   );

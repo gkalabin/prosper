@@ -31,6 +31,7 @@ export function ExpenseForm({
   proto: TransactionPrototype | null;
   transaction: Transaction | null;
 }) {
+  const isCreatingNewTransaction = !transaction;
   return (
     <>
       <Timestamp fieldName="expense.timestamp" />
@@ -48,7 +49,10 @@ export function ExpenseForm({
       <Category />
       <ExtraFields />
 
-      <UpdateCategoryOnVendorChange />
+      {/* When editing transactions, do not update category automatically.
+      The user might not notice the automatic updates and then unintentionally
+      change the category when they only mean to change the vendor. */}
+      {isCreatingNewTransaction && <UpdateCategoryOnVendorChange />}
       <UpdateOwnShareOnAmountChange />
     </>
   );
