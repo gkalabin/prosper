@@ -3,12 +3,12 @@ import {AccountMappingRequest} from '@/app/api/open-banking/mapping/route';
 import {Button} from '@/components/ui/button';
 import {Select} from '@/components/ui/html-select';
 import {banksModelFromDatabaseData} from '@/lib/ClientSideModel';
-import {accountUnit} from '@/lib/model/BankAccount';
+import {accountUnit} from '@/lib/model/Account';
 import {Unit, isCurrency} from '@/lib/model/Unit';
 import {AccountDetails} from '@/lib/openbanking/interface';
 import {
+  AccountNEW as DBAccount,
   Bank as DBBank,
-  BankAccount as DBBankAccount,
   Stock as DBStock,
   ExternalAccountMapping,
 } from '@prisma/client';
@@ -23,13 +23,13 @@ function UnitName({unit}: {unit: Unit}) {
 
 export function OpenBankingMappingConfigPage({
   dbBank,
-  dbBankAccounts,
+  dbAccounts,
   dbMapping: dbMappingInitial,
   dbStocks,
   externalAccounts,
 }: {
   dbBank: DBBank;
-  dbBankAccounts: DBBankAccount[];
+  dbAccounts: DBAccount[];
   dbMapping: ExternalAccountMapping[];
   dbStocks: DBStock[];
   externalAccounts: AccountDetails[];
@@ -39,7 +39,7 @@ export function OpenBankingMappingConfigPage({
   const [statusMessage, setStatusMessage] = useState('');
   const [[bank], allBankAccounts, stocks] = banksModelFromDatabaseData(
     [dbBank],
-    dbBankAccounts,
+    dbAccounts,
     dbStocks
   );
   const accountsForBank = allBankAccounts.filter(x => x.bankId === dbBank.id);

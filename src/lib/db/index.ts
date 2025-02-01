@@ -7,11 +7,12 @@ import {
 import {CoreData, MarketData, TransactionData} from '@/lib/db/fetch';
 import {
   AllDatabaseData,
+  TransactionNEWWithTagIds,
   TransactionWithTagIds,
 } from '@/lib/model/AllDatabaseDataModel';
 import {USD} from '@/lib/model/Currency';
 import prisma from '@/lib/prisma';
-import {Prisma} from '@prisma/client';
+import {Prisma, TransactionLineNEW} from '@prisma/client';
 
 export class DB {
   private readonly userId: number;
@@ -20,8 +21,8 @@ export class DB {
     this.userId = userId;
   }
 
-  async transactionFindAll(): Promise<TransactionWithTagIds[]> {
-    return await prisma.transaction.findMany({
+  async transactionFindAll(): Promise<TransactionNEWWithTagIds[]> {
+    return await prisma.transactionNEW.findMany({
       where: {
         userId: this.userId,
       },
@@ -49,8 +50,17 @@ export class DB {
       },
     });
   }
+  async transactionLineFindAll(): Promise<TransactionLineNEW[]> {
+    return await prisma.transactionLineNEW.findMany({
+      where: {
+        transaction: {
+          userId: this.userId,
+        },
+      },
+    });
+  }
   async transactionLinkFindAll() {
-    const transactionLinks = await prisma.transactionLink.findMany({
+    const transactionLinks = await prisma.transactionLinkNEW.findMany({
       // Where either of the transactions has this user id.
       where: {
         OR: [
@@ -92,8 +102,8 @@ export class DB {
   async bankFindMany(args?: Prisma.BankFindManyArgs) {
     return await prisma.bank.findMany(this.whereUser(args ?? {}));
   }
-  async bankAccountFindMany(args?: Prisma.BankAccountFindManyArgs) {
-    return await prisma.bankAccount.findMany(this.whereUser(args ?? {}));
+  async accountFindMany(args?: Prisma.AccountNEWFindManyArgs) {
+    return await prisma.accountNEW.findMany(this.whereUser(args ?? {}));
   }
   async categoryFindMany(args?: Prisma.CategoryFindManyArgs) {
     return await prisma.category.findMany(this.whereUser(args ?? {}));

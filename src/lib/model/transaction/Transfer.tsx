@@ -1,12 +1,8 @@
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {assert, assertDefined} from '@/lib/assert';
+import {Account, accountBank, accountUnit} from '@/lib/model/Account';
 import {TransactionWithTagIds} from '@/lib/model/AllDatabaseDataModel';
-import {
-  Bank,
-  BankAccount,
-  accountBank,
-  accountUnit,
-} from '@/lib/model/BankAccount';
+import {Bank} from '@/lib/model/Bank';
 import {Stock} from '@/lib/model/Stock';
 import {TransactionType} from '@prisma/client';
 
@@ -46,7 +42,7 @@ export function transferModelFromDB(init: TransactionWithTagIds): Transfer {
 export function outgoingBank(
   t: Transfer,
   banks: Bank[],
-  bankAccounts: BankAccount[]
+  bankAccounts: Account[]
 ): Bank {
   const account = outgoingBankAccount(t, bankAccounts);
   return accountBank(account, banks);
@@ -55,7 +51,7 @@ export function outgoingBank(
 export function incomingBank(
   t: Transfer,
   banks: Bank[],
-  bankAccounts: BankAccount[]
+  bankAccounts: Account[]
 ): Bank {
   const account = incomingBankAccount(t, bankAccounts);
   return accountBank(account, banks);
@@ -63,8 +59,8 @@ export function incomingBank(
 
 export function outgoingBankAccount(
   t: Transfer,
-  bankAccounts: BankAccount[]
-): BankAccount {
+  bankAccounts: Account[]
+): Account {
   const account = bankAccounts.find(a => a.id == t.fromAccountId);
   if (!account) {
     throw new Error(
@@ -76,8 +72,8 @@ export function outgoingBankAccount(
 
 export function incomingBankAccount(
   t: Transfer,
-  bankAccounts: BankAccount[]
-): BankAccount {
+  bankAccounts: Account[]
+): Account {
   const account = bankAccounts.find(a => a.id == t.toAccountId);
   if (!account) {
     throw new Error(
@@ -89,7 +85,7 @@ export function incomingBankAccount(
 
 export function amountReceived(
   t: Transfer,
-  bankAccounts: BankAccount[],
+  bankAccounts: Account[],
   stocks: Stock[]
 ): AmountWithUnit {
   const incomingAccount = incomingBankAccount(t, bankAccounts);
@@ -102,7 +98,7 @@ export function amountReceived(
 
 export function amountSent(
   t: Transfer,
-  bankAccounts: BankAccount[],
+  bankAccounts: Account[],
   stocks: Stock[]
 ): AmountWithUnit {
   const outgoingAccount = outgoingBankAccount(t, bankAccounts);

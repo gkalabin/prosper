@@ -1,6 +1,5 @@
 'use client';
 import {PricePerShare} from '@/app/(authenticated)/account/[accountId]/[name]/price-per-share';
-import {accountBalance} from '@/app/(authenticated)/overview/modelHelpers';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
@@ -10,10 +9,11 @@ import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {useMarketDataContext} from '@/lib/context/MarketDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
-import {accountUnit, BankAccount} from '@/lib/model/BankAccount';
+import {Account, accountUnit} from '@/lib/model/Account';
 import {Currency, mustFindByCode} from '@/lib/model/Currency';
+import {findAccountBalance} from '@/lib/model/queries/AccountBalance';
 import {Stock} from '@/lib/model/Stock';
-import {Transaction} from '@/lib/model/transaction/Transaction';
+import {Transaction} from '@/lib/model/transactionNEW/Transaction';
 import {useOpenBankingBalances} from '@/lib/openbanking/context';
 import {
   ArrowDownIcon,
@@ -29,13 +29,13 @@ function getAccountBalanceInDisplayCurrency({
   exchange,
   displayCurrency,
 }: {
-  account: BankAccount;
+  account: Account;
   transactions: Transaction[];
   stocks: Stock[];
   exchange: StockAndCurrencyExchange;
   displayCurrency: Currency;
 }): AmountWithCurrency | null {
-  const balance = accountBalance(account, transactions, stocks);
+  const balance = findAccountBalance({account, transactions, stocks});
   const unit = balance.getUnit();
   const now = new Date();
   if (unit.kind === 'currency' && unit.code === displayCurrency.code) {
@@ -87,7 +87,7 @@ function getAccountBalanceInStockCurrency({
   stocks,
   exchange,
 }: {
-  account: BankAccount;
+  account: Account;
   transactions: Transaction[];
   stocks: Stock[];
   exchange: StockAndCurrencyExchange;
@@ -96,7 +96,7 @@ function getAccountBalanceInStockCurrency({
   if (unit.kind != 'stock') {
     return null;
   }
-  const balance = accountBalance(account, transactions, stocks);
+  const balance = findAccountBalance({account, transactions, stocks});
   const now = new Date();
   const stockCurrency = mustFindByCode(unit.currencyCode);
   const inStockCurrency = exchange.exchangeStock(
@@ -111,12 +111,12 @@ function getAccountBalanceInStockCurrency({
   return inStockCurrency;
 }
 
-export function BalanceCard({account}: {account: BankAccount}) {
+export function BalanceCard({account}: {account: Account}) {
   const {stocks} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
   const {exchange} = useMarketDataContext();
   const displayCurrency = useDisplayCurrency();
-  const balance = accountBalance(account, transactions, stocks);
+  const balance = findAccountBalance({account, transactions, stocks});
   const inDisplayCurrency = getAccountBalanceInDisplayCurrency({
     account,
     stocks,
@@ -160,7 +160,7 @@ export function BalanceCard({account}: {account: BankAccount}) {
   );
 }
 
-function OpenBankingBalanceDelta({account}: {account: BankAccount}) {
+function OpenBankingBalanceDelta({account}: {account: Account}) {
   const {stocks} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
   const {balances, isLoading} = useOpenBankingBalances();
@@ -176,7 +176,7 @@ function OpenBankingBalanceDelta({account}: {account: BankAccount}) {
     amountCents: obBalance.balanceCents,
     unit,
   });
-  const balance = accountBalance(account, transactions, stocks);
+  const balance = findAccountBalance({account, transactions, stocks});
   const delta = balance.subtract(remoteBalance);
   if (delta.isZero()) {
     return (

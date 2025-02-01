@@ -1,7 +1,7 @@
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {
+  AccountNEW,
   Bank,
-  BankAccount,
   Category,
   DisplaySettings,
   ExchangeRate,
@@ -9,7 +9,9 @@ import {
   StockQuote,
   Tag,
   Transaction,
-  TransactionLink,
+  TransactionLineNEW,
+  TransactionLinkNEW,
+  TransactionNEW,
   TransactionPrototype,
   Trip,
 } from '@prisma/client';
@@ -20,13 +22,20 @@ export interface TransactionWithTagIds extends Transaction {
   }[];
 }
 
+export interface TransactionNEWWithTagIds extends TransactionNEW {
+  tags: {
+    id: number;
+  }[];
+}
+
 export type AllDatabaseData = {
-  dbTransactions: TransactionWithTagIds[];
-  dbTransactionLinks: TransactionLink[];
+  dbTransactions: TransactionNEWWithTagIds[];
+  dbTransactionLines: TransactionLineNEW[];
+  dbTransactionLinks: TransactionLinkNEW[];
   dbTransactionPrototypes: TransactionPrototype[];
+  dbAccounts: AccountNEW[];
   dbCategories: Category[];
   dbBanks: Bank[];
-  dbBankAccounts: BankAccount[];
   dbTrips: Trip[];
   dbTags: Tag[];
   dbExchangeRates: ExchangeRate[];
@@ -36,6 +45,6 @@ export type AllDatabaseData = {
 };
 
 export const useDisplayBankAccounts = () => {
-  const {bankAccounts} = useCoreDataContext();
-  return bankAccounts.filter(x => !x.archived);
+  const {accounts} = useCoreDataContext();
+  return accounts.filter(x => x.bankId).filter(x => !x.archived);
 };

@@ -5,13 +5,9 @@ import {
   MarketData as MarketDataDB,
   TransactionData as TransactionDataDB,
 } from '@/lib/db/fetch';
+import {Account, accountModelFromDB} from '@/lib/model/Account';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
-import {
-  Bank,
-  BankAccount,
-  bankAccountModelFromDB,
-  bankModelFromDB,
-} from '@/lib/model/BankAccount';
+import {Bank, bankModelFromDB} from '@/lib/model/Bank';
 import {
   Category,
   categoryModelFromDB,
@@ -21,17 +17,14 @@ import {Currency, NANOS_MULTIPLIER, mustFindByCode} from '@/lib/model/Currency';
 import {Stock, stockModelFromDB} from '@/lib/model/Stock';
 import {Tag, tagModelFromDB} from '@/lib/model/Tag';
 import {
-  Transaction,
-  transactionModelFromDB as singleTransactionModelFromDB,
-} from '@/lib/model/transaction/Transaction';
-import {
   TransactionLink,
   transactionLinkModelFromDB,
 } from '@/lib/model/TransactionLink';
+import {Transaction, fromDB} from '@/lib/model/transactionNEW/Transaction';
 import {Trip, tripModelFromDB} from '@/lib/model/Trip';
 import {
+  AccountNEW as DBAccount,
   Bank as DBBank,
-  BankAccount as DBBankAccount,
   ExchangeRate as DBExchangeRate,
   Stock as DBStock,
   StockQuote as DBStockQuote,
@@ -235,7 +228,7 @@ export class StockQuotes {
 export type CoreDataModel = {
   categories: Category[];
   banks: Bank[];
-  bankAccounts: BankAccount[];
+  accounts: Account[];
   stocks: Stock[];
   trips: Trip[];
   tags: Tag[];
@@ -255,7 +248,7 @@ export type AllClientDataModel = {
   transactions: Transaction[];
   categories: Category[];
   banks: Bank[];
-  bankAccounts: BankAccount[];
+  accounts: Account[];
   stocks: Stock[];
   trips: Trip[];
   tags: Tag[];
@@ -273,50 +266,50 @@ function mustBank(bank: Bank | undefined, message: string): Bank {
 
 export const banksModelFromDatabaseData = (
   dbBanks: DBBank[],
-  dbBankAccounts: DBBankAccount[],
+  dbAccounts: DBAccount[],
   dbStocks: DBStock[]
-): [Bank[], BankAccount[], Stock[]] => {
+): [Bank[], Account[], Stock[]] => {
   const stocks = dbStocks.map(stockModelFromDB);
   const banks = dbBanks
     .map(bankModelFromDB)
     .sort((a, b) => a.displayOrder - b.displayOrder);
-  const bankAccounts = dbBankAccounts.map(bankAccountModelFromDB);
+  const accounts = dbAccounts.map(accountModelFromDB);
   // Sort bank accounts by display order, but taking precedence of the bank display order.
   const bankById = new Map<number, Bank>(banks.map(b => [b.id, b]));
-  const bankByBankAccountId = new Map<number, Bank>(
-    bankAccounts.map(a => {
-      const bank = mustBank(
-        bankById.get(a.bankId),
-        `Bank ${a.bankId} for account ${a.id}`
-      );
-      return [a.id, bank];
-    })
-  );
-  bankAccounts.sort((a, b) => {
-    const bankA = mustBank(bankByBankAccountId.get(a.id), `Bank ${a.id}`);
-    const bankB = mustBank(bankByBankAccountId.get(b.id), `Bank ${b.id}`);
-    if (bankA.displayOrder != bankB.displayOrder) {
-      return bankA.displayOrder - bankB.displayOrder;
+  const bankByAccountId = new Map<number, Bank>();
+  accounts.forEach(a => {
+    if (a.bankId) {
+      const bank = mustBank(bankById.get(a.bankId), `${a.id}`);
+      bankByAccountId.set(a.id, bank);
+    }
+  });
+  accounts.sort((a, b) => {
+    const bankA = bankByAccountId.get(a.id);
+    const bankB = bankByAccountId.get(b.id);
+    const bankADisplayOrder = bankA?.displayOrder ?? -1;
+    const bankBDisplayOrder = bankB?.displayOrder ?? -1;
+    if (bankADisplayOrder != bankBDisplayOrder) {
+      return bankADisplayOrder - bankBDisplayOrder;
     }
     return a.displayOrder - b.displayOrder;
   });
-  return [banks, bankAccounts, stocks];
+  return [banks, accounts, stocks];
 };
 
 export function coreModelFromDB(dbData: CoreDataDB): CoreDataModel {
   const categories = sortCategories(
     dbData.dbCategories.map(categoryModelFromDB)
   );
-  const [banks, bankAccounts, stocks] = banksModelFromDatabaseData(
+  const [banks, accounts, stocks] = banksModelFromDatabaseData(
     dbData.dbBanks,
-    dbData.dbBankAccounts,
+    dbData.dbAccounts,
     dbData.dbStocks
   );
   const trips = dbData.dbTrips.map(tripModelFromDB);
   const tags = dbData.dbTags.map(tagModelFromDB);
   return {
     banks,
-    bankAccounts,
+    accounts,
     stocks,
     categories,
     trips,
@@ -325,10 +318,17 @@ export function coreModelFromDB(dbData: CoreDataDB): CoreDataModel {
 }
 
 export function transactionModelFromDB(
-  dbData: TransactionDataDB
+  dbData: TransactionDataDB,
+  coreData: CoreDataModel
 ): TransactionDataModel {
   const transactions: Transaction[] = dbData.dbTransactions
-    .map(singleTransactionModelFromDB)
+    .map(t =>
+      fromDB({
+        dbTransaction: t,
+        dbLines: dbData.dbTransactionLines,
+        accounts: coreData.accounts,
+      })
+    )
     .sort(compareTransactions);
   const transactionLinks = transactionLinkModelFromDB(
     dbData.dbTransactionLinks,
@@ -358,9 +358,9 @@ export const modelFromDatabaseData = (
   const stockQuotes = new StockQuotes(dbData.dbStockQuotes);
   const exchange = new StockAndCurrencyExchange(exchangeRates, stockQuotes);
 
-  const [banks, bankAccounts, stocks] = banksModelFromDatabaseData(
+  const [banks, accounts, stocks] = banksModelFromDatabaseData(
     dbData.dbBanks,
-    dbData.dbBankAccounts,
+    dbData.dbAccounts,
     dbData.dbStocks
   );
 
@@ -368,7 +368,13 @@ export const modelFromDatabaseData = (
   const tags = dbData.dbTags.map(tagModelFromDB);
 
   const transactions: Transaction[] = dbData.dbTransactions
-    .map(singleTransactionModelFromDB)
+    .map(t =>
+      fromDB({
+        dbTransaction: t,
+        dbLines: dbData.dbTransactionLines,
+        accounts: accounts,
+      })
+    )
     .sort(compareTransactions);
 
   const transactionLinks = transactionLinkModelFromDB(
@@ -377,7 +383,7 @@ export const modelFromDatabaseData = (
   );
   return {
     banks,
-    bankAccounts,
+    accounts,
     stocks,
     categories,
     trips,
@@ -393,8 +399,8 @@ function compareTransactions(a: Transaction, b: Transaction) {
   if (b.timestampEpoch != a.timestampEpoch) {
     return b.timestampEpoch - a.timestampEpoch;
   }
-  if (b.id != a.id) {
-    return b.id - a.id;
+  if (b.transactionId != a.transactionId) {
+    return b.transactionId - a.transactionId;
   }
   return 0;
 }

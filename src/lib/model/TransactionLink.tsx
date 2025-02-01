@@ -1,14 +1,8 @@
-import {Income} from '@/lib/model/transaction/Income';
-import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
-import {ThirdPartyExpense} from '@/lib/model/transaction/ThirdPartyExpense';
 import {
   Expense,
-  isExpense,
-  isIncome,
-  isPersonalExpense,
-  isThirdPartyExpense,
+  Income,
   Transaction,
-} from '@/lib/model/transaction/Transaction';
+} from '@/lib/model/transactionNEW/Transaction';
 import {TransactionLink as DBTransactionLink} from '@prisma/client';
 
 export enum TransactionLinkType {
@@ -19,8 +13,8 @@ export enum TransactionLinkType {
 export type DebtSettling = {
   kind: 'DEBT_SETTLING';
   id: number;
-  expense: ThirdPartyExpense;
-  repayment: PersonalExpense;
+  expense: Expense;
+  repayment: Expense;
 };
 
 export type Refund = {
@@ -42,36 +36,38 @@ export function transactionLinkModelFromDB(
     const {source, linked} = findSourceAndLinked(l, allTransactions);
     switch (l.linkType) {
       case 'REFUND': {
-        let refund = refunds.get(source.id);
+        let refund = refunds.get(source.transactionId);
         if (!refund) {
-          if (!isExpense(source)) {
+          if (source.kind !== 'EXPENSE') {
             throw new Error(
-              `Refund ${l.id} source ${source.id} is not an expense`
+              `Refund ${l.id} source ${source.transactionId} is not an expense`
             );
           }
           refund = {kind: 'REFUND', id: l.id, expense: source, refunds: []};
-          refunds.set(source.id, refund);
+          refunds.set(source.transactionId, refund);
         }
-        if (!isIncome(linked)) {
+        if (linked.kind !== 'INCOME') {
           throw new Error(
-            `Refund ${l.id} linked transaction ${linked.id} is not an income`
+            `Refund ${l.id} linked transaction ${linked.transactionId} is not an income`
           );
         }
         refund.refunds.push(linked);
         break;
       }
       case 'DEBT_SETTLING': {
-        if (!isThirdPartyExpense(source)) {
+        // TODO: check if the expense is a third party expense.
+        if (source.kind !== 'EXPENSE') {
           throw new Error(
-            `Debt settling ${l.id} source ${source.id} is not a third party expense`
+            `Debt settling ${l.id} source ${source.transactionId} is not a third party expense`
           );
         }
-        if (!isPersonalExpense(linked)) {
+        // TODO: check if the repayment is a personal expense.
+        if (linked.kind !== 'EXPENSE') {
           throw new Error(
-            `Debt settling ${l.id} linked transaction ${linked.id} is not a personal expense`
+            `Debt settling ${l.id} linked transaction ${linked.transactionId} is not a personal expense`
           );
         }
-        debts.set(source.id, {
+        debts.set(source.transactionId, {
           kind: 'DEBT_SETTLING',
           id: l.id,
           expense: source,
@@ -88,11 +84,15 @@ function findSourceAndLinked(
   dbLink: DBTransactionLink,
   allTransactions: Transaction[]
 ): {source: Transaction; linked: Transaction} {
-  const source = allTransactions.find(t => t.id === dbLink.sourceTransactionId);
+  const source = allTransactions.find(
+    t => t.transactionId === dbLink.sourceTransactionId
+  );
   if (!source) {
     throw new Error(`Source transaction not found for link ${dbLink.id}`);
   }
-  const linked = allTransactions.find(t => t.id === dbLink.linkedTransactionId);
+  const linked = allTransactions.find(
+    t => t.transactionId === dbLink.linkedTransactionId
+  );
   if (!linked) {
     throw new Error(`Linked transaction not found for link ${dbLink.id}`);
   }

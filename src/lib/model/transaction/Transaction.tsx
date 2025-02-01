@@ -1,10 +1,6 @@
+import {Account, accountBank, accountUnit} from '@/lib/model/Account';
 import {TransactionWithTagIds} from '@/lib/model/AllDatabaseDataModel';
-import {
-  Bank,
-  BankAccount,
-  accountBank,
-  accountUnit,
-} from '@/lib/model/BankAccount';
+import {Bank} from '@/lib/model/Bank';
 import {Category} from '@/lib/model/Category';
 import {mustFindByCode} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';
@@ -60,8 +56,8 @@ export function transactionModelFromDB(
 
 export function transactionBankAccount(
   t: PersonalExpense | Income,
-  bankAccounts: BankAccount[]
-): BankAccount {
+  bankAccounts: Account[]
+): Account {
   const account = bankAccounts.find(a => a.id == t.accountId);
   if (!account) {
     throw new Error(
@@ -74,7 +70,7 @@ export function transactionBankAccount(
 export function transactionBank(
   t: PersonalExpense | Income,
   banks: Bank[],
-  bankAccounts: BankAccount[]
+  bankAccounts: Account[]
 ): Bank {
   const account = transactionBankAccount(t, bankAccounts);
   return accountBank(account, banks);
@@ -82,7 +78,7 @@ export function transactionBank(
 
 export function transactionUnit(
   t: PersonalExpense | ThirdPartyExpense | Income,
-  bankAccounts: BankAccount[],
+  bankAccounts: Account[],
   stocks: Stock[]
 ): Unit {
   switch (t.kind) {
@@ -134,7 +130,7 @@ export function isIncome(t: Transaction): t is Income {
 
 export function formatAmount(
   t: PersonalExpense,
-  bankAccounts: BankAccount[],
+  bankAccounts: Account[],
   stocks: Stock[]
 ): string {
   const account = transactionBankAccount(t, bankAccounts);

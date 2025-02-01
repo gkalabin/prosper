@@ -1,6 +1,5 @@
 'use client';
 import {Accounts} from '@/app/(authenticated)/bank/[bankId]/[name]/accounts';
-import {accountsSum} from '@/app/(authenticated)/overview/modelHelpers';
 import {
   isFullyConfigured,
   NotConfiguredYet,
@@ -20,15 +19,16 @@ import {
   TransactionDataContextProvider,
   useTransactionDataContext,
 } from '@/lib/context/TransactionDataContext';
+import {accountsForBank} from '@/lib/model/Account';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
-import {accountsForBank} from '@/lib/model/BankAccount';
+import {findAccountsBalanceTotal} from '@/lib/model/queries/AccountsBalanceTotal';
 import {CurrencyDollarIcon} from '@heroicons/react/24/outline';
 import {Bank as DBBank} from '@prisma/client';
 import {notFound} from 'next/navigation';
 
 function NonEmptyPageContent({bankId}: {bankId: number}) {
   const displayCurrency = useDisplayCurrency();
-  const {banks, stocks, bankAccounts} = useCoreDataContext();
+  const {banks, stocks, accounts} = useCoreDataContext();
   const {exchange} = useMarketDataContext();
   const {transactions} = useTransactionDataContext();
   const bank = banks.find(bank => bank.id === bankId);
@@ -36,14 +36,14 @@ function NonEmptyPageContent({bankId}: {bankId: number}) {
     return notFound();
   }
 
-  const accounts = accountsForBank(bank, bankAccounts);
-  const bankTotal = accountsSum(
-    accounts,
-    displayCurrency,
+  const bankAccounts = accountsForBank(bank, accounts);
+  const bankTotal = findAccountsBalanceTotal({
+    accounts: bankAccounts,
+    targetCurrency: displayCurrency,
     exchange,
     transactions,
-    stocks
-  );
+    stocks,
+  });
   // TODO: move padding to the root layout to have consistent paddings across the app.
   return (
     <div className="space-y-6 p-6">

@@ -1,6 +1,5 @@
 'use client';
 import {BalanceCard} from '@/app/(authenticated)/account/[accountId]/[name]/balance';
-import {transactionBelongsToAccount} from '@/app/(authenticated)/overview/modelHelpers';
 import {
   isFullyConfigured,
   NotConfiguredYet,
@@ -18,27 +17,21 @@ import {
   useTransactionDataContext,
 } from '@/lib/context/TransactionDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
-import {Income} from '@/lib/model/transaction/Income';
-import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
-import {Transfer} from '@/lib/model/transaction/Transfer';
+import {findAccountTransactions} from '@/lib/model/queries/AccountTransactions';
 import {BankAccount as DBBankAccount} from '@prisma/client';
 import {notFound} from 'next/navigation';
 import {useState} from 'react';
 
 function NonEmptyPageContent({accountId}: {accountId: number}) {
   const {transactions} = useTransactionDataContext();
-  const {bankAccounts} = useCoreDataContext();
+  const {accounts} = useCoreDataContext();
   const [newTransactionDialogOpen, setNewTransactionDialogOpen] =
     useState(false);
-  const account = bankAccounts.find(account => account.id === accountId);
+  const account = accounts.find(account => account.id === accountId);
   if (!account) {
     return notFound();
   }
-
-  const accountTransactions = transactions.filter(
-    (t): t is PersonalExpense | Transfer | Income =>
-      transactionBelongsToAccount(t, account)
-  );
+  const accountTransactions = findAccountTransactions({account, transactions});
   // TODO: move padding to the root layout to have consistent paddings across the app.
   return (
     <div className="space-y-6 p-6">
