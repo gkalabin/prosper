@@ -3,15 +3,6 @@ import {assert, assertDefined, assertNotDefined} from '@/lib/assert';
 import prisma from '@/lib/prisma';
 import {AccountOwnershipNEW, AccountTypeNEW, Prisma} from '@prisma/client';
 
-/*
-Manual db patches
-
- update Transaction set otherPartyName='Greg' where ownShareAmountCents != outgoingAmountCents and otherPartyName ='' and userId=2;
- update Transaction set ownShareAmountCents=NULL where id=12914;
- update Transaction set payer='Greg' where id=9544;
-
-*/
-
 export async function GET(): Promise<Response> {
   await prisma.$transaction(
     async tx => {
@@ -26,7 +17,6 @@ export async function GET(): Promise<Response> {
 
 async function migrate(tx: Prisma.TransactionClient) {
   const oldToNew = await migrateAccounts(tx);
-  console.log('oldToNew', oldToNew);
   const users = await tx.user.findMany();
   const expenseByUser: Record<number, any> = {};
   const incomeByUser: Record<number, any> = {};
@@ -35,7 +25,7 @@ async function migrate(tx: Prisma.TransactionClient) {
       data: {
         name: '[System] Expense',
         type: AccountTypeNEW.EXPENSE,
-        ownership: AccountOwnershipNEW.SELF_OWNED,
+        ownership: AccountOwnershipNEW.SYSTEM,
         userId: u.id,
       },
     });
@@ -43,7 +33,7 @@ async function migrate(tx: Prisma.TransactionClient) {
       data: {
         name: '[System] Income',
         type: AccountTypeNEW.INCOME,
-        ownership: AccountOwnershipNEW.SELF_OWNED,
+        ownership: AccountOwnershipNEW.SYSTEM,
         userId: u.id,
       },
     });
@@ -61,7 +51,9 @@ async function migrate(tx: Prisma.TransactionClient) {
 
   const otherUserAccounts: Record<string, any> = {};
   for (const t of txs) {
-    console.log(`processing ${t.id} / ${txs.length}`);
+    if (t.id % 1000 == 0) {
+      console.log(`processing ${t.id} / ${txs.length}`);
+    }
     if (t.transactionType == 'PERSONAL_EXPENSE') {
       assert(!t.incomingAccountId, t.id + ' on assert(!t.incomingAccountId)');
       assert(
@@ -408,7 +400,7 @@ async function migrateAccounts(tx: Prisma.TransactionClient) {
       data: {
         name: '[System] Equity',
         type: AccountTypeNEW.EQUITY,
-        ownership: AccountOwnershipNEW.SELF_OWNED,
+        ownership: AccountOwnershipNEW.SYSTEM,
         userId: u.id,
       },
     });
@@ -432,7 +424,8 @@ async function migrateAccounts(tx: Prisma.TransactionClient) {
       },
     });
     oldToNew[oldAccount.id] = newAccount.id;
-    if (oldAccount.initialBalanceCents > 0) {
+    if (oldAccount.initialBalanceCents != 0) {
+      const balance = oldAccount.initialBalanceCents;
       await tx.transactionNEW.create({
         data: {
           description: 'Initial balance',
@@ -441,11 +434,13 @@ async function migrateAccounts(tx: Prisma.TransactionClient) {
           lines: {
             create: [
               {
-                debitCents: oldAccount.initialBalanceCents,
+                debitCents: balance > 0 ? balance : 0,
+                creditCents: balance < 0 ? -balance : 0,
                 accountId: newAccount.id,
               },
               {
-                creditCents: oldAccount.initialBalanceCents,
+                debitCents: balance < 0 ? -balance : 0,
+                creditCents: balance > 0 ? balance : 0,
                 accountId: equityByUser[oldAccount.userId].id,
               },
             ],

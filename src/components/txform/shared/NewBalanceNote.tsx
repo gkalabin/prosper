@@ -1,7 +1,7 @@
-import {accountBalance} from '@/app/(authenticated)/overview/modelHelpers';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
+import {findAccountBalance} from '@/lib/model/queries/AccountBalance';
 import {
   isIncome,
   isPersonalExpense,
@@ -54,7 +54,7 @@ export function NewBalanceNote({
   accountId: number;
   transaction: Transaction | null;
 }) {
-  const {stocks, bankAccounts} = useCoreDataContext();
+  const {stocks, accounts} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
   const {balances} = useOpenBankingBalances();
   const {
@@ -64,12 +64,12 @@ export function NewBalanceNote({
   if (!Number.isInteger(amountCents)) {
     return null;
   }
-  const account = bankAccounts.find(a => a.id == accountId);
+  const account = accounts.find(a => a.id == accountId);
   if (!account) {
     return null;
   }
   const obBalance = balances?.find(b => b.internalAccountId === accountId);
-  const localBalance = accountBalance(account, transactions, stocks);
+  const localBalance = findAccountBalance({account, transactions, stocks});
   const remoteBalance = obBalance
     ? new AmountWithUnit({
         amountCents: obBalance.balanceCents,

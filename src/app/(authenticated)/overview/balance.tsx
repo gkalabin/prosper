@@ -1,11 +1,11 @@
 'use client';
 import {MaybeHiddenDiv} from '@/app/(authenticated)/overview/hide-balances';
-import {accountBalance} from '@/app/(authenticated)/overview/modelHelpers';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
-import {BankAccount, accountUnit} from '@/lib/model/BankAccount';
+import {Account, accountUnit} from '@/lib/model/Account';
+import {findAccountBalance} from '@/lib/model/queries/AccountBalance';
 import {useOpenBankingBalances} from '@/lib/openbanking/context';
 import {cn} from '@/lib/utils';
 import {
@@ -25,7 +25,7 @@ export function BankBalance({
   return <MaybeHiddenDiv>{amount.round().format()}</MaybeHiddenDiv>;
 }
 
-export function AccountBalance({account}: {account: BankAccount}) {
+export function AccountBalance({account}: {account: Account}) {
   const {balances} = useOpenBankingBalances();
   const {stocks} = useCoreDataContext();
   const obBalance = balances?.find(b => b.internalAccountId === account.id);
@@ -40,10 +40,10 @@ export function AccountBalance({account}: {account: BankAccount}) {
   return <RemoteBalance account={account} remoteBalance={remoteBalance} />;
 }
 
-function LocalBalance({account}: {account: BankAccount}) {
+function LocalBalance({account}: {account: Account}) {
   const {stocks} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
-  const appBalance = accountBalance(account, transactions, stocks);
+  const appBalance = findAccountBalance({account, transactions, stocks});
   return <MaybeHiddenDiv>{appBalance.format()}</MaybeHiddenDiv>;
 }
 
@@ -51,12 +51,12 @@ function RemoteBalance({
   account,
   remoteBalance,
 }: {
-  account: BankAccount;
+  account: Account;
   remoteBalance: AmountWithUnit;
 }) {
   const {stocks} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
-  const localBalance = accountBalance(account, transactions, stocks);
+  const localBalance = findAccountBalance({account, transactions, stocks});
   const delta = localBalance.subtract(remoteBalance);
   return (
     <div className="flex flex-col items-end">

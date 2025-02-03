@@ -1,6 +1,5 @@
 'use client';
 import {MaybeHiddenDiv} from '@/app/(authenticated)/overview/hide-balances';
-import {accountsSum} from '@/app/(authenticated)/overview/modelHelpers';
 import {useExchangedTransactions} from '@/app/(authenticated)/stats/modelHelpers';
 import {Card, CardContent} from '@/components/ui/card';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
@@ -8,6 +7,8 @@ import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {useMarketDataContext} from '@/lib/context/MarketDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
+import {ownedAssetAccounts} from '@/lib/model/Account';
+import {findAccountsBalanceTotal} from '@/lib/model/queries/AccountsBalanceTotal';
 import {
   isExpense,
   isIncome,
@@ -17,16 +18,17 @@ import {differenceInDays} from 'date-fns';
 
 export function StatsWidget() {
   const displayCurrency = useDisplayCurrency();
-  const {bankAccounts, stocks} = useCoreDataContext();
+  const {accounts, stocks} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
   const {exchange} = useMarketDataContext();
-  const total = accountsSum(
-    bankAccounts,
-    displayCurrency,
+  const assets = ownedAssetAccounts(accounts);
+  const total = findAccountsBalanceTotal({
+    accounts: assets,
+    targetCurrency: displayCurrency,
     exchange,
     transactions,
     stocks
-  );
+  });
   if (!total) {
     return <></>;
   }

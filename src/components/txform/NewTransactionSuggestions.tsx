@@ -2,13 +2,9 @@ import {Button} from '@/components/ui/button';
 import {uniqMostFrequent} from '@/lib/collections';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
+import {Account, accountUnit, fullAccountName} from '@/lib/model/Account';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
-import {
-  Bank,
-  BankAccount,
-  accountUnit,
-  fullAccountName,
-} from '@/lib/model/BankAccount';
+import {Bank} from '@/lib/model/Bank';
 import {formatUnit} from '@/lib/model/Unit';
 import {
   Transaction,
@@ -183,7 +179,7 @@ const NonEmptyNewTransactionSuggestions = (props: {
 
 function SuggestionsList(props: {
   items: TransactionPrototype[];
-  bankAccount: BankAccount;
+  bankAccount: Account;
   activePrototype: TransactionPrototype | null;
   onItemClick: (t: TransactionPrototype) => void;
   disabled: boolean;
@@ -255,7 +251,7 @@ function SuggestionsList(props: {
 
 function summary(
   t: Transaction,
-  bankAccounts: BankAccount[],
+  bankAccounts: Account[],
   banks: Bank[]
 ): string {
   switch (t.kind) {
@@ -288,12 +284,12 @@ function SuggestionItem({
 }: {
   proto: TransactionPrototype;
   isActive: boolean;
-  bankAccount: BankAccount;
+  bankAccount: Account;
   onClick: (t: TransactionPrototype) => void;
   disabled: boolean;
 }) {
   const {transactions, transactionPrototypes} = useTransactionDataContext();
-  const {banks, bankAccounts, stocks} = useCoreDataContext();
+  const {banks, accounts, stocks} = useCoreDataContext();
   const singleOpProto = singleOperationProto(proto, bankAccount);
   const usedProto = transactionPrototypes.find(p =>
     proto.type != 'transfer'
@@ -316,7 +312,7 @@ function SuggestionItem({
       : singleOpProto.type == 'deposit'
         ? proto.withdrawal.internalAccountId
         : proto.deposit.internalAccountId;
-  const otherAccount = bankAccounts.find(a => a.id == otherAccountId);
+  const otherAccount = accounts.find(a => a.id == otherAccountId);
   const unit = accountUnit(bankAccount, stocks);
   return (
     <div className={cn({'bg-gray-100': isActive})}>
@@ -352,7 +348,7 @@ function SuggestionItem({
       </div>
       {usedTransaction && (
         <div className="ml-2 text-xs text-gray-600">
-          Recorded as <i>{summary(usedTransaction, bankAccounts, banks)}</i>
+          Recorded as <i>{summary(usedTransaction, accounts, banks)}</i>
         </div>
       )}
     </div>
@@ -361,15 +357,15 @@ function SuggestionItem({
 
 function singleOperationProto(
   proto: TransactionPrototype,
-  bankAccount: BankAccount
+  account: Account
 ): WithdrawalOrDepositPrototype {
   if (proto.type != 'transfer') {
     return proto;
   }
-  if (proto.deposit.internalAccountId == bankAccount.id) {
+  if (proto.deposit.internalAccountId == account.id) {
     return proto.deposit;
   }
-  if (proto.withdrawal.internalAccountId == bankAccount.id) {
+  if (proto.withdrawal.internalAccountId == account.id) {
     return proto.withdrawal;
   }
   throw new Error('Transfer not associated with the bank account');

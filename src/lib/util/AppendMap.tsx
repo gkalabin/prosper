@@ -8,6 +8,10 @@ export function currencyAppendMap<T>(c: Currency) {
   );
 }
 
+export function numberAppendMap<T>() {
+  return new AppendMap<T, number>((x, y) => x + y, 0);
+}
+
 export class AppendMap<K, V> extends Map<K, V> {
   private readonly _combineFn: (x: V, y: V) => V;
   private readonly _zero: V;

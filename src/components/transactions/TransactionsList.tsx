@@ -3,7 +3,7 @@ import {Button} from '@/components/ui/button';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
-import {fullAccountName} from '@/lib/model/BankAccount';
+import {fullAccountName} from '@/lib/model/Account';
 import {
   CategoryTree,
   getNameWithAncestors,
@@ -36,10 +36,10 @@ import {format} from 'date-fns';
 import {useState} from 'react';
 
 const TransactionTitle = ({t}: {t: Transaction}) => {
-  const {banks, bankAccounts} = useCoreDataContext();
+  const {banks, accounts} = useCoreDataContext();
   if (isTransfer(t)) {
-    const from = outgoingBankAccount(t, bankAccounts);
-    const to = incomingBankAccount(t, bankAccounts);
+    const from = outgoingBankAccount(t, accounts);
+    const to = incomingBankAccount(t, accounts);
     return (
       <>
         {fullAccountName(from, banks)} → {fullAccountName(to, banks)}

@@ -1,23 +1,25 @@
 import {updateRatesFallback} from '@/lib/asset-rates/backfill';
 import {DB} from '@/lib/db';
-import {TransactionWithTagIds} from '@/lib/model/AllDatabaseDataModel';
+import {TransactionNEWWithTagIds} from '@/lib/model/AllDatabaseDataModel';
 import {
+  AccountNEW,
   Bank,
-  BankAccount,
   Category,
   DisplaySettings,
   ExchangeRate,
   Stock,
   StockQuote,
   Tag,
-  TransactionLink,
+  TransactionLineNEW,
+  TransactionLinkNEW,
   TransactionPrototype,
   Trip,
 } from '@prisma/client';
 
 export type TransactionData = {
-  dbTransactions: TransactionWithTagIds[];
-  dbTransactionLinks: TransactionLink[];
+  dbTransactions: TransactionNEWWithTagIds[];
+  dbTransactionLines: TransactionLineNEW[];
+  dbTransactionLinks: TransactionLinkNEW[];
   dbTransactionPrototypes: TransactionPrototype[];
 };
 
@@ -38,6 +40,11 @@ export async function fetchTransactionData({
         console.timeEnd(timeLabel('dbTransactions'));
       },
       async () => {
+        console.time(timeLabel('dbTransactionLines'));
+        data.dbTransactionLines = await db.transactionLineFindAll();
+        console.timeEnd(timeLabel('dbTransactionLines'));
+      },
+      async () => {
         console.time(timeLabel('dbTransactionLinks'));
         data.dbTransactionLinks = await db.transactionLinkFindAll();
         console.timeEnd(timeLabel('dbTransactionLinks'));
@@ -55,7 +62,7 @@ export async function fetchTransactionData({
 export type CoreData = {
   dbCategories: Category[];
   dbBanks: Bank[];
-  dbBankAccounts: BankAccount[];
+  dbAccounts: AccountNEW[];
   dbTrips: Trip[];
   dbTags: Tag[];
   dbStocks: Stock[];
@@ -89,9 +96,9 @@ export async function fetchCoreData({
         console.timeEnd(timeLabel('dbTags'));
       },
       async () => {
-        console.time(timeLabel('dbBankAccounts'));
-        data.dbBankAccounts = await db.bankAccountFindMany();
-        console.timeEnd(timeLabel('dbBankAccounts'));
+        console.time(timeLabel('dbAccounts'));
+        data.dbAccounts = await db.accountFindMany();
+        console.timeEnd(timeLabel('dbAccounts'));
       },
       async () => {
         console.time(timeLabel('dbCategories'));

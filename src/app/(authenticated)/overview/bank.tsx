@@ -3,7 +3,6 @@ import {
   AccountBalance,
   BankBalance,
 } from '@/app/(authenticated)/overview/balance';
-import {accountsSum} from '@/app/(authenticated)/overview/modelHelpers';
 import {OpenBankingConnectionExpirationWarning} from '@/app/(authenticated)/overview/OpenBankingConnectionExpirationWarning';
 import {
   Card,
@@ -16,13 +15,9 @@ import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {useMarketDataContext} from '@/lib/context/MarketDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
-import {
-  Bank,
-  BankAccount,
-  accountPageURL,
-  accountsForBank,
-  bankPageURL,
-} from '@/lib/model/BankAccount';
+import {Account, accountPageURL, accountsForBank} from '@/lib/model/Account';
+import {Bank, bankPageURL} from '@/lib/model/Bank';
+import {findAccountsBalanceTotal} from '@/lib/model/queries/AccountsBalanceTotal';
 import {cn} from '@/lib/utils';
 import Link from 'next/link';
 
@@ -48,18 +43,18 @@ const ITEM_BORDER_COLORS = [
 
 export function BanksListItem({bank}: {bank: Bank}) {
   const displayCurrency = useDisplayCurrency();
-  const {stocks, bankAccounts} = useCoreDataContext();
+  const {stocks, accounts} = useCoreDataContext();
   const {exchange} = useMarketDataContext();
   const {transactions} = useTransactionDataContext();
-  const accounts = accountsForBank(bank, bankAccounts);
-  const bankTotal = accountsSum(
-    accounts,
-    displayCurrency,
+  const bankAccounts = accountsForBank(bank, accounts);
+  const bankTotal = findAccountsBalanceTotal({
+    accounts: bankAccounts,
+    targetCurrency: displayCurrency,
     exchange,
     transactions,
-    stocks
-  );
-  const activeAccounts = accounts.filter(a => !a.archived);
+    stocks,
+  });
+  const activeAccounts = bankAccounts.filter(a => !a.archived);
   return (
     <Card>
       <CardHeader>
@@ -96,7 +91,7 @@ export function BankAccountListItem({
   bank,
   colorIndex,
 }: {
-  account: BankAccount;
+  account: Account;
   bank: Bank;
   colorIndex: number;
 }) {

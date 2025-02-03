@@ -1,9 +1,13 @@
 'use client';
 import {
+  coreModelFromDB,
   TransactionDataModel,
   transactionModelFromDB,
 } from '@/lib/ClientSideModel';
-import {TransactionData as DBTransactionData} from '@/lib/db/fetch';
+import {
+  CoreData as DBCoreData,
+  TransactionData as DBTransactionData,
+} from '@/lib/db/fetch';
 import {createContext, useContext} from 'react';
 
 const TransactionDataContext = createContext<TransactionDataModel>(
@@ -11,10 +15,12 @@ const TransactionDataContext = createContext<TransactionDataModel>(
 );
 
 export function TransactionDataContextProvider(props: {
-  dbData: DBTransactionData;
+  // TODO: transaction data requires core data and it is not a clean separation of concerns.
+  dbData: DBTransactionData & DBCoreData;
   children: JSX.Element | JSX.Element[];
 }) {
-  const model = transactionModelFromDB(props.dbData);
+  const core = coreModelFromDB(props.dbData);
+  const model = transactionModelFromDB(props.dbData, core);
   return (
     <TransactionDataContext.Provider value={model}>
       {props.children}

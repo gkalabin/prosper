@@ -24,6 +24,7 @@ enum AccountOwnershipNEW {
   SELF_OWNED
   OWNED_BY_OTHER
   JOINT_HALF
+  SYSTEM
 }
 
 enum TransactionLinkTypeNEW {
