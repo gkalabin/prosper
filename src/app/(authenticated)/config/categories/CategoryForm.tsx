@@ -88,7 +88,11 @@ export const CategoryForm = ({
             <FormItem>
               <FormLabel>Display order (smaller on top)</FormLabel>
               <FormControl>
-                <Input type="number" {...field} />
+                <Input
+                  type="number"
+                  {...field}
+                  onChange={e => field.onChange(parseInt(e.target.value, 10))}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -101,7 +105,13 @@ export const CategoryForm = ({
             <FormItem>
               <FormLabel>Parent Category</FormLabel>
               <FormControl>
-                <Select {...field}>
+                <Select
+                  {...field}
+                  value={field.value?.toString()}
+                  onChange={e => {
+                    field.onChange(parseInt(e.target.value, 10) || undefined);
+                  }}
+                >
                   <option value="null">No parent</option>
                   {categories.map(category => (
                     <option key={category.id} value={category.id}>
