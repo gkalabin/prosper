@@ -3,6 +3,14 @@ import {Stock, formatStock} from '@/lib/model/Stock';
 
 export type Unit = Stock | Currency;
 
+export type UnitId = {
+  kind: 'CURRENCY';
+  currencyCode: string;
+} | {
+  kind: 'STOCK';
+  stockId: number;
+}
+
 export function formatUnit(
   unit: Unit,
   amountDollar: number,

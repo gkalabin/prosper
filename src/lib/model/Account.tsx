@@ -1,8 +1,8 @@
-import {assert} from '@/lib/assert';
-import {Bank, bankNameForURL} from '@/lib/model/Bank';
-import {mustFindByCode} from '@/lib/model/Currency';
-import {Stock} from '@/lib/model/Stock';
-import {Unit} from '@/lib/model/Unit';
+import { assert } from '@/lib/assert';
+import { Bank, bankNameForURL } from '@/lib/model/Bank';
+import { mustFindByCode } from '@/lib/model/Currency';
+import { Stock } from '@/lib/model/Stock';
+import { Unit, UnitId } from '@/lib/model/Unit';
 import {
   AccountOwnershipNEW,
   AccountTypeNEW,
@@ -96,6 +96,22 @@ export function accountPageURL(account: Account, bank: Bank): string {
   const bankName = bankNameForURL(bank.name);
   const name = bankName ? `${accountName}-${bankName}` : accountName;
   return `/account/${account.id}/${encodeURIComponent(name)}`;
+}
+
+export function accountUnitId(account: Account): UnitId {
+  if (account.currencyCode) {
+    return {
+      kind: 'CURRENCY',
+      currencyCode: account.currencyCode,
+    };
+  }
+  if (account.stockId) {
+    return {
+      kind: 'STOCK',
+      stockId: account.stockId,
+    };
+  }
+  throw new Error(`Account ${account.id} has no unit`);
 }
 
 export function accountUnit(account: Account, stocks: Stock[]): Unit {

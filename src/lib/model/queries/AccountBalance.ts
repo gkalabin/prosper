@@ -31,12 +31,12 @@ export function findAccountBalance({
         continue;
       case 'EXPENSE':
         if (t.accountId == account.id) {
-          balanceCents -= t.amountCents;
+          balanceCents -= t.actuallyPaidFromOwnAccount.cents;
         }
         continue;
       case 'INCOME':
         if (t.accountId == account.id) {
-          balanceCents += t.amountCents;
+          balanceCents += t.actuallyReceivedOnOwnAccount.cents;
         }
         continue;
       default:

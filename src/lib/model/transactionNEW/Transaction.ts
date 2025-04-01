@@ -4,9 +4,11 @@ import {
   Account,
   AccountOwnership,
   AccountType,
+  accountUnitId,
   mustFindAccount,
 } from '@/lib/model/Account';
 import {TransactionNEWWithTagIds} from '@/lib/model/AllDatabaseDataModel';
+import {abs, AmountPlain as Amount} from '@/lib/model/Amount';
 import {AccountBalanceUpdate} from '@/lib/model/transactionNEW/AccountBalanceUpdate';
 import {
   InitialBalance,
@@ -14,46 +16,156 @@ import {
 } from '@/lib/model/transactionNEW/InitialBalance';
 import {counterpartyAndCategoryFromLines} from '@/lib/model/transactionNEW/LinesParsing';
 import {modelError} from '@/lib/model/transactionNEW/ModelParsingError';
-import {TransactionCompanion} from '@/lib/model/transactionNEW/TransactionCompanion';
+import {newNoopTransaction, Noop} from '@/lib/model/transactionNEW/Noop';
+import {TransactionShare} from '@/lib/model/transactionNEW/TransactionShare';
 import {newTransfer, Transfer} from '@/lib/model/transactionNEW/Transfer';
+import {UnitId} from '@/lib/model/Unit';
 import {numberAppendMap} from '@/lib/util/AppendMap';
 import {TransactionLineNEW as DBTransactionLine} from '@prisma/client';
 
 export type Transaction = Expense | Income | Transfer | Noop | InitialBalance;
 
-export type Noop = {
-  kind: 'NOOP';
-  transactionId: number;
-  timestampEpoch: number;
-  counterparty: string;
-  note: string;
-  tagsIds: number[];
-  tripId: number | null;
-  accountIds: number[];
-};
-
 export type Expense = {
   kind: 'EXPENSE';
   transactionId: number;
   timestampEpoch: number;
+  // Vendor who was paid in this expense, e.g. Starbucks.
   vendor: string;
-  amountCents: number;
-  companions: TransactionCompanion[];
+  /**
+   * * 1. Bought coffee (user paid for and consumed coffee)
+   *    - self:
+   *         share: $5
+   *         payment: $5
+   *         accountId: hsbc.id
+   *    - participants: []
+   *
+   * 2. Bought coffee for K (user paid $10 but only consumed $5; K’s share is $5)
+   *    - self:
+   *         share: $5
+   *         payment: $10
+   *         accountId: hsbc.id
+   *    - participants: [
+   *         {
+   *           name: "K",
+   *           accountId: ownedByOtherAccounts["K"].id,
+   *           share: $5,
+   *           payment: $0
+   *         }
+   *       ]
+   *
+   * 3. K bought coffee for me (user consumed $5 but paid nothing; K paid $10 for her share of $5)
+   *    - self:
+   *         share: $5
+   *         payment: $0
+   *         accountId: null
+   *    - participants: [
+   *         {
+   *           name: "K",
+   *           accountId: ownedByOtherAccounts["K"].id,
+   *           share: $5,
+   *           payment: $10
+   *         }
+   *       ]
+   */
+
+
+  /**
+   * 1.  bought coffee
+   *    - amount: $5
+   *    - accountId: hsbc.id
+   *    - others: []
+   * 
+   * 2. bought coffee for K
+   *    - amount: $10
+   *    - accountId: hsbc.id
+   *    - others: [
+   *      {
+   *        name: K
+   *        accountId: ownedByOtherAccounts[K].id
+   *        share: $5
+   *      }
+   *    ]
+   * 
+   * 3. K bought coffee for me
+   *    - amount: $10
+   *    - accountId: null
+   *    - others: [
+   *      {
+   *        name: K
+   *        accountId: ownedByOtherAccounts[K].id
+   *        share: $5
+   *      }
+   *    ]
+   */
+
+
+  /**
+   * 1.  bought coffee
+   *   - ownShare: $5
+   *   - ownPaid: $5
+   *   - ownAccountId: hsbc.id
+   *   - others: []
+   * 
+   * 2. bought coffee for K
+   *   - ownShare: $5
+   *   - ownPaid: $10
+   *   - ownAccountId: hsbc.id
+   *   - others: [
+   *       name: K
+   *       accountId: ownedByOtherAccounts[K].id
+   *       share: $5
+   *       paid: $0
+   *     ]
+   * 
+   * 3. K bought coffee for me
+   *   - ownShare: $5
+   *   - ownPaid: $0
+   *   - ownAccountId: null
+   *   - others: [
+   *       name: K
+   *       accountId: ownedByOtherAccounts[K].id
+   *       share: $5
+   *       paid: $10
+   *     ]
+   */
+
+
+  
+
+  ownShare: Amount;
+  ownPaid: Amount;
+  ownAccountId: number| null;
+  otherParticipants: Array<{
+    name: string;
+    accountId: number;
+    // The companion's share in the transaction.
+    // For example, if the companion paid $1000 mortgage payment and it's shared with the user, the companionShare is $500.
+    share: Amount;
+    // The amount that actually cleared (received or paid) on their account. For example, how much they paid
+    paid: Amount;
+  }>;
+
   note: string;
-  accountId: number;
   categoryId: number;
   tagsIds: number[];
   tripId: number | null;
-  refundIds: number[];
 };
 
 export type Income = {
   kind: 'INCOME';
   transactionId: number;
   timestampEpoch: number;
+  unitId: UnitId;
+  // Whoever sent the money as a part of this transaction.
   payer: string;
-  amountCents: number;
-  companions: TransactionCompanion[];
+  // The amount that the sender transferred from their bank account.
+  sentByPayer: Amount;
+  // Your allocated share of the income.
+  ownTransactionAmount: Amount;
+  // The actual amount that was received by the user
+  actuallyReceivedOnOwnAccount: Amount;
+  // Details for other participants’ shares.
+  participantShares: TransactionShare[];
   note: string;
   accountId: number;
   categoryId: number;
@@ -61,7 +173,12 @@ export type Income = {
   tripId: number | null;
 };
 
-const NO_COMPANIONS: TransactionCompanion[] = [];
+const NOT_SHARED: Array<{
+  name: string;
+  accountId: number;
+  share: Amount;
+  paid: Amount;
+}> = [];
 
 export function fromDB({
   dbTransaction,
@@ -97,7 +214,12 @@ export function fromDB({
     );
   }
   if (balanceUpates.length == 0) {
-    return noopTransaction({dbTransaction, lines});
+    return newNoopTransaction({dbTransaction, lines});
+  }
+  if (dbTransaction.id == 14164) {
+    console.log(JSON.stringify(dbTransaction, null, 2));
+    console.log(JSON.stringify(lines, null, 2));
+    console.log(JSON.stringify(balanceUpates, null, 2));
   }
   if (balanceUpates.length == 2) {
     const debit = balanceUpates.find(x => x.delta > 0);
@@ -120,32 +242,6 @@ export function fromDB({
     return threeWayTransaction({debits, credits, dbTransaction, lines});
   }
   return modelError(dbTransaction, lines, balanceUpates);
-}
-
-function noopTransaction({
-  dbTransaction,
-  lines,
-}: {
-  dbTransaction: TransactionNEWWithTagIds;
-  lines: DBTransactionLine[];
-}): Noop {
-  const {counterparty} = counterpartyAndCategoryFromLines({
-    dbTransaction,
-    unsortedLines: lines,
-    allLines: lines,
-    updates: [],
-  });
-  const accountIds = uniqMostFrequent(lines.map(l => l.accountId));
-  return {
-    kind: 'NOOP',
-    transactionId: dbTransaction.id,
-    timestampEpoch: new Date(dbTransaction.timestamp).getTime(),
-    counterparty,
-    note: dbTransaction.description,
-    tagsIds: dbTransaction.tags.map(t => t.id),
-    tripId: dbTransaction.tripId,
-    accountIds,
-  };
 }
 
 function twoWayTransaction({
@@ -221,7 +317,7 @@ function threeWayTransaction({
 }) {
   // One withdrawal, but two debits (typically to a personal expense and third party accounts)
   if (debits.length == 2 && credits.length == 1) {
-    return newSharedExpense({
+    return newSharedPersonalExpense({
       dbTransaction,
       lines,
       credit: credits[0],
@@ -239,7 +335,7 @@ function threeWayTransaction({
   return modelError(dbTransaction, lines, [...debits, ...credits]);
 }
 
-function newSharedExpense({
+function newSharedPersonalExpense({
   dbTransaction,
   lines,
   credit,
@@ -278,21 +374,21 @@ function newSharedExpense({
     transactionId: dbTransaction.id,
     timestampEpoch: new Date(dbTransaction.timestamp).getTime(),
     vendor,
-    amountCents: Math.abs(credit.delta),
-    companions: [
+    ownPaid: abs({cents: credit.delta}),
+    ownShare: abs({cents: ownExpense.delta}),
+    ownAccountId: credit.account.id,
+    otherParticipants: [
       {
         name: thirdPartyExpense.account.name,
         accountId: thirdPartyExpense.account.id,
-        amountCents: Math.abs(thirdPartyExpense.delta),
+        share: abs({cents: thirdPartyExpense.delta}),
+        paid: {cents: 0},
       },
     ],
     note: dbTransaction.description,
-    accountId: credit.account.id,
     categoryId,
     tagsIds: dbTransaction.tags.map(t => t.id),
     tripId: dbTransaction.tripId,
-    // TODO: add refundIds
-    refundIds: [],
   };
 }
 
@@ -334,13 +430,17 @@ function newSharedIncome({
     kind: 'INCOME',
     transactionId: dbTransaction.id,
     timestampEpoch: new Date(dbTransaction.timestamp).getTime(),
+    unitId: accountUnitId(debit.account),
     payer,
-    amountCents: Math.abs(debit.delta),
-    companions: [
+    sentByPayer: abs({cents: debit.delta}),
+    ownTransactionAmount: abs({cents: income.delta}),
+    actuallyReceivedOnOwnAccount: abs({cents: debit.delta}),
+    participantShares: [
       {
         name: thirdPartyLine.account.name,
         accountId: thirdPartyLine.account.id,
-        amountCents: Math.abs(thirdPartyLine.delta),
+        companionShare: abs({cents: thirdPartyLine.delta}),
+        transactedAmount: {cents: 0},
       },
     ],
     note: dbTransaction.description,
@@ -365,7 +465,7 @@ function newExpense({
   const updates = [expense, asset];
   const expenseLines = lines.filter(l => l.accountId == expense.account.id);
   if (expenseLines.length == 0) {
-    return modelError(dbTransaction, lines, updates, 'Expense lines not found');
+    return modelError(dbTransaction, lines, updates);
   }
   const {counterparty: vendor, categoryId} = counterpartyAndCategoryFromLines({
     dbTransaction,
@@ -373,20 +473,53 @@ function newExpense({
     allLines: lines,
     updates,
   });
+  const amount = abs({cents: expense.delta});
+  if (asset.account.ownership == AccountOwnership.OWNED_BY_OTHER) {
+    if (true) return modelError(dbTransaction, lines, updates);
+    return {
+      kind: 'EXPENSE',
+      transactionId: dbTransaction.id,
+      timestampEpoch: new Date(dbTransaction.timestamp).getTime(),
+      vendor,
+      ownPaid: {cents: 0},
+      // TODO: this is wrong.
+      // TODO: this is wrong.
+      // TODO: this is wrong.
+      // TODO: this is wrong.
+      // TODO: this is wrong.
+      // TODO: this is wrong.
+      // TODO: this is wrong.
+      // TODO: this is wrong.
+      // TODO: this is wrong.
+      ownShare: abs({cents: Math.floor(expense.delta / 2)}),
+      ownAccountId: null,
+      otherParticipants: [
+        {
+          name: asset.account.name,
+          accountId: asset.account.id,
+          share: amount,
+          paid: amount,
+        },
+      ],
+      note: dbTransaction.description,
+      categoryId,
+      tagsIds: dbTransaction.tags.map(t => t.id),
+      tripId: dbTransaction.tripId,
+    };
+  }
   return {
     kind: 'EXPENSE',
     transactionId: dbTransaction.id,
     timestampEpoch: new Date(dbTransaction.timestamp).getTime(),
     vendor,
-    amountCents: Math.abs(expense.delta),
-    companions: NO_COMPANIONS,
+    ownPaid: amount,
+    ownShare: amount,
+    ownAccountId: asset.account.id,
+    otherParticipants: [],
     note: dbTransaction.description,
-    accountId: asset.account.id,
     categoryId,
     tagsIds: dbTransaction.tags.map(t => t.id),
     tripId: dbTransaction.tripId,
-    // TODO: add refundIds
-    refundIds: [],
   };
 }
 
@@ -412,13 +545,17 @@ function newIncome({
     allLines: lines,
     updates,
   });
+  const amount = abs({cents: income.delta});
   return {
     kind: 'INCOME',
     transactionId: dbTransaction.id,
     timestampEpoch: new Date(dbTransaction.timestamp).getTime(),
+    unitId: accountUnitId(asset.account),
     payer,
-    amountCents: Math.abs(income.delta),
-    companions: NO_COMPANIONS,
+    sentByPayer: amount,
+    ownTransactionAmount: amount,
+    actuallyReceivedOnOwnAccount: amount,
+    participantShares: NOT_SHARED,
     note: dbTransaction.description,
     accountId: asset.account.id,
     categoryId,

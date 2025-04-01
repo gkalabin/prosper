@@ -1,6 +1,5 @@
 'use client';
 import {MaybeHiddenDiv} from '@/app/(authenticated)/overview/hide-balances';
-import {useExchangedTransactions} from '@/app/(authenticated)/stats/modelHelpers';
 import {Card, CardContent} from '@/components/ui/card';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
@@ -9,11 +8,7 @@ import {useMarketDataContext} from '@/lib/context/MarketDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {ownedAssetAccounts} from '@/lib/model/Account';
 import {findAccountsBalanceTotal} from '@/lib/model/queries/AccountsBalanceTotal';
-import {
-  isExpense,
-  isIncome,
-  Transaction,
-} from '@/lib/model/transaction/Transaction';
+import {exchangeTransactionAmounts} from '@/lib/model/queries/ExchangeTransactionAmounts';
 import {differenceInDays} from 'date-fns';
 
 export function StatsWidget() {
@@ -27,10 +22,10 @@ export function StatsWidget() {
     targetCurrency: displayCurrency,
     exchange,
     transactions,
-    stocks
+    stocks,
   });
   if (!total) {
-    return <></>;
+    return null;
   }
   return (
     <>
@@ -46,22 +41,30 @@ export function StatsWidget() {
 }
 
 export function Last30DaysIncomeExpense() {
+  const displayCurrency = useDisplayCurrency();
+  const {accounts, stocks} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
+  const {exchange} = useMarketDataContext();
   const now = Date.now();
-  const last30days = (t: Transaction) =>
-    differenceInDays(now, t.timestampEpoch) <= 30;
-  const {input, failed} = useExchangedTransactions(
-    transactions.filter(t => isIncome(t) || isExpense(t)).filter(last30days)
+  const transactions30d = transactions.filter(
+    t => differenceInDays(now, t.timestampEpoch) <= 30
   );
+  const {exchanged, failed} = exchangeTransactionAmounts({
+    targetCurrency: displayCurrency,
+    transactions: transactions30d,
+    accounts,
+    stocks,
+    exchange,
+  });
   if (failed.length > 0) {
-    return <></>;
+    return null;
   }
-  let expense = AmountWithCurrency.zero(input.currency());
-  for (const {ownShare} of input.expenses()) {
+  let expense = AmountWithCurrency.zero(exchanged.currency());
+  for (const {ownShare} of exchanged.expenses()) {
     expense = expense.add(ownShare);
   }
-  let income = AmountWithCurrency.zero(input.currency());
-  for (const {ownShare} of input.income()) {
+  let income = AmountWithCurrency.zero(exchanged.currency());
+  for (const {ownShare} of exchanged.income()) {
     income = income.add(ownShare);
   }
   return (

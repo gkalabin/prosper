@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {assert, assertDefined, assertNotDefined} from '@/lib/assert';
 import prisma from '@/lib/prisma';
-import {AccountOwnershipNEW, AccountTypeNEW, Prisma} from '@prisma/client';
+import {AccountNEW, AccountOwnershipNEW, AccountTypeNEW, Prisma} from '@prisma/client';
 
 export async function GET(): Promise<Response> {
   await prisma.$transaction(
@@ -77,7 +77,7 @@ async function migrate(tx: Prisma.TransactionClient) {
                 {
                   debitCents: 0,
                   creditCents: t.outgoingAmountCents,
-                  accountId: oldToNew[t.outgoingAccountId!],
+                  accountId: oldToNew[t.outgoingAccountId!].id,
                   categoryId: null,
                   counterparty: t.vendor,
                 },
@@ -90,10 +90,11 @@ async function migrate(tx: Prisma.TransactionClient) {
                 },
                 {
                   accountId: (
-                    await otherPartyAccount(
+                    await otherPartyLiability(
                       tx,
                       t.id,
                       t.otherPartyName,
+                      oldToNew[t.outgoingAccountId!].currencyCode!,
                       otherUserAccounts,
                       t.userId
                     )
@@ -126,7 +127,7 @@ async function migrate(tx: Prisma.TransactionClient) {
                 {
                   debitCents: 0,
                   creditCents: t.outgoingAmountCents,
-                  accountId: oldToNew[t.outgoingAccountId!],
+                  accountId: oldToNew[t.outgoingAccountId!].id,
                   categoryId: null,
                   counterparty: t.vendor,
                 },
@@ -170,7 +171,7 @@ async function migrate(tx: Prisma.TransactionClient) {
                 {
                   debitCents: t.incomingAmountCents,
                   creditCents: 0,
-                  accountId: oldToNew[t.incomingAccountId!],
+                  accountId: oldToNew[t.incomingAccountId!].id,
                   categoryId: null,
                   counterparty: t.payer,
                 },
@@ -187,6 +188,7 @@ async function migrate(tx: Prisma.TransactionClient) {
                       tx,
                       t.id,
                       t.otherPartyName,
+                      oldToNew[t.incomingAccountId!].currencyCode!,
                       otherUserAccounts,
                       t.userId
                     )
@@ -215,7 +217,7 @@ async function migrate(tx: Prisma.TransactionClient) {
                 {
                   debitCents: t.incomingAmountCents,
                   creditCents: 0,
-                  accountId: oldToNew[t.incomingAccountId!],
+                  accountId: oldToNew[t.incomingAccountId!].id,
                   categoryId: null,
                   counterparty: t.payer,
                 },
@@ -278,7 +280,7 @@ async function migrate(tx: Prisma.TransactionClient) {
               {
                 debitCents: 0,
                 creditCents: t.outgoingAmountCents,
-                accountId: oldToNew[t.outgoingAccountId!],
+                accountId: oldToNew[t.outgoingAccountId!].id,
                 categoryId: t.categoryId,
                 counterparty: null,
               },
@@ -287,7 +289,7 @@ async function migrate(tx: Prisma.TransactionClient) {
                 creditCents: 0,
                 categoryId: t.categoryId,
                 counterparty: null,
-                accountId: oldToNew[t.incomingAccountId!],
+                accountId: oldToNew[t.incomingAccountId!].id,
               },
             ],
           },
@@ -315,10 +317,19 @@ async function migrate(tx: Prisma.TransactionClient) {
         t.incomingAmountCents,
         t.id + ' on assertNotDefined(t.incomingAmountCents)'
       );
-      const otherUserAcc = await otherPartyAccount(
+      const otherLiability = await otherPartyLiability(
         tx,
         t.id,
         t.payer!,
+        t.currencyCode!,
+        otherUserAccounts,
+        t.userId
+      );
+      const otherAsset = await otherPartyAsset(
+        tx,
+        t.id,
+        t.payer!,
+        t.currencyCode!,
         otherUserAccounts,
         t.userId
       );
@@ -334,16 +345,23 @@ async function migrate(tx: Prisma.TransactionClient) {
               {
                 debitCents: 0,
                 creditCents: t.payerOutgoingAmountCents,
-                accountId: otherUserAcc.id,
+                accountId: otherAsset.id,
                 categoryId: null,
                 counterparty: t.vendor,
               },
               {
-                debitCents: t.payerOutgoingAmountCents,
+                debitCents: t.ownShareAmountCents,
                 creditCents: 0,
                 categoryId: t.categoryId,
                 counterparty: t.vendor,
                 accountId: expenseByUser[t.userId].id,
+              },
+              {
+                debitCents: t.payerOutgoingAmountCents! - t.ownShareAmountCents!,
+                creditCents: 0,
+                categoryId: null,
+                counterparty: t.vendor,
+                accountId: otherLiability.id,
               },
             ],
           },
@@ -362,17 +380,18 @@ async function migrate(tx: Prisma.TransactionClient) {
   });
 }
 
-async function otherPartyAccount(
+async function otherPartyAsset(
   tx: Prisma.TransactionClient,
   tid: number,
   payer: string,
+  currencyCode: string,
   accounts: Record<string, any>,
   userId: number
 ) {
   if (payer.trim() == '') {
     throw new Error(`payer is empty string: '${payer}' for ${tid}`);
   }
-  const otherUserAcc = accounts[payer];
+  const otherUserAcc = accounts["asset" + currencyCode + payer];
   if (otherUserAcc) {
     return otherUserAcc;
   }
@@ -381,10 +400,39 @@ async function otherPartyAccount(
       name: payer,
       type: AccountTypeNEW.ASSET,
       ownership: AccountOwnershipNEW.OWNED_BY_OTHER,
-      userId: userId,
+      userId,
+      currencyCode,
     },
   });
-  accounts[payer] = newOtherUserAcc;
+  accounts["asset" + currencyCode + payer] = newOtherUserAcc;
+  return newOtherUserAcc;
+}
+
+async function otherPartyLiability(
+  tx: Prisma.TransactionClient,
+  tid: number,
+  payer: string,
+  currencyCode: string,
+  accounts: Record<string, any>,
+  userId: number
+) {
+  if (payer.trim() == '') {
+    throw new Error(`payer is empty string: '${payer}' for ${tid}`);
+  }
+  const otherUserAcc = accounts["liability" + currencyCode + payer];
+  if (otherUserAcc) {
+    return otherUserAcc;
+  }
+  const newOtherUserAcc = await tx.accountNEW.create({
+    data: {
+      name: payer,
+      type: AccountTypeNEW.LIABILITY,
+      ownership: AccountOwnershipNEW.SELF_OWNED,
+      userId,
+      currencyCode,
+    },
+  });
+  accounts["liability" + currencyCode + payer] = newOtherUserAcc;
   return newOtherUserAcc;
 }
 
@@ -406,7 +454,7 @@ async function migrateAccounts(tx: Prisma.TransactionClient) {
     });
   }
 
-  const oldToNew: Record<number, number> = {};
+  const oldToNew: Record<number, AccountNEW> = {};
   for (const oldAccount of bankAccounts) {
     const newAccount = await tx.accountNEW.create({
       data: {
@@ -423,7 +471,7 @@ async function migrateAccounts(tx: Prisma.TransactionClient) {
         archived: oldAccount.archived,
       },
     });
-    oldToNew[oldAccount.id] = newAccount.id;
+    oldToNew[oldAccount.id] = newAccount;
     if (oldAccount.initialBalanceCents != 0) {
       const balance = oldAccount.initialBalanceCents;
       await tx.transactionNEW.create({
