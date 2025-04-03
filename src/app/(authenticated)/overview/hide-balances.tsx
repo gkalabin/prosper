@@ -1,5 +1,6 @@
 'use client';
 import {Button} from '@/components/ui/button';
+import {SpoilerText} from '@/components/SpoilerText';
 import {
   HIDE_BALANCES_COOKIE_MAX_AGE,
   HIDE_BALANCES_COOKIE_NAME,
@@ -48,7 +49,7 @@ function useHideBalancesContext() {
   return ctx;
 }
 
-export function useHideBalances() {
+function useHideBalances() {
   return useHideBalancesContext().hideBalances;
 }
 
@@ -70,4 +71,18 @@ export function ToggleHideBalancesButton() {
       )}
     </Button>
   );
+}
+
+export function MaybeHiddenText({
+  children,
+  textLength,
+}: {
+  children: React.ReactNode;
+  textLength: number;
+}) {
+  const hidden = useHideBalances();
+  if (!hidden) {
+    return children;
+  }
+  return <SpoilerText textLength={textLength}>{children}</SpoilerText>;
 }
