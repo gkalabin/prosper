@@ -1,4 +1,4 @@
-FROM node:23.11.0-alpine AS base
+FROM node:23.11.0-slim AS base
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -28,8 +28,6 @@ RUN addgroup --system --gid 1001 prosper
 RUN adduser --system --uid 1001 prosper
 # Remove the annoying warning about using not the latest npm version.
 RUN npm install -g npm
-# Prisma needs openssl (https://pris.ly/d/system-requirements).
-RUN apk add --no-cache openssl
 WORKDIR /app
 # Copy public assets.
 COPY --from=builder /app/public ./public
