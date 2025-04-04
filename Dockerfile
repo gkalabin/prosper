@@ -1,9 +1,9 @@
-FROM node:22.14.0-alpine AS base
+FROM node:23.11.0-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat openssl
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -28,6 +28,8 @@ RUN addgroup --system --gid 1001 prosper
 RUN adduser --system --uid 1001 prosper
 # Remove the annoying warning about using not the latest npm version.
 RUN npm install -g npm
+# Prisma needs openssl (https://pris.ly/d/system-requirements).
+RUN apk add --no-cache openssl
 WORKDIR /app
 # Copy public assets.
 COPY --from=builder /app/public ./public
