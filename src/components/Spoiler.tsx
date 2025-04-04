@@ -1,17 +1,18 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {cn} from '@/lib/utils';
 
-const DOTS_PER_SYMBOL = 55;
+const DOTS_PER_PX = 0.2;
 
-export function SpoilerText({
-  children,
-  textLength,
-}: {
-  children: React.ReactNode;
-  textLength: number;
-}) {
+export function Spoiler({children}: {children: React.ReactNode}) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [area, setArea] = useState(0);
   const [revealed, setRevealed] = useState(false);
-  const dotsCount = textLength * DOTS_PER_SYMBOL;
+  useEffect(() => {
+    if (!ref || !ref.current) {
+      return;
+    }
+    setArea(ref.current.clientHeight * ref.current.clientWidth);
+  }, []);
   return (
     <span
       className="relative inline-block cursor-pointer"
@@ -20,8 +21,10 @@ export function SpoilerText({
         setRevealed(!revealed);
       }}
     >
-      <div className={cn(!revealed && 'invisible')}>{children}</div>
-      {!revealed && <CanvasDots count={dotsCount} />}
+      <div ref={ref} className={cn(!revealed && 'invisible')}>
+        {children}
+      </div>
+      {!revealed && <CanvasDots count={area * DOTS_PER_PX} />}
     </span>
   );
 }

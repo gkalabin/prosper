@@ -1,5 +1,5 @@
 'use client';
-import {MaybeHiddenText} from '@/app/(authenticated)/overview/hide-balances';
+import {MaybeHiddenDiv} from '@/app/(authenticated)/overview/hide-balances';
 import {accountBalance} from '@/app/(authenticated)/overview/modelHelpers';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
@@ -22,12 +22,7 @@ export function BankBalance({
   if (!amount) {
     return null;
   }
-  const formattedAmount = amount.round().format();
-  return (
-    <MaybeHiddenText textLength={formattedAmount.length}>
-      {formattedAmount}
-    </MaybeHiddenText>
-  );
+  return <MaybeHiddenDiv>{amount.round().format()}</MaybeHiddenDiv>;
 }
 
 export function AccountBalance({account}: {account: BankAccount}) {
@@ -49,12 +44,7 @@ function LocalBalance({account}: {account: BankAccount}) {
   const {stocks} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
   const appBalance = accountBalance(account, transactions, stocks);
-  const formattedBalance = appBalance.format();
-  return (
-    <MaybeHiddenText textLength={formattedBalance.length}>
-      <div>{formattedBalance}</div>
-    </MaybeHiddenText>
-  );
+  return <MaybeHiddenDiv>{appBalance.format()}</MaybeHiddenDiv>;
 }
 
 function RemoteBalance({
@@ -68,7 +58,6 @@ function RemoteBalance({
   const {transactions} = useTransactionDataContext();
   const localBalance = accountBalance(account, transactions, stocks);
   const delta = localBalance.subtract(remoteBalance);
-  const formattedLocalBalance = localBalance.format();
   return (
     <div className="flex flex-col items-end">
       <div
@@ -77,9 +66,7 @@ function RemoteBalance({
           delta.isZero() ? 'text-green-600' : 'text-red-600'
         )}
       >
-        <MaybeHiddenText textLength={formattedLocalBalance.length}>
-          <div>{formattedLocalBalance}</div>
-        </MaybeHiddenText>
+        <MaybeHiddenDiv>{localBalance.format()}</MaybeHiddenDiv>
         {delta.isZero() && <CheckCircleIcon className="h-4 w-4" />}
       </div>
       {!delta.isZero() && (
