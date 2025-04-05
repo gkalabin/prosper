@@ -1,5 +1,5 @@
 'use client';
-import {useHideBalances} from '@/app/(authenticated)/overview/hide-balances';
+import {MaybeHiddenDiv} from '@/app/(authenticated)/overview/hide-balances';
 import {accountBalance} from '@/app/(authenticated)/overview/modelHelpers';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
@@ -19,11 +19,10 @@ export function BankBalance({
 }: {
   amount: AmountWithCurrency | undefined;
 }) {
-  const hideBalances = useHideBalances();
-  if (!amount || hideBalances) {
+  if (!amount) {
     return null;
   }
-  return <>{amount.round().format()}</>;
+  return <MaybeHiddenDiv>{amount.round().format()}</MaybeHiddenDiv>;
 }
 
 export function AccountBalance({account}: {account: BankAccount}) {
@@ -42,14 +41,10 @@ export function AccountBalance({account}: {account: BankAccount}) {
 }
 
 function LocalBalance({account}: {account: BankAccount}) {
-  const hideBalances = useHideBalances();
   const {stocks} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
-  if (hideBalances) {
-    return null;
-  }
   const appBalance = accountBalance(account, transactions, stocks);
-  return <div>{appBalance.format()}</div>;
+  return <MaybeHiddenDiv>{appBalance.format()}</MaybeHiddenDiv>;
 }
 
 function RemoteBalance({
@@ -59,7 +54,6 @@ function RemoteBalance({
   account: BankAccount;
   remoteBalance: AmountWithUnit;
 }) {
-  const hideBalances = useHideBalances();
   const {stocks} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
   const localBalance = accountBalance(account, transactions, stocks);
@@ -72,7 +66,7 @@ function RemoteBalance({
           delta.isZero() ? 'text-green-600' : 'text-red-600'
         )}
       >
-        <div>{hideBalances ? '' : localBalance.format()}</div>
+        <MaybeHiddenDiv>{localBalance.format()}</MaybeHiddenDiv>
         {delta.isZero() && <CheckCircleIcon className="h-4 w-4" />}
       </div>
       {!delta.isZero() && (

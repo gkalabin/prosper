@@ -1,5 +1,5 @@
 'use client';
-import {useHideBalances} from '@/app/(authenticated)/overview/hide-balances';
+import {MaybeHiddenDiv} from '@/app/(authenticated)/overview/hide-balances';
 import {accountsSum} from '@/app/(authenticated)/overview/modelHelpers';
 import {useExchangedTransactions} from '@/app/(authenticated)/stats/modelHelpers';
 import {Card, CardContent} from '@/components/ui/card';
@@ -20,7 +20,6 @@ export function StatsWidget() {
   const {bankAccounts, stocks} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
   const {exchange} = useMarketDataContext();
-  const hideBalances = useHideBalances();
   const total = accountsSum(
     bankAccounts,
     displayCurrency,
@@ -28,18 +27,16 @@ export function StatsWidget() {
     transactions,
     stocks
   );
-  if (!total || hideBalances) {
+  if (!total) {
     return <></>;
   }
   return (
     <>
       <div className="py-5">
         <div className="text-2xl font-bold">Your total balance</div>
-        <div className="text-3xl font-bold">
-          <div className="inline-block bg-gradient-to-r from-indigo-600 via-purple-500 via-55% to-orange-400 bg-clip-text text-transparent">
-            {total.round().format()}
-          </div>
-        </div>
+        <MaybeHiddenDiv className="inline-block bg-gradient-to-r from-indigo-600 via-purple-500 via-55% to-orange-400 bg-clip-text text-3xl font-bold text-transparent">
+          {total.round().format()}
+        </MaybeHiddenDiv>
       </div>
       <Last30DaysIncomeExpense />
     </>
@@ -73,16 +70,18 @@ export function Last30DaysIncomeExpense() {
             <div className="text-sm font-medium text-muted-foreground">
               Expense
             </div>
-            <div className="text-lg font-medium">
+            <MaybeHiddenDiv className="text-lg font-medium">
               {expense.round().format()}
-            </div>
+            </MaybeHiddenDiv>
           </div>
           <div className="w-0 border-l">&nbsp;</div>
           <div className="flex grow flex-col items-center gap-1 p-1">
             <div className="text-sm font-medium text-muted-foreground">
               Income
             </div>
-            <div className="text-lg font-medium">{income.round().format()}</div>
+            <MaybeHiddenDiv className="text-lg font-medium">
+              {income.round().format()}
+            </MaybeHiddenDiv>
           </div>
         </div>
       </CardContent>
