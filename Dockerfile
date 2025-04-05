@@ -1,4 +1,7 @@
-FROM node:22.9.0-alpine AS base
+FROM node:23.11.0-alpine3.21 AS base
+# Prisma needs openssl both during runtime and build,
+# hence install it in the base layer.
+RUN apk add --no-cache openssl
 
 # Install dependencies only when needed
 FROM base AS deps
