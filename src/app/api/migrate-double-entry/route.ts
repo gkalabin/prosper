@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {assert, assertDefined, assertNotDefined} from '@/lib/assert';
 import prisma from '@/lib/prisma';
-import {AccountNEW, AccountOwnershipNEW, AccountTypeNEW, Prisma} from '@prisma/client';
+import {
+  AccountNEW,
+  AccountOwnershipNEW,
+  AccountTypeNEW,
+  Prisma,
+} from '@prisma/client';
 
 export async function GET(): Promise<Response> {
   await prisma.$transaction(
@@ -146,7 +151,6 @@ async function migrate(tx: Prisma.TransactionClient) {
           },
         });
       }
-
       continue;
     }
     if (t.transactionType == 'INCOME') {
@@ -184,7 +188,7 @@ async function migrate(tx: Prisma.TransactionClient) {
                 },
                 {
                   accountId: (
-                    await otherPartyAccount(
+                    await otherPartyLiability(
                       tx,
                       t.id,
                       t.otherPartyName,
@@ -325,15 +329,6 @@ async function migrate(tx: Prisma.TransactionClient) {
         otherUserAccounts,
         t.userId
       );
-      const otherAsset = await otherPartyAsset(
-        tx,
-        t.id,
-        t.payer!,
-        t.currencyCode!,
-        otherUserAccounts,
-        t.userId
-      );
-
       await tx.transactionNEW.create({
         data: {
           description: t.description,
@@ -344,8 +339,9 @@ async function migrate(tx: Prisma.TransactionClient) {
             create: [
               {
                 debitCents: 0,
-                creditCents: t.payerOutgoingAmountCents,
-                accountId: otherAsset.id,
+                creditCents: t.ownShareAmountCents,
+                accountId: otherLiability.id,
+                thirdPartyPayerAmountCents: t.payerOutgoingAmountCents,
                 categoryId: null,
                 counterparty: t.vendor,
               },
@@ -355,13 +351,6 @@ async function migrate(tx: Prisma.TransactionClient) {
                 categoryId: t.categoryId,
                 counterparty: t.vendor,
                 accountId: expenseByUser[t.userId].id,
-              },
-              {
-                debitCents: t.payerOutgoingAmountCents! - t.ownShareAmountCents!,
-                creditCents: 0,
-                categoryId: null,
-                counterparty: t.vendor,
-                accountId: otherLiability.id,
               },
             ],
           },
@@ -380,34 +369,6 @@ async function migrate(tx: Prisma.TransactionClient) {
   });
 }
 
-async function otherPartyAsset(
-  tx: Prisma.TransactionClient,
-  tid: number,
-  payer: string,
-  currencyCode: string,
-  accounts: Record<string, any>,
-  userId: number
-) {
-  if (payer.trim() == '') {
-    throw new Error(`payer is empty string: '${payer}' for ${tid}`);
-  }
-  const otherUserAcc = accounts["asset" + currencyCode + payer];
-  if (otherUserAcc) {
-    return otherUserAcc;
-  }
-  const newOtherUserAcc = await tx.accountNEW.create({
-    data: {
-      name: payer,
-      type: AccountTypeNEW.ASSET,
-      ownership: AccountOwnershipNEW.OWNED_BY_OTHER,
-      userId,
-      currencyCode,
-    },
-  });
-  accounts["asset" + currencyCode + payer] = newOtherUserAcc;
-  return newOtherUserAcc;
-}
-
 async function otherPartyLiability(
   tx: Prisma.TransactionClient,
   tid: number,
@@ -419,7 +380,7 @@ async function otherPartyLiability(
   if (payer.trim() == '') {
     throw new Error(`payer is empty string: '${payer}' for ${tid}`);
   }
-  const otherUserAcc = accounts["liability" + currencyCode + payer];
+  const otherUserAcc = accounts['liability' + currencyCode + payer];
   if (otherUserAcc) {
     return otherUserAcc;
   }
@@ -427,12 +388,12 @@ async function otherPartyLiability(
     data: {
       name: payer,
       type: AccountTypeNEW.LIABILITY,
-      ownership: AccountOwnershipNEW.SELF_OWNED,
+      ownership: AccountOwnershipNEW.OWNED_BY_OTHER,
       userId,
       currencyCode,
     },
   });
-  accounts["liability" + currencyCode + payer] = newOtherUserAcc;
+  accounts['liability' + currencyCode + payer] = newOtherUserAcc;
   return newOtherUserAcc;
 }
 

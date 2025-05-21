@@ -17,9 +17,8 @@ export function findAccountTransactions({
       case 'TRANSFER':
         return t.fromAccountId == account.id || t.toAccountId == account.id;
       case 'EXPENSE':
-        return t.accountId == account.id;
       case 'INCOME':
-        return t.accountId == account.id;
+        return t.balanceUpdates.some(u => u.account.id == account.id);
       default:
         const _exhaustivenessCheck: never = t;
         throw new Error(

@@ -2,6 +2,31 @@ import {TransactionNEWWithTagIds} from '@/lib/model/AllDatabaseDataModel';
 import {AccountBalanceUpdate} from '@/lib/model/transactionNEW/AccountBalanceUpdate';
 import {modelError} from '@/lib/model/transactionNEW/ModelParsingError';
 import {TransactionLineNEW as DBTransactionLine} from '@prisma/client';
+import {AmountPlain} from '../Amount';
+
+export function fullPayerAmountFromLines({
+  dbTransaction,
+  unsortedLines,
+  allLines,
+  updates,
+}: {
+  dbTransaction: TransactionNEWWithTagIds;
+  unsortedLines: DBTransactionLine[];
+  allLines: DBTransactionLine[];
+  updates: AccountBalanceUpdate[];
+}): AmountPlain {
+  const sortedLines = sortLines(unsortedLines);
+  let cents = null;
+  for (const l of sortedLines) {
+    if (l.thirdPartyPayerAmountCents) {
+      cents = l.thirdPartyPayerAmountCents;
+    }
+  }
+  if (!cents) {
+    throw modelError(dbTransaction, allLines, updates);
+  }
+  return {cents};
+}
 
 export function categoryIdFromLines({
   dbTransaction,

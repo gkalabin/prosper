@@ -19,24 +19,22 @@ export function findAccountBalance({
         continue;
       case 'INITIAL_BALANCE':
         if (t.accountId == account.id) {
-          balanceCents += t.balanceCents;
+          balanceCents += t.balance.cents;
         }
         continue;
       case 'TRANSFER':
         if (t.fromAccountId == account.id) {
-          balanceCents -= t.sentAmountCents;
+          balanceCents -= t.sentAmount.cents;
         } else if (t.toAccountId == account.id) {
-          balanceCents += t.receivedAmountCents;
+          balanceCents += t.receivedAmount.cents;
         }
         continue;
       case 'EXPENSE':
-        if (t.accountId == account.id) {
-          balanceCents -= t.actuallyPaidFromOwnAccount.cents;
-        }
-        continue;
       case 'INCOME':
-        if (t.accountId == account.id) {
-          balanceCents += t.actuallyReceivedOnOwnAccount.cents;
+        for (const u of t.balanceUpdates) {
+          if (u.account.id == account.id) {
+            balanceCents += u.delta.cents;
+          }
         }
         continue;
       default:

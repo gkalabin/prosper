@@ -1,57 +1,39 @@
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
-import {Account} from '@/lib/model/Account';
-import {findTransactionUnit} from '@/lib/model/queries/TransactionUnit';
 import {Stock} from '@/lib/model/Stock';
-import {InitialBalance} from '@/lib/model/transactionNEW/InitialBalance';
-import {Expense, Income} from '@/lib/model/transactionNEW/Transaction';
+import {add} from '../Amount';
+import {Expense} from '../transactionNEW/Expense';
+import {Income} from '../transactionNEW/Income';
+import {unitFromId} from '../Unit';
 
 export function findAllPartiesAmount({
   t,
-  accounts,
   stocks,
 }: {
-  t: Expense | Income | InitialBalance;
-  accounts: Account[];
+  t: Expense | Income;
   stocks: Stock[];
 }): AmountWithUnit {
-  const unit = findTransactionUnit({t, accounts, stocks});
-  if (t.kind == 'INITIAL_BALANCE') {
-    return new AmountWithUnit({
-      amountCents: t.balanceCents,
-      unit,
-    });
-  }
+  const c = t.categorisation;
+  const amount = c.companion
+    ? add(c.userShare, c.companion?.share)
+    : c.userShare;
+  const unit = unitFromId(c.unitId, stocks);
   return new AmountWithUnit({
-    amountCents: t.amountCents,
+    amountCents: amount.cents,
     unit,
   });
 }
 
 export function findOwnShareAmount({
   t,
-  accounts,
   stocks,
 }: {
-  t: Expense | Income | InitialBalance;
-  accounts: Account[];
+  t: Expense | Income;
   stocks: Stock[];
 }): AmountWithUnit {
-  const unit = findTransactionUnit({t, accounts, stocks});
-  if (t.kind == 'INITIAL_BALANCE') {
-    return new AmountWithUnit({
-      amountCents: t.balanceCents,
-      unit,
-    });
-  }
+  const c = t.categorisation;
+  const unit = unitFromId(c.unitId, stocks);
   return new AmountWithUnit({
-    amountCents: ownShareAmountCentsIgnoreRefunds(t),
+    amountCents: c.userShare.cents,
     unit,
   });
-}
-
-function ownShareAmountCentsIgnoreRefunds(t: Expense | Income): number {
-  const otherPartiesAmountCents = t.companions
-    .map(c => c.amountCents)
-    .reduce((a, b) => a + b, 0);
-  return t.amountCents - otherPartiesAmountCents;
 }

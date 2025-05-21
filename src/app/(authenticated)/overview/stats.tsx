@@ -42,17 +42,19 @@ export function StatsWidget() {
 
 export function Last30DaysIncomeExpense() {
   const displayCurrency = useDisplayCurrency();
-  const {accounts, stocks} = useCoreDataContext();
+  const {stocks} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
   const {exchange} = useMarketDataContext();
   const now = Date.now();
   const transactions30d = transactions.filter(
     t => differenceInDays(now, t.timestampEpoch) <= 30
   );
+  const incomeExpenseTransactions = transactions30d.filter(
+    t => t.kind === 'EXPENSE' || t.kind === 'INCOME'
+  );
   const {exchanged, failed} = exchangeTransactionAmounts({
     targetCurrency: displayCurrency,
-    transactions: transactions30d,
-    accounts,
+    transactions: incomeExpenseTransactions,
     stocks,
     exchange,
   });

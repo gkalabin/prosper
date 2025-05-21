@@ -3,12 +3,13 @@ import {TransactionNEWWithTagIds} from '@/lib/model/AllDatabaseDataModel';
 import {AccountBalanceUpdate} from '@/lib/model/transactionNEW/AccountBalanceUpdate';
 import {modelError} from '@/lib/model/transactionNEW/ModelParsingError';
 import {TransactionLineNEW as DBTransactionLine} from '@prisma/client';
+import {AmountPlain} from '../Amount';
 
 export type InitialBalance = {
   kind: 'INITIAL_BALANCE';
   transactionId: number;
   timestampEpoch: number;
-  balanceCents: number;
+  balance: AmountPlain;
   accountId: number;
 };
 
@@ -37,7 +38,7 @@ export function newInitialBalance({
     timestampEpoch: new Date(dbTransaction.timestamp).getTime(),
     // Lack of abs here is intentional as the initial balance can be either positive or negative
     // and there is only single balanceCents field.
-    balanceCents: accountUpdate.delta,
+    balance: accountUpdate.delta,
     accountId: accountUpdate.account.id,
   };
 }

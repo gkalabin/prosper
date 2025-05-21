@@ -96,8 +96,9 @@ model TransactionLineNEW {
   counterparty String?
 
   // Amounts in the account's currency
-  debitCents  Int? @default(0)
-  creditCents Int? @default(0)
+  debitCents                 Int? @default(0)
+  creditCents                Int? @default(0)
+  thirdPartyPayerAmountCents Int? @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
