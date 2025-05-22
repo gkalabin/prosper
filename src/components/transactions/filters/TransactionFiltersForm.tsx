@@ -70,7 +70,6 @@ export function TransactionFiltersForm(props: {onClose: () => void}) {
     {value: 'transfer', label: 'Transfer'},
     {value: 'income', label: 'Income'},
   ];
-  console.log(cn('w-full', 'w-4'));
   return (
     <div className="grid grid-cols-6 gap-6 bg-white p-2 shadow sm:rounded-md sm:p-6">
       <div className="col-span-6 text-xl font-medium leading-7">Filters</div>

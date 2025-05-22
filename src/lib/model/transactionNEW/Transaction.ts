@@ -110,14 +110,12 @@ function twoWayTransaction({
     debit.account.type == AccountType.LIABILITY &&
     credit.account.type == AccountType.ASSET
   ) {
-    const e = newUserPaidForSomeoneExpense({
+    return newUserPaidForSomeoneExpense({
       dbTransaction,
       lines,
       liability: debit,
       asset: credit,
     });
-    console.log(JSON.stringify(e, null, 2));
-    return e;
   }
   // Someone paid for the user,
   // the user's share of the expense is debited and

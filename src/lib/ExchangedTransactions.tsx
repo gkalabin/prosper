@@ -1,15 +1,10 @@
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {assert} from '@/lib/assert';
 import {Currency} from '@/lib/model/Currency';
-import {Income} from '@/lib/model/transaction/Income';
-import {
-  Expense,
-  Transaction,
-  isExpense,
-  isIncome,
-  isTransfer,
-} from '@/lib/model/transaction/Transaction';
-import {Transfer} from '@/lib/model/transaction/Transfer';
+import {Expense} from '@/lib/model/transactionNEW/Expense';
+import {Income} from '@/lib/model/transactionNEW/Income';
+import {Transaction} from '@/lib/model/transactionNEW/Transaction';
+import {Transfer} from '@/lib/model/transactionNEW/Transfer';
 import {isWithinInterval, type Interval} from 'date-fns';
 
 export type TransactionWithAmount = {
@@ -64,7 +59,7 @@ export class ExchangedTransactions {
   expenses(): ExchangedExpense[] {
     const result: ExchangedExpense[] = [];
     for (const x of this._exchanged) {
-      if (!isExpense(x.t)) {
+      if (x.t.kind !== 'EXPENSE') {
         continue;
       }
       // Copy t explicitly otherwise TypeScript thinks it's not an expense.
@@ -76,7 +71,7 @@ export class ExchangedTransactions {
   income(): ExchangedIncome[] {
     const result: ExchangedIncome[] = [];
     for (const x of this._exchanged) {
-      if (!isIncome(x.t)) {
+      if (x.t.kind !== 'INCOME') {
         continue;
       }
       // Copy t explicitly otherwise TypeScript thinks it's not an income transaction.
@@ -121,7 +116,7 @@ export class ExchangedIntervalTransactions extends ExchangedTransactions {
   transfers(): ExchangedTransfer[] {
     return this.transactions()
       .map(({t}) => t)
-      .filter((t): t is Transfer => isTransfer(t))
+      .filter((t): t is Transfer => t.kind === 'TRANSFER')
       .map(t => ({t}));
   }
 
