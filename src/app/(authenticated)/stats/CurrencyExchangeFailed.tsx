@@ -1,33 +1,32 @@
 'use client';
 import {Button} from '@/components/ui/button';
+import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
-import {fullAccountName} from '@/lib/model/BankAccount';
 import {
-  Transaction,
-  isIncome,
-  isPersonalExpense,
-  isThirdPartyExpense,
-  isTransfer,
-} from '@/lib/model/transaction/Transaction';
-import {
-  amountReceived,
-  amountSent,
-  incomingBankAccount,
-  outgoingBankAccount,
-} from '@/lib/model/transaction/Transfer';
-import {paidTotal} from '@/lib/model/transaction/amounts';
+  accountUnit,
+  fullAccountName,
+  mustFindAccount,
+} from '@/lib/model/Account';
+import {findAllPartiesAmount} from '@/lib/model/queries/TransactionAmount';
+import {Transaction} from '@/lib/model/transactionNEW/Transaction';
 import {format} from 'date-fns';
 import {useState} from 'react';
 
 export const TransactionTitle = ({t}: {t: Transaction}) => {
-  const {banks, stocks, bankAccounts} = useCoreDataContext();
+  const {banks, stocks, accounts} = useCoreDataContext();
   const date = format(t.timestampEpoch, 'MMM dd');
-  if (isTransfer(t)) {
-    const from = outgoingBankAccount(t, bankAccounts);
-    const to = incomingBankAccount(t, bankAccounts);
-    const sent = amountSent(t, bankAccounts, stocks);
-    const received = amountReceived(t, bankAccounts, stocks);
+  if (t.kind === 'TRANSFER') {
+    const from = mustFindAccount(t.fromAccountId, accounts);
+    const to = mustFindAccount(t.toAccountId, accounts);
+    const sent = new AmountWithUnit({
+      amountCents: t.sentAmount.cents,
+      unit: accountUnit(from, stocks),
+    });
+    const received = new AmountWithUnit({
+      amountCents: t.receivedAmount.cents,
+      unit: accountUnit(from, stocks),
+    });
     let amountText = sent.format();
     if (sent.cents() !== received.cents()) {
       amountText += `${sent.format()} → ${received.format()}`;
@@ -39,27 +38,26 @@ export const TransactionTitle = ({t}: {t: Transaction}) => {
       </>
     );
   }
-  if (isPersonalExpense(t)) {
+  if (t.kind === 'EXPENSE') {
     return (
       <>
-        [{date}] {t.vendor} {paidTotal(t, bankAccounts, stocks).format()}
+        [{date}] {t.vendor} {findAllPartiesAmount({t, stocks}).format()}
       </>
     );
   }
-  if (isThirdPartyExpense(t)) {
+  if (t.kind === 'INCOME') {
     return (
       <>
-        [{date}] {t.vendor} <small>paid by {t.payer}</small>{' '}
-        {paidTotal(t, bankAccounts, stocks).format()}
+        [{date}] {t.payer} +{findAllPartiesAmount({t, stocks}).format()}
       </>
     );
   }
-  if (isIncome(t)) {
-    return (
-      <>
-        [{date}] {t.payer} +{paidTotal(t, bankAccounts, stocks).format()}
-      </>
-    );
+  if (t.kind === 'INITIAL_BALANCE') {
+    const account = mustFindAccount(t.accountId, accounts);
+    return <>Initial balance of {fullAccountName(account, banks)}</>;
+  }
+  if (t.kind === 'NOOP') {
+    return <>Noop transaction ({t.transactionId})</>;
   }
   throw new Error(`Unknown transaction type ${t}`);
 };
@@ -86,7 +84,7 @@ export function CurrencyExchangeFailed({
       </div>
       <ul className="ml-6 list-disc">
         {visibleTransactions.map(t => (
-          <li key={t.id}>
+          <li key={t.transactionId}>
             <TransactionTitle t={t} />
           </li>
         ))}

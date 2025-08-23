@@ -49,7 +49,7 @@ export function fromDB({
     if (deltaCents == 0) {
       continue;
     }
-    const account = mustFindAccount(accounts, accountId);
+    const account = mustFindAccount(accountId, accounts);
     const delta = {cents: deltaCents};
     balanceUpates.push({account, delta});
   }

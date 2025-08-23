@@ -13,7 +13,7 @@ import {
   TransactionFiltersForm,
 } from '@/components/transactions/filters/TransactionFiltersForm';
 import {UpdateQueryOnFormChange} from '@/components/transactions/filters/UpdateQueryOnFormChange';
-import {TransactionsList} from '@/components/transactions/TransactionsList';
+import {TransactionsList} from '@/components/transactions/list/TransactionsList';
 import {TransactionStats} from '@/components/transactions/TransactionStats';
 import {Button} from '@/components/ui/button';
 import {Form} from '@/components/ui/form';

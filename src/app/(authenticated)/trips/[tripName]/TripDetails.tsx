@@ -1,6 +1,5 @@
 'use client';
 import {CurrencyExchangeFailed} from '@/app/(authenticated)/stats/CurrencyExchangeFailed';
-import {useExchangedTransactions} from '@/app/(authenticated)/stats/modelHelpers';
 import {
   NotConfiguredYet,
   isFullyConfigured,
@@ -9,19 +8,27 @@ import {ExpenseByCategory} from '@/components/charts/aggregate/ExpenseByCategory
 import {
   SortableTransactionsList,
   SortingMode,
-} from '@/components/transactions/SortableTransactionsList';
+} from '@/components/transactions/list/SortableTransactionsList';
 import {Button} from '@/components/ui/button';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
-import {CoreDataContextProvider} from '@/lib/context/CoreDataContext';
-import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
+import {
+  CoreDataContextProvider,
+  useCoreDataContext,
+} from '@/lib/context/CoreDataContext';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {
+  MarketDataContextProvider,
+  useMarketDataContext,
+} from '@/lib/context/MarketDataContext';
 import {
   TransactionDataContextProvider,
   useTransactionDataContext,
 } from '@/lib/context/TransactionDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {Trip, tripModelFromDB} from '@/lib/model/Trip';
-import {hasTrip} from '@/lib/model/transaction/Transaction';
+import {exchangeTransactionAmounts} from '@/lib/model/queries/ExchangeTransactionAmounts';
+import {hasTrip} from '@/lib/model/queries/TransactionMetadata';
 import {Trip as DBTrip} from '@prisma/client';
 import Link from 'next/link';
 
@@ -55,10 +62,18 @@ function TripTextSummary({input}: {input: ExchangedTransactions}) {
 
 function NonEmptyTripDetails(props: {trip: Trip}) {
   const {transactions} = useTransactionDataContext();
-  const tripTransactions = transactions.filter(
-    t => hasTrip(t) && t.tripId === props.trip.id
-  );
-  const {input, failed} = useExchangedTransactions(tripTransactions);
+  const {stocks} = useCoreDataContext();
+  const {exchange} = useMarketDataContext();
+  const displayCurrency = useDisplayCurrency();
+  const tripTransactions = transactions
+    .filter(hasTrip)
+    .filter(t => t.tripId === props.trip.id);
+  const {exchanged, failed} = exchangeTransactionAmounts({
+    transactions: tripTransactions,
+    targetCurrency: displayCurrency,
+    stocks,
+    exchange,
+  });
   return (
     <div>
       <Button variant="link" size="inherit" asChild>
@@ -66,13 +81,13 @@ function NonEmptyTripDetails(props: {trip: Trip}) {
       </Button>
       <h1 className="text-xl leading-7">{props.trip.name}</h1>
       <CurrencyExchangeFailed failedTransactions={failed} />
-      <TripTextSummary input={input} />
-      <TripSpendingStats input={input} />
+      <TripTextSummary input={exchanged} />
+      <TripSpendingStats input={exchanged} />
       <h2 className="mt-4 text-xl leading-7">
-        Transactions ({input.transactions().length})
+        Transactions ({exchanged.transactions().length})
       </h2>
       <SortableTransactionsList
-        transactions={input.transactions().map(({t}) => t)}
+        transactions={exchanged.transactions().map(({t}) => t)}
         initialSorting={SortingMode.DATE_ASC}
       />
     </div>

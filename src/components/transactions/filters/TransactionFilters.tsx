@@ -1,7 +1,7 @@
 import {FiltersFormSchema} from '@/components/transactions/filters/FiltersFormSchema';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
-import {Transaction} from '@/lib/model/transaction/Transaction';
+import {Transaction} from '@/lib/model/transactionNEW/Transaction';
 import {
   QuerySyntaxError,
   SearchParams,
@@ -16,7 +16,7 @@ export function useFilteredTransactions(): {
 } {
   const {
     banks,
-    bankAccounts,
+    accounts,
     categories: allCategories,
     trips,
     tags,
@@ -28,7 +28,7 @@ export function useFilteredTransactions(): {
     query,
     transactions,
     banks,
-    bankAccounts,
+    accounts,
     categories: allCategories,
     trips,
     tags,

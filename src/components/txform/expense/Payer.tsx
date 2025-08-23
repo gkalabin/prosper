@@ -11,8 +11,11 @@ import {
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
 import {uniqMostFrequentIgnoringEmpty} from '@/lib/collections';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
-import {Transaction} from '@/lib/model/transaction/Transaction';
+import {transactionCompanionNameOrNull} from '@/lib/model/queries/TransactionMetadata';
+import { Expense } from '@/lib/model/transactionNEW/Expense';
+import {Transaction} from '@/lib/model/transactionNEW/Transaction';
 import {useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
@@ -59,14 +62,19 @@ export function Payer() {
   );
 }
 
-function payerOrNull(t: Transaction) {
+function payerOrNull(t: Expense) {
   return t.kind == 'ThirdPartyExpense' ? t.payer : null;
 }
 
 function useUniqueFrequentPayers(): string[] {
   const {transactions} = useTransactionDataContext();
+  const {accounts} = useCoreDataContext();
+  const expenses = transactions.filter(t => t.kind === 'EXPENSE');
   return useMemo(
-    () => uniqMostFrequentIgnoringEmpty(transactions.map(payerOrNull)),
-    [transactions]
+    () =>
+      uniqMostFrequentIgnoringEmpty(
+        expenses.map(t => transactionCompanionNameOrNull({t, accounts}))
+      ),
+    [expenses, accounts]
   );
 }

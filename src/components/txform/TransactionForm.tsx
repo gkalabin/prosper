@@ -28,7 +28,7 @@ import {Form} from '@/components/ui/form';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
-import {Transaction} from '@/lib/model/transaction/Transaction';
+import {Transaction} from '@/lib/model/transactionNEW/Transaction';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useCallback, useState} from 'react';
@@ -70,7 +70,7 @@ export function TransactionForm(props: {
 }) {
   const {categories} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
-  const bankAccounts = useDisplayBankAccounts();
+  const accounts = useDisplayBankAccounts();
   const [proto, setProto] = useState<TransactionPrototype | null>(null);
   const creatingNewTransaction = !props.transaction;
   // Form values update strategy:
@@ -90,26 +90,21 @@ export function TransactionForm(props: {
   const formType = form.watch('formType');
   const onFormTypeChange = (newFormType: FormType): void => {
     form.reset(
-      valuesForNewType(
-        form.getValues(),
-        newFormType,
-        bankAccounts,
-        transactions
-      )
+      valuesForNewType(form.getValues(), newFormType, accounts, transactions)
     );
   };
   const onPrototypeChange = useCallback(
     (proto: TransactionPrototype): void => {
       setProto(proto);
       form.reset(
-        valuesForPrototype({proto, bankAccounts, categories, transactions})
+        valuesForPrototype({proto, accounts, categories, transactions})
       );
     },
-    [bankAccounts, categories, form, transactions]
+    [accounts, categories, form, transactions]
   );
   const onSubmit = form.handleSubmit(async (data: TransactionFormSchema) => {
     try {
-      const transactionId = props.transaction?.id ?? null;
+      const transactionId = props.transaction?.transactionId ?? null;
       const usedProtos = proto ? [proto] : [];
       const response = await upsertTransaction(transactionId, usedProtos, data);
       if (response.status === 'SUCCESS') {
@@ -122,7 +117,7 @@ export function TransactionForm(props: {
             emptyValuesForType({
               formType,
               transactions,
-              bankAccounts,
+              accounts,
               categories,
             })
           );

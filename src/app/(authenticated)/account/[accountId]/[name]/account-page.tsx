@@ -4,7 +4,7 @@ import {
   isFullyConfigured,
   NotConfiguredYet,
 } from '@/components/NotConfiguredYet';
-import {TransactionsList} from '@/components/transactions/TransactionsList';
+import {TransactionsList} from '@/components/transactions/list/TransactionsList';
 import {NewTransactionFormDialog} from '@/components/txform/TransactionForm';
 import {Button} from '@/components/ui/button';
 import {
@@ -18,7 +18,7 @@ import {
 } from '@/lib/context/TransactionDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {findAccountTransactions} from '@/lib/model/queries/AccountTransactions';
-import {BankAccount as DBBankAccount} from '@prisma/client';
+import {AccountNEW as DBAccountNEW} from '@prisma/client';
 import {notFound} from 'next/navigation';
 import {useState} from 'react';
 
@@ -62,7 +62,7 @@ export function AccountPage({
   dbAccount,
 }: {
   dbData: AllDatabaseData;
-  dbAccount: DBBankAccount;
+  dbAccount: DBAccountNEW;
 }) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;

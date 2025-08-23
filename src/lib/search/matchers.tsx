@@ -1,4 +1,5 @@
-import {Bank, BankAccount} from '@/lib/model/BankAccount';
+import {Account} from '@/lib/model/Account';
+import {Bank} from '@/lib/model/Bank';
 import {CategoryTree, getNameWithAncestors} from '@/lib/model/Category';
 import {Tag} from '@/lib/model/Tag';
 import {Trip} from '@/lib/model/Trip';
@@ -41,7 +42,7 @@ export function matchAnyField(
   term: string,
   c: CaseMatch,
   banks: Bank[],
-  bankAccounts: BankAccount[],
+  accounts: Account[],
   categoryTree: CategoryTree,
   trips: Trip[],
   tags: Tag[]
@@ -53,8 +54,8 @@ export function matchAnyField(
     matchOtherParty(t, term, c) ||
     matchAmount(t, term) ||
     matchTransactionId(t, term) ||
-    matchBank(t, term, c, banks, bankAccounts) ||
-    matchBankAccount(t, term, c, bankAccounts) ||
+    matchBank(t, term, c, banks, accounts) ||
+    matchBankAccount(t, term, c, accounts) ||
     matchCategory(t, term, c, categoryTree) ||
     matchTrip(t, term, c, trips) ||
     matchTag(t, term, c, tags) ||

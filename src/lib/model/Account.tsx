@@ -1,8 +1,8 @@
-import { assert } from '@/lib/assert';
-import { Bank, bankNameForURL } from '@/lib/model/Bank';
-import { mustFindByCode } from '@/lib/model/Currency';
-import { Stock } from '@/lib/model/Stock';
-import { Unit, UnitId } from '@/lib/model/Unit';
+import {assert} from '@/lib/assert';
+import {Bank, bankNameForURL} from '@/lib/model/Bank';
+import {mustFindByCode} from '@/lib/model/Currency';
+import {Stock} from '@/lib/model/Stock';
+import {Unit, UnitId} from '@/lib/model/Unit';
 import {
   AccountOwnershipNEW,
   AccountTypeNEW,
@@ -148,7 +148,7 @@ export function fullAccountName(account: Account, banks: Bank[]): string {
   return `${bank.name}: ${account.name}`;
 }
 
-export function mustFindAccount(accounts: Account[], id: number): Account {
+export function mustFindAccount(id: number, accounts: Account[]): Account {
   const account = accounts.find(a => a.id === id);
   if (!account) {
     throw new Error(`Account ${id} not found`);

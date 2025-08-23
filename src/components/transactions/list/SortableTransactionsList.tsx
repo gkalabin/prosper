@@ -1,19 +1,19 @@
 import {CurrencyExchangeFailed} from '@/app/(authenticated)/stats/CurrencyExchangeFailed';
-import {TransactionsList} from '@/components/transactions/TransactionsList';
+import {TransactionsList} from '@/components/transactions/list/TransactionsList';
 import {Button} from '@/components/ui/button';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
+import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {StockAndCurrencyExchange} from '@/lib/ClientSideModel';
 import {assertDefined} from '@/lib/assert';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {useMarketDataContext} from '@/lib/context/MarketDataContext';
-import {BankAccount} from '@/lib/model/BankAccount';
+import {Account, accountUnit, mustFindAccount} from '@/lib/model/Account';
 import {Currency} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';
 import {isCurrency, isStock} from '@/lib/model/Unit';
-import {Transaction, isTransfer} from '@/lib/model/transaction/Transaction';
-import {amountSent} from '@/lib/model/transaction/Transfer';
-import {amountAllParties} from '@/lib/model/transaction/amounts';
+import {findAllPartiesAmount} from '@/lib/model/queries/TransactionAmount';
+import {Transaction} from '@/lib/model/transactionNEW/Transaction';
 import {useState} from 'react';
 
 export enum SortingMode {
@@ -23,44 +23,72 @@ export enum SortingMode {
   AMOUNT_DESC,
 }
 
+function amountUnit(
+  transaction: Transaction,
+  accounts: Account[],
+  stocks: Stock[]
+): AmountWithUnit | undefined {
+  const kind = transaction.kind;
+  if (kind === 'TRANSFER') {
+    const a = mustFindAccount(transaction.fromAccountId, accounts);
+    return new AmountWithUnit({
+      amountCents: transaction.sentAmount.cents,
+      unit: accountUnit(a, stocks),
+    });
+  }
+  if (kind === 'EXPENSE' || kind === 'INCOME') {
+    return findAllPartiesAmount({t: transaction, stocks});
+  }
+  if (kind === 'INITIAL_BALANCE') {
+    const a = mustFindAccount(transaction.accountId, accounts);
+    return new AmountWithUnit({
+      amountCents: transaction.balance.cents,
+      unit: accountUnit(a, stocks),
+    });
+  }
+  if (kind === 'NOOP') {
+    const a = mustFindAccount(transaction.accountIds[0], accounts);
+    return new AmountWithUnit({
+      amountCents: 0,
+      unit: accountUnit(a, stocks),
+    });
+  }
+  const _exhaustivenessCheck: never = kind;
+  throw new Error(`Unknown transaction type: ${_exhaustivenessCheck}`);
+}
+
 function amount(
   transaction: Transaction,
   displayCurrency: Currency,
-  bankAccounts: BankAccount[],
+  accounts: Account[],
   stocks: Stock[],
   exchange: StockAndCurrencyExchange
 ): AmountWithCurrency | undefined {
-  if (isTransfer(transaction)) {
-    const sent = amountSent(transaction, bankAccounts, stocks);
-    const unit = sent.getUnit();
-    if (isCurrency(unit)) {
-      const amount = new AmountWithCurrency({
-        amountCents: sent.cents(),
-        currency: unit,
-      });
-      return exchange.exchangeCurrency(
-        amount,
-        displayCurrency,
-        transaction.timestampEpoch
-      );
-    }
-    if (isStock(unit)) {
-      return exchange.exchangeStock(
-        sent.getAmount(),
-        unit,
-        displayCurrency,
-        transaction.timestampEpoch
-      );
-    }
-    throw new Error(`Unknown unit: ${unit}`);
+  const a = amountUnit(transaction, accounts, stocks);
+  if (!a) {
+    return undefined;
   }
-  return amountAllParties(
-    transaction,
-    displayCurrency,
-    bankAccounts,
-    stocks,
-    exchange
-  );
+  const unit = a.getUnit();
+  if (isCurrency(unit)) {
+    const amount = new AmountWithCurrency({
+      amountCents: a.cents(),
+      currency: unit,
+    });
+    return exchange.exchangeCurrency(
+      amount,
+      displayCurrency,
+      transaction.timestampEpoch
+    );
+  }
+  if (isStock(unit)) {
+    return exchange.exchangeStock(
+      a.getAmount(),
+      unit,
+      displayCurrency,
+      transaction.timestampEpoch
+    );
+  }
+  throw new Error(`Unknown unit: ${unit}`);
 }
 
 export const SortableTransactionsList = (props: {
@@ -71,7 +99,7 @@ export const SortableTransactionsList = (props: {
   const [sorting, setSorting] = useState(
     props.initialSorting ?? SortingMode.DATE_ASC
   );
-  const {bankAccounts, stocks} = useCoreDataContext();
+  const {accounts, stocks} = useCoreDataContext();
   const {exchange} = useMarketDataContext();
   const displayCurrency = useDisplayCurrency();
   if (props.transactions.length == 0) {
@@ -86,7 +114,7 @@ export const SortableTransactionsList = (props: {
       a: AmountWithCurrency | undefined;
     }> = [...props.transactions].map(t => ({
       t,
-      a: amount(t, displayCurrency, bankAccounts, stocks, exchange),
+      a: amount(t, displayCurrency, accounts, stocks, exchange),
     }));
     failedToExchange.push(
       ...transactionsWithAmount.filter(x => !x.a).map(x => x.t)

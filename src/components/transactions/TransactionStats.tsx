@@ -6,11 +6,7 @@ import {TimelineAmountsChart} from '@/components/charts/timeseries/TimelineAmoun
 import {Button} from '@/components/ui/button';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
-import {
-  Transaction,
-  isPersonalExpense,
-  isThirdPartyExpense,
-} from '@/lib/model/transaction/Transaction';
+import {Transaction} from '@/lib/model/transactionNEW/Transaction';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries, percentile} from '@/lib/util/Timeseries';
 import {capitalize} from '@/lib/util/util';
@@ -70,14 +66,7 @@ function TextSummary({input}: {input: ExchangedIntervalTransactions}) {
       Matched {input.transactions().length} transactions over the last{' '}
       {differenceInMonths(input.interval().end, input.interval().start)} months
       <div className="ml-2 text-sm text-slate-600">
-        <div>
-          Personal:{' '}
-          {input.expenses().filter(({t}) => isPersonalExpense(t)).length}
-        </div>
-        <div>
-          External:{' '}
-          {input.expenses().filter(({t}) => isThirdPartyExpense(t)).length}
-        </div>
+        <div>Expenses: {input.expenses().length}</div>
         <div>Transfers: {input.transfers().length}</div>
         <div>Income: {input.income().length}</div>
         <div>First: {new Date(input.interval().start).toISOString()}</div>

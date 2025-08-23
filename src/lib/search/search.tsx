@@ -1,8 +1,9 @@
-import {Bank, BankAccount} from '@/lib/model/BankAccount';
+import {Account} from '@/lib/model/Account';
+import {Bank} from '@/lib/model/Bank';
 import {Category, makeCategoryTree} from '@/lib/model/Category';
 import {Tag} from '@/lib/model/Tag';
 import {Trip} from '@/lib/model/Trip';
-import {Transaction} from '@/lib/model/transaction/Transaction';
+import {Transaction} from '@/lib/model/transactionNEW/Transaction';
 import QueryLexer from '@/lib/search/generated/TransactionSearchQueryLexer';
 import QueryParser from '@/lib/search/generated/TransactionSearchQueryParser';
 import {CaseMatch, matchAnyField} from '@/lib/search/matchers';
@@ -42,7 +43,7 @@ export type SearchParams = {
   query: string;
   transactions: Transaction[];
   banks: Bank[];
-  bankAccounts: BankAccount[];
+  accounts: Account[];
   categories: Category[];
   trips: Trip[];
   tags: Tag[];
@@ -52,7 +53,7 @@ export function search({
   query,
   transactions,
   banks,
-  bankAccounts,
+  accounts,
   categories,
   trips,
   tags,
@@ -80,7 +81,7 @@ export function search({
     new TransactionSearchQueryVisitor(
       transactions,
       banks,
-      bankAccounts,
+      accounts,
       categories,
       trips,
       tags
@@ -94,7 +95,7 @@ export function fallbackSearch({
   query,
   transactions,
   banks,
-  bankAccounts,
+  accounts,
   categories,
   trips,
   tags,
@@ -109,7 +110,7 @@ export function fallbackSearch({
       query,
       CaseMatch.CaseInsensitive,
       banks,
-      bankAccounts,
+      accounts,
       tree,
       trips,
       tags

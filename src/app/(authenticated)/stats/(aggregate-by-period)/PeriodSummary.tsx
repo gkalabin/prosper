@@ -1,7 +1,6 @@
 'use client';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
-import {isExpense} from '@/lib/model/transaction/Transaction';
 
 export function PeriodSummary({input}: {input: ExchangedIntervalTransactions}) {
   let expense = AmountWithCurrency.zero(input.currency());
@@ -17,7 +16,7 @@ export function PeriodSummary({input}: {input: ExchangedIntervalTransactions}) {
     : expense.dollar() / income.dollar();
   let trips = AmountWithCurrency.zero(input.currency());
   for (const {t, ownShare} of input.expenses()) {
-    if (!isExpense(t) || !t.tripId) {
+    if (!t.tripId) {
       continue;
     }
     trips = trips.add(ownShare);

@@ -1,9 +1,4 @@
-import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
-import {
-  ExchangedIntervalTransactions,
-  ExchangedTransaction,
-  ExchangedTransactions,
-} from '@/lib/ExchangedTransactions';
+import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {useMarketDataContext} from '@/lib/context/MarketDataContext';
@@ -14,18 +9,17 @@ import {
   makeCategoryTree,
   mustFindCategory,
 } from '@/lib/model/Category';
-import {Transaction} from '@/lib/model/transaction/Transaction';
-import {
-  amountAllParties,
-  amountOwnShare,
-} from '@/lib/model/transaction/amounts';
+import {exchangeTransactionAmounts} from '@/lib/model/queries/ExchangeTransactionAmounts';
+import {Expense} from '@/lib/model/transactionNEW/Expense';
+import {Income} from '@/lib/model/transactionNEW/Income';
+import {Transaction} from '@/lib/model/transactionNEW/Transaction';
 import {type Interval} from 'date-fns';
 
 function filterExcludedTransactions(
-  allTransactions: Transaction[],
+  allTransactions: (Income | Expense)[],
   excludeCategoryIds: number[],
   all: Category[]
-): Transaction[] {
+): (Income | Expense)[] {
   const tree = makeCategoryTree(all);
   const direct = excludeCategoryIds.map(cid => mustFindCategory(cid, all));
   const descendants = direct
@@ -33,94 +27,63 @@ function filterExcludedTransactions(
     .map(c => c.category);
   const allExclusion = [...direct, ...descendants];
   const exclude = new Set<number>(allExclusion.map(c => c.id));
-  return allTransactions.filter(t => !exclude.has(t.categoryId));
+  return allTransactions.filter(t => !exclude.has(t.categorisation.categoryId));
 }
 
 export function useStatsPageProps(
   excludeCategories: number[],
   duration: Interval<Date>
 ): {input: ExchangedIntervalTransactions; failed: Transaction[]} {
-  const {categories} = useCoreDataContext();
+  const {categories, stocks} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
+  const {exchange} = useMarketDataContext();
+  const displayCurrency = useDisplayCurrency();
+  const incomeExpenseTransactions = transactions.filter(
+    t => t.kind === 'EXPENSE' || t.kind === 'INCOME'
+  );
   const filteredTransactions = filterExcludedTransactions(
-    transactions,
+    incomeExpenseTransactions,
     excludeCategories,
     categories
   );
-  const {input, failed} = useExchangedTransactions(filteredTransactions);
+  const {exchanged, failed} = exchangeTransactionAmounts({
+    transactions: filteredTransactions,
+    targetCurrency: displayCurrency,
+    stocks,
+    exchange,
+  });
   return {
     input: new ExchangedIntervalTransactions(
       duration,
-      input.transactions(),
-      input.currency()
+      exchanged.transactions(),
+      exchanged.currency()
     ),
     failed,
   };
 }
 
 export function useExchangedIntervalTransactions(
-  trasactions: Transaction[],
+  transactions: Transaction[],
   duration: Interval<Date>
 ): {input: ExchangedIntervalTransactions; failed: Transaction[]} {
-  const {input, failed} = useExchangedTransactions(trasactions);
+  const {stocks} = useCoreDataContext();
+  const {exchange} = useMarketDataContext();
+  const displayCurrency = useDisplayCurrency();
+  const incomeExpenseTransactions = transactions.filter(
+    t => t.kind === 'EXPENSE' || t.kind === 'INCOME'
+  );
+  const {exchanged, failed} = exchangeTransactionAmounts({
+    transactions: incomeExpenseTransactions,
+    targetCurrency: displayCurrency,
+    stocks,
+    exchange,
+  });
   return {
     input: new ExchangedIntervalTransactions(
       duration,
-      input.transactions(),
-      input.currency()
+      exchanged.transactions(),
+      exchanged.currency()
     ),
-    failed,
-  };
-}
-
-export function useExchangedTransactions(trasactions: Transaction[]): {
-  input: ExchangedTransactions;
-  failed: Transaction[];
-} {
-  const {bankAccounts, stocks} = useCoreDataContext();
-  const {exchange} = useMarketDataContext();
-  const displayCurrency = useDisplayCurrency();
-  const failed: Transaction[] = [];
-  const exchanged: ExchangedTransaction[] = [];
-  for (const t of trasactions) {
-    if (t.kind == 'Transfer') {
-      exchanged.push({
-        t,
-        ownShare: AmountWithCurrency.zero(displayCurrency),
-        allParties: AmountWithCurrency.zero(displayCurrency),
-      });
-      continue;
-    }
-    const own = amountOwnShare(
-      t,
-      displayCurrency,
-      bankAccounts,
-      stocks,
-      exchange
-    );
-    if (!own) {
-      failed.push(t);
-      continue;
-    }
-    const all = amountAllParties(
-      t,
-      displayCurrency,
-      bankAccounts,
-      stocks,
-      exchange
-    );
-    if (!all) {
-      failed.push(t);
-      continue;
-    }
-    exchanged.push({
-      t,
-      ownShare: own,
-      allParties: all,
-    });
-  }
-  return {
-    input: new ExchangedTransactions(exchanged, displayCurrency),
     failed,
   };
 }

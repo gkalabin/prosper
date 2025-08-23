@@ -14,7 +14,7 @@ import {
 } from '@/components/txform/shared/useTopCategoryIds';
 import {TransferFormSchema} from '@/components/txform/transfer/types';
 import {assert} from '@/lib/assert';
-import {BankAccount} from '@/lib/model/BankAccount';
+import {Account} from '@/lib/model/Account';
 import {Category} from '@/lib/model/Category';
 import {Tag} from '@/lib/model/Tag';
 import {ownShareAmountCentsIgnoreRefunds} from '@/lib/model/transaction/amounts';
@@ -22,12 +22,7 @@ import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
 import {ThirdPartyExpense} from '@/lib/model/transaction/ThirdPartyExpense';
 import {
   Transaction,
-  isExpense,
-  isPersonalExpense,
-  isThirdPartyExpense,
-  transactionTags,
-  transactionTrip,
-} from '@/lib/model/transaction/Transaction';
+} from '@/lib/model/transactionNEW/Transaction';
 import {TransactionLink} from '@/lib/model/TransactionLink';
 import {Trip} from '@/lib/model/Trip';
 import {WithdrawalPrototype} from '@/lib/txsuggestions/TransactionPrototype';
@@ -37,11 +32,11 @@ import {startOfDay} from 'date-fns';
 export function expenseFormEmpty({
   transactions,
   categories,
-  bankAccounts,
+  accounts,
 }: {
   transactions: Transaction[];
   categories: Category[];
-  bankAccounts: BankAccount[];
+  accounts: Account[];
 }): ExpenseFormSchema {
   // If there are no expenses at all, the most frequent value will not be defined,
   // so fall back to the first category in that case.
@@ -60,7 +55,7 @@ export function expenseFormEmpty({
     categoryId,
     accountId: mostFrequentBankAccount({
       transactions,
-      bankAccounts,
+      accounts,
       transactionToAccountId: t => (isPersonalExpense(t) ? t.accountId : null),
     }),
     tagNames: [],
@@ -79,14 +74,14 @@ export function expenseFromPrototype({
   proto,
   transactions,
   categories,
-  bankAccounts,
+  accounts,
 }: {
   proto: WithdrawalPrototype;
   transactions: Transaction[];
   categories: Category[];
-  bankAccounts: BankAccount[];
+  accounts: Account[];
 }): ExpenseFormSchema {
-  const account = bankAccounts.find(a => a.id == proto.internalAccountId);
+  const account = accounts.find(a => a.id == proto.internalAccountId);
   const shared = account?.joint ?? false;
   const companion = shared ? mostFrequentCompanion(transactions) : null;
   // If there are no expenses at all, the most frequent value will not be defined,

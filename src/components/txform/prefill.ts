@@ -1,17 +1,17 @@
 import {assert} from '@/lib/assert';
 import {uniqMostFrequentIgnoringEmpty} from '@/lib/collections';
-import {BankAccount} from '@/lib/model/BankAccount';
-import {
-  otherPartyNameOrNull,
-  Transaction,
-} from '@/lib/model/transaction/Transaction';
+import {Account} from '@/lib/model/Account';
+import {Transaction} from '@/lib/model/transactionNEW/Transaction';
 import {TransactionLink} from '@/lib/model/TransactionLink';
+import {transactionCompanionNameOrNull} from '@/lib/model/queries/TransactionMetadata';
 
 export function mostFrequentCompanion(
   transactions: Transaction[]
 ): string | null {
   const companions = uniqMostFrequentIgnoringEmpty(
-    transactions.map(otherPartyNameOrNull)
+    transactions
+      .filter(t => t.kind === 'INCOME' || t.kind === 'EXPENSE')
+      .map(transactionCompanionNameOrNull)
   );
   if (companions.length > 0) {
     return companions[0];
@@ -46,7 +46,7 @@ export function mostFrequentBankAccount({
   transactionToAccountId,
 }: {
   transactions: Transaction[];
-  bankAccounts: BankAccount[];
+  bankAccounts: Account[];
   transactionToAccountId: (t: Transaction) => number | null;
 }) {
   assert(bankAccounts.length > 0);

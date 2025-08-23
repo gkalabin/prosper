@@ -8,8 +8,8 @@ import {
 } from '@/components/ui/form';
 import {Select} from '@/components/ui/html-select';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
+import {Account as AccountModel, fullAccountName} from '@/lib/model/Account';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
-import {BankAccount, fullAccountName} from '@/lib/model/BankAccount';
 import {useFormContext} from 'react-hook-form';
 
 export function Account({
@@ -25,7 +25,7 @@ export function Account({
 }) {
   const {control} = useFormContext<TransactionFormSchema>();
   const displayAccounts = useDisplayBankAccounts();
-  const {banks, bankAccounts: allAccounts} = useCoreDataContext();
+  const {banks, accounts: allAccounts} = useCoreDataContext();
   return (
     <FormField
       control={control}
@@ -65,8 +65,8 @@ function accountOptions({
   allAccounts,
   accountId,
 }: {
-  displayAccounts: BankAccount[];
-  allAccounts: BankAccount[];
+  displayAccounts: AccountModel[];
+  allAccounts: AccountModel[];
   accountId: number | null;
 }) {
   if (!accountId) {

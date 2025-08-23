@@ -46,10 +46,12 @@ function ExpenseByCategory({
     new MoneyTimeseries(input.currency(), Granularity.MONTHLY);
   const byId = new DefaultMap<number, MoneyTimeseries>(newEmptySeries);
   for (const {t, ownShare} of input.expenses()) {
-    if (!subtreeIncludes(root, t.categoryId, tree)) {
+    if (!subtreeIncludes(root, t.categorisation.categoryId, tree)) {
       continue;
     }
-    byId.getOrCreate(t.categoryId).increment(t.timestampEpoch, ownShare);
+    byId
+      .getOrCreate(t.categorisation.categoryId)
+      .increment(t.timestampEpoch, ownShare);
   }
   if (byId.size == 0) {
     return <></>;

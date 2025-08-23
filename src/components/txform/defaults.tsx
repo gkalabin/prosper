@@ -23,20 +23,16 @@ import {FormType, TransactionFormSchema} from '@/components/txform/types';
 import {assertDefined} from '@/lib/assert';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
-import {BankAccount} from '@/lib/model/BankAccount';
+import {Account} from '@/lib/model/Account';
 import {Category} from '@/lib/model/Category';
 import {Tag} from '@/lib/model/Tag';
-import {
-  isIncome,
-  isTransfer,
-  Transaction,
-} from '@/lib/model/transaction/Transaction';
 import {TransactionLink} from '@/lib/model/TransactionLink';
+import {Transaction} from '@/lib/model/transactionNEW/Transaction';
 import {Trip} from '@/lib/model/Trip';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 
 export function useFormDefaults(tx: Transaction | null): TransactionFormSchema {
-  const {categories, bankAccounts, tags, trips} = useCoreDataContext();
+  const {categories, accounts, tags, trips} = useCoreDataContext();
   const {transactions, transactionLinks} = useTransactionDataContext();
   // Initial values when creating new transaction from scratch.
   if (!tx) {
@@ -45,7 +41,7 @@ export function useFormDefaults(tx: Transaction | null): TransactionFormSchema {
       expense: expenseFormEmpty({
         transactions,
         categories,
-        bankAccounts,
+        accounts,
       }),
     };
   }
@@ -58,7 +54,7 @@ function valuesForTransaction(
   tags: Tag[],
   trips: Trip[]
 ): TransactionFormSchema {
-  if (isIncome(tx)) {
+  if (tx.kind === 'INCOME') {
     return {
       formType: 'INCOME',
       income: incomeFromTransaction({
@@ -68,7 +64,7 @@ function valuesForTransaction(
       }),
     };
   }
-  if (isTransfer(tx)) {
+  if (tx.kind === 'TRANSFER') {
     return {
       formType: 'TRANSFER',
       transfer: transferFromTransaction({
@@ -77,27 +73,30 @@ function valuesForTransaction(
       }),
     };
   }
-  return {
-    formType: 'EXPENSE',
-    expense: expenseFromTransaction({
-      expense: tx,
-      allTags: tags,
-      allLinks: transactionLinks,
-      allTrips: trips,
-    }),
-  };
+  if (tx.kind === 'EXPENSE') {
+    return {
+      formType: 'EXPENSE',
+      expense: expenseFromTransaction({
+        expense: tx,
+        allTags: tags,
+        allLinks: transactionLinks,
+        allTrips: trips,
+      }),
+    };
+  }
+  throw new Error(`Unsupported transaction kind: ${tx.kind}`);
 }
 
 export function emptyValuesForType({
   formType,
   transactions,
   categories,
-  bankAccounts,
+  accounts,
 }: {
   formType: FormType;
   transactions: Transaction[];
   categories: Category[];
-  bankAccounts: BankAccount[];
+  accounts: Account[];
 }): TransactionFormSchema {
   switch (formType) {
     case 'EXPENSE':
@@ -106,7 +105,7 @@ export function emptyValuesForType({
         expense: expenseFormEmpty({
           transactions,
           categories,
-          bankAccounts,
+          accounts,
         }),
       };
     case 'INCOME':
@@ -115,7 +114,7 @@ export function emptyValuesForType({
         income: incomeFormEmpty({
           transactions,
           categories,
-          bankAccounts,
+          accounts,
         }),
       };
     case 'TRANSFER':
@@ -124,7 +123,7 @@ export function emptyValuesForType({
         transfer: transferFormEmpty({
           transactions,
           categories,
-          bankAccounts,
+          accounts,
         }),
       };
     default:
@@ -137,12 +136,12 @@ export function valuesForPrototype({
   proto,
   transactions,
   categories,
-  bankAccounts,
+  accounts,
 }: {
   proto: TransactionPrototype;
   transactions: Transaction[];
   categories: Category[];
-  bankAccounts: BankAccount[];
+  accounts: BankAccount[];
 }): TransactionFormSchema {
   const tt = proto.type;
   switch (tt) {
@@ -151,7 +150,7 @@ export function valuesForPrototype({
         formType: 'EXPENSE',
         expense: expenseFromPrototype({
           proto,
-          bankAccounts,
+          accounts,
           transactions,
           categories,
         }),
@@ -161,7 +160,7 @@ export function valuesForPrototype({
         formType: 'INCOME',
         income: incomeFromPrototype({
           proto,
-          bankAccounts,
+          accounts,
           transactions,
           categories,
         }),
@@ -180,7 +179,7 @@ export function valuesForPrototype({
 export function valuesForNewType(
   prevForm: TransactionFormSchema,
   next: FormType | null,
-  bankAccounts: BankAccount[],
+  accounts: Account[],
   transactions: Transaction[]
 ): TransactionFormSchema {
   const prev = prevForm.formType;
@@ -193,7 +192,7 @@ export function valuesForNewType(
       formType: next,
       income: expenseToIncome({
         prev: prevForm.expense,
-        bankAccounts,
+        accounts,
         transactions,
       }),
     };
@@ -204,7 +203,7 @@ export function valuesForNewType(
       formType: next,
       transfer: expenseToTransfer({
         prev: prevForm.expense,
-        bankAccounts,
+        accounts,
         transactions,
       }),
     };

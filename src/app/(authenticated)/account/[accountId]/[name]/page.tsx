@@ -3,20 +3,20 @@ import {getUserIdOrRedirect} from '@/lib/auth/user';
 import {DB, fetchAllDatabaseData} from '@/lib/db';
 import {logRequest} from '@/lib/util/log';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
-import {BankAccount} from '@prisma/client';
+import {AccountNEW} from '@prisma/client';
 import {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 
 type Props = {params: {accountId: string}};
 
-async function fetchAccount(props: Props): Promise<BankAccount | null> {
+async function fetchAccount(props: Props): Promise<AccountNEW | null> {
   const userId = await getUserIdOrRedirect();
   const accountId = positiveIntOrNull(props.params.accountId);
   if (!accountId) {
     return null;
   }
   const db = new DB({userId});
-  const [account] = await db.bankAccountFindMany({where: {id: accountId}});
+  const [account] = await db.accountFindMany({where: {id: accountId}});
   return account ? account : null;
 }
 

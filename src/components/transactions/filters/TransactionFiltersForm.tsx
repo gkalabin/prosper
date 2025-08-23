@@ -14,9 +14,8 @@ import {
 import {Checkbox} from '@/components/ui/html-checkbox';
 import {Input} from '@/components/ui/input';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
-import {fullAccountName} from '@/lib/model/BankAccount';
+import {fullAccountName} from '@/lib/model/Account';
 import {getNameWithAncestors, makeCategoryTree} from '@/lib/model/Category';
-import {cn} from '@/lib/utils';
 import {useFormContext} from 'react-hook-form';
 
 export function SearchForAnythingInput() {
@@ -41,13 +40,13 @@ export function SearchForAnythingInput() {
 export function TransactionFiltersForm(props: {onClose: () => void}) {
   const {
     banks,
-    bankAccounts,
+    accounts,
     categories: allCategories,
     trips,
     tags,
   } = useCoreDataContext();
   const {control} = useFormContext<FiltersFormSchema>();
-  const bankAccountOptions = bankAccounts.map(a => ({
+  const bankAccountOptions = accounts.map(a => ({
     value: a.id,
     label: `${fullAccountName(a, banks)}` + (a.archived ? ' (archived)' : ''),
   }));

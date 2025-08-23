@@ -16,7 +16,7 @@ import {VendorsByTransactionCount} from '@/components/charts/aggregate/VendorsBy
 import {
   SortableTransactionsList,
   SortingMode,
-} from '@/components/transactions/SortableTransactionsList';
+} from '@/components/transactions/list/SortableTransactionsList';
 import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {CoreDataContextProvider} from '@/lib/context/CoreDataContext';
 import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';

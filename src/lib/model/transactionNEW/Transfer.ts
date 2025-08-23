@@ -13,7 +13,9 @@ export type Transfer = {
   sentAmount: AmountPlain;
   receivedAmount: AmountPlain;
   note: string;
-  categoryId: number;
+  categorisation: {
+    categoryId: number;
+  };
   tagsIds: number[];
   tripId: number | null;
 };
@@ -44,7 +46,7 @@ export function newTransfer({
     sentAmount: abs(credit.delta),
     receivedAmount: abs(debit.delta),
     note: dbTransaction.description,
-    categoryId,
+    categorisation: {categoryId},
     tagsIds: dbTransaction.tags.map(t => t.id),
     tripId: dbTransaction.tripId,
   };

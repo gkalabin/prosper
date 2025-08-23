@@ -20,17 +20,12 @@ import {
   useTransactionDataContext,
 } from '@/lib/context/TransactionDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
-import {BankAccount} from '@/lib/model/BankAccount';
 import {Currency} from '@/lib/model/Currency';
+import {exchangeAmountWithUnit} from '@/lib/model/queries/ExchangeAmount';
+import {findAllPartiesAmount} from '@/lib/model/queries/TransactionAmount';
+import {hasTrip} from '@/lib/model/queries/TransactionMetadata';
 import {Stock} from '@/lib/model/Stock';
-import {amountAllParties} from '@/lib/model/transaction/amounts';
-import {Income} from '@/lib/model/transaction/Income';
-import {
-  Expense,
-  isExpense,
-  isIncome,
-  Transaction,
-} from '@/lib/model/transaction/Transaction';
+import {Transaction} from '@/lib/model/transactionNEW/Transaction';
 import {Trip} from '@/lib/model/Trip';
 import {cn} from '@/lib/utils';
 import Link from 'next/link';
@@ -39,32 +34,31 @@ function tripTotalSpend(
   tripId: number,
   allTransactions: Transaction[],
   displayCurrency: Currency,
-  bankAccounts: BankAccount[],
   stocks: Stock[],
   exchange: StockAndCurrencyExchange
 ): AmountWithCurrency | undefined {
   let total = AmountWithCurrency.zero(displayCurrency);
   for (const t of allTransactions) {
-    if (!isExpense(t) && !isIncome(t)) {
+    if (t.kind !== 'EXPENSE' && t.kind !== 'INCOME') {
       continue;
     }
     if (t.tripId != tripId) {
       continue;
     }
-    const amount = amountAllParties(
-      t,
-      displayCurrency,
-      bankAccounts,
-      stocks,
-      exchange
-    );
-    if (!amount) {
+    const amount = findAllPartiesAmount({t, stocks});
+    const exchanged = exchangeAmountWithUnit({
+      amount,
+      target: displayCurrency,
+      timestampEpoch: t.timestampEpoch,
+      exchange,
+    });
+    if (!exchanged) {
       return undefined;
     }
-    if (isExpense(t)) {
-      total = total.add(amount);
-    } else if (isIncome(t)) {
-      total = total.subtract(amount);
+    if (t.kind === 'EXPENSE') {
+      total = total.add(exchanged);
+    } else if (t.kind === 'INCOME') {
+      total = total.subtract(exchanged);
     } else {
       throw new Error(`Unknown transaction kind: ${t}`);
     }
@@ -73,7 +67,7 @@ function tripTotalSpend(
 }
 
 function TripTotal({trip}: {trip: Trip}) {
-  const {bankAccounts, stocks} = useCoreDataContext();
+  const {stocks} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
   const {exchange} = useMarketDataContext();
   const displayCurrency = useDisplayCurrency();
@@ -81,7 +75,6 @@ function TripTotal({trip}: {trip: Trip}) {
     trip.id,
     transactions,
     displayCurrency,
-    bankAccounts,
     stocks,
     exchange
   );
@@ -92,13 +85,11 @@ function TripTotal({trip}: {trip: Trip}) {
 }
 
 function NonEmptyTripsList() {
-  const {trips, bankAccounts, stocks} = useCoreDataContext();
+  const {trips, stocks} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
   const {exchange} = useMarketDataContext();
   const displayCurrency = useDisplayCurrency();
-  const travelTransactions = transactions
-    .filter((tx): tx is Expense | Income => isExpense(tx) || isIncome(tx))
-    .filter(tx => tx.tripId);
+  const travelTransactions = transactions.filter(hasTrip);
   const tripEpoch = (trip: Trip): number => {
     const txs = travelTransactions
       .filter(x => x.tripId == trip.id)
@@ -111,14 +102,7 @@ function NonEmptyTripsList() {
   const totalByTrip = new Map<number, AmountWithCurrency | undefined>(
     trips.map(t => [
       t.id,
-      tripTotalSpend(
-        t.id,
-        transactions,
-        displayCurrency,
-        bankAccounts,
-        stocks,
-        exchange
-      ),
+      tripTotalSpend(t.id, transactions, displayCurrency, stocks, exchange),
     ])
   );
   const totals = [...totalByTrip.values()]
