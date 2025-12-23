@@ -11,6 +11,7 @@ const config = {
   moduleDirectories: ['node_modules', '<rootDir>'],
   // Workaround for https://github.com/jestjs/jest/issues/10577 where Jest fails to compare a circular structure.
   detectOpenHandles: true,
+  testPathIgnorePatterns: ['<rootDir>/e2e/'],
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
