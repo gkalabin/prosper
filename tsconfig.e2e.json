@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist-e2e",
+    "noEmit": true,
+    "baseUrl": "."
+  },
+  "include": ["e2e/**/*.ts", "playwright.config.ts"],
+  "exclude": ["src/**/*", "node_modules"]
+}
