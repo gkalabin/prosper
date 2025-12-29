@@ -12,7 +12,7 @@
   - Track refunds for your purchases, so you how much you actually spend on
     shopping.
   - Open banking API integration to ease the bookkeeping.
-- Multi currency support.
+- Multiple currency support.
   - See how much money you have in total no matter which currencies you have.
   - Exchange API integrated, so you don't need to worry about updating the
     exchange rates.
