@@ -63,8 +63,8 @@ expenses, and monitor their net worth across multiple currencies and assets.
   actions.
 - **Type Safety:** Strict TypeScript usage is mandatory. Use Zod for schema
   validation.
-- **Database:** Use Prisma ORM. Schema is split into multiple files in
-  `prisma/schema/`.
+- **Database:** Use Prisma ORM using MySQL. Schema is split into multiple files
+  in `prisma/schema/`.
 - **Styling:**
   - Use Tailwind CSS for styling.
   - Use `clsx` and `tailwind-merge` for class management.
@@ -75,7 +75,8 @@ expenses, and monitor their net worth across multiple currencies and assets.
   - Write unit tests using Jest. Ensure critical logic is covered.
   - **E2E Tests:** Place end-to-end tests in an `e2e` directory at the project
     root. Each feature's tests should be in a separate `.spec.ts` file using
-    Playwright.
+    Playwright. Do not use test ids unless absolutely necessary, prefer semantic
+    locators.
 - **Clean Code:** Prioritize readability, maintainability, and modularity. Keep
   components small and focused. Avoid "magic numbers" and hardcoded strings.
 
@@ -88,3 +89,10 @@ expenses, and monitor their net worth across multiple currencies and assets.
     authorization checks are in place.
 4.  **UX:** Follow the existing design language (Tailwind classes, UI
     components).
+5.  **Naming:** Use descriptive concise names for variables, functions, and
+    classes. The names should be self-explanatory, but not long. They should not
+    be referencing the app name unless it is helpful and adds meaning. They
+    should not be overly generic.
+6.  **Comments:** Comments should be used, be concise and explain WHY something
+    is done, not WHAT is done in the code below. Double slashes are preferred
+    over block comments.
