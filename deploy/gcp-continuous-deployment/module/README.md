@@ -11,5 +11,7 @@ Components:
 Prerequisites:
 
 - Mirror repository to Google Cloud Source.
-  - Docs: https://cloud.google.com/source-repositories/docs/mirroring-a-github-repository
-- Set `cloudsource_repo_name` variable to the repo name, eg. `github_gkalabin_prosper`.
+  - Docs:
+    https://cloud.google.com/source-repositories/docs/mirroring-a-github-repository
+- Set `cloudsource_repo_name` variable to the repo name, eg.
+  `github_gkalabin_prosper`.
