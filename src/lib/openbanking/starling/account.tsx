@@ -1,4 +1,8 @@
 import {AccountDetails} from '@/lib/openbanking/interface';
+import {
+  StarlingAccount,
+  StarlingAccountsResponse,
+} from '@/lib/openbanking/starling/types';
 import {StarlingToken} from '@prisma/client';
 
 const categorySeparator = '@';
@@ -6,14 +10,15 @@ const categorySeparator = '@';
 export async function fetchAccounts(
   token: StarlingToken
 ): Promise<AccountDetails[]> {
-  const response = await fetch(`https://api.starlingbank.com/api/v2/accounts`, {
-    method: 'GET',
-    headers: {Authorization: `Bearer ${token.access}`},
-  }).then(r => r.json());
+  const response: StarlingAccountsResponse = await fetch(
+    `https://api.starlingbank.com/api/v2/accounts`,
+    {
+      method: 'GET',
+      headers: {Authorization: `Bearer ${token.access}`},
+    }
+  ).then(r => r.json());
   return (response.accounts ?? []).map(
-    // TODO: define the interface for the external API response.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ({accountUid, defaultCategory, name, currency}: any) =>
+    ({accountUid, defaultCategory, name, currency}: StarlingAccount) =>
       ({
         externalAccountId: `${accountUid}${categorySeparator}${defaultCategory}`,
         name: `${name} (${currency})`,

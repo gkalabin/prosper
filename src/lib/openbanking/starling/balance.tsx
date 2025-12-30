@@ -1,5 +1,6 @@
 import {AccountBalance} from '@/lib/openbanking/interface';
 import {parseExternalAccountId} from '@/lib/openbanking/starling/account';
+import {StarlingBalanceResponse} from '@/lib/openbanking/starling/types';
 import {ExternalAccountMapping, StarlingToken} from '@prisma/client';
 
 export async function fetchBalance(
@@ -15,7 +16,7 @@ export async function fetchBalance(
     }
   )
     .then(r => r.json())
-    .then(r => {
+    .then((r: StarlingBalanceResponse) => {
       if (r?.effectiveBalance) {
         return {
           balanceCents: Math.round(r.effectiveBalance.minorUnits),

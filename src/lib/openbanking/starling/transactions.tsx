@@ -1,5 +1,9 @@
 import {Transaction} from '@/lib/openbanking/interface';
 import {parseExternalAccountId} from '@/lib/openbanking/starling/account';
+import {
+  StarlingFeedItem,
+  StarlingFeedResponse,
+} from '@/lib/openbanking/starling/types';
 import {ExternalAccountMapping, StarlingToken} from '@prisma/client';
 import {addMinutes, subMonths} from 'date-fns';
 
@@ -23,9 +27,10 @@ export async function fetchTransactions(
     .then(x => decode({response: x, accountId: mapping.internalAccountId}));
 }
 
-// TODO: define the interface for the external API response.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function decode(arg: {accountId: number; response: any}): Transaction[] {
+function decode(arg: {
+  accountId: number;
+  response: StarlingFeedResponse;
+}): Transaction[] {
   const {feedItems} = arg.response;
   if (feedItems?.length === 0) {
     return [];
@@ -34,9 +39,7 @@ function decode(arg: {accountId: number; response: any}): Transaction[] {
     console.warn('Starling transactions error', arg.response);
     return [];
   }
-  // TODO: define the interface for the external API response.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return feedItems.map((t: any) => {
+  return feedItems.map((t: StarlingFeedItem) => {
     const {amount, direction, feedItemUid, transactionTime, counterPartyName} =
       t;
     const amountCents = Math.round(amount.minorUnits);
