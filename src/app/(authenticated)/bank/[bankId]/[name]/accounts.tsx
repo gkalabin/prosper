@@ -6,8 +6,7 @@ import {RectangleStackIcon} from '@heroicons/react/24/outline';
 
 export function Accounts({bank}: {bank: Bank}) {
   const {bankAccounts} = useCoreDataContext();
-  // TODO: show archived accounts too, but with a different style.
-  const accounts = accountsForBank(bank, bankAccounts).filter(a => !a.archived);
+  const accounts = accountsForBank(bank, bankAccounts);
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

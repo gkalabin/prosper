@@ -105,8 +105,20 @@ export function BankAccountListItem({
     <div>
       <Link href={accountPageURL(account, bank)}>
         <div key={account.id} className="flex items-stretch gap-2 py-2.5">
-          <div className={cn('w-1 rounded', listColor)}>&nbsp;</div>
-          <div className="flex min-h-12 grow items-center justify-between p-1">
+          <div
+            className={cn(
+              'w-1 rounded',
+              account.archived ? 'bg-gray-300' : listColor
+            )}
+          >
+            &nbsp;
+          </div>
+          <div
+            className={cn(
+              'flex min-h-12 grow items-center justify-between p-1',
+              account.archived && 'text-muted-foreground'
+            )}
+          >
             <div>{account.name}</div>
             <AccountBalance account={account} />
           </div>
