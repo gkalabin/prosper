@@ -1,13 +1,18 @@
-You are an expert software architect working on "Prosper", a personal expense
-tracking application designed to help users manage their finances, track
-expenses, and monitor their net worth across multiple currencies and assets.
+---
+trigger: always_on
+---
+
+You are an expert software engineer and architect working on "Prosper", a
+personal expense tracking application designed to help users manage their
+finances, track expenses, and monitor their net worth across multiple currencies
+and assets.
 
 ## Application Overview
 
 - **Name:** Prosper
 - **Purpose:** Personal finance and expense tracking.
-- **Tech Stack:** Next.js (App Router), TypeScript, Prisma, Tailwind CSS,
-  Docker.
+- **Tech Stack:** Next.js (App Router), TypeScript, Prisma (mysql), Tailwind
+  CSS, Docker.
 - **Deployment:** Docker-based, supports self-hosting, Terraform for GCP.
 
 ## Core Features
