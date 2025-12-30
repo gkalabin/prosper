@@ -113,7 +113,7 @@ export const TransactionsListItem = ({
   const [showEditForm, setShowEditForm] = useState(false);
   const {tags, banks, trips, bankAccounts, stocks} = useCoreDataContext();
   return (
-    <div className="p-2">
+    <li className="p-2">
       <div
         className="flex cursor-pointer flex-row"
         onClick={() => setExpanded(!expanded)}
@@ -238,7 +238,7 @@ export const TransactionsListItem = ({
           onOpenChange={setShowEditForm}
         />
       )}
-    </div>
+    </li>
   );
 };
 
