@@ -20,9 +20,26 @@ export async function fetchTransactions(
   return x.flat();
 }
 
-// TODO: define the interface for the external API response.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function decode(arg: {accountId: number; r: any}): Transaction[] {
+interface TrueLayerTransaction {
+  transaction_id: string;
+  provider_transaction_id?: string;
+  timestamp: string;
+  description: string;
+  amount: number;
+  // meta is optional and contains provider specific info
+  meta?: {
+    transaction_time?: string;
+  };
+}
+
+interface TrueLayerResponse {
+  results: TrueLayerTransaction[];
+}
+
+function decode(arg: {
+  accountId: number;
+  r: TrueLayerResponse;
+}): Transaction[] {
   const {results} = arg.r;
   if (results?.length === 0) {
     return [];
@@ -31,13 +48,12 @@ function decode(arg: {accountId: number; r: any}): Transaction[] {
     console.warn('True layer transactions error', arg.r);
     return [];
   }
-  // TODO: define the interface for the external API response.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return results.map((t: any): Transaction => {
+
+  return results.map((t) => {
     return {
       // Starling reports the actual transaction time in a meta field.
       // Prefer it over the time when the transaction was settled.
-      timestamp: new Date(t.meta.transaction_time ?? t.timestamp),
+      timestamp: new Date(t.meta?.transaction_time ?? t.timestamp),
       description: t.description,
       // Reverse engineered attempt to keep the same transaction id before and after transaction settled.
       externalTransactionId: t.provider_transaction_id ?? t.transaction_id,
