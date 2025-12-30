@@ -39,9 +39,8 @@ function NonEmptyPageContent({accountId}: {accountId: number}) {
     (t): t is PersonalExpense | Transfer | Income =>
       transactionBelongsToAccount(t, account)
   );
-  // TODO: move padding to the root layout to have consistent paddings across the app.
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       <header className="flex justify-between">
         <h1 className="text-3xl font-semibold leading-7">{account.name}</h1>
         <Button onClick={() => setNewTransactionDialogOpen(true)}>
