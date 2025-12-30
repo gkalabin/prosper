@@ -9,7 +9,7 @@ export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
   // Reporter to use. See https://playwright.dev/docs/test-reporters
-  reporter: 'html',
+  reporter: env.CI ? 'github' : 'html',
 
   use: {
     // Base URL to use in actions like `await page.goto('/')`
