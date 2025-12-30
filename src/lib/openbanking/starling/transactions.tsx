@@ -36,10 +36,19 @@ function decode(arg: {accountId: number; response: any}): Transaction[] {
   }
   // TODO: define the interface for the external API response.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return feedItems.map((t: any) => {
-    const {amount, direction, feedItemUid, transactionTime, counterPartyName} =
-      t;
-    const amountCents = Math.round(amount.minorUnits);
+  return feedItems
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .filter((t: any) => t.status !== 'DECLINED')
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .map((t: any) => {
+      const {
+        amount,
+        direction,
+        feedItemUid,
+        transactionTime,
+        counterPartyName,
+      } = t;
+      const amountCents = Math.round(amount.minorUnits);
     return {
       timestamp: new Date(transactionTime),
       description: counterPartyName,
