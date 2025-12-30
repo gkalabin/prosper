@@ -1,4 +1,6 @@
-import {type Page, type Locator} from '@playwright/test';
+import {type Locator, type Page, expect} from '@playwright/test';
+
+const SIGNUP_URL = '/auth/signup';
 
 export class RegisterPage {
   readonly page: Page;
@@ -16,7 +18,7 @@ export class RegisterPage {
   }
 
   async goto() {
-    await this.page.goto('/auth/signup');
+    await this.page.goto(SIGNUP_URL);
   }
 
   async register(login: string, password: string) {
@@ -24,5 +26,7 @@ export class RegisterPage {
     await this.passwordInput.fill(password);
     await this.confirmPasswordInput.fill(password);
     await this.submitButton.click();
+    // Wait for signup to complete, this is done when redirected away from the signup page
+    await expect(this.page).not.toHaveURL(SIGNUP_URL);
   }
 }

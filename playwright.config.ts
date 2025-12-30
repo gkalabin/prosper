@@ -1,18 +1,21 @@
 import {defineConfig, devices} from '@playwright/test';
+import dotenv from 'dotenv';
 
-/**
- * See https://playwright.dev/docs/test-configuration.
- */
+dotenv.config({path: '.env.e2e', override: true});
+const env = {...process.env} as {[key: string]: string};
+
+// See https://playwright.dev/docs/test-configuration.
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
+  // Reporter to use. See https://playwright.dev/docs/test-reporters
   reporter: 'html',
+
   use: {
-    /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
-    /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
-    trace: 'on-first-retry',
+    // Base URL to use in actions like `await page.goto('/')`
+    baseURL: env.PUBLIC_APP_URL,
+    // Collect trace, useful when tests fail.
+    trace: 'on',
   },
   projects: [
     {
@@ -20,10 +23,10 @@ export default defineConfig({
       use: {...devices['Desktop Chrome']},
     },
   ],
-  /* Runs local dev server before starting the tests */
   webServer: {
-    command: 'npm run dev',
-    url: 'http://127.0.0.1:3000',
-    reuseExistingServer: !process.env.CI,
+    command: 'npm run build && npm run start',
+    url: env.PUBLIC_APP_URL,
+    reuseExistingServer: !env.CI,
+    env,
   },
 });
