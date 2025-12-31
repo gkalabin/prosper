@@ -124,6 +124,7 @@ export function TransactionForm(props: {
               transactions,
               bankAccounts,
               categories,
+              previousFormValues: data,
             })
           );
         }
