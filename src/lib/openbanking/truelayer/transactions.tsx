@@ -21,10 +21,7 @@ export async function fetchTransactions(
   return x.flat();
 }
 
-function decode(arg: {
-  accountId: number;
-  r: TrueLayerResponse;
-}): Transaction[] {
+function decode(arg: {accountId: number; r: TrueLayerResponse}): Transaction[] {
   const {results} = arg.r;
   if (results?.length === 0) {
     return [];
@@ -34,7 +31,7 @@ function decode(arg: {
     return [];
   }
 
-  return results.map((t) => {
+  return results.map(t => {
     return {
       // Starling reports the actual transaction time in a meta field.
       // Prefer it over the time when the transaction was settled.
