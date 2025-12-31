@@ -1,4 +1,5 @@
 import {NO_HISTORY_LOOK_BACK_DAYS} from '@/lib/asset-rates/backfill';
+import {getUsedCurrencyCodes} from '@/lib/asset-rates/used-currencies';
 import {Currency, NANOS_MULTIPLIER, allCurrencies} from '@/lib/model/Currency';
 import prisma from '@/lib/prisma';
 import {addDays, differenceInHours, format, isSameDay} from 'date-fns';
@@ -32,9 +33,18 @@ export async function fetchExchangeRates({
 export async function addLatestExchangeRates(refreshIntervalHours: number) {
   const timingLabel = 'Exchange rate backfill ' + new Date().getTime();
   console.time(timingLabel);
+
+  const usedCurrencyCodes = await getUsedCurrencyCodes();
+  console.log('Used currencies', usedCurrencyCodes);
   const backfillPromises: Promise<void>[] = [];
   for (const sell of allCurrencies()) {
+    if (!usedCurrencyCodes.has(sell.code)) {
+      continue;
+    }
     for (const buy of allCurrencies()) {
+      if (!usedCurrencyCodes.has(buy.code)) {
+        continue;
+      }
       backfillPromises.push(backfill({sell, buy, refreshIntervalHours}));
     }
   }
