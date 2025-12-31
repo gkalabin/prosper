@@ -23,9 +23,9 @@ RUN npm run build
 
 # Production image, copy all the files and run next
 FROM base AS runner
-ENV NODE_ENV production
+ENV NODE_ENV=production
 # Disable telemetry during runtime.
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 # Create a non-root user
 RUN addgroup --system --gid 1001 prosper
 RUN adduser --system --uid 1001 prosper
@@ -47,8 +47,8 @@ COPY --from=builder --chown=prosper:prosper /app/scripts/ ./scripts/
 
 USER prosper
 EXPOSE 3000
-ENV PORT 3000
+ENV PORT=3000
 # set hostname to localhost
-ENV HOSTNAME "0.0.0.0"
+ENV HOSTNAME="0.0.0.0"
 
 CMD ["./scripts/start.sh"]
