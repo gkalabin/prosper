@@ -100,4 +100,5 @@ and assets.
     should not be overly generic.
 6.  **Comments:** Comments should be used, be concise and explain WHY something
     is done, not WHAT is done in the code below. Double slashes are preferred
-    over block comments.
+    over block comments. If you add comments while working on the code and later
+    these comments are not needed, make sure to remove these unneeded comments.
