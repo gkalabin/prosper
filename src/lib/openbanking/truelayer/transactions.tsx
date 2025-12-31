@@ -1,4 +1,5 @@
 import {Transaction} from '@/lib/openbanking/interface';
+import {TrueLayerResponse} from '@/lib/openbanking/truelayer/types';
 import {ExternalAccountMapping, TrueLayerToken} from '@prisma/client';
 
 export async function fetchTransactions(
@@ -18,22 +19,6 @@ export async function fetchTransactions(
   );
   const x = await Promise.all(fetches);
   return x.flat();
-}
-
-interface TrueLayerTransaction {
-  transaction_id: string;
-  provider_transaction_id?: string;
-  timestamp: string;
-  description: string;
-  amount: number;
-  // meta is optional and contains provider specific info
-  meta?: {
-    transaction_time?: string;
-  };
-}
-
-interface TrueLayerResponse {
-  results: TrueLayerTransaction[];
 }
 
 function decode(arg: {
