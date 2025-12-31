@@ -6,7 +6,7 @@ import {NextRequest, NextResponse} from 'next/server';
 
 export async function PUT(
   request: NextRequest,
-  {params}: {params: {bankId: string}}
+  {params}: {params: Promise<{bankId: string}>}
 ): Promise<Response> {
   const userId = await getUserIdOrRedirect();
   const validatedData = bankFormValidationSchema.safeParse(
@@ -18,7 +18,8 @@ export async function PUT(
     });
   }
   const {name, displayOrder} = validatedData.data;
-  const bankId = positiveIntOrNull(params.bankId);
+  const resolvedParams = await params;
+  const bankId = positiveIntOrNull(resolvedParams.bankId);
   if (!bankId) {
     return new Response(`bankId must be an integer`, {status: 400});
   }

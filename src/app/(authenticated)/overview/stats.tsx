@@ -43,9 +43,11 @@ export function StatsWidget() {
   );
 }
 
+import {useState} from 'react';
+
 export function Last30DaysIncomeExpense() {
   const {transactions} = useTransactionDataContext();
-  const now = Date.now();
+  const [now] = useState(() => Date.now());
   const last30days = (t: Transaction) =>
     differenceInDays(now, t.timestampEpoch) <= 30;
   const {input, failed} = useExchangedTransactions(

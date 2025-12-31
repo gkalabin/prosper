@@ -16,7 +16,7 @@ export function fetchTransactions(
 }
 
 // TODO: define the interface for the external API response.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 function decode(arg: {accountId: number; response: any}): Transaction[] {
   const {transactions} = arg.response;
   if (!transactions) {

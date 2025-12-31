@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {cn} from '@/lib/utils';
 
 const DOTS_PER_PX = 0.2;
@@ -24,7 +24,7 @@ export function Spoiler({children}: {children: React.ReactNode}) {
       <div ref={ref} className={cn(!revealed && 'invisible')}>
         {children}
       </div>
-      {!revealed && <CanvasDots count={area * DOTS_PER_PX} />}
+      {!revealed && area > 0 && <CanvasDots key={area} count={area * DOTS_PER_PX} />}
     </span>
   );
 }
@@ -49,8 +49,7 @@ interface DotParams {
  */
 function CanvasDots({count}: {count: number}) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  // Generate dot properties which unambiguously describe the dot's position and animation.
-  const dots = useMemo(() => {
+  const [dots] = useState<DotParams[]>(() => {
     const result: DotParams[] = [];
     for (let i = 0; i < count; i++) {
       result.push({
@@ -63,7 +62,7 @@ function CanvasDots({count}: {count: number}) {
       });
     }
     return result;
-  }, [count]);
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;

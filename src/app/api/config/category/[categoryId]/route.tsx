@@ -9,7 +9,7 @@ import {NextRequest, NextResponse} from 'next/server';
 
 export async function PUT(
   request: NextRequest,
-  {params}: {params: {categoryId: string}}
+  {params}: {params: Promise<{categoryId: string}>}
 ): Promise<Response> {
   const userId = await getUserIdOrRedirect();
   const validatedData = categoryFormValidationSchema.safeParse(
@@ -21,7 +21,8 @@ export async function PUT(
     });
   }
   const {name, parentCategoryId, displayOrder} = validatedData.data;
-  const categoryId = positiveIntOrNull(params.categoryId);
+  const resolvedParams = await params;
+  const categoryId = positiveIntOrNull(resolvedParams.categoryId);
   if (!categoryId) {
     return new Response(`categoryId must be an integer`, {status: 400});
   }

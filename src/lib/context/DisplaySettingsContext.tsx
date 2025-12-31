@@ -13,7 +13,7 @@ const DisplaySettingsContext = createContext<SettableDisplaySettings>(
 
 export const DisplaySettingsContextProvider = (props: {
   dbSettings: DBDisplaySettings;
-  children: JSX.Element | JSX.Element[];
+  children: React.ReactNode;
 }) => {
   const displaySettings = new DisplaySettings(props.dbSettings);
   return (

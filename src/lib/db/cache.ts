@@ -35,7 +35,7 @@ export function cachedTransactionDataOrFetch(userId: number) {
 
 export async function invalidateTransactionDataCache(userId: number) {
   console.log(`[db] INVALIDATE TRANSACTION DATA CACHE for userId:${userId}`);
-  revalidateTag(transactionCacheKey(userId));
+  revalidateTag(transactionCacheKey(userId), 'max');
 }
 
 function coreCacheKey(userId: number) {
@@ -58,7 +58,7 @@ export function cachedCoreDataOrFetch(userId: number) {
 
 export async function invalidateCoreDataCache(userId: number) {
   console.log(`[db] INVALIDATE CORE DATA CACHE for userId:${userId}`);
-  revalidateTag(coreCacheKey(userId));
+  revalidateTag(coreCacheKey(userId), 'max');
 }
 
 // The market data is not specific to a user, so we use a single cache key.
@@ -80,5 +80,5 @@ export function cachedMarketDataOrFetch(userId: number) {
 
 export async function invalidateMarketDataCache(userId: number) {
   console.log(`[db] INVALIDATE MARKET DATA CACHE for userId:${userId}`);
-  revalidateTag(marketCacheKey);
+  revalidateTag(marketCacheKey, 'max');
 }

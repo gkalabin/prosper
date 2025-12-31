@@ -54,10 +54,10 @@ type NamedNumber = {
 };
 
 export interface ChartsLibrary {
-  Line(props: TimeseriesMoneyProps | TimeseriesNumbersProps): JSX.Element;
-  Bar(props: TimeseriesMoneyProps | TimeseriesNumbersProps): JSX.Element;
-  StackedBar(props: StackedBarProps): JSX.Element;
+  Line(props: TimeseriesMoneyProps | TimeseriesNumbersProps): React.JSX.Element;
+  Bar(props: TimeseriesMoneyProps | TimeseriesNumbersProps): React.JSX.Element;
+  StackedBar(props: StackedBarProps): React.JSX.Element;
   HorizontalBar(
     props: HorizontalBarMoneyProps | HorizontalBarNumbersProps
-  ): JSX.Element;
+  ): React.JSX.Element;
 }

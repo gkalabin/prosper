@@ -47,8 +47,8 @@ export function ParentTransaction() {
           <FormLabel>Parent transaction</FormLabel>
           <FormControl>
             <ParentTransactionSelect
-              value={field.value}
-              accountId={getValues('income.accountId')}
+              value={field.value!}
+              accountId={getValues('income.accountId')!}
               onChange={field.onChange}
             />
           </FormControl>

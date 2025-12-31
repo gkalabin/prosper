@@ -10,7 +10,7 @@ const CoreDataContext = createContext<CoreDataModel>(
 
 export function CoreDataContextProvider(props: {
   dbData: DBCoreData;
-  children: JSX.Element | JSX.Element[];
+  children: React.ReactNode;
 }) {
   const model = coreModelFromDB(props.dbData);
   return (

@@ -42,7 +42,7 @@ export function Account({
               {accountOptions({
                 displayAccounts,
                 allAccounts,
-                accountId: field.value,
+                accountId: field.value!,
               }).map(x => (
                 <option key={x.id} value={x.id}>
                   {fullAccountName(x, banks)}

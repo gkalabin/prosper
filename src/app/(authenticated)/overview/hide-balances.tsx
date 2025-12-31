@@ -25,7 +25,7 @@ const HideBalancesContext = createContext<ContextData>(
 
 export function HideBalancesContextProvider(props: {
   initialHideBalances: boolean;
-  children: JSX.Element | JSX.Element[];
+  children: React.ReactNode;
 }) {
   const [hideBalances, setHideBalances] = useState(props.initialHideBalances);
   const updateStateAndSetCookie = (newValue: SetStateAction<boolean>) => {

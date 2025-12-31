@@ -10,8 +10,8 @@ export const metadata: Metadata = {
   title: 'Overview - Prosper',
 };
 
-function shouldHideBalances() {
-  const cookieStore = cookies();
+async function shouldHideBalances() {
+  const cookieStore = await cookies();
   return cookieStore.get(HIDE_BALANCES_COOKIE_NAME)?.value === 'true';
 }
 
@@ -22,7 +22,7 @@ export default async function Page() {
   const db = new DB({userId});
   const data = await fetchAllDatabaseData(db);
   console.timeEnd(`[overview] db fetch for userId:${userId}`);
-  const hideBalances = shouldHideBalances();
+  const hideBalances = await shouldHideBalances();
   console.time(`[overview] render for userId:${userId}`);
   const result = <OverviewPage dbData={data} hideBalances={hideBalances} />;
   console.timeEnd(`[overview] render for userId:${userId}`);

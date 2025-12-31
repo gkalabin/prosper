@@ -9,7 +9,7 @@ const MarketDataContext = createContext<MarketDataModel>(
 
 export function MarketDataContextProvider(props: {
   dbData: DBMarketData;
-  children: JSX.Element | JSX.Element[];
+  children: React.ReactNode;
 }) {
   const model = marketModelFromDB(props.dbData);
   return (

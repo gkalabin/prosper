@@ -24,11 +24,6 @@ const transferPrototypeSchema = z.object({
   deposit: depositPrototypeSchema,
 });
 
-const withdrawalOrDepositPrototypeSchema = z.union([
-  withdrawalPrototypeSchema,
-  depositPrototypeSchema,
-]);
-
 const transactionPrototypeSchema = z.union([
   withdrawalPrototypeSchema,
   depositPrototypeSchema,
@@ -42,9 +37,9 @@ export const transactionPrototypeListSchema = z.array(
 export type TransferPrototype = z.infer<typeof transferPrototypeSchema>;
 export type WithdrawalPrototype = z.infer<typeof withdrawalPrototypeSchema>;
 export type DepositPrototype = z.infer<typeof depositPrototypeSchema>;
-export type WithdrawalOrDepositPrototype = z.infer<
-  typeof withdrawalOrDepositPrototypeSchema
->;
+export type WithdrawalOrDepositPrototype =
+  | WithdrawalPrototype
+  | DepositPrototype;
 export type TransactionPrototype = z.infer<typeof transactionPrototypeSchema>;
 export type TransactionPrototypeList = z.infer<
   typeof transactionPrototypeListSchema

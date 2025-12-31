@@ -30,7 +30,7 @@ import {cn} from '@/lib/utils';
 import {TransactionPrototype as DBTransactionPrototype} from '@prisma/client';
 import assert from 'assert';
 import {format} from 'date-fns';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 
 export function fillMostCommonDescriptions(input: {
   transactions: Transaction[];
@@ -134,16 +134,18 @@ const NonEmptyNewTransactionSuggestions = (props: {
   const accountsWithData = bankAccounts.filter(
     a => protosByAccountId.get(a.id)?.length
   );
-  const [activeAccount, setActiveAccount] = useState(
-    !accountsWithData.length ? null : accountsWithData[0]
+  const [selectedAccount, setSelectedAccount] = useState<BankAccount | null>(
+    null
   );
+  const activeAccount =
+    selectedAccount &&
+    accountsWithData.find(a => a.id === selectedAccount.id)
+      ? selectedAccount
+      : (accountsWithData[0] ?? null);
+
   const activeAccountProtos =
     protosByAccountId.get(activeAccount?.id ?? -1) ?? [];
-  useEffect(() => {
-    if (!activeAccountProtos.length && accountsWithData.length) {
-      setActiveAccount(accountsWithData[0]);
-    }
-  }, [accountsWithData, activeAccountProtos.length]);
+
   if (!accountsWithData.length || !activeAccount) {
     return <></>;
   }
@@ -160,7 +162,7 @@ const NonEmptyNewTransactionSuggestions = (props: {
               <Button
                 variant="link"
                 size="inherit"
-                onClick={() => setActiveAccount(account)}
+                onClick={() => setSelectedAccount(account)}
                 disabled={props.disabled || account.id == activeAccount?.id}
               >
                 {fullAccountName(account, banks)}

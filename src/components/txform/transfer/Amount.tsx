@@ -37,11 +37,11 @@ export function useAccountUnitsEqual() {
   const {bankAccounts} = useCoreDataContext();
   const fromAccount = mustFindBankAccount(
     bankAccounts,
-    watch('transfer.fromAccountId')
+    watch('transfer.fromAccountId')!
   );
   const toAccount = mustFindBankAccount(
     bankAccounts,
-    watch('transfer.toAccountId')
+    watch('transfer.toAccountId')!
   );
   return accountUnitsEqual(fromAccount, toAccount);
 }

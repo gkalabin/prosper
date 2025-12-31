@@ -99,7 +99,7 @@ function RepaymentCategory() {
           <FormLabel>Category</FormLabel>
           <FormControl>
             <CategorySelect
-              value={field.value}
+              value={field.value!}
               onChange={field.onChange}
               mostFrequentlyUsedCategoryIds={mostFrequentlyUsedCategoryIds}
               disabled={formState.isSubmitting}

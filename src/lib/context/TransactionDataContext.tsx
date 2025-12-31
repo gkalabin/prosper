@@ -12,7 +12,7 @@ const TransactionDataContext = createContext<TransactionDataModel>(
 
 export function TransactionDataContextProvider(props: {
   dbData: DBTransactionData;
-  children: JSX.Element | JSX.Element[];
+  children: React.ReactNode;
 }) {
   const model = transactionModelFromDB(props.dbData);
   return (

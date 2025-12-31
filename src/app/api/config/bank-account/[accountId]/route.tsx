@@ -9,10 +9,11 @@ import {NextRequest, NextResponse} from 'next/server';
 
 export async function PUT(
   request: NextRequest,
-  {params}: {params: {accountId: string}}
+  {params}: {params: Promise<{accountId: string}>}
 ): Promise<Response> {
   const userId = await getUserIdOrRedirect();
-  const accountId = positiveIntOrNull(params.accountId);
+  const resolvedParams = await params;
+  const accountId = positiveIntOrNull(resolvedParams.accountId);
   if (!accountId) {
     return new Response(`accountId must be an integer`, {status: 400});
   }

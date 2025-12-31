@@ -11,7 +11,7 @@ export async function fetchAccounts(
     .then(r => r.json())
     .then(x => {
       // TODO: define the interface for the external API response.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       return x.results?.map((r: any) => {
         const {account_id, display_name, currency, provider} = r;
         return {
