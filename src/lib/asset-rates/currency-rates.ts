@@ -29,8 +29,11 @@ export async function fetchExchangeRates({
 
 /**
  * @param refreshIntervalHours How often to update the latest rate. If the rate is newer than this, it's not updated.
+ * @returns True if any rates were added or updated, false otherwise.
  */
-export async function addLatestExchangeRates(refreshIntervalHours: number) {
+export async function addLatestExchangeRates(
+  refreshIntervalHours: number
+): Promise<boolean> {
   const timingLabel = 'Exchange rate backfill ' + new Date().getTime();
   console.time(timingLabel);
 
@@ -45,11 +48,19 @@ export async function addLatestExchangeRates(refreshIntervalHours: number) {
       if (!usedCurrencyCodes.has(buy.code)) {
         continue;
       }
+      if (sell.code == buy.code) {
+        continue;
+      }
       backfillPromises.push(backfill({sell, buy, refreshIntervalHours}));
     }
   }
+  if (backfillPromises.length == 0) {
+    console.log('No currencies to backfill');
+    return false;
+  }
   await Promise.allSettled(backfillPromises);
   console.timeEnd(timingLabel);
+  return true;
 }
 
 async function backfill({
