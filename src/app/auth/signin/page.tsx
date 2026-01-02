@@ -3,7 +3,6 @@ import {SignInForm} from '@/app/auth/signin/SignInForm';
 import {DEFAULT_AUTHENTICATED_PAGE} from '@/lib/auth/const';
 import {getCurrentSession} from '@/lib/auth/user';
 import {Metadata} from 'next';
-import Link from 'next/link';
 import {redirect} from 'next/navigation';
 
 export const metadata: Metadata = {
@@ -33,12 +32,13 @@ export default async function LoginPage() {
         {hasCapacity && (
           <p className="mt-10 text-center text-sm text-gray-500">
             Not registered?{' '}
-            <Link
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a
               href="/auth/signup"
               className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"
             >
               Create a new account
-            </Link>
+            </a>
           </p>
         )}
       </main>

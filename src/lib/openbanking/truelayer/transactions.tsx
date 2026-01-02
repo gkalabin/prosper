@@ -21,7 +21,7 @@ export async function fetchTransactions(
 }
 
 // TODO: define the interface for the external API response.
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function decode(arg: {accountId: number; r: any}): Transaction[] {
   const {results} = arg.r;
   if (results?.length === 0) {
@@ -32,7 +32,7 @@ function decode(arg: {accountId: number; r: any}): Transaction[] {
     return [];
   }
   // TODO: define the interface for the external API response.
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return results.map((t: any): Transaction => {
     return {
       // Starling reports the actual transaction time in a meta field.

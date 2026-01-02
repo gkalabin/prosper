@@ -12,7 +12,7 @@ export async function fetchAccounts(
   }).then(r => r.json());
   return (response.accounts ?? []).map(
     // TODO: define the interface for the external API response.
-
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ({accountUid, defaultCategory, name, currency}: any) =>
       ({
         externalAccountId: `${accountUid}${categorySeparator}${defaultCategory}`,

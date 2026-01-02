@@ -24,7 +24,7 @@ export async function fetchTransactions(
 }
 
 // TODO: define the interface for the external API response.
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function decode(arg: {accountId: number; response: any}): Transaction[] {
   const {feedItems} = arg.response;
   if (feedItems?.length === 0) {
@@ -37,9 +37,9 @@ function decode(arg: {accountId: number; response: any}): Transaction[] {
   // TODO: define the interface for the external API response.
   return (
     feedItems
-
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .filter((t: any) => t.status != 'DECLINED')
-
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .map((t: any) => {
         const {
           amount,

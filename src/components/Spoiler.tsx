@@ -24,7 +24,9 @@ export function Spoiler({children}: {children: React.ReactNode}) {
       <div ref={ref} className={cn(!revealed && 'invisible')}>
         {children}
       </div>
-      {!revealed && area > 0 && <CanvasDots key={area} count={area * DOTS_PER_PX} />}
+      {!revealed && area > 0 && (
+        <CanvasDots key={area} count={area * DOTS_PER_PX} />
+      )}
     </span>
   );
 }

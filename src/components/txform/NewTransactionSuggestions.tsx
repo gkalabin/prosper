@@ -138,8 +138,7 @@ const NonEmptyNewTransactionSuggestions = (props: {
     null
   );
   const activeAccount =
-    selectedAccount &&
-    accountsWithData.find(a => a.id === selectedAccount.id)
+    selectedAccount && accountsWithData.find(a => a.id === selectedAccount.id)
       ? selectedAccount
       : (accountsWithData[0] ?? null);
 

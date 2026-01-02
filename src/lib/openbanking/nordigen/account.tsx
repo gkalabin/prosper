@@ -21,7 +21,7 @@ export async function fetchAccounts(
     return [];
   }
   // TODO: define the interface for the external API response.
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const fetches = response.accounts.map((aid: any) =>
     fetch(
       `https://bankaccountdata.gocardless.com/api/v2/accounts/${aid}/details/`,

@@ -31,9 +31,11 @@ export async function updateRatesFallback({
   console.warn(
     'Update the exchange rates in fallback, configure the cron job to update the rates in the background.'
   );
-  await Promise.all([
-    await addLatestExchangeRates(REFRESH_INTERVAL_HOURS * 2),
-    await addLatestStockQuotes(REFRESH_INTERVAL_HOURS * 2),
+  const updated = await Promise.all([
+    addLatestExchangeRates(REFRESH_INTERVAL_HOURS * 2),
+    addLatestStockQuotes(REFRESH_INTERVAL_HOURS * 2),
   ]);
-  await invalidateMarketDataCache(-1);
+  if (updated.some(x => x)) {
+    await invalidateMarketDataCache(-1);
+  }
 }

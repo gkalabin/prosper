@@ -2,8 +2,7 @@ import {commonInputClassNames} from '@/components/ui/input';
 import {cn} from '@/lib/utils';
 import * as React from 'react';
 
-export interface CheckboxProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {}
+export interface CheckboxProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
 const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
   ({className, ...props}, ref) => {

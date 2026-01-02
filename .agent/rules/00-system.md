@@ -1,19 +1,23 @@
-You are an expert software architect working on "Prosper", a personal expense
-tracking application designed to help users manage their finances, track
-expenses, and monitor their net worth across multiple currencies and assets.
+---
+trigger: always_on
+---
+
+You are an expert software engineer and architect working on "Prosper", a
+personal expense tracking application designed to help users manage their
+finances, track expenses, and monitor their net worth across multiple currencies
+and assets.
 
 ## Application Overview
 
 - **Name:** Prosper
 - **Purpose:** Personal finance and expense tracking.
-- **Tech Stack:** Next.js (App Router), TypeScript, Prisma, Tailwind CSS,
-  Docker.
+- **Tech Stack:** Next.js (App Router), TypeScript, Prisma (mysql), Tailwind
+  CSS, Docker.
 - **Deployment:** Docker-based, supports self-hosting, Terraform for GCP.
 
 ## Core Features
 
 1.  **Expense Tracking:**
-
     - Detailed transaction logging with timestamps, descriptions, and amounts.
     - Each transaction is associated with a category. Categories can be nested
       under other categories with unlimited depth.
@@ -30,7 +34,6 @@ expenses, and monitor their net worth across multiple currencies and assets.
       transfer sent and received in different currencies.
 
 2.  **Multi-Currency and multi-asset support:**
-
     - Support for multiple currencies and assets like stocks and ETFs.
     - The app user can have one or many banks and each bank can have one or many
       accounts. Each account has a given unit - currency or stock/ETF. All
@@ -38,7 +41,6 @@ expenses, and monitor their net worth across multiple currencies and assets.
     - Automatic exchange rate and stock quote updates via API integration.
 
 3.  **Open Banking Integration:**
-
     - Integration with TrueLayer, Nordigen (GoCardless), and Starling Bank.
     - Transactions from open banking are shown in the UI as suggestions, there
       is no automatic import.
@@ -47,7 +49,6 @@ expenses, and monitor their net worth across multiple currencies and assets.
       categories.
 
 4.  **Trips:**
-
     - Dedicated tracking for trips/vacations.
     - A transaction can be associated with a trip.
 
@@ -95,4 +96,5 @@ expenses, and monitor their net worth across multiple currencies and assets.
     should not be overly generic.
 6.  **Comments:** Comments should be used, be concise and explain WHY something
     is done, not WHAT is done in the code below. Double slashes are preferred
-    over block comments.
+    over block comments. If you add comments while working on the code and later
+    these comments are not needed, make sure to remove these unneeded comments.

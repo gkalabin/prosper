@@ -56,12 +56,19 @@ function stockQuoteToDbModel(x: StockQuote): Prisma.StockQuoteCreateManyInput {
 /**
  *
  * @param refreshIntervalHours How often to update the latest rate. If the rate is newer than this, it's not updated.
+ * @returns True if any quotes were added or updated, false otherwise.
  */
-export async function addLatestStockQuotes(refreshIntervalHours: number) {
+export async function addLatestStockQuotes(
+  refreshIntervalHours: number
+): Promise<boolean> {
   console.log('Starting stock quotes backfill');
   const timingLabel = 'Stock quotes backfill ' + new Date().getTime();
   console.time(timingLabel);
   const dbStocks = await prisma.stock.findMany();
+  if (dbStocks.length == 0) {
+    console.log('No stocks to backfill');
+    return false;
+  }
   await Promise.allSettled(
     dbStocks.map(async s => {
       try {
@@ -72,6 +79,7 @@ export async function addLatestStockQuotes(refreshIntervalHours: number) {
     })
   );
   console.timeEnd(timingLabel);
+  return true;
 }
 
 async function backfill(stock: DBStock, refreshIntervalHours: number) {
