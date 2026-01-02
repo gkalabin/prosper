@@ -19,9 +19,10 @@ export const metadata: Metadata = {
 export default async function Page({
   searchParams,
 }: {
-  searchParams: {[key: string]: string | string[] | undefined};
+  searchParams: Promise<{[key: string]: string | string[] | undefined}>;
 }) {
-  const bankId = firstPositiveIntOrNull(searchParams['bankId']);
+  const resolvedSearchParams = await searchParams;
+  const bankId = firstPositiveIntOrNull(resolvedSearchParams['bankId']);
   if (!bankId) {
     return notFound();
   }
@@ -35,7 +36,7 @@ export default async function Page({
   if (!dbBank) {
     return notFound();
   }
-  const country = firstValueOrNull(searchParams['country']);
+  const country = firstValueOrNull(resolvedSearchParams['country']);
   if (!country) {
     return <CountriesSelector dbBank={dbBank} />;
   }
