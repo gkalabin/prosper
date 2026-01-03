@@ -38,7 +38,7 @@ jobs:
         with: {node-version: '20', cache: 'npm'}
       - run: npm ci
       - run: npx playwright install --with-deps
-      - run: dotenv -e .env.e2e -- npx prisma db push
+      - run: npx prisma db push
         env:
           DB_URL: 'mysql://root:root@localhost:3307/prosper_e2e_test_db'
       - run: npm run build
