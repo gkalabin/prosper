@@ -32,12 +32,14 @@ export function StatsWidget() {
   }
   return (
     <>
-      <div className="py-5">
-        <div className="text-2xl font-bold">Your total balance</div>
+      <section className="py-5" aria-labelledby="total-balance-heading">
+        <h2 id="total-balance-heading" className="text-2xl font-bold">
+          Your total balance
+        </h2>
         <MaybeHiddenDiv className="inline-block bg-gradient-to-r from-indigo-600 via-purple-500 via-55% to-orange-400 bg-clip-text text-3xl font-bold text-transparent">
           {total.round().format()}
         </MaybeHiddenDiv>
-      </div>
+      </section>
       <Last30DaysIncomeExpense />
     </>
   );
@@ -66,23 +68,35 @@ export function Last30DaysIncomeExpense() {
     <Card>
       <CardContent className="py-0">
         <div className="flex flex-row justify-center">
-          <div className="flex grow flex-col items-center gap-1 p-1">
-            <div className="text-sm font-medium text-muted-foreground">
+          <section
+            className="flex grow flex-col items-center gap-1 p-1"
+            aria-labelledby="expense-heading"
+          >
+            <h3
+              id="expense-heading"
+              className="text-sm font-medium text-muted-foreground"
+            >
               Expense
-            </div>
+            </h3>
             <MaybeHiddenDiv className="text-lg font-medium">
               {expense.round().format()}
             </MaybeHiddenDiv>
-          </div>
+          </section>
           <div className="w-0 border-l">&nbsp;</div>
-          <div className="flex grow flex-col items-center gap-1 p-1">
-            <div className="text-sm font-medium text-muted-foreground">
+          <section
+            className="flex grow flex-col items-center gap-1 p-1"
+            aria-labelledby="income-heading"
+          >
+            <h3
+              id="income-heading"
+              className="text-sm font-medium text-muted-foreground"
+            >
               Income
-            </div>
+            </h3>
             <MaybeHiddenDiv className="text-lg font-medium">
               {income.round().format()}
             </MaybeHiddenDiv>
-          </div>
+          </section>
         </div>
       </CardContent>
     </Card>

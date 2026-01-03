@@ -21,8 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: 20
+        with: {node-version: '20', cache: 'npm'}
       - run: npm ci
       - name: Check code format
         run: npm run lint:fmt
@@ -32,8 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: 20
+        with: {node-version: '20', cache: 'npm'}
       - run: npm ci
       - name: Check code style (eslint)
         run: npm run lint:eslint

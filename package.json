@@ -13,7 +13,11 @@
     "lint:ts": "tsc --noEmit",
     "lint:typos": "typos . # https://github.com/crate-ci/typos",
     "lint": "npm run lint:eslint && npm run lint:ts && npm run lint:fmt && npm run lint:typos",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "e2e:db:up": "docker compose -f docker-compose.e2e.yml up -d --wait && dotenv -e .env.e2e -- npx prisma db push --skip-generate",
+    "e2e:db:down": "docker compose -f docker-compose.e2e.yml down -v",
+    "e2e:app:dev": "dotenv -e .env.e2e -- npm run dev",
+    "test:e2e": "playwright test"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -91,13 +95,16 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/forms": "^0.5.9",
     "@types/bcrypt": "^5.0.2",
     "@types/jest": "^29.5.13",
-    "@types/node": "^22.5.5",
+    "@types/node": "^22.19.3",
     "@types/react": "^18.3.8",
     "@types/uuid": "^10.0.0",
     "autoprefixer": "^10.4.20",
+    "dotenv": "^16.4.7",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.35",
     "eslint-config-prettier": "^9.1.0",

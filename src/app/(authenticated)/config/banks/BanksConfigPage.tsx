@@ -76,11 +76,11 @@ function BanksListItem({
   const [newAccountFormDisplayed, setNewAccountFormDisplayed] = useState(false);
   const [editBankFormDisplayed, setEditBankFormDisplayed] = useState(false);
   return (
-    <div className="rounded-md border">
+    <section className="rounded-md border" aria-labelledby={`bank-${bank.id}`}>
       <div className="border-b bg-indigo-200 p-2 text-gray-900">
         <div>
           <div className="flex items-center">
-            <h1 className="grow text-xl font-medium">
+            <h1 id={`bank-${bank.id}`} className="grow text-xl font-medium">
               {editBankFormDisplayed ? `Editing ${bank.name}` : bank.name}
             </h1>
             {!editBankFormDisplayed && (
@@ -146,7 +146,7 @@ function BanksListItem({
           />
         )}
       </div>
-    </div>
+    </section>
   );
 }
 
