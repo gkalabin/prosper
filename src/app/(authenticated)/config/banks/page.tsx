@@ -22,7 +22,7 @@ async function getData(userId: number) {
   const dbTrueLayerTokens = await db.trueLayerTokenFindMany(whereBankId);
   const dbNordigenTokens = await db.nordigenTokenFindMany(whereBankId);
   const dbStarlingTokens = await db.starlingTokenFindMany(whereBankId);
-  const dbDisplaySettings = await db.getOrCreateDbDisplaySettings();
+  const dbDisplaySettings = await db.getDbDisplaySettings();
   return {
     dbBanks,
     dbBankAccounts,

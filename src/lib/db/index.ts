@@ -9,7 +9,6 @@ import {
   AllDatabaseData,
   TransactionWithTagIds,
 } from '@/lib/model/AllDatabaseDataModel';
-import {USD} from '@/lib/model/Currency';
 import prisma from '@/lib/prisma';
 import {Prisma} from '@prisma/client';
 
@@ -147,22 +146,8 @@ export class DB {
     return await prisma.externalAccountMapping.deleteMany(this.whereUser(args));
   }
 
-  async getOrCreateDbDisplaySettings() {
-    const [existing] = await prisma.displaySettings.findMany(
-      this.whereUser({})
-    );
-    if (existing) {
-      return existing;
-    }
-    const created = await prisma.displaySettings.create({
-      data: {
-        displayCurrencyCode: USD.code,
-        excludeCategoryIdsInStats: '',
-        userId: this.userId,
-      },
-    });
-    await invalidateCoreDataCache(this.userId);
-    return created;
+  async getDbDisplaySettings() {
+    return await prisma.displaySettings.findFirstOrThrow(this.whereUser({}));
   }
 
   getUserId() {

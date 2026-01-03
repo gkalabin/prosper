@@ -105,7 +105,7 @@ export async function fetchCoreData({
       },
       async () => {
         console.time(timeLabel('dbDisplaySettings'));
-        data.dbDisplaySettings = await db.getOrCreateDbDisplaySettings();
+        data.dbDisplaySettings = await db.getDbDisplaySettings();
         console.timeEnd(timeLabel('dbDisplaySettings'));
       },
     ].map(f => f())

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default async function Page() {
   const userId = await getUserIdOrRedirect();
   const db = new DB({userId});
-  const dbDisplaySettings = await db.getOrCreateDbDisplaySettings();
+  const dbDisplaySettings = await db.getDbDisplaySettings();
   const dbCategories = await db.categoryFindMany();
   return (
     <>
