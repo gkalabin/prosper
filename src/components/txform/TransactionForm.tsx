@@ -124,7 +124,11 @@ export function TransactionForm(props: {
               transactions,
               bankAccounts,
               categories,
-              previousFormValues: data,
+              overrides: {
+                accountId: data.expense?.accountId ?? data.income?.accountId,
+                fromAccountId: data.transfer?.fromAccountId,
+                toAccountId: data.transfer?.toAccountId,
+              },
             })
           );
         }

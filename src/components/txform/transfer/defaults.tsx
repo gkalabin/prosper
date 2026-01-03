@@ -24,14 +24,14 @@ export function transferFormEmpty({
   transactions,
   categories,
   bankAccounts,
-  previousFromAccountId,
-  previousToAccountId,
+  fromAccountId,
+  toAccountId,
 }: {
   transactions: Transaction[];
   categories: Category[];
   bankAccounts: BankAccount[];
-  previousFromAccountId?: number | null;
-  previousToAccountId?: number | null;
+  fromAccountId?: number | null;
+  toAccountId?: number | null;
 }): TransferFormSchema {
   const categoryId =
     topCategoriesMatchMost({
@@ -45,14 +45,14 @@ export function transferFormEmpty({
     amountReceived: 0,
     categoryId,
     fromAccountId:
-      previousFromAccountId ??
+      fromAccountId ??
       mostFrequentBankAccount({
         transactions,
         bankAccounts,
         transactionToAccountId: t => (isTransfer(t) ? t.fromAccountId : null),
       }),
     toAccountId:
-      previousToAccountId ??
+      toAccountId ??
       mostFrequentBankAccount({
         transactions,
         bankAccounts,

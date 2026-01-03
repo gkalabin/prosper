@@ -38,12 +38,12 @@ export function expenseFormEmpty({
   transactions,
   categories,
   bankAccounts,
-  previousAccountId,
+  accountId,
 }: {
   transactions: Transaction[];
   categories: Category[];
   bankAccounts: BankAccount[];
-  previousAccountId?: number | null;
+  accountId?: number | null;
 }): ExpenseFormSchema {
   // If there are no expenses at all, the most frequent value will not be defined,
   // so fall back to the first category in that case.
@@ -61,7 +61,7 @@ export function expenseFormEmpty({
     vendor: '',
     categoryId,
     accountId:
-      previousAccountId ??
+      accountId ??
       mostFrequentBankAccount({
         transactions,
         bankAccounts,

@@ -30,12 +30,12 @@ export function incomeFormEmpty({
   transactions,
   bankAccounts,
   categories,
-  previousAccountId,
+  accountId,
 }: {
   transactions: Transaction[];
   bankAccounts: BankAccount[];
   categories: Category[];
-  previousAccountId?: number | null;
+  accountId?: number | null;
 }): IncomeFormSchema {
   assert(bankAccounts.length > 0);
   assert(categories.length > 0);
@@ -52,7 +52,7 @@ export function incomeFormEmpty({
     payer: '',
     categoryId,
     accountId:
-      previousAccountId ??
+      accountId ??
       mostFrequentBankAccount({
         transactions,
         bankAccounts,
