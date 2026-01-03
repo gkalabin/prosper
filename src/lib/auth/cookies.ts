@@ -6,7 +6,7 @@ export async function setSessionTokenCookie(
   token: string,
   expiresAt: Date
 ): Promise<void> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   cookieStore.set(COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: 'lax' as const,
@@ -17,7 +17,7 @@ export async function setSessionTokenCookie(
 }
 
 export async function deleteSessionTokenCookie(): Promise<void> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   cookieStore.set(COOKIE_NAME, '', {
     httpOnly: true,
     sameSite: 'lax',
