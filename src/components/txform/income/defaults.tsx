@@ -1,9 +1,6 @@
 import {ExpenseFormSchema} from '@/components/txform/expense/types';
 import {IncomeFormSchema} from '@/components/txform/income/types';
-import {
-  mostFrequentBankAccount,
-  mostFrequentCompanion,
-} from '@/components/txform/prefill';
+import {mostFrequentCompanion} from '@/components/txform/prefill';
 import {
   isRecent,
   matchesPayer,
@@ -24,44 +21,6 @@ import {
 import {TransactionLink} from '@/lib/model/TransactionLink';
 import {DepositPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {centsToDollar} from '@/lib/util/util';
-import {startOfDay} from 'date-fns';
-
-export function incomeFormEmpty({
-  transactions,
-  bankAccounts,
-  categories,
-}: {
-  transactions: Transaction[];
-  bankAccounts: BankAccount[];
-  categories: Category[];
-}): IncomeFormSchema {
-  assert(bankAccounts.length > 0);
-  assert(categories.length > 0);
-  const categoryId =
-    topCategoriesMatchMost({
-      transactions,
-      filters: [isIncome, isRecent],
-      want: 1,
-    })[0] ?? categories[0].id;
-  const values: IncomeFormSchema = {
-    timestamp: startOfDay(new Date()),
-    amount: 0,
-    ownShareAmount: 0,
-    payer: '',
-    categoryId,
-    accountId: mostFrequentBankAccount({
-      transactions,
-      bankAccounts,
-      transactionToAccountId: t => (isIncome(t) ? t.accountId : null),
-    }),
-    tagNames: [],
-    companion: null,
-    description: null,
-    parentTransactionId: null,
-    isShared: false,
-  };
-  return values;
-}
 
 export function expenseToIncome({
   prev,

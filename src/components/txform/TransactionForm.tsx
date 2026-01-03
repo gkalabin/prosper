@@ -1,11 +1,11 @@
 'use client';
 import {upsertTransaction} from '@/actions/txform/index';
 import {
-  emptyValuesForType,
   useFormDefaults,
   valuesForNewType,
   valuesForPrototype,
 } from '@/components/txform/defaults';
+import {expenseFormEmpty} from '@/components/txform/expense/defaults';
 import {ExpenseForm} from '@/components/txform/expense/ExpenseForm';
 import {FormTypeSelect} from '@/components/txform/FormTypeSelect';
 import {IncomeForm} from '@/components/txform/income/IncomeForm';
@@ -117,15 +117,23 @@ export function TransactionForm(props: {
           // Close the form after updating the transaction.
           props.onClose();
         } else {
-          setProto(null);
-          form.reset(
-            emptyValuesForType({
-              formType,
+          // Reset the form after successful submission.
+          const newFormValues: TransactionFormSchema = {
+            formType: 'EXPENSE',
+            expense: expenseFormEmpty({
               transactions,
               bankAccounts,
               categories,
-            })
-          );
+            }),
+          };
+          // Keep the account id because the user usually records transactions in a row for the same account.
+          newFormValues.expense!.accountId =
+            data.expense?.accountId ||
+            data.income?.accountId ||
+            data.transfer?.toAccountId ||
+            null;
+          setProto(null);
+          form.reset(newFormValues);
         }
         return;
       }

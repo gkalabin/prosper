@@ -7,7 +7,6 @@ import {
 } from '@/components/txform/expense/defaults';
 import {
   expenseToIncome,
-  incomeFormEmpty,
   incomeFromPrototype,
   incomeFromTransaction,
   transferToIncome,
@@ -15,7 +14,6 @@ import {
 import {
   expenseToTransfer,
   incomeToTransfer,
-  transferFormEmpty,
   transferFromPrototype,
   transferFromTransaction,
 } from '@/components/txform/transfer/defaults';
@@ -86,51 +84,6 @@ function valuesForTransaction(
       allTrips: trips,
     }),
   };
-}
-
-export function emptyValuesForType({
-  formType,
-  transactions,
-  categories,
-  bankAccounts,
-}: {
-  formType: FormType;
-  transactions: Transaction[];
-  categories: Category[];
-  bankAccounts: BankAccount[];
-}): TransactionFormSchema {
-  switch (formType) {
-    case 'EXPENSE':
-      return {
-        formType,
-        expense: expenseFormEmpty({
-          transactions,
-          categories,
-          bankAccounts,
-        }),
-      };
-    case 'INCOME':
-      return {
-        formType,
-        income: incomeFormEmpty({
-          transactions,
-          categories,
-          bankAccounts,
-        }),
-      };
-    case 'TRANSFER':
-      return {
-        formType,
-        transfer: transferFormEmpty({
-          transactions,
-          categories,
-          bankAccounts,
-        }),
-      };
-    default:
-      const _exhaustiveCheck: never = formType;
-      throw new Error(`Unsupported form type: ${_exhaustiveCheck}`);
-  }
 }
 
 export function valuesForPrototype({

@@ -1,6 +1,5 @@
 import {ExpenseFormSchema} from '@/components/txform/expense/types';
 import {IncomeFormSchema} from '@/components/txform/income/types';
-import {mostFrequentBankAccount} from '@/components/txform/prefill';
 import {
   isRecent,
   topCategoriesMatchMost,
@@ -18,43 +17,6 @@ import {
 import {Transfer} from '@/lib/model/transaction/Transfer';
 import {TransferPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {centsToDollar} from '@/lib/util/util';
-import {startOfDay} from 'date-fns';
-
-export function transferFormEmpty({
-  transactions,
-  categories,
-  bankAccounts,
-}: {
-  transactions: Transaction[];
-  categories: Category[];
-  bankAccounts: BankAccount[];
-}): TransferFormSchema {
-  const categoryId =
-    topCategoriesMatchMost({
-      transactions,
-      filters: [isTransfer, isRecent],
-      want: 1,
-    })[0] ?? categories[0].id;
-  const values: TransferFormSchema = {
-    timestamp: startOfDay(new Date()),
-    amountSent: 0,
-    amountReceived: 0,
-    categoryId,
-    fromAccountId: mostFrequentBankAccount({
-      transactions,
-      bankAccounts,
-      transactionToAccountId: t => (isTransfer(t) ? t.fromAccountId : null),
-    }),
-    toAccountId: mostFrequentBankAccount({
-      transactions,
-      bankAccounts,
-      transactionToAccountId: t => (isTransfer(t) ? t.toAccountId : null),
-    }),
-    description: null,
-    tagNames: [],
-  };
-  return values;
-}
 
 export function expenseToTransfer({
   prev,
