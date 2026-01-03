@@ -118,19 +118,29 @@ export function TransactionForm(props: {
           props.onClose();
         } else {
           setProto(null);
-          form.reset(
-            emptyValuesForType({
-              formType,
-              transactions,
-              bankAccounts,
-              categories,
-              overrides: {
-                accountId: data.expense?.accountId ?? data.income?.accountId,
-                fromAccountId: data.transfer?.fromAccountId,
-                toAccountId: data.transfer?.toAccountId,
-              },
-            })
-          );
+          const nextValues = emptyValuesForType({
+            formType,
+            transactions,
+            bankAccounts,
+            categories,
+          });
+          const stickyAccountId =
+            data.expense?.accountId ?? data.income?.accountId;
+          if (nextValues.expense && stickyAccountId) {
+            nextValues.expense.accountId = stickyAccountId;
+          }
+          if (nextValues.income && stickyAccountId) {
+            nextValues.income.accountId = stickyAccountId;
+          }
+          if (nextValues.transfer) {
+            if (data.transfer?.fromAccountId) {
+              nextValues.transfer.fromAccountId = data.transfer.fromAccountId;
+            }
+            if (data.transfer?.toAccountId) {
+              nextValues.transfer.toAccountId = data.transfer.toAccountId;
+            }
+          }
+          form.reset(nextValues);
         }
         return;
       }

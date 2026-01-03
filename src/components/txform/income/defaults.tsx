@@ -30,12 +30,10 @@ export function incomeFormEmpty({
   transactions,
   bankAccounts,
   categories,
-  accountId,
 }: {
   transactions: Transaction[];
   bankAccounts: BankAccount[];
   categories: Category[];
-  accountId?: number | null;
 }): IncomeFormSchema {
   assert(bankAccounts.length > 0);
   assert(categories.length > 0);
@@ -51,13 +49,11 @@ export function incomeFormEmpty({
     ownShareAmount: 0,
     payer: '',
     categoryId,
-    accountId:
-      accountId ??
-      mostFrequentBankAccount({
-        transactions,
-        bankAccounts,
-        transactionToAccountId: t => (isIncome(t) ? t.accountId : null),
-      }),
+    accountId: mostFrequentBankAccount({
+      transactions,
+      bankAccounts,
+      transactionToAccountId: t => (isIncome(t) ? t.accountId : null),
+    }),
     tagNames: [],
     companion: null,
     description: null,

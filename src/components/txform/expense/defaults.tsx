@@ -38,12 +38,10 @@ export function expenseFormEmpty({
   transactions,
   categories,
   bankAccounts,
-  accountId,
 }: {
   transactions: Transaction[];
   categories: Category[];
   bankAccounts: BankAccount[];
-  accountId?: number | null;
 }): ExpenseFormSchema {
   // If there are no expenses at all, the most frequent value will not be defined,
   // so fall back to the first category in that case.
@@ -60,14 +58,11 @@ export function expenseFormEmpty({
     ownShareAmount: 0,
     vendor: '',
     categoryId,
-    accountId:
-      accountId ??
-      mostFrequentBankAccount({
-        transactions,
-        bankAccounts,
-        transactionToAccountId: t =>
-          isPersonalExpense(t) ? t.accountId : null,
-      }),
+    accountId: mostFrequentBankAccount({
+      transactions,
+      bankAccounts,
+      transactionToAccountId: t => (isPersonalExpense(t) ? t.accountId : null),
+    }),
     tagNames: [],
     sharingType: 'PAID_SELF_NOT_SHARED',
     description: null,

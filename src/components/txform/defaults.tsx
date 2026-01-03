@@ -93,17 +93,11 @@ export function emptyValuesForType({
   transactions,
   categories,
   bankAccounts,
-  overrides,
 }: {
   formType: FormType;
   transactions: Transaction[];
   categories: Category[];
   bankAccounts: BankAccount[];
-  overrides?: {
-    accountId?: number | null;
-    fromAccountId?: number | null;
-    toAccountId?: number | null;
-  };
 }): TransactionFormSchema {
   switch (formType) {
     case 'EXPENSE':
@@ -113,7 +107,6 @@ export function emptyValuesForType({
           transactions,
           categories,
           bankAccounts,
-          accountId: overrides?.accountId,
         }),
       };
     case 'INCOME':
@@ -123,7 +116,6 @@ export function emptyValuesForType({
           transactions,
           categories,
           bankAccounts,
-          accountId: overrides?.accountId,
         }),
       };
     case 'TRANSFER':
@@ -133,8 +125,6 @@ export function emptyValuesForType({
           transactions,
           categories,
           bankAccounts,
-          fromAccountId: overrides?.fromAccountId,
-          toAccountId: overrides?.toAccountId,
         }),
       };
     default:
