@@ -1,6 +1,7 @@
 import {addLatestExchangeRates} from '@/lib/asset-rates/currency-rates';
 import {addLatestStockQuotes} from '@/lib/asset-rates/stock-quotes';
 import {differenceInHours} from 'date-fns';
+import {after} from 'next/server';
 import {invalidateMarketDataCache} from '../db/cache';
 export const REFRESH_INTERVAL_HOURS = 6;
 export const NO_HISTORY_LOOK_BACK_DAYS = 30;
@@ -36,6 +37,11 @@ export async function updateRatesFallback({
     addLatestStockQuotes(REFRESH_INTERVAL_HOURS * 2),
   ]);
   if (updated.some(x => x)) {
-    await invalidateMarketDataCache(-1);
+    after(async () => {
+      // FIXME: this results in an error in console, but doesn't fail the page render.
+      console.log('Invalidating market data cache...');
+      await invalidateMarketDataCache(-1);
+      console.log('Invalidating market data cache done');
+    });
   }
 }
