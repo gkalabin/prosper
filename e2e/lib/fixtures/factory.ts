@@ -76,6 +76,13 @@ export class TestFactory {
         ...overrides,
       },
     });
+    await prisma.displaySettings.create({
+      data: {
+        userId: user.id,
+        displayCurrencyCode: DEFAULT_TEST_CURRENCY,
+        excludeCategoryIdsInStats: '',
+      },
+    });
     this.createdUsers.push(login);
     return {...user, rawPassword};
   }
