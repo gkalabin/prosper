@@ -5,7 +5,7 @@ import {NextResponse} from 'next/server';
 
 const FORBIDDEN = new NextResponse(null, {status: 403});
 
-export async function middleware(request: NextRequest): Promise<NextResponse> {
+export async function proxy(request: NextRequest): Promise<NextResponse> {
   if (request.nextUrl.pathname == '/api/_ratesz') {
     // Proceed with the request for the admin handlers.
     // The admin handlers have their own auth mechanism and not visible from the wider internet, but only from the same server.

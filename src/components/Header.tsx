@@ -132,12 +132,12 @@ export default function Header({login}: {login: string}) {
                       )}
 
                       {login && (
-                        <MenuItem>
-                          {({focus}) => (
-                            <>
-                              <span className="block px-4 py-2 text-sm text-gray-700">
-                                Signed in as <i>{login}</i>
-                              </span>
+                        <>
+                          <div className="block px-4 py-2 text-sm text-gray-700">
+                            Signed in as <i>{login}</i>
+                          </div>
+                          <MenuItem>
+                            {({focus}) => (
                               <a
                                 href={SIGN_OUT_URL}
                                 className={cn(
@@ -147,9 +147,9 @@ export default function Header({login}: {login: string}) {
                               >
                                 Sign Out
                               </a>
-                            </>
-                          )}
-                        </MenuItem>
+                            )}
+                          </MenuItem>
+                        </>
                       )}
                     </MenuItems>
                   </Transition>

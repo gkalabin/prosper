@@ -15,7 +15,7 @@ export async function getUserIdOrRedirect(): Promise<number> {
 }
 
 export async function getCurrentSession(): Promise<SessionValidationResult> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
   if (!token) {
     return {user: null, session: null};

@@ -7,11 +7,11 @@ import {Bank} from '@prisma/client';
 import {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 
-type Props = {params: {bankId: string}};
+type Props = {params: Promise<{bankId: string}>};
 
 async function fetchBank(props: Props): Promise<Bank | null> {
   const userId = await getUserIdOrRedirect();
-  const bankId = positiveIntOrNull(props.params.bankId);
+  const bankId = positiveIntOrNull((await props.params).bankId);
   if (!bankId) {
     return null;
   }

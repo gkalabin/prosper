@@ -6,6 +6,7 @@ node_modules/
 .vscode
 .antlr
 tsconfig.tsbuildinfo
+next-env.d.ts
 
 # Terraform files.
 **/.terraform/*

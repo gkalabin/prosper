@@ -25,9 +25,9 @@ async function getData(userId: number, bankId: number) {
 export default async function Page({
   searchParams,
 }: {
-  searchParams: {[key: string]: string | string[] | undefined};
+  searchParams: Promise<{[key: string]: string | string[] | undefined}>;
 }) {
-  const bankId = firstPositiveIntOrNull(searchParams['bankId']);
+  const bankId = firstPositiveIntOrNull((await searchParams)['bankId']);
   if (!bankId) {
     return notFound();
   }
