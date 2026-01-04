@@ -33,7 +33,7 @@ personal expense tracking application.
    and hardcoded strings.
 6. **Imports:** In typescript app logic (except e2e tests) use absolute imports
    with '@' meaning root. Example: `import {notEmpty} from '@/lib/util';`
-7. **Git Commit Standards:**
+7. **Git Commit Messages:**
    - **Format:**
      - Summary line: concise, max 60 characters.
      - No prefixes (e.g., feat, chore, fix) in the summary line.
