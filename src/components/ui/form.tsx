@@ -22,8 +22,8 @@ type FormFieldContextValue<
   name: TName;
 };
 
-const FormFieldContext = React.createContext<FormFieldContextValue>(
-  {} as FormFieldContextValue
+const FormFieldContext = React.createContext<FormFieldContextValue | null>(
+  null
 );
 
 const FormField = <
@@ -43,11 +43,19 @@ const useFormField = () => {
   const fieldContext = React.useContext(FormFieldContext);
   const itemContext = React.useContext(FormItemContext);
   const {getFieldState, formState} = useFormContext();
-  const fieldState = getFieldState(fieldContext.name, formState);
+
   if (!fieldContext) {
     throw new Error('useFormField should be used within <FormField>');
   }
+
+  if (!itemContext) {
+    throw new Error('useFormField should be used within <FormItem>');
+  }
+
+  const fieldState = getFieldState(fieldContext.name, formState);
+
   const {id} = itemContext;
+
   return {
     id,
     name: fieldContext.name,
@@ -62,19 +70,17 @@ type FormItemContextValue = {
   id: string;
 };
 
-const FormItemContext = React.createContext<FormItemContextValue>(
-  {} as FormItemContextValue
-);
+const FormItemContext = React.createContext<FormItemContextValue | null>(null);
 
 const FormItem = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({...props}, ref) => {
+>(({className, ...props}, ref) => {
   const id = React.useId();
 
   return (
     <FormItemContext.Provider value={{id}}>
-      <div ref={ref} {...props} />
+      <div ref={ref} className={cn('space-y-2', className)} {...props} />
     </FormItemContext.Provider>
   );
 });
@@ -85,15 +91,11 @@ const FormLabel = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
 >(({className, ...props}, ref) => {
   const {error, formItemId} = useFormField();
-  const {formState} = useFormContext();
+
   return (
     <Label
       ref={ref}
-      className={cn(
-        error && 'text-destructive',
-        formState.isSubmitting && 'cursor-not-allowed opacity-50',
-        className
-      )}
+      className={cn(error && 'text-destructive', className)}
       htmlFor={formItemId}
       {...props}
     />
@@ -107,6 +109,7 @@ const FormControl = React.forwardRef<
 >(({className, disabled, ...props}, ref) => {
   const {error, formItemId, formDescriptionId, formMessageId} = useFormField();
   const {formState} = useFormContext();
+
   return (
     <Slot
       ref={ref}
@@ -117,7 +120,6 @@ const FormControl = React.forwardRef<
           : `${formDescriptionId} ${formMessageId}`
       }
       aria-invalid={!!error}
-      className={cn('block w-full', className)}
       {...props}
       // Slot doesn't have disabled prop.
       // This is an ugly hack to force it down and set it to true when the form is submitting.
@@ -149,7 +151,7 @@ const FormMessage = React.forwardRef<
   React.HTMLAttributes<HTMLParagraphElement>
 >(({className, children, ...props}, ref) => {
   const {error, formMessageId} = useFormField();
-  const body = error ? String(error?.message) : children;
+  const body = error ? String(error?.message ?? '') : children;
 
   if (!body) {
     return null;
@@ -161,9 +163,7 @@ const FormMessage = React.forwardRef<
       id={formMessageId}
       className={cn('text-sm font-medium text-destructive', className)}
       {...props}
-    >
-      {body}
-    </p>
+    />
   );
 });
 FormMessage.displayName = 'FormMessage';

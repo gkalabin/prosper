@@ -16,7 +16,8 @@ export function UpdateOwnShareOnAmountChange({
   const amount = useWatch({control, name: amountFieldName, exact: true});
   useEffect(() => {
     // Do not pass down NaN from amount to ownShare.
-    const safeAmount = isNaN(amount) ? 0 : amount;
+    const val = amount ?? NaN;
+    const safeAmount = isNaN(val) ? 0 : val;
     if (!isShared) {
       setValue(ownShareFieldName, safeAmount);
     } else {

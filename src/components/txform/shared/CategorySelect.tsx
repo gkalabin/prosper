@@ -30,7 +30,7 @@ export function CategorySelect({
   disabled,
 }: {
   mostFrequentlyUsedCategoryIds: Array<number>;
-  value: number;
+  value?: number;
   onChange: (id: number) => void;
   disabled: boolean;
 }) {
@@ -38,6 +38,11 @@ export function CategorySelect({
   const {categories} = useCoreDataContext();
   const tree = useMemo(() => makeCategoryTree(categories), [categories]);
   const groups = useOptions({mostFrequentlyUsedCategoryIds, tree});
+
+  const selectedCategory = value
+    ? categories.find(c => c.id === value)
+    : undefined;
+
   return (
     <Popover modal={true} open={optionsOpen} onOpenChange={setOptionsOpen}>
       <PopoverTrigger asChild>
@@ -48,7 +53,9 @@ export function CategorySelect({
           className="h-auto min-h-10 w-full justify-between p-2 text-base font-normal"
           disabled={disabled}
         >
-          {getNameWithAncestors(mustFindCategory(value, categories), tree)}
+          {selectedCategory
+            ? getNameWithAncestors(selectedCategory, tree)
+            : 'Select category...'}
           <ChevronUpDownIcon className="ml-2 h-5 w-5 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>

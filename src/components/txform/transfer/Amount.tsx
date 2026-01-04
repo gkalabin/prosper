@@ -35,13 +35,12 @@ export function Amount() {
 export function useAccountUnitsEqual() {
   const {watch} = useFormContext<TransactionFormSchema>();
   const {bankAccounts} = useCoreDataContext();
-  const fromAccount = mustFindBankAccount(
-    bankAccounts,
-    watch('transfer.fromAccountId')
-  );
-  const toAccount = mustFindBankAccount(
-    bankAccounts,
-    watch('transfer.toAccountId')
-  );
+  const fromAccountId = watch('transfer.fromAccountId');
+  const toAccountId = watch('transfer.toAccountId');
+  if (!fromAccountId || !toAccountId) {
+    return true;
+  }
+  const fromAccount = mustFindBankAccount(bankAccounts, fromAccountId);
+  const toAccount = mustFindBankAccount(bankAccounts, toAccountId);
   return accountUnitsEqual(fromAccount, toAccount);
 }

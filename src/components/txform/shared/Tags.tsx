@@ -24,7 +24,7 @@ export function Tags({
           <FormLabel>Tags</FormLabel>
           <FormControl>
             <TagsSelect
-              value={field.value}
+              value={field.value ?? []}
               onChange={field.onChange}
               disabled={formState.isSubmitting}
             />

@@ -36,7 +36,7 @@ export function Timestamp({
             <Input
               type="datetime-local"
               {...field}
-              value={toDateTimeLocal(field.value)}
+              value={toDateTimeLocal(field.value ?? new Date())}
               onChange={e => {
                 const dateTimeLocalValue = e.target.value;
                 const d = new Date(dateTimeLocalValue);
