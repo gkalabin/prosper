@@ -23,11 +23,11 @@ const NEW_TAG_PREFIX = 'new:';
 const EXISTING_TAG_PREFIX = 'existing:';
 
 export function TagsSelect({
-  value,
+  value = [],
   onChange,
   disabled,
 }: {
-  value: string[];
+  value?: string[];
   onChange: (value: string[]) => void;
   disabled: boolean;
 }) {

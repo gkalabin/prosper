@@ -75,7 +75,7 @@ function UpdateOwnShareOnAmountChange() {
   const {watch} = useFormContext<TransactionFormSchema>();
   return (
     <CommonUpdateOwnShareOnAmountChange
-      isShared={watch('income.isShared') ?? false}
+      isShared={watch('income.isShared')}
       amountFieldName="income.amount"
       ownShareFieldName="income.ownShareAmount"
     />

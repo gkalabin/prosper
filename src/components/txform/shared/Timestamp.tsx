@@ -10,7 +10,10 @@ import {Input} from '@/components/ui/input';
 import {format} from 'date-fns';
 import {useFormContext} from 'react-hook-form';
 
-function toDateTimeLocal(d: Date | number) {
+function toDateTimeLocal(d: Date | number | undefined) {
+  if (!d) {
+    return '';
+  }
   // 2022-12-19T18:05:59
   return format(d, "yyyy-MM-dd'T'HH:mm");
 }
@@ -36,7 +39,7 @@ export function Timestamp({
             <Input
               type="datetime-local"
               {...field}
-              value={toDateTimeLocal(field.value ?? new Date())}
+              value={toDateTimeLocal(field.value)}
               onChange={e => {
                 const dateTimeLocalValue = e.target.value;
                 const d = new Date(dateTimeLocalValue);

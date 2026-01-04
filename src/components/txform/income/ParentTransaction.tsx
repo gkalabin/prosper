@@ -47,7 +47,7 @@ export function ParentTransaction() {
           <FormLabel>Parent transaction</FormLabel>
           <FormControl>
             <ParentTransactionSelect
-              value={field.value ?? null}
+              value={field.value}
               accountId={getValues('income.accountId') || 0}
               onChange={field.onChange}
             />
@@ -64,7 +64,7 @@ function ParentTransactionSelect({
   accountId,
   onChange,
 }: {
-  value: number | null;
+  value?: number | null;
   accountId: number;
   onChange: (id: number | null) => void;
 }) {
@@ -138,7 +138,7 @@ function ParentTransactionSelect({
           />
           <FilteredTransactions
             query={searchQuery}
-            value={value}
+            value={value ?? null}
             onChange={v => {
               onChange(v);
               setOptionsOpen(false);

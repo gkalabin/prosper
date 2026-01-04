@@ -8,7 +8,7 @@ export function UpdateOwnShareOnAmountChange({
   amountFieldName,
   ownShareFieldName,
 }: {
-  isShared: boolean;
+  isShared?: boolean;
   amountFieldName: 'expense.amount' | 'income.amount';
   ownShareFieldName: 'expense.ownShareAmount' | 'income.ownShareAmount';
 }) {
