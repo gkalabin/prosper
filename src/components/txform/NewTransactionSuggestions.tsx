@@ -331,7 +331,7 @@ function SuggestionItem({
           <div className="grow">
             <div>{singleOpProto.description}</div>
             {proto.type == 'transfer' && otherAccount && (
-              <div className="text-xs italic text-gray-600">
+              <div className="text-xs text-gray-600 italic">
                 Transfer {singleOpProto.type == 'deposit' ? 'from' : 'to'}{' '}
                 {fullAccountName(otherAccount, banks)}
               </div>

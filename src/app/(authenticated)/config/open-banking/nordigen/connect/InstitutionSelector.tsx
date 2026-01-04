@@ -24,7 +24,7 @@ export function InstitutionSelector({
           </Link>
         </Button>
       </div>
-      <h1 className="mb-2 text-xl font-medium leading-7">Select bank:</h1>
+      <h1 className="mb-2 text-xl leading-7 font-medium">Select bank:</h1>
       <div className="space-y-2">
         {institutions.map(institution => (
           <div key={institution.id} className="rounded-md bg-slate-50 p-2">

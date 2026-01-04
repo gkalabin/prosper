@@ -29,7 +29,7 @@ export default async function RootLayout({
       <head />
       <body
         className={cn(
-          'min-h-screen bg-background antialiased',
+          'bg-background min-h-screen antialiased',
           openSans.className
         )}
       >

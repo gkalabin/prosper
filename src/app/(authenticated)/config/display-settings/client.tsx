@@ -124,7 +124,7 @@ export function DisplaySettingsPage({
           </Button>
         </div>
         {apiError && (
-          <div className="text-sm font-medium text-destructive">{apiError}</div>
+          <div className="text-destructive text-sm font-medium">{apiError}</div>
         )}
       </form>
     </Form>

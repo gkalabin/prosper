@@ -36,7 +36,7 @@ export const FormTypeSelect = ({
 }) => {
   return (
     <div className="col-span-6 flex justify-center">
-      <div className="rounded-md shadow-sm">
+      <div className="rounded-md shadow-xs">
         <Button
           className={cn('rounded-l-lg border')}
           onClick={() => setValue('EXPENSE')}
@@ -46,7 +46,7 @@ export const FormTypeSelect = ({
           Expense
         </Button>
         <Button
-          className={cn('border-b border-r border-t')}
+          className={cn('border-t border-r border-b')}
           onClick={() => setValue('TRANSFER')}
           active={value == 'TRANSFER'}
           disabled={disabled}

@@ -86,7 +86,7 @@ export function AccountForm({
         onSubmit={form.handleSubmit(handleSubmit)}
         className="flex flex-col gap-4"
       >
-        <h3 className="mb-2 text-xl font-medium leading-5">
+        <h3 className="mb-2 text-xl leading-5 font-medium">
           {addingNewAccount
             ? 'Add New Bank Account'
             : `Edit ${bankAccount.name}`}
@@ -172,7 +172,7 @@ export function AccountForm({
         />
 
         {apiError && (
-          <div className="text-sm font-medium text-destructive">{apiError}</div>
+          <div className="text-destructive text-sm font-medium">{apiError}</div>
         )}
 
         <div className="flex flex-row justify-end gap-2">

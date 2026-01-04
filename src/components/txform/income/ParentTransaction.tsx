@@ -127,7 +127,7 @@ function ParentTransactionSelect({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="max-h-[--radix-popover-content-available-height] w-[--radix-popover-trigger-width] p-0"
+        className="max-h-(--radix-popover-content-available-height) w-(--radix-popover-trigger-width) p-0"
         side="bottom"
       >
         <Command shouldFilter={false}>
@@ -194,7 +194,7 @@ function FilteredTransactions({
               <div className="grow">
                 {amount} {vendor}
               </div>
-              <div className="text-sm text-muted-foreground">{date}</div>
+              <div className="text-muted-foreground text-sm">{date}</div>
             </div>
           </CommandItem>
         );

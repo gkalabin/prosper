@@ -103,7 +103,7 @@ function BanksListItem({
         </div>
 
         {editBankFormDisplayed && (
-          <div className="ml-2 mt-2">
+          <div className="mt-2 ml-2">
             <BankForm
               bank={bank}
               onAddedOrUpdated={x => {

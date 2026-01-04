@@ -36,7 +36,7 @@ function YearlyStats({input}: {input: ExchangedIntervalTransactions}) {
       <PeriodSummary input={input} />
 
       <div>
-        <h1 className="text-xl font-medium leading-7">
+        <h1 className="text-xl leading-7 font-medium">
           Expenses ({input.expenses().length})
         </h1>
         <ExpenseByTopCategoryChart
@@ -52,7 +52,7 @@ function YearlyStats({input}: {input: ExchangedIntervalTransactions}) {
       </div>
 
       <div>
-        <h1 className="text-xl font-medium leading-7">
+        <h1 className="text-xl leading-7 font-medium">
           Income ({input.income().length})
         </h1>
         <IncomeByCategory input={input} />
@@ -63,7 +63,7 @@ function YearlyStats({input}: {input: ExchangedIntervalTransactions}) {
       </div>
 
       <div>
-        <h1 className="text-xl font-medium leading-7">Vendors</h1>
+        <h1 className="text-xl leading-7 font-medium">Vendors</h1>
         <VendorsByAmount input={input} />
         <VendorsByTransactionCount input={input} />
       </div>

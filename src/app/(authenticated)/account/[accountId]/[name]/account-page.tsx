@@ -43,7 +43,7 @@ function NonEmptyPageContent({accountId}: {accountId: number}) {
   return (
     <div className="space-y-6 p-6">
       <header className="flex justify-between">
-        <h1 className="text-3xl font-semibold leading-7">{account.name}</h1>
+        <h1 className="text-3xl leading-7 font-semibold">{account.name}</h1>
         <Button onClick={() => setNewTransactionDialogOpen(true)}>
           New Transaction
         </Button>
