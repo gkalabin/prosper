@@ -45,7 +45,7 @@ function NonEmptyPageContent({bankId}: {bankId: number}) {
     stocks
   );
   return (
-    <div className="space-y-6">
+    <>
       <header className="text-3xl font-semibold leading-7">{bank.name}</header>
       <main className="space-y-4">
         <Card>
@@ -62,7 +62,7 @@ function NonEmptyPageContent({bankId}: {bankId: number}) {
         </Card>
         <Accounts bank={bank} />
       </main>
-    </div>
+    </>
   );
 }
 

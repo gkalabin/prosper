@@ -40,7 +40,7 @@ function NonEmptyPageContent({accountId}: {accountId: number}) {
       transactionBelongsToAccount(t, account)
   );
   return (
-    <div className="space-y-6">
+    <>
       <header className="flex justify-between">
         <h1 className="text-3xl font-semibold leading-7">{account.name}</h1>
         <Button onClick={() => setNewTransactionDialogOpen(true)}>
@@ -59,7 +59,7 @@ function NonEmptyPageContent({accountId}: {accountId: number}) {
         open={newTransactionDialogOpen}
         onOpenChange={setNewTransactionDialogOpen}
       />
-    </div>
+    </>
   );
 }
 

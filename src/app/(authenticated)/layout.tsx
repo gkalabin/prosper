@@ -24,7 +24,7 @@ export default async function Layout({
   return (
     <>
       <Header login={login} />
-      <div className="p-6">{children}</div>
+      <div className="space-y-6 p-6">{children}</div>
       {modal}
     </>
   );
