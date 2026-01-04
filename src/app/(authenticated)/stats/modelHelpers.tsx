@@ -59,10 +59,10 @@ export function useStatsPageProps(
 }
 
 export function useExchangedIntervalTransactions(
-  trasactions: Transaction[],
+  transactions: Transaction[],
   duration: Interval<Date>
 ): {input: ExchangedIntervalTransactions; failed: Transaction[]} {
-  const {input, failed} = useExchangedTransactions(trasactions);
+  const {input, failed} = useExchangedTransactions(transactions);
   return {
     input: new ExchangedIntervalTransactions(
       duration,
@@ -73,7 +73,7 @@ export function useExchangedIntervalTransactions(
   };
 }
 
-export function useExchangedTransactions(trasactions: Transaction[]): {
+export function useExchangedTransactions(transactions: Transaction[]): {
   input: ExchangedTransactions;
   failed: Transaction[];
 } {
@@ -82,7 +82,7 @@ export function useExchangedTransactions(trasactions: Transaction[]): {
   const displayCurrency = useDisplayCurrency();
   const failed: Transaction[] = [];
   const exchanged: ExchangedTransaction[] = [];
-  for (const t of trasactions) {
+  for (const t of transactions) {
     if (t.kind == 'Transfer') {
       exchanged.push({
         t,

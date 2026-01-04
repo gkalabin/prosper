@@ -29,7 +29,7 @@ export function Spoiler({children}: {children: React.ReactNode}) {
   );
 }
 
-// Dot travels randomly wihin canvas, the params fully describes this animation.
+// Dot travels randomly within canvas, the params fully describes this animation.
 interface DotParams {
   // Starting point of the dot, percentage relative to the container.
   topPercent: number;

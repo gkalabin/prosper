@@ -27,7 +27,7 @@ import {
 } from '@/lib/context/TransactionDataContext';
 import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {Granularity} from '@/lib/util/Granularity';
-import {Interval, endOfMonth, startOfMonth} from 'date-fns';
+import {type Interval, endOfMonth, startOfMonth} from 'date-fns';
 import {useState} from 'react';
 
 export function MonthlyStats({input}: {input: ExchangedIntervalTransactions}) {

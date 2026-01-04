@@ -4,7 +4,7 @@ import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {Currency} from '@/lib/model/Currency';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries} from '@/lib/util/Timeseries';
-import {Interval} from 'date-fns';
+import {type Interval} from 'date-fns';
 
 type TimelineAmountsChartProps = {
   title: string;

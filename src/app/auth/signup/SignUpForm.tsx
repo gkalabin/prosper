@@ -18,7 +18,7 @@ import {POST_SIGNUP_PAGE} from '@/lib/auth/const';
 import {waitUntilNavigationComplete} from '@/lib/auth/util';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useRouter} from 'next/navigation';
-import {SubmitHandler, useForm} from 'react-hook-form';
+import {type SubmitHandler, useForm} from 'react-hook-form';
 
 export function SignUpForm() {
   const form = useForm<SignUpFormValues>({
