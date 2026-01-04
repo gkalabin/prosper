@@ -36,6 +36,7 @@ personal expense tracking application.
 7. **Git Commit Standards:**
    - **Format:**
      - Summary line: concise, max 60 characters.
+     - No prefixes (e.g., feat, chore, fix) in the summary line.
      - Empty line after summary.
      - Description: wrap at 72 characters.
    - **Content:**
