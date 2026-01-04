@@ -106,5 +106,6 @@ describe('appendNewItems', () => {
     expect(appendNewItems([1, 2], [2, 3])).toEqual([1, 2, 3]);
     expect(appendNewItems([1, 2], [1, 2])).toEqual([1, 2]);
     expect(appendNewItems([1, 2], [])).toEqual([1, 2]);
+    expect(appendNewItems([], [])).toEqual([]);
   });
 });
