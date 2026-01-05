@@ -24,7 +24,11 @@ export default async function Layout({
   return (
     <>
       <Header login={login} />
-      <div className="space-y-6 p-6">{children}</div>
+      <div className="p-6">
+        <div className="flex justify-center">
+          <div className="w-full space-y-6 sm:w-3/4">{children}</div>
+        </div>
+      </div>
       {modal}
     </>
   );
