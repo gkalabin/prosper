@@ -7,7 +7,12 @@ import QueryLexer from '@/lib/search/generated/TransactionSearchQueryLexer';
 import QueryParser from '@/lib/search/generated/TransactionSearchQueryParser';
 import {CaseMatch, matchAnyField} from '@/lib/search/matchers';
 import {TransactionSearchQueryVisitor} from '@/lib/search/visitor';
-import {CharStream, CommonTokenStream, ErrorListener, Recognizer} from 'antlr4';
+import {
+  CharStream,
+  CommonTokenStream,
+  ErrorListener,
+  type Recognizer,
+} from 'antlr4';
 
 export class QuerySyntaxError extends Error {
   constructor(private errors: string[]) {

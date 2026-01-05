@@ -32,6 +32,7 @@ export default async function LoginPage() {
         {hasCapacity && (
           <p className="mt-10 text-center text-sm text-gray-500">
             Not registered?{' '}
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a
               href="/auth/signup"
               className="font-semibold leading-6 text-indigo-600 hover:text-indigo-500"

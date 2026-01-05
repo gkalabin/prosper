@@ -6,7 +6,7 @@ import {
   TransactionPrototype as DBTransactionPrototype,
   Trip as DBTrip,
 } from '@prisma/client';
-import {FieldPath} from 'react-hook-form';
+import {type FieldPath} from 'react-hook-form';
 
 export type UpsertTransactionClientError = {
   status: 'CLIENT_ERROR';
