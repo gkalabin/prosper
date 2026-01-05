@@ -93,7 +93,7 @@ export function BankForm({
         />
 
         {apiError && (
-          <div className="text-sm font-medium text-destructive">{apiError}</div>
+          <div className="text-destructive text-sm font-medium">{apiError}</div>
         )}
 
         <div className="flex justify-end gap-2">

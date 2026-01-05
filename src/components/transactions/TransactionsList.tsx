@@ -122,7 +122,7 @@ export const TransactionsListItem = ({
           <div>
             <TransactionTitle t={t} />
           </div>
-          <div className="text-xs italic text-gray-600">{t.note}</div>
+          <div className="text-xs text-gray-600 italic">{t.note}</div>
           <div
             className="text-xs text-gray-600"
             suppressHydrationWarning={true}
@@ -358,13 +358,13 @@ export const TransactionsList = (props: {
                 Show
                 <button
                   onClick={() => setDisplayLimit(displayLimit + 10)}
-                  className="ml-2 mr-1 text-indigo-600 hover:text-indigo-500"
+                  className="mr-1 ml-2 text-indigo-600 hover:text-indigo-500"
                 >
                   10
                 </button>
                 <button
                   onClick={() => setDisplayLimit(displayLimit + 100)}
-                  className="ml-1 mr-2 text-indigo-600 hover:text-indigo-500"
+                  className="mr-2 ml-1 text-indigo-600 hover:text-indigo-500"
                 >
                   100
                 </button>

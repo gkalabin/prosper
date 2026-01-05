@@ -68,7 +68,7 @@ const EditableCategoryListItem = ({
     <>
       <div
         className={cn(
-          'my-2 rounded-md border p-3 shadow',
+          'my-2 rounded-md border p-3 shadow-sm',
           // https://stackoverflow.com/questions/69687530/dynamically-build-classnames-in-tailwindcss:
           // make following class names available for JIT: ml-4 ml-8 ml-12 ml-16 ml-20 ml-24 ml-28 ml-32 ml-36 ml-40
           'ml-' + depth * 4
@@ -153,7 +153,7 @@ export function Actions({
       )}
       {showAddForm && (
         <>
-          <div className="my-4 text-xl font-medium leading-5">
+          <div className="my-4 text-xl leading-5 font-medium">
             Add New Category
           </div>
           <div className="ml-4">

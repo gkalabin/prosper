@@ -76,7 +76,7 @@ export function UnitSelect({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="max-h-[--radix-popover-content-available-height] w-[--radix-popover-trigger-width] p-0"
+        className="max-h-(--radix-popover-content-available-height) w-(--radix-popover-trigger-width) p-0"
         side="bottom"
       >
         <UnitSelectDropdownContent
@@ -197,7 +197,7 @@ function UnitOptionsList({
       <CommandItem onSelect={onForceRetry}>
         <div className="text-destructive">
           <p>Failed to load options:</p>
-          <div className="ml-2 mt-1">{error}</div>
+          <div className="mt-1 ml-2">{error}</div>
           <div className="mt-2">Click to retry.</div>
         </div>
       </CommandItem>

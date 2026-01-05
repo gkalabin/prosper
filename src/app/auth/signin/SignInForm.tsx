@@ -73,7 +73,7 @@ export function SignInForm() {
           )}
         />
 
-        <div className="text-sm font-medium text-destructive">
+        <div className="text-destructive text-sm font-medium">
           {form.formState.errors.root?.message}
         </div>
         <Button

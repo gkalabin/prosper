@@ -70,7 +70,7 @@ function RemoteBalance({
         {delta.isZero() && <CheckCircleIcon className="h-4 w-4" />}
       </div>
       {!delta.isZero() && (
-        <div className="flex items-center gap-1 text-xs font-light text-muted-foreground">
+        <div className="text-muted-foreground flex items-center gap-1 text-xs font-light">
           {delta.isNegative() ? (
             <ArrowUpIcon className="h-2.5 w-2.5" />
           ) : (

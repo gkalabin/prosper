@@ -36,7 +36,7 @@ export function StatsWidget() {
         <h2 id="total-balance-heading" className="text-2xl font-bold">
           Your total balance
         </h2>
-        <MaybeHiddenDiv className="inline-block bg-gradient-to-r from-indigo-600 via-purple-500 via-55% to-orange-400 bg-clip-text text-3xl font-bold text-transparent">
+        <MaybeHiddenDiv className="inline-block bg-linear-to-r from-indigo-600 via-purple-500 via-55% to-orange-400 bg-clip-text text-3xl font-bold text-transparent">
           {total.round().format()}
         </MaybeHiddenDiv>
       </section>
@@ -74,7 +74,7 @@ export function Last30DaysIncomeExpense() {
           >
             <h3
               id="expense-heading"
-              className="text-sm font-medium text-muted-foreground"
+              className="text-muted-foreground text-sm font-medium"
             >
               Expense
             </h3>
@@ -89,7 +89,7 @@ export function Last30DaysIncomeExpense() {
           >
             <h3
               id="income-heading"
-              className="text-sm font-medium text-muted-foreground"
+              className="text-muted-foreground text-sm font-medium"
             >
               Income
             </h3>

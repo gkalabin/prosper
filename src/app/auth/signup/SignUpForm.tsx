@@ -93,7 +93,7 @@ export function SignUpForm() {
           )}
         />
         {errors.root && (
-          <div className="text-sm font-medium text-destructive">
+          <div className="text-destructive text-sm font-medium">
             {errors.root.message}
           </div>
         )}

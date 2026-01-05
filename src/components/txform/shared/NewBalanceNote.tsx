@@ -123,7 +123,7 @@ function AccountBalanceText({
         {delta.isZero() && <CheckCircleIcon className="h-4 w-4" />}
       </div>
       {!delta.isZero() && (
-        <div className="flex items-center gap-0.5 whitespace-nowrap text-xs font-light text-muted-foreground">
+        <div className="text-muted-foreground flex items-center gap-0.5 text-xs font-light whitespace-nowrap">
           {delta.isNegative() ? (
             <ArrowUpIcon className="h-2.5 w-2.5" />
           ) : (

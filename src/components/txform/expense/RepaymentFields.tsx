@@ -24,7 +24,7 @@ export function RepaymentFields() {
     return null;
   }
   return (
-    <div className="col-span-6 space-y-2 rounded border bg-accent p-2 pl-4">
+    <div className="bg-accent col-span-6 space-y-2 rounded border p-2 pl-4">
       <Timestamp fieldName="expense.repayment.timestamp" />
       <RepaymentAmount />
       <RepaymentAccountFrom />

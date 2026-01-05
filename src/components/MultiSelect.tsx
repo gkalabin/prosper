@@ -62,7 +62,7 @@ export function MultiSelect<T>({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="max-h-[--radix-popover-content-available-height] w-[--radix-popover-trigger-width] p-0"
+        className="max-h-(--radix-popover-content-available-height) w-(--radix-popover-trigger-width) p-0"
         side="bottom"
       >
         <Command>

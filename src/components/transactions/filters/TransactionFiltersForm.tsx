@@ -72,8 +72,8 @@ export function TransactionFiltersForm(props: {onClose: () => void}) {
   ];
   console.log(cn('w-full', 'w-4'));
   return (
-    <div className="grid grid-cols-6 gap-6 bg-white p-2 shadow sm:rounded-md sm:p-6">
-      <div className="col-span-6 text-xl font-medium leading-7">Filters</div>
+    <div className="grid grid-cols-6 gap-6 bg-white p-2 shadow-sm sm:rounded-md sm:p-6">
+      <div className="col-span-6 text-xl leading-7 font-medium">Filters</div>
       <FormField
         control={control}
         name="transactionTypes"

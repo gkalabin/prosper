@@ -95,11 +95,11 @@ export function DurationSelector({
       {({open}) => (
         <>
           <PopoverButton
-            className={` ${open ? '' : 'text-opacity-90'} group inline-flex items-center rounded-md bg-indigo-700 px-3 py-2 text-base font-medium text-white hover:text-opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75`}
+            className={` ${open ? '' : 'text-white/90'} group hover:text-white focus-visible:ring-white/75 inline-flex items-center rounded-md bg-indigo-700 px-3 py-2 text-base font-medium text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white`}
           >
             <span>Duration: {formatInterval(duration)}</span>
             <ChevronDownIcon
-              className={`${open ? '' : 'text-opacity-70'} ml-2 h-5 w-5 text-indigo-300 transition duration-150 ease-in-out group-hover:text-opacity-80`}
+              className={`${open ? '' : 'text-indigo-300/70'} group-hover:text-indigo-300/80 ml-2 h-5 w-5 text-indigo-300 transition duration-150 ease-in-out`}
             />
           </PopoverButton>
           <Transition
@@ -112,12 +112,12 @@ export function DurationSelector({
             leaveTo="opacity-0 translate-y-1"
           >
             <PopoverPanel className="absolute left-1/2 z-10 mt-3 w-screen max-w-xs -translate-x-1/2 transform px-4 sm:px-0">
-              <div className="overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5">
+              <div className="overflow-hidden rounded-lg shadow-lg ring-1 ring-black/5">
                 <div className="relative grid gap-8 bg-white p-7">
                   {commonIntervals.map(opt => (
                     <PopoverButton
                       key={opt.label}
-                      className="-m-3 flex items-center rounded-lg p-2 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-none focus-visible:ring focus-visible:ring-indigo-500 focus-visible:ring-opacity-50"
+                      className="-m-3 flex items-center rounded-lg p-2 transition duration-150 ease-in-out hover:bg-gray-50 focus:outline-hidden focus-visible:ring-3 focus-visible:ring-indigo-500/50"
                       onClick={() => onChange(opt.interval)}
                     >
                       <div className="text-sm font-medium text-gray-900">

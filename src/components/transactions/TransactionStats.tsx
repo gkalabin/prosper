@@ -24,8 +24,8 @@ export function TransactionStats(props: {
     (a, b) => a.timestampEpoch - b.timestampEpoch
   );
   return (
-    <div className="grid grid-cols-6 gap-6 bg-white p-2 shadow sm:rounded-md sm:p-6">
-      <div className="col-span-6 text-xl font-medium leading-7">Stats</div>
+    <div className="grid grid-cols-6 gap-6 bg-white p-2 shadow-sm sm:rounded-md sm:p-6">
+      <div className="col-span-6 text-xl leading-7 font-medium">Stats</div>
       {!props.transactions.length && <div>No transactions found</div>}
       {!!props.transactions.length && (
         <NonEmptyTransactionStats
@@ -91,9 +91,9 @@ function Charts({input}: {input: ExchangedIntervalTransactions}) {
   return (
     <div className="col-span-6">
       <MonthlyTransactionCount input={input} />
-      <h1 className="mb-1 mt-4 text-xl font-medium leading-7">Expenses</h1>
+      <h1 className="mt-4 mb-1 text-xl leading-7 font-medium">Expenses</h1>
       <IncomeOrExenseStats kind={'expense'} input={input} />
-      <h1 className="mb-1 mt-4 text-xl font-medium leading-7">Income</h1>
+      <h1 className="mt-4 mb-1 text-xl leading-7 font-medium">Income</h1>
       <IncomeOrExenseStats kind={'income'} input={input} />
     </div>
   );

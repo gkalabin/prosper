@@ -197,7 +197,7 @@ export function TransactionForm(props: {
           </div>
 
           <div className="mt-4 flex justify-between gap-2 border-t py-4">
-            <div className="text-sm font-medium text-destructive">
+            <div className="text-destructive text-sm font-medium">
               {form.formState.errors.root?.message}
             </div>
             <div className="flex-none space-x-4">

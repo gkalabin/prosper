@@ -150,7 +150,7 @@ function CanvasDots({count}: {count: number}) {
   return (
     <canvas
       ref={canvasRef}
-      className="pointer-events-none absolute left-0 top-0 h-full w-full"
+      className="pointer-events-none absolute top-0 left-0 h-full w-full"
       style={{backgroundColor: 'transparent'}}
     />
   );

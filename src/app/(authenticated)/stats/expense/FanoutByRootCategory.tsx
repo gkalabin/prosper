@@ -22,7 +22,7 @@ export function FanoutByRootCategory({
   const {categories} = useCoreDataContext();
   return (
     <>
-      <h2 className="my-2 text-2xl font-medium leading-5">
+      <h2 className="my-2 text-2xl leading-5 font-medium">
         Drilldown by top-level categories
       </h2>
       {categories

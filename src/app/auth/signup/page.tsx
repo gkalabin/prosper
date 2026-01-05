@@ -23,10 +23,10 @@ export default async function LoginPage() {
     <div className="flex h-full w-full justify-center">
       <main className="mx-8 mt-24 w-[360px] place-self-center rounded-md border border-indigo-300 p-8 shadow-md">
         <section>
-          <h1 className="mb-8 text-center text-2xl font-bold leading-9 tracking-tight text-indigo-900">
+          <h1 className="mb-8 text-center text-2xl leading-9 font-bold tracking-tight text-indigo-900">
             Prosper
           </h1>
-          <h2 className="mb-8 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
+          <h2 className="mb-8 text-center text-2xl leading-9 font-bold tracking-tight text-gray-900">
             Register new account
           </h2>
         </section>
