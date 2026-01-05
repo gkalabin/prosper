@@ -1,5 +1,5 @@
 ---
-- name: Setup Raspberry Pi for Prosper
+- name: Setup Server for Prosper
   hosts: webservers
   become: true
 

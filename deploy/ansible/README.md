@@ -1,16 +1,16 @@
 # Ansible Setup for Self-Hosting
 
-This directory contains Ansible configuration for setting up the Raspberry Pi to
-host the application.
+This directory contains Ansible configuration for setting up a server to host
+the application.
 
 ## Prerequisites
 
 - Ansible installed on your local machine.
-- SSH access to your Raspberry Pi.
+- SSH access to your server.
 
 ## Usage
 
-1. Update `hosts.ini` with your Raspberry Pi's IP address and user.
+1. Update `hosts.ini` with your server's IP address and user.
 2. Run the playbook:
 
 ```bash
