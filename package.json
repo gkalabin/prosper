@@ -17,7 +17,8 @@
     "e2e:db:up": "docker compose -f docker-compose.e2e.yml up -d --wait && dotenv -e .env.e2e -- npx prisma db push --skip-generate",
     "e2e:db:down": "docker compose -f docker-compose.e2e.yml down -v",
     "e2e:app:dev": "dotenv -e .env.e2e -- npm run dev",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "demo": "./demo/start.sh"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
