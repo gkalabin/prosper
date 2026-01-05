@@ -51,9 +51,6 @@
     "singleQuote": true,
     "trailingComma": "es5",
     "arrowParens": "avoid",
-    "plugins": [
-      "prettier-plugin-tailwindcss"
-    ],
     "overrides": [
       {
         "files": "*.md",
@@ -115,7 +112,6 @@
     "lint-staged": "^15.2.10",
     "postcss": "^8.4.47",
     "prettier": "^3.3.3",
-    "prettier-plugin-tailwindcss": "^0.7.2",
     "prisma": "^5.19.1",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.5.3"

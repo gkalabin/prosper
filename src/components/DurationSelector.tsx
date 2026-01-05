@@ -95,11 +95,11 @@ export function DurationSelector({
       {({open}) => (
         <>
           <PopoverButton
-            className={` ${open ? '' : 'text-white/90'} group inline-flex items-center rounded-md bg-indigo-700 px-3 py-2 text-base font-medium text-white hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-white/75`}
+            className={` ${open ? '' : 'text-white/90'} group hover:text-white focus-visible:ring-white/75 inline-flex items-center rounded-md bg-indigo-700 px-3 py-2 text-base font-medium text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white`}
           >
             <span>Duration: {formatInterval(duration)}</span>
             <ChevronDownIcon
-              className={`${open ? '' : 'text-indigo-300/70'} ml-2 h-5 w-5 text-indigo-300 transition duration-150 ease-in-out group-hover:text-indigo-300/80`}
+              className={`${open ? '' : 'text-indigo-300/70'} group-hover:text-indigo-300/80 ml-2 h-5 w-5 text-indigo-300 transition duration-150 ease-in-out`}
             />
           </PopoverButton>
           <Transition
