@@ -1,5 +1,5 @@
 -- Demo Data for Prosper App
--- User: demo
+-- Login: demo
 -- Password: demo
 
 -- 1. Create User
