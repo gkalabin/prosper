@@ -32,7 +32,7 @@ echo "[$(date)] Watching for changes in branch $(git branch --show-current)."
 
 while true; do
   sleep 60
-  # Try fetching the changes, but if there is no connection to the remote, skip the iteration and rety next time.
+  # Try fetching the changes, but if there is no connection to the remote, skip the iteration and retry next time.
   git fetch || continue
   if [ $(git rev-parse HEAD) = $(git rev-parse @{u}) ]; then
     echo "[$(date)] No incoming changes."
