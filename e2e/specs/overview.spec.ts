@@ -32,6 +32,21 @@ test.describe('Overview Dashboard', () => {
       // Then
       await overviewPage.expectBalance('$1,500');
     });
+
+    test('displays balance in configured display currency', async () => {
+      // TODO: Create user with accounts in multiple currencies via seed
+      // TODO: Set display currency via seed
+      // TODO: Log in
+      // TODO: Navigate to overview page
+      // TODO: Verify balance is shown in display currency
+    });
+
+    test('displays per-account balance breakdown', async () => {
+      // TODO: Create user with multiple accounts via seed
+      // TODO: Log in
+      // TODO: Navigate to overview page
+      // TODO: Verify each account's balance is displayed correctly
+    });
   });
 
   test.describe('Bank and Account List', () => {
@@ -66,6 +81,18 @@ test.describe('Overview Dashboard', () => {
       ]);
       await overviewPage.expectBankWithAccounts('Monzo', ['Current']);
       await overviewPage.expectBalance('$25');
+    });
+  });
+
+  test.describe('Display Settings', () => {
+    test('changes display currency', async () => {
+      // TODO: Create user with default display currency via seed
+      // TODO: Log in
+      // TODO: Navigate to display settings
+      // TODO: Change display currency
+      // TODO: Save changes
+      // TODO: Navigate to overview
+      // TODO: Verify balances are now shown in new display currency
     });
   });
 });
