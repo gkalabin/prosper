@@ -1,5 +1,8 @@
 import {
+  appendNewItems,
   capitalize as capitalise,
+  centsToDollar,
+  dollarToCents,
   notEmpty,
   parseAmountAsCents,
   removeQuotes,
@@ -67,4 +70,44 @@ describe('notEmpty', () => {
   `('notEmpty of $x is $expected', ({x, expected}) =>
     expect(notEmpty(x)).toEqual(expected)
   );
+});
+
+describe('centsToDollar', () => {
+  test.each<{cents: number; expected: number}>`
+    cents   | expected
+    ${0}    | ${0}
+    ${100}  | ${1}
+    ${150}  | ${1.5}
+    ${99}   | ${0.99}
+    ${-100} | ${-1}
+    ${3.99} | ${0.04}
+  `('converts $cents cents to $expected dollars', ({cents, expected}) =>
+    expect(centsToDollar(cents)).toEqual(expected)
+  );
+});
+
+describe('dollarToCents', () => {
+  test.each<{dollar: number; expected: number}>`
+    dollar    | expected
+    ${0}      | ${0}
+    ${1}      | ${100}
+    ${1.5}    | ${150}
+    ${0.99}   | ${99}
+    ${-1}     | ${-100}
+    ${1.23}   | ${123}
+    ${1.2345} | ${123}
+  `('converts $dollar dollars to $expected cents', ({dollar, expected}) =>
+    expect(dollarToCents(dollar)).toEqual(expected)
+  );
+});
+
+describe('appendNewItems', () => {
+  test('appends new items correctly', () => {
+    expect(appendNewItems([], [1, 2])).toEqual([1, 2]);
+    expect(appendNewItems([1], [2])).toEqual([1, 2]);
+    expect(appendNewItems([1, 2], [2, 3])).toEqual([1, 2, 3]);
+    expect(appendNewItems([1, 2], [1, 2])).toEqual([1, 2]);
+    expect(appendNewItems([1, 2], [])).toEqual([1, 2]);
+    expect(appendNewItems([], [])).toEqual([]);
+  });
 });
