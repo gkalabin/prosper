@@ -1,4 +1,4 @@
 import {ChartsLibrary} from '@/components/charts/ChartsLibrary';
-import {Echarts} from '@/components/charts/Echarts';
+import {ShadcnCharts} from '@/components/charts/ShadcnCharts';
 
-export const Charts: ChartsLibrary = Echarts;
+export const Charts: ChartsLibrary = ShadcnCharts;
