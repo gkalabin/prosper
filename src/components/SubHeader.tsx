@@ -42,7 +42,7 @@ export const SubHeader = (props: {items: SubHeaderItem[]}) => {
   };
 
   return (
-    <nav className="bg-gray-600">
+    <nav className="-mx-6 -mt-6 mb-6 bg-gray-600">
       <div className="mx-auto max-w-7xl space-x-2 px-2 py-1 sm:space-x-4 sm:px-6 lg:px-8">
         {props.items.map(item => (
           <div key={item.title} className="my-1 inline-block">

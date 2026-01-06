@@ -44,9 +44,8 @@ function NonEmptyPageContent({bankId}: {bankId: number}) {
     transactions,
     stocks
   );
-  // TODO: move padding to the root layout to have consistent paddings across the app.
   return (
-    <div className="space-y-6 p-6">
+    <>
       <header className="text-3xl font-semibold leading-7">{bank.name}</header>
       <main className="space-y-4">
         <Card>
@@ -63,7 +62,7 @@ function NonEmptyPageContent({bankId}: {bankId: number}) {
         </Card>
         <Accounts bank={bank} />
       </main>
-    </div>
+    </>
   );
 }
 

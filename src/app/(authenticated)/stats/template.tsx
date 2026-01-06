@@ -35,9 +35,7 @@ export default function StatsPageLayout({
           },
         ]}
       />
-      <div className="flex justify-center">
-        <div className="w-full p-4 sm:w-3/4">{children}</div>
-      </div>
+      {children}
     </>
   );
 }
