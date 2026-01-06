@@ -95,6 +95,7 @@ describe('dollarToCents', () => {
     ${0.99} | ${99}
     ${-1}   | ${-100}
     ${1.23} | ${123}
+    ${1.2345} | ${123}
   `('converts $dollar dollars to $expected cents', ({dollar, expected}) =>
     expect(dollarToCents(dollar)).toEqual(expected)
   );
