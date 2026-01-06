@@ -1,3 +1,4 @@
+import {ThemeProvider} from '@/components/theme-provider';
 import {cn} from '@/lib/utils';
 import '@/styles/global.css';
 import {Metadata} from 'next';
@@ -33,7 +34,14 @@ export default async function RootLayout({
           openSans.className
         )}
       >
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

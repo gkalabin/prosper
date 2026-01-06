@@ -1,0 +1,40 @@
+
+> prosper@1.0.0 dev
+> next
+
+▲ Next.js 16.1.1 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+- Experiments (use with caution):
+  · serverActions
+  ✓ taint
+
+✓ Starting...
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+✓ Ready in 1168ms
+Browserslist: caniuse-lite is outdated. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+○ Compiling / ...
+ GET / 307 in 4.8s (compile: 4.3s, proxy.ts: 197ms, render: 320ms)
+○ Compiling /overview ...
+ GET /overview 307 in 4.5s (compile: 4.1s, proxy.ts: 9ms, render: 394ms)
+ GET /auth/signin 200 in 1027ms (compile: 831ms, proxy.ts: 10ms, render: 186ms)
+ GET /robots.txt 307 in 1453ms (compile: 1353ms, proxy.ts: 8ms, render: 92ms)
+ GET /auth/signin 200 in 70ms (compile: 5ms, proxy.ts: 4ms, render: 61ms)
+ GET / 307 in 140ms (compile: 39ms, proxy.ts: 45ms, render: 56ms)
+ GET /overview 307 in 116ms (compile: 29ms, proxy.ts: 5ms, render: 83ms)
+ GET /auth/signin 200 in 63ms (compile: 5ms, proxy.ts: 6ms, render: 53ms)
+ GET / 307 in 200ms (compile: 4ms, proxy.ts: 5ms, render: 191ms)
+ GET /overview 307 in 160ms (compile: 20ms, proxy.ts: 5ms, render: 135ms)
+ GET /auth/signin 200 in 94ms (compile: 4ms, proxy.ts: 6ms, render: 85ms)
+ GET /auth/signin 200 in 123ms (compile: 7ms, proxy.ts: 7ms, render: 109ms)
+ GET /auth/signin 200 in 70ms (compile: 4ms, proxy.ts: 5ms, render: 61ms)
+ GET /auth/signin 200 in 108ms (compile: 4ms, proxy.ts: 5ms, render: 100ms)
+✓ Compiled in 249ms
+✓ Compiled in 151ms
+ GET /auth/signin 200 in 618ms (compile: 219ms, proxy.ts: 8ms, render: 390ms)
