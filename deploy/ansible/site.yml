@@ -1,0 +1,31 @@
+---
+- name: Setup Server for Prosper
+  hosts: webservers
+  become: true
+
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install required packages
+      apt:
+        name:
+          - curl
+          - git
+          - docker.io
+          - docker-compose
+        state: present
+
+    - name: Ensure Docker service is running
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add user to docker group
+      user:
+        name: '{{ ansible_user }}'
+        groups: docker
+        append: yes
