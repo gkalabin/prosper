@@ -19,14 +19,12 @@ export function NewTransactionForm({dbData}: {dbData: AllDatabaseData}) {
     <CoreDataContextProvider dbData={dbData}>
       <TransactionDataContextProvider dbData={dbData}>
         <MarketDataContextProvider dbData={dbData}>
-          <>
-            <TransactionForm
-              transaction={null}
-              onClose={() => {
-                router.back();
-              }}
-            />
-          </>
+          <TransactionForm
+            transaction={null}
+            onClose={() => {
+              router.back();
+            }}
+          />
         </MarketDataContextProvider>
       </TransactionDataContextProvider>
     </CoreDataContextProvider>
