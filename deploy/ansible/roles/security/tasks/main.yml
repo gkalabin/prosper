@@ -1,0 +1,70 @@
+---
+- name: Check authorized keys
+  fail:
+    msg: "You must provide at least one authorized key in 'security_authorized_keys' to avoid lockout."
+  when: security_authorized_keys | length == 0
+
+- name: Install fail2ban
+  apt:
+    name: fail2ban
+    state: present
+  when: security_enable_fail2ban
+
+- name: Configure fail2ban
+  template:
+    src: jail.local.j2
+    dest: /etc/fail2ban/jail.local
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart fail2ban
+  when: security_enable_fail2ban
+
+- name: Enable and start fail2ban
+  service:
+    name: fail2ban
+    state: started
+    enabled: yes
+  when: security_enable_fail2ban
+
+- name: Ensure SSHD config includes .d directory
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    line: "Include /etc/ssh/sshd_config.d/*.conf"
+    state: present
+    validate: /usr/sbin/sshd -t -f %s
+  notify: restart ssh
+
+- name: Configure SSH daemon
+  template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config.d/prosper.conf
+    owner: root
+    group: root
+    mode: '0644'
+    validate: /usr/sbin/sshd -t -f %s
+  notify: restart ssh
+
+- name: Set up authorized keys
+  authorized_key:
+    user: "{{ ansible_user }}"
+    state: present
+    key: "{{ item }}"
+  loop: "{{ security_authorized_keys }}"
+  when: security_authorized_keys | length > 0
+
+- name: Set up authorized keys for prosper user (if different)
+  authorized_key:
+    user: "{{ prosper_user }}"
+    state: present
+    key: "{{ item }}"
+  loop: "{{ security_authorized_keys }}"
+  when: security_authorized_keys | length > 0 and prosper_user != ansible_user
+
+# Note: The original script removed password auth for the user.
+# We should probably do that via user module or sshd config (which is done above).
+# Disabling password for the user specifically:
+- name: Remove password for user (optional security measure)
+  user:
+    name: "{{ prosper_user }}"
+    password_lock: yes

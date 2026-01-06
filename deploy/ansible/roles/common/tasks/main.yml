@@ -1,0 +1,75 @@
+---
+- name: Update apt cache and upgrade packages
+  apt:
+    update_cache: yes
+    upgrade: dist
+    cache_valid_time: 3600
+
+- name: Remove lightdm
+  apt:
+    name: lightdm
+    state: absent
+    purge: yes
+
+- name: Install common packages
+  apt:
+    name:
+      - git
+      - apache2-utils
+      - screen
+      - wget
+      - htop
+      - bash-completion
+      - vim
+      - snapd
+      - ca-certificates
+      - curl
+      - python3-mysqldb  # For mysql modules
+      - acl # For become user
+    state: present
+
+- name: Ensure group exists
+  group:
+    name: "{{ prosper_group }}"
+    state: present
+
+- name: Ensure user exists
+  user:
+    name: "{{ prosper_user }}"
+    group: "{{ prosper_group }}"
+    groups: sudo
+    shell: /bin/bash
+    append: yes
+    state: present
+
+- name: Configure global git user email
+  git_config:
+    name: user.email
+    scope: global
+    value: "{{ prosper_user_email }}"
+  become: yes
+  become_user: "{{ prosper_user }}"
+
+- name: Configure global git user name
+  git_config:
+    name: user.name
+    scope: global
+    value: "{{ prosper_user_fullname }}"
+  become: yes
+  become_user: "{{ prosper_user }}"
+
+- name: Create application log directory
+  file:
+    path: /var/log/prosper
+    state: directory
+    owner: "{{ prosper_user }}"
+    group: "{{ prosper_group }}"
+    mode: '0755'
+
+- name: Configure logrotate for application
+  template:
+    src: logrotate.j2
+    dest: /etc/logrotate.d/prosper
+    owner: root
+    group: root
+    mode: '0644'

@@ -3,29 +3,14 @@
   hosts: webservers
   become: true
 
-  tasks:
-    - name: Update apt cache
-      apt:
-        update_cache: yes
-        cache_valid_time: 3600
+  vars_files:
+    - group_vars/all.yml
 
-    - name: Install required packages
-      apt:
-        name:
-          - curl
-          - git
-          - docker.io
-          - docker-compose
-        state: present
-
-    - name: Ensure Docker service is running
-      service:
-        name: docker
-        state: started
-        enabled: yes
-
-    - name: Add user to docker group
-      user:
-        name: '{{ ansible_user }}'
-        groups: docker
-        append: yes
+  roles:
+    - common
+    - security
+    - docker
+    - nginx
+    - ddns
+    - database
+    - prosper
