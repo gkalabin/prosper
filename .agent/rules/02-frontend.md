@@ -1,5 +1,6 @@
 ---
-trigger: always_on
+trigger: model_decision
+description: When working on client-side features
 ---
 
 ## Frontend Architecture
