@@ -13,11 +13,8 @@ import {
   SunIcon,
 } from '@heroicons/react/24/outline';
 import {Fragment, useEffect, useState} from 'react';
-import {useTheme} from './theme-provider';
-
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ');
-}
+import {useTheme} from '@/components/theme-provider';
+import {cn} from '@/lib/utils';
 
 export function ModeToggle() {
   const {setTheme, theme} = useTheme();
@@ -70,7 +67,7 @@ export function ModeToggle() {
             {({focus}) => (
               <button
                 onClick={() => setTheme('light')}
-                className={classNames(
+                className={cn(
                   focus ? 'bg-gray-100 dark:bg-gray-700' : '',
                   'flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300'
                 )}
@@ -84,7 +81,7 @@ export function ModeToggle() {
             {({focus}) => (
               <button
                 onClick={() => setTheme('dark')}
-                className={classNames(
+                className={cn(
                   focus ? 'bg-gray-100 dark:bg-gray-700' : '',
                   'flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300'
                 )}
@@ -98,7 +95,7 @@ export function ModeToggle() {
             {({focus}) => (
               <button
                 onClick={() => setTheme('system')}
-                className={classNames(
+                className={cn(
                   focus ? 'bg-gray-100 dark:bg-gray-700' : '',
                   'flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300'
                 )}

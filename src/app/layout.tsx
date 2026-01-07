@@ -42,11 +42,7 @@ export default async function RootLayout({
           openSans.className
         )}
       >
-        <ThemeProvider
-          defaultTheme="system"
-          storageKey="theme"
-          initialTheme={theme as 'dark' | 'light' | 'system'}
-        >
+        <ThemeProvider initialTheme={theme as 'dark' | 'light' | 'system'}>
           {children}
         </ThemeProvider>
       </body>

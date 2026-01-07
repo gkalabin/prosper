@@ -21,7 +21,8 @@ const initialState: ThemeProviderState = {
   setTheme: () => null,
 };
 
-const ThemeProviderContext = React.createContext<ThemeProviderState>(initialState);
+const ThemeProviderContext =
+  React.createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
   children,
@@ -34,12 +35,12 @@ export function ThemeProvider({
 
   // Initialize state from local storage on mount if no initial theme provided by server (and cookie was missing)
   React.useEffect(() => {
-     if (!initialTheme) {
-        const savedTheme = localStorage.getItem(storageKey) as Theme;
-        if (savedTheme) {
-            setTheme(savedTheme);
-        }
-     }
+    if (!initialTheme) {
+      const savedTheme = localStorage.getItem(storageKey) as Theme;
+      if (savedTheme) {
+        setTheme(savedTheme);
+      }
+    }
   }, [storageKey, initialTheme]);
 
   React.useEffect(() => {
