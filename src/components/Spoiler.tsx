@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {cn} from '@/lib/utils';
 
 const DOTS_PER_PX = 0.2;
@@ -50,7 +50,9 @@ interface DotParams {
 function CanvasDots({count}: {count: number}) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   // Generate dot properties which unambiguously describe the dot's position and animation.
-  const dots = useMemo(() => {
+  const [dots, setDots] = useState<DotParams[]>([]);
+
+  useEffect(() => {
     const result: DotParams[] = [];
     for (let i = 0; i < count; i++) {
       result.push({
@@ -62,7 +64,8 @@ function CanvasDots({count}: {count: number}) {
         startOffsetSeconds: Math.random() * 2,
       });
     }
-    return result;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDots(result);
   }, [count]);
 
   useEffect(() => {

@@ -87,6 +87,7 @@ export function TransactionForm(props: {
     // so proto is not used for default values calculation.
     defaultValues: useFormDefaults(props.transaction),
   });
+  // eslint-disable-next-line react-hooks/incompatible-library
   const formType = form.watch('formType');
   const onFormTypeChange = (newFormType: FormType): void => {
     form.reset(
