@@ -12,8 +12,8 @@ import {
   MoonIcon,
   SunIcon,
 } from '@heroicons/react/24/outline';
-import {useTheme} from 'next-themes';
 import {Fragment, useEffect, useState} from 'react';
+import {useTheme} from './theme-provider';
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');

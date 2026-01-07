@@ -38,3 +38,1242 @@ Browserslist: caniuse-lite is outdated. Please run:
 ✓ Compiled in 249ms
 ✓ Compiled in 151ms
  GET /auth/signin 200 in 618ms (compile: 219ms, proxy.ts: 8ms, render: 390ms)
+Browserslist: caniuse-lite is outdated. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/theme-provider.tsx:3:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 1 |[39m [32m'use client'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m {[33mThemeProvider[39m [36mas[39m [33mNextThemesProvider[39m} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m [36mfunction[39m [33mThemeProvider[39m({[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/theme-provider.tsx
+    ./src/app/layout.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/theme-provider.tsx:3:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 1 |[39m [32m'use client'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m {[33mThemeProvider[39m [36mas[39m [33mNextThemesProvider[39m} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m [36mfunction[39m [33mThemeProvider[39m({[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/theme-provider.tsx
+    ./src/app/layout.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/theme-provider.tsx:3:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 1 |[39m [32m'use client'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m {[33mThemeProvider[39m [36mas[39m [33mNextThemesProvider[39m} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m [36mfunction[39m [33mThemeProvider[39m({[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/theme-provider.tsx
+    ./src/app/layout.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/theme-provider.tsx:3:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 1 |[39m [32m'use client'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m {[33mThemeProvider[39m [36mas[39m [33mNextThemesProvider[39m} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m [36mfunction[39m [33mThemeProvider[39m({[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/theme-provider.tsx
+    ./src/app/layout.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/theme-provider.tsx:3:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 1 |[39m [32m'use client'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m {[33mThemeProvider[39m [36mas[39m [33mNextThemesProvider[39m} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m [36mfunction[39m [33mThemeProvider[39m({[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/theme-provider.tsx
+    ./src/app/layout.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/theme-provider.tsx:3:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 1 |[39m [32m'use client'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m {[33mThemeProvider[39m [36mas[39m [33mNextThemesProvider[39m} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m [36mfunction[39m [33mThemeProvider[39m({[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/theme-provider.tsx
+    ./src/app/layout.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/theme-provider.tsx:3:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 1 |[39m [32m'use client'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m {[33mThemeProvider[39m [36mas[39m [33mNextThemesProvider[39m} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m [36mfunction[39m [33mThemeProvider[39m({[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/theme-provider.tsx
+    ./src/app/layout.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/theme-provider.tsx:3:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 1 |[39m [32m'use client'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m {[33mThemeProvider[39m [36mas[39m [33mNextThemesProvider[39m} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m [36mfunction[39m [33mThemeProvider[39m({[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/theme-provider.tsx
+    ./src/app/layout.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/theme-provider.tsx:3:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 1 |[39m [32m'use client'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m {[33mThemeProvider[39m [36mas[39m [33mNextThemesProvider[39m} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m [36mfunction[39m [33mThemeProvider[39m({[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/theme-provider.tsx
+    ./src/app/layout.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/theme-provider.tsx:3:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 1 |[39m [32m'use client'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m {[33mThemeProvider[39m [36mas[39m [33mNextThemesProvider[39m} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m [36mfunction[39m [33mThemeProvider[39m({[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/theme-provider.tsx
+    ./src/app/layout.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/theme-provider.tsx:3:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 1 |[39m [32m'use client'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m {[33mThemeProvider[39m [36mas[39m [33mNextThemesProvider[39m} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m [36mfunction[39m [33mThemeProvider[39m({[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/theme-provider.tsx
+    ./src/app/layout.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/theme-provider.tsx:3:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 1 |[39m [32m'use client'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m {[33mThemeProvider[39m [36mas[39m [33mNextThemesProvider[39m} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m [36mfunction[39m [33mThemeProvider[39m({[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/theme-provider.tsx
+    ./src/app/layout.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/mode-toggle.tsx
+    ./src/app/auth/signin/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/mode-toggle.tsx
+    ./src/app/auth/signin/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/mode-toggle.tsx
+    ./src/app/auth/signin/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/mode-toggle.tsx
+    ./src/app/auth/signin/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/theme-provider.tsx:3:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 1 |[39m [32m'use client'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m {[33mThemeProvider[39m [36mas[39m [33mNextThemesProvider[39m} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m [36mfunction[39m [33mThemeProvider[39m({[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/theme-provider.tsx
+    ./src/app/layout.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/theme-provider.tsx:3:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 1 |[39m [32m'use client'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m {[33mThemeProvider[39m [36mas[39m [33mNextThemesProvider[39m} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m [36mfunction[39m [33mThemeProvider[39m({[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/theme-provider.tsx
+    ./src/app/layout.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/theme-provider.tsx:3:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 1 |[39m [32m'use client'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m {[33mThemeProvider[39m [36mas[39m [33mNextThemesProvider[39m} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m [36mfunction[39m [33mThemeProvider[39m({[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/theme-provider.tsx
+    ./src/app/layout.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/theme-provider.tsx:3:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 1 |[39m [32m'use client'[39m[33m;[39m
+ [90m 2 |[39m
+[31m[1m>[22m[39m[90m 3 |[39m [36mimport[39m {[33mThemeProvider[39m [36mas[39m [33mNextThemesProvider[39m} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 4 |[39m [36mimport[39m [33m*[39m [36mas[39m [33mReact[39m [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mexport[39m [36mfunction[39m [33mThemeProvider[39m({[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/theme-provider.tsx
+    ./src/app/layout.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/mode-toggle.tsx
+    ./src/app/auth/signin/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/mode-toggle.tsx
+    ./src/app/auth/signin/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/mode-toggle.tsx
+    ./src/app/auth/signin/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/mode-toggle.tsx
+    ./src/app/auth/signin/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+✓ Compiled in 1113ms
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/mode-toggle.tsx
+    ./src/app/auth/signin/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/mode-toggle.tsx
+    ./src/app/auth/signin/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/mode-toggle.tsx
+    ./src/app/auth/signin/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import trace:
+  Server Component:
+    ./src/components/mode-toggle.tsx
+    ./src/app/auth/signin/page.tsx
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/mode-toggle.tsx:15:1
+Module not found: Can't resolve 'next-themes'
+[0m [90m 13 |[39m   [33mSunIcon[39m[33m,[39m
+ [90m 14 |[39m } [36mfrom[39m [32m'@heroicons/react/24/outline'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 15 |[39m [36mimport[39m {useTheme} [36mfrom[39m [32m'next-themes'[39m[33m;[39m
+ [90m    |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 16 |[39m [36mimport[39m {[33mFragment[39m[33m,[39m useEffect[33m,[39m useState} [36mfrom[39m [32m'react'[39m[33m;[39m
+ [90m 17 |[39m
+ [90m 18 |[39m [36mfunction[39m classNames([33m...[39mclasses[33m:[39m string[]) {[0m
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/mode-toggle.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Client Component Browser]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/mode-toggle.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Client Component SSR]
+    ./src/components/Header.tsx [Server Component]
+    ./src/app/(authenticated)/layout.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+✓ Compiled in 393ms
+✓ Compiled in 464ms
+ GET /auth/signin 200 in 2.9s (compile: 980ms, proxy.ts: 153ms, render: 1806ms)
