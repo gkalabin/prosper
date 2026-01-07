@@ -347,7 +347,7 @@ export const TransactionsList = (props: {
               categoryTree={categoryTree}
             />
           ))}
-          <li className="bg-slate-50 p-2 text-center text-lg font-medium">
+          <footer className="bg-slate-50 p-2 text-center text-lg font-medium">
             Displaying
             {displayTransactions.length == props.transactions.length
               ? ` all ${displayTransactions.length} `
@@ -371,7 +371,7 @@ export const TransactionsList = (props: {
                 more
               </p>
             )}
-          </li>
+          </footer>
         </ul>
       </div>
     </>

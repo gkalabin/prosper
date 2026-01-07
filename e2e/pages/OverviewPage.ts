@@ -34,4 +34,16 @@ export class OverviewPage {
   async expectIncome(amount: string) {
     await expect(this.incomeSection).toContainText(amount);
   }
+
+  getBankCard(bankName: string) {
+    return this.page.getByRole('region', {name: bankName});
+  }
+
+  async expectBankWithAccounts(bankName: string, accountNames: string[]) {
+    const bankCard = this.getBankCard(bankName);
+    await expect(bankCard).toBeVisible();
+    for (const accountName of accountNames) {
+      await expect(bankCard.getByText(accountName)).toBeVisible();
+    }
+  }
 }

@@ -25,6 +25,7 @@ import {
 } from '@/lib/model/BankAccount';
 import {cn} from '@/lib/utils';
 import Link from 'next/link';
+import {useId} from 'react';
 
 const ITEM_BORDER_COLORS = [
   'bg-red-400',
@@ -60,14 +61,15 @@ export function BanksListItem({bank}: {bank: Bank}) {
     stocks
   );
   const activeAccounts = accounts.filter(a => !a.archived);
+  const cardHeaderId = useId();
   return (
-    <Card>
+    <Card role="region" aria-labelledby={cardHeaderId}>
       <CardHeader>
         <CardTitle>
           <div className="flex justify-between">
-            <div>
+            <h2 id={cardHeaderId} className="text-2xl font-semibold">
               <Link href={bankPageURL(bank)}>{bank.name}</Link>
-            </div>
+            </h2>
             <BankBalance amount={bankTotal} />
           </div>
         </CardTitle>

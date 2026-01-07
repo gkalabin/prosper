@@ -1,10 +1,10 @@
 import {v4 as uuidv4} from 'uuid';
-import {expect, test} from './lib/fixtures/test-base';
-import {AddTransactionPage} from './pages/AddTransactionPage';
-import {BankConfigPage} from './pages/BankConfigPage';
-import {LoginPage} from './pages/LoginPage';
-import {OverviewPage} from './pages/OverviewPage';
-import {RegisterPage} from './pages/RegisterPage';
+import {expect, test} from '../lib/fixtures/test-base';
+import {AddTransactionPage} from '../pages/AddTransactionPage';
+import {BankConfigPage} from '../pages/BankConfigPage';
+import {LoginPage} from '../pages/LoginPage';
+import {OverviewPage} from '../pages/OverviewPage';
+import {RegisterPage} from '../pages/RegisterPage';
 
 test.describe('Smoke Tests', () => {
   test('login page loads inputs', async ({page}) => {
@@ -33,7 +33,13 @@ test.describe('Smoke Tests', () => {
     // 3. Add Transaction
     const addTxPage = new AddTransactionPage(page);
     await addTxPage.goto();
-    await addTxPage.addExpense(100, transactionTs);
+    await addTxPage.addExpense({
+      amount: 100,
+      datetime: transactionTs,
+      vendor: 'Starbucks',
+      // Using category Eating Out from the initial categories generated for the user on signup.
+      category: 'Eating Out',
+    });
     // 4. Verification on Overview
     const overviewPage = new OverviewPage(page);
     await overviewPage.goto();

@@ -19,6 +19,7 @@ import {
 } from '@/lib/model/Category';
 import {cn} from '@/lib/utils';
 import {CheckIcon, ChevronUpDownIcon} from '@heroicons/react/24/outline';
+import * as React from 'react';
 import {useMemo, useState} from 'react';
 
 const MAX_MOST_FREQUENT = 5;
@@ -28,12 +29,13 @@ export function CategorySelect({
   value,
   onChange,
   disabled,
+  ...props
 }: {
   mostFrequentlyUsedCategoryIds: Array<number>;
   value: number;
   onChange: (id: number) => void;
   disabled: boolean;
-}) {
+} & React.ComponentProps<typeof Button>) {
   const [optionsOpen, setOptionsOpen] = useState(false);
   const {categories} = useCoreDataContext();
   const tree = useMemo(() => makeCategoryTree(categories), [categories]);
@@ -47,6 +49,7 @@ export function CategorySelect({
           role="combobox"
           className="h-auto min-h-10 w-full justify-between p-2 text-base font-normal"
           disabled={disabled}
+          {...props}
         >
           {getNameWithAncestors(mustFindCategory(value, categories), tree)}
           <ChevronUpDownIcon className="ml-2 h-5 w-5 shrink-0 opacity-50" />

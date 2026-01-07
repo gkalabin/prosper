@@ -146,4 +146,28 @@ export class TestFactory {
       },
     });
   }
+
+  async createIncome(
+    userId: number,
+    accountId: number,
+    categoryId: number,
+    amount: number,
+    payer: string,
+    overrides?: Partial<Transaction>
+  ) {
+    return prisma.transaction.create({
+      data: {
+        userId,
+        transactionType: TransactionType.INCOME,
+        incomingAccountId: accountId,
+        incomingAmountCents: Math.round(amount * 100),
+        ownShareAmountCents: Math.round(amount * 100),
+        timestamp: new Date(),
+        categoryId,
+        description: '',
+        payer,
+        ...overrides,
+      },
+    });
+  }
 }
