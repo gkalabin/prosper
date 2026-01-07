@@ -8,6 +8,7 @@ type ThemeProviderProps = {
   children: React.ReactNode;
   defaultTheme?: Theme;
   storageKey?: string;
+  initialTheme?: Theme;
 };
 
 type ThemeProviderState = {
@@ -20,24 +21,26 @@ const initialState: ThemeProviderState = {
   setTheme: () => null,
 };
 
-const ThemeProviderContext =
-  React.createContext<ThemeProviderState>(initialState);
+const ThemeProviderContext = React.createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
   children,
   defaultTheme = 'system',
   storageKey = 'theme',
+  initialTheme,
   ...props
 }: ThemeProviderProps) {
-  const [theme, setTheme] = React.useState<Theme>(defaultTheme);
+  const [theme, setTheme] = React.useState<Theme>(initialTheme || defaultTheme);
 
-  // Initialize state from local storage on mount (client-side only)
+  // Initialize state from local storage on mount if no initial theme provided by server (and cookie was missing)
   React.useEffect(() => {
-    const savedTheme = localStorage.getItem(storageKey) as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
-  }, [storageKey]);
+     if (!initialTheme) {
+        const savedTheme = localStorage.getItem(storageKey) as Theme;
+        if (savedTheme) {
+            setTheme(savedTheme);
+        }
+     }
+  }, [storageKey, initialTheme]);
 
   React.useEffect(() => {
     const root = window.document.documentElement;
@@ -61,6 +64,8 @@ export function ThemeProvider({
     theme,
     setTheme: (theme: Theme) => {
       localStorage.setItem(storageKey, theme);
+      // Set cookie for SSR
+      document.cookie = `${storageKey}=${theme}; path=/; max-age=31536000; SameSite=Lax`;
       setTheme(theme);
     },
   };
