@@ -21,11 +21,13 @@ import {Fragment} from 'react';
 
 const now = new Date();
 export const LAST_6_MONTHS: Interval = {
-  start: startOfMonth(subMonths(now, 6)),
+  // Minus 5 below because including the current month leads to 6 (maybe incomplete) months
+  // For example, if today is 2026-09-08, the months would be 2026-09 (today), 2026-08, 2026-07, 2026-06, 2026-05, 2026-04 (minus 5)
+  start: startOfMonth(subMonths(now, 5)),
   end: now,
 };
 export const LAST_12_MONTHS: Interval = {
-  start: startOfMonth(subMonths(now, 12)),
+  start: startOfMonth(subMonths(now, 11)),
   end: now,
 };
 
