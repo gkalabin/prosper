@@ -47,12 +47,16 @@ export function CategorySelect({
           type="button"
           variant="outline"
           role="combobox"
-          className="h-auto min-h-10 w-full justify-between p-2 text-base font-normal"
+          className="h-auto min-h-10 w-full p-2 text-base font-normal"
           disabled={disabled}
           {...props}
         >
-          {getNameWithAncestors(mustFindCategory(value, categories), tree)}
-          <ChevronUpDownIcon className="ml-2 h-5 w-5 shrink-0 opacity-50" />
+          <span className="flex w-full items-center justify-between gap-2 text-left">
+            <span className="whitespace-normal">
+              {getNameWithAncestors(mustFindCategory(value, categories), tree)}
+            </span>
+            <ChevronUpDownIcon className="h-5 w-5 shrink-0 opacity-50" />
+          </span>
         </Button>
       </PopoverTrigger>
       <PopoverContent
