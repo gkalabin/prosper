@@ -1,13 +1,20 @@
-import {test} from '../lib/fixtures/test-base';
+import {expect, test} from '../lib/fixtures/test-base';
+import {BankConfigPage} from '../pages/BankConfigPage';
+import {LoginPage} from '../pages/LoginPage';
 
 test.describe('Bank Management', () => {
-  test('creates a new bank', async () => {
-    // TODO: Log in as a user
-    // TODO: Navigate to bank configuration page
-    // TODO: Click add bank button
-    // TODO: Enter bank name
-    // TODO: Submit form
-    // TODO: Verify bank appears in the list
+  test('creates a new bank', async ({page, seed}) => {
+    // Given: user exists
+    const user = await seed.createUser();
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
+    await loginPage.login(user.login, user.rawPassword);
+    // When: navigate to bank config and create a new bank
+    const bankConfigPage = new BankConfigPage(page);
+    await bankConfigPage.goto();
+    await bankConfigPage.createBank('ABN Amro');
+    // Then: the bank appears in the list
+    await expect(bankConfigPage.getBankSection('ABN Amro')).toBeVisible();
   });
 
   test('edits an existing bank name', async () => {
