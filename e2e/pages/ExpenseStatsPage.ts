@@ -3,12 +3,14 @@ import {type Locator, type Page, expect} from '@playwright/test';
 export class ExpenseStatsPage {
   readonly page: Page;
   readonly monthlySpendChartWrapper: Locator;
+  readonly durationSelector: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.monthlySpendChartWrapper = page.locator(
       `[data-chart-title="Monthly spend"]`
     );
+    this.durationSelector = this.page.getByRole('button', {name: /Duration:/});
   }
 
   async goto() {
@@ -34,7 +36,7 @@ export class ExpenseStatsPage {
   }
 
   async selectDuration(label: string) {
-    await this.page.getByRole('button', {name: /Duration:/}).click();
-    await this.page.getByRole('button', {name: label}).click();
+    await this.durationSelector.click();
+    await this.page.getByRole('button', {name: label, exact: true}).click();
   }
 }
