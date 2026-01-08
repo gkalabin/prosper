@@ -14,6 +14,7 @@ import {
   Transaction,
 } from '@/lib/model/transaction/Transaction';
 import {differenceInDays} from 'date-fns';
+import {useState} from 'react';
 
 export function StatsWidget() {
   const displayCurrency = useDisplayCurrency();
@@ -47,7 +48,9 @@ export function StatsWidget() {
 
 export function Last30DaysIncomeExpense() {
   const {transactions} = useTransactionDataContext();
-  const now = Date.now();
+  // We use a fixed date for the calculation to ensure consistent rendering
+  // and avoid hydration mismatches, effectively treating "now" as the render time.
+  const [now] = useState(() => Date.now());
   const last30days = (t: Transaction) =>
     differenceInDays(now, t.timestampEpoch) <= 30;
   const {input, failed} = useExchangedTransactions(
