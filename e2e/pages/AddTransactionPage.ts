@@ -8,6 +8,7 @@ export class AddTransactionPage {
   readonly dateInput: Locator;
   readonly vendorInput: Locator;
   readonly categoryField: Locator;
+  readonly tagsField: Locator;
   readonly submitButton: Locator;
 
   constructor(page: Page) {
@@ -17,6 +18,9 @@ export class AddTransactionPage {
     this.dateInput = page.getByLabel('Time');
     this.vendorInput = page.getByLabel('Vendor');
     this.categoryField = page.getByRole('combobox', {name: 'Category'});
+    this.tagsField = page
+      .getByRole('combobox')
+      .filter({hasText: 'Select or create tags'});
     this.submitButton = page.getByRole('button', {name: 'Add'});
   }
 
@@ -44,5 +48,11 @@ export class AddTransactionPage {
     await this.submitButton.click();
     // Wait until the button goes back to 'Add' from 'Adding...'
     await expect(this.submitButton).toHaveText('Add');
+  }
+
+  async addTag(tagName: string) {
+    await this.tagsField.click();
+    await this.page.getByPlaceholder('Search or create tag...').fill(tagName);
+    await this.page.getByRole('option', {name: `Create ${tagName}`}).click();
   }
 }

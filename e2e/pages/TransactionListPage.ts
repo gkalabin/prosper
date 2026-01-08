@@ -1,4 +1,4 @@
-import {type Locator, type Page} from '@playwright/test';
+import {type Locator, type Page, expect} from '@playwright/test';
 
 export class TransactionListPage {
   readonly page: Page;
@@ -23,5 +23,14 @@ export class TransactionListPage {
 
   getAllTransactionListItems() {
     return this.page.getByRole('listitem');
+  }
+
+  async expandTransaction(text: string) {
+    await this.getTransactionListItem(text).click();
+  }
+
+  async expectTransactionHasTag(transactionText: string, tagName: string) {
+    const transaction = this.getTransactionListItem(transactionText);
+    await expect(transaction).toContainText(`Tags: ${tagName}`);
   }
 }

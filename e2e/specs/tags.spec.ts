@@ -1,15 +1,34 @@
-import {test} from '../lib/fixtures/test-base';
+import {expect, test} from '../lib/fixtures/test-base';
+import {AddTransactionPage} from '../pages/AddTransactionPage';
+import {LoginPage} from '../pages/LoginPage';
+import {TransactionListPage} from '../pages/TransactionListPage';
 
 test.describe('Tags', () => {
   test.describe('Tag Management', () => {
-    test('creates a tag when adding to transaction', async () => {
-      // TODO: Create user with bank, account, category via seed
-      // TODO: Log in
-      // TODO: Navigate to add transaction page
-      // TODO: Fill transaction details
-      // TODO: Add a new tag by typing its name
-      // TODO: Submit form
-      // TODO: Verify tag is created and associated with transaction
+    test('creates a tag when adding to transaction', async ({page, seed}) => {
+      // Given: user with bank, account, category
+      const user = await seed.createUser();
+      const bank = await seed.createBank(user.id, {name: 'Test Bank'});
+      await seed.createAccount(user.id, bank.id);
+      const category = await seed.createCategory(user.id);
+      const loginPage = new LoginPage(page);
+      await loginPage.goto();
+      await loginPage.login(user.login, user.rawPassword);
+      // When: add expense with a new tag
+      const addTxPage = new AddTransactionPage(page);
+      await addTxPage.goto();
+      await addTxPage.amountInput.waitFor({state: 'visible'});
+      await addTxPage.amountInput.fill('25');
+      await addTxPage.vendorInput.fill('ESSO');
+      await addTxPage.selectCategory(category.name);
+      await addTxPage.addTag('gas');
+      await addTxPage.submitButton.click();
+      await expect(addTxPage.submitButton).toHaveText('Add');
+      // Then: verify tag is created and associated with transaction
+      const transactionListPage = new TransactionListPage(page);
+      await transactionListPage.goto();
+      await transactionListPage.expandTransaction('ESSO');
+      await transactionListPage.expectTransactionHasTag('ESSO', 'gas');
     });
 
     test('reuses existing tag (case-insensitive)', async () => {
