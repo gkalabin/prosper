@@ -51,13 +51,60 @@ test.describe('Tags', () => {
       // TODO: Verify all tags are associated with the transaction
     });
 
-    test('removes tag from transaction', async () => {
-      // TODO: Create user with a transaction that has tags via seed
+    test('edit tags on a transaction', async ({page, seed}) => {
+      // Given: transaction with multiple tags
+      const user = await seed.createUser();
+      const bank = await seed.createBank(user.id);
+      const account = await seed.createAccount(user.id, bank.id);
+      const category = await seed.createCategory(user.id);
+      const tag1 = await seed.createTag(user.id, 'shops');
+      const tag2 = await seed.createTag(user.id, 'food');
+      await seed.createExpense(
+        user.id,
+        account.id,
+        category.id,
+        50,
+        'M&S',
+        {},
+        [tag1.id, tag2.id]
+      );
+      const loginPage = new LoginPage(page);
+      await loginPage.goto();
+      await loginPage.login(user.login, user.rawPassword);
+      // When editing the transaction tags
+      const transactionListPage = new TransactionListPage(page);
+      await transactionListPage.goto();
+      await transactionListPage.clickEditTransaction('M&S');
+      const editForm = new AddTransactionPage(page);
+      await editForm.removeTag('shops');
+      await editForm.addTag('drink');
+      await editForm.submitEditForm();
+      await editForm.waitForEditSubmit();
+      // Then: tags are properly updated
+      await transactionListPage.expandTransaction('M&S');
+      await transactionListPage.expectExpandedTransactionHasTag('M&S', 'food');
+      await transactionListPage.expectExpandedTransactionHasTag('M&S', 'drink');
+      // TODO: check shops is removed
+    });
+
+    test('removes single tag from transaction', async () => {
+      // TODO: Create user with bank, account, category via seed, transaction with tag
       // TODO: Log in
-      // TODO: Navigate to edit transaction
-      // TODO: Remove a tag
-      // TODO: Save changes
-      // TODO: Verify tag is no longer associated with transaction
+      // TODO: Navigate to transaction list page
+      // TODO: Edit transaction
+      // TODO: Remove tag
+      // TODO: Submit form
+      // TODO: Verify tag is removed from the transaction
+    });
+
+    test('removes all tags from transaction', async () => {
+      // TODO: Create user with bank, account, category via seed, transaction with multiple tags
+      // TODO: Log in
+      // TODO: Navigate to transaction list page
+      // TODO: Edit transaction
+      // TODO: Remove tags
+      // TODO: Submit form
+      // TODO: Verify tags are removed from the transaction
     });
   });
 

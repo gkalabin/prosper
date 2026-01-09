@@ -12,6 +12,7 @@ export class AddTransactionPage {
   readonly vendorInput: Locator;
   readonly categoryField: Locator;
   readonly tagsField: Locator;
+  // TODO: add button is a class field while the update is queried in place. Use a selector to query either of them
   readonly submitButton: Locator;
   readonly splitTransactionToggle: Locator;
   readonly ownShareAmountInput: Locator;
@@ -95,9 +96,8 @@ export class AddTransactionPage {
     await this.companionInput.fill(companion);
     await this.vendorInput.fill(vendor);
     await this.selectCategory(category);
-    await this.submitButton.click();
-    // Wait until the button goes back to 'Add' from 'Adding...'
-    await expect(this.submitButton).toHaveText('Add');
+    await this.submitCreateForm();
+    await this.waitForCreateSubmit();
   }
 
   async editExpense({amount, vendor}: {amount: number; vendor: string}) {
@@ -105,8 +105,26 @@ export class AddTransactionPage {
     await this.amountInput.waitFor({state: 'visible'});
     await this.amountInput.fill(String(amount));
     await this.vendorInput.fill(vendor);
+    await this.submitEditForm();
+    await this.waitForEditSubmit();
+  }
+
+  // TODO: the next 4 methods are very similar. Unify behind a common selector to simplify implementation.
+  async submitCreateForm() {
+    await this.submitButton.click();
+  }
+
+  async waitForCreateSubmit() {
+    // Wait until the button goes back to 'Add' from 'Adding...'
+    await expect(this.submitButton).toHaveText('Add');
+  }
+
+  async submitEditForm() {
     const updateButton = this.page.getByRole('button', {name: 'Update'});
     await updateButton.click();
+  }
+
+  async waitForEditSubmit() {
     // Wait for the dialog to close after successful update
     const dialog = this.page.getByRole('dialog');
     await expect(dialog).not.toBeVisible();
@@ -116,5 +134,22 @@ export class AddTransactionPage {
     await this.tagsField.click();
     await this.page.getByPlaceholder('Search or create tag...').fill(tagName);
     await this.page.getByRole('option', {name: `Create ${tagName}`}).click();
+  }
+
+  async selectExistingTag(tagName: string) {
+    await this.tagsField.click();
+    await this.page.getByPlaceholder('Search or create tag...').fill(tagName);
+    await this.page.getByRole('option', {name: tagName, exact: true}).click();
+  }
+
+  async removeTag(tagName: string) {
+    // Find the combobox containing the tag and click the X button on the tag badge
+    const tagsCombobox = this.page
+      .getByRole('combobox')
+      .filter({hasText: tagName});
+    const tagBadge = tagsCombobox.getByText(tagName, {exact: true});
+    // The X button is a sibling span with role="button" inside the badge
+    // TODO: use a semantic locator instead of relying on markup order of elements.
+    await tagBadge.locator('~ [role="button"]').click();
   }
 }
