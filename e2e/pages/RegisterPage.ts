@@ -16,7 +16,8 @@ export class RegisterPage {
     this.passwordInput = page.getByLabel('Password', {exact: true});
     this.confirmPasswordInput = page.getByLabel('Confirm Password');
     this.submitButton = page.getByRole('button', {name: 'Create account'});
-    this.errorMessage = page.getByRole('alert');
+    // Be specific to get error message from the form to avoid matching page-wide alerts like Next.js built in errors.
+    this.errorMessage = page.locator('form').getByRole('alert');
   }
 
   async goto() {
@@ -28,8 +29,13 @@ export class RegisterPage {
     await this.passwordInput.fill(password);
     await this.confirmPasswordInput.fill(password);
     await this.submitButton.click();
-    // Wait for server side action to complete
-    await expect(this.submitButton).not.toHaveText('Creating account...');
+    // Wait for whatever comes first:
+    //   1. Successful registration - page navigates away from signup
+    //   2. Error - button becomes enabled again (no longer "Creating account...")
+    await Promise.race([
+      this.page.waitForURL(url => !url.pathname.includes(SIGNUP_URL)),
+      expect(this.errorMessage).toBeVisible(),
+    ]);
   }
 
   async expectUserAlreadyExistsError() {

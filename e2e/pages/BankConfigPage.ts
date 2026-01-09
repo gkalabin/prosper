@@ -24,9 +24,8 @@ export class BankConfigPage {
     await bankForm.getByLabel('Bank Name').fill(name);
     const addBankButton = bankForm.getByRole('button', {name: 'Add'});
     await addBankButton.click();
-    // Clicking add submits the form and makes the button disabled.
-    // Wait for the submission to complete when the button is enabled again.
-    await expect(addBankButton).toBeEnabled();
+    // Wait for the bank form to disappear, indicating creation completed.
+    await expect(bankForm).not.toBeVisible();
   }
 
   async editBank({
@@ -74,8 +73,7 @@ export class BankConfigPage {
     await accountForm.getByLabel('Initial balance').fill(balance.toString());
     const addAccountButton = accountForm.getByRole('button', {name: 'Add'});
     await addAccountButton.click();
-    // Clicking add submits the form and makes the button disabled.
-    // Wait for the submission to complete when the button is enabled again.
-    await expect(addAccountButton).toBeEnabled();
+    // Wait for the account form to disappear, indicating creation completed.
+    await expect(accountForm).not.toBeVisible();
   }
 }

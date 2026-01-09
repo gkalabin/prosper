@@ -35,12 +35,24 @@ export class TransactionListPage {
     await item.getByRole('button', {name: 'Edit'}).click();
   }
 
-  async expectExpandedTransactionHasTag(
+  async expectExpandedTransactionHasTags(
     transactionText: string,
-    tagName: string
+    expected: string[]
   ) {
     // TODO: check the transaction is expanded
     const transaction = this.getTransactionListItem(transactionText);
-    await expect(transaction).toContainText(`Tags: ${tagName}`);
+    // Text list of tags in format "Tags: tag1, tag2, tag3"
+    const textContent = await transaction.getByText(/^Tags:/).textContent();
+    // Parse the comma-separated string into an array.
+    // Input: "Tags: tag1, tag2, tag3" -> Output: ['tag1', 'tag2', 'tag3']
+    const actual =
+      textContent
+        ?.replace(/^Tags:\s*/, '') // Remove "Tags: " prefix
+        .split(',')
+        .map(t => t.trim())
+        .filter(Boolean) // Remove empty strings
+        .sort() || []; // Sort for comparison
+    // compare ignoring order
+    expect(actual).toEqual([...expected].sort());
   }
 }

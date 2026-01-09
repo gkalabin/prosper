@@ -28,7 +28,9 @@ test.describe('Tags', () => {
       const transactionListPage = new TransactionListPage(page);
       await transactionListPage.goto();
       await transactionListPage.expandTransaction('ESSO');
-      await transactionListPage.expectExpandedTransactionHasTag('ESSO', 'gas');
+      await transactionListPage.expectExpandedTransactionHasTags('ESSO', [
+        'gas',
+      ]);
     });
 
     test('reuses existing tag (case-insensitive)', async () => {
@@ -80,11 +82,14 @@ test.describe('Tags', () => {
       await editForm.addTag('drink');
       await editForm.submitEditForm();
       await editForm.waitForEditSubmit();
+      // Refresh the page to see updated data
+      await transactionListPage.goto();
       // Then: tags are properly updated
       await transactionListPage.expandTransaction('M&S');
-      await transactionListPage.expectExpandedTransactionHasTag('M&S', 'food');
-      await transactionListPage.expectExpandedTransactionHasTag('M&S', 'drink');
-      // TODO: check shops is removed
+      await transactionListPage.expectExpandedTransactionHasTags('M&S', [
+        'food',
+        'drink',
+      ]);
     });
 
     test('removes single tag from transaction', async () => {
