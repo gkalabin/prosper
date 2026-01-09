@@ -112,14 +112,33 @@ test.describe('Create Transactions', () => {
       // TODO: Verify expense appears on the trip page
     });
 
-    test('edits an existing expense', async () => {
-      // TODO: Create user with an existing expense via seed
-      // TODO: Log in
-      // TODO: Navigate to transaction list
-      // TODO: Click on the expense to edit
-      // TODO: Change amount and vendor
-      // TODO: Save changes
-      // TODO: Verify updated values are displayed
+    test('edits an existing expense', async ({page, seed}) => {
+      // Given: User with bank, account, category, and existing expense
+      const user = await seed.createUser();
+      const bank = await seed.createBank(user.id);
+      const account = await seed.createAccount(user.id, bank.id);
+      const category = await seed.createCategory(user.id);
+      await seed.createExpense(user.id, account.id, category.id, 30, 'Nero');
+      const loginPage = new LoginPage(page);
+      await loginPage.goto();
+      await loginPage.login(user.login, user.rawPassword);
+      // When: editing expense
+      const listPage = new TransactionListPage(page);
+      await listPage.goto();
+      await listPage.clickEditTransaction('Nero');
+      // TODO: refactor class name, here we are using update transaction dialog
+      // It mostly the same as add transaction (page and dialog)
+      const addTxPage = new AddTransactionPage(page);
+      await addTxPage.editExpense({
+        amount: 45.5,
+        vendor: 'Costa',
+      });
+      // Refresh the page to see updated data
+      await listPage.goto();
+      // Then: updated values are displayed
+      await expect(listPage.getTransactionListItem('Costa')).toBeVisible();
+      await expect(listPage.getTransactionListItem('$45.5')).toBeVisible();
+      await expect(listPage.getTransactionListItem('Nero')).not.toBeVisible();
     });
   });
 

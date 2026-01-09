@@ -1,20 +1,36 @@
-import {test} from '../lib/fixtures/test-base';
+import {expect, test} from '../lib/fixtures/test-base';
+import {OverviewPage} from '../pages/OverviewPage';
+import {RegisterPage} from '../pages/RegisterPage';
+import {v4 as uuidv4} from 'uuid';
 
 test.describe('Authentication', () => {
   test.describe('Registration', () => {
-    test('allows new user to register with valid credentials', async () => {
-      // TODO: Navigate to registration page
-      // TODO: Fill in valid username and password
-      // TODO: Submit registration form
-      // TODO: Verify user is redirected to overview page
-      // TODO: Verify user session is established
+    test('allows new user to register with valid credentials', async ({
+      page,
+      seed,
+    }) => {
+      // Given
+      const login = 'e2e_test_user_' + uuidv4().slice(0, 8);
+      seed.registerUserForCleanup(login);
+      const registerPage = new RegisterPage(page);
+      await registerPage.goto();
+      // When: user sign up
+      await registerPage.register(login, 'password123');
+      // Then: registration successful, overview opens
+      const overview = new OverviewPage(page);
+      overview.goto();
+      await overview.expectBalance('$0');
     });
 
-    test('shows error for duplicate username', async () => {
-      // TODO: Create a user via seed
-      // TODO: Navigate to registration page
-      // TODO: Attempt to register with the same username
-      // TODO: Verify error message is displayed
+    test('shows error for duplicate username', async ({page, seed}) => {
+      // Given: an existing user
+      const user = await seed.createUser();
+      const registerPage = new RegisterPage(page);
+      await registerPage.goto();
+      // When: registering with the same username
+      await registerPage.register(user.login, 'password123');
+      // Then: error message is displayed
+      await registerPage.expectUserAlreadyExistsError();
     });
   });
 

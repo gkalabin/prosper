@@ -17,14 +17,23 @@ test.describe('Bank Management', () => {
     await expect(bankConfigPage.getBankSection('ABN Amro')).toBeVisible();
   });
 
-  test('edits an existing bank name', async () => {
-    // TODO: Create user with a bank via seed
-    // TODO: Log in
-    // TODO: Navigate to bank configuration page
-    // TODO: Click edit on the bank
-    // TODO: Change bank name
-    // TODO: Save changes
-    // TODO: Verify updated name is displayed
+  test('edits an existing bank name', async ({page, seed}) => {
+    // Given: user exists with a bank
+    const user = await seed.createUser();
+    const bank = await seed.createBank(user.id, {name: 'ABN Amro'});
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
+    await loginPage.login(user.login, user.rawPassword);
+    // When: navigate to bank config and edit the bank name
+    const bankConfigPage = new BankConfigPage(page);
+    await bankConfigPage.goto();
+    await bankConfigPage.editBank({
+      currentName: bank.name,
+      newName: 'ING',
+    });
+    // Then: the bank appears with the new name
+    await expect(bankConfigPage.getBankSection('ING')).toBeVisible();
+    await expect(bankConfigPage.getBankSection('ABN Amro')).not.toBeVisible();
   });
 });
 

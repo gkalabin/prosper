@@ -29,7 +29,17 @@ export class TransactionListPage {
     await this.getTransactionListItem(text).click();
   }
 
-  async expectTransactionHasTag(transactionText: string, tagName: string) {
+  async clickEditTransaction(text: string) {
+    const item = this.getTransactionListItem(text);
+    await item.click();
+    await item.getByRole('button', {name: 'Edit'}).click();
+  }
+
+  async expectExpandedTransactionHasTag(
+    transactionText: string,
+    tagName: string
+  ) {
+    // TODO: check the transaction is expanded
     const transaction = this.getTransactionListItem(transactionText);
     await expect(transaction).toContainText(`Tags: ${tagName}`);
   }

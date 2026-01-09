@@ -29,7 +29,12 @@ test.describe('Smoke Tests', () => {
     const bankPage = new BankConfigPage(page);
     await bankPage.goto();
     await bankPage.createBank(bankName);
-    await bankPage.createAccount(bankName, 'Test Account', 'USD', 0);
+    await bankPage.createAccount({
+      bankName,
+      accountName: 'Test Account',
+      currency: 'USD',
+      balance: 0,
+    });
     // 3. Add Transaction
     const addTxPage = new AddTransactionPage(page);
     await addTxPage.goto();

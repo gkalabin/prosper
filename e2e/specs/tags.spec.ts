@@ -1,4 +1,4 @@
-import {expect, test} from '../lib/fixtures/test-base';
+import {test} from '../lib/fixtures/test-base';
 import {AddTransactionPage} from '../pages/AddTransactionPage';
 import {LoginPage} from '../pages/LoginPage';
 import {TransactionListPage} from '../pages/TransactionListPage';
@@ -8,7 +8,7 @@ test.describe('Tags', () => {
     test('creates a tag when adding to transaction', async ({page, seed}) => {
       // Given: user with bank, account, category
       const user = await seed.createUser();
-      const bank = await seed.createBank(user.id, {name: 'Test Bank'});
+      const bank = await seed.createBank(user.id);
       await seed.createAccount(user.id, bank.id);
       const category = await seed.createCategory(user.id);
       const loginPage = new LoginPage(page);
@@ -17,18 +17,18 @@ test.describe('Tags', () => {
       // When: add expense with a new tag
       const addTxPage = new AddTransactionPage(page);
       await addTxPage.goto();
-      await addTxPage.amountInput.waitFor({state: 'visible'});
-      await addTxPage.amountInput.fill('25');
-      await addTxPage.vendorInput.fill('ESSO');
-      await addTxPage.selectCategory(category.name);
-      await addTxPage.addTag('gas');
-      await addTxPage.submitButton.click();
-      await expect(addTxPage.submitButton).toHaveText('Add');
+      await addTxPage.addExpense({
+        amount: 25,
+        datetime: new Date(),
+        vendor: 'ESSO',
+        category: category.name,
+        tags: ['gas'],
+      });
       // Then: verify tag is created and associated with transaction
       const transactionListPage = new TransactionListPage(page);
       await transactionListPage.goto();
       await transactionListPage.expandTransaction('ESSO');
-      await transactionListPage.expectTransactionHasTag('ESSO', 'gas');
+      await transactionListPage.expectExpandedTransactionHasTag('ESSO', 'gas');
     });
 
     test('reuses existing tag (case-insensitive)', async () => {

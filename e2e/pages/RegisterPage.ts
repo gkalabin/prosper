@@ -8,6 +8,7 @@ export class RegisterPage {
   readonly passwordInput: Locator;
   readonly confirmPasswordInput: Locator;
   readonly submitButton: Locator;
+  readonly errorMessage: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -15,6 +16,7 @@ export class RegisterPage {
     this.passwordInput = page.getByLabel('Password', {exact: true});
     this.confirmPasswordInput = page.getByLabel('Confirm Password');
     this.submitButton = page.getByRole('button', {name: 'Create account'});
+    this.errorMessage = page.getByRole('alert');
   }
 
   async goto() {
@@ -26,7 +28,14 @@ export class RegisterPage {
     await this.passwordInput.fill(password);
     await this.confirmPasswordInput.fill(password);
     await this.submitButton.click();
-    // Wait for signup to complete, this is done when redirected away from the signup page
-    await expect(this.page).not.toHaveURL(SIGNUP_URL);
+    // Wait for server side action to complete
+    await expect(this.submitButton).not.toHaveText('Creating account...');
+  }
+
+  async expectUserAlreadyExistsError() {
+    await expect(this.errorMessage).toBeVisible();
+    await expect(this.errorMessage).toContainText(
+      'User with this login already exists'
+    );
   }
 }

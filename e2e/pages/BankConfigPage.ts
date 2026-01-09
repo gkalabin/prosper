@@ -29,12 +29,36 @@ export class BankConfigPage {
     await expect(addBankButton).toBeEnabled();
   }
 
-  async createAccount(
-    bankName: string,
-    accountName: string,
-    currency: string,
-    balance: number
-  ) {
+  async editBank({
+    currentName,
+    newName,
+  }: {
+    currentName: string;
+    newName: string;
+  }) {
+    const bankSection = this.getBankSection(currentName);
+    await bankSection.getByRole('button', {name: 'Edit'}).click();
+    // The bank form appears after clicking the edit button.
+    const bankForm = bankSection.locator('form');
+    await bankForm.getByLabel('Bank Name').fill(newName);
+    const updateButton = bankForm.getByRole('button', {name: 'Update'});
+    await updateButton.click();
+    // Clicking update submits the form which hides when the update completes.
+    // Wait for the form to disappear, i.e. the submit button is no longer visible.
+    await expect(updateButton).not.toBeVisible();
+  }
+
+  async createAccount({
+    bankName,
+    accountName,
+    currency,
+    balance,
+  }: {
+    bankName: string;
+    accountName: string;
+    currency: string;
+    balance: number;
+  }) {
     const bankSection = this.getBankSection(bankName);
     await bankSection.getByRole('button', {name: 'Add New Account'}).click();
     // The account form appears after clicking the add account button.
