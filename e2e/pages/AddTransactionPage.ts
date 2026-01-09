@@ -10,6 +10,9 @@ export class AddTransactionPage {
   readonly categoryField: Locator;
   readonly tagsField: Locator;
   readonly submitButton: Locator;
+  readonly splitTransactionToggle: Locator;
+  readonly ownShareAmountInput: Locator;
+  readonly companionInput: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -22,6 +25,9 @@ export class AddTransactionPage {
       .getByRole('combobox')
       .filter({hasText: 'Select or create tags'});
     this.submitButton = page.getByRole('button', {name: 'Add'});
+    this.splitTransactionToggle = page.getByLabel('Split transaction');
+    this.ownShareAmountInput = page.getByLabel('My share');
+    this.companionInput = page.getByLabel('Shared with');
   }
 
   async goto() {
@@ -33,6 +39,7 @@ export class AddTransactionPage {
     await this.page.getByRole('option', {name: category}).first().click();
   }
 
+  // TODO: remove code duplication between this method and tests which fill in the form (e.g. tag creation).
   async addExpense(options: {
     amount: number;
     datetime: Date;
@@ -43,6 +50,28 @@ export class AddTransactionPage {
     await this.amountInput.fill(String(options.amount));
     const formattedDatetime = format(options.datetime, "yyyy-MM-dd'T'HH:mm");
     await this.dateInput.fill(formattedDatetime);
+    await this.vendorInput.fill(options.vendor);
+    await this.selectCategory(options.category);
+    await this.submitButton.click();
+    // Wait until the button goes back to 'Add' from 'Adding...'
+    await expect(this.submitButton).toHaveText('Add');
+  }
+
+  async addSplitExpense(options: {
+    amount: number;
+    ownShareAmount: number;
+    companion: string;
+    datetime: Date;
+    vendor: string;
+    category: string;
+  }) {
+    await this.amountInput.waitFor({state: 'visible'});
+    await this.amountInput.fill(String(options.amount));
+    const formattedDatetime = format(options.datetime, "yyyy-MM-dd'T'HH:mm");
+    await this.dateInput.fill(formattedDatetime);
+    await this.splitTransactionToggle.click();
+    await this.ownShareAmountInput.fill(String(options.ownShareAmount));
+    await this.companionInput.fill(options.companion);
     await this.vendorInput.fill(options.vendor);
     await this.selectCategory(options.category);
     await this.submitButton.click();

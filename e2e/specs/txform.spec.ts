@@ -1,5 +1,6 @@
 import {expect, test} from '../lib/fixtures/test-base';
 import {AddTransactionPage} from '../pages/AddTransactionPage';
+import {ExpenseStatsPage} from '../pages/ExpenseStatsPage';
 import {LoginPage} from '../pages/LoginPage';
 import {OverviewPage} from '../pages/OverviewPage';
 import {TransactionListPage} from '../pages/TransactionListPage';
@@ -44,15 +45,42 @@ test.describe('Create Transactions', () => {
       await overviewPage.expectBalance('$58');
     });
 
-    test('creates an expense with split (shared expense)', async () => {
-      // TODO: Create user with bank, account, and category via seed
-      // TODO: Log in
-      // TODO: Navigate to add transaction page
-      // TODO: Select expense tab
-      // TODO: Fill amount and set own share amount
-      // TODO: Set companion who owes the remaining amount
-      // TODO: Submit form
-      // TODO: Verify expense shows both total and own share
+    test('creates an expense with split (shared expense)', async ({
+      page,
+      seed,
+    }) => {
+      // Given: User with bank, account, and category
+      const user = await seed.createUser();
+      const bank = await seed.createBank(user.id);
+      await seed.createAccount(user.id, bank.id, {
+        initialBalanceCents: 50000, // $500
+      });
+      const category = await seed.createCategory(user.id);
+      const loginPage = new LoginPage(page);
+      await loginPage.goto();
+      await loginPage.login(user.login, user.rawPassword);
+      // When: Create a split expense where total is $100, user's share is $60
+      const addTxPage = new AddTransactionPage(page);
+      await addTxPage.goto();
+      await addTxPage.addSplitExpense({
+        amount: 100,
+        ownShareAmount: 60,
+        companion: 'Alice',
+        datetime: new Date(),
+        vendor: "Wendy's",
+        category: category.name,
+      });
+
+      // Then: Account balance should be reduced by the whole expense ($500 - $100 = $400)
+      const overviewPage = new OverviewPage(page);
+      await overviewPage.goto();
+      await overviewPage.expectBalance('$400');
+      // And: Stats page should show expense as own share ($60)
+      const statsPage = new ExpenseStatsPage(page);
+      await statsPage.goto();
+      await statsPage.selectDuration('Last 6 months');
+      // Chart shows 6 months: previous 5 months with no expenses, current month with $60 own share
+      await statsPage.expectMonthlyChartAmounts([0, 0, 0, 0, 0, 60]);
     });
 
     test('creates an expense with optional note', async () => {
