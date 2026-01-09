@@ -1,7 +1,7 @@
-import {expect, test} from '../lib/fixtures/test-base';
+import {v4 as uuidv4} from 'uuid';
+import {test} from '../lib/fixtures/test-base';
 import {OverviewPage} from '../pages/OverviewPage';
 import {RegisterPage} from '../pages/RegisterPage';
-import {v4 as uuidv4} from 'uuid';
 
 test.describe('Authentication', () => {
   test.describe('Registration', () => {
