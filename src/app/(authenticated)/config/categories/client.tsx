@@ -59,12 +59,7 @@ const EditableCategoryListItem = ({
   const children = immediateChildren(category, tree);
   const hasChildren = children.length > 0;
   return (
-    <li
-      role="treeitem"
-      aria-expanded={hasChildren ? showChildren : undefined}
-      aria-label={category.name}
-      className="list-none"
-    >
+    <li className="list-none">
       <div className="my-2 rounded-md border p-3 shadow">
         <div className="flex items-center justify-between">
           <div
@@ -107,7 +102,7 @@ const EditableCategoryListItem = ({
         )}
       </div>
       {hasChildren && showChildren && (
-        <ul role="group" className="ml-4 border-l pl-8">
+        <ul className="ml-4 border-l pl-8">
           <CategoriesList
             collapsed={collapsed}
             toggleCollapsedState={toggleCollapsedState}
@@ -192,7 +187,7 @@ export function CategoriesConfigPage({
         onNewCategory={addOrUpdateState}
         onExpandToggle={toggleCollapsedStateAll}
       />
-      <ul role="tree">
+      <ul>
         <CategoriesList
           collapsed={collapsed}
           toggleCollapsedState={toggleCollapsedState}

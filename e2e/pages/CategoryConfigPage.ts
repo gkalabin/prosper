@@ -26,9 +26,14 @@ export class CategoryConfigPage {
    * @example getCategoryItem(['Car', 'Gas']) - finds the "Gas" category under "Car"
    */
   getCategoryItem(categoryPath: string[]) {
-    let locator = this.page.getByRole('tree');
+    let locator = this.page.getByRole('list').first();
     for (const categoryName of categoryPath) {
-      locator = locator.getByRole('treeitem', {name: categoryName});
+      locator = locator
+        .getByRole('listitem')
+        .filter({
+          has: this.page.getByText(categoryName, {exact: true}),
+        })
+        .first();
     }
     return locator;
   }
