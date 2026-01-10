@@ -27,18 +27,17 @@ const CategoriesList = (props: {
     return <div>No categories found.</div>;
   }
   return (
-    <div>
+    <div role={props.depth === 0 ? 'tree' : 'treeitem'}>
       {props.categories.map(category => (
-        <div key={category.id}>
-          <EditableCategoryListItem
-            collapsed={props.collapsed}
-            toggleCollapsedState={props.toggleCollapsedState}
-            category={category}
-            depth={props.depth}
-            allCategories={props.allCategories}
-            onCategoryUpdated={props.onCategoryUpdated}
-          />
-        </div>
+        <EditableCategoryListItem
+          key={category.id}
+          collapsed={props.collapsed}
+          toggleCollapsedState={props.toggleCollapsedState}
+          category={category}
+          depth={props.depth}
+          allCategories={props.allCategories}
+          onCategoryUpdated={props.onCategoryUpdated}
+        />
       ))}
     </div>
   );
@@ -65,7 +64,10 @@ const EditableCategoryListItem = ({
   const children = immediateChildren(category, tree);
   const hasChildren = children.length > 0;
   return (
-    <>
+    <div
+      aria-expanded={hasChildren ? showChildren : undefined}
+      aria-label={category.name}
+    >
       <div
         className={cn(
           'my-2 rounded-md border p-3 shadow',
@@ -129,7 +131,7 @@ const EditableCategoryListItem = ({
           onCategoryUpdated={onCategoryUpdated}
         />
       )}
-    </>
+    </div>
   );
 };
 

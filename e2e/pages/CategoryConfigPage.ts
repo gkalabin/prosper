@@ -19,9 +19,18 @@ export class CategoryConfigPage {
     await this.page.goto('/config/categories');
   }
 
-  // TODO: accept an array of category names to recursively navigate through nesting
-  getCategoryItem(categoryName: string) {
-    return this.page.getByText(categoryName, {exact: true});
+  /**
+   * Get a category item by navigating through the tree hierarchy.
+   * Accepts an array of names representing the path from root to the target category.
+   *
+   * @example getCategoryItem(['Car', 'Gas']) - finds the "Gas" category under "Car"
+   */
+  getCategoryItem(categoryPath: string[]) {
+    let locator = this.page.getByRole('tree');
+    for (const categoryName of categoryPath) {
+      locator = locator.getByRole('treeitem', {name: categoryName});
+    }
+    return locator;
   }
 
   async createCategory(name: string) {
@@ -53,16 +62,5 @@ export class CategoryConfigPage {
     await addButton.click();
     // Wait for the category form to disappear, indicating creation completed.
     await expect(categoryForm).not.toBeVisible();
-  }
-
-  getSubcategoryItem({
-    parentName,
-    childName,
-  }: {
-    parentName: string;
-    childName: string;
-  }) {
-    // TODO: verify the parent category name as well
-    return this.getCategoryItem(childName);
   }
 }

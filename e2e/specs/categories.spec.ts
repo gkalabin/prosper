@@ -15,13 +15,15 @@ test.describe('Categories', () => {
       await categoryConfigPage.goto();
       await categoryConfigPage.createCategory('Housing');
       // Then: the category appears in the list
-      await expect(categoryConfigPage.getCategoryItem('Housing')).toBeVisible();
+      await expect(
+        categoryConfigPage.getCategoryItem(['Housing'])
+      ).toBeVisible();
     });
 
     test('creates a nested subcategory', async ({page, seed}) => {
       // Given: user and a category
       const user = await seed.createUser();
-      await seed.createCategory(user.id, {name: 'Transportation'});
+      await seed.createCategory(user.id, {name: 'Car'});
       const loginPage = new LoginPage(page);
       await loginPage.goto();
       await loginPage.login(user.login, user.rawPassword);
@@ -29,15 +31,12 @@ test.describe('Categories', () => {
       const categoryConfigPage = new CategoryConfigPage(page);
       await categoryConfigPage.goto();
       await categoryConfigPage.createSubcategory({
-        parentName: 'Transportation',
-        childName: 'Fuel',
+        parentName: 'Car',
+        childName: 'Gas',
       });
       // Then: the subcategory appears nested under parent
       await expect(
-        categoryConfigPage.getSubcategoryItem({
-          parentName: 'Transportation',
-          childName: 'Fuel',
-        })
+        categoryConfigPage.getCategoryItem(['Car', 'Gas'])
       ).toBeVisible();
     });
 
