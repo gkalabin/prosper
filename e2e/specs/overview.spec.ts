@@ -59,7 +59,7 @@ test.describe('Overview Dashboard', () => {
       const overviewPage = new OverviewPage(page);
       await overviewPage.goto();
       // Then: total £1800 - £1000 initial in GBP and £800 converted from $1000
-      await overviewPage.expectBalance('£1800');
+      await overviewPage.expectBalance('£1,800');
     });
 
     test('displays per-account balance breakdown', async () => {
