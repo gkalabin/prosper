@@ -19,6 +19,7 @@ export class CategoryConfigPage {
     await this.page.goto('/config/categories');
   }
 
+  // TODO: accept an array of category names to recursively navigate through nesting
   getCategoryItem(categoryName: string) {
     return this.page.getByText(categoryName, {exact: true});
   }
@@ -33,6 +34,8 @@ export class CategoryConfigPage {
     await expect(categoryForm).not.toBeVisible();
   }
 
+  // TODO: createSubcategory is almost the same as createCategory, but with an additional parent category selector.
+  // Unify the code to avoid duplication, but make sure to keep the test logic easy to follow and clean methods split and structure.
   async createSubcategory({
     childName,
     parentName,
@@ -59,6 +62,7 @@ export class CategoryConfigPage {
     parentName: string;
     childName: string;
   }) {
+    // TODO: verify the parent category name as well
     return this.getCategoryItem(childName);
   }
 }

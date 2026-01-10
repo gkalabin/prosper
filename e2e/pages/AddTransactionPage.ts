@@ -174,6 +174,8 @@ export class AddTransactionPage {
   }
 
   async removeTag(tagName: string) {
+    // TODO: instead of selecting the selected tag and toggle it off,
+    // locate the tag badges and click X icon inside them.
     // Find the dialog containing the edit form
     const dialog = this.page.getByRole('dialog');
     // Open the tags combobox
