@@ -7,9 +7,11 @@ import {format} from 'date-fns';
 export class AddTransactionPage {
   readonly page: Page;
   readonly expenseTab: Locator;
+  readonly incomeTab: Locator;
   readonly amountInput: Locator;
   readonly dateInput: Locator;
   readonly vendorInput: Locator;
+  readonly payerInput: Locator;
   readonly categoryField: Locator;
   readonly tagsField: Locator;
   // TODO: add button is a class field while the update is queried in place. Use a selector to query either of them
@@ -21,13 +23,13 @@ export class AddTransactionPage {
   constructor(page: Page) {
     this.page = page;
     this.expenseTab = page.getByRole('tab', {name: 'Expense'});
+    this.incomeTab = page.getByRole('tab', {name: 'Income'});
     this.amountInput = page.getByLabel('Amount');
     this.dateInput = page.getByLabel('Time');
     this.vendorInput = page.getByLabel('Vendor');
+    this.payerInput = page.getByLabel('Payer');
     this.categoryField = page.getByRole('combobox', {name: 'Category'});
-    this.tagsField = page
-      .getByRole('combobox')
-      .filter({hasText: 'Select or create tags'});
+    this.tagsField = page.getByRole('combobox', {name: 'Tags'});
     this.submitButton = page.getByRole('button', {name: 'Add'});
     this.splitTransactionToggle = page.getByLabel('Split transaction');
     this.ownShareAmountInput = page.getByLabel('My share');
@@ -49,12 +51,14 @@ export class AddTransactionPage {
     vendor,
     category,
     tags,
+    trip,
   }: {
     amount: number;
     datetime: Date;
     vendor: string;
     category: string;
     tags?: string[];
+    trip?: string;
   }) {
     await this.amountInput.waitFor({state: 'visible'});
     await this.amountInput.fill(String(amount));
@@ -66,6 +70,11 @@ export class AddTransactionPage {
       for (const tag of tags) {
         await this.addTag(tag);
       }
+    }
+    if (trip) {
+      // Click the "trip" link to reveal the trip input field
+      await this.page.getByRole('button', {name: 'trip'}).click();
+      await this.page.getByLabel('Trip').fill(trip);
     }
     await this.submitButton.click();
     // Wait until the button goes back to 'Add' from 'Adding...'
@@ -95,6 +104,28 @@ export class AddTransactionPage {
     await this.ownShareAmountInput.fill(String(ownShareAmount));
     await this.companionInput.fill(companion);
     await this.vendorInput.fill(vendor);
+    await this.selectCategory(category);
+    await this.submitCreateForm();
+    await this.waitForCreateSubmit();
+  }
+
+  async addIncome({
+    amount,
+    datetime,
+    payer,
+    category,
+  }: {
+    amount: number;
+    datetime: Date;
+    payer: string;
+    category: string;
+  }) {
+    await this.incomeTab.click();
+    await this.amountInput.waitFor({state: 'visible'});
+    await this.amountInput.fill(String(amount));
+    const formattedDatetime = format(datetime, "yyyy-MM-dd'T'HH:mm");
+    await this.dateInput.fill(formattedDatetime);
+    await this.payerInput.fill(payer);
     await this.selectCategory(category);
     await this.submitCreateForm();
     await this.waitForCreateSubmit();
@@ -143,13 +174,14 @@ export class AddTransactionPage {
   }
 
   async removeTag(tagName: string) {
-    // Find the combobox containing the tag and click the X button on the tag badge
-    const tagsCombobox = this.page
-      .getByRole('combobox')
-      .filter({hasText: tagName});
-    const tagBadge = tagsCombobox.getByText(tagName, {exact: true});
-    // The X button is a sibling span with role="button" inside the badge
-    // TODO: use a semantic locator instead of relying on markup order of elements.
-    await tagBadge.locator('~ [role="button"]').click();
+    // Find the dialog containing the edit form
+    const dialog = this.page.getByRole('dialog');
+    // Open the tags combobox
+    await dialog.getByRole('combobox', {name: 'Tags'}).click();
+    // Wait for the dropdown options to appear
+    const option = dialog.getByRole('option', {name: tagName, exact: true});
+    await expect(option).toBeVisible();
+    // Click the tag option to deselect it (toggle it off)
+    await option.click();
   }
 }

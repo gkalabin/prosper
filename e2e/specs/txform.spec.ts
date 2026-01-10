@@ -143,15 +143,35 @@ test.describe('Create Transactions', () => {
   });
 
   test.describe('Income Transactions', () => {
-    test('creates an income transaction', async () => {
-      // TODO: Create user with bank, account, and category via seed
-      // TODO: Log in
-      // TODO: Navigate to add transaction page
-      // TODO: Select income tab
-      // TODO: Fill amount, payer, category, timestamp
-      // TODO: Submit form
-      // TODO: Verify income appears in transaction list
-      // TODO: Verify account balance is updated
+    test('creates an income transaction', async ({page, seed}) => {
+      // Given
+      const user = await seed.createUser();
+      const bank = await seed.createBank(user.id);
+      await seed.createAccount(user.id, bank.id, {
+        initialBalanceCents: 50000, // $500 initial balance
+      });
+      const category = await seed.createCategory(user.id);
+      const loginPage = new LoginPage(page);
+      await loginPage.goto();
+      await loginPage.login(user.login, user.rawPassword);
+      // When
+      const addTxPage = new AddTransactionPage(page);
+      await addTxPage.goto();
+      await addTxPage.addIncome({
+        amount: 1500,
+        datetime: new Date(),
+        payer: 'Acme Corp',
+        category: category.name,
+      });
+      // Then
+      const listPage = new TransactionListPage(page);
+      await listPage.goto();
+      await expect(listPage.getTransactionListItem('Acme Corp')).toBeVisible();
+      await expect(listPage.getTransactionListItem('$1,500')).toBeVisible();
+      // Verify account balance is updated on overview to $2000 - $500 initial balance and $1500 income
+      const overviewPage = new OverviewPage(page);
+      await overviewPage.goto();
+      await overviewPage.expectBalance('$2,000');
     });
 
     test('links income as a refund to an expense', async () => {

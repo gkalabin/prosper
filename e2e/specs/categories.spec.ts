@@ -1,25 +1,44 @@
-import {test} from '../lib/fixtures/test-base';
+import {expect, test} from '../lib/fixtures/test-base';
+import {CategoryConfigPage} from '../pages/CategoryConfigPage';
+import {LoginPage} from '../pages/LoginPage';
 
 test.describe('Categories', () => {
   test.describe('Category Management', () => {
-    test('creates a top-level category', async () => {
-      // TODO: Create user via seed
-      // TODO: Log in
-      // TODO: Navigate to categories configuration page
-      // TODO: Click add category
-      // TODO: Enter category name
-      // TODO: Submit form
-      // TODO: Verify category appears in the list
+    test('creates a top-level category', async ({page, seed}) => {
+      // Given
+      const user = await seed.createUser();
+      const loginPage = new LoginPage(page);
+      await loginPage.goto();
+      await loginPage.login(user.login, user.rawPassword);
+      // When: creating a new category
+      const categoryConfigPage = new CategoryConfigPage(page);
+      await categoryConfigPage.goto();
+      await categoryConfigPage.createCategory('Housing');
+      // Then: the category appears in the list
+      await expect(categoryConfigPage.getCategoryItem('Housing')).toBeVisible();
     });
 
-    test('creates a nested subcategory', async () => {
-      // TODO: Create user with a parent category via seed
-      // TODO: Log in
-      // TODO: Navigate to categories configuration page
-      // TODO: Click add subcategory under the parent
-      // TODO: Enter subcategory name
-      // TODO: Submit form
-      // TODO: Verify subcategory appears nested under parent
+    test('creates a nested subcategory', async ({page, seed}) => {
+      // Given: user and a category
+      const user = await seed.createUser();
+      await seed.createCategory(user.id, {name: 'Transportation'});
+      const loginPage = new LoginPage(page);
+      await loginPage.goto();
+      await loginPage.login(user.login, user.rawPassword);
+      // When: creating a nested subcategory
+      const categoryConfigPage = new CategoryConfigPage(page);
+      await categoryConfigPage.goto();
+      await categoryConfigPage.createSubcategory({
+        parentName: 'Transportation',
+        childName: 'Fuel',
+      });
+      // Then: the subcategory appears nested under parent
+      await expect(
+        categoryConfigPage.getSubcategoryItem({
+          parentName: 'Transportation',
+          childName: 'Fuel',
+        })
+      ).toBeVisible();
     });
 
     test('edits a category name', async () => {

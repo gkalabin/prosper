@@ -1,15 +1,33 @@
-import {test} from '../lib/fixtures/test-base';
+import {expect, test} from '../lib/fixtures/test-base';
+import {AddTransactionPage} from '../pages/AddTransactionPage';
+import {LoginPage} from '../pages/LoginPage';
+import {TripsPage} from '../pages/TripsPage';
 
 test.describe('Trips', () => {
   test.describe('Trip Management', () => {
-    test('creates a new trip', async () => {
-      // TODO: Create user via seed
-      // TODO: Log in
-      // TODO: Navigate to trips page
-      // TODO: Click add trip
-      // TODO: Enter trip name and date range
-      // TODO: Submit form
-      // TODO: Verify trip appears in the list
+    test('creates a new trip', async ({page, seed}) => {
+      // Given
+      const user = await seed.createUser();
+      const bank = await seed.createBank(user.id);
+      await seed.createAccount(user.id, bank.id);
+      const category = await seed.createCategory(user.id);
+      const loginPage = new LoginPage(page);
+      await loginPage.goto();
+      await loginPage.login(user.login, user.rawPassword);
+      // When create a new transaction with an unused trip name
+      const addTxPage = new AddTransactionPage(page);
+      await addTxPage.goto();
+      await addTxPage.addExpense({
+        amount: 150,
+        datetime: new Date(),
+        vendor: 'Delta Airlines',
+        category: category.name,
+        trip: 'Japan 2026',
+      });
+      // Then trip appears in the trips list
+      const tripsPage = new TripsPage(page);
+      await tripsPage.goto();
+      await expect(tripsPage.getTripLink('Japan 2026')).toBeVisible();
     });
   });
 

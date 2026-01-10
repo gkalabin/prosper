@@ -38,15 +38,25 @@ test.describe('Bank Management', () => {
 });
 
 test.describe('Account Management', () => {
-  test('creates a new account with currency', async () => {
-    // TODO: Create user with a bank via seed
-    // TODO: Log in
-    // TODO: Navigate to bank configuration page
-    // TODO: Click add account under the bank
-    // TODO: Enter account name and select currency (e.g., USD)
-    // TODO: Set initial balance
-    // TODO: Submit form
-    // TODO: Verify account appears under the bank
+  test('creates a new account with currency', async ({page, seed}) => {
+    // Given: user with a bank
+    const user = await seed.createUser();
+    const bank = await seed.createBank(user.id, {name: 'ING'});
+    const loginPage = new LoginPage(page);
+    await loginPage.goto();
+    await loginPage.login(user.login, user.rawPassword);
+    // When: creating a new account
+    const bankConfigPage = new BankConfigPage(page);
+    await bankConfigPage.goto();
+    await bankConfigPage.createAccount({
+      bankName: bank.name,
+      accountName: 'Savings',
+      currency: 'USD',
+      balance: 1000,
+    });
+    // Then: the account appears under the bank
+    const bankSection = bankConfigPage.getBankSection(bank.name);
+    await expect(bankSection.getByText('Savings')).toBeVisible();
   });
 
   test('creates a new account with stock unit', async () => {

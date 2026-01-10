@@ -2,6 +2,8 @@ import {
   Bank,
   BankAccount,
   Category,
+  DisplaySettings,
+  ExchangeRate,
   Tag,
   Transaction,
   TransactionType,
@@ -181,6 +183,34 @@ export class TestFactory {
         payer,
         ...overrides,
       },
+    });
+  }
+
+  async createExchangeRate(
+    fromCurrency: string,
+    toCurrency: string,
+    rate: number,
+    overrides?: Partial<ExchangeRate>
+  ) {
+    const NANOS_MULTIPLIER = 1000000000;
+    return prisma.exchangeRate.create({
+      data: {
+        currencyCodeFrom: fromCurrency,
+        currencyCodeTo: toCurrency,
+        rateNanos: BigInt(Math.round(rate * NANOS_MULTIPLIER)),
+        rateTimestamp: new Date(),
+        ...overrides,
+      },
+    });
+  }
+
+  async updateDisplaySettings(
+    userId: number,
+    updates: Partial<DisplaySettings>
+  ) {
+    return prisma.displaySettings.update({
+      where: {userId},
+      data: updates,
     });
   }
 }

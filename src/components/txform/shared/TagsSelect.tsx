@@ -26,11 +26,12 @@ export function TagsSelect({
   value,
   onChange,
   disabled,
+  ...props
 }: {
   value: string[];
   onChange: (value: string[]) => void;
   disabled: boolean;
-}) {
+} & React.ComponentProps<typeof Button>) {
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const existingTagNames = useExistingTagNames();
@@ -55,6 +56,8 @@ export function TagsSelect({
             !value.length && 'text-muted-foreground'
           )}
           disabled={disabled}
+          // TODO: add comment explaining why this is being passed and why it is okay to expand the props on the button
+          {...props}
         >
           <div className="flex w-full flex-row justify-between gap-2">
             <div className="flex grow flex-wrap gap-2">
