@@ -25,6 +25,7 @@ test.describe('Smoke Tests', () => {
     const registerPage = new RegisterPage(page);
     await registerPage.goto();
     await registerPage.register(login, password);
+    await registerPage.expectSuccess();
     // 2. Bank & Account Setup
     const bankPage = new BankConfigPage(page);
     await bankPage.goto();

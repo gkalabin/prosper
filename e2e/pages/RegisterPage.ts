@@ -29,13 +29,10 @@ export class RegisterPage {
     await this.passwordInput.fill(password);
     await this.confirmPasswordInput.fill(password);
     await this.submitButton.click();
-    // Wait for whatever comes first:
-    //   1. Successful registration - page navigates away from signup
-    //   2. Error - button becomes enabled again (no longer "Creating account...")
-    await Promise.race([
-      this.page.waitForURL(url => !url.pathname.includes(SIGNUP_URL)),
-      expect(this.errorMessage).toBeVisible(),
-    ]);
+  }
+
+  async expectSuccess() {
+    await expect(this.page).not.toHaveURL(SIGNUP_URL);
   }
 
   async expectUserAlreadyExistsError() {
