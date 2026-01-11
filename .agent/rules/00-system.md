@@ -18,22 +18,25 @@ personal expense tracking application.
 
 ## General Coding Standards
 
+1. **All code changes** should meaningfully improve the app by either adding new
+   features, fixing bugs, fixing bugs in tests. Do not hide issues by adding
+   hacks or hiding problems under a rug.
 1. **Context Aware:** Always consider existing project structure/dependencies.
-2. **Type Safety:** Strict TypeScript is mandatory. Avoid `any`.
-3. **Naming:**
+1. **Type Safety:** Strict TypeScript is mandatory. Avoid `any`.
+1. **Naming:**
    - Use descriptive, concise names.
    - Do not prefix names with "Prosper" or app-specific context unless
      necessary.
    - Avoid generic names (e.g., `data`, `item`).
-4. **Comments:**
+1. **Comments:**
    - Explain _WHY_, not _WHAT_.
    - Use double slashes `//`.
    - Remove temporary comments before finalizing code.
-5. **Clean Code:** Prioritize readability and modularity. Avoid magic numbers
+1. **Clean Code:** Prioritize readability and modularity. Avoid magic numbers
    and hardcoded strings.
-6. **Imports:** In typescript app logic (except e2e tests) use absolute imports
+1. **Imports:** In typescript app logic (except e2e tests) use absolute imports
    with '@' meaning root. Example: `import {notEmpty} from '@/lib/util';`
-7. **Git Commit Messages:**
+1. **Git Commit Messages:**
    - **Format:**
      - Summary line: concise, max 60 characters.
      - No prefixes (e.g., feat, chore, fix) in the summary line.
