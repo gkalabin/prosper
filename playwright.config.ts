@@ -10,6 +10,7 @@ export default defineConfig({
   fullyParallel: true,
   // Reporter to use. See https://playwright.dev/docs/test-reporters
   reporter: env.CI ? 'github' : 'html',
+  forbidOnly: !!env.CI,
 
   use: {
     // Base URL to use in actions like `await page.goto('/')`

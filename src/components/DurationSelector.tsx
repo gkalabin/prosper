@@ -19,15 +19,23 @@ import {
 } from 'date-fns';
 import {Fragment} from 'react';
 
-const now = new Date();
-export const LAST_6_MONTHS: Interval = {
-  start: startOfMonth(subMonths(now, 6)),
-  end: now,
-};
-export const LAST_12_MONTHS: Interval = {
-  start: startOfMonth(subMonths(now, 12)),
-  end: now,
-};
+export function getLast6Months(): Interval<Date> {
+  const now = new Date();
+  // Minus 5 below because including the current month leads to 6 (maybe incomplete) months
+  // For example, if today is 2026-09-08, the months would be 2026-09 (today), 2026-08, 2026-07, 2026-06, 2026-05, 2026-04 (minus 5)
+  return {
+    start: startOfMonth(subMonths(now, 5)),
+    end: now,
+  };
+}
+
+export function getLast12Months(): Interval<Date> {
+  const now = new Date();
+  return {
+    start: startOfMonth(subMonths(now, 11)),
+    end: now,
+  };
+}
 
 function useFirstTransactionMonth() {
   const {transactions} = useTransactionDataContext();
@@ -41,17 +49,17 @@ function useCommonIntervals() {
   return [
     {
       label: 'Last 6 months',
-      interval: LAST_6_MONTHS,
+      interval: getLast6Months(),
     },
     {
       label: 'Last 12 months',
-      interval: LAST_12_MONTHS,
+      interval: getLast12Months(),
     },
     {
       label: 'All time',
       interval: {
         start: useFirstTransactionMonth(),
-        end: now,
+        end: new Date(),
       },
     },
   ];
@@ -170,7 +178,7 @@ export function DurationSelector({
                               start: duration.start,
                               end: x.target.value
                                 ? new Date(x.target.value)
-                                : now,
+                                : new Date(),
                             })
                           }
                         />

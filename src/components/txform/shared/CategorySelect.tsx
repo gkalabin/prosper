@@ -44,12 +44,16 @@ export function CategorySelect({
     <Popover modal={true} open={optionsOpen} onOpenChange={setOptionsOpen}>
       <PopoverTrigger asChild>
         <Button
+          // Props here brings attributes passed down to the form input. Specifically, area attributes and the id.
+          // The id is used in turn by the label (in label-for) - clicking the label enables the input, i.e. opens the combobox.
+          // This also enables e2e tests to use locators like `form.getByRole('combobox', {name: 'Category'})`
+          // because the label identified the input when the id is set.
+          {...props}
           type="button"
           variant="outline"
           role="combobox"
           className="h-auto min-h-10 w-full justify-between p-2 text-base font-normal"
           disabled={disabled}
-          {...props}
         >
           {getNameWithAncestors(mustFindCategory(value, categories), tree)}
           <ChevronUpDownIcon className="ml-2 h-5 w-5 shrink-0 opacity-50" />

@@ -32,6 +32,35 @@ test.describe('Overview Dashboard', () => {
       // Then
       await overviewPage.expectBalance('$1,500');
     });
+
+    test('displays balance in configured display currency', async ({
+      page,
+      seed,
+    }) => {
+      // Given
+      const user = await seed.createUser();
+      const bank = await seed.createBank(user.id);
+      await seed.createAccount(user.id, bank.id, {
+        currencyCode: 'USD',
+        initialBalanceCents: 100000, // $1000
+      });
+      await seed.createAccount(user.id, bank.id, {
+        currencyCode: 'GBP',
+        initialBalanceCents: 100000, // £1000
+      });
+      await seed.createCategory(user.id);
+      await seed.updateDisplaySettings(user.id, {displayCurrencyCode: 'GBP'});
+      // Create exchange rate 1 USD = 0.8 GBP
+      await seed.createExchangeRate('USD', 'GBP', 0.8);
+      const loginPage = new LoginPage(page);
+      await loginPage.goto();
+      await loginPage.login(user.login, user.rawPassword);
+      // When
+      const overviewPage = new OverviewPage(page);
+      await overviewPage.goto();
+      // Then: total £1800 - £1000 initial in GBP and £800 converted from $1000
+      await overviewPage.expectBalance('£1,800');
+    });
   });
 
   test.describe('Bank and Account List', () => {
