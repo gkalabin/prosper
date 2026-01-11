@@ -24,10 +24,12 @@ const initialState: ThemeProviderState = {
 const ThemeProviderContext =
   React.createContext<ThemeProviderState>(initialState);
 
+const STORAGE_KEY = 'theme';
+
 export function ThemeProvider({
   children,
   defaultTheme = 'system',
-  storageKey = 'theme',
+  storageKey = STORAGE_KEY,
   initialTheme,
   ...props
 }: ThemeProviderProps) {
