@@ -47,29 +47,34 @@ function BarOrLine(
     throw new Error(`Unknown props type ${exhaustiveCheck}`);
   }
   return (
-    <ReactEcharts
-      notMerge
-      option={{
-        grid: {
-          containLabel: true,
-        },
-        tooltip: {},
-        yAxis,
-        xAxis: {
-          data: slices.map(formatInterval),
-        },
-        title: {
-          text: props.title,
-        },
-        series: [
-          {
-            type: props.type,
-            name: props.title,
-            data: values,
+    <div
+      data-chart-title={props.title}
+      data-chart-values={JSON.stringify(values)}
+    >
+      <ReactEcharts
+        notMerge
+        option={{
+          grid: {
+            containLabel: true,
           },
-        ],
-      }}
-    />
+          tooltip: {},
+          yAxis,
+          xAxis: {
+            data: slices.map(formatInterval),
+          },
+          title: {
+            text: props.title,
+          },
+          series: [
+            {
+              type: props.type,
+              name: props.title,
+              data: values,
+            },
+          ],
+        }}
+      />
+    </div>
   );
 }
 

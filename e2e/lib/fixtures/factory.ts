@@ -2,6 +2,9 @@ import {
   Bank,
   BankAccount,
   Category,
+  DisplaySettings,
+  ExchangeRate,
+  Tag,
   Transaction,
   TransactionType,
   User,
@@ -12,6 +15,14 @@ import {prisma} from '../db';
 
 export const TEST_USER_PASSWORD = 'password123';
 export const DEFAULT_TEST_CURRENCY = 'USD';
+
+// Bundle of test data suitable for most tests.
+export type TestDataBundle = {
+  user: Awaited<ReturnType<TestFactory['createUser']>>;
+  bank: Bank;
+  account: BankAccount;
+  category: Category;
+};
 
 export class TestFactory {
   private createdUsers: string[] = [];
@@ -62,6 +73,23 @@ export class TestFactory {
     } catch (error) {
       console.error('Failed to cleanup test data:', error);
     }
+  }
+
+  async createUserWithTestData(overrides?: {
+    user?: Partial<User & {rawPassword: string}>;
+    bank?: Partial<Bank>;
+    account?: Partial<BankAccount>;
+    category?: Partial<Category>;
+  }): Promise<TestDataBundle> {
+    const user = await this.createUser(overrides?.user);
+    const bank = await this.createBank(user.id, overrides?.bank);
+    const account = await this.createAccount(
+      user.id,
+      bank.id,
+      overrides?.account
+    );
+    const category = await this.createCategory(user.id, overrides?.category);
+    return {user, bank, account, category};
   }
 
   async createUser(overrides?: Partial<User & {rawPassword: string}>) {
@@ -123,13 +151,24 @@ export class TestFactory {
     });
   }
 
+  async createTag(userId: number, name: string, overrides?: Partial<Tag>) {
+    return prisma.tag.create({
+      data: {
+        userId,
+        name,
+        ...overrides,
+      },
+    });
+  }
+
   async createExpense(
     userId: number,
     accountId: number,
     categoryId: number,
     amount: number,
     vendor: string,
-    overrides?: Partial<Transaction>
+    overrides?: Partial<Transaction>,
+    tagIds?: number[]
   ) {
     return prisma.transaction.create({
       data: {
@@ -143,6 +182,7 @@ export class TestFactory {
         description: '',
         vendor,
         ...overrides,
+        tags: tagIds ? {connect: tagIds.map(id => ({id}))} : undefined,
       },
     });
   }
@@ -168,6 +208,34 @@ export class TestFactory {
         payer,
         ...overrides,
       },
+    });
+  }
+
+  async createExchangeRate(
+    fromCurrency: string,
+    toCurrency: string,
+    rate: number,
+    overrides?: Partial<ExchangeRate>
+  ) {
+    const NANOS_MULTIPLIER = 1000000000;
+    return prisma.exchangeRate.create({
+      data: {
+        currencyCodeFrom: fromCurrency,
+        currencyCodeTo: toCurrency,
+        rateNanos: BigInt(Math.round(rate * NANOS_MULTIPLIER)),
+        rateTimestamp: new Date(),
+        ...overrides,
+      },
+    });
+  }
+
+  async updateDisplaySettings(
+    userId: number,
+    updates: Partial<DisplaySettings>
+  ) {
+    return prisma.displaySettings.update({
+      where: {userId},
+      data: updates,
     });
   }
 }

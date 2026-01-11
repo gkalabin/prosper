@@ -40,12 +40,13 @@ export function UnitSelect({
   onChange,
   disabled,
   stocks,
+  ...props
 }: {
   value: UnitSchema;
   onChange: (newValue: UnitSchema) => void;
   disabled?: boolean;
   stocks: Stock[];
-}) {
+} & React.HTMLAttributes<HTMLButtonElement>) {
   const [optionsOpen, setOptionsOpen] = useState(false);
   const currencies = allCurrencies().map(x => ({
     kind: 'currency' as const,
@@ -65,6 +66,7 @@ export function UnitSelect({
     <Popover modal={true} open={optionsOpen} onOpenChange={setOptionsOpen}>
       <PopoverTrigger asChild>
         <Button
+          {...props}
           type="button"
           variant="outline"
           role="combobox"

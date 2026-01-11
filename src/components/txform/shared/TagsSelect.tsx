@@ -26,11 +26,12 @@ export function TagsSelect({
   value,
   onChange,
   disabled,
+  ...props
 }: {
   value: string[];
   onChange: (value: string[]) => void;
   disabled: boolean;
-}) {
+} & React.ComponentProps<typeof Button>) {
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const existingTagNames = useExistingTagNames();
@@ -47,6 +48,11 @@ export function TagsSelect({
     <Popover modal={true} open={optionsOpen} onOpenChange={setOptionsOpen}>
       <PopoverTrigger asChild>
         <Button
+          // Props here brings attributes passed down to the form input. Specifically, aria attributes and the id.
+          // The id is used in turn by the label (in label-for) - clicking the label enables the input, i.e. opens the combobox.
+          // This also enables e2e tests to use locators like `form.getByRole('combobox', {name: 'Tags'})`
+          // because the label identified the input when the id is set.
+          {...props}
           type="button"
           variant="outline"
           role="combobox"
@@ -159,6 +165,7 @@ function SelectedTags({
       {tag}
       <span
         role="button"
+        aria-label={`Remove ${tag}`}
         tabIndex={0}
         className="text-secondary-foreground"
         onClick={e => {

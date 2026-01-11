@@ -1,8 +1,8 @@
 import {v4 as uuidv4} from 'uuid';
 import {expect, test} from '../lib/fixtures/test-base';
-import {AddTransactionPage} from '../pages/AddTransactionPage';
 import {BankConfigPage} from '../pages/BankConfigPage';
 import {LoginPage} from '../pages/LoginPage';
+import {NewTransactionPage} from '../pages/NewTransactionPage';
 import {OverviewPage} from '../pages/OverviewPage';
 import {RegisterPage} from '../pages/RegisterPage';
 
@@ -25,15 +25,21 @@ test.describe('Smoke Tests', () => {
     const registerPage = new RegisterPage(page);
     await registerPage.goto();
     await registerPage.register(login, password);
+    await registerPage.expectSuccess();
     // 2. Bank & Account Setup
     const bankPage = new BankConfigPage(page);
     await bankPage.goto();
     await bankPage.createBank(bankName);
-    await bankPage.createAccount(bankName, 'Test Account', 'USD', 0);
+    await bankPage.createAccount({
+      bankName,
+      accountName: 'Test Account',
+      currency: 'USD',
+      balance: 0,
+    });
     // 3. Add Transaction
-    const addTxPage = new AddTransactionPage(page);
-    await addTxPage.goto();
-    await addTxPage.addExpense({
+    const newTxPage = new NewTransactionPage(page);
+    await newTxPage.goto();
+    await newTxPage.form.addExpense({
       amount: 100,
       datetime: transactionTs,
       vendor: 'Starbucks',

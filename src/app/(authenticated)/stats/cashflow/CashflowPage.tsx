@@ -2,7 +2,7 @@
 import {CurrencyExchangeFailed} from '@/app/(authenticated)/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from '@/app/(authenticated)/stats/ExcludedCategoriesSelector';
 import {useStatsPageProps} from '@/app/(authenticated)/stats/modelHelpers';
-import {DurationSelector, LAST_6_MONTHS} from '@/components/DurationSelector';
+import {DurationSelector, getLast6Months} from '@/components/DurationSelector';
 import {
   NotConfiguredYet,
   isFullyConfigured,
@@ -24,7 +24,7 @@ import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import {useState} from 'react';
 
 function NonEmptyPageContent() {
-  const [duration, setDuration] = useState(LAST_6_MONTHS);
+  const [duration, setDuration] = useState(getLast6Months());
   const {displaySettings} = useDisplaySettingsContext();
   const [excludeCategories, setExcludeCategories] = useState(
     displaySettings.excludeCategoryIdsInStats()

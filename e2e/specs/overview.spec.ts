@@ -1,17 +1,18 @@
 import {test} from '../lib/fixtures/test-base';
-import {LoginPage} from '../pages/LoginPage';
 import {OverviewPage} from '../pages/OverviewPage';
 
 test.describe('Overview Dashboard', () => {
   test.describe('Balance Display', () => {
-    test('displays total balance across all accounts', async ({page, seed}) => {
+    test('displays total balance across all accounts', async ({
+      page,
+      seed,
+      loginAs,
+    }) => {
       // Given
-      const user = await seed.createUser();
-      const bank = await seed.createBank(user.id);
+      const {user, bank, category} = await seed.createUserWithTestData();
       const account1 = await seed.createAccount(user.id, bank.id, {
         name: 'Checking',
       });
-      const category = await seed.createCategory(user.id);
       await seed.createIncome(
         user.id,
         account1.id,
@@ -23,19 +24,49 @@ test.describe('Overview Dashboard', () => {
         name: 'Savings',
       });
       await seed.createIncome(user.id, account2.id, category.id, 500, 'Bonus');
-      const loginPage = new LoginPage(page);
-      await loginPage.goto();
-      await loginPage.login(user.login, user.rawPassword);
+      await loginAs(user);
       // When
       const overviewPage = new OverviewPage(page);
       await overviewPage.goto();
       // Then
       await overviewPage.expectBalance('$1,500');
     });
+
+    test('displays balance in configured display currency', async ({
+      page,
+      seed,
+      loginAs,
+    }) => {
+      // Given
+      const user = await seed.createUser();
+      const bank = await seed.createBank(user.id);
+      await seed.createAccount(user.id, bank.id, {
+        currencyCode: 'USD',
+        initialBalanceCents: 100000, // $1000
+      });
+      await seed.createAccount(user.id, bank.id, {
+        currencyCode: 'GBP',
+        initialBalanceCents: 100000, // £1000
+      });
+      await seed.createCategory(user.id);
+      await seed.updateDisplaySettings(user.id, {displayCurrencyCode: 'GBP'});
+      // Create exchange rate 1 USD = 0.8 GBP
+      await seed.createExchangeRate('USD', 'GBP', 0.8);
+      await loginAs(user);
+      // When
+      const overviewPage = new OverviewPage(page);
+      await overviewPage.goto();
+      // Then: total £1800 - £1000 initial in GBP and £800 converted from $1000
+      await overviewPage.expectBalance('£1,800');
+    });
   });
 
   test.describe('Bank and Account List', () => {
-    test('displays all banks and their accounts', async ({page, seed}) => {
+    test('displays all banks and their accounts', async ({
+      page,
+      seed,
+      loginAs,
+    }) => {
       // Given
       const user = await seed.createUser();
       await seed.createCategory(user.id);
@@ -53,9 +84,7 @@ test.describe('Overview Dashboard', () => {
         name: 'Current',
         initialBalanceCents: 3000, // $30
       });
-      const loginPage = new LoginPage(page);
-      await loginPage.goto();
-      await loginPage.login(user.login, user.rawPassword);
+      await loginAs(user);
       // When
       const overviewPage = new OverviewPage(page);
       await overviewPage.goto();
