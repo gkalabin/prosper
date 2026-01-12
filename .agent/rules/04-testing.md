@@ -20,7 +20,8 @@ description: When working on tests
 - **Selectors:**
   - **Do NOT** use test IDs unless absolutely necessary.
   - **Prefer** semantic locators (e.g., `getByRole`, `getByText`, `getByLabel`).
-  - **Accessibility:** Verify that ARIA attributes are used correctly and are not masking actual values or misrepresenting the state of elements.
+  - **Accessibility:** Verify that ARIA attributes are used correctly and are
+    not masking actual values or misrepresenting the state of elements.
 - **Test data:** prefer realistic values in tests. For example, "HSBC" instead
   of "Test Bank". Use a few different values across the tests, do not use the
   same value in every single test.
