@@ -24,4 +24,6 @@ description: When working on client-side features
 - **Server vs Client:** Prefer Server Components where possible. Use Client
   Components only for interactivity.
 - **Accessibility:** Ensure all interactive elements remain accessible via
-  keyboard and screen readers (leveraging Radix/Headless).
+  keyboard and screen readers (leveraging Radix/Headless). ARIA attributes
+  should follow their intended purpose, not mask actual values, and genuinely
+  add value to make the system more accessible.
