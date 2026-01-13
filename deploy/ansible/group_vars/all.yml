@@ -1,0 +1,56 @@
+---
+# System User
+prosper_user: "prosper"
+prosper_group: "prosper"
+prosper_user_fullname: "Prosper App"
+prosper_user_email: "prosper@example.com"
+
+# Application
+app_domain: "prspr.xyz"
+app_repo: "https://github.com/gkalabin/prosper.git"
+app_install_dir: "/home/{{ prosper_user }}/prosper"
+app_port: 3000
+
+# Security
+security_ssh_port: 2223
+security_enable_fail2ban: true
+# You MUST provide your public SSH key here to avoid lockout!
+security_authorized_keys: []
+# Example:
+# security_authorized_keys:
+#   - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQ..."
+
+# Database
+db_name: "prosperdb"
+db_user: "prosper"
+db_password: "CHANGE_ME_SECURE_PASSWORD"
+db_root_password: "CHANGE_ME_ROOT_PASSWORD"  # Used for initial setup if needed
+
+# Backups
+backups_enabled: true
+# URL to your backup repository. Change this to your own repo.
+backups_repo: "git@bitbucket.org:user/repo.git"
+backups_dir: "/home/{{ prosper_user }}/db-backups"
+# SSH Key for git access to backup repo (if needed)
+# backup_ssh_private_key: |
+#   -----BEGIN OPENSSH PRIVATE KEY-----
+#   ...
+#   -----END OPENSSH PRIVATE KEY-----
+
+# Nginx / SSL
+nginx_enable_ssl: true
+certbot_admin_email: "admin@example.com"
+
+# DDNS
+ddns_enabled: false
+ddns_login: "CHANGE_ME"
+ddns_password: "CHANGE_ME"
+ddns_zone: "{{ app_domain }}"
+
+# Environment Variables for App
+nextauth_secret: "CHANGE_ME_SECRET"
+truelayer_client_id: "CHANGE_ME"
+truelayer_client_secret: "CHANGE_ME"
+nordigen_secret_id: "CHANGE_ME"
+nordigen_secret_key: "CHANGE_ME"
+max_users_allowed: 2

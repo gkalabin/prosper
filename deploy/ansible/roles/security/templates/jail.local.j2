@@ -1,0 +1,25 @@
+[DEFAULT]
+bantime = 72h
+maxretry = 3
+
+[sshd]
+enabled = true
+port    = {{ security_ssh_port }}
+logpath = %(sshd_log)s
+backend = systemd
+
+[nginx-http-auth]
+enabled = true
+mode = normal
+port    = http,https
+logpath = %(nginx_error_log)s
+
+[nginx-botsearch]
+enabled = true
+port     = http,https
+logpath  = %(nginx_error_log)s
+
+[nginx-bad-request]
+enabled = true
+port    = http,https
+logpath = %(nginx_access_log)s

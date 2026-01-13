@@ -1,0 +1,76 @@
+---
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+
+- name: Install core Snap
+  command: snap install core
+  args:
+    creates: /snap/core
+
+- name: Refresh core Snap
+  command: snap refresh core
+  changed_when: false
+
+- name: Install Certbot via Snap
+  command: snap install --classic certbot
+  args:
+    creates: /snap/bin/certbot
+
+- name: Create Certbot symlink
+  file:
+    src: /snap/bin/certbot
+    dest: /usr/bin/certbot
+    state: link
+
+- name: Check if certificate exists
+  stat:
+    path: "/etc/letsencrypt/live/{{ app_domain }}/fullchain.pem"
+  register: cert_check
+
+# Deploy HTTP-only config first to allow Certbot to validate if needed
+- name: Deploy HTTP Nginx configuration
+  template:
+    src: prosper.conf.j2
+    dest: /etc/nginx/conf.d/prosper.conf
+    owner: root
+    group: root
+    mode: '0644'
+  vars:
+    enable_https: false
+  notify: restart nginx
+
+- name: Force Nginx reload to ensure HTTP config is active
+  meta: flush_handlers
+
+- name: Generate SSL Certificate
+  command: >
+    certbot certonly --nginx
+    -d {{ app_domain }}
+    --agree-tos
+    -m "{{ certbot_admin_email }}"
+    --non-interactive
+  args:
+    creates: "/etc/letsencrypt/live/{{ app_domain }}/fullchain.pem"
+  when: nginx_enable_ssl and not cert_check.stat.exists
+  notify: restart nginx
+
+# Deploy full HTTPS config if SSL is enabled and cert exists (or was just created)
+- name: Deploy HTTPS Nginx configuration
+  template:
+    src: prosper.conf.j2
+    dest: /etc/nginx/conf.d/prosper.conf
+    owner: root
+    group: root
+    mode: '0644'
+  vars:
+    enable_https: true
+  when: nginx_enable_ssl
+  notify: restart nginx
+
+- name: Remove default nginx config
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: restart nginx

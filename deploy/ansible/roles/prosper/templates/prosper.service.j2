@@ -1,0 +1,15 @@
+[Unit]
+Description=Prosper Expense Tracker
+After=mariadb.service
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User={{ prosper_user }}
+ExecStart=/bin/bash -x "{{ app_install_dir }}/scripts/bash_ci.sh"
+StandardOutput=append:/var/log/prosper/ci.log
+StandardError=append:/var/log/prosper/ci.log
+
+[Install]
+WantedBy=multi-user.target
