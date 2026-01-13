@@ -61,7 +61,7 @@ description: When reviewing code or making changes
 ### When Making Changes
 
 - Run `npm run lint` to check for linting errors.
-- Run `npm run test:unit` to verify unit test coverage.
+- Run `npm run test` to verify unit test coverage.
 - Run `npm run test:e2e` to verify end-to-end test coverage.
 - Run relevant tests before considering work complete.
 - Self-review changes before marking as done.
