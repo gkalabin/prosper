@@ -1,5 +1,5 @@
-import {expect, test} from '../lib/fixtures/test-base';
-import {BankConfigPage} from '../pages/BankConfigPage';
+import {expect, test} from '../../lib/fixtures/test-base';
+import {BankConfigPage} from '../../pages/BankConfigPage';
 
 test.describe('Bank Management', () => {
   test('creates a new bank', async ({page, seed, loginAs}) => {

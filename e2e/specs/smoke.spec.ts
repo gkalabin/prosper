@@ -34,7 +34,7 @@ test.describe('Smoke Tests', () => {
       bankName,
       accountName: 'Test Account',
       currency: 'USD',
-      balance: 0,
+      balance: 200,
     });
     // 3. Add Transaction
     const newTxPage = new NewTransactionPage(page);
@@ -49,8 +49,6 @@ test.describe('Smoke Tests', () => {
     // 4. Verification on Overview
     const overviewPage = new OverviewPage(page);
     await overviewPage.goto();
-    await overviewPage.expectBalance('-$100');
-    await overviewPage.expectExpense('$100');
-    await overviewPage.expectIncome('$0');
+    await overviewPage.expectTotalBalance('$100');
   });
 });

@@ -1,5 +1,5 @@
-import {expect, test} from '../lib/fixtures/test-base';
-import {CategoryConfigPage} from '../pages/CategoryConfigPage';
+import {expect, test} from '../../lib/fixtures/test-base';
+import {CategoryConfigPage} from '../../pages/CategoryConfigPage';
 
 test.describe('Categories', () => {
   test.describe('Category Management', () => {

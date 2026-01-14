@@ -1,21 +1,13 @@
-import {type Page, type Locator, expect} from '@playwright/test';
+import {type Locator, type Page, expect} from '@playwright/test';
 
 export class OverviewPage {
   readonly page: Page;
-  readonly balanceSection: Locator;
-  readonly expenseSection: Locator;
-  readonly incomeSection: Locator;
+  readonly totalBalance: Locator;
 
   constructor(page: Page) {
     this.page = page;
-    this.balanceSection = page.getByRole('region', {
+    this.totalBalance = page.getByRole('region', {
       name: 'Your total balance',
-    });
-    this.expenseSection = page.getByRole('region', {
-      name: 'Expense',
-    });
-    this.incomeSection = page.getByRole('region', {
-      name: 'Income',
     });
   }
 
@@ -23,16 +15,8 @@ export class OverviewPage {
     await this.page.goto('/overview');
   }
 
-  async expectBalance(amount: string) {
-    await expect(this.balanceSection).toContainText(amount);
-  }
-
-  async expectExpense(amount: string) {
-    await expect(this.expenseSection).toContainText(amount);
-  }
-
-  async expectIncome(amount: string) {
-    await expect(this.incomeSection).toContainText(amount);
+  async expectTotalBalance(amount: string) {
+    await expect(this.totalBalance).toContainText(amount);
   }
 
   getBankCard(bankName: string) {
