@@ -3,12 +3,16 @@ import {type Locator, type Page, expect} from '@playwright/test';
 export class ExpenseStatsPage {
   readonly page: Page;
   readonly monthlySpendChartWrapper: Locator;
+  readonly yearlySpendChartWrapper: Locator;
   readonly durationSelector: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.monthlySpendChartWrapper = page.locator(
       `[data-chart-title="Monthly spend"]`
+    );
+    this.yearlySpendChartWrapper = page.locator(
+      `[data-chart-title="Yearly spend"]`
     );
     this.durationSelector = this.page.getByRole('button', {name: /Duration:/});
   }
@@ -38,5 +42,15 @@ export class ExpenseStatsPage {
   async selectDuration(label: string) {
     await this.durationSelector.click();
     await this.page.getByRole('button', {name: label, exact: true}).click();
+  }
+
+  async expectYearlyChartVisible() {
+    const chart = this.yearlySpendChartWrapper.locator('canvas');
+    await expect(chart).toBeVisible();
+  }
+
+  async expectYearlyChartAmounts(expectedAmounts: number[]) {
+    const chartData = await this.getChartData(this.yearlySpendChartWrapper);
+    expect(chartData).toEqual(expectedAmounts);
   }
 }

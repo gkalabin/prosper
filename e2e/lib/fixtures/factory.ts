@@ -8,6 +8,7 @@ import {
   Tag,
   Transaction,
   TransactionType,
+  Trip,
   User,
 } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
@@ -211,6 +212,26 @@ export class TestFactory {
     });
   }
 
+  // Helper method to create a stock account (account linked to a stock instead of currency)
+  async createStockAccount(
+    userId: number,
+    bankId: number,
+    stockId: number,
+    overrides?: Partial<BankAccount>
+  ) {
+    return prisma.bankAccount.create({
+      data: {
+        userId,
+        bankId,
+        name: `Stock Account`,
+        stockId,
+        // Stock accounts don't have currencyCode; the stock has the currency
+        currencyCode: null,
+        ...overrides,
+      },
+    });
+  }
+
   async createExpense(
     userId: number,
     accountId: number,
@@ -261,6 +282,32 @@ export class TestFactory {
     });
   }
 
+  async createTransfer(
+    userId: number,
+    fromAccountId: number,
+    toAccountId: number,
+    categoryId: number,
+    amount: number,
+    receivedAmount?: number,
+    overrides?: Partial<Transaction>
+  ) {
+    return prisma.transaction.create({
+      data: {
+        userId,
+        transactionType: TransactionType.TRANSFER,
+        outgoingAccountId: fromAccountId,
+        outgoingAmountCents: Math.round(amount * 100),
+        incomingAccountId: toAccountId,
+        incomingAmountCents: Math.round((receivedAmount ?? amount) * 100),
+        ownShareAmountCents: 0,
+        timestamp: new Date(),
+        categoryId,
+        description: '',
+        ...overrides,
+      },
+    });
+  }
+
   async createExchangeRate(
     fromCurrency: string,
     toCurrency: string,
@@ -286,6 +333,46 @@ export class TestFactory {
     return prisma.displaySettings.update({
       where: {userId},
       data: updates,
+    });
+  }
+
+  async createThirdPartyExpense(
+    userId: number,
+    categoryId: number,
+    amount: number,
+    vendor: string,
+    payer: string,
+    currencyCode: string = DEFAULT_TEST_CURRENCY,
+    overrides?: Partial<Transaction>
+  ) {
+    return prisma.transaction.create({
+      data: {
+        userId,
+        transactionType: TransactionType.THIRD_PARTY_EXPENSE,
+        outgoingAmountCents: Math.round(amount * 100),
+        ownShareAmountCents: Math.round(amount * 100),
+        timestamp: new Date(),
+        categoryId,
+        description: '',
+        vendor,
+        payer,
+        currencyCode,
+        ...overrides,
+      },
+    });
+  }
+
+  async createTransactionLink(
+    sourceTransactionId: number,
+    linkedTransactionId: number,
+    linkType: 'REFUND' | 'DEBT_SETTLING'
+  ) {
+    return prisma.transactionLink.create({
+      data: {
+        sourceTransactionId,
+        linkedTransactionId,
+        linkType,
+      },
     });
   }
 }

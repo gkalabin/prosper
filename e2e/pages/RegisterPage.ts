@@ -32,7 +32,8 @@ export class RegisterPage {
   }
 
   async expectSuccess() {
-    await expect(this.page).not.toHaveURL(SIGNUP_URL);
+    // Use longer timeout to handle slower server responses during concurrent test execution
+    await expect(this.page).not.toHaveURL(SIGNUP_URL, {timeout: 15000});
   }
 
   async expectUserAlreadyExistsError() {

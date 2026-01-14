@@ -25,8 +25,20 @@ export class LoginPage {
     await this.emailInput.fill(email);
     await this.passwordInput.fill(pass);
     await this.submitButton.click();
-    // Wait for login to complete, this is done when redirected away from the login page
-    await expect(this.page).not.toHaveURL(SIGNIN_URL);
+    // Wait for login to complete, this is done when redirected away from the login page.
+    // Use a longer timeout to handle slower server responses during concurrent test execution.
+    await expect(this.page).not.toHaveURL(SIGNIN_URL, {timeout: 15000});
+  }
+
+  async attemptLogin(email: string, pass: string) {
+    await this.emailInput.fill(email);
+    await this.passwordInput.fill(pass);
+    await this.submitButton.click();
+  }
+
+  async expectLoginError(expectedMessage: string) {
+    await expect(this.errorMessage).toBeVisible();
+    await expect(this.errorMessage).toContainText(expectedMessage);
   }
 
   async attemptLogin(email: string, pass: string) {

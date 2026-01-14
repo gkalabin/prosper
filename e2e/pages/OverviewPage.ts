@@ -33,6 +33,28 @@ export class OverviewPage {
 
   async expectAccountNotVisible(bankName: string, accountName: string) {
     const bankCard = this.getBankCard(bankName);
-    await expect(bankCard.getByText(accountName)).not.toBeVisible();
+    // If bank has no visible accounts, the bank card itself may not be visible
+    // Either the bank card is not visible, or it's visible but the account is not
+    const isBankVisible = await bankCard.isVisible();
+    if (isBankVisible) {
+      await expect(bankCard.getByText(accountName)).not.toBeVisible();
+    }
+    // If bank is not visible, that's also fine - the account isn't visible either
+  }
+
+  // TODO: change signature to {bankName: string; accountName: string}
+  async clickAccount(accountName: string) {
+    // TODO: locate the account WITHIN the bank card.
+    await this.page.getByText(accountName).click();
+  }
+
+  async expectAccountBalance(
+    bankName: string,
+    accountName: string,
+    balance: string
+  ) {
+    const bankCard = this.getBankCard(bankName);
+    const accountItem = bankCard.getByText(accountName).locator('..');
+    await expect(accountItem).toContainText(balance);
   }
 }

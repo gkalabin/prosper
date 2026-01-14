@@ -5,10 +5,12 @@ export type Currency = {
   code: string;
 };
 
-const currencies: Currency[] = ['RUB', 'USD', 'GBP', 'EUR'].map(code => ({
-  kind: 'currency',
-  code,
-}));
+const currencies: Currency[] = ['RUB', 'USD', 'GBP', 'EUR', 'CHF'].map(
+  code => ({
+    kind: 'currency',
+    code,
+  })
+);
 
 export function mustFindByCode(code: string): Currency {
   const found = findByCode(code);
@@ -38,6 +40,7 @@ const CURRENCY_TO_LOCALE: Map<string, string> = new Map([
   ['RUB', 'ru-RU'],
   ['GBP', 'en-GB'],
   ['USD', 'en-US'],
+  ['CHF', 'de-CH'],
   ['KZT', 'kk-KZ'],
   ['CNY', 'zh-CN'],
   ['JPY', 'ja-JP'],
