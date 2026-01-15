@@ -26,14 +26,12 @@ export class CategoryConfigPage {
    * @example getCategoryItem(['Car', 'Gas']) - finds the "Gas" category under "Car"
    */
   getCategoryItem(categoryPath: string[]) {
+    // First matches root list, the nested ones go after.
     let locator = this.page.getByRole('list').first();
     for (const categoryName of categoryPath) {
-      locator = locator
-        .getByRole('listitem')
-        .filter({
-          has: this.page.getByText(categoryName, {exact: true}),
-        })
-        .first();
+      locator = locator.getByRole('listitem').filter({
+        hasText: categoryName,
+      });
     }
     return locator;
   }
@@ -57,5 +55,28 @@ export class CategoryConfigPage {
     await addButton.click();
     // Wait for the category form to disappear, indicating creation completed.
     await expect(categoryForm).not.toBeVisible();
+  }
+
+  async editCategory({
+    currentPath,
+    newName,
+    newParentName,
+  }: {
+    currentPath: string[];
+    newName: string;
+    newParentName: string | null;
+  }) {
+    const categoryItem = this.getCategoryItem(currentPath);
+    await categoryItem.getByRole('button', {name: 'Edit'}).click();
+    const form = categoryItem.locator('form');
+    await expect(form).toBeVisible();
+    await form.getByLabel('Category Name').fill(newName);
+    await form
+      .getByLabel('Parent Category')
+      .selectOption({label: newParentName || 'No parent'});
+    const updateButton = form.getByRole('button', {name: 'Update'});
+    await updateButton.click();
+    // Wait for the form to disappear, indicating the update completed.
+    await expect(form).not.toBeVisible();
   }
 }

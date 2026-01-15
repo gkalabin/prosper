@@ -34,5 +34,56 @@ test.describe('Categories', () => {
         categoryConfigPage.getCategoryItem(['Car', 'Gas'])
       ).toBeVisible();
     });
+
+    test('edits an existing category name', async ({page, seed, loginAs}) => {
+      // Given
+      const user = await seed.createUser();
+      await seed.createCategory(user.id, {name: 'Food'});
+      await loginAs(user);
+      // When editing the category name
+      const categoryConfigPage = new CategoryConfigPage(page);
+      await categoryConfigPage.goto();
+      await categoryConfigPage.editCategory({
+        currentPath: ['Food'],
+        newName: 'Groceries',
+        newParentName: null,
+      });
+      // Then the name changes
+      await expect(
+        categoryConfigPage.getCategoryItem(['Groceries'])
+      ).toBeVisible();
+      await expect(
+        categoryConfigPage.getCategoryItem(['Food'])
+      ).not.toBeVisible();
+    });
+
+    test('moves category to a different parent', async ({
+      page,
+      seed,
+      loginAs,
+    }) => {
+      // Given nested category Car > Gas
+      const user = await seed.createUser();
+      const transportation = await seed.createCategory(user.id, {
+        name: 'Car',
+      });
+      await seed.createCategory(user.id, {
+        name: 'Gas',
+        parentCategoryId: transportation.id,
+      });
+      await seed.createCategory(user.id, {name: 'Fuel'});
+      await loginAs(user);
+      // When changing parent category
+      const cfgPage = new CategoryConfigPage(page);
+      await cfgPage.goto();
+      await cfgPage.editCategory({
+        currentPath: ['Car', 'Gas'],
+        newName: 'Gas',
+        newParentName: 'Fuel',
+      });
+      // Then relationship updates
+      await expect(cfgPage.getCategoryItem(['Fuel', 'Gas'])).toBeVisible();
+      await expect(cfgPage.getCategoryItem(['Car', 'Gas'])).not.toBeVisible();
+    });
   });
 });
