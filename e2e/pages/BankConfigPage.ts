@@ -67,11 +67,42 @@ export class BankConfigPage {
     await accountForm
       .getByRole('combobox', {name: 'Account currency or stock'})
       .click();
-    await this.page.getByRole('option', {name: currency}).click();
+    // TODO: remove first?
+    await this.page.getByRole('option', {name: currency}).first().click();
     await accountForm.getByLabel('Initial balance').fill(balance.toString());
     const addAccountButton = accountForm.getByRole('button', {name: 'Add'});
     await addAccountButton.click();
     // Wait for the account form to disappear, indicating creation completed.
+    await expect(accountForm).not.toBeVisible();
+  }
+
+  async editAccount({
+    bankName,
+    currentAccountName,
+    newAccountName,
+    newArchivedState,
+  }: {
+    bankName: string;
+    currentAccountName: string;
+    newAccountName?: string;
+    newArchivedState?: boolean;
+  }) {
+    const bankSection = this.getBankSection(bankName);
+    const editButton = bankSection.getByRole('button', {
+      name: `Edit ${currentAccountName}`,
+    });
+    await editButton.click();
+    const accountForm = bankSection.locator('form');
+    if (newAccountName != undefined) {
+      await accountForm.getByLabel('Bank Account Name').fill(newAccountName);
+    }
+    if (newArchivedState != undefined) {
+      const archivedCheckbox = accountForm.getByLabel('Archived account');
+      await archivedCheckbox.setChecked(newArchivedState);
+    }
+    const updateButton = accountForm.getByRole('button', {name: 'Update'});
+    await updateButton.click();
+    // Wait for the form to disappear indicating the update completed.
     await expect(accountForm).not.toBeVisible();
   }
 }

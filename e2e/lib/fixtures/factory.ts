@@ -161,6 +161,24 @@ export class TestFactory {
     });
   }
 
+  async createStock(
+    overrides?: Partial<{
+      name: string;
+      ticker: string;
+      exchange: string;
+      currencyCode: string;
+    }>
+  ) {
+    return prisma.stock.create({
+      data: {
+        name: overrides?.name ?? 'Apple',
+        ticker: overrides?.ticker ?? 'AAPL',
+        exchange: overrides?.exchange ?? 'NASDAQ',
+        currencyCode: overrides?.currencyCode ?? 'USD',
+      },
+    });
+  }
+
   async createExpense(
     userId: number,
     accountId: number,
