@@ -43,8 +43,8 @@ export class BankConfigPage {
     const updateButton = bankForm.getByRole('button', {name: 'Update'});
     await updateButton.click();
     // Clicking update submits the form which hides when the update completes.
-    // Wait for the form to disappear, i.e. the submit button is no longer visible.
-    await expect(updateButton).not.toBeVisible();
+    // Wait for the form to disappear meaning the operation has completed.
+    await expect(bankForm).not.toBeVisible();
   }
 
   async createAccount({
