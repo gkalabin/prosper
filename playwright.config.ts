@@ -11,6 +11,7 @@ export default defineConfig({
   // Reporter to use. See https://playwright.dev/docs/test-reporters
   reporter: env.CI ? 'github' : 'html',
   forbidOnly: !!env.CI,
+  globalTeardown: require.resolve('./e2e/lib/fixtures/global-teardown'),
 
   use: {
     // Base URL to use in actions like `await page.goto('/')`

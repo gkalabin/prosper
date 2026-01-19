@@ -75,6 +75,19 @@ export class TestFactory {
     }
   }
 
+  // Cleans up global entities that are NOT user-specific.
+  // Runs as a part of global teardown.
+  static async globalCleanUp() {
+    console.log('Running global cleanup...');
+    try {
+      await prisma.stockQuote.deleteMany();
+      await prisma.stock.deleteMany();
+      await prisma.exchangeRate.deleteMany();
+    } catch (error) {
+      console.error('Failed to run global cleanup:', error);
+    }
+  }
+
   async createUserWithTestData(overrides?: {
     user?: Partial<User & {rawPassword: string}>;
     bank?: Partial<Bank>;
@@ -169,7 +182,6 @@ export class TestFactory {
       currencyCode: string;
     }>
   ) {
-    // TODO: clean this up after all tests are completed.
     return prisma.stock.create({
       data: {
         name: overrides?.name ?? 'Apple',
