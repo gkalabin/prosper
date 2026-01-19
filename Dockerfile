@@ -29,6 +29,9 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Create a non-root user
 RUN addgroup --system --gid 1001 prosper
 RUN adduser --system --uid 1001 prosper
+# Remove npm entirely to avoid vulnerabilities in bundled dependencies
+# as we don't need npm in the runtime container.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 WORKDIR /app
 # Copy public assets.
 COPY --from=builder /app/public ./public
