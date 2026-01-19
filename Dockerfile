@@ -29,9 +29,6 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Create a non-root user
 RUN addgroup --system --gid 1001 prosper
 RUN adduser --system --uid 1001 prosper
-# Remove the annoying warning about using not the latest npm version.
-# Also update tar to fix CVE-2026-23745
-RUN npm install -g npm && cd $(npm root -g)/npm && npm install tar@latest --save-exact
 WORKDIR /app
 # Copy public assets.
 COPY --from=builder /app/public ./public
