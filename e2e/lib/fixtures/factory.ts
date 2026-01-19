@@ -169,6 +169,7 @@ export class TestFactory {
       currencyCode: string;
     }>
   ) {
+    // TODO: clean this up after all tests are completed.
     return prisma.stock.create({
       data: {
         name: overrides?.name ?? 'Apple',

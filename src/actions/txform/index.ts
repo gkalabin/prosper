@@ -43,7 +43,8 @@ export async function upsertTransaction(
       return {
         status: 'CLIENT_ERROR',
         errors: {
-          root: [`Transaction ${transactionId} not found`],
+          formErrors: [`Transaction ${transactionId} not found`],
+          fieldErrors: {},
         },
       };
     }
@@ -87,7 +88,8 @@ export async function upsertTransaction(
   return {
     status: 'CLIENT_ERROR',
     errors: {
-      root: [`No data found in the form`],
+      formErrors: [`Transaction ${transactionId} not found`],
+      fieldErrors: {},
     },
   };
 }
