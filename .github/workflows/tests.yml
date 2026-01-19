@@ -19,6 +19,7 @@ jobs:
       - run: npm run test
 
   e2e:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     services:
       mysql-e2e:

@@ -25,7 +25,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run build && npm run start',
+    command: env.E2E_DOCKER_IMAGE
+      ? `docker run --rm --network host -e DB_URL="${env.DB_URL}" ${env.E2E_DOCKER_IMAGE}`
+      : 'npm run build && npm run start',
     url: env.PUBLIC_APP_URL,
     reuseExistingServer: !env.CI,
     env,

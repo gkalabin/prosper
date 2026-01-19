@@ -33,6 +33,36 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  e2e:
+    name: E2E Tests on Built Image
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      DB_URL: 'mysql://root:root@localhost:3307/prosper_e2e_test_db'
+    services:
+      mysql-e2e:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: prosper_e2e_test_db
+        ports:
+          - 3307:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '20', cache: 'npm'}
+      - run: npm ci
+      - run: npx playwright install --with-deps
+      - run: npx prisma db push
+      - name: Pull Docker image
+        run: docker pull gkalabin/prosper:${{ github.sha }}
+      - name: Run E2E tests
+        run: npx playwright test
+        env:
+          CI: 'true'
+          E2E_DOCKER_IMAGE: gkalabin/prosper:${{ github.sha }}
+
   tag-latest:
     name: Tag Image as Latest
     needs: build
