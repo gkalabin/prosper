@@ -48,6 +48,15 @@ jobs:
         ports:
           - 3307:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+      prosper:
+        image: gkalabin/prosper:${{ github.sha }}
+        env:
+          DB_URL: mysql://root:root@mysql-e2e:3306/prosper_e2e_test_db
+          PORT: 3003
+          MAX_USERS_ALLOWED_TO_REGISTER: 1000
+          ADMIN_HANDLER_SECRET: suchsecret
+        ports:
+          - 3003:3003
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -55,13 +64,11 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps
       - run: npx prisma db push
-      - name: Pull Docker image
-        run: docker pull gkalabin/prosper:${{ github.sha }}
       - name: Run E2E tests
         run: npx playwright test
         env:
           CI: 'true'
-          E2E_DOCKER_IMAGE: gkalabin/prosper:${{ github.sha }}
+          PROSPER_RUNNING_AS_SERVICE: 'true'
 
   tag-latest:
     name: Tag Image as Latest

@@ -24,12 +24,14 @@ export default defineConfig({
       use: {...devices['Desktop Chrome']},
     },
   ],
-  webServer: {
-    command: env.E2E_DOCKER_IMAGE
-      ? `docker run --rm --network host -e DB_URL="${env.DB_URL}" ${env.E2E_DOCKER_IMAGE}`
-      : 'npm run build && npm run start',
-    url: env.PUBLIC_APP_URL,
-    reuseExistingServer: !env.CI,
-    env,
-  },
+  webServer: process.env.PROSPER_RUNNING_AS_SERVICE
+    ? undefined
+    : {
+        command: env.E2E_DOCKER_IMAGE
+          ? `docker run --rm --network host -e DB_URL="${env.DB_URL}" ${env.E2E_DOCKER_IMAGE}`
+          : 'npm run build && npm run start',
+        url: env.PUBLIC_APP_URL,
+        reuseExistingServer: !env.CI,
+        env,
+      },
 });
