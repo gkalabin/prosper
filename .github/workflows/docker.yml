@@ -53,8 +53,7 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps
       - run: npx prisma db push
-      - name: Pull Docker image
-        run: docker pull gkalabin/prosper:${{ github.sha }}
+      - run: docker pull gkalabin/prosper:${{ github.sha }}
       - name: Run E2E tests
         run: npx playwright test
         env:
