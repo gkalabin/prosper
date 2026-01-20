@@ -3,7 +3,7 @@ name: E2E Tests
 # This workflow depends on the Docker workflow to build the image for the e2e job.
 on:
   workflow_run:
-    workflows: ["Docker"]
+    workflows: ['Docker']
     types:
       - completed
 
