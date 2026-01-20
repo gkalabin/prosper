@@ -67,6 +67,8 @@ test.describe('Account Management', () => {
       exchange: 'NASDAQ',
       currencyCode: 'USD',
     });
+    // This avoids fallback stock quotes backfill and removes noise in the logs.
+    await seed.createStockQuote(stock.id, 150);
     await loginAs(user);
     // When
     const bankConfigPage = new BankConfigPage(page);

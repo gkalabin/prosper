@@ -56,11 +56,6 @@ export function cachedCoreDataOrFetch(userId: number) {
   return cache();
 }
 
-export async function invalidateCoreDataCache(userId: number) {
-  console.log(`[db] INVALIDATE CORE DATA CACHE for userId:${userId}`);
-  revalidateTag(coreCacheKey(userId), 'max');
-}
-
 export async function updateCoreDataCache(userId: number) {
   console.log(`[db] INVALIDATE CORE DATA CACHE for userId:${userId}`);
   updateTag(coreCacheKey(userId));
