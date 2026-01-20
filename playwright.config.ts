@@ -11,6 +11,7 @@ export default defineConfig({
   // Reporter to use. See https://playwright.dev/docs/test-reporters
   reporter: env.CI ? 'github' : 'html',
   forbidOnly: !!env.CI,
+  globalTeardown: require.resolve('./e2e/lib/fixtures/global-teardown'),
 
   use: {
     // Base URL to use in actions like `await page.goto('/')`
@@ -25,7 +26,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run build && npm run start',
+    command: env.E2E_DOCKER_IMAGE
+      ? `docker run --rm --network host ${env.E2E_DOCKER_IMAGE}`
+      : 'npm run build && npm run start',
     url: env.PUBLIC_APP_URL,
     reuseExistingServer: !env.CI,
     env,

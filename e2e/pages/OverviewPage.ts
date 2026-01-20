@@ -30,4 +30,9 @@ export class OverviewPage {
       await expect(bankCard.getByText(accountName)).toBeVisible();
     }
   }
+
+  async expectAccountNotVisible(bankName: string, accountName: string) {
+    const bankCard = this.getBankCard(bankName);
+    await expect(bankCard.getByText(accountName)).not.toBeVisible();
+  }
 }

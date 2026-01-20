@@ -6,11 +6,11 @@ import {
   TransactionPrototype as DBTransactionPrototype,
   Trip as DBTrip,
 } from '@prisma/client';
-import {type FieldPath} from 'react-hook-form';
+import {type typeToFlattenedError} from 'zod';
 
 export type UpsertTransactionClientError = {
   status: 'CLIENT_ERROR';
-  errors: Partial<Record<'root' | FieldPath<TransactionFormSchema>, string[]>>;
+  errors: typeToFlattenedError<TransactionFormSchema>;
 };
 
 export type UpsertTransactionSuccess = {

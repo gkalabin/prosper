@@ -1,23 +1,13 @@
-name: Tests
+name: E2E Tests
 
+# This workflow depends on the Docker workflow to build the image for the e2e job.
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_run:
+    workflows: ['Docker']
+    types:
+      - completed
 
 jobs:
-  unit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: {node-version: '20', cache: 'npm'}
-      - run: npm ci
-      - run: npm run test
-
   e2e:
     runs-on: ubuntu-latest
     services:
@@ -31,6 +21,8 @@ jobs:
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
       - uses: actions/setup-node@v4
         with: {node-version: '20', cache: 'npm'}
       - run: npm ci
@@ -38,7 +30,8 @@ jobs:
       - run: npx prisma db push
         env:
           DB_URL: 'mysql://root:root@localhost:3307/prosper_e2e_test_db'
-      - run: npm run build
+      - run: docker pull gkalabin/prosper:${{ github.event.workflow_run.head_sha }}
       - run: npx playwright test
         env:
           CI: 'true'
+          E2E_DOCKER_IMAGE: gkalabin/prosper:${{ github.event.workflow_run.head_sha }}
