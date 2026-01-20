@@ -37,8 +37,6 @@ jobs:
     name: E2E Tests
     needs: build
     runs-on: ubuntu-latest
-    env:
-      DB_URL: 'mysql://root:root@localhost:3307/prosper_e2e_test_db'
     services:
       mysql-e2e:
         image: mysql:8.0
