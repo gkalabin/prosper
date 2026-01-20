@@ -1,3 +1,4 @@
+import {upsertCategory} from '@/actions/config/category';
 import {Button} from '@/components/ui/button';
 import {
   Form,
@@ -19,9 +20,9 @@ import {
   getNameWithAncestors,
   makeCategoryTree,
 } from '@/lib/model/Category';
+import {setFormErrors} from '@/lib/util/forms';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {Category as DBCategory} from '@prisma/client';
-import {useState} from 'react';
 import {useForm} from 'react-hook-form';
 
 export const CategoryForm = ({
@@ -35,21 +36,16 @@ export const CategoryForm = ({
   onAddedOrUpdated: (addedOrUpdated: DBCategory) => void;
   onClose: () => void;
 }) => {
-  const [apiError, setApiError] = useState('');
   const handleSubmit = async (values: CategoryFormSchema) => {
-    setApiError('');
     try {
-      const response = await fetch(
-        `/api/config/category/${category?.id ?? ''}`,
-        {
-          method: category ? 'PUT' : 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(values),
-        }
-      );
-      onAddedOrUpdated(await response.json());
+      const result = await upsertCategory(category?.id ?? null, values);
+      if (result.status === 'SUCCESS') {
+        onAddedOrUpdated(result.data);
+        return;
+      }
+      setFormErrors(result.errors, form.setError);
     } catch (error) {
-      setApiError(`Failed to update: ${error}`);
+      form.setError('root', {message: `Failed to save category: ${error}`});
     }
   };
 
@@ -124,21 +120,23 @@ export const CategoryForm = ({
             </FormItem>
           )}
         />
-        <div className="flex justify-end gap-2">
-          <Button
-            onClick={onClose}
-            variant="secondary"
-            disabled={form.formState.isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={form.formState.isSubmitting}>
-            <AddOrUpdateButtonText add={!category} />
-          </Button>
+        <div className="flex justify-between gap-2">
+          <div className="text-sm font-medium text-destructive">
+            {form.formState.errors.root?.message}
+          </div>
+          <div className="flex-none space-x-4">
+            <Button
+              onClick={onClose}
+              variant="secondary"
+              disabled={form.formState.isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={form.formState.isSubmitting}>
+              <AddOrUpdateButtonText add={!category} />
+            </Button>
+          </div>
         </div>
-        {apiError && (
-          <div className="text-sm font-medium text-destructive">{apiError}</div>
-        )}
       </form>
     </Form>
   );
