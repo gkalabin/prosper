@@ -54,8 +54,7 @@ jobs:
       - run: npx playwright install --with-deps
       - run: npx prisma db push
       - run: docker pull gkalabin/prosper:${{ github.sha }}
-      - name: Run E2E tests
-        run: npx playwright test
+      - run: npx playwright test
         env:
           CI: 'true'
           E2E_DOCKER_IMAGE: gkalabin/prosper:${{ github.sha }}
