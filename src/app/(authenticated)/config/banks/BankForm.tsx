@@ -1,3 +1,4 @@
+import {upsertBank} from '@/actions/config/bank';
 import {Button} from '@/components/ui/button';
 import {
   Form,
@@ -14,9 +15,9 @@ import {
 } from '@/lib/form-types/BankFormSchema';
 import {AddOrUpdateButtonText} from '@/lib/i18n';
 import {Bank} from '@/lib/model/BankAccount';
+import {setFormErrors} from '@/lib/util/forms';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {Bank as DBBank} from '@prisma/client';
-import {useState} from 'react';
 import {useForm} from 'react-hook-form';
 
 export function BankForm({
@@ -30,26 +31,6 @@ export function BankForm({
   onAddedOrUpdated: (x: DBBank) => void;
   onClose: () => void;
 }) {
-  const [apiError, setApiError] = useState('');
-  const isCreate = !bank;
-
-  const handleSubmit = async (values: BankFormSchema) => {
-    setApiError('');
-    try {
-      const dbDbank = await fetch(
-        `/api/config/bank/${isCreate ? '' : bank.id}`,
-        {
-          method: isCreate ? 'POST' : 'PUT',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(values),
-        }
-      );
-      onAddedOrUpdated(await dbDbank.json());
-    } catch (error) {
-      setApiError(`Failed to add: ${error}`);
-    }
-  };
-
   const form = useForm<BankFormSchema>({
     resolver: zodResolver(bankFormValidationSchema),
     defaultValues: {
@@ -57,7 +38,14 @@ export function BankForm({
       displayOrder: bank?.displayOrder ?? displayOrder,
     },
   });
-
+  const handleSubmit = async (values: BankFormSchema) => {
+    const result = await upsertBank(bank?.id ?? null, values);
+    if (result.status === 'CLIENT_ERROR') {
+      setFormErrors(result.errors, form.setError);
+      return;
+    }
+    onAddedOrUpdated(result.data);
+  };
   return (
     <Form {...form}>
       <form
@@ -92,21 +80,22 @@ export function BankForm({
           )}
         />
 
-        {apiError && (
-          <div className="text-sm font-medium text-destructive">{apiError}</div>
-        )}
-
-        <div className="flex justify-end gap-2">
-          <Button
-            onClick={onClose}
-            variant="secondary"
-            disabled={form.formState.isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={form.formState.isSubmitting}>
-            <AddOrUpdateButtonText add={isCreate} />
-          </Button>
+        <div className="flex justify-between gap-2">
+          <div className="text-sm font-medium text-destructive">
+            {form.formState.errors.root?.message}
+          </div>
+          <div className="flex-none space-x-4">
+            <Button
+              onClick={onClose}
+              variant="secondary"
+              disabled={form.formState.isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={form.formState.isSubmitting}>
+              <AddOrUpdateButtonText add={!bank} />
+            </Button>
+          </div>
         </div>
       </form>
     </Form>
