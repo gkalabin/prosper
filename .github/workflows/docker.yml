@@ -34,7 +34,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   e2e:
-    name: E2E Tests on Built Image
+    name: E2E Tests
     needs: build
     runs-on: ubuntu-latest
     env:
