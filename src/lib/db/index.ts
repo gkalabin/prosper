@@ -169,8 +169,9 @@ export async function fetchAllDatabaseData(db: DB): Promise<AllDatabaseData> {
   let core = {} as CoreData;
   let transaction = {} as TransactionData;
   let market = {} as MarketData;
+  const reqId = Math.random().toString(36).slice(2, 7);
   const timeLabel = (label: string) =>
-    `[db] ${label} fetch for userId:${db.getUserId()}`;
+    `[db] ${label} fetch for userId:${db.getUserId()} [${reqId}]`;
   await Promise.all(
     [
       async () => {

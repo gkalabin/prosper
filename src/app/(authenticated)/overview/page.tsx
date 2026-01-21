@@ -17,14 +17,15 @@ async function shouldHideBalances() {
 
 export default async function Page() {
   const userId = await getUserIdOrRedirect();
+  const reqId = Math.random().toString(36).slice(2, 7);
   logRequest('overview', `userId:${userId}`);
-  console.time(`[overview] db fetch for userId:${userId}`);
+  console.time(`[overview] db fetch for userId:${userId} [${reqId}]`);
   const db = new DB({userId});
   const data = await fetchAllDatabaseData(db);
-  console.timeEnd(`[overview] db fetch for userId:${userId}`);
+  console.timeEnd(`[overview] db fetch for userId:${userId} [${reqId}]`);
   const hideBalances = await shouldHideBalances();
-  console.time(`[overview] render for userId:${userId}`);
+  console.time(`[overview] render for userId:${userId} [${reqId}]`);
   const result = <OverviewPage dbData={data} hideBalances={hideBalances} />;
-  console.timeEnd(`[overview] render for userId:${userId}`);
+  console.timeEnd(`[overview] render for userId:${userId} [${reqId}]`);
   return result;
 }
