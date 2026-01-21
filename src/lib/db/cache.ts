@@ -3,7 +3,7 @@ import {
   fetchMarketData,
   fetchTransactionData,
 } from '@/lib/db/fetch';
-import {revalidateTag, unstable_cache} from 'next/cache';
+import {revalidateTag, unstable_cache, updateTag} from 'next/cache';
 
 // This is a hack for BigInt serialization requiredd by nextjs unstable_cache.
 declare global {
@@ -35,7 +35,7 @@ export function cachedTransactionDataOrFetch(userId: number) {
 
 export async function updateTransactionDataCache(userId: number) {
   console.log(`[db] INVALIDATE TRANSACTION DATA CACHE for userId:${userId}`);
-  revalidateTag(transactionCacheKey(userId));
+  updateTag(transactionCacheKey(userId));
 }
 
 function coreCacheKey(userId: number) {
@@ -58,7 +58,7 @@ export function cachedCoreDataOrFetch(userId: number) {
 
 export async function updateCoreDataCache(userId: number) {
   console.log(`[db] INVALIDATE CORE DATA CACHE for userId:${userId}`);
-  revalidateTag(coreCacheKey(userId));
+  updateTag(coreCacheKey(userId));
 }
 
 // The market data is not specific to a user, so we use a single cache key.
