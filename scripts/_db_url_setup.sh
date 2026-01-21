@@ -1,8 +1,7 @@
 #!/bin/sh
 
 if [ -n "$DB_URL" ]; then
-  # If DB_URL is set, do nothing.
-  echo "DB_URL is set, skipping DB_URL setup."
+  echo "DB_URL is already set, skipping setting it up."
   exit 0;
 fi
 
