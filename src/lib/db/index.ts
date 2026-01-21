@@ -2,7 +2,6 @@ import {
   cachedCoreDataOrFetch,
   cachedMarketDataOrFetch,
   cachedTransactionDataOrFetch,
-  invalidateCoreDataCache,
 } from '@/lib/db/cache';
 import {CoreData, MarketData, TransactionData} from '@/lib/db/fetch';
 import {
@@ -85,7 +84,6 @@ export class DB {
     return await prisma.tag.findMany(this.whereUser(args ?? {}));
   }
   async bankUpdate(args: Prisma.BankUpdateArgs) {
-    await invalidateCoreDataCache(this.userId);
     return await prisma.bank.update(args);
   }
   async bankFindMany(args?: Prisma.BankFindManyArgs) {

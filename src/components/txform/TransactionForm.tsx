@@ -7,7 +7,10 @@ import {
 } from '@/components/txform/defaults';
 import {expenseFormEmpty} from '@/components/txform/expense/defaults';
 import {ExpenseForm} from '@/components/txform/expense/ExpenseForm';
-import {FormTypeSelect} from '@/components/txform/FormTypeSelect';
+import {
+  FormTypeSelect,
+  TRANSACTION_FORM_TABPANEL_ID,
+} from '@/components/txform/FormTypeSelect';
 import {IncomeForm} from '@/components/txform/income/IncomeForm';
 import {NewTransactionSuggestions} from '@/components/txform/NewTransactionSuggestions';
 import {TransferForm} from '@/components/txform/transfer/TransferForm';
@@ -30,6 +33,7 @@ import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
 import {Transaction} from '@/lib/model/transaction/Transaction';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
+import {setFormErrors} from '@/lib/util/forms';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useCallback, useState} from 'react';
 import {useForm} from 'react-hook-form';
@@ -137,16 +141,7 @@ export function TransactionForm(props: {
         }
         return;
       }
-      // Handle client errors
-      const {errors} = response;
-      Object.entries(errors).forEach(([field, messages]) => {
-        if (!messages) {
-          return;
-        }
-        form.setError(field as keyof TransactionFormSchema, {
-          message: messages.join(', '),
-        });
-      });
+      setFormErrors(response.errors, form.setError);
     } catch (error) {
       form.setError('root', {
         message: 'Failed to save transaction. Server says: ' + error,
@@ -179,12 +174,19 @@ export function TransactionForm(props: {
     */}
       <Form {...form}>
         <form onSubmit={onSubmit}>
-          <div className="grid grid-cols-6 gap-x-6 gap-y-3">
+          <div className="flex justify-center py-4">
             <FormTypeSelect
               value={formType}
               setValue={onFormTypeChange}
               disabled={form.formState.isSubmitting}
             />
+          </div>
+          <div
+            className="grid grid-cols-6 gap-x-6 gap-y-3"
+            id={TRANSACTION_FORM_TABPANEL_ID}
+            role="tabpanel"
+            aria-labelledby={`tab-${formType.toLowerCase()}`}
+          >
             {formType == 'EXPENSE' && (
               <ExpenseForm transaction={props.transaction} proto={proto} />
             )}

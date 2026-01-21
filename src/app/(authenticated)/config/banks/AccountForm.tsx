@@ -1,3 +1,4 @@
+import {upsertBankAccount} from '@/actions/config/bank-account';
 import {UnitSelect} from '@/app/(authenticated)/config/banks/UnitSelect';
 import {Button} from '@/components/ui/button';
 import {
@@ -20,9 +21,9 @@ import {AddOrUpdateButtonText} from '@/lib/i18n';
 import {Bank, BankAccount} from '@/lib/model/BankAccount';
 import {mustFindByCode} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';
+import {setFormErrors} from '@/lib/util/forms';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {BankAccount as DBBankAccount} from '@prisma/client';
-import {useState} from 'react';
 import {useForm} from 'react-hook-form';
 
 export function AccountForm({
@@ -40,7 +41,6 @@ export function AccountForm({
   onAddedOrUpdated: (x: DBBankAccount) => void;
   onClose: () => void;
 }) {
-  const [apiError, setApiError] = useState('');
   const addingNewAccount = !bankAccount;
   const initialValues = useInitialFormValues(
     bank,
@@ -54,29 +54,18 @@ export function AccountForm({
   });
 
   const handleSubmit = async (values: AccountFormSchema) => {
-    setApiError('');
     try {
-      const body = {
-        ...values,
-        bankId: bank.id,
-      };
-      const added = await fetch(
-        `/api/config/bank-account/${addingNewAccount ? '' : bankAccount.id}`,
-        {
-          method: addingNewAccount ? 'POST' : 'PUT',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(body),
-        }
+      const result = await upsertBankAccount(
+        bankAccount ? bankAccount.id : null,
+        values
       );
-      if (!added.ok) {
-        setApiError(
-          `Failed to add: ${await added.text()} (code ${added.status})`
-        );
+      if (result.status === 'SUCCESS') {
+        onAddedOrUpdated(result.data);
         return;
       }
-      onAddedOrUpdated(await added.json());
+      setFormErrors(result.errors, form.setError);
     } catch (error) {
-      setApiError(`Failed to add: ${error}`);
+      form.setError('root', {message: `Failed to save account: ${error}`});
     }
   };
 
@@ -171,21 +160,22 @@ export function AccountForm({
           )}
         />
 
-        {apiError && (
-          <div className="text-sm font-medium text-destructive">{apiError}</div>
-        )}
-
-        <div className="flex flex-row justify-end gap-2">
-          <Button
-            variant="secondary"
-            onClick={onClose}
-            disabled={form.formState.isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={form.formState.isSubmitting}>
-            <AddOrUpdateButtonText add={!bankAccount} />
-          </Button>
+        <div className="flex justify-between gap-2">
+          <div className="text-sm font-medium text-destructive">
+            {form.formState.errors.root?.message}
+          </div>
+          <div className="flex-none space-x-4">
+            <Button
+              variant="secondary"
+              onClick={onClose}
+              disabled={form.formState.isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={form.formState.isSubmitting}>
+              <AddOrUpdateButtonText add={!bankAccount} />
+            </Button>
+          </div>
         </div>
       </form>
     </Form>

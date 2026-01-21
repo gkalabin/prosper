@@ -10,7 +10,6 @@ import {
   sortCategories,
 } from '@/lib/model/Category';
 import {updateState} from '@/lib/stateHelpers';
-import {cn} from '@/lib/utils';
 import {ChevronDownIcon, ChevronRightIcon} from '@heroicons/react/24/outline';
 import {Category as DBCategory} from '@prisma/client';
 import {useState} from 'react';
@@ -19,7 +18,6 @@ const CategoriesList = (props: {
   collapsed: number[];
   toggleCollapsedState: (categoryId: number) => void;
   categories: Category[];
-  depth: number;
   allCategories: Category[];
   onCategoryUpdated: (updated: DBCategory) => void;
 }) => {
@@ -27,20 +25,18 @@ const CategoriesList = (props: {
     return <div>No categories found.</div>;
   }
   return (
-    <div>
+    <>
       {props.categories.map(category => (
-        <div key={category.id}>
-          <EditableCategoryListItem
-            collapsed={props.collapsed}
-            toggleCollapsedState={props.toggleCollapsedState}
-            category={category}
-            depth={props.depth}
-            allCategories={props.allCategories}
-            onCategoryUpdated={props.onCategoryUpdated}
-          />
-        </div>
+        <EditableCategoryListItem
+          key={category.id}
+          collapsed={props.collapsed}
+          toggleCollapsedState={props.toggleCollapsedState}
+          category={category}
+          allCategories={props.allCategories}
+          onCategoryUpdated={props.onCategoryUpdated}
+        />
       ))}
-    </div>
+    </>
   );
 };
 
@@ -48,14 +44,12 @@ const EditableCategoryListItem = ({
   collapsed,
   toggleCollapsedState,
   category,
-  depth,
   allCategories,
   onCategoryUpdated,
 }: {
   collapsed: number[];
   toggleCollapsedState: (categoryId: number) => void;
   category: Category;
-  depth: number;
   allCategories: Category[];
   onCategoryUpdated: (updated: DBCategory) => void;
 }) => {
@@ -65,15 +59,8 @@ const EditableCategoryListItem = ({
   const children = immediateChildren(category, tree);
   const hasChildren = children.length > 0;
   return (
-    <>
-      <div
-        className={cn(
-          'my-2 rounded-md border p-3 shadow',
-          // https://stackoverflow.com/questions/69687530/dynamically-build-classnames-in-tailwindcss:
-          // make following class names available for JIT: ml-4 ml-8 ml-12 ml-16 ml-20 ml-24 ml-28 ml-32 ml-36 ml-40
-          'ml-' + depth * 4
-        )}
-      >
+    <li className="list-none">
+      <div className="my-2 rounded-md border p-3 shadow">
         <div className="flex items-center justify-between">
           <div
             className="grow cursor-pointer"
@@ -85,14 +72,9 @@ const EditableCategoryListItem = ({
             {hasChildren && !showChildren && (
               <ChevronRightIcon className="inline h-5 w-5" />
             )}
-            <span
-              className={cn(
-                depth == 0 && 'text-xl font-medium',
-                depth == 1 && 'text-lg',
-                depth > 1 && 'text-base font-light',
-                'ml-2 align-middle'
-              )}
-            >
+            {/* Spacer for alignment if no children */}
+            {!hasChildren && <span className="inline-block w-5" />}
+            <span className="ml-2 align-middle text-base font-medium">
               {showEditForm && 'Editing '}
               {category.name}
             </span>
@@ -120,16 +102,17 @@ const EditableCategoryListItem = ({
         )}
       </div>
       {hasChildren && showChildren && (
-        <CategoriesList
-          collapsed={collapsed}
-          toggleCollapsedState={toggleCollapsedState}
-          categories={children}
-          depth={depth + 1}
-          allCategories={allCategories}
-          onCategoryUpdated={onCategoryUpdated}
-        />
+        <ul className="ml-4 border-l pl-8">
+          <CategoriesList
+            collapsed={collapsed}
+            toggleCollapsedState={toggleCollapsedState}
+            categories={children}
+            allCategories={allCategories}
+            onCategoryUpdated={onCategoryUpdated}
+          />
+        </ul>
       )}
-    </>
+    </li>
   );
 };
 
@@ -204,14 +187,15 @@ export function CategoriesConfigPage({
         onNewCategory={addOrUpdateState}
         onExpandToggle={toggleCollapsedStateAll}
       />
-      <CategoriesList
-        collapsed={collapsed}
-        toggleCollapsedState={toggleCollapsedState}
-        categories={rootCategories}
-        depth={0}
-        allCategories={categories}
-        onCategoryUpdated={updateState(setDbCategories)}
-      />
+      <ul>
+        <CategoriesList
+          collapsed={collapsed}
+          toggleCollapsedState={toggleCollapsedState}
+          categories={rootCategories}
+          allCategories={categories}
+          onCategoryUpdated={updateState(setDbCategories)}
+        />
+      </ul>
       <Actions
         categories={categories}
         onNewCategory={addOrUpdateState}

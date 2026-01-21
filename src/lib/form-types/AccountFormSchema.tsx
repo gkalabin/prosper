@@ -19,7 +19,7 @@ export const accountFormValidationSchema = z.object({
   unit: unitSchema,
   isJoint: z.boolean(),
   isArchived: z.boolean(),
-  initialBalance: z.number(),
+  initialBalance: z.coerce.number(),
   displayOrder: z.number(),
   bankId: z.number(),
 });

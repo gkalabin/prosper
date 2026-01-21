@@ -25,6 +25,8 @@ description: When working on tests
 - **Test data:** prefer realistic values in tests. For example, "HSBC" instead
   of "Test Bank". Use a few different values across the tests, do not use the
   same value in every single test.
+- Tests should be hermetic, there should be no external API calls to fetch data
+  like exchange rate or stock market data.
 - Use `npx playwright test` to run end-to-end tests.
 - When debugging e2e tests, use `localhost:3003` to access the app.
 

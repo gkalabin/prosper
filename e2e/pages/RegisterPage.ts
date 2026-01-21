@@ -8,6 +8,7 @@ export class RegisterPage {
   readonly passwordInput: Locator;
   readonly confirmPasswordInput: Locator;
   readonly submitButton: Locator;
+  readonly errorMessage: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -15,6 +16,8 @@ export class RegisterPage {
     this.passwordInput = page.getByLabel('Password', {exact: true});
     this.confirmPasswordInput = page.getByLabel('Confirm Password');
     this.submitButton = page.getByRole('button', {name: 'Create account'});
+    // Be specific to get error message from the form to avoid matching page-wide alerts like Next.js built in errors.
+    this.errorMessage = page.locator('form').getByRole('alert');
   }
 
   async goto() {
@@ -26,7 +29,16 @@ export class RegisterPage {
     await this.passwordInput.fill(password);
     await this.confirmPasswordInput.fill(password);
     await this.submitButton.click();
-    // Wait for signup to complete, this is done when redirected away from the signup page
+  }
+
+  async expectSuccess() {
     await expect(this.page).not.toHaveURL(SIGNUP_URL);
+  }
+
+  async expectUserAlreadyExistsError() {
+    await expect(this.errorMessage).toBeVisible();
+    await expect(this.errorMessage).toContainText(
+      'User with this login already exists'
+    );
   }
 }

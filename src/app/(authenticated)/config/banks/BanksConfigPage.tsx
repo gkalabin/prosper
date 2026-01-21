@@ -274,6 +274,7 @@ const AccountListItem = (props: {
             size="inherit"
             className="ml-2"
             onClick={() => setFormDisplayed(true)}
+            aria-label={`Edit ${props.account.name}`}
           >
             Edit
           </Button>

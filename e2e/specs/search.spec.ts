@@ -1,15 +1,15 @@
 import {expect, test} from '../lib/fixtures/test-base';
-import {LoginPage} from '../pages/LoginPage';
 import {TransactionListPage} from '../pages/TransactionListPage';
 
 test.describe('Transaction Search and Filtering', () => {
   test.describe('Basic Keyword Search', () => {
-    test('filters transactions by vendor name', async ({page, seed}) => {
+    test('filters transactions by vendor name', async ({
+      page,
+      seed,
+      loginAs,
+    }) => {
       // Given
-      const user = await seed.createUser();
-      const bank = await seed.createBank(user.id);
-      const account = await seed.createAccount(user.id, bank.id);
-      const category = await seed.createCategory(user.id);
+      const {user, account, category} = await seed.createUserWithTestData();
       await seed.createExpense(
         user.id,
         account.id,
@@ -25,9 +25,7 @@ test.describe('Transaction Search and Filtering', () => {
         12.0,
         'Starbucks'
       );
-      const loginPage = new LoginPage(page);
-      await loginPage.goto();
-      await loginPage.login(user.login, user.rawPassword);
+      await loginAs(user);
       const transactionListPage = new TransactionListPage(page);
       await transactionListPage.goto();
       // When
@@ -39,6 +37,29 @@ test.describe('Transaction Search and Filtering', () => {
       await expect(
         transactionListPage.getTransactionListItem('Tesco')
       ).toHaveCount(0);
+    });
+  });
+
+  test.describe('Advanced Filters', () => {
+    test('filters by amount less than threshold', async ({
+      page,
+      seed,
+      loginAs,
+    }) => {
+      // Given
+      const {user, account, category} = await seed.createUserWithTestData();
+      await seed.createExpense(user.id, account.id, category.id, 50, 'Nero');
+      await seed.createExpense(user.id, account.id, category.id, 150, 'KFC');
+      await seed.createExpense(user.id, account.id, category.id, 75, 'Costa');
+      await loginAs(user);
+      const listPage = new TransactionListPage(page);
+      await listPage.goto();
+      // When
+      await listPage.search('amount<100');
+      // Then
+      await expect(listPage.getTransactionListItem('Nero')).toHaveCount(1);
+      await expect(listPage.getTransactionListItem('Costa')).toHaveCount(1);
+      await expect(listPage.getTransactionListItem('KFC')).toHaveCount(0);
     });
   });
 });

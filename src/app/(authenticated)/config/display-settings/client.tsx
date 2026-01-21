@@ -1,4 +1,5 @@
 'use client';
+import {updateDisplaySettings} from '@/actions/config/display-settings';
 import {MultiSelect} from '@/components/MultiSelect';
 import {Button} from '@/components/ui/button';
 import {
@@ -22,6 +23,7 @@ import {
   sortCategories,
 } from '@/lib/model/Category';
 import {allCurrencies} from '@/lib/model/Currency';
+import {setFormErrors} from '@/lib/util/forms';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {
   Category as DBCategory,
@@ -42,29 +44,7 @@ export function DisplaySettingsPage({
     initialDbDisplaySettings
   );
   const displaySettings = new DisplaySettings(dbDisplaySettings);
-  const [apiError, setApiError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const handleSubmit = async (values: DisplaySettingsFormSchema) => {
-    setApiError('');
-    setSuccessMessage('');
-    try {
-      const response = await fetch(`/api/config/display-settings/`, {
-        method: 'PUT',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(values),
-      });
-      if (response.status == 200) {
-        setDbDisplaySettings(await response.json());
-        setSuccessMessage('Successfully saved!');
-      } else {
-        console.error(await response.text());
-        setApiError(`Failed to save: ${response.statusText}`);
-      }
-    } catch (error) {
-      console.log(error);
-      setApiError(`Failed to save: ${error}`);
-    }
-  };
   const form = useForm<DisplaySettingsFormSchema>({
     resolver: zodResolver(displaySettingsFormValidationSchema),
     defaultValues: {
@@ -72,6 +52,16 @@ export function DisplaySettingsPage({
       excludeCategoryIdsInStats: displaySettings.excludeCategoryIdsInStats(),
     },
   });
+  const handleSubmit = async (values: DisplaySettingsFormSchema) => {
+    setSuccessMessage('');
+    const result = await updateDisplaySettings(values);
+    if (result.status === 'CLIENT_ERROR') {
+      setFormErrors(result.errors, form.setError);
+      return;
+    }
+    setDbDisplaySettings(result.data);
+    setSuccessMessage('Successfully saved!');
+  };
   const tree = makeCategoryTree(categories);
   const categoryOptions = categories.map(c => ({
     value: c.id,
@@ -118,14 +108,16 @@ export function DisplaySettingsPage({
             </FormItem>
           )}
         />
-        <div className="flex justify-end gap-2">
-          <Button type="submit" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? 'Saving…' : 'Save'}
-          </Button>
+        <div className="flex justify-between gap-2">
+          <div className="text-sm font-medium text-destructive">
+            {form.formState.errors.root?.message}
+          </div>
+          <div className="flex-none space-x-4">
+            <Button type="submit" disabled={form.formState.isSubmitting}>
+              {form.formState.isSubmitting ? 'Saving…' : 'Save'}
+            </Button>
+          </div>
         </div>
-        {apiError && (
-          <div className="text-sm font-medium text-destructive">{apiError}</div>
-        )}
       </form>
     </Form>
   );
