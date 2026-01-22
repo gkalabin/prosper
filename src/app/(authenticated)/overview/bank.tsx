@@ -78,7 +78,7 @@ export function BanksListItem({bank}: {bank: Bank}) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="divide-y divide-gray-200">
+        <ul className="divide-y divide-gray-200">
           {activeAccounts.map((account, i) => (
             <BankAccountListItem
               key={account.id}
@@ -87,7 +87,7 @@ export function BanksListItem({bank}: {bank: Bank}) {
               colorIndex={i}
             />
           ))}
-        </div>
+        </ul>
       </CardContent>
     </Card>
   );
@@ -104,9 +104,9 @@ export function BankAccountListItem({
 }) {
   const listColor = ITEM_BORDER_COLORS[colorIndex % ITEM_BORDER_COLORS.length];
   return (
-    <div>
+    <li>
       <Link href={accountPageURL(account, bank)}>
-        <div key={account.id} className="flex items-stretch gap-2 py-2.5">
+        <div className="flex items-stretch gap-2 py-2.5">
           <div className={cn('w-1 rounded', listColor)}>&nbsp;</div>
           <div className="flex min-h-12 grow items-center justify-between p-1">
             <div>{account.name}</div>
@@ -114,6 +114,6 @@ export function BankAccountListItem({
           </div>
         </div>
       </Link>
-    </div>
+    </li>
   );
 }

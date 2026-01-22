@@ -1,100 +1,155 @@
 import {test} from '../lib/fixtures/test-base';
 import {OverviewPage} from '../pages/OverviewPage';
 
-test.describe('Overview Dashboard', () => {
-  test.describe('Balance Display', () => {
-    test('displays total balance across all accounts', async ({
-      page,
-      seed,
-      loginAs,
-    }) => {
-      // Given
-      const {user, bank, category} = await seed.createUserWithTestData();
-      const account1 = await seed.createAccount(user.id, bank.id, {
-        name: 'Checking',
-      });
-      await seed.createIncome(
-        user.id,
-        account1.id,
-        category.id,
-        1000,
-        'Salary'
-      );
-      const account2 = await seed.createAccount(user.id, bank.id, {
-        name: 'Savings',
-      });
-      await seed.createIncome(user.id, account2.id, category.id, 500, 'Bonus');
-      await loginAs(user);
-      // When
-      const overviewPage = new OverviewPage(page);
-      await overviewPage.goto();
-      // Then
-      await overviewPage.expectTotalBalance('$1,500');
+test.describe('Overview', () => {
+  test('transactions impact the total', async ({page, seed, loginAs}) => {
+    const {
+      user,
+      category: c,
+      accounts: [current, savings],
+    } = await seed.createUserWithMultipleAccounts({
+      bank: {name: 'HSBC'},
+      accounts: [
+        {name: 'Current', currencyCode: 'USD', initialBalanceCents: 10000}, // $100
+        {name: 'Savings', currencyCode: 'USD', initialBalanceCents: 20000}, // $200
+      ],
     });
-
-    test('displays balance in configured display currency', async ({
-      page,
-      seed,
-      loginAs,
-    }) => {
-      // Given
-      const user = await seed.createUser();
-      const bank = await seed.createBank(user.id);
-      await seed.createAccount(user.id, bank.id, {
-        currencyCode: 'USD',
-        initialBalanceCents: 100000, // $1000
-      });
-      await seed.createAccount(user.id, bank.id, {
-        currencyCode: 'GBP',
-        initialBalanceCents: 100000, // £1000
-      });
-      await seed.createCategory(user.id);
-      await seed.updateDisplaySettings(user.id, {displayCurrencyCode: 'GBP'});
-      // Create exchange rate 1 USD = 0.8 GBP
-      await seed.createExchangeRate('USD', 'GBP', 0.8);
-      await loginAs(user);
-      // When
-      const overviewPage = new OverviewPage(page);
-      await overviewPage.goto();
-      // Then: total £1800 - £1000 initial in GBP and £800 converted from $1000
-      await overviewPage.expectTotalBalance('£1,800');
-    });
+    await seed.createExpense(user.id, current.id, c.id, 40, 'KFC'); // Current is now $60
+    await seed.createIncome(user.id, savings.id, c.id, 1000, 'Salary'); // Savings is $1200
+    await seed.createTransfer(user.id, savings.id, current.id, c.id, 140); // Move $140 from Savings to Current
+    await loginAs(user);
+    const overviewPage = new OverviewPage(page);
+    await overviewPage.goto();
+    await overviewPage.expectTotalBalance('$1,260');
+    await overviewPage.expectAccountBalance('HSBC', 'Current', '$200');
+    await overviewPage.expectAccountBalance('HSBC', 'Savings', '$1,060');
   });
 
-  test.describe('Bank and Account List', () => {
-    test('displays all banks and their accounts', async ({
-      page,
-      seed,
-      loginAs,
-    }) => {
-      // Given
-      const user = await seed.createUser();
-      await seed.createCategory(user.id);
-      const bank1 = await seed.createBank(user.id, {name: 'HSBC'});
-      await seed.createAccount(user.id, bank1.id, {
-        name: 'Current',
-        initialBalanceCents: 1000, // $10
-      });
-      await seed.createAccount(user.id, bank1.id, {
-        name: 'Credit Card',
-        initialBalanceCents: -1500, // -$15
-      });
-      const bank2 = await seed.createBank(user.id, {name: 'Monzo'});
-      await seed.createAccount(user.id, bank2.id, {
-        name: 'Current',
-        initialBalanceCents: 3000, // $30
-      });
-      await loginAs(user);
-      // When
-      const overviewPage = new OverviewPage(page);
-      await overviewPage.goto();
-      // Then
-      await overviewPage.expectBankWithAccounts('HSBC', [
-        'Current',
-        'Credit Card',
-      ]);
-      await overviewPage.expectBankWithAccounts('Monzo', ['Current']);
-      await overviewPage.expectTotalBalance('$25');
+  test('converts total to display currency', async ({page, seed, loginAs}) => {
+    const {user} = await seed.createUserWithMultipleAccounts({
+      accounts: [
+        {currencyCode: 'USD', initialBalanceCents: 100000}, // $1000
+        {currencyCode: 'GBP', initialBalanceCents: 100000}, // £1000
+      ],
     });
+    await seed.updateDisplaySettings(user.id, {displayCurrencyCode: 'GBP'});
+    await seed.createExchangeRate('USD', 'GBP', 0.8); // 1 USD = 0.8 GBP
+    await loginAs(user);
+    const overviewPage = new OverviewPage(page);
+    await overviewPage.goto();
+    await overviewPage.expectTotalBalance('£1,800');
+  });
+
+  test('handles missing exchange rates', async ({page, seed, loginAs}) => {
+    const {user} = await seed.createUserWithTestData({
+      bank: {
+        name: 'Swiss Bank',
+      },
+      account: {
+        name: 'Current',
+        currencyCode: 'CHF',
+        initialBalanceCents: 50000, // 500 CHF
+      },
+    });
+    await seed.updateDisplaySettings(user.id, {displayCurrencyCode: 'USD'});
+    // No exchange rate for CHF -> USD, so the account balance should display
+    // in the original currency (CHF) rather than the display currency (USD).
+    await loginAs(user);
+    const overviewPage = new OverviewPage(page);
+    await overviewPage.goto();
+    await overviewPage.expectAccountBalance('Swiss Bank', 'Current', 'CHF 500');
+  });
+
+  test('hides archived accounts', async ({page, seed, loginAs}) => {
+    const {user} = await seed.createUserWithMultipleAccounts({
+      bank: {name: 'Barclays'},
+      accounts: [
+        {
+          name: 'Current',
+          currencyCode: 'USD',
+          initialBalanceCents: 50000,
+        },
+        {
+          name: 'Savings',
+          currencyCode: 'USD',
+          initialBalanceCents: 0,
+          archived: true,
+        },
+      ],
+    });
+    await loginAs(user);
+    const overviewPage = new OverviewPage(page);
+    await overviewPage.goto();
+    await overviewPage.expectBankWithAccounts('Barclays', ['Current']);
+    await overviewPage.expectAccountNotVisible('Barclays', 'Savings');
+    await overviewPage.expectTotalBalance('$500');
+  });
+
+  test('displays negative balance', async ({page, seed, loginAs}) => {
+    const {user} = await seed.createUserWithTestData({
+      bank: {name: 'Chase'},
+      account: {name: 'Freedom Card', initialBalanceCents: -25000},
+    });
+    await loginAs(user);
+    const overviewPage = new OverviewPage(page);
+    await overviewPage.goto();
+    await overviewPage.expectAccountBalance('Chase', 'Freedom Card', '-$250');
+    await overviewPage.expectTotalBalance('-$250');
+  });
+
+  test('accounts with stocks', async ({page, seed, loginAs}) => {
+    const stock = await seed.createStock({
+      name: 'Apple',
+      ticker: 'AAPL',
+      exchange: 'NASDAQ',
+      currencyCode: 'USD',
+    });
+    await seed.createStockQuote(stock.id, 15000); // $150 per share
+    const {user} = await seed.createUserWithTestData({
+      bank: {
+        name: 'Vanguard',
+      },
+      account: {
+        name: 'AAPL Holdings',
+        initialBalanceCents: 1000, // 10 shares
+        stockId: stock.id,
+      },
+    });
+    await loginAs(user);
+    const overviewPage = new OverviewPage(page);
+    await overviewPage.goto();
+    await overviewPage.expectBankWithAccounts('Vanguard', ['AAPL Holdings']);
+    await overviewPage.expectTotalBalance('$1,500'); // 10 shares x $150
+  });
+
+  test('converts stock value to display currency', async ({
+    page,
+    seed,
+    loginAs,
+  }) => {
+    const stock = await seed.createStock({
+      name: 'Tesla',
+      ticker: 'TSLA',
+      exchange: 'NASDAQ',
+      currencyCode: 'USD',
+    });
+    await seed.createStockQuote(stock.id, 15000); // $150 per share
+    const {user} = await seed.createUserWithTestData({
+      bank: {
+        name: 'Vanguard',
+      },
+      account: {
+        name: 'TSLA Holdings',
+        initialBalanceCents: 1000, // 10 shares
+        stockId: stock.id,
+      },
+    });
+    await seed.updateDisplaySettings(user.id, {displayCurrencyCode: 'EUR'});
+    await seed.createExchangeRate('USD', 'EUR', 0.92); // 1 USD = 0.92 EUR
+    await loginAs(user);
+    const overviewPage = new OverviewPage(page);
+    await overviewPage.goto();
+    await overviewPage.expectBankWithAccounts('Vanguard', ['TSLA Holdings']);
+    await overviewPage.expectTotalBalance('€ 1.380'); // 10 shares x $150 x 0.92
   });
 });

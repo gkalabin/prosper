@@ -89,6 +89,22 @@ export class TestFactory {
     }
   }
 
+  async createUserWithMultipleAccounts(overrides?: {
+    user?: Partial<User & {rawPassword: string}>;
+    bank?: Partial<Bank>;
+    accounts: Array<Partial<BankAccount>>;
+    category?: Partial<Category>;
+  }) {
+    const user = await this.createUser(overrides?.user);
+    const bank = await this.createBank(user.id, overrides?.bank);
+    const accounts: BankAccount[] = [];
+    for (const a of overrides?.accounts || []) {
+      accounts.push(await this.createAccount(user.id, bank.id, a));
+    }
+    const category = await this.createCategory(user.id, overrides?.category);
+    return {user, bank, accounts, category};
+  }
+
   async createUserWithTestData(overrides?: {
     user?: Partial<User & {rawPassword: string}>;
     bank?: Partial<Bank>;
@@ -144,12 +160,14 @@ export class TestFactory {
     bankId: number,
     overrides?: Partial<BankAccount>
   ) {
+    // Do not set default currencyCode for stock accounts.
+    const currencyCode = overrides?.stockId ? undefined : DEFAULT_TEST_CURRENCY;
     return prisma.bankAccount.create({
       data: {
         userId,
         bankId,
         name: `Test Account`,
-        currencyCode: DEFAULT_TEST_CURRENCY,
+        currencyCode,
         ...overrides,
       },
     });
@@ -256,6 +274,31 @@ export class TestFactory {
         categoryId,
         description: '',
         payer,
+        ...overrides,
+      },
+    });
+  }
+
+  async createTransfer(
+    userId: number,
+    fromAccountId: number,
+    toAccountId: number,
+    categoryId: number,
+    amount: number,
+    overrides?: Partial<Transaction>
+  ) {
+    return prisma.transaction.create({
+      data: {
+        userId,
+        transactionType: TransactionType.TRANSFER,
+        outgoingAccountId: fromAccountId,
+        outgoingAmountCents: Math.round(amount * 100),
+        incomingAccountId: toAccountId,
+        incomingAmountCents: Math.round(amount * 100),
+        ownShareAmountCents: 0,
+        timestamp: new Date(),
+        categoryId,
+        description: '',
         ...overrides,
       },
     });
