@@ -26,12 +26,14 @@ export function MultiSelect<T>({
   onChange,
   options,
   disabled,
+  ...props
 }: {
   value: T[];
   onChange: (value: T[]) => void;
   options: Array<Option<T>>;
   disabled?: boolean;
-}) {
+  // Omit 'value' and 'onChange' because they are redefined by the component.
+} & Omit<React.ComponentProps<typeof Button>, 'value' | 'onChange'>) {
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const addItem = (x: T) => onChange([...value, x]);
@@ -44,6 +46,11 @@ export function MultiSelect<T>({
     <Popover modal={true} open={optionsOpen} onOpenChange={setOptionsOpen}>
       <PopoverTrigger asChild>
         <Button
+          // Props here brings attributes passed down to the form input. Specifically, aria attributes and the id.
+          // The id is used in turn by the label (in label-for) - clicking the label enables the input, i.e. opens the combobox.
+          // This also enables e2e tests to use locators like `form.getByRole('combobox', {name: 'Whatever'})`
+          // because the label identified the input when the id is set.
+          {...props}
           type="button"
           variant="outline"
           role="combobox"
@@ -127,6 +134,7 @@ function SelectedItems<T>({
       {item.label}
       <span
         role="button"
+        aria-label={`Remove ${item.label}`}
         tabIndex={0}
         className="text-secondary-foreground"
         onClick={e => {
