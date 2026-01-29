@@ -1,8 +1,9 @@
+import {isValid} from 'date-fns';
 import {z} from 'zod';
 
 export const incomeFormValidationSchema = z
   .object({
-    timestamp: z.date(),
+    timestamp: z.date().or(z.string()),
     // Coerce all the amounts. We cannot use default form inputs as some locales use comma as a decimal separator,
     // to account for that, we update the field value on change (see MoneyInput). This onChange handler calls react hook
     // form's onChange with a string value which gets coerced here. The alternative is to parse valid numbers in the onChange,
@@ -22,5 +23,9 @@ export const incomeFormValidationSchema = z
   .refine(data => data.amount >= data.ownShareAmount, {
     path: ['ownShareAmount'],
     message: "Own share amount can't be greater than the total amount",
+  })
+  .refine(data => isValid(data.timestamp), {
+    message: 'Invalid date',
+    path: ['timestamp'],
   });
 export type IncomeFormSchema = z.infer<typeof incomeFormValidationSchema>;

@@ -1,3 +1,4 @@
+import {isValid} from 'date-fns';
 import {z} from 'zod';
 
 const SharingType = z.enum([
@@ -8,18 +9,23 @@ const SharingType = z.enum([
 ]);
 export type SharingType = z.infer<typeof SharingType>;
 
-export const repaymentTransactionValidationSchema = z.object({
-  timestamp: z.date(),
-  categoryId: z.number().int().positive(),
-  accountId: z.number().int().positive(),
-});
+export const repaymentTransactionValidationSchema = z
+  .object({
+    timestamp: z.date().or(z.string()),
+    categoryId: z.number().int().positive(),
+    accountId: z.number().int().positive(),
+  })
+  .refine(data => isValid(data.timestamp), {
+    message: 'Invalid date',
+    path: ['timestamp'],
+  });
 export type RepaymentTransactionFormSchema = z.infer<
   typeof repaymentTransactionValidationSchema
 >;
 
 export const expenseFormValidationSchema = z
   .object({
-    timestamp: z.date(),
+    timestamp: z.date().or(z.string()),
     // Coerce all the amounts. We cannot use default form inputs as some locales use comma as a decimal separator,
     // to account for that, we update the field value on change (see MoneyInput). This onChange handler calls react hook
     // form's onChange with a string value which gets coerced here. The alternative is to parse valid numbers in the onChange,
@@ -65,5 +71,9 @@ export const expenseFormValidationSchema = z
       message: 'Account is required',
       path: ['accountId'],
     }
-  );
+  )
+  .refine(data => isValid(data.timestamp), {
+    message: 'Invalid date',
+    path: ['timestamp'],
+  });
 export type ExpenseFormSchema = z.infer<typeof expenseFormValidationSchema>;
