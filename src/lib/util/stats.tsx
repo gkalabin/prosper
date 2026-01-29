@@ -10,7 +10,8 @@ export function percentile(data: number[], p: number): number {
   if (p == 0) {
     return data[0];
   }
-  const sorted = [...data].sort();
+  // Default sort is lexicographic, make sure to provide a number comparator.
+  const sorted = [...data].sort((a, b) => a - b);
   const position = Math.ceil((data.length * p) / 100) - 1;
   return sorted[position];
 }

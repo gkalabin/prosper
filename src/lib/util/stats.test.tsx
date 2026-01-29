@@ -7,6 +7,8 @@ describe('percentile', () => {
   );
   test('throws when no data is provided', () =>
     expect(() => percentile([], 1)).toThrow());
+  // 5 < 10, but "10" < "5" when comparing strings.
+  test('non-string sort', () => expect(percentile([5, 10], 100)).toEqual(10));
   test.each<{items: number[]; p: number; expected: number}>`
     items                   | p      | expected
     ${[100]}                | ${0}   | ${100}
