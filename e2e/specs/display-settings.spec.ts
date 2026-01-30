@@ -1,4 +1,4 @@
-import {expect, test} from '../lib/fixtures/test-base';
+import {test} from '../lib/fixtures/test-base';
 import {DisplaySettingsPage} from '../pages/DisplaySettingsPage';
 import {ExpenseStatsPage} from '../pages/ExpenseStatsPage';
 import {OverviewPage} from '../pages/OverviewPage';
