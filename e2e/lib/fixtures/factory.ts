@@ -17,9 +17,11 @@ import {prisma} from '../db';
 export const TEST_USER_PASSWORD = 'password123';
 export const DEFAULT_TEST_CURRENCY = 'USD';
 
+type UserWithRawPassword = User & {rawPassword: string};
+
 // Bundle of test data suitable for most tests.
 export type TestDataBundle = {
-  user: Awaited<ReturnType<TestFactory['createUser']>>;
+  user: UserWithRawPassword;
   bank: Bank;
   account: BankAccount;
   category: Category;
@@ -122,7 +124,7 @@ export class TestFactory {
     return {user, bank, account, category};
   }
 
-  async createUser(overrides?: Partial<User & {rawPassword: string}>) {
+  async createUser(overrides?: Partial<UserWithRawPassword>) {
     const login = 'e2e_test_user_' + uuidv4().slice(0, 8);
     const rawPassword = overrides?.rawPassword || TEST_USER_PASSWORD;
     const passwordHash = await bcrypt.hash(rawPassword, 10);
@@ -229,6 +231,68 @@ export class TestFactory {
     });
   }
 
+  // TODO: newExpense, createExpense and newExpenseFromBundle should be unified in a short expressive way which looks
+  // brief, but descriptive in the test code and supports a neat way to create transactions with various properties.
+  async newExpense(
+    vendor: string,
+    amount: number,
+    input: {
+      user: UserWithRawPassword;
+      bank: Bank;
+      account: BankAccount;
+      category: Category;
+    } & Partial<
+      Omit<Transaction, 'timestamp'> & {
+        timestamp: string | Date;
+        tags: Tag[];
+      }
+    >
+  ) {
+    const {user, bank, account, category, tags, timestamp, ...overrides} =
+      input;
+    const dateTimestamp = timestamp ? new Date(timestamp) : new Date();
+    return prisma.transaction.create({
+      data: {
+        userId: user.id,
+        transactionType: TransactionType.PERSONAL_EXPENSE,
+        outgoingAccountId: account.id,
+        outgoingAmountCents: Math.round(amount * 100),
+        ownShareAmountCents: Math.round(amount * 100),
+        timestamp: dateTimestamp,
+        categoryId: category.id,
+        description: '',
+        vendor,
+        ...overrides,
+        tags: tags ? {connect: tags.map(t => ({id: t.id}))} : undefined,
+      },
+    });
+  }
+
+  async newExpenseFromBundle(
+    {user, account, category}: TestDataBundle,
+    vendor: string,
+    amount: number,
+    timestamp?: Date | string | null,
+    overrides?: Partial<Transaction>,
+    tagIds?: number[]
+  ) {
+    const timestampedOverrides = timestamp
+      ? {
+          ...overrides,
+          timestamp: new Date(timestamp),
+        }
+      : overrides;
+    return this.createExpense(
+      user.id,
+      account.id,
+      category.id,
+      amount,
+      vendor,
+      timestampedOverrides,
+      tagIds
+    );
+  }
+
   async createExpense(
     userId: number,
     accountId: number,
@@ -253,6 +317,23 @@ export class TestFactory {
         tags: tagIds ? {connect: tagIds.map(id => ({id}))} : undefined,
       },
     });
+  }
+
+  async createIncomeUsingBundle(
+    {user, account, category}: TestDataBundle,
+    vendor: string,
+    amount: number,
+    overrides?: Partial<Transaction>,
+    tagIds?: number[]
+  ) {
+    return this.createIncome(
+      user.id,
+      account.id,
+      category.id,
+      amount,
+      vendor,
+      overrides
+    );
   }
 
   async createIncome(

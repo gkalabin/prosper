@@ -15,6 +15,7 @@ import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries, percentile} from '@/lib/util/Timeseries';
 import {capitalize} from '@/lib/util/util';
 import {differenceInMonths} from 'date-fns';
+import {useId} from 'react';
 
 export function TransactionStats(props: {
   onClose: () => void;
@@ -54,7 +55,11 @@ function NonEmptyTransactionStats({
     <>
       <CurrencyExchangeFailed failedTransactions={failed} />
       <TextSummary input={input} />
-      <Charts input={input} />
+      <div className="col-span-6">
+        <MonthlyTransactionCount input={input} />
+        <IncomeOrExenseSection kind={'expense'} input={input} />
+        <IncomeOrExenseSection kind={'income'} input={input} />
+      </div>
       <div className="col-span-6">
         <Button variant="secondary" onClick={onClose}>
           Close
@@ -87,15 +92,26 @@ function TextSummary({input}: {input: ExchangedIntervalTransactions}) {
   );
 }
 
-function Charts({input}: {input: ExchangedIntervalTransactions}) {
+function IncomeOrExenseSection({
+  input,
+  kind,
+}: {
+  input: ExchangedIntervalTransactions;
+  kind: 'expense' | 'income';
+}) {
+  const incomeOrExpenseCapital = capitalize(kind);
+  const titleId = useId();
+  const transactions = kind == 'expense' ? input.expenses() : input.income();
+  if (!transactions.length) {
+    return <></>;
+  }
   return (
-    <div className="col-span-6">
-      <MonthlyTransactionCount input={input} />
-      <h1 className="mb-1 mt-4 text-xl font-medium leading-7">Expenses</h1>
-      <IncomeOrExenseStats kind={'expense'} input={input} />
-      <h1 className="mb-1 mt-4 text-xl font-medium leading-7">Income</h1>
-      <IncomeOrExenseStats kind={'income'} input={input} />
-    </div>
+    <section aria-labelledby={titleId}>
+      <h2 id={titleId} className="mb-1 mt-4 text-xl font-medium leading-7">
+        {incomeOrExpenseCapital}
+      </h2>
+      <IncomeOrExenseStats kind={kind} input={input} />
+    </section>
   );
 }
 
@@ -106,12 +122,8 @@ function IncomeOrExenseStats({
   input: ExchangedIntervalTransactions;
   kind: 'expense' | 'income';
 }) {
-  const transactions = kind == 'expense' ? input.expenses() : input.income();
-  if (!transactions.length) {
-    return <></>;
-  }
-  const spentOrReceived = kind == 'income' ? 'income' : 'expense';
-  const spentOrReceivedCapital = capitalize(spentOrReceived);
+  const spentOrReceived = kind == 'income' ? 'received' : 'spent';
+  const incomeOrExpenseCapital = capitalize(kind);
   let totalGross = AmountWithCurrency.zero(input.currency());
   let totalNet = AmountWithCurrency.zero(input.currency());
   const grossPerMonth = new MoneyTimeseries(
@@ -122,6 +134,7 @@ function IncomeOrExenseStats({
     input.currency(),
     Granularity.MONTHLY
   );
+  const transactions = kind == 'expense' ? input.expenses() : input.income();
   for (const {t, ownShare, allParties} of transactions) {
     totalNet = totalNet.add(ownShare);
     netPerMonth.increment(t.timestampEpoch, ownShare);
@@ -132,34 +145,24 @@ function IncomeOrExenseStats({
     <div>
       <div className="mb-2 ml-2 text-sm text-slate-600">
         <div>
-          Total: {totalGross.round().format()}(gross) /{' '}
-          {totalNet.round().format()}(net)
+          Total: {totalGross.round().format()} (gross) /{' '}
+          {totalNet.round().format()} (net)
         </div>
         <div>
           Own share percent:{' '}
           {Math.round((100 * totalNet.cents()) / totalGross.cents())}%
         </div>
-        <div>
-          Monthly percentiles (gross):
-          <div className="ml-1 text-xs">
-            {percentile(grossPerMonth, 25).round().format()} (p25) /{' '}
-            {percentile(grossPerMonth, 50).round().format()} (p50) /{' '}
-            {percentile(grossPerMonth, 75).round().format()} (p75) /{' '}
-            {percentile(grossPerMonth, 100).round().format()} (max)
-          </div>
-        </div>
-        <div>
-          Monthly percentiles (net):
-          <div className="ml-1 text-xs">
-            {percentile(netPerMonth, 25).round().format()} (p25) /{' '}
-            {percentile(netPerMonth, 50).round().format()} (p50) /{' '}
-            {percentile(netPerMonth, 75).round().format()} (p75) /{' '}
-            {percentile(netPerMonth, 100).round().format()} (max)
-          </div>
-        </div>
+        <Percentiles
+          label="Monthly percentiles (gross)"
+          timeseries={grossPerMonth}
+        />
+        <Percentiles
+          label="Monthly percentiles (net)"
+          timeseries={netPerMonth}
+        />
       </div>
       <TimelineAmountsChart
-        title={`Money ${spentOrReceived} gross (all parties)`}
+        title={`Yearly ${spentOrReceived} gross (all parties)`}
         granularity={Granularity.YEARLY}
         data={transactions.map(({t, allParties}) => ({
           timestamp: t.timestampEpoch,
@@ -169,7 +172,7 @@ function IncomeOrExenseStats({
         currency={input.currency()}
       />
       <TimelineAmountsChart
-        title={`Money ${spentOrReceived} net (own share)`}
+        title={`Yearly ${spentOrReceived} net (own share)`}
         granularity={Granularity.YEARLY}
         data={transactions.map(({t, ownShare}) => ({
           timestamp: t.timestampEpoch,
@@ -179,7 +182,7 @@ function IncomeOrExenseStats({
         currency={input.currency()}
       />
       <TimelineAmountsChart
-        title={`Money ${spentOrReceived} gross (all parties)`}
+        title={`Monthly ${spentOrReceived} gross (all parties)`}
         granularity={Granularity.MONTHLY}
         data={transactions.map(({t, allParties}) => ({
           timestamp: t.timestampEpoch,
@@ -189,7 +192,7 @@ function IncomeOrExenseStats({
         currency={input.currency()}
       />
       <TimelineAmountsChart
-        title={`Money ${spentOrReceived} net (own share)`}
+        title={`Monthly ${spentOrReceived} net (own share)`}
         granularity={Granularity.MONTHLY}
         data={transactions.map(({t, ownShare}) => ({
           timestamp: t.timestampEpoch,
@@ -199,10 +202,41 @@ function IncomeOrExenseStats({
         currency={input.currency()}
       />
       <ExpenseByTopCategoryChart
-        title={`${spentOrReceivedCapital} by top level category net (own share)`}
+        title={`${incomeOrExpenseCapital} by top level category net (own share)`}
         currency={input.currency()}
         data={transactions}
       />
     </div>
+  );
+}
+
+function Percentiles({
+  label,
+  timeseries,
+}: {
+  label: string;
+  timeseries: MoneyTimeseries;
+}) {
+  const labelId = useId();
+  const items = [
+    {id: useId(), label: 'p25', value: percentile(timeseries, 25)},
+    {id: useId(), label: 'p50', value: percentile(timeseries, 50)},
+    {id: useId(), label: 'p75', value: percentile(timeseries, 75)},
+    {id: useId(), label: 'max', value: percentile(timeseries, 100)},
+  ];
+  return (
+    <section aria-labelledby={labelId}>
+      <h3 id={labelId} className="font-medium">
+        {label}
+      </h3>
+      <ul className="my-1 ml-2 gap-3 text-xs">
+        {items.map(({id, label, value}) => (
+          <li key={id}>
+            {label}:
+            <span className="text-mono ml-2">{value.round().format()}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }

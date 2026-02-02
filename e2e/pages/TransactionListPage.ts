@@ -57,6 +57,54 @@ export class TransactionListPage {
     expect(actual).toEqual([...expectedTags].sort());
   }
 
+  async openStats() {
+    await this.page.getByRole('button', {name: 'Stats'}).click();
+  }
+
+  expenseSection() {
+    return this.page.getByRole('region', {name: 'Expense'});
+  }
+
+  incomeSection() {
+    return this.page.getByRole('region', {name: 'Income'});
+  }
+
+  async expectTotalExpenseToBe(total: string) {
+    await expect(
+      this.expenseSection().getByText('Total: ' + total)
+    ).toBeVisible();
+  }
+
+  async expectMonthlyNetExpenseChartAmounts(expectedAmounts: number[]) {
+    const chart = this.expenseSection().locator(
+      `[data-chart-title="Monthly spent net (own share)"]`
+    );
+    const valuesAttr = await chart.getAttribute('data-chart-values');
+    if (!valuesAttr) {
+      throw new Error('Chart values not found');
+    }
+    const chartData = JSON.parse(valuesAttr) as number[];
+    expect(chartData).toEqual(expectedAmounts);
+  }
+
+  async expectExpensesNetMonthlyPercentiles(expected: {
+    p25: string;
+    p50: string;
+    p75: string;
+    max: string;
+  }) {
+    const section = this.expenseSection().getByRole('region', {
+      name: 'Monthly percentiles (net)',
+    });
+    await expect(section).toBeVisible();
+    const definition = (name: string) =>
+      section.getByRole('listitem').filter({hasText: name});
+    await expect(definition('p25')).toContainText(expected.p25);
+    await expect(definition('p50')).toContainText(expected.p50);
+    await expect(definition('p75')).toContainText(expected.p75);
+    await expect(definition('max')).toContainText(expected.max);
+  }
+
   // Ensures a transaction list item is in expanded state.
   // If already expanded, does nothing. If collapsed, clicks to expand.
   private async ensureExpanded(listItem: Locator) {

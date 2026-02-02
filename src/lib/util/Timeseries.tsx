@@ -10,6 +10,7 @@ import {startOfMonth, startOfQuarter, startOfYear} from 'date-fns';
 
 type AddFunction<T> = (a: T, b: T) => T;
 
+// TODO: add tests.
 export class AbstractTimeseries<T> {
   protected readonly data: Map<number, T>;
   private readonly granularity: Granularity;
