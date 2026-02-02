@@ -101,11 +101,46 @@ export class TransactionForm {
     await this.submit();
   }
 
-  async editExpense({amount, vendor}: {amount: number; vendor: string}) {
+  async editExpense({
+    amount,
+    vendor,
+    account,
+    category,
+  }: {
+    amount?: number;
+    vendor?: string;
+    account?: string;
+    category?: string;
+  }) {
     await this.amountInput.waitFor({state: 'visible'});
-    await this.amountInput.fill(String(amount));
-    await this.vendorInput.fill(vendor);
+    if (amount !== undefined) {
+      await this.amountInput.fill(String(amount));
+    }
+    if (vendor !== undefined) {
+      await this.vendorInput.fill(vendor);
+    }
+    if (account !== undefined) {
+      await this.selectAccount('I paid from', account);
+    }
+    if (category !== undefined) {
+      await this.selectCategory(category);
+    }
     await this.submit();
+  }
+
+  private async selectAccount(label: string, accountName: string) {
+    const selectField = this.form.getByLabel(label);
+    const options = await selectField.locator('option').all();
+    for (const option of options) {
+      const text = await option.textContent();
+      if (!text?.includes(accountName)) {
+        continue;
+      }
+      const value = await option.getAttribute('value');
+      await selectField.selectOption(value);
+      return;
+    }
+    throw new Error(`Account "${accountName}" not found in dropdown`);
   }
 
   private async fillCommonFields({

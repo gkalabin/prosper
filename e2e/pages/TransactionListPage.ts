@@ -40,6 +40,12 @@ export class TransactionListPage {
     return new TransactionForm(form);
   }
 
+  async expectTransactionHasCategory(text: string, category: string) {
+    const listItem = this.getTransactionListItem(text);
+    await this.ensureExpanded(listItem);
+    await expect(listItem.getByText(`Category: ${category}`)).toBeVisible();
+  }
+
   async expectTransactionHasTags(text: string, expectedTags: string[]) {
     const listItem = this.getTransactionListItem(text);
     await this.ensureExpanded(listItem);
