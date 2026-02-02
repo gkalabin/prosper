@@ -2,7 +2,8 @@ import {isProd} from '@/lib/util/env';
 import {PrismaClient} from '@prisma/client';
 
 const prismaClientSingleton = () => {
-  return new PrismaClient();
+  const dbUrl = `mysql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
+  return new PrismaClient({datasources: {db: {url: dbUrl}}});
 };
 
 declare global {
