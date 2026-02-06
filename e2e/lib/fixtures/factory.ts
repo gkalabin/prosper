@@ -323,8 +323,7 @@ export class TestFactory {
     {user, account, category}: TestDataBundle,
     vendor: string,
     amount: number,
-    overrides?: Partial<Transaction>,
-    tagIds?: number[]
+    overrides?: Partial<Transaction>
   ) {
     return this.createIncome(
       user.id,
