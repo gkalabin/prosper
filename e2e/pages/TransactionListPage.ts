@@ -63,6 +63,31 @@ export class TransactionListPage {
     expect(actual).toEqual([...expectedTags].sort());
   }
 
+  async expectTransferTransaction(
+    text: string,
+    {
+      amountSent,
+      amountReceived,
+      accountFrom,
+      accountTo,
+      category,
+    }: {
+      amountSent: string;
+      amountReceived: string;
+      accountFrom: string;
+      accountTo: string;
+      category: string;
+    }
+  ) {
+    const item = this.getTransactionListItem(text);
+    await this.ensureExpanded(item);
+    await expect(item.getByText(`Sent: ${amountSent}`)).toBeVisible();
+    await expect(item.getByText(`Received: ${amountReceived}`)).toBeVisible();
+    await expect(item.getByText(`Account from: ${accountFrom}`)).toBeVisible();
+    await expect(item.getByText(`Account to: ${accountTo}`)).toBeVisible();
+    await expect(item.getByText(`Category: ${category}`)).toBeVisible();
+  }
+
   async openStats() {
     await this.page.getByRole('button', {name: 'Stats'}).click();
   }

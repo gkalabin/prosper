@@ -1,11 +1,23 @@
 import {type Locator, expect} from '@playwright/test';
 import {format} from 'date-fns';
 
+type TransferFormData = {
+  accountFrom: string;
+  accountTo: string;
+  amountSent: number;
+  category: string;
+  amountReceived?: number;
+  datetime?: Date;
+};
+
 export class TransactionForm {
   readonly form: Locator;
   readonly expenseTab: Locator;
   readonly incomeTab: Locator;
+  readonly transferTab: Locator;
   readonly amountInput: Locator;
+  readonly amountSentInput: Locator;
+  readonly amountReceivedInput: Locator;
   readonly dateInput: Locator;
   readonly vendorInput: Locator;
   readonly payerInput: Locator;
@@ -20,7 +32,10 @@ export class TransactionForm {
     this.form = form;
     this.expenseTab = form.getByRole('tab', {name: 'Expense'});
     this.incomeTab = form.getByRole('tab', {name: 'Income'});
+    this.transferTab = form.getByRole('tab', {name: 'Transfer'});
     this.amountInput = form.getByLabel('Amount');
+    this.amountSentInput = form.getByLabel('Amount sent');
+    this.amountReceivedInput = form.getByLabel('Amount received');
     this.dateInput = form.getByLabel('Time');
     this.vendorInput = form.getByLabel('Vendor');
     this.payerInput = form.getByLabel('Payer');
@@ -112,7 +127,6 @@ export class TransactionForm {
     account?: string;
     category?: string;
   }) {
-    await this.amountInput.waitFor({state: 'visible'});
     if (amount !== undefined) {
       await this.amountInput.fill(String(amount));
     }
@@ -126,6 +140,45 @@ export class TransactionForm {
       await this.selectCategory(category);
     }
     await this.submit();
+  }
+
+  async addTransfer(data: TransferFormData) {
+    await this.transferTab.click();
+    await this.fillTransferForm(data);
+    await this.submit();
+  }
+
+  async editTransfer(data: TransferFormData) {
+    await this.fillTransferForm(data);
+    await this.submit();
+  }
+
+  private async fillTransferForm({
+    amountSent,
+    amountReceived,
+    datetime,
+    accountFrom,
+    accountTo,
+    category,
+  }: TransferFormData) {
+    await this.selectAccount('Money sent from', accountFrom);
+    await this.selectAccount('Money received to', accountTo);
+    // When sent != received fill in 2 different input fields,
+    // otherwise it's just the regular "Amount" input.
+    if (amountReceived !== undefined) {
+      await expect(this.amountReceivedInput).toBeVisible();
+      await expect(this.amountSentInput).toBeVisible();
+      await this.amountReceivedInput.fill(String(amountReceived));
+      await this.amountSentInput.fill(String(amountSent));
+    } else {
+      await expect(this.amountInput).toBeVisible();
+      await this.amountInput.fill(String(amountSent));
+    }
+    if (datetime) {
+      const formattedDatetime = format(datetime, "yyyy-MM-dd'T'HH:mm");
+      await this.dateInput.fill(formattedDatetime);
+    }
+    await this.selectCategory(category);
   }
 
   private async selectAccount(label: string, accountName: string) {
@@ -152,7 +205,6 @@ export class TransactionForm {
     datetime: Date;
     category: string;
   }) {
-    await this.amountInput.waitFor({state: 'visible'});
     await this.amountInput.fill(String(amount));
     const formattedDatetime = format(datetime, "yyyy-MM-dd'T'HH:mm");
     await this.dateInput.fill(formattedDatetime);
