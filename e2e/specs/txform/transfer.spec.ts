@@ -2,8 +2,6 @@ import {expect, test} from '../../lib/fixtures/test-base';
 import {NewTransactionPage} from '../../pages/NewTransactionPage';
 import {TransactionListPage} from '../../pages/TransactionListPage';
 
-// TODO: change to fx exchange and back
-
 test.describe('Transfer Transaction Form', () => {
   test('new', async ({page, seed, loginAs}) => {
     const {user, bank} = await seed.createUserWithTestData({
