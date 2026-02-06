@@ -63,6 +63,28 @@ export class TransactionListPage {
     expect(actual).toEqual([...expectedTags].sort());
   }
 
+  async expectIncomeTransaction(
+    text: string,
+    {
+      amount,
+      payer,
+      account,
+      category,
+    }: {
+      amount: string;
+      payer: string;
+      account: string;
+      category: string;
+    }
+  ) {
+    const item = this.getTransactionListItem(text);
+    await this.ensureExpanded(item);
+    await expect(item.getByText(`Full amount: ${amount}`)).toBeVisible();
+    await expect(item.getByText(`Payer: ${payer}`)).toBeVisible();
+    await expect(item.getByText(`Account to: ${account}`)).toBeVisible();
+    await expect(item.getByText(`Category: ${category}`)).toBeVisible();
+  }
+
   async expectTransferTransaction(
     text: string,
     {

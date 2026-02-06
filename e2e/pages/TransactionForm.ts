@@ -10,6 +10,14 @@ type TransferFormData = {
   datetime?: Date;
 };
 
+type IncomeFormData = {
+  account: string;
+  amount: number;
+  payer: string;
+  category: string;
+  datetime?: Date;
+};
+
 export class TransactionForm {
   readonly form: Locator;
   readonly expenseTab: Locator;
@@ -99,23 +107,6 @@ export class TransactionForm {
     await this.submit();
   }
 
-  async addIncome({
-    amount,
-    datetime,
-    payer,
-    category,
-  }: {
-    amount: number;
-    datetime: Date;
-    payer: string;
-    category: string;
-  }) {
-    await this.incomeTab.click();
-    await this.fillCommonFields({amount, datetime, category});
-    await this.payerInput.fill(payer);
-    await this.submit();
-  }
-
   async editExpense({
     amount,
     vendor,
@@ -142,6 +133,17 @@ export class TransactionForm {
     await this.submit();
   }
 
+  async addIncome(data: IncomeFormData) {
+    await this.incomeTab.click();
+    await this.fillIncomeForm(data);
+    await this.submit();
+  }
+
+  async editIncome(data: IncomeFormData) {
+    await this.fillIncomeForm(data);
+    await this.submit();
+  }
+
   async addTransfer(data: TransferFormData) {
     await this.transferTab.click();
     await this.fillTransferForm(data);
@@ -153,6 +155,20 @@ export class TransactionForm {
     await this.submit();
   }
 
+  private async fillIncomeForm({
+    amount,
+    datetime,
+    account,
+    category,
+    payer,
+  }: IncomeFormData) {
+    await this.maybeFillDateTime(datetime);
+    await this.selectAccount('Money received to', account);
+    await this.amountInput.fill(String(amount));
+    await this.payerInput.fill(payer);
+    await this.selectCategory(category);
+  }
+
   private async fillTransferForm({
     amountSent,
     amountReceived,
@@ -161,6 +177,7 @@ export class TransactionForm {
     accountTo,
     category,
   }: TransferFormData) {
+    await this.maybeFillDateTime(datetime);
     await this.selectAccount('Money sent from', accountFrom);
     await this.selectAccount('Money received to', accountTo);
     // When sent != received fill in 2 different input fields,
@@ -174,11 +191,15 @@ export class TransactionForm {
       await expect(this.amountInput).toBeVisible();
       await this.amountInput.fill(String(amountSent));
     }
-    if (datetime) {
-      const formattedDatetime = format(datetime, "yyyy-MM-dd'T'HH:mm");
-      await this.dateInput.fill(formattedDatetime);
-    }
     await this.selectCategory(category);
+  }
+
+  private async maybeFillDateTime(datetime?: Date) {
+    if (!datetime) {
+      return;
+    }
+    const formattedDatetime = format(datetime, "yyyy-MM-dd'T'HH:mm");
+    await this.dateInput.fill(formattedDatetime);
   }
 
   private async selectAccount(label: string, accountName: string) {

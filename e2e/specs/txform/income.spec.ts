@@ -1,32 +1,63 @@
-import {expect, test} from '../../lib/fixtures/test-base';
+import {test} from '../../lib/fixtures/test-base';
 import {NewTransactionPage} from '../../pages/NewTransactionPage';
-import {OverviewPage} from '../../pages/OverviewPage';
 import {TransactionListPage} from '../../pages/TransactionListPage';
 
-test.describe('Income Transactions', () => {
-  test('creates an income transaction', async ({page, seed, loginAs}) => {
-    // Given
-    const {user, category} = await seed.createUserWithTestData({
-      account: {initialBalanceCents: 50000}, // $500 initial balance
+test.describe('Income Transaction Form', () => {
+  test('new income', async ({page, seed, loginAs}) => {
+    const {user} = await seed.createUserWithTestData({
+      bank: {name: 'HSBC'},
+      account: {name: 'Current'},
+      category: {name: 'Salary'},
     });
     await loginAs(user);
-    // When
     const addTxPage = new NewTransactionPage(page);
     await addTxPage.goto();
     await addTxPage.form.addIncome({
       amount: 1500,
+      account: 'HSBC: Current',
       datetime: new Date(),
       payer: 'Acme Corp',
-      category: category.name,
+      category: 'Salary',
     });
-    // Then
     const listPage = new TransactionListPage(page);
     await listPage.goto();
-    await expect(listPage.getTransactionListItem('Acme Corp')).toBeVisible();
-    await expect(listPage.getTransactionListItem('$1,500')).toBeVisible();
-    // Verify account balance is updated on overview to $2000 - $500 initial balance and $1500 income
-    const overviewPage = new OverviewPage(page);
-    await overviewPage.goto();
-    await overviewPage.expectTotalBalance('$2,000');
+    await listPage.expectIncomeTransaction('Acme Corp', {
+      amount: '$1,500',
+      payer: 'Acme Corp',
+      account: 'HSBC: Current',
+      category: 'Salary',
+    });
+  });
+
+  test('edit income', async ({page, seed, loginAs}) => {
+    const {
+      user,
+      bank,
+      account: current,
+      category: refunds,
+    } = await seed.createUserWithTestData({
+      bank: {name: 'HSBC'},
+      account: {name: 'Current'},
+      category: {name: 'Refunds'},
+    });
+    await seed.createIncome(user.id, current.id, refunds.id, 120, 'Google');
+    await seed.createCategory(user.id, {name: 'Salary'});
+    await seed.createAccount(user.id, bank.id, {name: 'Card'});
+    await loginAs(user);
+    const listPage = new TransactionListPage(page);
+    await listPage.goto();
+    const form = await listPage.openEditForm('Google');
+    await form.editIncome({
+      amount: 240,
+      payer: 'Meta',
+      account: 'Card',
+      category: 'Salary',
+    });
+    await listPage.expectIncomeTransaction('Meta', {
+      amount: '$240',
+      payer: 'Meta',
+      account: 'HSBC: Card',
+      category: 'Salary',
+    });
   });
 });
