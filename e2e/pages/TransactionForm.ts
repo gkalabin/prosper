@@ -16,6 +16,7 @@ type IncomeFormData = {
   payer: string;
   category: string;
   datetime?: Date;
+  refundForVendor?: string | null;
 };
 
 export class TransactionForm {
@@ -161,12 +162,30 @@ export class TransactionForm {
     account,
     category,
     payer,
+    refundForVendor,
   }: IncomeFormData) {
     await this.maybeFillDateTime(datetime);
     await this.selectAccount('Money received to', account);
     await this.amountInput.fill(String(amount));
     await this.payerInput.fill(payer);
     await this.selectCategory(category);
+    const refundToggle = this.form.getByRole('button', {
+      name: 'link the transaction this is the refund for',
+    });
+    if (refundForVendor) {
+      await refundToggle.click();
+      // FIXME: button has no accessible name but contains the text
+      await this.form.getByText('Select a transaction').click();
+      await this.form
+        .getByPlaceholder('Search transactions...')
+        .fill(refundForVendor);
+      await this.form
+        .getByRole('option')
+        .filter({hasText: refundForVendor})
+        .click();
+    } else if (refundForVendor == null) {
+      await refundToggle.click();
+    }
   }
 
   private async fillTransferForm({

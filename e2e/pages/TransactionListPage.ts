@@ -63,6 +63,39 @@ export class TransactionListPage {
     expect(actual).toEqual([...expectedTags].sort());
   }
 
+  async expectExpenseTransaction(
+    text: string,
+    {
+      amount,
+      vendor,
+      account,
+      category,
+      refundedIn,
+    }: {
+      amount: string;
+      vendor: string;
+      account: string;
+      category: string;
+      refundedIn?: string[];
+    }
+  ) {
+    const item = this.getTransactionListItem(text);
+    await this.ensureExpanded(item);
+    await expect(item.getByText(`Full amount: ${amount}`)).toBeVisible();
+    await expect(item.getByText(`Vendor: ${vendor}`)).toBeVisible();
+    await expect(item.getByText(`Account from: ${account}`)).toBeVisible();
+    await expect(item.getByText(`Category: ${category}`)).toBeVisible();
+    if (refundedIn) {
+      const refunds = item.getByText(`This expense was refunded in`);
+      await expect(refunds).toBeVisible();
+      for (const r of refundedIn) {
+        await expect(
+          refunds.getByRole('listitem').filter({hasText: r})
+        ).toBeVisible();
+      }
+    }
+  }
+
   async expectIncomeTransaction(
     text: string,
     {
@@ -70,11 +103,13 @@ export class TransactionListPage {
       payer,
       account,
       category,
+      refundForVendor,
     }: {
       amount: string;
       payer: string;
       account: string;
       category: string;
+      refundForVendor?: string;
     }
   ) {
     const item = this.getTransactionListItem(text);
@@ -83,6 +118,11 @@ export class TransactionListPage {
     await expect(item.getByText(`Payer: ${payer}`)).toBeVisible();
     await expect(item.getByText(`Account to: ${account}`)).toBeVisible();
     await expect(item.getByText(`Category: ${category}`)).toBeVisible();
+    if (refundForVendor) {
+      await expect(
+        item.getByText(`This transaction is a refund for ${refundForVendor}`)
+      ).toBeVisible();
+    }
   }
 
   async expectTransferTransaction(
@@ -108,6 +148,22 @@ export class TransactionListPage {
     await expect(item.getByText(`Account from: ${accountFrom}`)).toBeVisible();
     await expect(item.getByText(`Account to: ${accountTo}`)).toBeVisible();
     await expect(item.getByText(`Category: ${category}`)).toBeVisible();
+  }
+
+  async expectExpenseTransactionNotRefunded(text: string) {
+    const item = this.getTransactionListItem(text);
+    await this.ensureExpanded(item);
+    await expect(
+      item.getByText(`This expense was refunded in`)
+    ).not.toBeVisible();
+  }
+
+  async expectIncomeTransactionIsNotRefund(text: string) {
+    const item = this.getTransactionListItem(text);
+    await this.ensureExpanded(item);
+    await expect(
+      item.getByText(`This transaction is a refund`)
+    ).not.toBeVisible();
   }
 
   async openStats() {

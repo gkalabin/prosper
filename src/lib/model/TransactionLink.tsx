@@ -46,7 +46,7 @@ export function transactionLinkModelFromDB(
         if (!refund) {
           if (!isExpense(source)) {
             throw new Error(
-              `Refund ${l.id} source ${source.id} is not an expense`
+              `Refund ${l.id} source ${source.id} is not an expense, but ${source.kind}`
             );
           }
           refund = {kind: 'REFUND', id: l.id, expense: source, refunds: []};

@@ -301,23 +301,25 @@ function RefundDetails({transaction: {id}}: {transaction: Transaction}) {
   if (id == expense.id) {
     return (
       <div>
-        <div>This expense was refunded in</div>
-        <ul className="ml-4 list-disc">
-          {refunds.map(r => (
-            <li key={r.id}>
-              {r.payer} on {format(r.timestampEpoch, 'yyyy-MM-dd')}
-            </li>
-          ))}
-        </ul>
+        <div>
+          This expense was refunded in
+          <ul className="ml-4 list-disc">
+            {refunds.map(r => (
+              <li key={r.id}>
+                {r.payer} on {format(r.timestampEpoch, 'yyyy-MM-dd')}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     );
   }
   if (refunds.some(r => r.id == id)) {
     return (
       <div>
-        <div>This transaction is a refund for</div>
-        <div className="ml-4">
-          {expense.vendor} on {format(expense.timestampEpoch, 'yyyy-MM-dd')}
+        <div>
+          This transaction is a refund for {expense.vendor} on{' '}
+          {format(expense.timestampEpoch, 'yyyy-MM-dd')}
         </div>
       </div>
     );

@@ -411,4 +411,18 @@ export class TestFactory {
       data: updates,
     });
   }
+
+  async createTransactionLink(
+    sourceTransactionId: number,
+    linkedTransactionId: number,
+    linkType: 'REFUND' | 'DEBT_SETTLING'
+  ) {
+    return prisma.transactionLink.create({
+      data: {
+        sourceTransactionId,
+        linkedTransactionId,
+        linkType,
+      },
+    });
+  }
 }
