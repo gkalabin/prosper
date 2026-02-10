@@ -412,6 +412,33 @@ export class TestFactory {
     });
   }
 
+  async createThirdPartyExpense(
+    userId: number,
+    categoryId: number,
+    fullAmount: number,
+    ownShareAmount: number,
+    currencyCode: string,
+    vendor: string,
+    payer: string,
+    overrides?: Partial<Transaction>
+  ) {
+    return prisma.transaction.create({
+      data: {
+        userId,
+        transactionType: TransactionType.THIRD_PARTY_EXPENSE,
+        payerOutgoingAmountCents: Math.round(fullAmount * 100),
+        ownShareAmountCents: Math.round(ownShareAmount * 100),
+        timestamp: new Date(),
+        categoryId,
+        description: '',
+        vendor,
+        payer,
+        currencyCode,
+        ...overrides,
+      },
+    });
+  }
+
   async createTransactionLink(
     sourceTransactionId: number,
     linkedTransactionId: number,

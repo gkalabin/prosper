@@ -150,6 +150,31 @@ export class TransactionListPage {
     await expect(item.getByText(`Category: ${category}`)).toBeVisible();
   }
 
+  async expectThirdPartyTransaction(
+    text: string,
+    {
+      fullAmount,
+      ownShare,
+      vendor,
+      category,
+      payer,
+    }: {
+      fullAmount: string;
+      ownShare: string;
+      vendor: string;
+      category: string;
+      payer: string;
+    }
+  ) {
+    const item = this.getTransactionListItem(text);
+    await this.ensureExpanded(item);
+    await expect(item.getByText(`Paid by: ${payer}`)).toBeVisible();
+    await expect(item.getByText(`Full amount: ${fullAmount}`)).toBeVisible();
+    await expect(item.getByText(`Own share: ${ownShare}`)).toBeVisible();
+    await expect(item.getByText(`Vendor: ${vendor}`)).toBeVisible();
+    await expect(item.getByText(`Category: ${category}`)).toBeVisible();
+  }
+
   async expectExpenseTransactionNotRefunded(text: string) {
     const item = this.getTransactionListItem(text);
     await this.ensureExpanded(item);

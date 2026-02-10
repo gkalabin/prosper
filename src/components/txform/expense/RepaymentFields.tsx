@@ -96,7 +96,7 @@ function RepaymentCategory() {
       name="expense.repayment.categoryId"
       render={({field}) => (
         <FormItem className="col-span-6">
-          <FormLabel>Category</FormLabel>
+          <FormLabel>Repayment category</FormLabel>
           <FormControl>
             <CategorySelect
               value={field.value}

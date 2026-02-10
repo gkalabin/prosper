@@ -155,8 +155,9 @@ export const TransactionsListItem = ({
           </div>
           {t.note && <div>Note: {t.note}</div>}
           {isExpense(t) && <div>Vendor: {t.vendor}</div>}
-          {otherPartyNameOrNull(t) && (
-            <div>Other party: {otherPartyNameOrNull(t)}</div>
+          {isThirdPartyExpense(t) && <div>Paid by: {t.payer}</div>}
+          {isPersonalExpense(t) && otherPartyNameOrNull(t) && (
+            <div>Split with: {otherPartyNameOrNull(t)}</div>
           )}
           {isIncome(t) && <div>Payer: {t.payer}</div>}
           {isPersonalExpense(t) && (

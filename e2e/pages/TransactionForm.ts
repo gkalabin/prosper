@@ -19,6 +19,14 @@ type IncomeFormData = {
   refundForVendor?: string | null;
 };
 
+type ThirdPartyExpenseFormData = {
+  amount: number;
+  datetime: Date;
+  vendor: string;
+  payer: string;
+  category: string;
+};
+
 export class TransactionForm {
   readonly form: Locator;
   readonly expenseTab: Locator;
@@ -31,10 +39,12 @@ export class TransactionForm {
   readonly vendorInput: Locator;
   readonly payerInput: Locator;
   readonly categoryField: Locator;
+  readonly repaymentCategoryField: Locator;
   readonly tagsField: Locator;
   readonly splitTransactionToggle: Locator;
   readonly ownShareAmountInput: Locator;
   readonly companionInput: Locator;
+  readonly paidByOtherButton: Locator;
   readonly submitButton: Locator;
 
   constructor(form: Locator) {
@@ -49,11 +59,17 @@ export class TransactionForm {
     this.vendorInput = form.getByLabel('Vendor');
     this.payerInput = form.getByLabel('Payer');
     this.categoryField = form.getByRole('combobox', {name: 'Category'});
+    this.repaymentCategoryField = form.getByRole('combobox', {
+      name: 'Repayment category',
+    });
     this.tagsField = form.getByRole('combobox', {name: 'Tags'});
     this.splitTransactionToggle = form.getByLabel('Split transaction');
     this.ownShareAmountInput = form.getByLabel('My share');
     this.companionInput = form.getByLabel('Shared with');
-    this.submitButton = this.form.locator('button[type="submit"]');
+    this.paidByOtherButton = form.getByRole('button', {
+      name: 'someone else paid for this expense',
+    });
+    this.submitButton = form.locator('button[type="submit"]');
   }
 
   async addExpense({
@@ -105,6 +121,38 @@ export class TransactionForm {
     await this.ownShareAmountInput.fill(String(ownShareAmount));
     await this.companionInput.fill(companion);
     await this.vendorInput.fill(vendor);
+    await this.submit();
+  }
+
+  async addThirdPartyExpenseDebt(data: ThirdPartyExpenseFormData) {
+    await this.expenseTab.click();
+    await this.paidByOtherButton.click();
+    await this.fillThirdPartyExpenseForm(data);
+    await this.submit();
+  }
+
+  async editThirdPartyExpenseDebt(data: ThirdPartyExpenseFormData) {
+    await this.expenseTab.click();
+    await this.fillThirdPartyExpenseForm(data);
+    await this.submit();
+  }
+
+  async addThirdPartyExpenseWithRepayment(
+    data: ThirdPartyExpenseFormData & {
+      repaymentCategory: string;
+      repaymentAccount: string;
+    }
+  ) {
+    const {repaymentCategory, repaymentAccount} = data;
+    await this.expenseTab.click();
+    await this.paidByOtherButton.click();
+    await this.fillThirdPartyExpenseForm(data);
+    await this.form
+      .getByRole('button', {name: "I've already paid them back"})
+      .click();
+    // The label includes the companion name like "I've paid Jane from".
+    await this.selectAccount(/I've paid \w+ from/, repaymentAccount);
+    await this.selectRepaymentCategory(repaymentCategory);
     await this.submit();
   }
 
@@ -213,6 +261,20 @@ export class TransactionForm {
     await this.selectCategory(category);
   }
 
+  async fillThirdPartyExpenseForm({
+    amount,
+    datetime,
+    vendor,
+    payer,
+    category,
+  }: ThirdPartyExpenseFormData) {
+    await this.amountInput.fill(String(amount));
+    this.maybeFillDateTime(datetime);
+    await this.selectCategory(category);
+    await this.form.getByLabel('This expense was paid by').fill(payer);
+    await this.vendorInput.fill(vendor);
+  }
+
   private async maybeFillDateTime(datetime?: Date) {
     if (!datetime) {
       return;
@@ -221,7 +283,7 @@ export class TransactionForm {
     await this.dateInput.fill(formattedDatetime);
   }
 
-  private async selectAccount(label: string, accountName: string) {
+  private async selectAccount(label: string | RegExp, accountName: string) {
     const selectField = this.form.getByLabel(label);
     const options = await selectField.locator('option').all();
     for (const option of options) {
@@ -266,6 +328,11 @@ export class TransactionForm {
 
   async selectCategory(category: string) {
     await this.categoryField.click();
+    await this.form.getByRole('option', {name: category}).first().click();
+  }
+
+  async selectRepaymentCategory(category: string) {
+    await this.repaymentCategoryField.click();
     await this.form.getByRole('option', {name: category}).first().click();
   }
 
