@@ -1,0 +1,91 @@
+---
+- name: Install MariaDB Server
+  apt:
+    name: mariadb-server
+    state: present
+
+- name: Start MariaDB service
+  service:
+    name: mariadb
+    state: started
+    enabled: yes
+
+- name: Create database
+  mysql_db:
+    name: "{{ db_name }}"
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create database user
+  mysql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    priv: "{{ db_name }}.*:ALL"
+    host: localhost
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+# Database Hardening
+- name: Remove anonymous mysql user
+  mysql_user:
+    name: ""
+    host_all: yes
+    state: absent
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Remove test database
+  mysql_db:
+    name: test
+    state: absent
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+- name: Create backups directory
+  file:
+    path: "{{ backups_dir }}"
+    state: directory
+    owner: "{{ prosper_user }}"
+    group: "{{ prosper_group }}"
+
+# Optional: Add SSH key for accessing backups repo
+- name: Add SSH key for backups repo
+  copy:
+    content: "{{ backup_ssh_private_key }}"
+    dest: "/home/{{ prosper_user }}/.ssh/id_rsa_backup"
+    owner: "{{ prosper_user }}"
+    group: "{{ prosper_group }}"
+    mode: '0600'
+  when: backup_ssh_private_key is defined
+
+- name: Clone backups repo
+  git:
+    repo: "{{ backups_repo }}"
+    dest: "{{ backups_dir }}"
+    key_file: "/home/{{ prosper_user }}/.ssh/id_rsa_backup"
+    accept_hostkey: yes
+  become: yes
+  become_user: "{{ prosper_user }}"
+  ignore_errors: yes  # Ignore if key not set or repo not accessible
+  when: backups_enabled
+
+# Fix: Use remote check (stat) instead of local check (is file)
+- name: Check for restore script
+  stat:
+    path: "{{ backups_dir }}/restore_from_latest_backup.sh"
+  register: restore_script_stat
+  when: backups_enabled
+
+- name: Restore from latest backup
+  command: bash "{{ backups_dir }}/restore_from_latest_backup.sh"
+  when: backups_enabled and restore_script_stat.stat.exists
+  ignore_errors: yes
+
+- name: Check for setup cron script
+  stat:
+    path: "{{ backups_dir }}/setup_cron.sh"
+  register: setup_cron_stat
+  when: backups_enabled
+
+- name: Setup backup cron
+  command: bash "{{ backups_dir }}/setup_cron.sh"
+  when: backups_enabled and setup_cron_stat.stat.exists
+  ignore_errors: yes

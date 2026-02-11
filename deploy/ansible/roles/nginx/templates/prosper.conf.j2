@@ -1,0 +1,54 @@
+server {
+  listen 80 default_server;
+  server_name {{ app_domain }} _;
+
+  # If HTTPS is enabled, redirect all traffic to HTTPS
+  {% if enable_https %}
+  location / {
+    return 301 https://$host$request_uri;
+  }
+  {% else %}
+  # HTTP-only mode (or during setup)
+  gzip on;
+  gzip_proxied any;
+  server_name_in_redirect off;
+
+  proxy_set_header Upgrade $http_upgrade;
+  proxy_set_header Connection "upgrade";
+  proxy_set_header X-Forwarded-Host $host;
+
+  location /api/_ratesz {
+    deny all;
+  }
+
+  location / {
+    proxy_pass http://127.0.0.1:{{ app_port }};
+  }
+  {% endif %}
+}
+
+{% if enable_https %}
+server {
+  listen 443 ssl default_server;
+  server_name {{ app_domain }} _;
+
+  ssl_certificate /etc/letsencrypt/live/{{ app_domain }}/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/{{ app_domain }}/privkey.pem;
+
+  gzip on;
+  gzip_proxied any;
+  server_name_in_redirect off;
+
+  proxy_set_header Upgrade $http_upgrade;
+  proxy_set_header Connection "upgrade";
+  proxy_set_header X-Forwarded-Host $host;
+
+  location /api/_ratesz {
+    deny all;
+  }
+
+  location / {
+    proxy_pass http://127.0.0.1:{{ app_port }};
+  }
+}
+{% endif %}

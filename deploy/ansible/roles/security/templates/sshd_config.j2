@@ -1,0 +1,23 @@
+Port {{ security_ssh_port }}
+# Logging
+SyslogFacility AUTH
+LogLevel INFO
+# Disable all auth except with using keys.
+KbdInteractiveAuthentication no
+PermitRootLogin no
+StrictModes yes
+PubkeyAuthentication yes
+PasswordAuthentication no
+PermitEmptyPasswords no
+ChallengeResponseAuthentication no
+UsePAM yes
+# Disable forwarding.
+AllowAgentForwarding no
+AllowTcpForwarding no
+X11Forwarding no
+PrintMotd no
+PrintLastLog yes
+AllowUsers {{ ansible_user }} {{ prosper_user }}
+# Allow client to pass locale environment variables
+AcceptEnv LANG LC_*
+Subsystem	sftp	/usr/lib/openssh/sftp-server

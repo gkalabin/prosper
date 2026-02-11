@@ -1,0 +1,6 @@
+---
+- name: restart prosper
+  systemd:
+    name: prosper
+    state: restarted
+    daemon_reload: yes
