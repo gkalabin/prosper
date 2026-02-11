@@ -34,7 +34,9 @@ export async function fetchExchangeRates({
 export async function addLatestExchangeRates(
   refreshIntervalHours: number
 ): Promise<boolean> {
-  const timingLabel = 'Exchange rate backfill ' + new Date().getTime();
+  const reqId = Math.random().toString(36).slice(2, 7);
+  const timingLabel =
+    'Exchange rate backfill ' + new Date().getTime() + ' [' + reqId + ']';
   console.time(timingLabel);
 
   const usedCurrencyCodes = await getUsedCurrencyCodes();
