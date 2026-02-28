@@ -1,6 +1,8 @@
+import {ThemeProvider} from '@/components/theme-provider';
 import {cn} from '@/lib/utils';
 import '@/styles/global.css';
 import {Metadata} from 'next';
+import {cookies} from 'next/headers';
 import localFont from 'next/font/local';
 
 // Downloaded from https://fonts.google.com/specimen/Open+Sans.
@@ -24,8 +26,15 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const cookieStore = await cookies();
+  const theme = cookieStore.get('theme')?.value;
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={theme === 'dark' ? 'dark' : ''}
+    >
       <head />
       <body
         className={cn(
@@ -33,7 +42,9 @@ export default async function RootLayout({
           openSans.className
         )}
       >
-        {children}
+        <ThemeProvider initialTheme={theme as 'dark' | 'light' | 'system'}>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
