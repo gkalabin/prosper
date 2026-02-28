@@ -34,7 +34,7 @@ export async function refreshToken(
           token.bankId
         } ${bankName}: ${JSON.stringify(json, null, 2)}`
       );
-    } catch (e) {
+    } catch {
       // ignore the error and show whatever status we got
       const text = await fetched.text();
       console.warn(
