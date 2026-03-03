@@ -81,11 +81,13 @@ export class BankConfigPage {
     currentAccountName,
     newAccountName,
     newArchivedState,
+    newBalance,
   }: {
     bankName: string;
     currentAccountName: string;
     newAccountName?: string;
     newArchivedState?: boolean;
+    newBalance?: number;
   }) {
     const bankSection = this.getBankSection(bankName);
     const editButton = bankSection.getByRole('button', {
@@ -99,6 +101,11 @@ export class BankConfigPage {
     if (newArchivedState != undefined) {
       const archivedCheckbox = accountForm.getByLabel('Archived account');
       await archivedCheckbox.setChecked(newArchivedState);
+    }
+    if (newBalance != undefined) {
+      await accountForm
+        .getByLabel('Initial balance')
+        .fill(newBalance.toString());
     }
     const updateButton = accountForm.getByRole('button', {name: 'Update'});
     await updateButton.click();

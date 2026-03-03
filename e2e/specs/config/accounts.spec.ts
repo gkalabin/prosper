@@ -104,6 +104,29 @@ test.describe('Account Management', () => {
     await expect(bankSection.getByText('Current')).not.toBeVisible();
   });
 
+  test('edit initial balance', async ({page, seed, loginAs}) => {
+    const {user} = await seed.createUserWithTestData({
+      bank: {name: 'Chase'},
+      account: {
+        name: 'Checking',
+        currencyCode: 'USD',
+        initialBalanceCents: 10000,
+      },
+    });
+    await loginAs(user);
+    const bankConfigPage = new BankConfigPage(page);
+    await bankConfigPage.goto();
+    await bankConfigPage.editAccount({
+      bankName: 'Chase',
+      currentAccountName: 'Checking',
+      newBalance: 250,
+    });
+    const overview = new OverviewPage(page);
+    await overview.goto();
+    await overview.expectAccountBalance('Chase', 'Checking', '$250');
+    await overview.expectTotalBalance('$250');
+  });
+
   test('archives an account', async ({page, seed, loginAs}) => {
     // Given
     const {user, bank, account} = await seed.createUserWithTestData({
