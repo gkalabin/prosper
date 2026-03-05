@@ -4,9 +4,9 @@ import {TransactionListPage} from '../../pages/TransactionListPage';
 test.describe('Transaction List Search', () => {
   test('by vendor or payer name', async ({page, seed, loginAs}) => {
     const bundle = await seed.createUserWithTestData();
-    await seed.newExpenseFromBundle(bundle, 'Starbucks', 5.5);
-    await seed.newExpenseFromBundle(bundle, 'Tesco', 25);
-    await seed.createIncomeUsingBundle(bundle, 'Starbucks', 12);
+    await seed.expense('Starbucks', 5.5, bundle);
+    await seed.expense('Tesco', 25, bundle);
+    await seed.income('Starbucks', 12, bundle);
     await loginAs(bundle.user);
     const listPage = new TransactionListPage(page);
     await listPage.goto();
@@ -17,9 +17,9 @@ test.describe('Transaction List Search', () => {
 
   test('by amount', async ({page, seed, loginAs}) => {
     const bundle = await seed.createUserWithTestData();
-    await seed.newExpenseFromBundle(bundle, 'Nero', 50);
-    await seed.newExpenseFromBundle(bundle, 'KFC', 150);
-    await seed.createIncomeUsingBundle(bundle, 'Costa', 75);
+    await seed.expense('Nero', 50, bundle);
+    await seed.expense('KFC', 150, bundle);
+    await seed.income('Costa', 75, bundle);
     await loginAs(bundle.user);
     const listPage = new TransactionListPage(page);
     await listPage.goto();
@@ -47,9 +47,9 @@ test.describe('Transaction List Search', () => {
 
   test('by date', async ({page, seed, loginAs}) => {
     const bundle = await seed.createUserWithTestData();
-    await seed.newExpense('M&S', 30, {timestamp: '2025-05-15', ...bundle});
-    await seed.newExpense('Waitrose', 40, {timestamp: '2025-06-01', ...bundle});
-    await seed.newExpense('Lidl', 25, {timestamp: '2025-06-15', ...bundle});
+    await seed.expense('M&S', 30, {...bundle, timestamp: '2025-05-15'});
+    await seed.expense('Waitrose', 40, {...bundle, timestamp: '2025-06-01'});
+    await seed.expense('Lidl', 25, {...bundle, timestamp: '2025-06-15'});
     await loginAs(bundle.user);
     const listPage = new TransactionListPage(page);
     await listPage.goto();
@@ -77,9 +77,9 @@ test.describe('Transaction List Search', () => {
 
   test('by vendor: prefix', async ({page, seed, loginAs}) => {
     const bundle = await seed.createUserWithTestData();
-    await seed.newExpense('KFC', 30, {description: 'KFC rules', ...bundle});
-    await seed.newExpense('Rostics', 40, {description: 'Not KFC', ...bundle});
-    await seed.newExpense('KFC', 25, {...bundle});
+    await seed.expense('KFC', 30, {...bundle, description: 'KFC rules'});
+    await seed.expense('Rostics', 40, {...bundle, description: 'Not KFC'});
+    await seed.expense('KFC', 25, bundle);
     await loginAs(bundle.user);
     const listPage = new TransactionListPage(page);
     await listPage.goto();
@@ -90,10 +90,10 @@ test.describe('Transaction List Search', () => {
 
   test('multiple filters', async ({page, seed, loginAs}) => {
     const bundle = await seed.createUserWithTestData();
-    await seed.newExpenseFromBundle(bundle, 'Starbucks', 5);
-    await seed.newExpenseFromBundle(bundle, 'Starbucks', 15);
-    await seed.newExpenseFromBundle(bundle, 'Costa', 8);
-    await seed.newExpenseFromBundle(bundle, 'Starbucks', 25);
+    await seed.expense('Starbucks', 5, bundle);
+    await seed.expense('Starbucks', 15, bundle);
+    await seed.expense('Costa', 8, bundle);
+    await seed.expense('Starbucks', 25, bundle);
     await loginAs(bundle.user);
     const listPage = new TransactionListPage(page);
     await listPage.goto();
@@ -106,9 +106,9 @@ test.describe('Transaction List Search', () => {
     const {user, account} = await seed.createUserWithTestData();
     const food = await seed.createCategory(user.id, {name: 'Food'});
     const gas = await seed.createCategory(user.id, {name: 'Gas'});
-    await seed.createExpense(user.id, account.id, food.id, 45, 'Gastropub');
-    await seed.createExpense(user.id, account.id, gas.id, 20, 'Shell');
-    await seed.createExpense(user.id, account.id, gas.id, 20, 'BP');
+    await seed.expense('Gastropub', 45, {user, account, category: food});
+    await seed.expense('Shell', 20, {user, account, category: gas});
+    await seed.expense('BP', 20, {user, account, category: gas});
     await loginAs(user);
     const listPage = new TransactionListPage(page);
     await listPage.goto();
@@ -119,37 +119,13 @@ test.describe('Transaction List Search', () => {
   });
 
   test('by tag', async ({page, seed, loginAs}) => {
-    const {user, account, category} = await seed.createUserWithTestData();
-    const work = await seed.createTag(user.id, 'work');
-    const personal = await seed.createTag(user.id, 'personal');
-    await seed.createExpense(
-      user.id,
-      account.id,
-      category.id,
-      120,
-      'WHSmith',
-      {},
-      [work.id]
-    );
-    await seed.createExpense(
-      user.id,
-      account.id,
-      category.id,
-      35,
-      'Paperchase',
-      {},
-      [work.id]
-    );
-    await seed.createExpense(
-      user.id,
-      account.id,
-      category.id,
-      50,
-      'Waterstones',
-      {},
-      [personal.id]
-    );
-    await loginAs(user);
+    const bundle = await seed.createUserWithTestData();
+    const work = await seed.createTag(bundle.user.id, 'work');
+    const personal = await seed.createTag(bundle.user.id, 'personal');
+    await seed.expense('WHSmith', 120, {...bundle, tagIds: [work.id]});
+    await seed.expense('Paperchase', 35, {...bundle, tagIds: [work.id]});
+    await seed.expense('Waterstones', 50, {...bundle, tagIds: [personal.id]});
+    await loginAs(bundle.user);
     const listPage = new TransactionListPage(page);
     await listPage.goto();
     await listPage.search('tag:work');

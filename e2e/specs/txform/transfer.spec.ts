@@ -82,13 +82,7 @@ test.describe('Transfer Transaction Form', () => {
       name: 'Self',
       parentCategoryId: category.id,
     });
-    await seed.createTransfer(
-      user.id,
-      current.id,
-      checking.id,
-      category.id,
-      150
-    );
+    await seed.transfer(150, {user, from: current, to: checking, category});
     await loginAs(user);
     const listPage = new TransactionListPage(page);
     await listPage.goto();
@@ -129,7 +123,7 @@ test.describe('Transfer Transaction Form', () => {
       name: 'EUR',
       currencyCode: 'EUR',
     });
-    await seed.createTransfer(user.id, usd1.id, usd2.id, category.id, 450);
+    await seed.transfer(450, {user, from: usd1, to: usd2, category});
     await loginAs(user);
     const listPage = new TransactionListPage(page);
     await listPage.goto();
@@ -171,7 +165,7 @@ test.describe('Transfer Transaction Form', () => {
       name: 'EUR',
       currencyCode: 'EUR',
     });
-    await seed.createTransfer(user.id, usd.id, eur.id, category.id, 450);
+    await seed.transfer(450, {user, from: usd, to: eur, category});
     await loginAs(user);
     const listPage = new TransactionListPage(page);
     await listPage.goto();

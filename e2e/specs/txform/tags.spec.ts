@@ -29,14 +29,11 @@ test.describe('Tags', () => {
 
   test('edit tags on a transaction', async ({page, seed, loginAs}) => {
     // Given: transaction with multiple tags
-    const {user, account, category} = await seed.createUserWithTestData();
-    const tag1 = await seed.createTag(user.id, 'shops');
-    const tag2 = await seed.createTag(user.id, 'food');
-    await seed.createExpense(user.id, account.id, category.id, 50, 'M&S', {}, [
-      tag1.id,
-      tag2.id,
-    ]);
-    await loginAs(user);
+    const bundle = await seed.createUserWithTestData();
+    const tag1 = await seed.createTag(bundle.user.id, 'shops');
+    const tag2 = await seed.createTag(bundle.user.id, 'food');
+    await seed.expense('M&S', 50, {...bundle, tagIds: [tag1.id, tag2.id]});
+    await loginAs(bundle.user);
     // When editing the transaction tags
     const transactionListPage = new TransactionListPage(page);
     await transactionListPage.goto();

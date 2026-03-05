@@ -27,6 +27,14 @@ export type TestDataBundle = {
   category: Category;
 };
 
+// Provides the IDs needed by all transaction factory methods.
+// Accepts both full entity objects (from TestDataBundle) and raw IDs.
+type TransactionContext = {
+  user: {id: number};
+  account: {id: number};
+  category: {id: number};
+};
+
 export class TestFactory {
   private createdUsers: string[] = [];
 
@@ -231,26 +239,27 @@ export class TestFactory {
     });
   }
 
-  // TODO: newExpense, createExpense and newExpenseFromBundle should be unified in a short expressive way which looks
-  // brief, but descriptive in the test code and supports a neat way to create transactions with various properties.
-  async newExpense(
+  async expense(
     vendor: string,
     amount: number,
-    input: {
-      user: UserWithRawPassword;
-      bank: Bank;
-      account: BankAccount;
-      category: Category;
-    } & Partial<
-      Omit<Transaction, 'timestamp'> & {
-        timestamp: string | Date;
-        tags: Tag[];
-      }
-    >
+    {
+      user,
+      account,
+      category,
+      timestamp,
+      description,
+      tagIds,
+      // Explicitly destructure bank to avoid leaking it into prisma input.
+      // Otherwise prisma call fails with unknown fields error.
+      bank: _bank,
+      ...overrides
+    }: TransactionContext & {
+      bank?: unknown;
+      timestamp?: Date | string;
+      description?: string;
+      tagIds?: number[];
+    } & Partial<Omit<Transaction, 'timestamp'>>
   ) {
-    const {user, bank, account, category, tags, timestamp, ...overrides} =
-      input;
-    const dateTimestamp = timestamp ? new Date(timestamp) : new Date();
     return prisma.transaction.create({
       data: {
         userId: user.id,
@@ -258,60 +267,9 @@ export class TestFactory {
         outgoingAccountId: account.id,
         outgoingAmountCents: Math.round(amount * 100),
         ownShareAmountCents: Math.round(amount * 100),
-        timestamp: dateTimestamp,
+        timestamp: timestamp ? new Date(timestamp) : new Date(),
         categoryId: category.id,
-        description: '',
-        vendor,
-        ...overrides,
-        tags: tags ? {connect: tags.map(t => ({id: t.id}))} : undefined,
-      },
-    });
-  }
-
-  async newExpenseFromBundle(
-    {user, account, category}: TestDataBundle,
-    vendor: string,
-    amount: number,
-    timestamp?: Date | string | null,
-    overrides?: Partial<Transaction>,
-    tagIds?: number[]
-  ) {
-    const timestampedOverrides = timestamp
-      ? {
-          ...overrides,
-          timestamp: new Date(timestamp),
-        }
-      : overrides;
-    return this.createExpense(
-      user.id,
-      account.id,
-      category.id,
-      amount,
-      vendor,
-      timestampedOverrides,
-      tagIds
-    );
-  }
-
-  async createExpense(
-    userId: number,
-    accountId: number,
-    categoryId: number,
-    amount: number,
-    vendor: string,
-    overrides?: Partial<Transaction>,
-    tagIds?: number[]
-  ) {
-    return prisma.transaction.create({
-      data: {
-        userId,
-        transactionType: TransactionType.PERSONAL_EXPENSE,
-        outgoingAccountId: accountId,
-        outgoingAmountCents: Math.round(amount * 100),
-        ownShareAmountCents: Math.round(amount * 100),
-        timestamp: new Date(),
-        categoryId,
-        description: '',
+        description: description ?? '',
         vendor,
         ...overrides,
         tags: tagIds ? {connect: tagIds.map(id => ({id}))} : undefined,
@@ -319,66 +277,119 @@ export class TestFactory {
     });
   }
 
-  async createIncomeUsingBundle(
-    {user, account, category}: TestDataBundle,
-    vendor: string,
-    amount: number,
-    overrides?: Partial<Transaction>
-  ) {
-    return this.createIncome(
-      user.id,
-      account.id,
-      category.id,
-      amount,
-      vendor,
-      overrides
-    );
-  }
-
-  async createIncome(
-    userId: number,
-    accountId: number,
-    categoryId: number,
-    amount: number,
+  async income(
     payer: string,
-    overrides?: Partial<Transaction>
+    amount: number,
+    {
+      user,
+      account,
+      category,
+      timestamp,
+      description,
+      // Explicitly destructure bank to avoid leaking it into prisma input.
+      // Otherwise prisma call fails with unknown fields error.
+      bank: _bank,
+      ...overrides
+    }: TransactionContext & {
+      bank?: unknown;
+      timestamp?: Date | string;
+      description?: string;
+    } & Partial<Omit<Transaction, 'timestamp'>>
   ) {
     return prisma.transaction.create({
       data: {
-        userId,
+        userId: user.id,
         transactionType: TransactionType.INCOME,
-        incomingAccountId: accountId,
+        incomingAccountId: account.id,
         incomingAmountCents: Math.round(amount * 100),
         ownShareAmountCents: Math.round(amount * 100),
-        timestamp: new Date(),
-        categoryId,
-        description: '',
+        timestamp: timestamp ? new Date(timestamp) : new Date(),
+        categoryId: category.id,
+        description: description ?? '',
         payer,
         ...overrides,
       },
     });
   }
 
-  async createTransfer(
-    userId: number,
-    fromAccountId: number,
-    toAccountId: number,
-    categoryId: number,
+  async transfer(
     amount: number,
-    overrides?: Partial<Transaction>
+    {
+      user,
+      from,
+      to,
+      category,
+      timestamp,
+      // Explicitly destructure bank and account to avoid leaking them into prisma input.
+      // Otherwise prisma call fails with unknown fields error.
+      bank: _bank,
+      account: _account,
+      ...overrides
+    }: {
+      user: {id: number};
+      from: {id: number};
+      to: {id: number};
+      category: {id: number};
+      bank?: unknown;
+      account?: unknown;
+      timestamp?: Date | string;
+    } & Partial<Omit<Transaction, 'timestamp'>>
   ) {
     return prisma.transaction.create({
       data: {
-        userId,
+        userId: user.id,
         transactionType: TransactionType.TRANSFER,
-        outgoingAccountId: fromAccountId,
+        outgoingAccountId: from.id,
         outgoingAmountCents: Math.round(amount * 100),
-        incomingAccountId: toAccountId,
+        incomingAccountId: to.id,
         incomingAmountCents: Math.round(amount * 100),
         ownShareAmountCents: 0,
-        timestamp: new Date(),
-        categoryId,
+        timestamp: timestamp ? new Date(timestamp) : new Date(),
+        categoryId: category.id,
         description: '',
+        ...overrides,
+      },
+    });
+  }
+
+  async thirdPartyExpense({
+    user,
+    category,
+    vendor,
+    payer,
+    fullAmount,
+    ownShareAmount,
+    currencyCode,
+    timestamp,
+    // Explicitly destructure bank and account to avoid leaking them into prisma input.
+    // Otherwise prisma call fails with unknown fields error.
+    bank: _bank,
+    account: _account,
+    ...overrides
+  }: {
+    user: {id: number};
+    category: {id: number};
+    vendor: string;
+    payer: string;
+    fullAmount: number;
+    ownShareAmount: number;
+    currencyCode: string;
+    timestamp?: Date | string;
+    bank?: unknown;
+    account?: unknown;
+  } & Partial<Omit<Transaction, 'timestamp'>>) {
+    return prisma.transaction.create({
+      data: {
+        userId: user.id,
+        transactionType: TransactionType.THIRD_PARTY_EXPENSE,
+        payerOutgoingAmountCents: Math.round(fullAmount * 100),
+        ownShareAmountCents: Math.round(ownShareAmount * 100),
+        timestamp: timestamp ? new Date(timestamp) : new Date(),
+        categoryId: category.id,
+        description: '',
+        vendor,
+        payer,
+        currencyCode,
         ...overrides,
       },
     });
@@ -409,33 +420,6 @@ export class TestFactory {
     return prisma.displaySettings.update({
       where: {userId},
       data: updates,
-    });
-  }
-
-  async createThirdPartyExpense(
-    userId: number,
-    categoryId: number,
-    fullAmount: number,
-    ownShareAmount: number,
-    currencyCode: string,
-    vendor: string,
-    payer: string,
-    overrides?: Partial<Transaction>
-  ) {
-    return prisma.transaction.create({
-      data: {
-        userId,
-        transactionType: TransactionType.THIRD_PARTY_EXPENSE,
-        payerOutgoingAmountCents: Math.round(fullAmount * 100),
-        ownShareAmountCents: Math.round(ownShareAmount * 100),
-        timestamp: new Date(),
-        categoryId,
-        description: '',
-        vendor,
-        payer,
-        currencyCode,
-        ...overrides,
-      },
     });
   }
 

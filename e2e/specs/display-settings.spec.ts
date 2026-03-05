@@ -32,8 +32,8 @@ test.describe('Settings', () => {
     const {user, account} = await seed.createUserWithTestData();
     const gas = await seed.createCategory(user.id, {name: 'Gas'});
     const debt = await seed.createCategory(user.id, {name: 'Debts'});
-    await seed.createExpense(user.id, account.id, gas.id, 300, 'BP');
-    await seed.createExpense(user.id, account.id, debt.id, 700, 'Wife');
+    await seed.expense('BP', 300, {user, account, category: gas});
+    await seed.expense('Wife', 700, {user, account, category: debt});
     await loginAs(user);
     // Exclude debts from stats.
     const settingsPage = new DisplaySettingsPage(page);
@@ -55,8 +55,8 @@ test.describe('Settings', () => {
     const {user, account} = await seed.createUserWithTestData();
     const fun = await seed.createCategory(user.id, {name: 'Fun'});
     const debts = await seed.createCategory(user.id, {name: 'Debts'});
-    await seed.createExpense(user.id, account.id, fun.id, 200, 'Netflix');
-    await seed.createExpense(user.id, account.id, debts.id, 400, 'Wife');
+    await seed.expense('Netflix', 200, {user, account, category: fun});
+    await seed.expense('Wife', 400, {user, account, category: debts});
     await seed.updateDisplaySettings(user.id, {
       excludeCategoryIdsInStats: String(debts.id),
     });

@@ -5,7 +5,7 @@ test.describe('Overview', () => {
   test('transactions impact the total', async ({page, seed, loginAs}) => {
     const {
       user,
-      category: c,
+      category,
       accounts: [current, savings],
     } = await seed.createUserWithMultipleAccounts({
       bank: {name: 'HSBC'},
@@ -14,9 +14,9 @@ test.describe('Overview', () => {
         {name: 'Savings', currencyCode: 'USD', initialBalanceCents: 20000}, // $200
       ],
     });
-    await seed.createExpense(user.id, current.id, c.id, 40, 'KFC'); // Current is now $60
-    await seed.createIncome(user.id, savings.id, c.id, 1000, 'Salary'); // Savings is $1200
-    await seed.createTransfer(user.id, savings.id, current.id, c.id, 140); // Move $140 from Savings to Current
+    await seed.expense('KFC', 40, {user, account: current, category}); // Current is now $60
+    await seed.income('Salary', 1000, {user, account: savings, category}); // Savings is $1200
+    await seed.transfer(140, {user, from: savings, to: current, category}); // Move $140 from Savings to Current
     await loginAs(user);
     const overviewPage = new OverviewPage(page);
     await overviewPage.goto();

@@ -30,20 +30,15 @@ test.describe('Income Transaction Form', () => {
   });
 
   test('edit income', async ({page, seed, loginAs}) => {
-    const {
-      user,
-      bank,
-      account: current,
-      category: refunds,
-    } = await seed.createUserWithTestData({
+    const bundle = await seed.createUserWithTestData({
       bank: {name: 'HSBC'},
       account: {name: 'Current'},
       category: {name: 'Refunds'},
     });
-    await seed.createIncome(user.id, current.id, refunds.id, 120, 'Google');
-    await seed.createCategory(user.id, {name: 'Salary'});
-    await seed.createAccount(user.id, bank.id, {name: 'Card'});
-    await loginAs(user);
+    await seed.income('Google', 120, bundle);
+    await seed.createCategory(bundle.user.id, {name: 'Salary'});
+    await seed.createAccount(bundle.user.id, bundle.bank.id, {name: 'Card'});
+    await loginAs(bundle.user);
     const listPage = new TransactionListPage(page);
     await listPage.goto();
     const form = await listPage.openEditForm('Google');

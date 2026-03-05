@@ -4,14 +4,14 @@ import {TransactionListPage} from '../../pages/TransactionListPage';
 
 test.describe('Refunds', () => {
   test('link refund', async ({page, seed, loginAs}) => {
-    const {user, account, category} = await seed.createUserWithTestData({
+    const bundle = await seed.createUserWithTestData({
       bank: {name: 'Chase'},
       account: {name: 'Current'},
       category: {name: 'Shopping'},
     });
-    await seed.createExpense(user.id, account.id, category.id, 100, 'Amazon');
-    await seed.createCategory(user.id, {name: 'Refunds'});
-    await loginAs(user);
+    await seed.expense('Amazon', 100, bundle);
+    await seed.createCategory(bundle.user.id, {name: 'Refunds'});
+    await loginAs(bundle.user);
     const addTxPage = new NewTransactionPage(page);
     await addTxPage.goto();
     await addTxPage.form.addIncome({
@@ -34,32 +34,26 @@ test.describe('Refunds', () => {
   });
 
   test('unlink refund', async ({page, seed, loginAs}) => {
-    const {
-      user,
-      account,
-      category: shopping,
-    } = await seed.createUserWithTestData({
+    const bundle = await seed.createUserWithTestData({
       bank: {name: 'Chase'},
       account: {name: 'Current'},
-      category: {name: 'Shopping'},
     });
-    const refunds = await seed.createCategory(user.id, {name: 'Refunds'});
-    const expense = await seed.createExpense(
-      user.id,
-      account.id,
-      shopping.id,
-      100,
-      'Amazon'
-    );
-    const income = await seed.createIncome(
-      user.id,
-      account.id,
-      refunds.id,
-      70,
-      'Amazon'
-    );
+    const refunds = await seed.createCategory(bundle.user.id, {
+      name: 'Refunds',
+    });
+    const shopping = await seed.createCategory(bundle.user.id, {
+      name: 'Shopping',
+    });
+    const expense = await seed.expense('Amazon', 100, {
+      ...bundle,
+      category: shopping,
+    });
+    const income = await seed.income('Amazon', 70, {
+      ...bundle,
+      category: refunds,
+    });
     await seed.createTransactionLink(expense.id, income.id, 'REFUND');
-    await loginAs(user);
+    await loginAs(bundle.user);
     const listPage = new TransactionListPage(page);
     await listPage.goto();
     const form = await listPage.openEditForm('+$70');
@@ -75,14 +69,14 @@ test.describe('Refunds', () => {
   });
 
   test('multiple refunds', async ({page, seed, loginAs}) => {
-    const {user, account, category} = await seed.createUserWithTestData({
+    const bundle = await seed.createUserWithTestData({
       bank: {name: 'Chase'},
       account: {name: 'Current'},
       category: {name: 'Shopping'},
     });
-    await seed.createExpense(user.id, account.id, category.id, 100, 'Amazon');
-    await seed.createCategory(user.id, {name: 'Refunds'});
-    await loginAs(user);
+    await seed.expense('Amazon', 100, bundle);
+    await seed.createCategory(bundle.user.id, {name: 'Refunds'});
+    await loginAs(bundle.user);
     const addTxPage = new NewTransactionPage(page);
     await addTxPage.goto();
     await addTxPage.form.addIncome({
@@ -129,14 +123,14 @@ test.describe('Refunds', () => {
   });
 
   test('refund reduces expense amount', async ({page, seed, loginAs}) => {
-    const {user, account, category} = await seed.createUserWithTestData({
+    const bundle = await seed.createUserWithTestData({
       bank: {name: 'Chase'},
       account: {name: 'Current'},
       category: {name: 'Shopping'},
     });
-    await seed.createExpense(user.id, account.id, category.id, 100, 'Amazon');
-    await seed.createCategory(user.id, {name: 'Refunds'});
-    await loginAs(user);
+    await seed.expense('Amazon', 100, bundle);
+    await seed.createCategory(bundle.user.id, {name: 'Refunds'});
+    await loginAs(bundle.user);
     const addTxPage = new NewTransactionPage(page);
     await addTxPage.goto();
     await addTxPage.form.addIncome({

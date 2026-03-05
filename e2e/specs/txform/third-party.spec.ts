@@ -32,19 +32,18 @@ test.describe('Third-Party Expenses', () => {
   });
 
   test('edit debt', async ({page, seed, loginAs}) => {
-    const {user, category} = await seed.createUserWithTestData({
+    const bundle = await seed.createUserWithTestData({
       category: {name: 'Dining'},
     });
-    await seed.createThirdPartyExpense(
-      user.id,
-      category.id,
-      80,
-      40,
-      'USD',
-      'KFC',
-      'John'
-    );
-    await loginAs(user);
+    await seed.thirdPartyExpense({
+      ...bundle,
+      vendor: 'KFC',
+      payer: 'John',
+      fullAmount: 80,
+      ownShareAmount: 40,
+      currencyCode: 'USD',
+    });
+    await loginAs(bundle.user);
     const listPage = new TransactionListPage(page);
     await listPage.goto();
     const form = await listPage.openEditForm('KFC');

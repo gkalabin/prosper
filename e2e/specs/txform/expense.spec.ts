@@ -72,9 +72,9 @@ test.describe('Expense Transactions', () => {
   });
 
   test('change vendor and amount', async ({page, seed, loginAs}) => {
-    const {user, account, category} = await seed.createUserWithTestData();
-    await seed.createExpense(user.id, account.id, category.id, 30, 'Nero');
-    await loginAs(user);
+    const bundle = await seed.createUserWithTestData();
+    await seed.expense('Nero', 30, {...bundle});
+    await loginAs(bundle.user);
     const listPage = new TransactionListPage(page);
     await listPage.goto();
     const form = await listPage.openEditForm('Nero');
@@ -90,18 +90,14 @@ test.describe('Expense Transactions', () => {
   });
 
   test('change expense category', async ({page, seed, loginAs}) => {
-    const {
-      user,
-      account,
-      category: food,
-    } = await seed.createUserWithTestData({
+    const bundle = await seed.createUserWithTestData({
       category: {name: 'Food'},
     });
-    await seed.createCategory(user.id, {
+    await seed.createCategory(bundle.user.id, {
       name: 'Groceries',
     });
-    await seed.createExpense(user.id, account.id, food.id, 25, 'Tesco');
-    await loginAs(user);
+    await seed.expense('Tesco', 25, bundle);
+    await loginAs(bundle.user);
     const listPage = new TransactionListPage(page);
     await listPage.goto();
     const form = await listPage.openEditForm('Tesco');
@@ -114,21 +110,16 @@ test.describe('Expense Transactions', () => {
     seed,
     loginAs,
   }) => {
-    const {
-      user,
-      bank,
-      account: current,
-      category,
-    } = await seed.createUserWithTestData({
+    const bundle = await seed.createUserWithTestData({
       bank: {name: 'Chase'},
       account: {name: 'Current', initialBalanceCents: 50000}, // $500
     });
-    await seed.createAccount(user.id, bank.id, {
+    await seed.createAccount(bundle.user.id, bundle.bank.id, {
       name: 'Credit Card',
       initialBalanceCents: 30000, // $300
     });
-    await seed.createExpense(user.id, current.id, category.id, 50, 'Chipotle');
-    await loginAs(user);
+    await seed.expense('Chipotle', 50, bundle);
+    await loginAs(bundle.user);
     // Verify initial balances.
     const overviewPage = new OverviewPage(page);
     await overviewPage.goto();
