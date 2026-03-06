@@ -12,14 +12,14 @@ jobs:
   spelling:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Check Spelling
         uses: crate-ci/typos@v1.24.6
 
   formatting:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with: {node-version: '20', cache: 'npm'}
       - run: npm ci
@@ -29,7 +29,7 @@ jobs:
   codestyle:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v4
         with: {node-version: '20', cache: 'npm'}
       - run: npm ci
