@@ -6,10 +6,7 @@ import {OverviewPage} from '../pages/OverviewPage';
 test.describe('Settings', () => {
   test('changes display currency', async ({page, seed, loginAs}) => {
     const {user} = await seed.createUserWithTestData({
-      account: {
-        initialBalanceCents: 100000,
-        currencyCode: 'USD',
-      },
+      account: {initialBalance: 1000, currencyCode: 'USD'},
     });
     await seed.createExchangeRate('USD', 'EUR', 0.92); // 1 USD = 0.92 EUR
     await seed.updateDisplaySettings(user.id, {displayCurrencyCode: 'USD'});

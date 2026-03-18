@@ -35,7 +35,8 @@ import {
   ExchangeRate as DBExchangeRate,
   Stock as DBStock,
   StockQuote as DBStockQuote,
-  TransactionPrototype,
+  TransactionPrototypeV2,
+  TransactionV2,
 } from '@prisma/client';
 import {addDays, closestTo, isBefore, startOfDay} from 'date-fns';
 
@@ -243,7 +244,7 @@ export type CoreDataModel = {
 
 export type TransactionDataModel = {
   transactions: Transaction[];
-  transactionPrototypes: TransactionPrototype[];
+  transactionPrototypes: TransactionPrototypeV2[];
   transactionLinks: TransactionLink[];
 };
 
@@ -260,7 +261,7 @@ export type AllClientDataModel = {
   trips: Trip[];
   tags: Tag[];
   exchange: StockAndCurrencyExchange;
-  transactionPrototypes: TransactionPrototype[];
+  transactionPrototypes: TransactionPrototypeV2[];
   transactionLinks: TransactionLink[];
 };
 
@@ -327,12 +328,14 @@ export function coreModelFromDB(dbData: CoreDataDB): CoreDataModel {
 export function transactionModelFromDB(
   dbData: TransactionDataDB
 ): TransactionDataModel {
-  const transactions: Transaction[] = dbData.dbTransactions
-    .map(singleTransactionModelFromDB)
+  const active = latestVersionOnly(dbData.dbTransactions);
+  const transactions: Transaction[] = active
+    .map(tx => singleTransactionModelFromDB(tx, dbData.dbLedgerAccounts))
     .sort(compareTransactions);
   const transactionLinks = transactionLinkModelFromDB(
     dbData.dbTransactionLinks,
-    transactions
+    transactions,
+    dbData.dbTransactions
   );
   return {
     transactions,
@@ -367,13 +370,15 @@ export const modelFromDatabaseData = (
   const trips = dbData.dbTrips.map(tripModelFromDB);
   const tags = dbData.dbTags.map(tagModelFromDB);
 
-  const transactions: Transaction[] = dbData.dbTransactions
-    .map(singleTransactionModelFromDB)
+  const active = latestVersionOnly(dbData.dbTransactions);
+  const transactions: Transaction[] = active
+    .map(tx => singleTransactionModelFromDB(tx, dbData.dbLedgerAccounts))
     .sort(compareTransactions);
 
   const transactionLinks = transactionLinkModelFromDB(
     dbData.dbTransactionLinks,
-    transactions
+    transactions,
+    dbData.dbTransactions
   );
   return {
     banks,
@@ -397,4 +402,33 @@ function compareTransactions(a: Transaction, b: Transaction) {
     return b.id - a.id;
   }
   return 0;
+}
+
+export function latestVersionOnly<T extends TransactionV2>(
+  transactions: T[]
+): T[] {
+  const superseded = new Set<number>();
+  for (const tx of transactions) {
+    if (!tx.supersedesId) {
+      continue;
+    }
+    superseded.add(tx.supersedesId);
+  }
+  // TODO: do not filter out isVoid transactions here, they disappear from the user's point of view.
+  // Instead they should result in a model transaction with isVoid flag and be shown in the list of transactions,
+  // but ignored in all the calculations.
+  const active = transactions.filter(
+    tx => !superseded.has(tx.id) && !tx.isVoid
+  );
+  const iidCounts = new Map<number, number>();
+  for (const tx of active) {
+    iidCounts.set(tx.iid, (iidCounts.get(tx.iid) ?? 0) + 1);
+  }
+  for (const [iid, count] of iidCounts) {
+    if (count == 1) {
+      continue;
+    }
+    throw new Error(`Transaction ${iid} (iid) has ${count} active versions`);
+  }
+  return active;
 }

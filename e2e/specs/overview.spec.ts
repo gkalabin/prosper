@@ -10,8 +10,8 @@ test.describe('Overview', () => {
     } = await seed.createUserWithMultipleAccounts({
       bank: {name: 'HSBC'},
       accounts: [
-        {name: 'Current', currencyCode: 'USD', initialBalanceCents: 10000}, // $100
-        {name: 'Savings', currencyCode: 'USD', initialBalanceCents: 20000}, // $200
+        {name: 'Current', currencyCode: 'USD', initialBalance: 100},
+        {name: 'Savings', currencyCode: 'USD', initialBalance: 200},
       ],
     });
     await seed.expense('KFC', 40, {user, account: current, category}); // Current is now $60
@@ -28,8 +28,8 @@ test.describe('Overview', () => {
   test('converts total to display currency', async ({page, seed, loginAs}) => {
     const {user} = await seed.createUserWithMultipleAccounts({
       accounts: [
-        {currencyCode: 'USD', initialBalanceCents: 100000}, // $1000
-        {currencyCode: 'GBP', initialBalanceCents: 100000}, // £1000
+        {currencyCode: 'USD', initialBalance: 1000},
+        {currencyCode: 'GBP', initialBalance: 1000},
       ],
     });
     await seed.updateDisplaySettings(user.id, {displayCurrencyCode: 'GBP'});
@@ -42,14 +42,8 @@ test.describe('Overview', () => {
 
   test('handles missing exchange rates', async ({page, seed, loginAs}) => {
     const {user} = await seed.createUserWithTestData({
-      bank: {
-        name: 'Swiss Bank',
-      },
-      account: {
-        name: 'Current',
-        currencyCode: 'CHF',
-        initialBalanceCents: 50000, // 500 CHF
-      },
+      bank: {name: 'Swiss Bank'},
+      account: {name: 'Current', currencyCode: 'CHF', initialBalance: 500},
     });
     await seed.updateDisplaySettings(user.id, {displayCurrencyCode: 'USD'});
     // No exchange rate for CHF -> USD, so the account balance should display
@@ -64,17 +58,8 @@ test.describe('Overview', () => {
     const {user} = await seed.createUserWithMultipleAccounts({
       bank: {name: 'Barclays'},
       accounts: [
-        {
-          name: 'Current',
-          currencyCode: 'USD',
-          initialBalanceCents: 50000,
-        },
-        {
-          name: 'Savings',
-          currencyCode: 'USD',
-          initialBalanceCents: 0,
-          archived: true,
-        },
+        {name: 'Current', currencyCode: 'USD', initialBalance: 500},
+        {name: 'Savings', currencyCode: 'USD', archived: true},
       ],
     });
     await loginAs(user);
@@ -88,7 +73,7 @@ test.describe('Overview', () => {
   test('displays negative balance', async ({page, seed, loginAs}) => {
     const {user} = await seed.createUserWithTestData({
       bank: {name: 'Chase'},
-      account: {name: 'Freedom Card', initialBalanceCents: -25000},
+      account: {name: 'Freedom Card', initialBalance: -250},
     });
     await loginAs(user);
     const overviewPage = new OverviewPage(page);
@@ -106,14 +91,8 @@ test.describe('Overview', () => {
     });
     await seed.createStockQuote(stock.id, 15000); // $150 per share
     const {user} = await seed.createUserWithTestData({
-      bank: {
-        name: 'Vanguard',
-      },
-      account: {
-        name: 'AAPL Holdings',
-        initialBalanceCents: 1000, // 10 shares
-        stockId: stock.id,
-      },
+      bank: {name: 'Vanguard'},
+      account: {name: 'AAPL Holdings', initialBalance: 10, stockId: stock.id},
     });
     await loginAs(user);
     const overviewPage = new OverviewPage(page);
@@ -135,14 +114,8 @@ test.describe('Overview', () => {
     });
     await seed.createStockQuote(stock.id, 15000); // $150 per share
     const {user} = await seed.createUserWithTestData({
-      bank: {
-        name: 'Vanguard',
-      },
-      account: {
-        name: 'TSLA Holdings',
-        initialBalanceCents: 1000, // 10 shares
-        stockId: stock.id,
-      },
+      bank: {name: 'Vanguard'},
+      account: {name: 'TSLA Holdings', initialBalance: 10, stockId: stock.id},
     });
     await seed.updateDisplaySettings(user.id, {displayCurrencyCode: 'EUR'});
     await seed.createExchangeRate('USD', 'EUR', 0.92); // 1 USD = 0.92 EUR

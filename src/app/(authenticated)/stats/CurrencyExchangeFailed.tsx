@@ -6,6 +6,7 @@ import {fullAccountName} from '@/lib/model/BankAccount';
 import {
   Transaction,
   isIncome,
+  isOpeningBalance,
   isPersonalExpense,
   isThirdPartyExpense,
   isTransfer,
@@ -61,7 +62,11 @@ export const TransactionTitle = ({t}: {t: Transaction}) => {
       </>
     );
   }
-  throw new Error(`Unknown transaction type ${t}`);
+  if (isOpeningBalance(t)) {
+    return <>[{date}] Opening balance</>;
+  }
+  const _exhaustiveCheck: never = t;
+  throw new Error(`Unknown transaction type ${_exhaustiveCheck}`);
 };
 
 export function CurrencyExchangeFailed({

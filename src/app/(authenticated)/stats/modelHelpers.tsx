@@ -14,7 +14,10 @@ import {
   makeCategoryTree,
   mustFindCategory,
 } from '@/lib/model/Category';
-import {Transaction} from '@/lib/model/transaction/Transaction';
+import {
+  isOpeningBalance,
+  Transaction,
+} from '@/lib/model/transaction/Transaction';
 import {
   amountAllParties,
   amountOwnShare,
@@ -33,7 +36,9 @@ function filterExcludedTransactions(
     .map(c => c.category);
   const allExclusion = [...direct, ...descendants];
   const exclude = new Set<number>(allExclusion.map(c => c.id));
-  return allTransactions.filter(t => !exclude.has(t.categoryId));
+  return allTransactions
+    .filter(t => !isOpeningBalance(t))
+    .filter(t => !exclude.has(t.categoryId));
 }
 
 export function useStatsPageProps(
@@ -83,7 +88,8 @@ export function useExchangedTransactions(transactions: Transaction[]): {
   const failed: Transaction[] = [];
   const exchanged: ExchangedTransaction[] = [];
   for (const t of transactions) {
-    if (t.kind == 'Transfer') {
+    // TODO: filter out these types upstream as this filtering out here is not immediately obvious to the caller.
+    if (t.kind == 'Transfer' || t.kind == 'OpeningBalance') {
       exchanged.push({
         t,
         ownShare: AmountWithCurrency.zero(displayCurrency),

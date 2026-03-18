@@ -1,4 +1,4 @@
-import {TransactionWithTagIds} from '@/lib/model/AllDatabaseDataModel';
+import {DBTransaction} from '@/lib/model/AllDatabaseDataModel';
 import {
   Bank,
   BankAccount,
@@ -11,24 +11,29 @@ import {Stock} from '@/lib/model/Stock';
 import {Tag, mustFindTag} from '@/lib/model/Tag';
 import {Trip} from '@/lib/model/Trip';
 import {Unit, formatUnit} from '@/lib/model/Unit';
-import {Income, incomeModelFromDB} from '@/lib/model/transaction/Income';
+import {Income, incomeFromV2} from '@/lib/model/transaction/Income';
+import {
+  OpeningBalance,
+  openingBalanceFromV2,
+} from '@/lib/model/transaction/OpeningBalance';
 import {
   PersonalExpense,
-  personalExpenseModelFromDB,
+  personalExpenseFromV2,
 } from '@/lib/model/transaction/PersonalExpense';
 import {
   ThirdPartyExpense,
-  thirdPartyExpenseModelFromDB,
+  thirdPartyExpenseFromV2,
 } from '@/lib/model/transaction/ThirdPartyExpense';
-import {Transfer, transferModelFromDB} from '@/lib/model/transaction/Transfer';
+import {Transfer, transferFromV2} from '@/lib/model/transaction/Transfer';
 import {notEmpty} from '@/lib/util/util';
-import {TransactionType} from '@prisma/client';
+import {LedgerAccountV2, TransactionV2Type} from '@prisma/client';
 
 export type Transaction =
   | PersonalExpense
   | ThirdPartyExpense
   | Transfer
-  | Income;
+  | Income
+  | OpeningBalance;
 
 export type Expense = PersonalExpense | ThirdPartyExpense;
 
@@ -41,25 +46,32 @@ export function hasTrip(value: Transaction): value is TransactionWithTrip {
 }
 
 export function transactionModelFromDB(
-  init: TransactionWithTagIds
+  init: DBTransaction,
+  ledgerAccounts: LedgerAccountV2[]
 ): Transaction {
-  if (init.transactionType == TransactionType.PERSONAL_EXPENSE) {
-    return personalExpenseModelFromDB(init);
+  const accounts = new Map<number, LedgerAccountV2>(
+    ledgerAccounts.map(a => [a.id, a])
+  );
+  switch (init.type) {
+    case TransactionV2Type.EXPENSE:
+      return personalExpenseFromV2(init, accounts);
+    case TransactionV2Type.THIRD_PARTY_EXPENSE:
+      return thirdPartyExpenseFromV2(init, accounts);
+    case TransactionV2Type.TRANSFER:
+      return transferFromV2(init, accounts);
+    case TransactionV2Type.INCOME:
+      return incomeFromV2(init, accounts);
+    case TransactionV2Type.OPENING_BALANCE:
+      return openingBalanceFromV2(init, accounts);
+    default: {
+      const _exhaustiveCheck: never = init.type;
+      throw new Error(`Unknown transaction type: ${_exhaustiveCheck}`);
+    }
   }
-  if (init.transactionType == TransactionType.THIRD_PARTY_EXPENSE) {
-    return thirdPartyExpenseModelFromDB(init);
-  }
-  if (init.transactionType == TransactionType.TRANSFER) {
-    return transferModelFromDB(init);
-  }
-  if (init.transactionType == TransactionType.INCOME) {
-    return incomeModelFromDB(init);
-  }
-  throw new Error(`Unknown transaction type: ${JSON.stringify(init)}`);
 }
 
 export function transactionBankAccount(
-  t: PersonalExpense | Income,
+  t: PersonalExpense | Income | OpeningBalance,
   bankAccounts: BankAccount[]
 ): BankAccount {
   const account = bankAccounts.find(a => a.id == t.accountId);
@@ -72,7 +84,7 @@ export function transactionBankAccount(
 }
 
 export function transactionBank(
-  t: PersonalExpense | Income,
+  t: PersonalExpense | Income | OpeningBalance,
   banks: Bank[],
   bankAccounts: BankAccount[]
 ): Bank {
@@ -99,6 +111,10 @@ export function transactionUnit(
 }
 
 export function transactionTags(t: Transaction, allTags: Tag[]): Tag[] {
+  if (isOpeningBalance(t)) {
+    // TODO: throw here after updating all the clients
+    return [];
+  }
   const findTag = (id: number) => mustFindTag(id, allTags);
   return t.tagsIds.map(findTag).filter(notEmpty);
 }
@@ -132,6 +148,10 @@ export function isIncome(t: Transaction): t is Income {
   return t.kind === 'Income';
 }
 
+export function isOpeningBalance(t: Transaction): t is OpeningBalance {
+  return t.kind === 'OpeningBalance';
+}
+
 export function formatAmount(
   t: PersonalExpense,
   bankAccounts: BankAccount[],
@@ -143,10 +163,14 @@ export function formatAmount(
 }
 
 export function otherPartyNameOrNull(t: Transaction): string | null {
-  if (t.kind == 'Transfer') {
-    return null;
+  if (
+    t.kind == 'PersonalExpense' ||
+    t.kind == 'ThirdPartyExpense' ||
+    t.kind == 'Income'
+  ) {
+    return otherPartyName(t);
   }
-  return otherPartyName(t);
+  return null;
 }
 
 export function otherPartyName(t: Expense | Income): string | null {
@@ -160,6 +184,9 @@ export function transactionCategory(
   t: Transaction,
   allCategories: Category[]
 ): Category {
+  if (isOpeningBalance(t)) {
+    throw new Error(`OpeningBalance ${t.id} has no category`);
+  }
   const c = allCategories.find(c => c.id == t.categoryId);
   if (!c) {
     throw new Error(

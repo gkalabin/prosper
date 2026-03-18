@@ -117,7 +117,7 @@ test.describe('Transfer Transaction Form', () => {
     });
     const usd2 = await seed.createAccount(user.id, bank.id, {
       name: 'USD Savings',
-      currencyCode: 'EUR',
+      currencyCode: 'USD',
     });
     await seed.createAccount(user.id, bank.id, {
       name: 'EUR',

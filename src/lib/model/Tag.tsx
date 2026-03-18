@@ -1,4 +1,4 @@
-import {Tag as DBTag} from '@prisma/client';
+import {TagV2 as DBTag} from '@prisma/client';
 
 export type Tag = {
   id: number;

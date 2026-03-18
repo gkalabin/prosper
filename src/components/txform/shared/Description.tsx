@@ -9,6 +9,7 @@ import {
 import {Input} from '@/components/ui/input';
 import {uniqMostFrequentIgnoringEmpty} from '@/lib/collections';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
+import {isOpeningBalance} from '@/lib/model/transaction/Transaction';
 import {useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
@@ -23,7 +24,11 @@ export function Description({
   const {control} = useFormContext<TransactionFormSchema>();
   const {transactions} = useTransactionDataContext();
   const descriptions = useMemo(
-    () => uniqMostFrequentIgnoringEmpty(transactions.map(x => x.note)),
+    () =>
+      uniqMostFrequentIgnoringEmpty(
+        // Filter out opening balance transactions as they have no note.
+        transactions.filter(x => !isOpeningBalance(x)).map(x => x.note)
+      ),
     [transactions]
   );
   return (

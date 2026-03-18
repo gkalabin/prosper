@@ -1,7 +1,7 @@
-import {assert, assertDefined} from '@/lib/assert';
-import {TransactionWithTagIds} from '@/lib/model/AllDatabaseDataModel';
+import {DBTransaction} from '@/lib/model/AllDatabaseDataModel';
 import {TransactionCompanion} from '@/lib/model/transaction/TransactionCompanion';
-import {TransactionType} from '@prisma/client';
+import {nanosToCents} from '@/lib/util/util';
+import {LedgerAccountType, LedgerAccountV2} from '@prisma/client';
 
 export type Income = {
   kind: 'Income';
@@ -17,34 +17,44 @@ export type Income = {
   tripId: number | null;
 };
 
-export function incomeModelFromDB(init: TransactionWithTagIds): Income {
-  assert(init.transactionType == TransactionType.INCOME);
-  assertDefined(init.payer);
-  assertDefined(init.incomingAccountId);
-  assertDefined(init.incomingAmountCents);
-  assertDefined(init.ownShareAmountCents);
-  const companions: TransactionCompanion[] = [];
-  if (init.ownShareAmountCents != init.incomingAmountCents) {
-    assertDefined(
-      init.otherPartyName,
-      `otherPartyName is not defined for transaction id ${init.id}`
-    );
-    companions.push({
-      name: init.otherPartyName,
-      amountCents: init.incomingAmountCents - init.ownShareAmountCents,
-    });
+export function incomeFromV2(
+  tx: DBTransaction,
+  accounts: Map<number, LedgerAccountV2>
+): Income {
+  if (!tx.categoryId) {
+    throw new Error(`Income ${tx.id}: missing category`);
   }
+  // TODO: enforce setting payer on transaction create/edit and then switch check here to "!payer"
+  if (tx.payer === null) {
+    throw new Error(`Income ${tx.id}: missing payer`);
+  }
+  const assetLine = tx.lines.find(l => {
+    const acct = accounts.get(l.ledgerAccountId);
+    return acct?.type === LedgerAccountType.ASSET;
+  });
+  if (!assetLine) {
+    throw new Error(`Income ${tx.id}: no asset line`);
+  }
+  const assetAccount = accounts.get(assetLine.ledgerAccountId);
+  if (!assetAccount?.bankAccountId) {
+    throw new Error(`Income ${tx.id}: asset account missing bankAccountId`);
+  }
+  const totalCents = nanosToCents(assetLine.amountNanos);
+  const companions: TransactionCompanion[] = tx.splits.map(s => ({
+    name: s.companionName,
+    amountCents: nanosToCents(s.companionShareNanos),
+  }));
   return {
     kind: 'Income',
-    id: init.id,
-    timestampEpoch: new Date(init.timestamp).getTime(),
-    payer: init.payer,
-    amountCents: init.incomingAmountCents,
+    id: tx.id,
+    timestampEpoch: new Date(tx.timestamp).getTime(),
+    payer: tx.payer,
+    amountCents: totalCents,
     companions,
-    note: init.description,
-    accountId: init.incomingAccountId,
-    categoryId: init.categoryId,
-    tagsIds: init.tags.map(t => t.id),
-    tripId: init.tripId,
+    note: tx.note,
+    accountId: assetAccount.bankAccountId,
+    categoryId: tx.categoryId,
+    tagsIds: tx.tags.map(t => t.id),
+    tripId: tx.tripId,
   };
 }

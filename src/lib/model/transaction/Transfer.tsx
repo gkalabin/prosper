@@ -1,6 +1,5 @@
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
-import {assert, assertDefined} from '@/lib/assert';
-import {TransactionWithTagIds} from '@/lib/model/AllDatabaseDataModel';
+import {DBTransaction} from '@/lib/model/AllDatabaseDataModel';
 import {
   Bank,
   BankAccount,
@@ -8,7 +7,8 @@ import {
   accountUnit,
 } from '@/lib/model/BankAccount';
 import {Stock} from '@/lib/model/Stock';
-import {TransactionType} from '@prisma/client';
+import {nanosToCents} from '@/lib/util/util';
+import {LedgerAccountType, LedgerAccountV2} from '@prisma/client';
 
 export type Transfer = {
   kind: 'Transfer';
@@ -23,23 +23,45 @@ export type Transfer = {
   tagsIds: number[];
 };
 
-export function transferModelFromDB(init: TransactionWithTagIds): Transfer {
-  assert(init.transactionType == TransactionType.TRANSFER);
-  assertDefined(init.outgoingAccountId);
-  assertDefined(init.incomingAccountId);
-  assertDefined(init.outgoingAmountCents);
-  assertDefined(init.incomingAmountCents);
+export function transferFromV2(
+  tx: DBTransaction,
+  accounts: Map<number, LedgerAccountV2>
+): Transfer {
+  if (!tx.categoryId) {
+    throw new Error(`Transfer ${tx.id}: missing category`);
+  }
+  const assetLines = tx.lines.filter(l => {
+    const acct = accounts.get(l.ledgerAccountId);
+    return acct?.type === LedgerAccountType.ASSET;
+  });
+  if (assetLines.length < 2) {
+    throw new Error(
+      `Transfer ${tx.id}: expected at least 2 asset lines, got ${assetLines.length}`
+    );
+  }
+  const outLine = assetLines.find(l => l.amountNanos < BigInt(0));
+  const inLine = assetLines.find(l => l.amountNanos > BigInt(0));
+  if (!outLine || !inLine) {
+    throw new Error(
+      `Transfer ${tx.id}: missing outgoing or incoming asset line`
+    );
+  }
+  const fromAccount = accounts.get(outLine.ledgerAccountId);
+  const toAccount = accounts.get(inLine.ledgerAccountId);
+  if (!fromAccount?.bankAccountId || !toAccount?.bankAccountId) {
+    throw new Error(`Transfer ${tx.id}: asset accounts missing bankAccountId`);
+  }
   return {
     kind: 'Transfer',
-    id: init.id,
-    timestampEpoch: new Date(init.timestamp).getTime(),
-    fromAccountId: init.outgoingAccountId,
-    toAccountId: init.incomingAccountId,
-    sentAmountCents: init.outgoingAmountCents,
-    receivedAmountCents: init.incomingAmountCents,
-    note: init.description,
-    categoryId: init.categoryId,
-    tagsIds: init.tags.map(t => t.id),
+    id: tx.id,
+    timestampEpoch: new Date(tx.timestamp).getTime(),
+    fromAccountId: fromAccount.bankAccountId,
+    toAccountId: toAccount.bankAccountId,
+    sentAmountCents: nanosToCents(-outLine.amountNanos),
+    receivedAmountCents: nanosToCents(inLine.amountNanos),
+    note: tx.note,
+    categoryId: tx.categoryId,
+    tagsIds: tx.tags.map(t => t.id),
   };
 }
 

@@ -14,7 +14,7 @@ test.describe('Expense Transactions', () => {
   test('create a simple expense', async ({page, seed, loginAs}) => {
     const {user, category} = await seed.createUserWithTestData({
       bank: {name: 'HSBC'},
-      account: {name: 'Current', initialBalanceCents: 10000}, // $100
+      account: {name: 'Current', initialBalance: 100},
       category: {name: 'Groceries'},
     });
     await loginAs(user);
@@ -44,7 +44,7 @@ test.describe('Expense Transactions', () => {
   test('create a shared expense', async ({page, seed, loginAs}) => {
     // Given: User with bank, account, and category
     const {user, category} = await seed.createUserWithTestData({
-      account: {initialBalanceCents: 50000}, // $500
+      account: {initialBalance: 500},
     });
     await loginAs(user);
     const addTxPage = new NewTransactionPage(page);
@@ -112,11 +112,11 @@ test.describe('Expense Transactions', () => {
   }) => {
     const bundle = await seed.createUserWithTestData({
       bank: {name: 'Chase'},
-      account: {name: 'Current', initialBalanceCents: 50000}, // $500
+      account: {name: 'Current', initialBalance: 500},
     });
     await seed.createAccount(bundle.user.id, bundle.bank.id, {
       name: 'Credit Card',
-      initialBalanceCents: 30000, // $300
+      initialBalance: 300,
     });
     await seed.expense('Chipotle', 50, bundle);
     await loginAs(bundle.user);

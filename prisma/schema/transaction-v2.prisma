@@ -1,0 +1,155 @@
+enum LedgerAccountType {
+    // 1:1 linked to BankAccount.
+    ASSET
+    // EXPENSE, INCOME, EQUITY are system accounts (one per user, prefixed "SYSTEM:").
+    EXPENSE
+    INCOME
+    EQUITY
+    // CURRENCY_EXCHANGE is a clearing account for multi-currency transfers.
+    CURRENCY_EXCHANGE
+    // RECEIVABLE tracks money owed by/to companions in shared expenses.
+    RECEIVABLE
+}
+
+model LedgerAccountV2 {
+    id            Int               @id @default(autoincrement())
+    userId        Int
+    name          String
+    type          LedgerAccountType
+    // Only set for ASSET accounts.
+    bankAccountId Int?              @unique
+
+    user        User          @relation(fields: [userId], references: [id])
+    bankAccount BankAccount?  @relation(fields: [bankAccountId], references: [id])
+    lines       EntryLineV2[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+enum TransactionV2Type {
+    EXPENSE
+    INCOME
+    TRANSFER
+    THIRD_PARTY_EXPENSE
+    OPENING_BALANCE
+}
+
+// Immutable, append-only transaction record. Edits create new rows with the
+// same iid and a supersedesId pointing to the previous version. Deletions
+// create void rows (isVoid=true, no entry lines).
+model TransactionV2 {
+    id        Int               @id @default(autoincrement())
+    // Per-user incrementing ID, stable across edits.
+    iid       Int
+    userId    Int
+    timestamp DateTime
+    note      String            @default("")
+    type      TransactionV2Type
+
+    vendor     String?
+    payer      String?
+    // Nullable because OPENING_BALANCE transactions have no category.
+    categoryId Int?
+    tripId     Int?
+
+    // Points to TransactionV2.id of the previous version this row replaces.
+    supersedesId Int?
+    supersedes   TransactionV2?  @relation("Supersedes", fields: [supersedesId], references: [id])
+    supersededBy TransactionV2[] @relation("Supersedes")
+
+    // True when this version represents a deletion.
+    isVoid Boolean @default(false)
+
+    lines      EntryLineV2[]
+    tags       TagV2[]
+    splits     SplitContextV2[]
+    prototypes TransactionPrototypeV2[]
+
+    user     User      @relation(fields: [userId], references: [id])
+    category Category? @relation(fields: [categoryId], references: [id])
+    trip     Trip?     @relation(fields: [tripId], references: [id])
+
+    sourceLinks TransactionLinkV2[] @relation("SourceTransactionV2Links")
+    linkedLinks TransactionLinkV2[] @relation("LinkedTransactionV2Links")
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+// A single leg of a double-entry transaction. Every transaction has two or
+// more lines that must sum to zero per currency.
+model EntryLineV2 {
+    id              Int     @id @default(autoincrement())
+    transactionId   Int
+    ledgerAccountId Int
+    // Exactly one of currencyCode / stockId must be set.
+    currencyCode    String?
+    stockId         Int?
+    // Positive = balance increases, negative = balance decreases.
+    amountNanos     BigInt
+
+    transaction TransactionV2   @relation(fields: [transactionId], references: [id])
+    account     LedgerAccountV2 @relation(fields: [ledgerAccountId], references: [id])
+    stock       Stock?          @relation(fields: [stockId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+// Metadata for shared payments: who the companion is, their share of the
+// cost, and how much they actually paid.
+model SplitContextV2 {
+    id                  Int    @id @default(autoincrement())
+    transactionId       Int
+    companionName       String
+    companionShareNanos BigInt
+    // TODO: this doesn't sound nice for income transactions. Rename.
+    companionPaidNanos  BigInt
+
+    transaction TransactionV2 @relation(fields: [transactionId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+// Links between transactions, e.g. refunds or debt settlements.
+model TransactionLinkV2 {
+    id                  Int                 @id @default(autoincrement())
+    // References specific transaction versions (id, not iid).
+    sourceTransactionId Int
+    linkedTransactionId Int
+    linkType            TransactionLinkType
+
+    sourceTransaction TransactionV2 @relation("SourceTransactionV2Links", fields: [sourceTransactionId], references: [id])
+    linkedTransaction TransactionV2 @relation("LinkedTransactionV2Links", fields: [linkedTransactionId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+// Maps external open-banking transactions to internal TransactionV2 records.
+model TransactionPrototypeV2 {
+    syntheticId           Int    @id @default(autoincrement())
+    externalId            String
+    externalDescription   String
+    internalTransactionId Int
+    userId                Int
+
+    transaction TransactionV2 @relation(fields: [internalTransactionId], references: [id])
+    user        User          @relation(fields: [userId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model TagV2 {
+    id           Int             @id @default(autoincrement())
+    name         String
+    userId       Int
+    transactions TransactionV2[]
+    user         User            @relation(fields: [userId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
