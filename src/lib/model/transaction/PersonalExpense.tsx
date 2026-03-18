@@ -1,7 +1,7 @@
-import {assert, assertDefined} from '@/lib/assert';
-import {TransactionWithTagIds} from '@/lib/model/AllDatabaseDataModel';
+import {DBTransaction} from '@/lib/model/AllDatabaseDataModel';
 import {TransactionCompanion} from '@/lib/model/transaction/TransactionCompanion';
-import {TransactionType} from '@prisma/client';
+import {nanosToCents} from '@/lib/util/util';
+import {LedgerAccountType, LedgerAccountV2} from '@prisma/client';
 
 export type PersonalExpense = {
   kind: 'PersonalExpense';
@@ -18,51 +18,48 @@ export type PersonalExpense = {
   refundGroupTransactionIds: number[];
 };
 
-export function personalExpenseModelFromDB(
-  init: TransactionWithTagIds
+export function personalExpenseFromV2(
+  tx: DBTransaction,
+  accounts: Map<number, LedgerAccountV2>
 ): PersonalExpense {
-  assert(init.transactionType == TransactionType.PERSONAL_EXPENSE);
-  assertDefined(
-    init.outgoingAmountCents,
-    `outgoingAmountCents is not defined for transaction ${init.id}`
-  );
-  assertDefined(
-    init.ownShareAmountCents,
-    `ownShareAmountCents is not defined for transaction id ${init.id}`
-  );
-  assertDefined(
-    init.vendor,
-    `vendor is not defined for transaction id ${init.id}`
-  );
-  assertDefined(
-    init.outgoingAccountId,
-    `outgoingAccountId is not defined for transaction id ${init.id}`
-  );
-  const companions = [];
-  if (init.ownShareAmountCents != init.outgoingAmountCents) {
-    assertDefined(
-      init.otherPartyName,
-      `otherPartyName is not defined for transaction id ${init.id}`
-    );
-    companions.push({
-      name: init.otherPartyName,
-      amountCents: init.outgoingAmountCents - init.ownShareAmountCents,
-    });
+  if (!tx.categoryId) {
+    throw new Error(`Expense ${tx.id}: no category`);
   }
-  // TODO: fill for expenses.
-  const refundGroupTransactionIds: number[] = [];
+  // TODO: enforce setting vendor on transaction create/edit and then switch check here to "!vendor"
+  if (tx.vendor === null) {
+    throw new Error(`Expense ${tx.id}: no vendor`);
+  }
+  // TODO: verify exactly 1 asset line and 1 expense line
+  const assetLine = tx.lines.find(l => {
+    const acct = accounts.get(l.ledgerAccountId);
+    return acct?.type === LedgerAccountType.ASSET;
+  });
+  if (!assetLine) {
+    throw new Error(`Expense ${tx.id}: no asset line`);
+  }
+  const assetAccount = accounts.get(assetLine.ledgerAccountId);
+  if (!assetAccount?.bankAccountId) {
+    throw new Error(`Expense ${tx.id}: cannot find bankAccount`);
+  }
+
+  const totalCents = nanosToCents(-assetLine.amountNanos);
+  const companions: TransactionCompanion[] = tx.splits.map(s => ({
+    name: s.companionName,
+    amountCents: nanosToCents(s.companionShareNanos),
+  }));
   return {
     kind: 'PersonalExpense',
-    id: init.id,
-    timestampEpoch: new Date(init.timestamp).getTime(),
-    vendor: init.vendor,
-    amountCents: init.outgoingAmountCents,
+    id: tx.id,
+    timestampEpoch: new Date(tx.timestamp).getTime(),
+    vendor: tx.vendor,
+    amountCents: totalCents,
     companions,
-    note: init.description,
-    accountId: init.outgoingAccountId,
-    categoryId: init.categoryId,
-    tagsIds: init.tags.map(t => t.id),
-    tripId: init.tripId,
-    refundGroupTransactionIds: refundGroupTransactionIds,
+    note: tx.note,
+    accountId: assetAccount.bankAccountId,
+    categoryId: tx.categoryId,
+    tagsIds: tx.tags.map(t => t.id),
+    tripId: tx.tripId,
+    // TODO: fill for expenses.
+    refundGroupTransactionIds: [],
   };
 }

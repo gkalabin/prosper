@@ -4,6 +4,7 @@ import {TransactionListPage} from '../../pages/TransactionListPage';
 
 // TODO:
 //  - edit repayment
+//  - third party expense paid fully by someone else
 
 test.describe('Third-Party Expenses', () => {
   test('new debt', async ({page, seed, loginAs}) => {

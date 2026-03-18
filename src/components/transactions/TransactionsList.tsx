@@ -9,10 +9,12 @@ import {
   getNameWithAncestors,
   makeCategoryTree,
 } from '@/lib/model/Category';
+import {openingBalanceAmount} from '@/lib/model/transaction/OpeningBalance';
 import {
   Transaction,
   isExpense,
   isIncome,
+  isOpeningBalance,
   isPersonalExpense,
   isThirdPartyExpense,
   isTransfer,
@@ -73,7 +75,11 @@ const TransactionTitle = ({t}: {t: Transaction}) => {
       </>
     );
   }
-  throw new Error(`Unknown transaction type ${t}`);
+  if (isOpeningBalance(t)) {
+    return <i className="italic">Opening balance</i>;
+  }
+  const _exhaustiveCheck: never = t;
+  throw new Error(`Unknown transaction type ${_exhaustiveCheck}`);
 };
 
 const TransactionAmount = (props: {transaction: Transaction}) => {
@@ -96,6 +102,9 @@ const TransactionAmount = (props: {transaction: Transaction}) => {
     case 'Transfer':
       const sent = amountSent(t, bankAccounts, stocks);
       return <>{sent.format()}</>;
+    case 'OpeningBalance':
+      const amount = openingBalanceAmount(t, bankAccounts, stocks);
+      return <>{amount.format()}</>;
     default:
       const _exhaustiveCheck: never = t;
       throw new Error(`Unknown transaction ${_exhaustiveCheck}`);
@@ -105,12 +114,13 @@ const TransactionAmount = (props: {transaction: Transaction}) => {
 export const TransactionsListItem = ({
   transaction: t,
   categoryTree,
+  onEdit,
 }: {
   transaction: Transaction;
   categoryTree: CategoryTree;
+  onEdit: (t: Transaction) => void;
 }) => {
   const [expanded, setExpanded] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false);
   const {tags, banks, trips, bankAccounts, stocks} = useCoreDataContext();
   return (
     <li className="p-2">
@@ -122,7 +132,9 @@ export const TransactionsListItem = ({
           <div>
             <TransactionTitle t={t} />
           </div>
-          <div className="text-xs italic text-gray-600">{t.note}</div>
+          <div className="text-xs italic text-gray-600">
+            {t.kind == 'OpeningBalance' ? '' : t.note}
+          </div>
           <div
             className="text-xs text-gray-600"
             suppressHydrationWarning={true}
@@ -150,10 +162,12 @@ export const TransactionsListItem = ({
             Time: {new Date(t.timestampEpoch).toISOString()}
           </div>
           <div>Type: {t.kind}</div>
-          <div>
-            Category: {getNameWithAncestors(t.categoryId, categoryTree)}
-          </div>
-          {t.note && <div>Note: {t.note}</div>}
+          {!isOpeningBalance(t) && (
+            <div>
+              Category: {getNameWithAncestors(t.categoryId, categoryTree)}
+            </div>
+          )}
+          {!isOpeningBalance(t) && t.note && <div>Note: {t.note}</div>}
           {isExpense(t) && <div>Vendor: {t.vendor}</div>}
           {isThirdPartyExpense(t) && <div>Paid by: {t.payer}</div>}
           {isPersonalExpense(t) && otherPartyNameOrNull(t) && (
@@ -203,11 +217,11 @@ export const TransactionsListItem = ({
               Received: {amountReceived(t, bankAccounts, stocks).format()}
             </div>
           )}
-          {t.tagsIds.length > 0 && (
+          {!isOpeningBalance(t) && t.tagsIds.length > 0 && (
             <div>
               Tags:{' '}
               {t.tagsIds
-                .map(tt => tags.find(x => x.id == tt)?.name ?? '')
+                .map((tt: number) => tags.find(x => x.id == tt)?.name ?? '')
                 .join(', ')}
             </div>
           )}
@@ -223,21 +237,10 @@ export const TransactionsListItem = ({
       )}
       {expanded && (
         <div className="pl-1">
-          <Button
-            variant="link"
-            size="inherit"
-            onClick={() => setShowEditForm(true)}
-          >
+          <Button variant="link" size="inherit" onClick={() => onEdit(t)}>
             Edit
           </Button>
         </div>
-      )}
-      {showEditForm && (
-        <NewTransactionFormDialog
-          transaction={t}
-          open={showEditForm}
-          onOpenChange={setShowEditForm}
-        />
       )}
     </li>
   );
@@ -333,6 +336,8 @@ export const TransactionsList = (props: {
   displayLimit?: number;
 }) => {
   const [displayLimit, setDisplayLimit] = useState(props.displayLimit || 10);
+  const [editingTransaction, setEditingTransaction] =
+    useState<Transaction | null>(null);
   const {categories} = useCoreDataContext();
   if (!props.transactions?.length) {
     return <div>No transactions.</div>;
@@ -345,9 +350,11 @@ export const TransactionsList = (props: {
         <ul className="flex flex-col divide-y divide-gray-200">
           {displayTransactions.map(t => (
             <TransactionsListItem
+              // TODO: use iid here instead.
               key={t.id}
               transaction={t}
               categoryTree={categoryTree}
+              onEdit={setEditingTransaction}
             />
           ))}
           <footer className="bg-slate-50 p-2 text-center text-lg font-medium">
@@ -377,6 +384,15 @@ export const TransactionsList = (props: {
           </footer>
         </ul>
       </div>
+      <NewTransactionFormDialog
+        transaction={editingTransaction}
+        open={!!editingTransaction}
+        onOpenChange={open => {
+          if (!open) {
+            setEditingTransaction(null);
+          }
+        }}
+      />
     </>
   );
 };

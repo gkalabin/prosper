@@ -5,9 +5,7 @@ import {
   DisplaySettings,
   ExchangeRate,
   StockQuote,
-  Tag,
-  Transaction,
-  TransactionType,
+  TagV2,
   User,
 } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
@@ -16,6 +14,7 @@ import {prisma} from '../db';
 
 export const TEST_USER_PASSWORD = 'password123';
 export const DEFAULT_TEST_CURRENCY = 'USD';
+const NANOS_PER_DOLLAR = 1_000_000_000;
 
 type UserWithRawPassword = User & {rawPassword: string};
 
@@ -55,10 +54,10 @@ export class TestFactory {
         .findMany(whereLogin)
         .then(u => u.map(({id}) => id));
       const whereUserId = {where: {userId: {in: userIds}}};
-      const transactionsIds = await prisma.transaction
+      const transactionsIds = await prisma.transactionV2
         .findMany(whereUserId)
         .then(t => t.map(({id}) => id));
-      await prisma.transactionLink.deleteMany({
+      await prisma.transactionLinkV2.deleteMany({
         where: {
           OR: [
             {sourceTransactionId: {in: transactionsIds}},
@@ -66,12 +65,24 @@ export class TestFactory {
           ],
         },
       });
-      await prisma.transaction.deleteMany({where: {id: {in: transactionsIds}}});
+      await prisma.splitContextV2.deleteMany({
+        where: {transactionId: {in: transactionsIds}},
+      });
+      await prisma.entryLineV2.deleteMany({
+        where: {transactionId: {in: transactionsIds}},
+      });
+      await prisma.transactionPrototypeV2.deleteMany({
+        where: {internalTransactionId: {in: transactionsIds}},
+      });
+      await prisma.transactionV2.deleteMany({
+        where: {id: {in: transactionsIds}},
+      });
       await prisma.bankAccount.deleteMany(whereUserId);
+      await prisma.ledgerAccountV2.deleteMany(whereUserId);
       await prisma.bank.deleteMany(whereUserId);
       await prisma.category.deleteMany(whereUserId);
+      await prisma.tagV2.deleteMany(whereUserId);
       await prisma.tag.deleteMany(whereUserId);
-      await prisma.transactionPrototype.deleteMany(whereUserId);
       await prisma.trip.deleteMany(whereUserId);
       await prisma.displaySettings.deleteMany(whereUserId);
       await prisma.externalAccountMapping.deleteMany(whereUserId);
@@ -102,14 +113,15 @@ export class TestFactory {
   async createUserWithMultipleAccounts(overrides?: {
     user?: Partial<User & {rawPassword: string}>;
     bank?: Partial<Bank>;
-    accounts: Array<Partial<BankAccount>>;
+    accounts: Array<Partial<BankAccount> & {initialBalance?: number}>;
     category?: Partial<Category>;
   }) {
     const user = await this.createUser(overrides?.user);
     const bank = await this.createBank(user.id, overrides?.bank);
     const accounts: BankAccount[] = [];
     for (const a of overrides?.accounts || []) {
-      accounts.push(await this.createAccount(user.id, bank.id, a));
+      const createdAccount = await this.createAccount(user.id, bank.id, a);
+      accounts.push(createdAccount);
     }
     const category = await this.createCategory(user.id, overrides?.category);
     return {user, bank, accounts, category};
@@ -118,7 +130,7 @@ export class TestFactory {
   async createUserWithTestData(overrides?: {
     user?: Partial<User & {rawPassword: string}>;
     bank?: Partial<Bank>;
-    account?: Partial<BankAccount>;
+    account?: Partial<BankAccount> & {initialBalance?: number};
     category?: Partial<Category>;
   }): Promise<TestDataBundle> {
     const user = await this.createUser(overrides?.user);
@@ -130,6 +142,14 @@ export class TestFactory {
     );
     const category = await this.createCategory(user.id, overrides?.category);
     return {user, bank, account, category};
+  }
+
+  private iidCounterByUser: Record<number, number> = {};
+  private async nextIid(userId: number): Promise<number> {
+    if (this.iidCounterByUser[userId] === undefined) {
+      this.iidCounterByUser[userId] = 1;
+    }
+    return this.iidCounterByUser[userId]++;
   }
 
   async createUser(overrides?: Partial<UserWithRawPassword>) {
@@ -144,6 +164,20 @@ export class TestFactory {
         ...overrides,
       },
     });
+    const systemTypes = [
+      'EXPENSE',
+      'INCOME',
+      'EQUITY',
+      'CURRENCY_EXCHANGE',
+    ] as const;
+    await prisma.ledgerAccountV2.createMany({
+      data: systemTypes.map(type => ({
+        userId: user.id,
+        name: `SYSTEM:${type}`,
+        type,
+      })),
+    });
+
     await prisma.displaySettings.create({
       data: {
         userId: user.id,
@@ -168,17 +202,85 @@ export class TestFactory {
   async createAccount(
     userId: number,
     bankId: number,
-    overrides?: Partial<BankAccount>
+    overrides?: Partial<BankAccount> & {initialBalance?: number}
   ) {
     // Do not set default currencyCode for stock accounts.
     const currencyCode = overrides?.stockId ? undefined : DEFAULT_TEST_CURRENCY;
-    return prisma.bankAccount.create({
+    const {initialBalance, ...restOverrides} = overrides || {};
+    const account = await prisma.bankAccount.create({
       data: {
         userId,
         bankId,
         name: `Test Account`,
         currencyCode,
-        ...overrides,
+        ...restOverrides,
+      },
+    });
+    await prisma.ledgerAccountV2.create({
+      data: {
+        userId,
+        name: account.name,
+        type: 'ASSET',
+        bankAccountId: account.id,
+      },
+    });
+    if (overrides?.initialBalance) {
+      await this.openingBalance({
+        userId,
+        bankAccountId: account.id,
+        initialBalance: overrides.initialBalance,
+        currencyCode,
+      });
+    }
+    return account;
+  }
+
+  private async openingBalance({
+    userId,
+    bankAccountId,
+    initialBalance,
+    currencyCode,
+    stockId,
+    timestamp,
+  }: {
+    userId: number;
+    bankAccountId: number;
+    initialBalance: number;
+    currencyCode?: string | null;
+    stockId?: number | null;
+    timestamp?: Date | string;
+  }) {
+    const amountNanos = BigInt(Math.round(initialBalance * NANOS_PER_DOLLAR));
+    const ledgerAccount = await prisma.ledgerAccountV2.findFirstOrThrow({
+      where: {userId, bankAccountId, type: 'ASSET'},
+    });
+    const equityAccount = await prisma.ledgerAccountV2.findFirstOrThrow({
+      where: {userId, type: 'EQUITY'},
+    });
+    const iid = await this.nextIid(userId);
+    const time = timestamp ? new Date(timestamp) : new Date();
+    return prisma.transactionV2.create({
+      data: {
+        iid,
+        userId,
+        timestamp: time,
+        type: 'OPENING_BALANCE',
+        lines: {
+          create: [
+            {
+              ledgerAccountId: ledgerAccount.id,
+              amountNanos,
+              currencyCode,
+              stockId,
+            },
+            {
+              ledgerAccountId: equityAccount.id,
+              amountNanos: -amountNanos,
+              currencyCode,
+              stockId,
+            },
+          ],
+        },
       },
     });
   }
@@ -193,8 +295,21 @@ export class TestFactory {
     });
   }
 
-  async createTag(userId: number, name: string, overrides?: Partial<Tag>) {
-    return prisma.tag.create({
+  async getOrCreateReceivableAccount(userId: number, companionName: string) {
+    const name = `RECEIVABLE:${companionName}`;
+    let ledgerAccountReceivable = await prisma.ledgerAccountV2.findFirst({
+      where: {userId, type: 'RECEIVABLE', name},
+    });
+    if (!ledgerAccountReceivable) {
+      ledgerAccountReceivable = await prisma.ledgerAccountV2.create({
+        data: {userId, name, type: 'RECEIVABLE'},
+      });
+    }
+    return ledgerAccountReceivable;
+  }
+
+  async createTag(userId: number, name: string, overrides?: Partial<TagV2>) {
+    return prisma.tagV2.create({
       data: {
         userId,
         name,
@@ -249,8 +364,8 @@ export class TestFactory {
       timestamp,
       description,
       tagIds,
-      // Explicitly destructure bank to avoid leaking it into prisma input.
-      // Otherwise prisma call fails with unknown fields error.
+      ownShareAmount,
+      otherPartyName,
       bank: _bank,
       ...overrides
     }: TransactionContext & {
@@ -258,21 +373,78 @@ export class TestFactory {
       timestamp?: Date | string;
       description?: string;
       tagIds?: number[];
-    } & Partial<Omit<Transaction, 'timestamp'>>
+      ownShareAmount?: number;
+      otherPartyName?: string;
+      tripId?: number;
+    }
   ) {
-    return prisma.transaction.create({
+    const amountNanos = BigInt(amount * NANOS_PER_DOLLAR);
+    const ownShareAmountNanos = ownShareAmount
+      ? BigInt(ownShareAmount * NANOS_PER_DOLLAR)
+      : amountNanos;
+    const time = timestamp ? new Date(timestamp) : new Date();
+    const iid = await this.nextIid(user.id);
+    const bankAccount = await prisma.bankAccount.findUniqueOrThrow({
+      where: {id: account.id},
+    });
+    const ledgerAccountAsset = await prisma.ledgerAccountV2.findUniqueOrThrow({
+      where: {bankAccountId: account.id},
+    });
+    const ledgerAccountExpense = await prisma.ledgerAccountV2.findFirstOrThrow({
+      where: {userId: user.id, type: 'EXPENSE'},
+    });
+    const currencyCode = bankAccount.currencyCode ?? undefined;
+    const stockId = bankAccount.stockId ?? undefined;
+    const lines = [
+      {
+        ledgerAccountId: ledgerAccountAsset.id,
+        amountNanos: -amountNanos,
+        currencyCode,
+        stockId,
+      },
+      {
+        ledgerAccountId: ledgerAccountExpense.id,
+        amountNanos: ownShareAmountNanos,
+        currencyCode,
+        stockId,
+      },
+    ];
+    let splits;
+    if (otherPartyName) {
+      const companionShareNanos = amountNanos - ownShareAmountNanos;
+      const ledgerAccountReceivable = await this.getOrCreateReceivableAccount(
+        user.id,
+        otherPartyName
+      );
+      lines.push({
+        ledgerAccountId: ledgerAccountReceivable.id,
+        amountNanos: companionShareNanos,
+        currencyCode,
+        stockId,
+      });
+      splits = {
+        create: [
+          {
+            companionName: otherPartyName,
+            companionShareNanos,
+            companionPaidNanos: BigInt(0),
+          },
+        ],
+      };
+    }
+    return prisma.transactionV2.create({
       data: {
+        iid,
         userId: user.id,
-        transactionType: TransactionType.PERSONAL_EXPENSE,
-        outgoingAccountId: account.id,
-        outgoingAmountCents: Math.round(amount * 100),
-        ownShareAmountCents: Math.round(amount * 100),
-        timestamp: timestamp ? new Date(timestamp) : new Date(),
+        type: 'EXPENSE',
+        timestamp: time,
         categoryId: category.id,
-        description: description ?? '',
+        note: description ?? '',
         vendor,
-        ...overrides,
-        tags: tagIds ? {connect: tagIds.map(id => ({id}))} : undefined,
+        lines: {create: lines},
+        ...(overrides.tripId ? {tripId: overrides.tripId} : {}),
+        ...(splits ? {splits} : {}),
+        ...(tagIds ? {tags: {connect: tagIds.map(id => ({id}))}} : {}),
       },
     });
   }
@@ -286,28 +458,88 @@ export class TestFactory {
       category,
       timestamp,
       description,
-      // Explicitly destructure bank to avoid leaking it into prisma input.
-      // Otherwise prisma call fails with unknown fields error.
+      tagIds,
+      ownShareAmount,
+      otherPartyName,
       bank: _bank,
       ...overrides
     }: TransactionContext & {
       bank?: unknown;
       timestamp?: Date | string;
       description?: string;
-    } & Partial<Omit<Transaction, 'timestamp'>>
+      tagIds?: number[];
+      ownShareAmount?: number;
+      otherPartyName?: string;
+      tripId?: number;
+    }
   ) {
-    return prisma.transaction.create({
+    const amountNanos = BigInt(amount * NANOS_PER_DOLLAR);
+    const ownShareAmountNanos = ownShareAmount
+      ? BigInt(ownShareAmount * NANOS_PER_DOLLAR)
+      : amountNanos;
+    const time = timestamp ? new Date(timestamp) : new Date();
+    const iid = await this.nextIid(user.id);
+    const bankAccount = await prisma.bankAccount.findUniqueOrThrow({
+      where: {id: account.id},
+    });
+    const ledgerAccountAsset = await prisma.ledgerAccountV2.findUniqueOrThrow({
+      where: {bankAccountId: account.id},
+    });
+    const ledgerAccountIncome = await prisma.ledgerAccountV2.findFirstOrThrow({
+      where: {userId: user.id, type: 'INCOME'},
+    });
+    const currencyCode = bankAccount.currencyCode ?? undefined;
+    const stockId = bankAccount.stockId ?? undefined;
+    const lines = [
+      {
+        ledgerAccountId: ledgerAccountAsset.id,
+        currencyCode,
+        stockId,
+        amountNanos: amountNanos,
+      },
+      {
+        ledgerAccountId: ledgerAccountIncome.id,
+        currencyCode,
+        stockId,
+        amountNanos: -ownShareAmountNanos,
+      },
+    ];
+    let splits;
+    if (otherPartyName) {
+      const companionShareNanos = amountNanos - ownShareAmountNanos;
+      const ledgerAccountReceivable = await this.getOrCreateReceivableAccount(
+        user.id,
+        otherPartyName
+      );
+      lines.push({
+        ledgerAccountId: ledgerAccountReceivable.id,
+        currencyCode,
+        stockId,
+        amountNanos: -companionShareNanos,
+      });
+      splits = {
+        create: [
+          {
+            companionName: otherPartyName,
+            companionShareNanos,
+            companionPaidNanos: BigInt(0),
+          },
+        ],
+      };
+    }
+    return prisma.transactionV2.create({
       data: {
+        iid,
         userId: user.id,
-        transactionType: TransactionType.INCOME,
-        incomingAccountId: account.id,
-        incomingAmountCents: Math.round(amount * 100),
-        ownShareAmountCents: Math.round(amount * 100),
-        timestamp: timestamp ? new Date(timestamp) : new Date(),
+        type: 'INCOME',
+        timestamp: time,
         categoryId: category.id,
-        description: description ?? '',
+        note: description ?? '',
         payer,
-        ...overrides,
+        lines: {create: lines},
+        ...(overrides.tripId ? {tripId: overrides.tripId} : {}),
+        ...(splits ? {splits} : {}),
+        ...(tagIds ? {tags: {connect: tagIds.map(id => ({id}))}} : {}),
       },
     });
   }
@@ -320,8 +552,9 @@ export class TestFactory {
       to,
       category,
       timestamp,
-      // Explicitly destructure bank and account to avoid leaking them into prisma input.
-      // Otherwise prisma call fails with unknown fields error.
+      description,
+      tagIds,
+      receivedAmount,
       bank: _bank,
       account: _account,
       ...overrides
@@ -333,21 +566,79 @@ export class TestFactory {
       bank?: unknown;
       account?: unknown;
       timestamp?: Date | string;
-    } & Partial<Omit<Transaction, 'timestamp'>>
+      description?: string;
+      tagIds?: number[];
+      receivedAmount?: number;
+      tripId?: number;
+    }
   ) {
-    return prisma.transaction.create({
+    const amountNanos = BigInt(amount * NANOS_PER_DOLLAR);
+    const receivedAmountNanos = receivedAmount
+      ? BigInt(receivedAmount * NANOS_PER_DOLLAR)
+      : amountNanos;
+    const time = timestamp ? new Date(timestamp) : new Date();
+    const iid = await this.nextIid(user.id);
+    const fromBankAcct = await prisma.bankAccount.findUniqueOrThrow({
+      where: {id: from.id},
+    });
+    const toBankAcct = await prisma.bankAccount.findUniqueOrThrow({
+      where: {id: to.id},
+    });
+    const ledgerAccountFromAsset =
+      await prisma.ledgerAccountV2.findUniqueOrThrow({
+        where: {bankAccountId: from.id},
+      });
+    const ledgerAccountToAsset = await prisma.ledgerAccountV2.findUniqueOrThrow(
+      {where: {bankAccountId: to.id}}
+    );
+    const lines = [
+      {
+        ledgerAccountId: ledgerAccountFromAsset.id,
+        amountNanos: -amountNanos,
+        currencyCode: fromBankAcct.currencyCode,
+        stockId: fromBankAcct.stockId,
+      },
+      {
+        ledgerAccountId: ledgerAccountToAsset.id,
+        amountNanos: receivedAmountNanos,
+        currencyCode: toBankAcct.currencyCode,
+        stockId: toBankAcct.stockId,
+      },
+    ];
+    if (
+      fromBankAcct.currencyCode !== toBankAcct.currencyCode ||
+      fromBankAcct.stockId !== toBankAcct.stockId
+    ) {
+      const ledgerAccountExchange =
+        await prisma.ledgerAccountV2.findFirstOrThrow({
+          where: {userId: user.id, type: 'CURRENCY_EXCHANGE'},
+        });
+      lines.push(
+        {
+          ledgerAccountId: ledgerAccountExchange.id,
+          amountNanos: amountNanos,
+          currencyCode: fromBankAcct.currencyCode,
+          stockId: fromBankAcct.stockId,
+        },
+        {
+          ledgerAccountId: ledgerAccountExchange.id,
+          amountNanos: -receivedAmountNanos,
+          currencyCode: toBankAcct.currencyCode,
+          stockId: toBankAcct.stockId,
+        }
+      );
+    }
+    return prisma.transactionV2.create({
       data: {
+        iid,
         userId: user.id,
-        transactionType: TransactionType.TRANSFER,
-        outgoingAccountId: from.id,
-        outgoingAmountCents: Math.round(amount * 100),
-        incomingAccountId: to.id,
-        incomingAmountCents: Math.round(amount * 100),
-        ownShareAmountCents: 0,
-        timestamp: timestamp ? new Date(timestamp) : new Date(),
+        type: 'TRANSFER',
+        timestamp: time,
         categoryId: category.id,
-        description: '',
-        ...overrides,
+        note: description ?? '',
+        lines: {create: lines},
+        ...(overrides.tripId ? {tripId: overrides.tripId} : {}),
+        ...(tagIds ? {tags: {connect: tagIds.map(id => ({id}))}} : {}),
       },
     });
   }
@@ -361,8 +652,7 @@ export class TestFactory {
     ownShareAmount,
     currencyCode,
     timestamp,
-    // Explicitly destructure bank and account to avoid leaking them into prisma input.
-    // Otherwise prisma call fails with unknown fields error.
+    tagIds,
     bank: _bank,
     account: _account,
     ...overrides
@@ -377,20 +667,56 @@ export class TestFactory {
     timestamp?: Date | string;
     bank?: unknown;
     account?: unknown;
-  } & Partial<Omit<Transaction, 'timestamp'>>) {
-    return prisma.transaction.create({
+    tagIds?: number[];
+    tripId?: number;
+  }) {
+    const fullAmountNanos = BigInt(fullAmount * NANOS_PER_DOLLAR);
+    const ownShareAmountNanos = BigInt(ownShareAmount * NANOS_PER_DOLLAR);
+    const time = timestamp ? new Date(timestamp) : new Date();
+    const iid = await this.nextIid(user.id);
+    const ledgerAccountExpense = await prisma.ledgerAccountV2.findFirstOrThrow({
+      where: {userId: user.id, type: 'EXPENSE'},
+    });
+    const ledgerAccountReceivable = await this.getOrCreateReceivableAccount(
+      user.id,
+      payer
+    );
+    const lines = [
+      {
+        ledgerAccountId: ledgerAccountExpense.id,
+        amountNanos: ownShareAmountNanos,
+        currencyCode,
+        stockId: undefined,
+      },
+      {
+        ledgerAccountId: ledgerAccountReceivable.id,
+        amountNanos: -ownShareAmountNanos,
+        currencyCode,
+        stockId: undefined,
+      },
+    ];
+    return prisma.transactionV2.create({
       data: {
+        iid,
         userId: user.id,
-        transactionType: TransactionType.THIRD_PARTY_EXPENSE,
-        payerOutgoingAmountCents: Math.round(fullAmount * 100),
-        ownShareAmountCents: Math.round(ownShareAmount * 100),
-        timestamp: timestamp ? new Date(timestamp) : new Date(),
+        type: 'THIRD_PARTY_EXPENSE',
+        timestamp: time,
         categoryId: category.id,
-        description: '',
+        note: '',
         vendor,
         payer,
-        currencyCode,
-        ...overrides,
+        lines: {create: lines},
+        splits: {
+          create: [
+            {
+              companionName: payer,
+              companionShareNanos: ownShareAmountNanos,
+              companionPaidNanos: fullAmountNanos,
+            },
+          ],
+        },
+        ...(overrides.tripId ? {tripId: overrides.tripId} : {}),
+        ...(tagIds ? {tags: {connect: tagIds.map(id => ({id}))}} : {}),
       },
     });
   }
@@ -428,7 +754,7 @@ export class TestFactory {
     linkedTransactionId: number,
     linkType: 'REFUND' | 'DEBT_SETTLING'
   ) {
-    return prisma.transactionLink.create({
+    return prisma.transactionLinkV2.create({
       data: {
         sourceTransactionId,
         linkedTransactionId,

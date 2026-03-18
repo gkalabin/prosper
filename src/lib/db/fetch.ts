@@ -1,23 +1,25 @@
 import {DB} from '@/lib/db';
-import {TransactionWithTagIds} from '@/lib/model/AllDatabaseDataModel';
+import {DBTransaction} from '@/lib/model/AllDatabaseDataModel';
 import {
   Bank,
   BankAccount,
   Category,
   DisplaySettings,
   ExchangeRate,
+  LedgerAccountV2,
   Stock,
   StockQuote,
-  Tag,
-  TransactionLink,
-  TransactionPrototype,
+  TagV2,
+  TransactionLinkV2,
+  TransactionPrototypeV2,
   Trip,
 } from '@prisma/client';
 
 export type TransactionData = {
-  dbTransactions: TransactionWithTagIds[];
-  dbTransactionLinks: TransactionLink[];
-  dbTransactionPrototypes: TransactionPrototype[];
+  dbTransactions: DBTransaction[];
+  dbTransactionLinks: TransactionLinkV2[];
+  dbTransactionPrototypes: TransactionPrototypeV2[];
+  dbLedgerAccounts: LedgerAccountV2[];
 };
 
 export async function fetchTransactionData({
@@ -46,6 +48,11 @@ export async function fetchTransactionData({
         data.dbTransactionPrototypes = await db.transactionPrototypeFindMany();
         console.timeEnd(timeLabel('dbTransactionPrototypes'));
       },
+      async () => {
+        console.time(timeLabel('dbLedgerAccounts'));
+        data.dbLedgerAccounts = await db.ledgerAccountFindMany();
+        console.timeEnd(timeLabel('dbLedgerAccounts'));
+      },
     ].map(f => f())
   );
   return data;
@@ -56,7 +63,7 @@ export type CoreData = {
   dbBanks: Bank[];
   dbBankAccounts: BankAccount[];
   dbTrips: Trip[];
-  dbTags: Tag[];
+  dbTags: TagV2[];
   dbStocks: Stock[];
   dbDisplaySettings: DisplaySettings;
 };

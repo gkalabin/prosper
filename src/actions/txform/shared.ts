@@ -1,24 +1,118 @@
-import {DatabaseUpdates} from '@/actions/txform/types';
 import {
   type TransactionPrototype,
   WithdrawalOrDepositPrototype,
 } from '@/lib/txsuggestions/TransactionPrototype';
-import {Prisma, Tag, Trip} from '@prisma/client';
+import {
+  LedgerAccountType,
+  LedgerAccountV2,
+  Prisma,
+  TagV2,
+  Trip,
+} from '@prisma/client';
 
-export type CreateInput = Prisma.TransactionUncheckedCreateInput;
+export type BankAccountUnit =
+  | {currencyCode: string; stockId: null}
+  | {currencyCode: null; stockId: number};
 
-export type UpdateInput = Prisma.TransactionUncheckedUpdateInput;
+export type EntryLineInput = {
+  ledgerAccountId: number;
+  currencyCode: string | null;
+  stockId: number | null;
+  amountNanos: bigint;
+};
 
-export function includeTagIds() {
-  return {
-    include: {
-      tags: {
-        select: {
-          id: true,
-        },
-      },
-    },
-  };
+export type SplitInput = {
+  companionName: string;
+  companionShareNanos: bigint;
+  companionPaidNanos: bigint;
+};
+
+export async function nextIid(
+  tx: Prisma.TransactionClient,
+  userId: number
+): Promise<number> {
+  const result = await tx.transactionV2.aggregate({
+    where: {userId},
+    _max: {iid: true},
+  });
+  return (result._max.iid ?? 0) + 1;
+}
+
+export function mustFindAccount(
+  ledgerAccounts: LedgerAccountV2[],
+  type: LedgerAccountType
+): LedgerAccountV2 {
+  const accounts = ledgerAccounts.filter(a => a.type === type);
+  if (accounts.length !== 1) {
+    throw new Error(
+      `Expected 1 ledger account of type ${type}, found ${accounts.length}`
+    );
+  }
+  return accounts[0];
+}
+
+export function mustFindAsset(
+  ledgerAccounts: LedgerAccountV2[],
+  bankAccountId: number
+): LedgerAccountV2 {
+  const accounts = ledgerAccounts.filter(
+    a => a.type === LedgerAccountType.ASSET && a.bankAccountId === bankAccountId
+  );
+  if (accounts.length !== 1) {
+    throw new Error(
+      `Expected 1 asset ledger account for bankAccountId=${bankAccountId}, found ${accounts.length}`
+    );
+  }
+  return accounts[0];
+}
+
+export async function findOrCreateReceivableAccount(
+  tx: Prisma.TransactionClient,
+  ledgerAccounts: LedgerAccountV2[],
+  companionName: string,
+  userId: number
+): Promise<LedgerAccountV2> {
+  const name = `RECEIVABLE:${companionName}`;
+  const existing = ledgerAccounts.find(
+    a => a.type === LedgerAccountType.RECEIVABLE && a.name === name
+  );
+  if (existing) {
+    return existing;
+  }
+  const created = await tx.ledgerAccountV2.create({
+    data: {userId, name, type: LedgerAccountType.RECEIVABLE},
+  });
+  // Add to the in-memory list so that other calls within the same
+  // DB transaction (e.g. a repayment created alongside its expense)
+  // can find this account without an extra DB round-trip.
+  ledgerAccounts.push(created);
+  return created;
+}
+
+// Resolves the unit (currency or stock) for a bank account.
+// Every bank account must have exactly one of currencyCode or stockId.
+export async function bankAccountUnit(
+  tx: Prisma.TransactionClient,
+  bankAccountId: number
+): Promise<BankAccountUnit> {
+  const bankAccount = await tx.bankAccount.findUniqueOrThrow({
+    where: {id: bankAccountId},
+    select: {currencyCode: true, stockId: true},
+  });
+  if (bankAccount.currencyCode && bankAccount.stockId) {
+    throw new Error(
+      `BankAccount ${bankAccountId} has both currencyCode and stockId`
+    );
+  }
+  if (bankAccount.currencyCode) {
+    return {currencyCode: bankAccount.currencyCode, stockId: null};
+  }
+  if (bankAccount.stockId) {
+    return {currencyCode: null, stockId: bankAccount.stockId};
+  }
+  throw new Error(
+    `BankAccount ${bankAccountId} has neither currencyCode nor stockId`
+  );
 }
 
 export async function getOrCreateTrip({
@@ -41,62 +135,31 @@ export async function getOrCreateTrip({
   return await tx.trip.create({data: tripNameAndUser});
 }
 
-async function fetchOrCreateTags(
+export async function fetchOrCreateTagV2s(
   tx: Prisma.TransactionClient,
-  dbUpdates: DatabaseUpdates,
   tagNames: string[],
   userId: number
-): Promise<Tag[]> {
+): Promise<TagV2[]> {
   if (!tagNames.length) {
     return [];
   }
-  const existing: Tag[] = await tx.tag.findMany({
-    where: {
-      userId,
-      name: {
-        in: tagNames,
-      },
-    },
+  const existing = await tx.tagV2.findMany({
+    where: {userId, name: {in: tagNames}},
   });
   const newNames = tagNames.filter(x => existing.every(t => t.name != x));
   const created = await Promise.all(
-    newNames.map(name => tx.tag.create({data: {name, userId}}))
+    newNames.map(name => tx.tagV2.create({data: {name, userId}}))
   );
-  dbUpdates.tags.push(...created);
   return [...existing, ...created];
 }
 
-export async function connectTags(
-  tx: Prisma.TransactionClient,
-  dbUpdates: DatabaseUpdates,
-  data: CreateInput,
-  tagNames: string[],
-  userId: number
-): Promise<void> {
-  const allTags = await fetchOrCreateTags(tx, dbUpdates, tagNames, userId);
-  data.tags = {connect: allTags.map(({id}) => ({id}))};
-}
-
-export async function updateTags(
-  tx: Prisma.TransactionClient,
-  dbUpdates: DatabaseUpdates,
-  data: UpdateInput,
-  tagNames: string[],
-  userId: number
-): Promise<void> {
-  const allTags = await fetchOrCreateTags(tx, dbUpdates, tagNames, userId);
-  data.tags = {set: allTags.map(({id}) => ({id}))};
-}
-
-export async function writeUsedProtos({
+export async function writeUsedProtosV2({
   tx,
-  dbUpdates,
   protos,
   transactionId,
   userId,
 }: {
   tx: Prisma.TransactionClient;
-  dbUpdates: DatabaseUpdates;
   protos: TransactionPrototype[];
   transactionId: number;
   userId: number;
@@ -110,38 +173,16 @@ export async function writeUsedProtos({
     proto.type == 'transfer' ? [proto.deposit, proto.withdrawal] : [proto]
   );
 
-  const createSinglePrototype = async (proto: WithdrawalOrDepositPrototype) =>
-    await tx.transactionPrototype.create({
-      data: {
-        internalTransactionId: transactionId,
-        externalId: proto.externalTransactionId,
-        externalDescription: proto.originalDescription,
-        userId,
-      },
-    });
-
-  const created = await Promise.all(plainProtos.map(createSinglePrototype));
-  dbUpdates.prototypes.push(...created);
-}
-
-export async function deleteAllLinks(
-  tx: Prisma.TransactionClient,
-  dbUpdates: DatabaseUpdates,
-  transactionId: number
-) {
-  const links = await tx.transactionLink.findMany({
-    where: {
-      OR: [
-        {sourceTransactionId: transactionId},
-        {linkedTransactionId: transactionId},
-      ],
-    },
-  });
-  if (links.length) {
-    const linkIds = links.map(({id}) => id);
-    await tx.transactionLink.deleteMany({where: {id: {in: linkIds}}});
-    linkIds.forEach(id => {
-      dbUpdates.transactionLinks[id] = null;
-    });
-  }
+  await Promise.all(
+    plainProtos.map(proto =>
+      tx.transactionPrototypeV2.create({
+        data: {
+          internalTransactionId: transactionId,
+          externalId: proto.externalTransactionId,
+          externalDescription: proto.originalDescription,
+          userId,
+        },
+      })
+    )
+  );
 }

@@ -72,6 +72,10 @@ export function TransactionForm(props: {
   transaction: Transaction | null;
   onClose: () => void;
 }) {
+  if (props.transaction?.kind === 'OpeningBalance') {
+    // TODO: implement this nicely in the UI.
+    throw new Error('OpeningBalance cannot be edited in the UI');
+  }
   const {categories} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
   const bankAccounts = useDisplayBankAccounts();

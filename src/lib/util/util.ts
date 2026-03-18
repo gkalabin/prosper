@@ -1,3 +1,6 @@
+const NANOS_PER_CENT = 10_000_000;
+const NANOS_PER_DOLLAR = 1_000_000_000;
+
 export function capitalize(s: string): string {
   if (s.length < 1) {
     return s;
@@ -39,12 +42,25 @@ export function parseAmountAsCents(s: string): number {
   return sign * cents;
 }
 
+// TODO: switch fully to nanos and remove cents functions.
 export function centsToDollar(cents: number): number {
   return Math.round(cents) / 100;
 }
 
 export function dollarToCents(dollar: number): number {
   return Math.round(dollar * 100);
+}
+
+export function nanosToCents(nanos: bigint): number {
+  return Number(BigInt(nanos) / BigInt(NANOS_PER_CENT));
+}
+export function centsToNanos(cents: number): bigint {
+  return BigInt(cents) * BigInt(NANOS_PER_CENT);
+}
+
+// TODO: write tests.
+export function dollarToNanos(dollar: number): bigint {
+  return BigInt(Math.round(dollar * NANOS_PER_DOLLAR));
 }
 
 export function appendNewItems(target: number[], newItems: number[]): number[] {

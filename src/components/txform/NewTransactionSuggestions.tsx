@@ -27,7 +27,7 @@ import {
 } from '@/lib/txsuggestions/TransactionPrototype';
 import {combineTransfers} from '@/lib/txsuggestions/TransfersDetection';
 import {cn} from '@/lib/utils';
-import {TransactionPrototype as DBTransactionPrototype} from '@prisma/client';
+import {TransactionPrototypeV2 as DBTransactionPrototype} from '@prisma/client';
 import assert from 'assert';
 import {format} from 'date-fns';
 import {useEffect, useState} from 'react';
@@ -42,6 +42,11 @@ export function fillMostCommonDescriptions(input: {
     const t = input.transactions.find(x => x.id == p.internalTransactionId);
     if (!t) {
       continue;
+    }
+    if (t.kind === 'OpeningBalance') {
+      throw new Error(
+        `Opening balance transaction cannot be linked, but found ${t.id}`
+      );
     }
     const external = p.externalDescription;
     let internal = t.note;
@@ -273,6 +278,10 @@ function summary(
       const from = outgoingBankAccount(t, bankAccounts);
       const to = incomingBankAccount(t, bankAccounts);
       return `${fullAccountName(from, banks)} → ${fullAccountName(to, banks)}`;
+    case 'OpeningBalance':
+      throw new Error(
+        `Opening balance transaction cannot be linked, but found ${t.id}`
+      );
     default:
       const _exhaustiveCheck: never = t;
       throw new Error(`Unknown transaction type for ${_exhaustiveCheck}`);

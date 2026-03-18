@@ -107,11 +107,7 @@ test.describe('Account Management', () => {
   test('edit initial balance', async ({page, seed, loginAs}) => {
     const {user} = await seed.createUserWithTestData({
       bank: {name: 'Chase'},
-      account: {
-        name: 'Checking',
-        currencyCode: 'USD',
-        initialBalanceCents: 10000,
-      },
+      account: {name: 'Checking', currencyCode: 'USD', initialBalance: 100},
     });
     await loginAs(user);
     const bankConfigPage = new BankConfigPage(page);

@@ -18,11 +18,15 @@ model User {
   ExternalAccountMapping ExternalAccountMapping[]
   StarlingToken          StarlingToken[]
   Session                Session[]
+  LedgerAccountV2        LedgerAccountV2[]
+  TransactionV2          TransactionV2[]
+  TransactionPrototypeV2 TransactionPrototypeV2[]
+  TagV2                  TagV2[]
 }
 
 model Session {
   id        String   @id
   userId    Int
   expiresAt DateTime
-  user User @relation(references: [id], fields: [userId], onDelete: Cascade)
+  user      User     @relation(references: [id], fields: [userId], onDelete: Cascade)
 }

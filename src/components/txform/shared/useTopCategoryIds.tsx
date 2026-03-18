@@ -3,6 +3,7 @@ import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {
   isExpense,
   isIncome,
+  isOpeningBalance,
   Transaction,
 } from '@/lib/model/transaction/Transaction';
 import {appendNewItems} from '@/lib/util/util';
@@ -53,7 +54,10 @@ export function topCategoriesMatchMost({
   const current = [...filters];
   while (result.length < want && current.length > 0) {
     const newCategories = uniqMostFrequent(
-      transactions.filter(t => current.every(f => f(t))).map(t => t.categoryId)
+      transactions
+        .filter(t => !isOpeningBalance(t))
+        .filter(t => current.every(f => f(t)))
+        .map(t => t.categoryId)
     );
     result = appendNewItems(result, newCategories);
     current.pop();
@@ -70,7 +74,9 @@ export function topCategoriesMatchAll({
   want: number;
   transactions: Transaction[];
 }): number[] {
-  const filtered = transactions.filter(t => filters.every(f => f(t)));
+  const filtered = transactions
+    .filter(t => !isOpeningBalance(t))
+    .filter(t => filters.every(f => f(t)));
   const result = uniqMostFrequent(filtered.map(t => t.categoryId));
   return result.slice(0, want);
 }

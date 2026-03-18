@@ -24,6 +24,7 @@ import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Category} from '@/lib/model/Category';
 import {Tag} from '@/lib/model/Tag';
+import {OpeningBalance} from '@/lib/model/transaction/OpeningBalance';
 import {
   isIncome,
   isTransfer,
@@ -33,7 +34,10 @@ import {TransactionLink} from '@/lib/model/TransactionLink';
 import {Trip} from '@/lib/model/Trip';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 
-export function useFormDefaults(tx: Transaction | null): TransactionFormSchema {
+// Excluding OpeningBalance from Transaction type as these cannot be edited in the regular form and instead should be edited on the bank account page.
+export function useFormDefaults(
+  tx: Exclude<Transaction, OpeningBalance> | null
+): TransactionFormSchema {
   const {categories, bankAccounts, tags, trips} = useCoreDataContext();
   const {transactions, transactionLinks} = useTransactionDataContext();
   // Initial values when creating new transaction from scratch.
@@ -51,7 +55,7 @@ export function useFormDefaults(tx: Transaction | null): TransactionFormSchema {
 }
 
 function valuesForTransaction(
-  tx: Transaction,
+  tx: Exclude<Transaction, OpeningBalance>,
   transactionLinks: TransactionLink[],
   tags: Tag[],
   trips: Trip[]

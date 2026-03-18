@@ -4,31 +4,35 @@ import {
   BankAccount,
   Category,
   DisplaySettings,
+  EntryLineV2,
   ExchangeRate,
+  LedgerAccountV2,
+  SplitContextV2,
   Stock,
   StockQuote,
-  Tag,
-  Transaction,
-  TransactionLink,
-  TransactionPrototype,
+  TagV2,
+  TransactionLinkV2,
+  TransactionPrototypeV2,
+  TransactionV2,
   Trip,
 } from '@prisma/client';
 
-export interface TransactionWithTagIds extends Transaction {
-  tags: {
-    id: number;
-  }[];
-}
+export type DBTransaction = TransactionV2 & {
+  lines: EntryLineV2[];
+  tags: Pick<TagV2, 'id'>[];
+  splits: SplitContextV2[];
+};
 
 export type AllDatabaseData = {
-  dbTransactions: TransactionWithTagIds[];
-  dbTransactionLinks: TransactionLink[];
-  dbTransactionPrototypes: TransactionPrototype[];
+  dbTransactions: DBTransaction[];
+  dbTransactionLinks: TransactionLinkV2[];
+  dbTransactionPrototypes: TransactionPrototypeV2[];
+  dbLedgerAccounts: LedgerAccountV2[];
   dbCategories: Category[];
   dbBanks: Bank[];
   dbBankAccounts: BankAccount[];
   dbTrips: Trip[];
-  dbTags: Tag[];
+  dbTags: TagV2[];
   dbExchangeRates: ExchangeRate[];
   dbStockQuotes: StockQuote[];
   dbDisplaySettings: DisplaySettings;

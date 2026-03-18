@@ -10,6 +10,7 @@ import {
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
+import {isOpeningBalance} from '@/lib/model/transaction/Transaction';
 import {cn} from '@/lib/utils';
 import {
   CheckIcon,
@@ -198,6 +199,7 @@ function useExistingTagNames() {
   return useMemo(() => {
     const tagFrequency = new Map<number, number>(tags.map(tag => [tag.id, 0]));
     transactions
+      .filter(tx => !isOpeningBalance(tx))
       .flatMap(tx => tx.tagsIds)
       .forEach(tagId => {
         tagFrequency.set(tagId, (tagFrequency.get(tagId) ?? 0) + 1);

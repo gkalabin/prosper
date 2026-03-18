@@ -77,6 +77,18 @@ export async function signUp(
     });
     await createInitialCategories(tx, user);
     await createInitialDisplaySettings(tx, user);
+    // Create system ledger accounts.
+    const systemTypes = [
+      'EXPENSE',
+      'INCOME',
+      'EQUITY',
+      'CURRENCY_EXCHANGE',
+    ] as const;
+    for (const type of systemTypes) {
+      await tx.ledgerAccountV2.create({
+        data: {userId: user.id, name: `SYSTEM:${type}`, type},
+      });
+    }
     return {user, error: null};
   });
   if (!txResult.user) {

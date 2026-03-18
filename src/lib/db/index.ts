@@ -4,10 +4,7 @@ import {
   cachedTransactionDataOrFetch,
 } from '@/lib/db/cache';
 import {CoreData, MarketData, TransactionData} from '@/lib/db/fetch';
-import {
-  AllDatabaseData,
-  TransactionWithTagIds,
-} from '@/lib/model/AllDatabaseDataModel';
+import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
 import prisma from '@/lib/prisma';
 import {Prisma} from '@prisma/client';
 
@@ -18,37 +15,18 @@ export class DB {
     this.userId = userId;
   }
 
-  async transactionFindAll(): Promise<TransactionWithTagIds[]> {
-    return await prisma.transaction.findMany({
-      where: {
-        userId: this.userId,
-      },
+  async transactionFindAll() {
+    return await prisma.transactionV2.findMany({
+      ...this.whereUser({}),
       include: {
-        tags: {
-          select: {
-            id: true,
-          },
-        },
-      },
-    });
-  }
-  async transactionById(id: number): Promise<TransactionWithTagIds | null> {
-    return await prisma.transaction.findFirst({
-      where: {
-        id,
-        userId: this.userId,
-      },
-      include: {
-        tags: {
-          select: {
-            id: true,
-          },
-        },
+        lines: true,
+        tags: {select: {id: true}},
+        splits: true,
       },
     });
   }
   async transactionLinkFindAll() {
-    const transactionLinks = await prisma.transactionLink.findMany({
+    const transactionLinks = await prisma.transactionLinkV2.findMany({
       // Where either of the transactions has this user id.
       where: {
         OR: [
@@ -71,17 +49,20 @@ export class DB {
     return transactionLinks;
   }
   async transactionPrototypeFindMany(
-    args?: Prisma.TransactionPrototypeFindManyArgs
+    args?: Prisma.TransactionPrototypeV2FindManyArgs
   ) {
-    return await prisma.transactionPrototype.findMany(
+    return await prisma.transactionPrototypeV2.findMany(
       this.whereUser(args ?? {})
     );
+  }
+  async ledgerAccountFindMany(args?: Prisma.LedgerAccountV2FindManyArgs) {
+    return await prisma.ledgerAccountV2.findMany(this.whereUser(args ?? {}));
   }
   async tripFindMany(args?: Prisma.TripFindManyArgs) {
     return await prisma.trip.findMany(this.whereUser(args ?? {}));
   }
-  async tagFindMany(args?: Prisma.TagFindManyArgs) {
-    return await prisma.tag.findMany(this.whereUser(args ?? {}));
+  async tagFindMany(args?: Prisma.TagV2FindManyArgs) {
+    return await prisma.tagV2.findMany(this.whereUser(args ?? {}));
   }
   async bankUpdate(args: Prisma.BankUpdateArgs) {
     return await prisma.bank.update(args);

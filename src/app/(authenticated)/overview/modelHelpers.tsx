@@ -16,6 +16,7 @@ export function transactionBelongsToAccount(
       return false;
     case 'PersonalExpense':
     case 'Income':
+    case 'OpeningBalance':
       return t.accountId == account.id;
     case 'Transfer':
       return t.fromAccountId == account.id || t.toAccountId == account.id;
@@ -30,17 +31,18 @@ export function accountBalance(
   allTransactions: Transaction[],
   stocks: Stock[]
 ): AmountWithUnit {
-  let balance = account.initialBalanceCents;
+  let balance = 0;
   allTransactions.forEach(t => {
     if (!transactionBelongsToAccount(t, account)) {
       return;
     }
     switch (t.kind) {
-      case 'PersonalExpense':
-        balance = balance - t.amountCents;
-        return;
+      case 'OpeningBalance':
       case 'Income':
         balance = balance + t.amountCents;
+        return;
+      case 'PersonalExpense':
+        balance = balance - t.amountCents;
         return;
       case 'Transfer':
         if (t.fromAccountId == account.id) {

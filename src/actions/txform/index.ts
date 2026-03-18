@@ -1,24 +1,17 @@
 'use server';
-import {upsertExpense} from '@/actions/txform/expense';
-import {upsertIncome} from '@/actions/txform/income';
-import {upsertTransfer} from '@/actions/txform/transfer';
-import {
-  DatabaseUpdates,
-  UpsertTransactionAPIResponse,
-} from '@/actions/txform/types';
+import {UpsertTransactionAPIResponse} from '@/actions/txform/types';
+import {writeTransactionV2} from '@/actions/txform/writeTransaction';
 import {
   TransactionFormSchema,
   transactionFormValidationSchema,
 } from '@/components/txform/types';
 import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB} from '@/lib/db';
 import {updateCoreDataCache, updateTransactionDataCache} from '@/lib/db/cache';
 import {
   TransactionPrototype,
   TransactionPrototypeList,
   transactionPrototypeListSchema,
 } from '@/lib/txsuggestions/TransactionPrototype';
-import {Transaction} from '@prisma/client';
 
 export async function upsertTransaction(
   transactionId: number | null,
@@ -35,63 +28,17 @@ export async function upsertTransaction(
   }
   const data = validatedData.data;
   const protos = parseProtos(unsafeProtos);
-  const db = new DB({userId});
-  let transaction: Transaction | null = null;
-  if (transactionId) {
-    transaction = await db.transactionById(transactionId);
-    if (!transaction) {
-      return {
-        status: 'CLIENT_ERROR',
-        errors: {
-          formErrors: [`Transaction ${transactionId} not found`],
-          fieldErrors: {},
-        },
-      };
-    }
-  }
-  const dbUpdates: DatabaseUpdates = {
-    tags: [],
-    transactionLinks: {},
-    transactions: {},
-    trip: null,
-    prototypes: [],
-  };
-  const invalidateCache = async () => {
-    // Invalidate the core data cache because new tags or trips might be created.
-    await updateCoreDataCache(userId);
-    await updateTransactionDataCache(userId);
-  };
-  if (data.expense) {
-    await upsertExpense(dbUpdates, transaction, protos, userId, data);
-    invalidateCache();
-    return {
-      status: 'SUCCESS',
-      dbUpdates,
-    };
-  }
-  if (data.transfer) {
-    await upsertTransfer(dbUpdates, transaction, protos, userId, data);
-    invalidateCache();
-    return {
-      status: 'SUCCESS',
-      dbUpdates,
-    };
-  }
-  if (data.income) {
-    await upsertIncome(dbUpdates, transaction, protos, userId, data);
-    invalidateCache();
-    return {
-      status: 'SUCCESS',
-      dbUpdates,
-    };
-  }
-  return {
-    status: 'CLIENT_ERROR',
-    errors: {
-      formErrors: [`Transaction ${transactionId} not found`],
-      fieldErrors: {},
-    },
-  };
+  await writeTransactionV2({
+    userId,
+    form: data,
+    protos,
+    transactionIdToSupersede: transactionId,
+  });
+  // Invalidate caches because new tags, trips, or transactions may have been created.
+  await updateCoreDataCache(userId);
+  await updateTransactionDataCache(userId);
+
+  return {status: 'SUCCESS'};
 }
 
 function parseProtos(
@@ -101,7 +48,7 @@ function parseProtos(
     transactionPrototypeListSchema.safeParse(unsafeProtos);
   if (!validatedProtos.success) {
     console.warn('Invalid transaction prototypes', validatedProtos.error);
-    // We can continue with the insert as the transaction might still be possible to create.
+    // Continue without prototypes — the transaction can still be created.
     return [];
   }
   return validatedProtos.data;

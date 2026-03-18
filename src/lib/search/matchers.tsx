@@ -6,6 +6,7 @@ import {
   Transaction,
   isExpense,
   isIncome,
+  isOpeningBalance,
   isPersonalExpense,
   isThirdPartyExpense,
   isTransfer,
@@ -137,11 +138,11 @@ export function compareField(
 }
 
 function matchNote(t: Transaction, term: string, c: CaseMatch): boolean {
-  return includes(t.note, term, c);
+  return !isOpeningBalance(t) && includes(t.note, term, c);
 }
 
 function matchVendor(t: Transaction, term: string, c: CaseMatch): boolean {
-  if (isTransfer(t) || isIncome(t)) {
+  if (!isExpense(t)) {
     return false;
   }
   return includes(t.vendor, term, c);
@@ -155,7 +156,7 @@ function matchPayer(t: Transaction, term: string, c: CaseMatch): boolean {
 }
 
 function matchOtherParty(t: Transaction, term: string, c: CaseMatch): boolean {
-  if (isTransfer(t)) {
+  if (isTransfer(t) || isOpeningBalance(t)) {
     return false;
   }
   const otherParty = otherPartyName(t);
@@ -303,11 +304,17 @@ function matchCategory(
   c: CaseMatch,
   categoryTree: CategoryTree
 ): boolean {
+  if (isOpeningBalance(t)) {
+    return false;
+  }
   const name = getNameWithAncestors(t.categoryId, categoryTree);
   return includes(name, term, c);
 }
 
 function matchCategoryId(t: Transaction, term: string): boolean {
+  if (isOpeningBalance(t)) {
+    return false;
+  }
   return equals(t.categoryId, term);
 }
 
@@ -317,7 +324,7 @@ function matchTrip(
   c: CaseMatch,
   trips: Trip[]
 ): boolean {
-  if (isTransfer(t) || !t.tripId) {
+  if (isTransfer(t) || isOpeningBalance(t) || !t.tripId) {
     return false;
   }
   const trip = transactionTrip(t, trips);
@@ -328,7 +335,7 @@ function matchTrip(
 }
 
 function matchTripId(t: Transaction, term: string): boolean {
-  if (isTransfer(t) || !t.tripId) {
+  if (isTransfer(t) || isOpeningBalance(t) || !t.tripId) {
     return false;
   }
   return equals(t.tripId, term);
@@ -350,6 +357,9 @@ function matchTag(
 }
 
 function matchTagId(t: Transaction, term: string): boolean {
+  if (isOpeningBalance(t)) {
+    return false;
+  }
   for (const tagId of t.tagsIds) {
     if (equals(tagId, term)) {
       return true;

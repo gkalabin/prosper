@@ -23,6 +23,7 @@ model BankAccount {
   ExternalAccountMapping ExternalAccountMapping[]
   outgoingTransactions   Transaction[]            @relation("OutgoingTransactions")
   incomingTransactions   Transaction[]            @relation("IncomingTransactions")
+  LedgerAccountV2        LedgerAccountV2?
 }
 
 model Bank {
@@ -51,6 +52,7 @@ model Stock {
   updatedAt    DateTime      @updatedAt
   BankAccount  BankAccount[]
   StockQuote   StockQuote[]
+  EntryLineV2  EntryLineV2[]
 }
 
 model Category {
@@ -63,7 +65,8 @@ model Category {
   parentCategoryId Int?
   children         Category[] @relation("ParentCategory")
 
-  transactions Transaction[]
+  transactions  Transaction[]
+  TransactionV2 TransactionV2[]
 
   user      User     @relation(fields: [userId], references: [id])
   userId    Int
@@ -82,18 +85,19 @@ model Tag {
 }
 
 model Trip {
-  id          Int           @id @default(autoincrement())
-  name        String
-  country     String?
-  city        String?
-  destination String?
-  start       DateTime?
-  end         DateTime?
-  user        User          @relation(fields: [userId], references: [id])
-  userId      Int
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  Transaction Transaction[]
+  id            Int             @id @default(autoincrement())
+  name          String
+  country       String?
+  city          String?
+  destination   String?
+  start         DateTime?
+  end           DateTime?
+  user          User            @relation(fields: [userId], references: [id])
+  userId        Int
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  Transaction   Transaction[]
+  TransactionV2 TransactionV2[]
 }
 
 model DisplaySettings {
