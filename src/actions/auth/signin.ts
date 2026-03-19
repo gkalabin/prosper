@@ -11,6 +11,7 @@ import {
   generateSessionToken,
 } from '@/lib/auth/session';
 import prisma from '@/lib/prisma';
+import {isProd, isUsingHTTP} from '@/lib/util/env';
 import {logRequest} from '@/lib/util/log';
 import bcrypt from 'bcrypt';
 import {addDays} from 'date-fns';
@@ -40,6 +41,12 @@ export async function signIn(
   const passwordsMatch = await bcrypt.compare(password, dbUser.password);
   if (!passwordsMatch) {
     return AUTH_FAILED;
+  }
+  // TODO: validate env on startup instead of warning to console.
+  if (isUsingHTTP() && isProd()) {
+    console.warn(
+      'Public app url is using HTTP, this is possible misconfiguration'
+    );
   }
   // Auth OK, set session.
   logRequest('signIn', `success by ${login}`);

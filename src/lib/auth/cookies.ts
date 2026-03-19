@@ -1,5 +1,5 @@
 import {COOKIE_NAME} from '@/lib/auth/const';
-import {isProd} from '@/lib/util/env';
+import {isProd, isUsingHTTP} from '@/lib/util/env';
 import {cookies} from 'next/headers';
 
 export async function setSessionTokenCookie(
@@ -10,7 +10,8 @@ export async function setSessionTokenCookie(
   cookieStore.set(COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: 'lax' as const,
-    secure: isProd(),
+    // Only use secure cookies if running on https.
+    secure: isProd() && !isUsingHTTP(),
     expires: expiresAt,
     path: '/',
   });
@@ -21,7 +22,7 @@ export async function deleteSessionTokenCookie(): Promise<void> {
   cookieStore.set(COOKIE_NAME, '', {
     httpOnly: true,
     sameSite: 'lax',
-    secure: isProd(),
+    secure: isProd() && !isUsingHTTP(),
     maxAge: 0,
     path: '/',
   });
