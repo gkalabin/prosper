@@ -1,0 +1,404 @@
+syntax = "proto3";
+package prosper.v1;
+option go_package = "prosper/gen/prosper/v1;prosperv1";
+
+import "google/protobuf/timestamp.proto";
+
+// LedgerService serves the core application data that the frontend needs
+// for rendering pages: banks, accounts, categories, transactions, etc.
+service LedgerService {
+  rpc GetCoreData(GetCoreDataRequest) returns (GetCoreDataResponse);
+
+  rpc GetTransactions(GetTransactionsRequest)
+      returns (GetTransactionsResponse);
+
+  rpc ListAvailableCurrencies(ListAvailableCurrenciesRequest)
+      returns (ListAvailableCurrenciesResponse);
+
+  // WriteTransactionForm handles the full lifecycle of a transaction
+  // form submission (expense / income / transfer).
+  rpc WriteTransactionForm(WriteTransactionFormRequest)
+      returns (WriteTransactionFormResponse);
+
+  rpc UpsertBankAccount(UpsertBankAccountRequest)
+      returns (UpsertBankAccountResponse);
+
+  rpc UpsertBank(UpsertBankRequest) returns (UpsertBankResponse);
+
+  rpc UpsertCategory(UpsertCategoryRequest)
+      returns (UpsertCategoryResponse);
+
+  rpc UpdateDisplaySettings(UpdateDisplaySettingsRequest)
+      returns (UpdateDisplaySettingsResponse);
+}
+
+// AuthService is the single source of truth for user accounts and
+// session lifecycle.
+service AuthService {
+  // ValidateSession returns the user_id behind a session cookie and an
+  // updated expiration if the session was extended. Returns valid=false
+  // for missing or expired sessions.
+  rpc ValidateSession(ValidateSessionRequest)
+      returns (ValidateSessionResponse);
+
+  rpc CreateSession(CreateSessionRequest)
+      returns (CreateSessionResponse);
+
+  rpc DeleteSession(DeleteSessionRequest)
+      returns (DeleteSessionResponse);
+
+  // Authenticate returns ok=true with user_id when the credentials match.
+  rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse);
+
+  // CountUsers returns the current user count (used by the registration
+  // capacity check).
+  rpc CountUsers(CountUsersRequest) returns (CountUsersResponse);
+
+  // Register creates a new user atomically with the seed dataset
+  // (default categories, system ledger accounts, display settings).
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+}
+
+message ValidateSessionRequest { string session_id = 1; }
+message ValidateSessionResponse {
+  bool valid = 1;
+  int32 user_id = 2;
+  // Login of the session's user, populated when valid is true.
+  string user_login = 4;
+  // Set when the server extended the session expiry (the cookie should
+  // be re-issued with this value). Absent when the session was returned
+  // unchanged.
+  optional google.protobuf.Timestamp extended_expires_at = 3;
+}
+
+message CreateSessionRequest {
+  int32 user_id = 1;
+  string session_id = 2;
+}
+message CreateSessionResponse {
+  // Server-assigned session expiry.
+  google.protobuf.Timestamp expires_at = 1;
+}
+
+message DeleteSessionRequest { string session_id = 1; }
+message DeleteSessionResponse {}
+
+message AuthenticateRequest {
+  string login = 1;
+  string password = 2;
+}
+message AuthenticateResponse {
+  bool ok = 1;
+  int32 user_id = 2;
+}
+
+message CountUsersRequest {}
+message CountUsersResponse { int32 count = 1; }
+
+message RegisterRequest {
+  string login = 1;
+  string password = 2;
+}
+message RegisterResponse {
+  bool ok = 1;
+  int32 user_id = 2;
+  string error = 3;
+}
+
+message Bank {
+  int32 id = 1;
+  string name = 2;
+  int32 display_order = 3;
+}
+
+message BankAccount {
+  int32 id = 1;
+  string name = 2;
+  int32 bank_id = 3;
+  // Either currency_code or stock_id is set, never both.
+  optional string currency_code = 4;
+  optional int32 stock_id = 5;
+  bool joint = 6;
+  bool archived = 7;
+  int32 display_order = 8;
+  int32 initial_balance_cents = 9;
+}
+
+message Category {
+  int32 id = 1;
+  string name = 2;
+  int32 display_order = 3;
+  optional int32 parent_category_id = 4;
+}
+
+message Tag {
+  int32 id = 1;
+  string name = 2;
+}
+
+message Trip {
+  int32 id = 1;
+  string name = 2;
+  optional string country = 3;
+  optional string city = 4;
+  optional string destination = 5;
+  optional google.protobuf.Timestamp start = 6;
+  optional google.protobuf.Timestamp end = 7;
+}
+
+message Stock {
+  int32 id = 1;
+  string name = 2;
+  string exchange = 3;
+  string ticker = 4;
+  string currency_code = 5;
+}
+
+message DisplaySettings {
+  string display_currency_code = 1;
+  repeated int32 exclude_category_ids_in_stats = 2;
+}
+
+message GetCoreDataRequest { string session_id = 1; }
+
+message GetCoreDataResponse {
+  repeated Bank banks = 1;
+  repeated BankAccount bank_accounts = 2;
+  repeated Category categories = 3;
+  repeated Tag tags = 4;
+  repeated Trip trips = 5;
+  repeated Stock stocks = 6;
+  DisplaySettings display_settings = 7;
+}
+
+enum TransactionType {
+  TRANSACTION_TYPE_UNSPECIFIED = 0;
+  TRANSACTION_TYPE_EXPENSE = 1;
+  TRANSACTION_TYPE_INCOME = 2;
+  TRANSACTION_TYPE_TRANSFER = 3;
+  TRANSACTION_TYPE_THIRD_PARTY_EXPENSE = 4;
+  TRANSACTION_TYPE_OPENING_BALANCE = 5;
+}
+
+enum LedgerAccountType {
+  LEDGER_ACCOUNT_TYPE_UNSPECIFIED = 0;
+  LEDGER_ACCOUNT_TYPE_ASSET = 1;
+  LEDGER_ACCOUNT_TYPE_EXPENSE = 2;
+  LEDGER_ACCOUNT_TYPE_INCOME = 3;
+  LEDGER_ACCOUNT_TYPE_EQUITY = 4;
+  LEDGER_ACCOUNT_TYPE_CURRENCY_EXCHANGE = 5;
+  LEDGER_ACCOUNT_TYPE_RECEIVABLE = 6;
+}
+
+enum TransactionLinkType {
+  TRANSACTION_LINK_TYPE_UNSPECIFIED = 0;
+  TRANSACTION_LINK_TYPE_REFUND = 1;
+  TRANSACTION_LINK_TYPE_DEBT_SETTLING = 2;
+}
+
+message LedgerAccount {
+  int32 id = 1;
+  string name = 2;
+  LedgerAccountType type = 3;
+  // Set only for ASSET accounts that mirror a BankAccount.
+  optional int32 bank_account_id = 4;
+}
+
+message EntryLine {
+  int32 id = 1;
+  int32 transaction_id = 2;
+  int32 ledger_account_id = 3;
+  // Exactly one of currency_code / stock_id is set.
+  optional string currency_code = 4;
+  optional int32 stock_id = 5;
+  int64 amount_nanos = 6;
+}
+
+message SplitContext {
+  int32 id = 1;
+  int32 transaction_id = 2;
+  string companion_name = 3;
+  int64 companion_share_nanos = 4;
+  int64 companion_paid_nanos = 5;
+}
+
+message TransactionLink {
+  int32 id = 1;
+  int32 source_transaction_id = 2;
+  int32 linked_transaction_id = 3;
+  TransactionLinkType link_type = 4;
+}
+
+message TransactionPrototype {
+  string external_id = 1;
+  string external_description = 2;
+  int32 internal_transaction_id = 3;
+}
+
+message Transaction {
+  int32 id = 1;
+  // Per-user incrementing ID, stable across edits.
+  int32 iid = 2;
+  google.protobuf.Timestamp timestamp = 3;
+  string note = 4;
+  TransactionType type = 5;
+  optional string vendor = 6;
+  optional string payer = 7;
+  optional int32 category_id = 8;
+  optional int32 trip_id = 9;
+  optional int32 supersedes_id = 10;
+  bool is_void = 11;
+  repeated int32 tag_ids = 12;
+  repeated EntryLine lines = 13;
+  repeated SplitContext splits = 14;
+}
+
+message GetTransactionsRequest { string session_id = 1; }
+
+message GetTransactionsResponse {
+  repeated Transaction transactions = 1;
+  repeated TransactionLink links = 2;
+  repeated TransactionPrototype prototypes = 3;
+  repeated LedgerAccount ledger_accounts = 4;
+}
+
+// ListAvailableCurrenciesRequest asks for the seed list of currencies
+// offered in the bank-account creation form (USD/EUR/GBP/...).
+message ListAvailableCurrenciesRequest { string session_id = 1; }
+message ListAvailableCurrenciesResponse { repeated CurrencyInfo currencies = 1; }
+message CurrencyInfo {
+  string code = 1;
+  string name = 2;
+}
+
+message UpsertBankRequest {
+  Bank bank = 1;
+  string session_id = 2;
+}
+message UpsertBankResponse { int32 bank_id = 1; }
+
+// AccountUnit specifies the unit of a bank account. Currency uses a
+// known ISO code; stock either references an existing stock_id, or
+// describes a new (exchange, ticker) pair the backend will create on
+// the fly.
+message AccountUnit {
+  oneof unit {
+    string currency_code = 1;
+    int32 stock_id = 2;
+    StockSpec new_stock = 3;
+  }
+}
+
+message StockSpec {
+  string exchange = 1;
+  string ticker = 2;
+}
+
+message UpsertBankAccountRequest {
+  // Set to update; omit to create.
+  optional int32 account_id = 1;
+  string name = 2;
+  int32 bank_id = 3;
+  bool joint = 4;
+  bool archived = 5;
+  int32 display_order = 6;
+  int32 initial_balance_cents = 7;
+  AccountUnit unit = 8;
+  string session_id = 9;
+}
+message UpsertBankAccountResponse { int32 account_id = 1; }
+
+message UpsertCategoryRequest {
+  Category category = 1;
+  string session_id = 2;
+}
+message UpsertCategoryResponse { int32 category_id = 1; }
+
+message UpdateDisplaySettingsRequest {
+  DisplaySettings settings = 1;
+  string session_id = 2;
+}
+message UpdateDisplaySettingsResponse {}
+
+enum SharingType {
+  SHARING_TYPE_UNSPECIFIED = 0;
+  PAID_SELF_NOT_SHARED = 1;
+  PAID_SELF_SHARED = 2;
+  PAID_OTHER_OWED = 3;
+  PAID_OTHER_REPAID = 4;
+}
+
+message WriteTransactionFormRequest {
+  // When set, the existing transaction is superseded by the new
+  // version. iid carries over so the user-facing stable id is kept.
+  optional int32 transaction_id_to_supersede = 1;
+  // Tag names to attach. Names not yet present are created.
+  repeated string tag_names = 2;
+  // External transaction prototypes consumed by this submission.
+  repeated TransactionPrototypeInput used_protos = 3;
+  oneof form {
+    ExpenseFormInput expense = 4;
+    IncomeFormInput income = 5;
+    TransferFormInput transfer = 6;
+  }
+  string session_id = 7;
+}
+
+message TransactionPrototypeInput {
+  string external_id = 1;
+  string external_description = 2;
+}
+
+message ExpenseFormInput {
+  google.protobuf.Timestamp timestamp = 1;
+  string description = 2;
+  string vendor = 3;
+  int32 category_id = 4;
+  // Required for paid_self_*. Absent for paid_other_*.
+  optional int32 account_id = 5;
+  // Required for paid_other_*. Absent for paid_self_*.
+  optional string currency = 6;
+  // Required for paid_other_*.
+  optional string payer = 7;
+  // Required when shared.
+  optional string companion = 8;
+  int64 amount_nanos = 9;
+  int64 own_share_nanos = 10;
+  // Trip name. Created if missing for the user.
+  optional string trip_name = 11;
+  SharingType sharing_type = 12;
+  // Repayment info, only populated when sharing_type = PAID_OTHER_REPAID.
+  optional RepaymentInput repayment = 13;
+}
+
+message RepaymentInput {
+  int32 account_id = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  int32 category_id = 3;
+}
+
+message IncomeFormInput {
+  google.protobuf.Timestamp timestamp = 1;
+  string description = 2;
+  string payer = 3;
+  int32 category_id = 4;
+  int32 account_id = 5;
+  int64 amount_nanos = 6;
+  bool is_shared = 7;
+  optional string companion = 8;
+  int64 own_share_nanos = 9;
+  // For refund linking.
+  optional int32 parent_transaction_id = 10;
+}
+
+message TransferFormInput {
+  google.protobuf.Timestamp timestamp = 1;
+  string description = 2;
+  optional int32 category_id = 3;
+  int32 from_account_id = 4;
+  int32 to_account_id = 5;
+  int64 amount_sent_nanos = 6;
+  int64 amount_received_nanos = 7;
+}
+
+message WriteTransactionFormResponse { int32 transaction_id = 1; }

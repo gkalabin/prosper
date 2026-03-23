@@ -14,10 +14,10 @@ import {
   bankFormValidationSchema,
 } from '@/lib/form-types/BankFormSchema';
 import {AddOrUpdateButtonText} from '@/lib/i18n';
+import {Bank as ProtoBank} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {Bank} from '@/lib/model/BankAccount';
 import {setFormErrors} from '@/lib/util/forms';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {Bank as DBBank} from '@prisma/client';
 import {useForm} from 'react-hook-form';
 
 export function BankForm({
@@ -28,7 +28,7 @@ export function BankForm({
 }: {
   bank?: Bank;
   displayOrder: number;
-  onAddedOrUpdated: (x: DBBank) => void;
+  onAddedOrUpdated: (x: ProtoBank) => void;
   onClose: () => void;
 }) {
   const form = useForm<BankFormSchema>({

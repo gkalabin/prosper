@@ -17,11 +17,11 @@ import {
   TransactionDataContextProvider,
   useTransactionDataContext,
 } from '@/lib/context/TransactionDataContext';
-import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
+import {BankAccount as ProtoBankAccount} from '@/lib/grpc/gen/prosper/v1/ledger';
+import {AppData} from '@/lib/model/AppDataModel';
 import {Income} from '@/lib/model/transaction/Income';
 import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
 import {Transfer} from '@/lib/model/transaction/Transfer';
-import {BankAccount as DBBankAccount} from '@prisma/client';
 import {notFound} from 'next/navigation';
 import {useState} from 'react';
 
@@ -68,8 +68,8 @@ export function AccountPage({
   dbData,
   dbAccount,
 }: {
-  dbData: AllDatabaseData;
-  dbAccount: DBBankAccount;
+  dbData: AppData;
+  dbAccount: ProtoBankAccount;
 }) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;

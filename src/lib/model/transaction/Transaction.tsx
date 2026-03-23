@@ -1,4 +1,8 @@
-import {DBTransaction} from '@/lib/model/AllDatabaseDataModel';
+import {
+  LedgerAccount,
+  Transaction as PbTransaction,
+  TransactionType as PbTransactionType,
+} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {
   Bank,
   BankAccount,
@@ -26,7 +30,6 @@ import {
 } from '@/lib/model/transaction/ThirdPartyExpense';
 import {Transfer, transferFromDB} from '@/lib/model/transaction/Transfer';
 import {notEmpty} from '@/lib/util/util';
-import {LedgerAccount, TransactionType} from '@prisma/client';
 
 export type Transaction =
   | PersonalExpense
@@ -46,27 +49,25 @@ export function hasTrip(value: Transaction): value is TransactionWithTrip {
 }
 
 export function transactionModelFromDB(
-  init: DBTransaction,
+  init: PbTransaction,
   ledgerAccounts: LedgerAccount[]
 ): Transaction {
   const accounts = new Map<number, LedgerAccount>(
     ledgerAccounts.map(a => [a.id, a])
   );
   switch (init.type) {
-    case TransactionType.EXPENSE:
+    case PbTransactionType.EXPENSE:
       return personalExpenseFromDB(init, accounts);
-    case TransactionType.THIRD_PARTY_EXPENSE:
+    case PbTransactionType.THIRD_PARTY_EXPENSE:
       return thirdPartyExpenseFromDB(init, accounts);
-    case TransactionType.TRANSFER:
+    case PbTransactionType.TRANSFER:
       return transferFromDB(init, accounts);
-    case TransactionType.INCOME:
+    case PbTransactionType.INCOME:
       return incomeFromDB(init, accounts);
-    case TransactionType.OPENING_BALANCE:
+    case PbTransactionType.OPENING_BALANCE:
       return openingBalanceFromDB(init, accounts);
-    default: {
-      const _exhaustiveCheck: never = init.type;
-      throw new Error(`Unknown transaction type: ${_exhaustiveCheck}`);
-    }
+    default:
+      throw new Error(`Unknown transaction type: ${init.type}`);
   }
 }
 

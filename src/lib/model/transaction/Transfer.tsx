@@ -1,5 +1,10 @@
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
-import {DBTransaction} from '@/lib/model/AllDatabaseDataModel';
+import {
+  LedgerAccount,
+  LedgerAccountType,
+  Transaction as PbTransaction,
+} from '@/lib/grpc/gen/prosper/v1/ledger';
+import {timestampToEpoch} from '@/lib/grpc/timestamp';
 import {
   Bank,
   BankAccount,
@@ -8,7 +13,6 @@ import {
 } from '@/lib/model/BankAccount';
 import {Stock} from '@/lib/model/Stock';
 import {nanosToCents} from '@/lib/util/util';
-import {LedgerAccountType, LedgerAccount} from '@prisma/client';
 
 export type Transfer = {
   kind: 'Transfer';
@@ -24,7 +28,7 @@ export type Transfer = {
 };
 
 export function transferFromDB(
-  tx: DBTransaction,
+  tx: PbTransaction,
   accounts: Map<number, LedgerAccount>
 ): Transfer {
   if (!tx.categoryId) {
@@ -54,14 +58,14 @@ export function transferFromDB(
   return {
     kind: 'Transfer',
     id: tx.id,
-    timestampEpoch: new Date(tx.timestamp).getTime(),
+    timestampEpoch: timestampToEpoch(tx.timestamp),
     fromAccountId: fromAccount.bankAccountId,
     toAccountId: toAccount.bankAccountId,
     sentAmountCents: nanosToCents(-outLine.amountNanos),
     receivedAmountCents: nanosToCents(inLine.amountNanos),
     note: tx.note,
     categoryId: tx.categoryId,
-    tagsIds: tx.tags.map(t => t.id),
+    tagsIds: tx.tagIds,
   };
 }
 

@@ -1,7 +1,7 @@
 import {OverviewPage} from '@/app/(authenticated)/overview/OverviewPage';
-import {getUserIdOrRedirect} from '@/lib/auth/user';
+import {getAuthContextOrRedirect} from '@/lib/auth/user';
 import {HIDE_BALANCES_COOKIE_NAME} from '@/lib/const';
-import {DB, fetchAllDatabaseData} from '@/lib/db';
+import {fetchAppData} from '@/lib/db';
 import {logRequest} from '@/lib/util/log';
 import {Metadata} from 'next';
 import {cookies} from 'next/headers';
@@ -16,15 +16,14 @@ async function shouldHideBalances() {
 }
 
 export default async function Page() {
-  const userId = await getUserIdOrRedirect();
-  logRequest('overview', `userId:${userId}`);
-  console.time(`[overview] db fetch for userId:${userId}`);
-  const db = new DB({userId});
-  const data = await fetchAllDatabaseData(db);
-  console.timeEnd(`[overview] db fetch for userId:${userId}`);
+  const auth = await getAuthContextOrRedirect();
+  logRequest('overview', `userId:${auth.userId}`);
+  console.time(`[overview] db fetch for userId:${auth.userId}`);
+  const data = await fetchAppData(auth);
+  console.timeEnd(`[overview] db fetch for userId:${auth.userId}`);
   const hideBalances = await shouldHideBalances();
-  console.time(`[overview] render for userId:${userId}`);
+  console.time(`[overview] render for userId:${auth.userId}`);
   const result = <OverviewPage dbData={data} hideBalances={hideBalances} />;
-  console.timeEnd(`[overview] render for userId:${userId}`);
+  console.timeEnd(`[overview] render for userId:${auth.userId}`);
   return result;
 }

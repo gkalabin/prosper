@@ -55,7 +55,7 @@ export function fromOpenBankingTransaction(
 ): WithdrawalOrDepositPrototype {
   return {
     type: t.amountCents > 0 ? ('deposit' as const) : ('withdrawal' as const),
-    timestampEpoch: new Date(t.timestamp).getTime(),
+    timestampEpoch: t.timestampEpoch,
     description: t.description,
     originalDescription: t.description,
     externalTransactionId: t.externalTransactionId,

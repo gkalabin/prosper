@@ -30,7 +30,10 @@ export function OpenBankingConnectionExpirationWarning({bank}: {bank: Bank}) {
     <div className="text-sm font-light text-gray-700">
       {text}{' '}
       <Button variant="link" size="inherit" asChild>
-        <Link href={`/api/open-banking/reconnect?bankId=${bank.id}`}>
+        <Link
+          href={`/api/open-banking/reconnect?bankId=${bank.id}`}
+          prefetch={false}
+        >
           Reconnect
         </Link>
       </Button>

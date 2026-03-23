@@ -2,11 +2,7 @@ name: Lint
 
 on:
   push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
 
 jobs:
   spelling:
@@ -35,3 +31,22 @@ jobs:
       - run: npm ci
       - name: Check code style (eslint)
         run: npm run lint:eslint
+
+  protobuf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bufbuild/buf-action@v1
+        with:
+          input: proto
+
+  govet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: {go-version: '1.25'}
+      - run: go build ./...
+        working-directory: backend
+      - run: go vet ./...
+        working-directory: backend

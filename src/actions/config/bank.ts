@@ -1,13 +1,13 @@
 'use server';
-import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB} from '@/lib/db';
+import {getAuthContextOrRedirect} from '@/lib/auth/user';
 import {updateCoreDataCache} from '@/lib/db/cache';
 import {
   BankFormSchema,
   bankFormValidationSchema,
 } from '@/lib/form-types/BankFormSchema';
-import prisma from '@/lib/prisma';
-import {Bank} from '@prisma/client';
+import {withAuth} from '@/lib/grpc/auth';
+import {ledgerClient} from '@/lib/grpc/client';
+import {Bank} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {type typeToFlattenedError} from 'zod';
 
 export type UpsertBankResult =
@@ -24,7 +24,7 @@ export async function upsertBank(
   bankId: number | null,
   unsafeData: BankFormSchema
 ): Promise<UpsertBankResult> {
-  const userId = await getUserIdOrRedirect();
+  const auth = await getAuthContextOrRedirect();
   const validatedData = bankFormValidationSchema.safeParse(unsafeData);
   if (!validatedData.success) {
     return {
@@ -33,40 +33,12 @@ export async function upsertBank(
     };
   }
   const {name, displayOrder} = validatedData.data;
-
-  if (!bankId) {
-    // Create new bank
-    const result = await prisma.bank.create({
-      data: {
-        name,
-        displayOrder,
-        user: {
-          connect: {
-            id: userId,
-          },
-        },
-      },
-    });
-    await updateCoreDataCache(userId);
-    return {status: 'SUCCESS', data: result};
-  }
-
-  // Update existing bank
-  const db = new DB({userId});
-  const found = await db.bankFindMany({where: {id: bankId}});
-  if (!found?.length) {
-    return {
-      status: 'CLIENT_ERROR',
-      errors: {
-        formErrors: [`Bank with id ${bankId} is not found`],
-        fieldErrors: {},
-      },
-    };
-  }
-  const result = await db.bankUpdate({
-    data: {name, displayOrder},
-    where: {id: bankId},
-  });
-  await updateCoreDataCache(userId);
-  return {status: 'SUCCESS', data: result};
+  const {response} = await ledgerClient.upsertBank(
+    withAuth({bank: {id: bankId ?? 0, name, displayOrder}}, auth)
+  );
+  await updateCoreDataCache(auth.userId);
+  return {
+    status: 'SUCCESS',
+    data: {id: response.bankId, name, displayOrder},
+  };
 }

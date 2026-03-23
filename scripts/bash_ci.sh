@@ -49,11 +49,6 @@ while true; do
     echo "[$(date)] Pull failed, retrying later."
     continue
   fi
-  # If the migrations have changed, run them before restarting the app.
-  if [ -n "$(git diff --name-only $(git rev-parse @{u}) prisma/migrations)" ]; then
-    echo "[$(date)] Migrations have changed, running DB migration."
-    ./scripts/docker_migrate.sh --env .env --image "$NEW_IMAGE"
-  fi
   # Use rebase to handle force pushes in development branches, e.g. after rebasing on top of main.
   git pull --rebase
   docker stop prosper-fe || true

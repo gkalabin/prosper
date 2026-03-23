@@ -1,10 +1,10 @@
 import {CountriesSelector} from '@/app/(authenticated)/config/open-banking/nordigen/connect/CountriesSelector';
 import {InstitutionSelector} from '@/app/(authenticated)/config/open-banking/nordigen/connect/InstitutionSelector';
-import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB} from '@/lib/db';
-import {NORDIGEN_COUNTRIES} from '@/lib/openbanking/nordigen/countries';
-import {Institution} from '@/lib/openbanking/nordigen/institution';
-import {getOrCreateToken} from '@/lib/openbanking/nordigen/token';
+import {getAuthContextOrRedirect} from '@/lib/auth/user';
+import {withAuth} from '@/lib/grpc/auth';
+import {cachedCoreDataOrFetch} from '@/lib/db/cache';
+import {openBankingClient} from '@/lib/grpc/client';
+import {NordigenInstitution} from '@/lib/grpc/gen/prosper/v1/openbanking';
 import {
   firstPositiveIntOrNull,
   firstValueOrNull,
@@ -26,39 +26,35 @@ export default async function Page({
   if (!bankId) {
     return notFound();
   }
-  const userId = await getUserIdOrRedirect();
-  const db = new DB({userId});
-  const [dbBank] = await db.bankFindMany({
-    where: {
-      id: bankId,
-    },
-  });
-  if (!dbBank) {
+  const auth = await getAuthContextOrRedirect();
+  const core = await cachedCoreDataOrFetch(auth);
+  const bank = core.banks.find(b => b.id === bankId);
+  if (!bank) {
     return notFound();
   }
   const country = firstValueOrNull(resolvedSearchParams['country']);
   if (!country) {
-    return <CountriesSelector dbBank={dbBank} />;
+    const {response} = await openBankingClient.listNordigenCountries(
+      withAuth({}, auth)
+    );
+    return <CountriesSelector bank={bank} countries={response.countries} />;
   }
-  if (!NORDIGEN_COUNTRIES.find(c => c.code === country)) {
+  const {response: countriesResp} =
+    await openBankingClient.listNordigenCountries(withAuth({}, auth));
+  if (!countriesResp.countries.find(c => c.code === country)) {
     return notFound();
   }
-  const token = await getOrCreateToken(db, bankId);
-  const institutionsResponse = await fetch(
-    `https://bankaccountdata.gocardless.com/api/v2/institutions/?country=${country}`,
-    {
-      method: 'GET',
-      headers: {Authorization: `Bearer ${token.access}`},
-    }
-  );
-  const institutions: Institution[] = await institutionsResponse.json();
-  if (!institutions) {
-    return notFound();
-  }
+  const {response: institutionsResp} =
+    await openBankingClient.listNordigenInstitutions(
+      withAuth({countryCode: country}, auth)
+    );
+  const institutions: NordigenInstitution[] = [
+    ...institutionsResp.institutions,
+  ];
   institutions.sort((a, b) => a.name.localeCompare(b.name));
   return (
     <InstitutionSelector
-      dbBank={dbBank}
+      bank={bank}
       institutions={institutions}
       countryCode={country}
     />

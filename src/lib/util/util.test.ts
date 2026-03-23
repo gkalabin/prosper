@@ -2,7 +2,10 @@ import {
   appendNewItems,
   capitalize as capitalise,
   centsToDollar,
+  centsToNanos,
   dollarToCents,
+  dollarToNanos,
+  nanosToCents,
   notEmpty,
   parseAmountAsCents,
   removeQuotes,
@@ -98,6 +101,48 @@ describe('dollarToCents', () => {
     ${1.2345} | ${123}
   `('converts $dollar dollars to $expected cents', ({dollar, expected}) =>
     expect(dollarToCents(dollar)).toEqual(expected)
+  );
+});
+
+describe('nanosToCents', () => {
+  test.each<{nanos: bigint; expected: number}>`
+    nanos              | expected
+    ${0n}              | ${0}
+    ${10_000_000n}     | ${1}
+    ${1_000_000_000n}  | ${100}
+    ${-10_000_000n}    | ${-1}
+    ${-1_000_000_000n} | ${-100}
+    ${15_000_000n}     | ${1}
+    ${19_999_999n}     | ${1}
+  `('converts $nanos nanos to $expected cents', ({nanos, expected}) =>
+    expect(nanosToCents(nanos)).toEqual(expected)
+  );
+});
+
+describe('centsToNanos', () => {
+  test.each<{cents: number; expected: bigint}>`
+    cents   | expected
+    ${0}    | ${0n}
+    ${1}    | ${10_000_000n}
+    ${100}  | ${1_000_000_000n}
+    ${-1}   | ${-10_000_000n}
+    ${1234} | ${12_340_000_000n}
+  `('converts $cents cents to $expected nanos', ({cents, expected}) =>
+    expect(centsToNanos(cents)).toEqual(expected)
+  );
+});
+
+describe('dollarToNanos', () => {
+  test.each<{dollar: number; expected: bigint}>`
+    dollar    | expected
+    ${0}      | ${0n}
+    ${1}      | ${1_000_000_000n}
+    ${1.5}    | ${1_500_000_000n}
+    ${-1}     | ${-1_000_000_000n}
+    ${0.001}  | ${1_000_000n}
+    ${1.2345} | ${1_234_500_000n}
+  `('converts $dollar dollars to $expected nanos', ({dollar, expected}) =>
+    expect(dollarToNanos(dollar)).toEqual(expected)
   );
 });
 

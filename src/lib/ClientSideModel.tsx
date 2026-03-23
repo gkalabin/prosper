@@ -1,11 +1,21 @@
 import {Amount} from '@/lib/Amount';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
+import {CoreData} from '@/lib/db/cache';
 import {
-  CoreData as CoreDataDB,
-  MarketData as MarketDataDB,
-  TransactionData as TransactionDataDB,
-} from '@/lib/db/fetch';
-import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
+  GetTransactionsResponse,
+  Bank as PbBank,
+  BankAccount as PbBankAccount,
+  Stock as PbStock,
+  Transaction as PbTransaction,
+  TransactionPrototype,
+} from '@/lib/grpc/gen/prosper/v1/ledger';
+import {
+  GetMarketDataForUserResponse,
+  ExchangeRate as PbExchangeRate,
+  StockQuote as PbStockQuote,
+} from '@/lib/grpc/gen/prosper/v1/rates';
+import {timestampToEpoch} from '@/lib/grpc/timestamp';
+import {AppData} from '@/lib/model/AppDataModel';
 import {
   Bank,
   BankAccount,
@@ -29,16 +39,8 @@ import {
   transactionLinkModelFromDB,
 } from '@/lib/model/TransactionLink';
 import {Trip, tripModelFromDB} from '@/lib/model/Trip';
-import {
-  Bank as DBBank,
-  BankAccount as DBBankAccount,
-  ExchangeRate as DBExchangeRate,
-  Stock as DBStock,
-  StockQuote as DBStockQuote,
-  TransactionPrototype as DBTransactionPrototype,
-  Transaction as DBTransaction,
-} from '@prisma/client';
-import {addDays, closestTo, isBefore, startOfDay} from 'date-fns';
+import {utcStartOfDay} from '@/lib/util/time';
+import {closestTo} from 'date-fns';
 
 export class StockAndCurrencyExchange {
   private readonly exchangeRates: ExchangeRates;
@@ -72,27 +74,22 @@ export class StockAndCurrencyExchange {
 }
 
 const backfillMissingDates = (timeseries: Timeseries) => {
-  const dates = [];
-  for (const ts of timeseries.keys()) {
-    dates.push(ts);
-  }
-  const today = new Date().getTime();
-  // Always add today's date to avoid missing quotes during the weekend.
-  // The exchange is closed during the weekend,
-  // so the latest available quote might be from 2 days ago.
-  dates.push(today);
-  dates.sort();
-  for (let i = 1; i < dates.length; i++) {
-    const prev = dates[i - 1];
-    const current = dates[i];
-    for (let x = addDays(prev, 1); isBefore(x, current); x = addDays(x, 1)) {
-      const prevValue = timeseries.get(prev);
-      if (!prevValue) {
-        throw new Error(
-          `Prev value cannot be null, failed to backfill ${timeseries} on ${today}`
-        );
-      }
-      timeseries.set(x.getTime(), prevValue);
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+  const days = [...timeseries.keys()];
+  // Always extend to today so a closed-market weekend still resolves.
+  days.push(utcStartOfDay(Date.now()));
+  days.sort((a, b) => a - b);
+  for (let i = 1; i < days.length; i++) {
+    const prev = days[i - 1];
+    const current = days[i];
+    const prevValue = timeseries.get(prev);
+    if (!prevValue) {
+      throw new Error(
+        `Prev value cannot be empty, failed to backfill ${timeseries} on ${prev}`
+      );
+    }
+    for (let x = prev + MS_PER_DAY; x < current; x += MS_PER_DAY) {
+      timeseries.set(x, prevValue);
     }
   }
 };
@@ -100,14 +97,14 @@ const backfillMissingDates = (timeseries: Timeseries) => {
 export class ExchangeRates {
   private readonly ratesByCurrencyCode: Map<string, Map<string, Timeseries>>;
 
-  public constructor(init: DBExchangeRate[]) {
+  public constructor(init: PbExchangeRate[]) {
     this.ratesByCurrencyCode = new Map();
     for (const r of init) {
       const {currencyCodeFrom: from, currencyCodeTo: to} = r;
       const timeseries =
         this.ratesByCurrencyCode.get(from)?.get(to) ?? new Map();
-      const date = startOfDay(new Date(r.rateTimestamp));
-      timeseries.set(date.getTime(), +r.rateNanos.toString());
+      const day = utcStartOfDay(timestampToEpoch(r.rateTimestamp));
+      timeseries.set(day, Number(r.rateNanos));
       let fromRates = this.ratesByCurrencyCode.get(from);
       if (!fromRates) {
         fromRates = new Map();
@@ -156,8 +153,7 @@ export class ExchangeRates {
     if (!ratesHistory) {
       return undefined;
     }
-    const whenDay = startOfDay(when);
-    const rate = ratesHistory.get(whenDay.getTime());
+    const rate = ratesHistory.get(utcStartOfDay(when));
     if (rate) {
       return rate;
     }
@@ -175,17 +171,22 @@ export class ExchangeRates {
 
 type Timeseries = Map<number, number>;
 
+// Stock quotes arrive over the wire in nanos (1 unit = 10^9 nanos).
+// The rest of the FE works in cents, so divide by 1e7 once at the
+// boundary and store cents in the timeseries.
+const NANOS_PER_CENT = 10_000_000n;
+
 export class StockQuotes {
   private readonly quotesByStockId: Map<number, Timeseries>;
 
-  public constructor(init: DBStockQuote[]) {
+  public constructor(init: PbStockQuote[]) {
     this.quotesByStockId = new Map();
     for (const r of init) {
-      const {stockId, value} = r;
-      const day = startOfDay(new Date(r.quoteTimestamp));
-      const timeseries = this.quotesByStockId.get(stockId) ?? new Map();
-      timeseries.set(day.getTime(), value);
-      this.quotesByStockId.set(stockId, timeseries);
+      const cents = Number(BigInt(r.pricePerShareNanos) / NANOS_PER_CENT);
+      const day = utcStartOfDay(timestampToEpoch(r.quoteTimestamp));
+      const timeseries = this.quotesByStockId.get(r.stockId) ?? new Map();
+      timeseries.set(day, cents);
+      this.quotesByStockId.set(r.stockId, timeseries);
     }
     for (const quotes of this.quotesByStockId.values()) {
       backfillMissingDates(quotes);
@@ -212,12 +213,11 @@ export class StockQuotes {
   }
 
   private findQuote(stock: Stock, when: Date | number): number | undefined {
-    const whenDay = startOfDay(when);
     const quotesForStock = this.quotesByStockId.get(stock.id);
     if (!quotesForStock) {
       return undefined;
     }
-    const quote = quotesForStock.get(whenDay.getTime());
+    const quote = quotesForStock.get(utcStartOfDay(when));
     if (quote) {
       return quote;
     }
@@ -244,7 +244,7 @@ export type CoreDataModel = {
 
 export type TransactionDataModel = {
   transactions: Transaction[];
-  transactionPrototypes: DBTransactionPrototype[];
+  transactionPrototypes: TransactionPrototype[];
   transactionLinks: TransactionLink[];
 };
 
@@ -261,7 +261,7 @@ export type AllClientDataModel = {
   trips: Trip[];
   tags: Tag[];
   exchange: StockAndCurrencyExchange;
-  transactionPrototypes: DBTransactionPrototype[];
+  transactionPrototypes: TransactionDataModel['transactionPrototypes'];
   transactionLinks: TransactionLink[];
 };
 
@@ -273,9 +273,9 @@ function mustBank(bank: Bank | undefined, message: string): Bank {
 }
 
 export const banksModelFromDatabaseData = (
-  dbBanks: DBBank[],
-  dbBankAccounts: DBBankAccount[],
-  dbStocks: DBStock[]
+  dbBanks: PbBank[],
+  dbBankAccounts: PbBankAccount[],
+  dbStocks: PbStock[]
 ): [Bank[], BankAccount[], Stock[]] => {
   const stocks = dbStocks.map(stockModelFromDB);
   const banks = dbBanks
@@ -304,17 +304,15 @@ export const banksModelFromDatabaseData = (
   return [banks, bankAccounts, stocks];
 };
 
-export function coreModelFromDB(dbData: CoreDataDB): CoreDataModel {
-  const categories = sortCategories(
-    dbData.dbCategories.map(categoryModelFromDB)
-  );
+export function coreModelFromDB(dbData: CoreData): CoreDataModel {
+  const categories = sortCategories(dbData.categories.map(categoryModelFromDB));
   const [banks, bankAccounts, stocks] = banksModelFromDatabaseData(
-    dbData.dbBanks,
-    dbData.dbBankAccounts,
-    dbData.dbStocks
+    dbData.banks,
+    dbData.bankAccounts,
+    dbData.stocks
   );
-  const trips = dbData.dbTrips.map(tripModelFromDB);
-  const tags = dbData.dbTags.map(tagModelFromDB);
+  const trips = dbData.trips.map(tripModelFromDB);
+  const tags = dbData.tags.map(tagModelFromDB);
   return {
     banks,
     bankAccounts,
@@ -326,59 +324,57 @@ export function coreModelFromDB(dbData: CoreDataDB): CoreDataModel {
 }
 
 export function transactionModelFromDB(
-  dbData: TransactionDataDB
+  dbData: GetTransactionsResponse
 ): TransactionDataModel {
-  const active = latestVersionOnly(dbData.dbTransactions);
+  const active = latestVersionOnly(dbData.transactions);
   const transactions: Transaction[] = active
-    .map(tx => singleTransactionModelFromDB(tx, dbData.dbLedgerAccounts))
+    .map(tx => singleTransactionModelFromDB(tx, dbData.ledgerAccounts))
     .sort(compareTransactions);
   const transactionLinks = transactionLinkModelFromDB(
-    dbData.dbTransactionLinks,
+    dbData.links,
     transactions,
-    dbData.dbTransactions
+    dbData.transactions
   );
   return {
     transactions,
-    transactionPrototypes: dbData.dbTransactionPrototypes,
+    transactionPrototypes: dbData.prototypes,
     transactionLinks,
   };
 }
 
-export function marketModelFromDB(dbData: MarketDataDB): MarketDataModel {
-  const exchangeRates = new ExchangeRates(dbData.dbExchangeRates);
-  const stockQuotes = new StockQuotes(dbData.dbStockQuotes);
+export function marketModelFromDB(
+  dbData: GetMarketDataForUserResponse
+): MarketDataModel {
+  const exchangeRates = new ExchangeRates(dbData.rates);
+  const stockQuotes = new StockQuotes(dbData.quotes);
   const exchange = new StockAndCurrencyExchange(exchangeRates, stockQuotes);
   return {exchange};
 }
 
-export const modelFromDatabaseData = (
-  dbData: AllDatabaseData
-): AllClientDataModel => {
-  const categories = sortCategories(
-    dbData.dbCategories.map(categoryModelFromDB)
-  );
-  const exchangeRates = new ExchangeRates(dbData.dbExchangeRates);
-  const stockQuotes = new StockQuotes(dbData.dbStockQuotes);
+export const modelFromDatabaseData = (dbData: AppData): AllClientDataModel => {
+  const categories = sortCategories(dbData.categories.map(categoryModelFromDB));
+  const exchangeRates = new ExchangeRates(dbData.rates);
+  const stockQuotes = new StockQuotes(dbData.quotes);
   const exchange = new StockAndCurrencyExchange(exchangeRates, stockQuotes);
 
   const [banks, bankAccounts, stocks] = banksModelFromDatabaseData(
-    dbData.dbBanks,
-    dbData.dbBankAccounts,
-    dbData.dbStocks
+    dbData.banks,
+    dbData.bankAccounts,
+    dbData.stocks
   );
 
-  const trips = dbData.dbTrips.map(tripModelFromDB);
-  const tags = dbData.dbTags.map(tagModelFromDB);
+  const trips = dbData.trips.map(tripModelFromDB);
+  const tags = dbData.tags.map(tagModelFromDB);
 
-  const active = latestVersionOnly(dbData.dbTransactions);
+  const active = latestVersionOnly(dbData.transactions);
   const transactions: Transaction[] = active
-    .map(tx => singleTransactionModelFromDB(tx, dbData.dbLedgerAccounts))
+    .map(tx => singleTransactionModelFromDB(tx, dbData.ledgerAccounts))
     .sort(compareTransactions);
 
   const transactionLinks = transactionLinkModelFromDB(
-    dbData.dbTransactionLinks,
+    dbData.links,
     transactions,
-    dbData.dbTransactions
+    dbData.transactions
   );
   return {
     banks,
@@ -389,7 +385,7 @@ export const modelFromDatabaseData = (
     tags,
     transactions,
     exchange,
-    transactionPrototypes: dbData.dbTransactionPrototypes,
+    transactionPrototypes: dbData.prototypes,
     transactionLinks,
   };
 };
@@ -404,9 +400,9 @@ function compareTransactions(a: Transaction, b: Transaction) {
   return 0;
 }
 
-export function latestVersionOnly<T extends DBTransaction>(
-  transactions: T[]
-): T[] {
+export function latestVersionOnly(
+  transactions: PbTransaction[]
+): PbTransaction[] {
   const superseded = new Set<number>();
   for (const tx of transactions) {
     if (!tx.supersedesId) {

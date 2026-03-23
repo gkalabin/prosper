@@ -1,7 +1,6 @@
 locals {
-  image_base      = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.main.repository_id}"
-  image_app       = "${local.image_base}/app:$COMMIT_SHA"
-  image_migration = "${local.image_base}/dbmigration:$COMMIT_SHA"
+  image_base = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.main.repository_id}"
+  image_app  = "${local.image_base}/app:$COMMIT_SHA"
 }
 
 resource "google_service_account" "builder" {
@@ -23,9 +22,6 @@ resource "google_project_iam_custom_role" "build" {
     "run.services.get",
     "run.services.update",
     "run.operations.get",
-    // Running migrations during build requires CloudSQL access.
-    "cloudsql.instances.connect",
-    "cloudsql.instances.get",
   ]
   role_id = "prosper.build"
 }
@@ -42,20 +38,6 @@ resource "google_sourcerepo_repository_iam_member" "build_source_access" {
   role       = "roles/viewer"
   member     = "serviceAccount:${google_service_account.builder.email}"
   depends_on = [null_resource.after_service_account_creation]
-}
-
-// Builder service account runs DB migrations during build,
-// in order to do that it needs the DB password.
-resource "google_secret_manager_secret_iam_member" "build_secrets_access" {
-  secret_id = google_secret_manager_secret.prosperdb_password.id
-  role      = "roles/secretmanager.secretAccessor"
-  member    = "serviceAccount:${google_service_account.builder.email}"
-  depends_on = [
-    google_project_service.project_services["iam.googleapis.com"],
-    google_project_service.project_services["secretmanager.googleapis.com"],
-    google_secret_manager_secret.prosperdb_password,
-    null_resource.after_service_account_creation
-  ]
 }
 
 resource "google_artifact_registry_repository" "main" {
@@ -99,44 +81,6 @@ resource "google_cloudbuild_trigger" "github_push_main" {
       ]
     }
     step {
-      id         = "Build DB migration image"
-      name       = "gcr.io/cloud-builders/docker"
-      entrypoint = "/bin/bash"
-      args = ["-c",
-        <<-EOT
-        echo "FROM ${local.image_app}" > Dockerfile-migration
-        echo "COPY --from=gcr.io/cloud-sql-connectors/cloud-sql-proxy /cloud-sql-proxy /cloudsql/cloud-sql-proxy" >> Dockerfile-migration
-        # In order to mount the sql proxy socket, the current user has to be root.
-        echo "USER root" >> Dockerfile-migration
-        echo "RUN npm install -g prisma" >> Dockerfile-migration
-        docker build -f Dockerfile-migration -t ${local.image_migration} .
-        docker push ${local.image_migration}
-        EOT
-      ]
-    }
-    step {
-      id         = "Run DB migration"
-      name       = local.image_migration
-      entrypoint = "/bin/sh"
-      env = [
-        "DB_NAME=${local.db_name}",
-        "DB_USER=${google_sql_user.prosperdb_user.name}",
-        "DB_SOCKET_PATH=/cloudsql/${local.db_connection_name}"
-      ]
-      secret_env = [
-        "DB_PASSWORD"
-      ]
-      args = ["-c",
-        <<-EOT
-        /cloudsql/cloud-sql-proxy --unix-socket /cloudsql ${local.db_connection_name} &
-        sleep 2
-        echo "Starting migration..."
-        /app/scripts/migrate.sh
-        echo "Migration finished"
-        EOT
-      ]
-    }
-    step {
       id         = "Deploy to Cloud Run"
       name       = "gcr.io/google.com/cloudsdktool/cloud-sdk"
       entrypoint = "gcloud"
@@ -150,12 +94,6 @@ resource "google_cloudbuild_trigger" "github_push_main" {
     }
     options {
       logging = "CLOUD_LOGGING_ONLY"
-    }
-    available_secrets {
-      secret_manager {
-        version_name = google_secret_manager_secret_version.prosperdb_password.name
-        env          = "DB_PASSWORD"
-      }
     }
   }
   depends_on = [

@@ -28,14 +28,13 @@ Check scripts/setup_dev_environment.sh for the list of dependencies. The script
 is runnable on OSX, on other platforms the necessary dependencies can be easily
 installed.
 
-When the dependencies are installed, create `.env` file. Use
-`.env.docker.example` or `.env.local-development.example` to get started.
+When the dependencies are installed, create `.env` file. Use `.env.example` to
+get started.
 
 Start the database, then run
 
 ```
-npx prisma db push
-npm run dev
+make dev
 ```
 
 ## License

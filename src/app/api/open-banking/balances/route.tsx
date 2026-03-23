@@ -1,10 +1,13 @@
-import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB} from '@/lib/db';
-import {fetchBalances, getExpirations} from '@/lib/openbanking/fetchall';
+import {getAuthContextOrRedirect} from '@/lib/auth/user';
+import {withAuth} from '@/lib/grpc/auth';
+import {openBankingClient} from '@/lib/grpc/client';
+import {timestampToEpoch} from '@/lib/grpc/timestamp';
 import {
   AccountBalance,
   ConnectionExpiration,
 } from '@/lib/openbanking/interface';
+import {logApi} from '@/lib/util/log';
+import {nanosToCents} from '@/lib/util/util';
 import {NextResponse} from 'next/server';
 
 export interface OpenBankingBalances {
@@ -13,11 +16,21 @@ export interface OpenBankingBalances {
 }
 
 export async function GET(): Promise<Response> {
-  const userId = await getUserIdOrRedirect();
-  const db = new DB({userId});
+  const auth = await getAuthContextOrRedirect();
+  logApi('GET', '/api/open-banking/balances', {userId: auth.userId});
+  const [{response: balances}, {response: status}] = await Promise.all([
+    openBankingClient.getBalances(withAuth({}, auth)),
+    openBankingClient.getConnectionStatus(withAuth({}, auth)),
+  ]);
   const result: OpenBankingBalances = {
-    balances: await fetchBalances(db),
-    expirations: await getExpirations(db),
+    balances: balances.accounts.map(a => ({
+      internalAccountId: a.internalAccountId,
+      balanceCents: nanosToCents(a.balanceNanos),
+    })),
+    expirations: status.expirations.map(e => ({
+      bankId: e.bankId,
+      expirationEpoch: timestampToEpoch(e.expiresAt),
+    })),
   };
   return NextResponse.json(result);
 }

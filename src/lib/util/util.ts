@@ -58,7 +58,6 @@ export function centsToNanos(cents: number): bigint {
   return BigInt(cents) * BigInt(NANOS_PER_CENT);
 }
 
-// TODO: write tests.
 export function dollarToNanos(dollar: number): bigint {
   return BigInt(Math.round(dollar * NANOS_PER_DOLLAR));
 }

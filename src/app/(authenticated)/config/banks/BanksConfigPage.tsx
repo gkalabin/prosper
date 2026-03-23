@@ -7,18 +7,15 @@ import {ReconnectOpenBankingLink} from '@/app/(authenticated)/config/banks/Recon
 import {Button} from '@/components/ui/button';
 import {banksModelFromDatabaseData} from '@/lib/ClientSideModel';
 import {DisplaySettingsContextProvider} from '@/lib/context/DisplaySettingsContext';
+import {
+  Bank as ProtoBank,
+  BankAccount as ProtoBankAccount,
+  DisplaySettings as ProtoDisplaySettings,
+  Stock as ProtoStock,
+} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {Bank, BankAccount} from '@/lib/model/BankAccount';
 import {Stock} from '@/lib/model/Stock';
 import {updateState} from '@/lib/stateHelpers';
-import {
-  Bank as DBBank,
-  BankAccount as DBBankAccount,
-  DisplaySettings as DBDisplaySettings,
-  NordigenToken as DBNordigenToken,
-  StarlingToken as DBStarlingToken,
-  Stock as DBStock,
-  TrueLayerToken as DBTrueLayerToken,
-} from '@prisma/client';
 import Link from 'next/link';
 import {useState} from 'react';
 
@@ -26,11 +23,11 @@ const BanksList = (props: {
   banks: Bank[];
   bankAccounts: BankAccount[];
   stocks: Stock[];
-  trueLayerTokens: DBTrueLayerToken[];
-  nordigenTokens: DBNordigenToken[];
-  starlingTokens: DBStarlingToken[];
-  onBankUpdated: (updated: DBBank) => void;
-  onAccountAddedOrUpdated: (x: DBBankAccount) => void;
+  trueLayerBankIds: number[];
+  nordigenBankIds: number[];
+  starlingBankIds: number[];
+  onBankUpdated: (updated: ProtoBank) => void;
+  onAccountAddedOrUpdated: (x: ProtoBankAccount) => void;
 }) => {
   if (!props.banks) {
     return <div>No banks found.</div>;
@@ -43,9 +40,9 @@ const BanksList = (props: {
           bank={bank}
           bankAccounts={props.bankAccounts.filter(x => x.bankId == bank.id)}
           stocks={props.stocks}
-          trueLayerToken={props.trueLayerTokens.find(t => t.bankId == bank.id)}
-          nordigenToken={props.nordigenTokens.find(t => t.bankId == bank.id)}
-          starlingToken={props.starlingTokens.find(t => t.bankId == bank.id)}
+          isTrueLayer={props.trueLayerBankIds.includes(bank.id)}
+          isNordigen={props.nordigenBankIds.includes(bank.id)}
+          isStarling={props.starlingBankIds.includes(bank.id)}
           onBankUpdated={props.onBankUpdated}
           onAccountAddedOrUpdated={props.onAccountAddedOrUpdated}
         />
@@ -58,20 +55,20 @@ function BanksListItem({
   bank,
   bankAccounts,
   stocks,
-  trueLayerToken,
-  nordigenToken,
-  starlingToken,
+  isTrueLayer,
+  isNordigen,
+  isStarling,
   onBankUpdated,
   onAccountAddedOrUpdated,
 }: {
   bank: Bank;
   bankAccounts: BankAccount[];
   stocks: Stock[];
-  trueLayerToken?: DBTrueLayerToken;
-  nordigenToken?: DBNordigenToken;
-  starlingToken?: DBStarlingToken;
-  onBankUpdated: (updated: DBBank) => void;
-  onAccountAddedOrUpdated: (x: DBBankAccount) => void;
+  isTrueLayer: boolean;
+  isNordigen: boolean;
+  isStarling: boolean;
+  onBankUpdated: (updated: ProtoBank) => void;
+  onAccountAddedOrUpdated: (x: ProtoBankAccount) => void;
 }) {
   const [newAccountFormDisplayed, setNewAccountFormDisplayed] = useState(false);
   const [editBankFormDisplayed, setEditBankFormDisplayed] = useState(false);
@@ -96,7 +93,7 @@ function BanksListItem({
           {!editBankFormDisplayed && (
             <div className="text-sm text-gray-600">
               <BankConnections
-                {...{trueLayerToken, nordigenToken, starlingToken, bank}}
+                {...{isTrueLayer, isNordigen, isStarling, bank}}
               />
             </div>
           )}
@@ -151,17 +148,17 @@ function BanksListItem({
 }
 
 const BankConnections = ({
-  trueLayerToken,
-  nordigenToken,
-  starlingToken,
+  isTrueLayer,
+  isNordigen,
+  isStarling,
   bank,
 }: {
-  trueLayerToken?: DBTrueLayerToken;
-  nordigenToken?: DBNordigenToken;
-  starlingToken?: DBStarlingToken;
+  isTrueLayer: boolean;
+  isNordigen: boolean;
+  isStarling: boolean;
   bank: Bank;
 }) => {
-  if (!trueLayerToken && !nordigenToken && !starlingToken) {
+  if (!isTrueLayer && !isNordigen && !isStarling) {
     return (
       <div>
         Connect with{' '}
@@ -191,9 +188,9 @@ const BankConnections = ({
   }
   return (
     <>
-      {trueLayerToken && <TrueLayerActions bank={bank} />}
-      {nordigenToken && <NordigenActions bank={bank} />}
-      {starlingToken && <StarlingActions bank={bank} />}
+      {isTrueLayer && <TrueLayerActions bank={bank} />}
+      {isNordigen && <NordigenActions bank={bank} />}
+      {isStarling && <StarlingActions bank={bank} />}
     </>
   );
 };
@@ -234,7 +231,7 @@ const AccountsList = (props: {
   bank: Bank;
   accounts: BankAccount[];
   stocks: Stock[];
-  onAccountUpdated: (updated: DBBankAccount) => void;
+  onAccountUpdated: (updated: ProtoBankAccount) => void;
 }) => {
   if (!props.accounts) {
     return <div>No accounts.</div>;
@@ -261,7 +258,7 @@ const AccountListItem = (props: {
   account: BankAccount;
   bankAccounts: BankAccount[];
   stocks: Stock[];
-  onUpdated: (updated: DBBankAccount) => void;
+  onUpdated: (updated: ProtoBankAccount) => void;
 }) => {
   const [formDisplayed, setFormDisplayed] = useState(false);
   return (
@@ -300,43 +297,44 @@ const AccountListItem = (props: {
 };
 
 export function BanksConfigPage({
-  dbBanks: dbBanksInitial,
-  dbBankAccounts: dbBankAccountsInitial,
-  dbStocks,
-  dbTrueLayerTokens,
-  dbNordigenTokens,
-  dbStarlingTokens,
-  dbDisplaySettings,
+  banks: banksInitial,
+  bankAccounts: bankAccountsInitial,
+  stocks: stocksInitial,
+  trueLayerBankIds,
+  nordigenBankIds,
+  starlingBankIds,
+  displaySettings,
 }: {
-  dbBanks: DBBank[];
-  dbBankAccounts: DBBankAccount[];
-  dbStocks: DBStock[];
-  dbTrueLayerTokens: DBTrueLayerToken[];
-  dbNordigenTokens: DBNordigenToken[];
-  dbStarlingTokens: DBStarlingToken[];
-  dbDisplaySettings: DBDisplaySettings;
+  banks: ProtoBank[];
+  bankAccounts: ProtoBankAccount[];
+  stocks: ProtoStock[];
+  trueLayerBankIds: number[];
+  nordigenBankIds: number[];
+  starlingBankIds: number[];
+  displaySettings: ProtoDisplaySettings;
 }) {
-  const [dbBanks, setDbBanks] = useState(dbBanksInitial);
-  const [dbBankAccounts, setDbBankAccounts] = useState(dbBankAccountsInitial);
-  const onBankAddedOrUpdated = updateState(setDbBanks);
+  const [protoBanks, setProtoBanks] = useState(banksInitial);
+  const [protoBankAccounts, setProtoBankAccounts] =
+    useState(bankAccountsInitial);
+  const onBankAddedOrUpdated = updateState(setProtoBanks);
   const [formDisplayed, setFormDisplayed] = useState(false);
   const [banks, bankAccounts, stocks] = banksModelFromDatabaseData(
-    dbBanks,
-    dbBankAccounts,
-    dbStocks
+    protoBanks,
+    protoBankAccounts,
+    stocksInitial
   );
 
   return (
-    <DisplaySettingsContextProvider dbSettings={dbDisplaySettings}>
+    <DisplaySettingsContextProvider dbSettings={displaySettings}>
       <BanksList
         banks={banks}
         bankAccounts={bankAccounts}
         stocks={stocks}
-        trueLayerTokens={dbTrueLayerTokens}
-        nordigenTokens={dbNordigenTokens}
-        starlingTokens={dbStarlingTokens}
-        onBankUpdated={updateState(setDbBanks)}
-        onAccountAddedOrUpdated={updateState(setDbBankAccounts)}
+        trueLayerBankIds={trueLayerBankIds}
+        nordigenBankIds={nordigenBankIds}
+        starlingBankIds={starlingBankIds}
+        onBankUpdated={updateState(setProtoBanks)}
+        onAccountAddedOrUpdated={updateState(setProtoBankAccounts)}
       />
 
       <>

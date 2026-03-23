@@ -19,10 +19,10 @@ import {
   TransactionDataContextProvider,
   useTransactionDataContext,
 } from '@/lib/context/TransactionDataContext';
-import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
+import {AppData} from '@/lib/model/AppDataModel';
 import {Trip, tripModelFromDB} from '@/lib/model/Trip';
 import {hasTrip} from '@/lib/model/transaction/Transaction';
-import {Trip as DBTrip} from '@prisma/client';
+import {Trip as DBTrip} from '@/lib/grpc/gen/prosper/v1/ledger';
 import Link from 'next/link';
 
 function TripSpendingStats({input}: {input: ExchangedTransactions}) {
@@ -83,7 +83,7 @@ export function TripDetails({
   dbData,
   dbTrip,
 }: {
-  dbData: AllDatabaseData;
+  dbData: AppData;
   dbTrip: DBTrip;
 }) {
   if (!isFullyConfigured(dbData)) {

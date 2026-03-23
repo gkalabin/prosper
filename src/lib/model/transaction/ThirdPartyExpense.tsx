@@ -1,8 +1,12 @@
 import {assert} from '@/lib/assert';
-import {DBTransaction} from '@/lib/model/AllDatabaseDataModel';
+import {
+  LedgerAccount,
+  LedgerAccountType,
+  Transaction as PbTransaction,
+} from '@/lib/grpc/gen/prosper/v1/ledger';
+import {timestampToEpoch} from '@/lib/grpc/timestamp';
 import {TransactionCompanion} from '@/lib/model/transaction/TransactionCompanion';
 import {nanosToCents} from '@/lib/util/util';
-import {LedgerAccountType, LedgerAccount} from '@prisma/client';
 
 export type ThirdPartyExpense = {
   kind: 'ThirdPartyExpense';
@@ -21,7 +25,7 @@ export type ThirdPartyExpense = {
 };
 
 export function thirdPartyExpenseFromDB(
-  tx: DBTransaction,
+  tx: PbTransaction,
   accounts: Map<number, LedgerAccount>
 ): ThirdPartyExpense {
   assert(
@@ -62,10 +66,13 @@ export function thirdPartyExpenseFromDB(
   if (!tx.vendor) {
     throw new Error(`ThirdPartyExpense ${tx.id}: missing vendor`);
   }
+  if (!tx.categoryId) {
+    throw new Error(`ThirdPartyExpense ${tx.id}: missing category`);
+  }
   return {
     kind: 'ThirdPartyExpense',
     id: tx.id,
-    timestampEpoch: new Date(tx.timestamp).getTime(),
+    timestampEpoch: timestampToEpoch(tx.timestamp),
     payer: tx.payer,
     vendor: tx.vendor,
     amountCents: nanosToCents(totalNanos),
@@ -73,8 +80,8 @@ export function thirdPartyExpenseFromDB(
     ownShareCents,
     companions,
     note: tx.note,
-    categoryId: tx.categoryId!,
-    tagsIds: tx.tags.map(t => t.id),
-    tripId: tx.tripId,
+    categoryId: tx.categoryId,
+    tagsIds: tx.tagIds,
+    tripId: tx.tripId ?? null,
   };
 }

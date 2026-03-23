@@ -1,13 +1,13 @@
 'use server';
-import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB} from '@/lib/db';
+import {getAuthContextOrRedirect} from '@/lib/auth/user';
 import {updateCoreDataCache} from '@/lib/db/cache';
 import {
   CategoryFormSchema,
   categoryFormValidationSchema,
 } from '@/lib/form-types/CategoryFormSchema';
-import prisma from '@/lib/prisma';
-import {Category} from '@prisma/client';
+import {withAuth} from '@/lib/grpc/auth';
+import {ledgerClient} from '@/lib/grpc/client';
+import {Category} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {type typeToFlattenedError} from 'zod';
 
 export type UpsertCategoryResult =
@@ -24,7 +24,7 @@ export async function upsertCategory(
   categoryId: number | null,
   unsafeData: CategoryFormSchema
 ): Promise<UpsertCategoryResult> {
-  const userId = await getUserIdOrRedirect();
+  const auth = await getAuthContextOrRedirect();
   const validatedData = categoryFormValidationSchema.safeParse(unsafeData);
   if (!validatedData.success) {
     return {
@@ -32,42 +32,23 @@ export async function upsertCategory(
       errors: validatedData.error.flatten(),
     };
   }
-  const {name, parentCategoryId, displayOrder} = validatedData.data;
-
-  if (!categoryId) {
-    // Create new category
-    const result = await prisma.category.create({
-      data: {
-        name,
-        displayOrder,
-        userId,
-        parentCategoryId: parentCategoryId ? +parentCategoryId : null,
+  const {response} = await ledgerClient.upsertCategory(
+    withAuth(
+      {
+        category: {
+          id: categoryId ?? 0,
+          ...validatedData.data,
+        },
       },
-    });
-    await updateCoreDataCache(userId);
-    return {status: 'SUCCESS', data: result};
-  }
-
-  // Update existing category
-  const db = new DB({userId});
-  const found = await db.categoryFindMany({where: {id: categoryId}});
-  if (!found?.length) {
-    return {
-      status: 'CLIENT_ERROR',
-      errors: {
-        formErrors: [`Category with id ${categoryId} is not found`],
-        fieldErrors: {},
-      },
-    };
-  }
-  const result = await prisma.category.update({
+      auth
+    )
+  );
+  await updateCoreDataCache(auth.userId);
+  return {
+    status: 'SUCCESS',
     data: {
-      name,
-      displayOrder,
-      parentCategoryId: parentCategoryId ? +parentCategoryId : null,
+      id: response.categoryId,
+      ...validatedData.data,
     },
-    where: {id: categoryId},
-  });
-  await updateCoreDataCache(userId);
-  return {status: 'SUCCESS', data: result};
+  };
 }

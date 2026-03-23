@@ -3,18 +3,11 @@ import {
   SignInFormSchema,
   signInFormSchema,
 } from '@/app/auth/signin/signin-form-schema';
-import {COOKIE_TTL_DAYS, WRONG_LOGIN_OR_PASSWORD_ERROR} from '@/lib/auth/const';
+import {WRONG_LOGIN_OR_PASSWORD_ERROR} from '@/lib/auth/const';
 import {setSessionTokenCookie} from '@/lib/auth/cookies';
-import {
-  cleanUpExpiredSessions,
-  createSession,
-  generateSessionToken,
-} from '@/lib/auth/session';
-import prisma from '@/lib/prisma';
-import {isProd, isUsingHTTP} from '@/lib/util/env';
+import {createSession, generateSessionToken} from '@/lib/auth/session';
+import {authClient} from '@/lib/grpc/client';
 import {logRequest} from '@/lib/util/log';
-import bcrypt from 'bcrypt';
-import {addDays} from 'date-fns';
 
 const AUTH_FAILED = {
   success: false as const,
@@ -34,32 +27,14 @@ export async function signIn(
     return AUTH_FAILED;
   }
   const {login, password} = validatedFields.data;
-  const dbUser = await prisma.user.findUnique({where: {login}});
-  if (!dbUser) {
+  const {response: auth} = await authClient.authenticate({login, password});
+  if (!auth.ok) {
     return AUTH_FAILED;
-  }
-  const passwordsMatch = await bcrypt.compare(password, dbUser.password);
-  if (!passwordsMatch) {
-    return AUTH_FAILED;
-  }
-  // TODO: validate env on startup instead of warning to console.
-  if (isUsingHTTP() && isProd()) {
-    console.warn(
-      'Public app url is using HTTP, this is a possible misconfiguration'
-    );
   }
   // Auth OK, set session.
   logRequest('signIn', `success by ${login}`);
   const token = generateSessionToken();
-  const expiration = addDays(new Date(), COOKIE_TTL_DAYS);
-  await createSession(token, dbUser.id, expiration);
-  setSessionTokenCookie(token, expiration);
-  // Client request is now done, clean up expired sessions,
-  // but don't fail the request as it's not critical for the sign in.
-  try {
-    await cleanUpExpiredSessions();
-  } catch (error) {
-    console.warn('Failed to clean up expired sessions', error);
-  }
+  const expiration = await createSession(token, auth.userId);
+  await setSessionTokenCookie(token, expiration);
   return AUTH_OK;
 }

@@ -16,7 +16,10 @@ if [[ $# -lt 2 ]] || [[ "$1" != "--db_password" ]]; then
 fi
 DB_PASSWORD=$2
 
-brew install mysql npm terraform typos-cli gitleaks
+brew install mysql npm terraform typos-cli gitleaks go bufbuild/buf/buf
+go install github.com/air-verse/air@latest
+go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.11
+go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.6.2
 brew services start mysql
 
 # DB setup.

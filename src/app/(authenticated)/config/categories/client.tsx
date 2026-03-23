@@ -10,8 +10,8 @@ import {
   sortCategories,
 } from '@/lib/model/Category';
 import {updateState} from '@/lib/stateHelpers';
+import {Category as ProtoCategory} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {ChevronDownIcon, ChevronRightIcon} from '@heroicons/react/24/outline';
-import {Category as DBCategory} from '@prisma/client';
 import {useState} from 'react';
 
 const CategoriesList = (props: {
@@ -19,7 +19,7 @@ const CategoriesList = (props: {
   toggleCollapsedState: (categoryId: number) => void;
   categories: Category[];
   allCategories: Category[];
-  onCategoryUpdated: (updated: DBCategory) => void;
+  onCategoryUpdated: (updated: ProtoCategory) => void;
 }) => {
   if (!props.categories) {
     return <div>No categories found.</div>;
@@ -51,7 +51,7 @@ const EditableCategoryListItem = ({
   toggleCollapsedState: (categoryId: number) => void;
   category: Category;
   allCategories: Category[];
-  onCategoryUpdated: (updated: DBCategory) => void;
+  onCategoryUpdated: (updated: ProtoCategory) => void;
 }) => {
   const [showEditForm, setShowEditForm] = useState(false);
   const showChildren = !collapsed.includes(category.id);
@@ -122,7 +122,7 @@ export function Actions({
   onExpandToggle,
 }: {
   categories: Category[];
-  onNewCategory: (added: DBCategory) => void;
+  onNewCategory: (added: ProtoCategory) => void;
   onExpandToggle: () => void;
 }) {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -158,7 +158,7 @@ export function Actions({
 export function CategoriesConfigPage({
   dbCategories: initialDbCategories,
 }: {
-  dbCategories: DBCategory[];
+  dbCategories: ProtoCategory[];
 }) {
   const [dbCategories, setDbCategories] = useState(initialDbCategories);
   const [collapsed, setCollapsed] = useState<Array<number>>([]);

@@ -10,7 +10,7 @@ export interface ConnectionExpiration {
 
 export interface Transaction {
   externalTransactionId: string;
-  timestamp: Date;
+  timestampEpoch: number;
   description: string;
   amountCents: number;
   internalAccountId: number;

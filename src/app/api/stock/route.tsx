@@ -1,18 +1,19 @@
-import {getUserIdOrRedirect} from '@/lib/auth/user';
+import {getAuthContextOrRedirect} from '@/lib/auth/user';
 import {
   CurrencyUnitSchema,
   StockUnitSchema,
   UnitSchema,
 } from '@/lib/form-types/AccountFormSchema';
 import {allCurrencies} from '@/lib/model/Currency';
+import {logApi} from '@/lib/util/log';
 import {NextRequest, NextResponse} from 'next/server';
 import yahooFinance from 'yahoo-finance2';
 
 export async function GET(request: NextRequest): Promise<Response> {
-  // Make sure the user is authenticated.
-  await getUserIdOrRedirect();
+  const auth = await getAuthContextOrRedirect();
   const searchParams = request.nextUrl.searchParams;
   const q = searchParams.get('q');
+  logApi('GET', '/api/stock', {userId: auth.userId, q: q ?? ''});
   if (!q) {
     return new Response(`query 'q' cannot be empty`, {status: 400});
   }

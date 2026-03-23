@@ -15,7 +15,7 @@ import {CoreDataContextProvider} from '@/lib/context/CoreDataContext';
 import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
 import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
 import {TransactionDataContextProvider} from '@/lib/context/TransactionDataContext';
-import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
+import {AppData} from '@/lib/model/AppDataModel';
 import {useState} from 'react';
 
 function NonEmptyPageContent() {
@@ -43,7 +43,7 @@ function NonEmptyPageContent() {
   );
 }
 
-export function IncomePage({dbData}: {dbData: AllDatabaseData}) {
+export function IncomePage({dbData}: {dbData: AppData}) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }

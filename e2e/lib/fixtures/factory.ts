@@ -1,41 +1,51 @@
+import * as bcrypt from 'bcrypt';
+import {RowDataPacket} from 'mysql2/promise';
+// eslint-plugin-import's resolver doesn't follow uuid 14's conditional exports.
+// eslint-disable-next-line import/named
+import {v4 as uuidv4} from 'uuid';
+import {exec, insert, query} from '../db';
+import {cleanupForUserLogins, cleanupGlobalEntities} from './cleanup';
 import {
   Bank,
   BankAccount,
   Category,
-  DisplaySettings,
-  ExchangeRate,
-  StockQuote,
+  Stock,
   Tag,
+  TestDataBundle,
+  TransactionContext,
+  UserWithRawPassword,
+} from './types';
+
+export {
+  DEFAULT_TEST_CURRENCY,
+  NANOS_PER_DOLLAR,
+  TEST_USER_PASSWORD,
+} from './constants';
+export type {
+  Bank,
+  BankAccount,
+  Category,
+  Stock,
+  Tag,
+  TestDataBundle,
   User,
-} from '@prisma/client';
-import * as bcrypt from 'bcrypt';
-import {v4 as uuidv4} from 'uuid';
-import {prisma} from '../db';
+  UserWithRawPassword,
+} from './types';
 
-export const TEST_USER_PASSWORD = 'password123';
-export const DEFAULT_TEST_CURRENCY = 'USD';
-const NANOS_PER_DOLLAR = 1_000_000_000;
+import {
+  DEFAULT_TEST_CURRENCY,
+  NANOS_PER_DOLLAR,
+  TEST_USER_PASSWORD,
+} from './constants';
 
-type UserWithRawPassword = User & {rawPassword: string};
-
-// Bundle of test data suitable for most tests.
-export type TestDataBundle = {
-  user: UserWithRawPassword;
-  bank: Bank;
-  account: BankAccount;
-  category: Category;
-};
-
-// Provides the IDs needed by all transaction factory methods.
-// Accepts both full entity objects (from TestDataBundle) and raw IDs.
-type TransactionContext = {
-  user: {id: number};
-  account: {id: number};
-  category: {id: number};
-};
+interface BankAccountRow extends RowDataPacket, BankAccount {}
+interface IDRow extends RowDataPacket {
+  id: number;
+}
 
 export class TestFactory {
   private createdUsers: string[] = [];
+  private iidCounterByUser: Record<number, number> = {};
 
   registerUserForCleanup(login: string) {
     this.createdUsers.push(login);
@@ -43,74 +53,16 @@ export class TestFactory {
 
   async cleanUp() {
     console.log('Cleaning up users', this.createdUsers);
-    if (this.createdUsers.length === 0) {
-      return;
-    }
-    const whereLogin = {
-      where: {login: {in: this.createdUsers}},
-    };
-    try {
-      const userIds = await prisma.user
-        .findMany(whereLogin)
-        .then(u => u.map(({id}) => id));
-      const whereUserId = {where: {userId: {in: userIds}}};
-      const transactionsIds = await prisma.transaction
-        .findMany(whereUserId)
-        .then(t => t.map(({id}) => id));
-      await prisma.transactionLink.deleteMany({
-        where: {
-          OR: [
-            {sourceTransactionId: {in: transactionsIds}},
-            {linkedTransactionId: {in: transactionsIds}},
-          ],
-        },
-      });
-      await prisma.splitContext.deleteMany({
-        where: {transactionId: {in: transactionsIds}},
-      });
-      await prisma.entryLine.deleteMany({
-        where: {transactionId: {in: transactionsIds}},
-      });
-      await prisma.transactionPrototype.deleteMany({
-        where: {internalTransactionId: {in: transactionsIds}},
-      });
-      await prisma.transaction.deleteMany({
-        where: {id: {in: transactionsIds}},
-      });
-      await prisma.bankAccount.deleteMany(whereUserId);
-      await prisma.ledgerAccount.deleteMany(whereUserId);
-      await prisma.bank.deleteMany(whereUserId);
-      await prisma.category.deleteMany(whereUserId);
-      await prisma.tag.deleteMany(whereUserId);
-      await prisma.trip.deleteMany(whereUserId);
-      await prisma.displaySettings.deleteMany(whereUserId);
-      await prisma.externalAccountMapping.deleteMany(whereUserId);
-      await prisma.trueLayerToken.deleteMany(whereUserId);
-      await prisma.nordigenToken.deleteMany(whereUserId);
-      await prisma.nordigenRequisition.deleteMany(whereUserId);
-      await prisma.starlingToken.deleteMany(whereUserId);
-      await prisma.session.deleteMany(whereUserId);
-      await prisma.user.deleteMany(whereLogin);
-    } catch (error) {
-      console.error('Failed to cleanup test data:', error);
-    }
+    await cleanupForUserLogins(this.createdUsers);
   }
 
   // Cleans up global entities that are NOT user-specific.
-  // Runs as a part of global teardown.
   static async globalCleanUp() {
-    console.log('Running global cleanup...');
-    try {
-      await prisma.stockQuote.deleteMany();
-      await prisma.stock.deleteMany();
-      await prisma.exchangeRate.deleteMany();
-    } catch (error) {
-      console.error('Failed to run global cleanup:', error);
-    }
+    await cleanupGlobalEntities();
   }
 
   async createUserWithMultipleAccounts(overrides?: {
-    user?: Partial<User & {rawPassword: string}>;
+    user?: Partial<UserWithRawPassword>;
     bank?: Partial<Bank>;
     accounts: Array<Partial<BankAccount> & {initialBalance?: number}>;
     category?: Partial<Category>;
@@ -127,7 +79,7 @@ export class TestFactory {
   }
 
   async createUserWithTestData(overrides?: {
-    user?: Partial<User & {rawPassword: string}>;
+    user?: Partial<UserWithRawPassword>;
     bank?: Partial<Bank>;
     account?: Partial<BankAccount> & {initialBalance?: number};
     category?: Partial<Category>;
@@ -143,7 +95,6 @@ export class TestFactory {
     return {user, bank, account, category};
   }
 
-  private iidCounterByUser: Record<number, number> = {};
   private async nextIid(userId: number): Promise<number> {
     if (this.iidCounterByUser[userId] === undefined) {
       this.iidCounterByUser[userId] = 1;
@@ -151,87 +102,84 @@ export class TestFactory {
     return this.iidCounterByUser[userId]++;
   }
 
-  async createUser(overrides?: Partial<UserWithRawPassword>) {
-    const login = 'e2e_test_user_' + uuidv4().slice(0, 8);
+  async createUser(
+    overrides?: Partial<UserWithRawPassword>
+  ): Promise<UserWithRawPassword> {
+    const login = overrides?.login ?? 'e2e_test_user_' + uuidv4().slice(0, 8);
     const rawPassword = overrides?.rawPassword || TEST_USER_PASSWORD;
     const passwordHash = await bcrypt.hash(rawPassword, 10);
-
-    const user = await prisma.user.create({
-      data: {
-        login,
-        password: passwordHash,
-        ...overrides,
-      },
-    });
-    const systemTypes = [
-      'EXPENSE',
-      'INCOME',
-      'EQUITY',
-      'CURRENCY_EXCHANGE',
-    ] as const;
-    await prisma.ledgerAccount.createMany({
-      data: systemTypes.map(type => ({
-        userId: user.id,
-        name: `SYSTEM:${type}`,
-        type,
-      })),
-    });
-
-    await prisma.displaySettings.create({
-      data: {
-        userId: user.id,
-        displayCurrencyCode: DEFAULT_TEST_CURRENCY,
-        excludeCategoryIdsInStats: '',
-      },
-    });
+    const userId = await insert(
+      `INSERT INTO User (login, password) VALUES (?, ?)`,
+      [login, passwordHash]
+    );
+    const systemTypes = ['EXPENSE', 'INCOME', 'EQUITY', 'CURRENCY_EXCHANGE'];
+    for (const t of systemTypes) {
+      await exec(
+        `INSERT INTO LedgerAccount (userId, name, type) VALUES (?, ?, ?)`,
+        [userId, `SYSTEM:${t}`, t]
+      );
+    }
+    await exec(
+      `INSERT INTO DisplaySettings (userId, displayCurrencyCode, excludeCategoryIdsInStats)
+       VALUES (?, ?, '')`,
+      [userId, DEFAULT_TEST_CURRENCY]
+    );
     this.createdUsers.push(login);
-    return {...user, rawPassword};
+    return {id: userId, login, password: passwordHash, rawPassword};
   }
 
-  async createBank(userId: number, overrides?: Partial<Bank>) {
-    return prisma.bank.create({
-      data: {
-        userId,
-        name: `Test Bank`,
-        ...overrides,
-      },
-    });
+  async createBank(userId: number, overrides?: Partial<Bank>): Promise<Bank> {
+    const name = overrides?.name ?? 'Test Bank';
+    const id = await insert(`INSERT INTO Bank (userId, name) VALUES (?, ?)`, [
+      userId,
+      name,
+    ]);
+    return {id, userId, name};
   }
 
   async createAccount(
     userId: number,
     bankId: number,
     overrides?: Partial<BankAccount> & {initialBalance?: number}
-  ) {
-    // Do not set default currencyCode for stock accounts.
-    const currencyCode = overrides?.stockId ? undefined : DEFAULT_TEST_CURRENCY;
-    const {initialBalance, ...restOverrides} = overrides || {};
-    const account = await prisma.bankAccount.create({
-      data: {
+  ): Promise<BankAccount> {
+    const stockId = overrides?.stockId ?? null;
+    const currencyCode =
+      stockId === null
+        ? (overrides?.currencyCode ?? DEFAULT_TEST_CURRENCY)
+        : null;
+    const name = overrides?.name ?? 'Test Account';
+    const archived = overrides?.archived ?? false;
+    const joint = overrides?.joint ?? false;
+    const displayOrder = overrides?.displayOrder ?? 0;
+    const id = await insert(
+      `INSERT INTO BankAccount (userId, bankId, name, currencyCode, stockId, archived, joint, displayOrder)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
         userId,
         bankId,
-        name: `Test Account`,
+        name,
         currencyCode,
-        ...restOverrides,
-      },
-    });
-    await prisma.ledgerAccount.create({
-      data: {
-        userId,
-        name: account.name,
-        type: 'ASSET',
-        bankAccountId: account.id,
-      },
-    });
+        stockId,
+        archived,
+        joint,
+        displayOrder,
+      ]
+    );
+    await exec(
+      `INSERT INTO LedgerAccount (userId, name, type, bankAccountId)
+       VALUES (?, ?, 'ASSET', ?)`,
+      [userId, name, id]
+    );
     if (overrides?.initialBalance) {
       await this.openingBalance({
         userId,
-        bankAccountId: account.id,
+        bankAccountId: id,
         initialBalance: overrides.initialBalance,
         currencyCode,
+        stockId,
       });
     }
-    return account;
+    return {id, userId, bankId, name, currencyCode, stockId};
   }
 
   private async openingBalance({
@@ -250,71 +198,85 @@ export class TestFactory {
     timestamp?: Date | string;
   }) {
     const amountNanos = BigInt(Math.round(initialBalance * NANOS_PER_DOLLAR));
-    const ledgerAccount = await prisma.ledgerAccount.findFirstOrThrow({
-      where: {userId, bankAccountId, type: 'ASSET'},
-    });
-    const equityAccount = await prisma.ledgerAccount.findFirstOrThrow({
-      where: {userId, type: 'EQUITY'},
-    });
+    const [assetRow] = await query<IDRow[]>(
+      `SELECT id FROM LedgerAccount
+       WHERE userId = ? AND bankAccountId = ? AND type = 'ASSET'`,
+      [userId, bankAccountId]
+    );
+    const [equityRow] = await query<IDRow[]>(
+      `SELECT id FROM LedgerAccount WHERE userId = ? AND type = 'EQUITY'`,
+      [userId]
+    );
+    if (!assetRow || !equityRow) {
+      throw new Error(
+        `missing ledger accounts for user ${userId} bankAccount ${bankAccountId}`
+      );
+    }
     const iid = await this.nextIid(userId);
     const time = timestamp ? new Date(timestamp) : new Date();
-    return prisma.transaction.create({
-      data: {
-        iid,
-        userId,
-        timestamp: time,
-        type: 'OPENING_BALANCE',
-        lines: {
-          create: [
-            {
-              ledgerAccountId: ledgerAccount.id,
-              amountNanos,
-              currencyCode,
-              stockId,
-            },
-            {
-              ledgerAccountId: equityAccount.id,
-              amountNanos: -amountNanos,
-              currencyCode,
-              stockId,
-            },
-          ],
-        },
-      },
-    });
+    const txId = await insert(
+      `INSERT INTO Transaction (iid, userId, timestamp, type)
+       VALUES (?, ?, ?, 'OPENING_BALANCE')`,
+      [iid, userId, time]
+    );
+    await insertLine(
+      userId,
+      txId,
+      assetRow.id,
+      currencyCode ?? null,
+      stockId ?? null,
+      amountNanos
+    );
+    await insertLine(
+      userId,
+      txId,
+      equityRow.id,
+      currencyCode ?? null,
+      stockId ?? null,
+      -amountNanos
+    );
+    return txId;
   }
 
-  async createCategory(userId: number, overrides?: Partial<Category>) {
-    return prisma.category.create({
-      data: {
-        userId,
-        name: `Test Category`,
-        ...overrides,
-      },
-    });
+  async createCategory(
+    userId: number,
+    overrides?: Partial<Category>
+  ): Promise<Category> {
+    const name = overrides?.name ?? 'Test Category';
+    const parentCategoryId = overrides?.parentCategoryId ?? null;
+    const displayOrder = overrides?.displayOrder ?? 0;
+    const id = await insert(
+      `INSERT INTO Category (userId, name, parentCategoryId, displayOrder)
+       VALUES (?, ?, ?, ?)`,
+      [userId, name, parentCategoryId, displayOrder]
+    );
+    return {id, userId, name, parentCategoryId, displayOrder};
   }
 
   async getOrCreateReceivableAccount(userId: number, companionName: string) {
     const name = `RECEIVABLE:${companionName}`;
-    let ledgerAccountReceivable = await prisma.ledgerAccount.findFirst({
-      where: {userId, type: 'RECEIVABLE', name},
-    });
-    if (!ledgerAccountReceivable) {
-      ledgerAccountReceivable = await prisma.ledgerAccount.create({
-        data: {userId, name, type: 'RECEIVABLE'},
-      });
+    const existing = await query<IDRow[]>(
+      `SELECT id FROM LedgerAccount
+       WHERE userId = ? AND type = 'RECEIVABLE' AND name = ?`,
+      [userId, name]
+    );
+    if (existing[0]) {
+      return {id: existing[0].id, userId, name, type: 'RECEIVABLE' as const};
     }
-    return ledgerAccountReceivable;
+    const id = await insert(
+      `INSERT INTO LedgerAccount (userId, name, type)
+       VALUES (?, ?, 'RECEIVABLE')`,
+      [userId, name]
+    );
+    return {id, userId, name, type: 'RECEIVABLE' as const};
   }
 
-  async createTag(userId: number, name: string, overrides?: Partial<Tag>) {
-    return prisma.tag.create({
-      data: {
-        userId,
-        name,
-        ...overrides,
-      },
-    });
+  async createTag(userId: number, name: string): Promise<Tag> {
+    const id = await insert(`INSERT INTO Tag (userId, name) VALUES (?, ?)`, [
+      userId,
+      name,
+    ]);
+    return {id, userId, name};
   }
 
   async createStock({
@@ -327,30 +289,22 @@ export class TestFactory {
     ticker: string;
     exchange: string;
     currencyCode: string;
-  }) {
-    return prisma.stock.create({
-      data: {
-        name,
-        ticker,
-        exchange,
-        currencyCode,
-      },
-    });
+  }): Promise<Stock> {
+    const id = await insert(
+      `INSERT INTO Stock (name, ticker, exchange, currencyCode)
+       VALUES (?, ?, ?, ?)`,
+      [name, ticker, exchange, currencyCode]
+    );
+    return {id, name, ticker, exchange, currencyCode};
   }
 
-  async createStockQuote(
-    stockId: number,
-    price: number,
-    overrides?: Partial<StockQuote>
-  ) {
-    return prisma.stockQuote.create({
-      data: {
-        stockId,
-        quoteTimestamp: new Date(),
-        value: price,
-        ...overrides,
-      },
-    });
+  async createStockQuote(stockId: number, pricePerShare: number) {
+    const valueCents = Math.round(pricePerShare * 100);
+    await exec(
+      `INSERT INTO StockQuote (stockId, value, quoteTimestamp)
+       VALUES (?, ?, NOW(3))`,
+      [stockId, valueCents]
+    );
   }
 
   async expense(
@@ -365,10 +319,8 @@ export class TestFactory {
       tagIds,
       ownShareAmount,
       otherPartyName,
-      bank: _bank,
-      ...overrides
+      tripId,
     }: TransactionContext & {
-      bank?: unknown;
       timestamp?: Date | string;
       description?: string;
       tagIds?: number[];
@@ -383,69 +335,73 @@ export class TestFactory {
       : amountNanos;
     const time = timestamp ? new Date(timestamp) : new Date();
     const iid = await this.nextIid(user.id);
-    const bankAccount = await prisma.bankAccount.findUniqueOrThrow({
-      where: {id: account.id},
-    });
-    const ledgerAccountAsset = await prisma.ledgerAccount.findUniqueOrThrow({
-      where: {bankAccountId: account.id},
-    });
-    const ledgerAccountExpense = await prisma.ledgerAccount.findFirstOrThrow({
-      where: {userId: user.id, type: 'EXPENSE'},
-    });
-    const currencyCode = bankAccount.currencyCode ?? undefined;
-    const stockId = bankAccount.stockId ?? undefined;
-    const lines = [
-      {
-        ledgerAccountId: ledgerAccountAsset.id,
-        amountNanos: -amountNanos,
-        currencyCode,
-        stockId,
-      },
-      {
-        ledgerAccountId: ledgerAccountExpense.id,
-        amountNanos: ownShareAmountNanos,
-        currencyCode,
-        stockId,
-      },
-    ];
-    let splits;
+    const [bankAccountRow] = await query<BankAccountRow[]>(
+      `SELECT * FROM BankAccount WHERE id = ?`,
+      [account.id]
+    );
+    const [assetRow] = await query<IDRow[]>(
+      `SELECT id FROM LedgerAccount WHERE bankAccountId = ?`,
+      [account.id]
+    );
+    const [expenseRow] = await query<IDRow[]>(
+      `SELECT id FROM LedgerAccount WHERE userId = ? AND type = 'EXPENSE'`,
+      [user.id]
+    );
+    const currencyCode = bankAccountRow.currencyCode ?? null;
+    const stockId = bankAccountRow.stockId ?? null;
+    const txId = await insert(
+      `INSERT INTO Transaction (iid, userId, type, timestamp, categoryId, note, vendor, tripId)
+       VALUES (?, ?, 'EXPENSE', ?, ?, ?, ?, ?)`,
+      [
+        iid,
+        user.id,
+        time,
+        category.id,
+        description ?? '',
+        vendor,
+        tripId ?? null,
+      ]
+    );
+    await insertLine(
+      user.id,
+      txId,
+      assetRow.id,
+      currencyCode,
+      stockId,
+      -amountNanos
+    );
+    await insertLine(
+      user.id,
+      txId,
+      expenseRow.id,
+      currencyCode,
+      stockId,
+      ownShareAmountNanos
+    );
     if (otherPartyName) {
       const companionShareNanos = amountNanos - ownShareAmountNanos;
-      const ledgerAccountReceivable = await this.getOrCreateReceivableAccount(
+      const recv = await this.getOrCreateReceivableAccount(
         user.id,
         otherPartyName
       );
-      lines.push({
-        ledgerAccountId: ledgerAccountReceivable.id,
-        amountNanos: companionShareNanos,
+      await insertLine(
+        user.id,
+        txId,
+        recv.id,
         currencyCode,
         stockId,
-      });
-      splits = {
-        create: [
-          {
-            companionName: otherPartyName,
-            companionShareNanos,
-            companionPaidNanos: BigInt(0),
-          },
-        ],
-      };
+        companionShareNanos
+      );
+      await exec(
+        `INSERT INTO SplitContext (userId, transactionId, companionName, companionShareNanos, companionPaidNanos)
+         VALUES (?, ?, ?, ?, 0)`,
+        [user.id, txId, otherPartyName, companionShareNanos.toString()]
+      );
     }
-    return prisma.transaction.create({
-      data: {
-        iid,
-        userId: user.id,
-        type: 'EXPENSE',
-        timestamp: time,
-        categoryId: category.id,
-        note: description ?? '',
-        vendor,
-        lines: {create: lines},
-        ...(overrides.tripId ? {tripId: overrides.tripId} : {}),
-        ...(splits ? {splits} : {}),
-        ...(tagIds ? {tags: {connect: tagIds.map(id => ({id}))}} : {}),
-      },
-    });
+    if (tagIds) {
+      await attachTags(txId, tagIds);
+    }
+    return {id: txId};
   }
 
   async income(
@@ -460,10 +416,8 @@ export class TestFactory {
       tagIds,
       ownShareAmount,
       otherPartyName,
-      bank: _bank,
-      ...overrides
+      tripId,
     }: TransactionContext & {
-      bank?: unknown;
       timestamp?: Date | string;
       description?: string;
       tagIds?: number[];
@@ -478,69 +432,73 @@ export class TestFactory {
       : amountNanos;
     const time = timestamp ? new Date(timestamp) : new Date();
     const iid = await this.nextIid(user.id);
-    const bankAccount = await prisma.bankAccount.findUniqueOrThrow({
-      where: {id: account.id},
-    });
-    const ledgerAccountAsset = await prisma.ledgerAccount.findUniqueOrThrow({
-      where: {bankAccountId: account.id},
-    });
-    const ledgerAccountIncome = await prisma.ledgerAccount.findFirstOrThrow({
-      where: {userId: user.id, type: 'INCOME'},
-    });
-    const currencyCode = bankAccount.currencyCode ?? undefined;
-    const stockId = bankAccount.stockId ?? undefined;
-    const lines = [
-      {
-        ledgerAccountId: ledgerAccountAsset.id,
-        currencyCode,
-        stockId,
-        amountNanos: amountNanos,
-      },
-      {
-        ledgerAccountId: ledgerAccountIncome.id,
-        currencyCode,
-        stockId,
-        amountNanos: -ownShareAmountNanos,
-      },
-    ];
-    let splits;
+    const [bankAccountRow] = await query<BankAccountRow[]>(
+      `SELECT * FROM BankAccount WHERE id = ?`,
+      [account.id]
+    );
+    const [assetRow] = await query<IDRow[]>(
+      `SELECT id FROM LedgerAccount WHERE bankAccountId = ?`,
+      [account.id]
+    );
+    const [incomeRow] = await query<IDRow[]>(
+      `SELECT id FROM LedgerAccount WHERE userId = ? AND type = 'INCOME'`,
+      [user.id]
+    );
+    const currencyCode = bankAccountRow.currencyCode ?? null;
+    const stockId = bankAccountRow.stockId ?? null;
+    const txId = await insert(
+      `INSERT INTO Transaction (iid, userId, type, timestamp, categoryId, note, payer, tripId)
+       VALUES (?, ?, 'INCOME', ?, ?, ?, ?, ?)`,
+      [
+        iid,
+        user.id,
+        time,
+        category.id,
+        description ?? '',
+        payer,
+        tripId ?? null,
+      ]
+    );
+    await insertLine(
+      user.id,
+      txId,
+      assetRow.id,
+      currencyCode,
+      stockId,
+      amountNanos
+    );
+    await insertLine(
+      user.id,
+      txId,
+      incomeRow.id,
+      currencyCode,
+      stockId,
+      -ownShareAmountNanos
+    );
     if (otherPartyName) {
       const companionShareNanos = amountNanos - ownShareAmountNanos;
-      const ledgerAccountReceivable = await this.getOrCreateReceivableAccount(
+      const recv = await this.getOrCreateReceivableAccount(
         user.id,
         otherPartyName
       );
-      lines.push({
-        ledgerAccountId: ledgerAccountReceivable.id,
+      await insertLine(
+        user.id,
+        txId,
+        recv.id,
         currencyCode,
         stockId,
-        amountNanos: -companionShareNanos,
-      });
-      splits = {
-        create: [
-          {
-            companionName: otherPartyName,
-            companionShareNanos,
-            companionPaidNanos: BigInt(0),
-          },
-        ],
-      };
+        -companionShareNanos
+      );
+      await exec(
+        `INSERT INTO SplitContext (userId, transactionId, companionName, companionShareNanos, companionPaidNanos)
+         VALUES (?, ?, ?, ?, 0)`,
+        [user.id, txId, otherPartyName, companionShareNanos.toString()]
+      );
     }
-    return prisma.transaction.create({
-      data: {
-        iid,
-        userId: user.id,
-        type: 'INCOME',
-        timestamp: time,
-        categoryId: category.id,
-        note: description ?? '',
-        payer,
-        lines: {create: lines},
-        ...(overrides.tripId ? {tripId: overrides.tripId} : {}),
-        ...(splits ? {splits} : {}),
-        ...(tagIds ? {tags: {connect: tagIds.map(id => ({id}))}} : {}),
-      },
-    });
+    if (tagIds) {
+      await attachTags(txId, tagIds);
+    }
+    return {id: txId};
   }
 
   async transfer(
@@ -554,16 +512,12 @@ export class TestFactory {
       description,
       tagIds,
       receivedAmount,
-      bank: _bank,
-      account: _account,
-      ...overrides
+      tripId,
     }: {
       user: {id: number};
       from: {id: number};
       to: {id: number};
       category: {id: number};
-      bank?: unknown;
-      account?: unknown;
       timestamp?: Date | string;
       description?: string;
       tagIds?: number[];
@@ -577,71 +531,72 @@ export class TestFactory {
       : amountNanos;
     const time = timestamp ? new Date(timestamp) : new Date();
     const iid = await this.nextIid(user.id);
-    const fromBankAcct = await prisma.bankAccount.findUniqueOrThrow({
-      where: {id: from.id},
-    });
-    const toBankAcct = await prisma.bankAccount.findUniqueOrThrow({
-      where: {id: to.id},
-    });
-    const ledgerAccountFromAsset = await prisma.ledgerAccount.findUniqueOrThrow(
-      {
-        where: {bankAccountId: from.id},
-      }
+    const [fromBank] = await query<BankAccountRow[]>(
+      `SELECT * FROM BankAccount WHERE id = ?`,
+      [from.id]
     );
-    const ledgerAccountToAsset = await prisma.ledgerAccount.findUniqueOrThrow({
-      where: {bankAccountId: to.id},
-    });
-    const lines = [
-      {
-        ledgerAccountId: ledgerAccountFromAsset.id,
-        amountNanos: -amountNanos,
-        currencyCode: fromBankAcct.currencyCode,
-        stockId: fromBankAcct.stockId,
-      },
-      {
-        ledgerAccountId: ledgerAccountToAsset.id,
-        amountNanos: receivedAmountNanos,
-        currencyCode: toBankAcct.currencyCode,
-        stockId: toBankAcct.stockId,
-      },
-    ];
+    const [toBank] = await query<BankAccountRow[]>(
+      `SELECT * FROM BankAccount WHERE id = ?`,
+      [to.id]
+    );
+    const [fromAsset] = await query<IDRow[]>(
+      `SELECT id FROM LedgerAccount WHERE bankAccountId = ?`,
+      [from.id]
+    );
+    const [toAsset] = await query<IDRow[]>(
+      `SELECT id FROM LedgerAccount WHERE bankAccountId = ?`,
+      [to.id]
+    );
+    const txId = await insert(
+      `INSERT INTO Transaction (iid, userId, type, timestamp, categoryId, note, tripId)
+       VALUES (?, ?, 'TRANSFER', ?, ?, ?, ?)`,
+      [iid, user.id, time, category.id, description ?? '', tripId ?? null]
+    );
+    await insertLine(
+      user.id,
+      txId,
+      fromAsset.id,
+      fromBank.currencyCode,
+      fromBank.stockId,
+      -amountNanos
+    );
+    await insertLine(
+      user.id,
+      txId,
+      toAsset.id,
+      toBank.currencyCode,
+      toBank.stockId,
+      receivedAmountNanos
+    );
     if (
-      fromBankAcct.currencyCode !== toBankAcct.currencyCode ||
-      fromBankAcct.stockId !== toBankAcct.stockId
+      fromBank.currencyCode !== toBank.currencyCode ||
+      fromBank.stockId !== toBank.stockId
     ) {
-      const ledgerAccountExchange = await prisma.ledgerAccount.findFirstOrThrow(
-        {
-          where: {userId: user.id, type: 'CURRENCY_EXCHANGE'},
-        }
+      const [fxRow] = await query<IDRow[]>(
+        `SELECT id FROM LedgerAccount WHERE userId = ? AND type = 'CURRENCY_EXCHANGE'`,
+        [user.id]
       );
-      lines.push(
-        {
-          ledgerAccountId: ledgerAccountExchange.id,
-          amountNanos: amountNanos,
-          currencyCode: fromBankAcct.currencyCode,
-          stockId: fromBankAcct.stockId,
-        },
-        {
-          ledgerAccountId: ledgerAccountExchange.id,
-          amountNanos: -receivedAmountNanos,
-          currencyCode: toBankAcct.currencyCode,
-          stockId: toBankAcct.stockId,
-        }
+      await insertLine(
+        user.id,
+        txId,
+        fxRow.id,
+        fromBank.currencyCode,
+        fromBank.stockId,
+        amountNanos
+      );
+      await insertLine(
+        user.id,
+        txId,
+        fxRow.id,
+        toBank.currencyCode,
+        toBank.stockId,
+        -receivedAmountNanos
       );
     }
-    return prisma.transaction.create({
-      data: {
-        iid,
-        userId: user.id,
-        type: 'TRANSFER',
-        timestamp: time,
-        categoryId: category.id,
-        note: description ?? '',
-        lines: {create: lines},
-        ...(overrides.tripId ? {tripId: overrides.tripId} : {}),
-        ...(tagIds ? {tags: {connect: tagIds.map(id => ({id}))}} : {}),
-      },
-    });
+    if (tagIds) {
+      await attachTags(txId, tagIds);
+    }
+    return {id: txId};
   }
 
   async thirdPartyExpense({
@@ -654,9 +609,7 @@ export class TestFactory {
     currencyCode,
     timestamp,
     tagIds,
-    bank: _bank,
-    account: _account,
-    ...overrides
+    tripId,
   }: {
     user: {id: number};
     category: {id: number};
@@ -666,8 +619,6 @@ export class TestFactory {
     ownShareAmount: number;
     currencyCode: string;
     timestamp?: Date | string;
-    bank?: unknown;
-    account?: unknown;
     tagIds?: number[];
     tripId?: number;
   }) {
@@ -675,92 +626,136 @@ export class TestFactory {
     const ownShareAmountNanos = BigInt(ownShareAmount * NANOS_PER_DOLLAR);
     const time = timestamp ? new Date(timestamp) : new Date();
     const iid = await this.nextIid(user.id);
-    const ledgerAccountExpense = await prisma.ledgerAccount.findFirstOrThrow({
-      where: {userId: user.id, type: 'EXPENSE'},
-    });
-    const ledgerAccountReceivable = await this.getOrCreateReceivableAccount(
-      user.id,
-      payer
+    const [expenseRow] = await query<IDRow[]>(
+      `SELECT id FROM LedgerAccount WHERE userId = ? AND type = 'EXPENSE'`,
+      [user.id]
     );
-    const lines = [
-      {
-        ledgerAccountId: ledgerAccountExpense.id,
-        amountNanos: ownShareAmountNanos,
-        currencyCode,
-        stockId: undefined,
-      },
-      {
-        ledgerAccountId: ledgerAccountReceivable.id,
-        amountNanos: -ownShareAmountNanos,
-        currencyCode,
-        stockId: undefined,
-      },
-    ];
-    return prisma.transaction.create({
-      data: {
-        iid,
-        userId: user.id,
-        type: 'THIRD_PARTY_EXPENSE',
-        timestamp: time,
-        categoryId: category.id,
-        note: '',
-        vendor,
+    const recv = await this.getOrCreateReceivableAccount(user.id, payer);
+    const txId = await insert(
+      `INSERT INTO Transaction (iid, userId, type, timestamp, categoryId, note, vendor, payer, tripId)
+       VALUES (?, ?, 'THIRD_PARTY_EXPENSE', ?, ?, '', ?, ?, ?)`,
+      [iid, user.id, time, category.id, vendor, payer, tripId ?? null]
+    );
+    await insertLine(
+      user.id,
+      txId,
+      expenseRow.id,
+      currencyCode,
+      null,
+      ownShareAmountNanos
+    );
+    await insertLine(
+      user.id,
+      txId,
+      recv.id,
+      currencyCode,
+      null,
+      -ownShareAmountNanos
+    );
+    await exec(
+      `INSERT INTO SplitContext (userId, transactionId, companionName, companionShareNanos, companionPaidNanos)
+       VALUES (?, ?, ?, ?, ?)`,
+      [
+        user.id,
+        txId,
         payer,
-        lines: {create: lines},
-        splits: {
-          create: [
-            {
-              companionName: payer,
-              companionShareNanos: ownShareAmountNanos,
-              companionPaidNanos: fullAmountNanos,
-            },
-          ],
-        },
-        ...(overrides.tripId ? {tripId: overrides.tripId} : {}),
-        ...(tagIds ? {tags: {connect: tagIds.map(id => ({id}))}} : {}),
-      },
-    });
+        ownShareAmountNanos.toString(),
+        fullAmountNanos.toString(),
+      ]
+    );
+    if (tagIds) {
+      await attachTags(txId, tagIds);
+    }
+    return {id: txId};
   }
 
   async createExchangeRate(
     fromCurrency: string,
     toCurrency: string,
-    rate: number,
-    overrides?: Partial<ExchangeRate>
+    rate: number
   ) {
-    const NANOS_MULTIPLIER = 1000000000;
-    return prisma.exchangeRate.create({
-      data: {
-        currencyCodeFrom: fromCurrency,
-        currencyCodeTo: toCurrency,
-        rateNanos: BigInt(Math.round(rate * NANOS_MULTIPLIER)),
-        rateTimestamp: new Date(),
-        ...overrides,
-      },
-    });
+    await exec(
+      `INSERT INTO ExchangeRate (currencyCodeFrom, currencyCodeTo, rateNanos, rateTimestamp)
+       VALUES (?, ?, ?, NOW(3))`,
+      [
+        fromCurrency,
+        toCurrency,
+        BigInt(Math.round(rate * NANOS_PER_DOLLAR)).toString(),
+      ]
+    );
   }
 
   async updateDisplaySettings(
     userId: number,
-    updates: Partial<DisplaySettings>
+    updates: {
+      displayCurrencyCode?: string;
+      excludeCategoryIdsInStats?: string;
+    }
   ) {
-    return prisma.displaySettings.update({
-      where: {userId},
-      data: updates,
-    });
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    if (updates.displayCurrencyCode !== undefined) {
+      fields.push('displayCurrencyCode = ?');
+      values.push(updates.displayCurrencyCode);
+    }
+    if (updates.excludeCategoryIdsInStats !== undefined) {
+      fields.push('excludeCategoryIdsInStats = ?');
+      values.push(updates.excludeCategoryIdsInStats);
+    }
+    if (!fields.length) {
+      return;
+    }
+    values.push(userId);
+    await exec(
+      `UPDATE DisplaySettings SET ${fields.join(', ')} WHERE userId = ?`,
+      values
+    );
   }
 
   async createTransactionLink(
+    userId: number,
     sourceTransactionId: number,
     linkedTransactionId: number,
     linkType: 'REFUND' | 'DEBT_SETTLING'
   ) {
-    return prisma.transactionLink.create({
-      data: {
-        sourceTransactionId,
-        linkedTransactionId,
-        linkType,
-      },
-    });
+    await exec(
+      `INSERT INTO TransactionLink (userId, sourceTransactionId, linkedTransactionId, linkType)
+       VALUES (?, ?, ?, ?)`,
+      [userId, sourceTransactionId, linkedTransactionId, linkType]
+    );
+  }
+}
+
+async function insertLine(
+  userId: number,
+  transactionId: number,
+  ledgerAccountId: number,
+  currencyCode: string | null,
+  stockId: number | null,
+  amountNanos: bigint
+): Promise<void> {
+  await exec(
+    `INSERT INTO EntryLine (userId, transactionId, ledgerAccountId, currencyCode, stockId, amountNanos)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+    [
+      userId,
+      transactionId,
+      ledgerAccountId,
+      currencyCode,
+      stockId,
+      amountNanos.toString(),
+    ]
+  );
+}
+
+async function attachTags(
+  transactionId: number,
+  tagIds: number[]
+): Promise<void> {
+  for (const tagId of tagIds) {
+    await exec(`INSERT INTO _TagToTransaction (A, B) VALUES (?, ?)`, [
+      tagId,
+      transactionId,
+    ]);
   }
 }

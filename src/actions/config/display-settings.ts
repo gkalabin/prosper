@@ -1,14 +1,18 @@
 'use server';
-import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB} from '@/lib/db';
-import {updateCoreDataCache} from '@/lib/db/cache';
+import {getAuthContextOrRedirect} from '@/lib/auth/user';
+import {
+  cachedCoreDataOrFetch,
+  invalidateMarketDataCache,
+  updateCoreDataCache,
+} from '@/lib/db/cache';
 import {
   DisplaySettingsFormSchema,
   displaySettingsFormValidationSchema,
 } from '@/lib/form-types/DisplaySettingsFormSchema';
+import {withAuth} from '@/lib/grpc/auth';
+import {ledgerClient} from '@/lib/grpc/client';
+import {DisplaySettings} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {findByCode} from '@/lib/model/Currency';
-import prisma from '@/lib/prisma';
-import {DisplaySettings} from '@prisma/client';
 import {type typeToFlattenedError} from 'zod';
 
 export type UpdateDisplaySettingsResult =
@@ -24,7 +28,7 @@ export type UpdateDisplaySettingsResult =
 export async function updateDisplaySettings(
   unsafeData: DisplaySettingsFormSchema
 ): Promise<UpdateDisplaySettingsResult> {
-  const userId = await getUserIdOrRedirect();
+  const auth = await getAuthContextOrRedirect();
   const validatedData =
     displaySettingsFormValidationSchema.safeParse(unsafeData);
   if (!validatedData.success) {
@@ -44,9 +48,8 @@ export async function updateDisplaySettings(
       },
     };
   }
-  const db = new DB({userId});
-  const allCategories = await db.categoryFindMany();
-  const known = new Set<number>(allCategories.map(c => c.id));
+  const core = await cachedCoreDataOrFetch(auth);
+  const known = new Set<number>(core.categories.map(c => c.id));
   const unknownCategories = excludeCategoryIdsInStats.filter(
     id => !known.has(id)
   );
@@ -61,13 +64,18 @@ export async function updateDisplaySettings(
       },
     };
   }
-  const result = await prisma.displaySettings.update({
+  await ledgerClient.updateDisplaySettings(
+    withAuth({settings: {displayCurrencyCode, excludeCategoryIdsInStats}}, auth)
+  );
+  await updateCoreDataCache(auth.userId);
+  // The display currency drives which exchange pairs the market-data
+  // fetcher requests, so the market cache is stale after a change.
+  await invalidateMarketDataCache(auth.userId);
+  return {
+    status: 'SUCCESS',
     data: {
       displayCurrencyCode,
-      excludeCategoryIdsInStats: excludeCategoryIdsInStats.join(','),
+      excludeCategoryIdsInStats,
     },
-    where: {userId},
-  });
-  await updateCoreDataCache(userId);
-  return {status: 'SUCCESS', data: result};
+  };
 }

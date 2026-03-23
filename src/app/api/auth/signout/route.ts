@@ -2,6 +2,7 @@ import {SIGN_IN_URL} from '@/lib/auth/const';
 import {deleteSessionTokenCookie} from '@/lib/auth/cookies';
 import {invalidateSession} from '@/lib/auth/session';
 import {getCurrentSession} from '@/lib/auth/user';
+import {logApi} from '@/lib/util/log';
 import {redirect} from 'next/navigation';
 
 async function invalidateCurrentSession(): Promise<void> {
@@ -15,6 +16,7 @@ async function invalidateCurrentSession(): Promise<void> {
 }
 
 export async function GET(): Promise<Response> {
+  logApi('GET', '/api/auth/signout');
   await invalidateCurrentSession();
   return redirect(SIGN_IN_URL);
 }

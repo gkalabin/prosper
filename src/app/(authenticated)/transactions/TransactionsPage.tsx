@@ -20,7 +20,7 @@ import {Form} from '@/components/ui/form';
 import {CoreDataContextProvider} from '@/lib/context/CoreDataContext';
 import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
 import {TransactionDataContextProvider} from '@/lib/context/TransactionDataContext';
-import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
+import {AppData} from '@/lib/model/AppDataModel';
 import {ChartPieIcon, FunnelIcon} from '@heroicons/react/24/outline';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useState} from 'react';
@@ -69,7 +69,7 @@ function NonEmptyPageContent() {
   );
 }
 
-export function TransactionsPage({dbData}: {dbData: AllDatabaseData}) {
+export function TransactionsPage({dbData}: {dbData: AppData}) {
   const form = useForm<FiltersFormSchema>({
     resolver: zodResolver(filtersFormValidationSchema),
     defaultValues: {

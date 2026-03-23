@@ -1,15 +1,15 @@
 import {Button} from '@/components/ui/button';
-import {Institution} from '@/lib/openbanking/nordigen/institution';
-import {Bank as DBBank} from '@prisma/client';
+import {Bank} from '@/lib/grpc/gen/prosper/v1/ledger';
+import {NordigenInstitution} from '@/lib/grpc/gen/prosper/v1/openbanking';
 import Link from 'next/link';
 
 export function InstitutionSelector({
-  dbBank,
+  bank,
   institutions,
   countryCode,
 }: {
-  dbBank: DBBank;
-  institutions: Institution[];
+  bank: Bank;
+  institutions: NordigenInstitution[];
   countryCode: string;
 }) {
   return (
@@ -18,7 +18,7 @@ export function InstitutionSelector({
         Showing banks for {countryCode}.{' '}
         <Button variant="link" size="inherit" asChild>
           <Link
-            href={`/config/open-banking/nordigen/connect?bankId=${dbBank.id}`}
+            href={`/config/open-banking/nordigen/connect?bankId=${bank.id}`}
           >
             Change country
           </Link>
@@ -30,13 +30,13 @@ export function InstitutionSelector({
           <div key={institution.id} className="rounded-md bg-slate-50 p-2">
             <Button variant="link" size="inherit" asChild>
               <a
-                href={`/api/open-banking/nordigen/connect?bankId=${dbBank.id}&institutionId=${institution.id}`}
+                href={`/api/open-banking/nordigen/connect?bankId=${bank.id}&institutionId=${institution.id}`}
                 className="flex flex-row items-center gap-4"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={institution.logo}
-                  alt={institution.name}
+                  src={institution.logoUrl}
+                  alt={`${institution.name} logo`}
                   className="h-16 w-16"
                 />
                 {institution.name}

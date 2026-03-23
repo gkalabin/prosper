@@ -1,5 +1,11 @@
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
-import {DBTransaction} from '@/lib/model/AllDatabaseDataModel';
+import {
+  EntryLine,
+  LedgerAccount,
+  LedgerAccountType,
+  Transaction as PbTransaction,
+} from '@/lib/grpc/gen/prosper/v1/ledger';
+import {timestampToEpoch} from '@/lib/grpc/timestamp';
 import {
   BankAccount,
   accountUnit,
@@ -7,11 +13,6 @@ import {
 } from '@/lib/model/BankAccount';
 import {Stock} from '@/lib/model/Stock';
 import {nanosToCents} from '@/lib/util/util';
-import {
-  EntryLine as DBEntryLine,
-  LedgerAccountType,
-  LedgerAccount,
-} from '@prisma/client';
 
 export type OpeningBalance = {
   kind: 'OpeningBalance';
@@ -22,7 +23,7 @@ export type OpeningBalance = {
 };
 
 export function openingBalanceFromDB(
-  tx: DBTransaction,
+  tx: PbTransaction,
   accounts: Map<number, LedgerAccount>
 ): OpeningBalance {
   const {line, account} = findAssetLineAndAccount(tx, accounts);
@@ -30,7 +31,7 @@ export function openingBalanceFromDB(
   return {
     kind: 'OpeningBalance',
     id: tx.id,
-    timestampEpoch: new Date(tx.timestamp).getTime(),
+    timestampEpoch: timestampToEpoch(tx.timestamp),
     amountCents,
     accountId: account.bankAccountId!,
   };
@@ -45,9 +46,9 @@ function mustFindAccount(accounts: Map<number, LedgerAccount>, id: number) {
 }
 
 function findAssetLineAndAccount(
-  tx: DBTransaction,
+  tx: PbTransaction,
   accounts: Map<number, LedgerAccount>
-): {line: DBEntryLine; account: LedgerAccount} {
+): {line: EntryLine; account: LedgerAccount} {
   const assetLines = tx.lines.filter(l => {
     const acct = mustFindAccount(accounts, l.ledgerAccountId);
     return acct.type === LedgerAccountType.ASSET;

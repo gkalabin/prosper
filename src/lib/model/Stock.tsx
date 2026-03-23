@@ -1,4 +1,4 @@
-import {Stock as DBStock} from '@prisma/client';
+import {Stock as PbStock} from '@/lib/grpc/gen/prosper/v1/ledger';
 
 export type Stock = {
   kind: 'stock';
@@ -9,7 +9,7 @@ export type Stock = {
   exchange: string;
 };
 
-export function stockModelFromDB(init: DBStock): Stock {
+export function stockModelFromDB(init: PbStock): Stock {
   return {
     kind: 'stock',
     id: init.id,

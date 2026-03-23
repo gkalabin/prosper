@@ -1,52 +1,40 @@
-import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB} from '@/lib/db';
-import prisma from '@/lib/prisma';
+import {getAuthContextOrRedirect} from '@/lib/auth/user';
+import {withAuth} from '@/lib/grpc/auth';
+import {openBankingClient} from '@/lib/grpc/client';
+import {AccountMapping} from '@/lib/grpc/gen/prosper/v1/openbanking';
+import {logApi} from '@/lib/util/log';
 import {NextRequest, NextResponse} from 'next/server';
+import {z} from 'zod';
 
-export interface AccountMappingRequest {
-  bankId: number;
-  mapping: {
-    internalAccountId: number;
-    externalAccountId: string;
-  }[];
-}
+const accountMappingSchema = z.object({
+  internalAccountId: z.number().int().nonnegative(),
+  externalAccountId: z.string().min(1),
+});
+
+const accountMappingRequestSchema = z.object({
+  bankId: z.number().int().positive(),
+  mapping: z.array(accountMappingSchema),
+});
+
+export type AccountMappingRequest = z.infer<typeof accountMappingRequestSchema>;
 
 export async function POST(request: NextRequest): Promise<Response> {
-  const input: AccountMappingRequest = await request.json();
-  const {bankId, mapping: mappingRaw} = input;
-  const userId = await getUserIdOrRedirect();
-  const db = new DB({userId});
-  const [bank] = await db.bankFindMany({where: {id: bankId}});
-  if (!bank) {
-    return new Response(`bank not found`, {status: 404});
+  const parsed = accountMappingRequestSchema.safeParse(await request.json());
+  if (!parsed.success) {
+    return NextResponse.json({error: parsed.error.format()}, {status: 400});
   }
-  const dbAccounts = await db.bankAccountFindMany({where: {bankId}});
-  const mapping = mappingRaw.filter(m =>
-    dbAccounts.some(a => a.id === m.internalAccountId)
-  );
-  const result = await prisma.$transaction(async tx => {
-    await tx.externalAccountMapping.deleteMany({
-      where: {
-        internalAccountId: {
-          in: dbAccounts.map(x => x.id),
-        },
-      },
-    });
-    await tx.externalAccountMapping.createMany({
-      data: mapping.map(m => ({
-        externalAccountId: m.externalAccountId,
-        internalAccountId: m.internalAccountId,
-        userId,
-      })),
-    });
-    return await tx.externalAccountMapping.findMany({
-      where: {
-        internalAccountId: {
-          in: dbAccounts.map(x => x.id),
-        },
-        userId,
-      },
-    });
+  const auth = await getAuthContextOrRedirect();
+  logApi('POST', '/api/open-banking/mapping', {
+    userId: auth.userId,
+    bankId: parsed.data.bankId,
+    mappings: parsed.data.mapping.length,
   });
-  return NextResponse.json(result);
+  const mappings: AccountMapping[] = parsed.data.mapping;
+  await openBankingClient.setMappings(
+    withAuth({bankId: parsed.data.bankId, mappings}, auth)
+  );
+  const {response} = await openBankingClient.listMappings(
+    withAuth({bankId: parsed.data.bankId}, auth)
+  );
+  return NextResponse.json(response.mappings);
 }

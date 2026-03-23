@@ -6,12 +6,20 @@ import {
 import {cookies} from 'next/headers';
 import {redirect} from 'next/navigation';
 
-export async function getUserIdOrRedirect(): Promise<number> {
-  const {user} = await getCurrentSession();
-  if (!user) {
+// AuthContext carries the data the frontend needs to make authenticated
+// gRPC calls on behalf of the user: the userId (for cache partitioning)
+// and the sessionId (sent as the session-id metadata header).
+export type AuthContext = {
+  userId: number;
+  sessionId: string;
+};
+
+export async function getAuthContextOrRedirect(): Promise<AuthContext> {
+  const {user, session} = await getCurrentSession();
+  if (!user || !session) {
     return redirect(SIGN_IN_URL);
   }
-  return user.id;
+  return {userId: user.id, sessionId: session.id};
 }
 
 export async function getCurrentSession(): Promise<SessionValidationResult> {

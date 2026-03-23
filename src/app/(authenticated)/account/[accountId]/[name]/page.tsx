@@ -1,23 +1,23 @@
 import {AccountPage} from '@/app/(authenticated)/account/[accountId]/[name]/account-page';
-import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB, fetchAllDatabaseData} from '@/lib/db';
+import {getAuthContextOrRedirect} from '@/lib/auth/user';
+import {fetchAppData} from '@/lib/db';
+import {cachedCoreDataOrFetch} from '@/lib/db/cache';
+import {BankAccount as ProtoBankAccount} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {logRequest} from '@/lib/util/log';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
-import {BankAccount} from '@prisma/client';
 import {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 
 type Props = {params: Promise<{accountId: string}>};
 
-async function fetchAccount(props: Props): Promise<BankAccount | null> {
-  const userId = await getUserIdOrRedirect();
+async function fetchAccount(props: Props): Promise<ProtoBankAccount | null> {
+  const auth = await getAuthContextOrRedirect();
   const accountId = positiveIntOrNull((await props.params).accountId);
   if (!accountId) {
     return null;
   }
-  const db = new DB({userId});
-  const [account] = await db.bankAccountFindMany({where: {id: accountId}});
-  return account ? account : null;
+  const core = await cachedCoreDataOrFetch(auth);
+  return core.bankAccounts.find(a => a.id === accountId) ?? null;
 }
 
 export async function generateMetadata({params}: Props): Promise<Metadata> {
@@ -33,13 +33,12 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 // 'name' parameter is unused intentionally, it is used only to make the URLs look
 // nice, but the actual bank is identified by a separate id parameter.
 export default async function Page({params}: Props) {
-  const userId = await getUserIdOrRedirect();
+  const auth = await getAuthContextOrRedirect();
   const account = await fetchAccount({params});
   if (!account) {
     return notFound();
   }
-  logRequest('account', `userId:${userId} accountId:${account.id}`);
-  const db = new DB({userId});
-  const data = await fetchAllDatabaseData(db);
+  logRequest('account', `userId:${auth.userId} accountId:${account.id}`);
+  const data = await fetchAppData(auth);
   return <AccountPage dbData={data} dbAccount={account} />;
 }

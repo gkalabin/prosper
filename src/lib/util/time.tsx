@@ -18,6 +18,12 @@ import {
   type Interval,
 } from 'date-fns';
 
+// utcStartOfDay returns the epoch ms of the UTC midnight that contains `d`.
+export function utcStartOfDay(d: Date | number): number {
+  const date = new Date(d);
+  return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+}
+
 function dateFunctionsForGranularity(granularity: Granularity): {
   slice: (i: Interval<Date>) => Date[];
   start: (d: Date) => Date;

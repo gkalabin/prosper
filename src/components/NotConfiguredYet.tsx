@@ -1,7 +1,7 @@
-import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
+import {AppData} from '@/lib/model/AppDataModel';
 
-export function isFullyConfigured(dbData: AllDatabaseData) {
-  return dbData.dbCategories?.length && dbData.dbBankAccounts?.length;
+export function isFullyConfigured(dbData: AppData) {
+  return dbData.categories?.length && dbData.bankAccounts?.length;
 }
 
 export const NotConfiguredYet = () => (

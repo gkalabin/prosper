@@ -20,10 +20,10 @@ import {
   TransactionDataContextProvider,
   useTransactionDataContext,
 } from '@/lib/context/TransactionDataContext';
-import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
+import {AppData} from '@/lib/model/AppDataModel';
 import {accountsForBank} from '@/lib/model/BankAccount';
+import {Bank as ProtoBank} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {CurrencyDollarIcon} from '@heroicons/react/24/outline';
-import {Bank as DBBank} from '@prisma/client';
 import {notFound} from 'next/navigation';
 
 function NonEmptyPageContent({bankId}: {bankId: number}) {
@@ -78,8 +78,8 @@ export function BankPage({
   dbData,
   dbBank,
 }: {
-  dbData: AllDatabaseData;
-  dbBank: DBBank;
+  dbData: AppData;
+  dbBank: ProtoBank;
 }) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;

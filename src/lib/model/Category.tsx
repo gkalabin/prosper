@@ -1,6 +1,6 @@
 import {assertDefined} from '@/lib/assert';
+import {Category as PbCategory} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {byDisplayOrderThenId} from '@/lib/util/util';
-import {Category as DBCategory} from '@prisma/client';
 
 export const TEST_ONLY = {
   getAncestors,
@@ -13,12 +13,12 @@ export type Category = {
   parentCategoryId: number | null;
 };
 
-export function categoryModelFromDB(init: DBCategory): Category {
+export function categoryModelFromDB(init: PbCategory): Category {
   return {
     id: init.id,
     name: init.name,
     displayOrder: init.displayOrder,
-    parentCategoryId: init.parentCategoryId,
+    parentCategoryId: init.parentCategoryId ?? null,
   };
 }
 

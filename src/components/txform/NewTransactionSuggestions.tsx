@@ -2,7 +2,7 @@ import {Button} from '@/components/ui/button';
 import {uniqMostFrequent} from '@/lib/collections';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
-import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
+import {useDisplayBankAccounts} from '@/lib/model/AppDataModel';
 import {
   Bank,
   BankAccount,
@@ -27,7 +27,7 @@ import {
 } from '@/lib/txsuggestions/TransactionPrototype';
 import {combineTransfers} from '@/lib/txsuggestions/TransfersDetection';
 import {cn} from '@/lib/utils';
-import {TransactionPrototype as DBTransactionPrototype} from '@prisma/client';
+import {TransactionPrototype as PbTransactionPrototype} from '@/lib/grpc/gen/prosper/v1/ledger';
 import assert from 'assert';
 import {format} from 'date-fns';
 import {useEffect, useState} from 'react';
@@ -35,7 +35,7 @@ import {useEffect, useState} from 'react';
 export function fillMostCommonDescriptions(input: {
   transactions: Transaction[];
   newPrototypes: WithdrawalOrDepositPrototype[];
-  usedPrototypes: DBTransactionPrototype[];
+  usedPrototypes: PbTransactionPrototype[];
 }): WithdrawalOrDepositPrototype[] {
   const externalDescriptionUsages = new Map<string, string[]>();
   for (const p of input.usedPrototypes) {

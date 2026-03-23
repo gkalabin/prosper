@@ -3,7 +3,7 @@ import {
   TransactionDataModel,
   transactionModelFromDB,
 } from '@/lib/ClientSideModel';
-import {TransactionData as DBTransactionData} from '@/lib/db/fetch';
+import {GetTransactionsResponse} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {createContext, useContext} from 'react';
 
 const TransactionDataContext = createContext<TransactionDataModel>(
@@ -11,7 +11,7 @@ const TransactionDataContext = createContext<TransactionDataModel>(
 );
 
 export function TransactionDataContextProvider(props: {
-  dbData: DBTransactionData;
+  dbData: GetTransactionsResponse;
   children: JSX.Element | JSX.Element[];
 }) {
   const model = transactionModelFromDB(props.dbData);

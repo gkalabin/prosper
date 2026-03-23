@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE `Trip` ADD COLUMN `city` VARCHAR(191) NULL,
-    ADD COLUMN `country` VARCHAR(191) NULL;

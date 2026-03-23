@@ -1,3 +1,7 @@
 .next
 .vscode
+.claude
 src/lib/search/generated
+src/lib/grpc/gen
+playwright-report
+test-results

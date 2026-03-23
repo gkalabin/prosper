@@ -2,18 +2,18 @@
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
-import {Bank as DBBank} from '@prisma/client';
+import {Bank} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {useState} from 'react';
 
-export function ConnectForm({dbBank}: {dbBank: DBBank}) {
+export function ConnectForm({bank}: {bank: Bank}) {
   const [token, setToken] = useState('');
   return (
     <>
       <h1 className="text-2xl font-semibold">
-        Connecting {dbBank.name} with Starling Bank API
+        Connecting {bank.name} with Starling Bank API
       </h1>
       <form
-        action={`/api/open-banking/starling/connect?bankId=${dbBank.id}`}
+        action={`/api/open-banking/starling/connect?bankId=${bank.id}`}
         method="POST"
         className="mt-4 space-y-4"
       >

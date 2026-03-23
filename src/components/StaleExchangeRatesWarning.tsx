@@ -1,7 +1,9 @@
 'use client';
 import {Button} from '@/components/ui/button';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
-import {ExchangeRate, StockQuote} from '@prisma/client';
+import {ExchangeRate, StockQuote} from '@/lib/grpc/gen/prosper/v1/rates';
+import {timestampToEpoch} from '@/lib/grpc/timestamp';
+import {Stock} from '@/lib/model/Stock';
 import {differenceInDays} from 'date-fns';
 import {useState} from 'react';
 
@@ -10,12 +12,12 @@ const STALE_THRESHOLD_DAYS = 7;
 type StaleCurrencyPair = {
   currencyCodeFrom: string;
   currencyCodeTo: string;
-  updatedAt: Date;
+  observedAtEpoch: number;
 };
 
 type StaleStockQuoteEntry = {
   ticker: string;
-  updatedAt: Date;
+  observedAtEpoch: number;
 };
 
 export function StaleExchangeRatesWarning({
@@ -27,10 +29,9 @@ export function StaleExchangeRatesWarning({
 }) {
   const {stocks} = useCoreDataContext();
   const [showDetails, setShowDetails] = useState(false);
-  const now = new Date();
-  const stockById = new Map(stocks.map(s => [s.id, s]));
+  const now = Date.now();
   const stalePairs = findStaleCurrencyPairs(dbExchangeRates, now);
-  const staleTickers = findStaleStockQuotes(dbStockQuotes, stockById, now);
+  const staleTickers = findStaleStockQuotes(dbStockQuotes, stocks, now);
   if (stalePairs.length === 0 && staleTickers.length === 0) {
     return null;
   }
@@ -51,15 +52,17 @@ export function StaleExchangeRatesWarning({
       </p>
       {showDetails && (
         <ul className="mt-2 list-inside list-disc space-y-0.5">
-          {stalePairs.map(({currencyCodeFrom, currencyCodeTo, updatedAt}) => (
-            <li key={`${currencyCodeFrom}-${currencyCodeTo}`}>
-              {currencyCodeFrom} → {currencyCodeTo} (updated{' '}
-              {formatAge(updatedAt, now)})
-            </li>
-          ))}
-          {staleTickers.map(({ticker, updatedAt}) => (
+          {stalePairs.map(
+            ({currencyCodeFrom, currencyCodeTo, observedAtEpoch}) => (
+              <li key={`${currencyCodeFrom}-${currencyCodeTo}`}>
+                {currencyCodeFrom} → {currencyCodeTo} (observed{' '}
+                {formatAge(observedAtEpoch, now)})
+              </li>
+            )
+          )}
+          {staleTickers.map(({ticker, observedAtEpoch}) => (
             <li key={ticker}>
-              {ticker} (updated {formatAge(updatedAt, now)})
+              {ticker} (observed {formatAge(observedAtEpoch, now)})
             </li>
           ))}
         </ul>
@@ -70,33 +73,33 @@ export function StaleExchangeRatesWarning({
 
 function findStaleCurrencyPairs(
   rates: ExchangeRate[],
-  now: Date
+  now: number
 ): StaleCurrencyPair[] {
   const latestByPair = new Map<
     string,
-    {from: string; to: string; updatedAt: Date}
+    {from: string; to: string; observedAtEpoch: number}
   >();
   for (const r of rates) {
     const key = `${r.currencyCodeFrom}-${r.currencyCodeTo}`;
+    const observedAtEpoch = timestampToEpoch(r.rateTimestamp);
     const existing = latestByPair.get(key);
-    const updatedAt = r.updatedAt;
-    if (!existing || updatedAt > existing.updatedAt) {
+    if (!existing || observedAtEpoch > existing.observedAtEpoch) {
       latestByPair.set(key, {
         from: r.currencyCodeFrom,
         to: r.currencyCodeTo,
-        updatedAt,
+        observedAtEpoch,
       });
     }
   }
   const stale: StaleCurrencyPair[] = [];
   for (const entry of latestByPair.values()) {
-    if (differenceInDays(now, entry.updatedAt) <= STALE_THRESHOLD_DAYS) {
+    if (differenceInDays(now, entry.observedAtEpoch) <= STALE_THRESHOLD_DAYS) {
       continue;
     }
     stale.push({
       currencyCodeFrom: entry.from,
       currencyCodeTo: entry.to,
-      updatedAt: entry.updatedAt,
+      observedAtEpoch: entry.observedAtEpoch,
     });
   }
   return stale;
@@ -104,28 +107,36 @@ function findStaleCurrencyPairs(
 
 function findStaleStockQuotes(
   quotes: StockQuote[],
-  stockById: Map<number, {ticker: string}>,
-  now: Date
+  stocks: Stock[],
+  now: number
 ): StaleStockQuoteEntry[] {
-  const latestByStock = new Map<number, Date>();
+  const tickerByStockId = new Map(stocks.map(s => [s.id, s.ticker]));
+  const latestByTicker = new Map<string, number>();
   for (const q of quotes) {
-    const existing = latestByStock.get(q.stockId);
-    const updatedAt = q.updatedAt;
-    if (!existing || updatedAt > existing) {
-      latestByStock.set(q.stockId, updatedAt);
+    const observedAtEpoch = timestampToEpoch(q.quoteTimestamp);
+    const ticker = tickerByStockId.get(q.stockId);
+    if (!ticker) {
+      console.warn(
+        `Dropping stock quote at ${new Date(observedAtEpoch).toISOString()}: ` +
+          `no stock found with id ${q.stockId}`
+      );
+      continue;
+    }
+    const existing = latestByTicker.get(ticker);
+    if (!existing || observedAtEpoch > existing) {
+      latestByTicker.set(ticker, observedAtEpoch);
     }
   }
   const stale: StaleStockQuoteEntry[] = [];
-  for (const [stockId, updatedAt] of latestByStock.entries()) {
-    if (differenceInDays(now, updatedAt) <= STALE_THRESHOLD_DAYS) {
+  for (const [ticker, observedAtEpoch] of latestByTicker.entries()) {
+    if (differenceInDays(now, observedAtEpoch) <= STALE_THRESHOLD_DAYS) {
       continue;
     }
-    const ticker = stockById.get(stockId)?.ticker ?? `stock #${stockId}`;
-    stale.push({ticker, updatedAt});
+    stale.push({ticker, observedAtEpoch});
   }
   return stale;
 }
 
-function formatAge(updatedAt: Date, now: Date): string {
-  return `${differenceInDays(now, updatedAt)} days ago`;
+function formatAge(observedAtEpoch: number, now: number): string {
+  return `${differenceInDays(now, observedAtEpoch)} days ago`;
 }

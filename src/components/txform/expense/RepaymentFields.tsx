@@ -14,7 +14,7 @@ import {Select} from '@/components/ui/html-select';
 import {Input} from '@/components/ui/input';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
-import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
+import {useDisplayBankAccounts} from '@/lib/model/AppDataModel';
 import {fullAccountName} from '@/lib/model/BankAccount';
 import {useFormContext, useWatch} from 'react-hook-form';
 

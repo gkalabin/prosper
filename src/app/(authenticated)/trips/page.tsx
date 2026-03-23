@@ -1,6 +1,6 @@
 import {TripsList} from '@/app/(authenticated)/trips/TripsList';
-import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB, fetchAllDatabaseData} from '@/lib/db';
+import {getAuthContextOrRedirect} from '@/lib/auth/user';
+import {fetchAppData} from '@/lib/db';
 import {Metadata} from 'next';
 
 export const metadata: Metadata = {
@@ -8,8 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const userId = await getUserIdOrRedirect();
-  const db = new DB({userId});
-  const data = await fetchAllDatabaseData(db);
+  const auth = await getAuthContextOrRedirect();
+  const data = await fetchAppData(auth);
   return <TripsList dbData={data} />;
 }

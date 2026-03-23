@@ -20,9 +20,9 @@ import {
   getNameWithAncestors,
   makeCategoryTree,
 } from '@/lib/model/Category';
+import {Category as ProtoCategory} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {setFormErrors} from '@/lib/util/forms';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {Category as DBCategory} from '@prisma/client';
 import {useForm} from 'react-hook-form';
 
 export const CategoryForm = ({
@@ -33,7 +33,7 @@ export const CategoryForm = ({
 }: {
   category?: Category;
   categories: Category[];
-  onAddedOrUpdated: (addedOrUpdated: DBCategory) => void;
+  onAddedOrUpdated: (addedOrUpdated: ProtoCategory) => void;
   onClose: () => void;
 }) => {
   const handleSubmit = async (values: CategoryFormSchema) => {

@@ -23,12 +23,12 @@ import {
   sortCategories,
 } from '@/lib/model/Category';
 import {allCurrencies} from '@/lib/model/Currency';
+import {
+  Category as ProtoCategory,
+  DisplaySettings as ProtoDisplaySettings,
+} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {setFormErrors} from '@/lib/util/forms';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {
-  Category as DBCategory,
-  DisplaySettings as DBDisplaySettings,
-} from '@prisma/client';
 import {useState} from 'react';
 import {useForm} from 'react-hook-form';
 
@@ -36,8 +36,8 @@ export function DisplaySettingsPage({
   dbDisplaySettings: initialDbDisplaySettings,
   dbCategories,
 }: {
-  dbDisplaySettings: DBDisplaySettings;
-  dbCategories: DBCategory[];
+  dbDisplaySettings: ProtoDisplaySettings;
+  dbCategories: ProtoCategory[];
 }) {
   const categories = sortCategories(dbCategories.map(categoryModelFromDB));
   const [dbDisplaySettings, setDbDisplaySettings] = useState(

@@ -19,7 +19,7 @@ import {
   TransactionDataContextProvider,
   useTransactionDataContext,
 } from '@/lib/context/TransactionDataContext';
-import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
+import {AppData} from '@/lib/model/AppDataModel';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Currency} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';
@@ -169,7 +169,7 @@ function NonEmptyTripsList() {
   );
 }
 
-export function TripsList({dbData}: {dbData: AllDatabaseData}) {
+export function TripsList({dbData}: {dbData: AppData}) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }

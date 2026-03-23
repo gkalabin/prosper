@@ -6,11 +6,18 @@
     "plugin:import/recommended",
     "prettier"
   ],
-  "ignorePatterns": ["src/lib/search/generated"],
+  "ignorePatterns": [
+    "src/lib/search/generated",
+    "src/lib/grpc/gen",
+    "playwright-report",
+    "test-results"
+  ],
   "rules": {
     "@typescript-eslint/no-unused-vars": [
       "warn",
       {"ignoreRestSiblings": true, "destructuredArrayIgnorePattern": "^_"}
-    ]
+    ],
+    // already covered by typescript https://github.com/import-js/eslint-plugin-import/issues/3135
+    "import/named": "off"
   }
 }

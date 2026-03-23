@@ -1,11 +1,19 @@
+# syntax=docker/dockerfile:1.6
+
+# ── Go build stage ──
+FROM golang:1.25-alpine AS go-builder
+RUN apk add --no-cache git
+WORKDIR /build
+COPY backend/go.mod backend/go.sum ./backend/
+RUN cd backend && go mod download
+COPY backend/ ./backend/
+RUN cd backend && CGO_ENABLED=0 go build -o /prosper-backend ./cmd/prosper-backend
+
+# ── Node base ──
 FROM node:24.15.0-alpine3.23 AS base
-# Prisma needs openssl both during runtime and build,
-# hence install it in the base layer.
-RUN apk add --no-cache openssl
 
 # Install dependencies only when needed
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -18,10 +26,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # To avoid exposing secrets in .env files explicitly remove all of the env files.
 RUN rm -f .env*
-RUN npx prisma generate
 RUN npm run build
 
-# Production image, copy all the files and run next
+# Production image, copy all the files and run next + go
 FROM base AS runner
 ENV NODE_ENV=production
 # Disable telemetry during runtime.
@@ -38,18 +45,16 @@ COPY --from=builder /app/public ./public
 # Set the correct permission for prerender cache
 RUN mkdir .next
 RUN chown prosper:prosper .next
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
+# Frontend.
 COPY --from=builder --chown=prosper:prosper /app/.next/standalone ./
 COPY --from=builder --chown=prosper:prosper /app/.next/static ./.next/static
-# Add prisma schema and migrations, so the DB migration can be run in CI/CD pipeline.
-COPY --from=builder --chown=prosper:prosper /app/prisma/ ./prisma/
 COPY --from=builder --chown=prosper:prosper /app/scripts/ ./scripts/
+# Backend.
+COPY --from=go-builder --chown=prosper:prosper /prosper-backend /app/prosper-backend
 
 USER prosper
 EXPOSE 3000
 ENV PORT=3000
-# set hostname to localhost
 ENV HOSTNAME="0.0.0.0"
 
 CMD ["./scripts/start.sh"]

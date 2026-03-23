@@ -1,6 +1,6 @@
 import {CategoriesConfigPage} from '@/app/(authenticated)/config/categories/client';
-import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB} from '@/lib/db';
+import {getAuthContextOrRedirect} from '@/lib/auth/user';
+import {cachedCoreDataOrFetch} from '@/lib/db/cache';
 import {Metadata} from 'next';
 
 export const metadata: Metadata = {
@@ -8,8 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const userId = await getUserIdOrRedirect();
-  const db = new DB({userId});
-  const dbCategories = await db.categoryFindMany();
-  return <CategoriesConfigPage dbCategories={dbCategories} />;
+  const auth = await getAuthContextOrRedirect();
+  const core = await cachedCoreDataOrFetch(auth);
+  return <CategoriesConfigPage dbCategories={core.categories} />;
 }

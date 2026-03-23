@@ -1,6 +1,6 @@
 import {ConnectForm} from '@/app/(authenticated)/config/open-banking/starling/connect/ConnectForm';
-import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB} from '@/lib/db';
+import {getAuthContextOrRedirect} from '@/lib/auth/user';
+import {cachedCoreDataOrFetch} from '@/lib/db/cache';
 import {firstPositiveIntOrNull} from '@/lib/util/searchParams';
 import {Metadata} from 'next';
 import {notFound} from 'next/navigation';
@@ -8,19 +8,6 @@ import {notFound} from 'next/navigation';
 export const metadata: Metadata = {
   title: 'Starling Connect - Prosper',
 };
-
-async function getData(userId: number, bankId: number) {
-  const db = new DB({userId});
-  const [dbBank] = await db.bankFindMany({
-    where: {
-      id: bankId,
-    },
-  });
-  if (!dbBank) {
-    return notFound();
-  }
-  return {dbBank};
-}
 
 export default async function Page({
   searchParams,
@@ -31,7 +18,11 @@ export default async function Page({
   if (!bankId) {
     return notFound();
   }
-  const userId = await getUserIdOrRedirect();
-  const {dbBank} = await getData(userId, bankId);
-  return <ConnectForm dbBank={dbBank} />;
+  const auth = await getAuthContextOrRedirect();
+  const core = await cachedCoreDataOrFetch(auth);
+  const bank = core.banks.find(b => b.id === bankId);
+  if (!bank) {
+    return notFound();
+  }
+  return <ConnectForm bank={bank} />;
 }

@@ -1,7 +1,11 @@
-import {DBTransaction} from '@/lib/model/AllDatabaseDataModel';
+import {
+  LedgerAccount,
+  LedgerAccountType,
+  Transaction as PbTransaction,
+} from '@/lib/grpc/gen/prosper/v1/ledger';
+import {timestampToEpoch} from '@/lib/grpc/timestamp';
 import {TransactionCompanion} from '@/lib/model/transaction/TransactionCompanion';
 import {nanosToCents} from '@/lib/util/util';
-import {LedgerAccountType, LedgerAccount} from '@prisma/client';
 
 export type Income = {
   kind: 'Income';
@@ -18,14 +22,14 @@ export type Income = {
 };
 
 export function incomeFromDB(
-  tx: DBTransaction,
+  tx: PbTransaction,
   accounts: Map<number, LedgerAccount>
 ): Income {
   if (!tx.categoryId) {
     throw new Error(`Income ${tx.id}: missing category`);
   }
   // TODO: enforce setting payer on transaction create/edit and then switch check here to "!payer"
-  if (tx.payer === null) {
+  if (tx.payer == null) {
     throw new Error(`Income ${tx.id}: missing payer`);
   }
   const assetLine = tx.lines.find(l => {
@@ -47,14 +51,14 @@ export function incomeFromDB(
   return {
     kind: 'Income',
     id: tx.id,
-    timestampEpoch: new Date(tx.timestamp).getTime(),
+    timestampEpoch: timestampToEpoch(tx.timestamp),
     payer: tx.payer,
     amountCents: totalCents,
     companions,
     note: tx.note,
     accountId: assetAccount.bankAccountId,
     categoryId: tx.categoryId,
-    tagsIds: tx.tags.map(t => t.id),
-    tripId: tx.tripId,
+    tagsIds: tx.tagIds,
+    tripId: tx.tripId ?? null,
   };
 }

@@ -1,7 +1,7 @@
-import {COOKIE_TTL_DAYS, SESSION_TOKEN_LENGTH} from '@/lib/auth/const';
-import prisma from '@/lib/prisma';
-import type {Session as DBSession} from '@prisma/client';
-import {addDays, differenceInDays, isBefore} from 'date-fns';
+import {SESSION_TOKEN_LENGTH} from '@/lib/auth/const';
+import {setSessionTokenCookie} from '@/lib/auth/cookies';
+import {authClient} from '@/lib/grpc/client';
+import {timestampToDate} from '@/lib/grpc/timestamp';
 
 export type SessionValidationResult =
   | {
@@ -36,73 +36,35 @@ export async function hashSessionToken(token: string): Promise<string> {
 
 export async function createSession(
   token: string,
-  userId: number,
-  expiresAt: Date
-): Promise<void> {
-  const tokenId = await hashSessionToken(token);
-  const session: DBSession = {
-    id: tokenId,
-    userId,
-    expiresAt,
-  };
-  await prisma.session.create({
-    data: session,
-  });
+  userId: number
+): Promise<Date> {
+  const sessionId = await hashSessionToken(token);
+  const {response} = await authClient.createSession({sessionId, userId});
+  return timestampToDate(response.expiresAt);
 }
 
 export async function validateSessionToken(
   token: string
 ): Promise<SessionValidationResult> {
-  const tokenId = await hashSessionToken(token);
-  const result = await prisma.session.findUnique({
-    where: {
-      id: tokenId,
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          login: true,
-        },
-      },
-    },
-  });
-  if (result === null) {
+  const sessionId = await hashSessionToken(token);
+  const {response} = await authClient.validateSession({sessionId});
+  if (!response.valid) {
     return {user: null, session: null};
   }
-  const {user, ...session} = result;
-  const now = Date.now();
-  if (isBefore(session.expiresAt, now)) {
-    await prisma.session.delete({where: {id: tokenId}});
-    return {user: null, session: null};
-  }
-  if (differenceInDays(session.expiresAt, now) < COOKIE_TTL_DAYS / 2) {
-    session.expiresAt = addDays(now, COOKIE_TTL_DAYS);
-    await prisma.session.update({
-      where: {
-        id: session.id,
-      },
-      data: {
-        expiresAt: session.expiresAt,
-      },
-    });
+  // Backend may have slid the expiry forward; re-issue the cookie so the
+  // browser tracks the new value.
+  if (response.extendedExpiresAt) {
+    await setSessionTokenCookie(
+      token,
+      timestampToDate(response.extendedExpiresAt)
+    );
   }
   return {
-    user: {
-      id: user.id,
-      login: user.login,
-    },
-    session: {
-      id: session.id,
-    },
+    user: {id: response.userId, login: response.userLogin},
+    session: {id: sessionId},
   };
 }
 
 export async function invalidateSession(sessionId: string): Promise<void> {
-  await prisma.session.delete({where: {id: sessionId}});
-}
-
-export async function cleanUpExpiredSessions(): Promise<void> {
-  const now = new Date();
-  await prisma.session.deleteMany({where: {expiresAt: {lt: now}}});
+  await authClient.deleteSession({sessionId});
 }

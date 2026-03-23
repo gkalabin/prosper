@@ -1,51 +1,39 @@
 import {BanksConfigPage} from '@/app/(authenticated)/config/banks/BanksConfigPage';
-import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB} from '@/lib/db';
+import {getAuthContextOrRedirect} from '@/lib/auth/user';
+import {withAuth} from '@/lib/grpc/auth';
+import {cachedCoreDataOrFetch} from '@/lib/db/cache';
+import {openBankingClient} from '@/lib/grpc/client';
+import {Provider} from '@/lib/grpc/gen/prosper/v1/openbanking';
 import {Metadata} from 'next';
 
 export const metadata: Metadata = {
   title: 'Banks Config - Prosper',
 };
 
-async function getData(userId: number) {
-  const db = new DB({userId});
-  const dbStocks = await db.stocksFindMany();
-  const dbBanks = await db.bankFindMany();
-  const whereBankId = {
-    where: {
-      bankId: {
-        in: dbBanks.map(x => x.id),
-      },
-    },
-  };
-  const dbBankAccounts = await db.bankAccountFindMany(whereBankId);
-  const dbTrueLayerTokens = await db.trueLayerTokenFindMany(whereBankId);
-  const dbNordigenTokens = await db.nordigenTokenFindMany(whereBankId);
-  const dbStarlingTokens = await db.starlingTokenFindMany(whereBankId);
-  const dbDisplaySettings = await db.getDbDisplaySettings();
-  return {
-    dbBanks,
-    dbBankAccounts,
-    dbStocks,
-    dbTrueLayerTokens,
-    dbNordigenTokens,
-    dbStarlingTokens,
-    dbDisplaySettings,
-  };
-}
-
 export default async function Page() {
-  const userId = await getUserIdOrRedirect();
-  const data = await getData(userId);
+  const auth = await getAuthContextOrRedirect();
+  const [core, {response: status}] = await Promise.all([
+    cachedCoreDataOrFetch(auth),
+    openBankingClient.getConnectionStatus(withAuth({}, auth)),
+  ]);
+  const trueLayerBanks = status.expirations
+    .filter(e => e.provider === Provider.TRUELAYER)
+    .map(e => e.bankId);
+  const nordigenBanks = status.expirations
+    .filter(e => e.provider === Provider.NORDIGEN)
+    .map(e => e.bankId);
+  const starlingBanks = status.expirations
+    .filter(e => e.provider === Provider.STARLING)
+    .map(e => e.bankId);
   return (
     <BanksConfigPage
-      dbBanks={data.dbBanks}
-      dbBankAccounts={data.dbBankAccounts}
-      dbStocks={data.dbStocks}
-      dbTrueLayerTokens={data.dbTrueLayerTokens}
-      dbNordigenTokens={data.dbNordigenTokens}
-      dbStarlingTokens={data.dbStarlingTokens}
-      dbDisplaySettings={data.dbDisplaySettings}
+      banks={core.banks}
+      bankAccounts={core.bankAccounts}
+      stocks={core.stocks}
+      trueLayerBankIds={trueLayerBanks}
+      nordigenBankIds={nordigenBanks}
+      starlingBankIds={starlingBanks}
+      displaySettings={core.displaySettings}
     />
   );
 }

@@ -1,16 +1,13 @@
+import {DisplaySettings as PbDisplaySettings} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {Currency, mustFindByCode} from '@/lib/model/Currency';
-import {DisplaySettings as DBDisplaySettings} from '@prisma/client';
 
 export class DisplaySettings {
   private readonly _displayCurrency: Currency;
   private readonly _excludeCategoryIdsInStats: number[];
 
-  public constructor(init: DBDisplaySettings) {
+  public constructor(init: PbDisplaySettings) {
     this._displayCurrency = mustFindByCode(init.displayCurrencyCode);
-    this._excludeCategoryIdsInStats = init.excludeCategoryIdsInStats
-      .split(',')
-      .map(x => +x)
-      .filter(x => x);
+    this._excludeCategoryIdsInStats = init.excludeCategoryIdsInStats;
   }
   displayCurrency(): Currency {
     return this._displayCurrency;

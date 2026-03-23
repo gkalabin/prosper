@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/form';
 import {Select} from '@/components/ui/html-select';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
-import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
+import {useDisplayBankAccounts} from '@/lib/model/AppDataModel';
 import {BankAccount, fullAccountName} from '@/lib/model/BankAccount';
 import {useFormContext} from 'react-hook-form';
 

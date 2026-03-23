@@ -1,6 +1,6 @@
 import {DisplaySettings} from '@/lib/displaySettings';
+import {DisplaySettings as PbDisplaySettings} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {Currency} from '@/lib/model/Currency';
-import {DisplaySettings as DBDisplaySettings} from '@prisma/client';
 import {createContext, useContext} from 'react';
 
 type SettableDisplaySettings = {
@@ -12,7 +12,7 @@ const DisplaySettingsContext = createContext<SettableDisplaySettings>(
 );
 
 export const DisplaySettingsContextProvider = (props: {
-  dbSettings: DBDisplaySettings;
+  dbSettings: PbDisplaySettings;
   children: JSX.Element | JSX.Element[];
 }) => {
   const displaySettings = new DisplaySettings(props.dbSettings);

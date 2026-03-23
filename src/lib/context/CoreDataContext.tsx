@@ -1,7 +1,7 @@
 'use client';
 import {CoreDataModel, coreModelFromDB} from '@/lib/ClientSideModel';
 import {DisplaySettingsContextProvider} from '@/lib/context/DisplaySettingsContext';
-import {CoreData as DBCoreData} from '@/lib/db/fetch';
+import {CoreData} from '@/lib/db/cache';
 import {createContext, useContext} from 'react';
 
 const CoreDataContext = createContext<CoreDataModel>(
@@ -9,12 +9,12 @@ const CoreDataContext = createContext<CoreDataModel>(
 );
 
 export function CoreDataContextProvider(props: {
-  dbData: DBCoreData;
+  dbData: CoreData;
   children: JSX.Element | JSX.Element[];
 }) {
   const model = coreModelFromDB(props.dbData);
   return (
-    <DisplaySettingsContextProvider dbSettings={props.dbData.dbDisplaySettings}>
+    <DisplaySettingsContextProvider dbSettings={props.dbData.displaySettings}>
       <CoreDataContext.Provider value={model}>
         {props.children}
       </CoreDataContext.Provider>

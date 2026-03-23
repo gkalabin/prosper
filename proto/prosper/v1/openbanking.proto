@@ -1,0 +1,270 @@
+syntax = "proto3";
+package prosper.v1;
+option go_package = "prosper/gen/prosper/v1;prosperv1";
+
+import "google/protobuf/timestamp.proto";
+
+// OpenBankingService manages all open banking state:
+// transactions and balances, OAuth token
+// lifecycle for each provider, and the mapping between internal bank
+// accounts and external provider accounts.
+service OpenBankingService {
+  rpc GetOpenBankingTransactions(GetOpenBankingTransactionsRequest)
+      returns (GetOpenBankingTransactionsResponse);
+
+  rpc GetBalances(GetBalancesRequest)
+      returns (GetBalancesResponse);
+
+  rpc GetConnectionStatus(GetConnectionStatusRequest)
+      returns (GetConnectionStatusResponse);
+
+  // StartTrueLayerConnection returns the TrueLayer authorization URL
+  // the browser should redirect to.
+  rpc StartTrueLayerConnection(StartTrueLayerConnectionRequest)
+      returns (StartTrueLayerConnectionResponse);
+
+  // CompleteTrueLayerConnection exchanges the authorization code for
+  // tokens and stores them. Returns the bank id so the caller can
+  // redirect the user to the mapping page.
+  rpc CompleteTrueLayerConnection(CompleteTrueLayerConnectionRequest)
+      returns (CompleteTrueLayerConnectionResponse);
+
+  // StartNordigenConnection creates a requisition and returns the
+  // hosted authorization link. The reference is stored alongside the
+  // requisition for later lookup.
+  rpc StartNordigenConnection(StartNordigenConnectionRequest)
+      returns (StartNordigenConnectionResponse);
+
+  // CompleteNordigenConnection marks a requisition complete and
+  // returns the bank id behind the supplied reference.
+  rpc CompleteNordigenConnection(CompleteNordigenConnectionRequest)
+      returns (CompleteNordigenConnectionResponse);
+
+  // SetStarlingToken stores a manually entered Starling personal
+  // access token.
+  rpc SetStarlingToken(SetStarlingTokenRequest)
+      returns (SetStarlingTokenResponse);
+
+  // Disconnect deletes the provider tokens
+  // for a bank, calling provider revocation endpoints best-effort.
+  rpc Disconnect(DisconnectRequest) returns (DisconnectResponse);
+
+  // ReconnectInfo returns the URL the frontend should redirect to in
+  // order to start a fresh connection for an existing bank, based on
+  // the provider it currently uses.
+  rpc ReconnectInfo(ReconnectInfoRequest) returns (ReconnectInfoResponse);
+
+  // ListExternalAccounts fetches the external accounts the user is
+  // authorized to see for a bank.
+  rpc ListExternalAccounts(ListExternalAccountsRequest)
+      returns (ListExternalAccountsResponse);
+
+  // ListMappings returns the user's stored (internal, external)
+  // account mappings for a single bank. bank_id is required.
+  rpc ListMappings(ListMappingsRequest) returns (ListMappingsResponse);
+
+  // SetMappings replaces the mappings for a bank in one shot. Any
+  // existing rows for the bank's internal accounts are removed before
+  // the new set is inserted.
+  rpc SetMappings(SetMappingsRequest) returns (SetMappingsResponse);
+
+  rpc ListNordigenInstitutions(ListNordigenInstitutionsRequest)
+      returns (ListNordigenInstitutionsResponse);
+
+  rpc ListNordigenCountries(ListNordigenCountriesRequest)
+      returns (ListNordigenCountriesResponse);
+}
+
+message GetOpenBankingTransactionsRequest {
+  string session_id = 1;
+}
+
+message GetOpenBankingTransactionsResponse {
+  repeated AccountTransactions accounts = 1;
+}
+
+message AccountTransactions {
+  int32 internal_account_id = 1;
+  repeated OpenBankingTransaction transactions = 2;
+}
+
+message OpenBankingTransaction {
+  string external_transaction_id = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  string description = 3;
+  // Signed amount in nanos: positive deposits, negative withdrawals.
+  int64 signed_amount_nanos = 4;
+}
+
+message GetBalancesRequest {
+  string session_id = 1;
+}
+
+message GetBalancesResponse {
+  repeated AccountBalanceResult accounts = 1;
+}
+
+message AccountBalanceResult {
+  int32 internal_account_id = 1;
+  int64 balance_nanos = 2;
+}
+
+message GetConnectionStatusRequest { string session_id = 1; }
+
+message GetConnectionStatusResponse {
+  repeated ConnectionExpiration expirations = 1;
+}
+
+enum Provider {
+  PROVIDER_UNSPECIFIED = 0;
+  PROVIDER_TRUELAYER = 1;
+  PROVIDER_NORDIGEN = 2;
+  PROVIDER_STARLING = 3;
+}
+
+message ConnectionExpiration {
+  int32 bank_id = 1;
+  google.protobuf.Timestamp expires_at = 2;
+  Provider provider = 3;
+}
+
+message StartTrueLayerConnectionRequest {
+  int32 bank_id = 1;
+  // Absolute redirect URI the browser will land on after the user
+  // authorizes the app on TrueLayer's side.
+  string redirect_uri = 2;
+  string session_id = 3;
+}
+
+message StartTrueLayerConnectionResponse {
+  // Authorization URL to redirect the user's browser to.
+  string auth_url = 1;
+}
+
+message CompleteTrueLayerConnectionRequest {
+  int32 bank_id = 1;
+  // OAuth authorization code returned by TrueLayer's auth,
+  // exchanged on the server for access/refresh tokens.
+  string code = 2;
+  string redirect_uri = 3;
+  string session_id = 4;
+}
+
+message CompleteTrueLayerConnectionResponse {
+  // True when the user was re-authorising.
+  bool was_reconnect = 1;
+}
+
+message StartNordigenConnectionRequest {
+  int32 bank_id = 1;
+  string institution_id = 2;
+  string redirect_uri = 3;
+  string session_id = 4;
+}
+
+message StartNordigenConnectionResponse {
+  // Authorization URL to redirect the user's browser to.
+  string auth_url = 1;
+}
+
+message CompleteNordigenConnectionRequest {
+  // Unique identifier generated by Prosper to find which user/bank is being connected.
+  string reference = 1;
+  string session_id = 2;
+}
+
+message CompleteNordigenConnectionResponse {
+  int32 bank_id = 1;
+  // True when the user was re-authorising.
+  bool was_reconnect = 2;
+}
+
+message SetStarlingTokenRequest {
+  int32 bank_id = 1;
+  string access_token = 2;
+  string session_id = 3;
+}
+
+message SetStarlingTokenResponse {
+  // True when the user was re-authorising.
+  bool was_reconnect = 1;
+}
+
+message DisconnectRequest {
+  int32 bank_id = 1;
+  string session_id = 2;
+}
+
+message DisconnectResponse {}
+
+message ReconnectInfoRequest {
+  int32 bank_id = 1;
+  string session_id = 2;
+}
+
+message ReconnectInfoResponse {
+  string redirect_url = 1;
+}
+
+message ListExternalAccountsRequest {
+  int32 bank_id = 1;
+  string session_id = 2;
+}
+
+message ListExternalAccountsResponse {
+  repeated ExternalAccount accounts = 1;
+}
+
+message ExternalAccount {
+  string external_id = 1;
+  string name = 2;
+}
+
+message ListMappingsRequest {
+  int32 bank_id = 1;
+  string session_id = 2;
+}
+
+message ListMappingsResponse {
+  repeated AccountMapping mappings = 1;
+}
+
+message AccountMapping {
+  int32 internal_account_id = 1;
+  string external_account_id = 2;
+}
+
+message SetMappingsRequest {
+  int32 bank_id = 1;
+  repeated AccountMapping mappings = 2;
+  string session_id = 3;
+}
+
+message SetMappingsResponse {}
+
+message ListNordigenInstitutionsRequest {
+  // ISO 3166-1 alpha-2 country code.
+  string country_code = 1;
+  string session_id = 2;
+}
+
+message ListNordigenInstitutionsResponse {
+  repeated NordigenInstitution institutions = 1;
+}
+
+message NordigenInstitution {
+  string id = 1;
+  string name = 2;
+  string logo_url = 3;
+}
+
+message ListNordigenCountriesRequest { string session_id = 1; }
+
+message ListNordigenCountriesResponse {
+  repeated NordigenCountry countries = 1;
+}
+
+message NordigenCountry {
+  string code = 1;
+  string name = 2;
+}

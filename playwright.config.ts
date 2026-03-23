@@ -8,15 +8,12 @@ const env = {...process.env} as {[key: string]: string};
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
-  // Reporter to use. See https://playwright.dev/docs/test-reporters
   reporter: env.CI ? 'github' : 'html',
   forbidOnly: !!env.CI,
   globalTeardown: require.resolve('./e2e/lib/fixtures/global-teardown'),
 
   use: {
-    // Base URL to use in actions like `await page.goto('/')`
     baseURL: env.PUBLIC_APP_URL,
-    // Collect trace, useful when tests fail.
     trace: 'on',
   },
   projects: [
@@ -28,9 +25,10 @@ export default defineConfig({
   webServer: {
     command: env.E2E_DOCKER_IMAGE
       ? `docker run --rm --network host --env-file .env.e2e ${env.E2E_DOCKER_IMAGE}`
-      : 'npm run build && npm run start',
+      : 'bash scripts/e2e-server.sh',
     url: env.PUBLIC_APP_URL,
     reuseExistingServer: !env.CI,
     env,
+    timeout: 180_000,
   },
 });

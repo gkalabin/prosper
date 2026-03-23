@@ -52,7 +52,12 @@ test.describe('Refunds', () => {
       ...bundle,
       category: refunds,
     });
-    await seed.createTransactionLink(expense.id, income.id, 'REFUND');
+    await seed.createTransactionLink(
+      bundle.user.id,
+      expense.id,
+      income.id,
+      'REFUND'
+    );
     await loginAs(bundle.user);
     const listPage = new TransactionListPage(page);
     await listPage.goto();

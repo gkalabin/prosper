@@ -30,7 +30,7 @@ import {
 import {Form} from '@/components/ui/form';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
-import {useDisplayBankAccounts} from '@/lib/model/AllDatabaseDataModel';
+import {useDisplayBankAccounts} from '@/lib/model/AppDataModel';
 import {Transaction} from '@/lib/model/transaction/Transaction';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {setFormErrors} from '@/lib/util/forms';

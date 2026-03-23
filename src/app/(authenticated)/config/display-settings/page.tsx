@@ -1,6 +1,6 @@
 import {DisplaySettingsPage} from '@/app/(authenticated)/config/display-settings/client';
-import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB} from '@/lib/db';
+import {getAuthContextOrRedirect} from '@/lib/auth/user';
+import {cachedCoreDataOrFetch} from '@/lib/db/cache';
 import {Metadata} from 'next';
 
 export const metadata: Metadata = {
@@ -8,16 +8,14 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const userId = await getUserIdOrRedirect();
-  const db = new DB({userId});
-  const dbDisplaySettings = await db.getDbDisplaySettings();
-  const dbCategories = await db.categoryFindMany();
+  const auth = await getAuthContextOrRedirect();
+  const core = await cachedCoreDataOrFetch(auth);
   return (
     <>
       <h1 className="mb-6 text-2xl leading-7">Display settings</h1>
       <DisplaySettingsPage
-        dbDisplaySettings={dbDisplaySettings}
-        dbCategories={dbCategories}
+        dbDisplaySettings={core.displaySettings}
+        dbCategories={core.categories}
       />
     </>
   );

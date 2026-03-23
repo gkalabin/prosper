@@ -1,7 +1,8 @@
 import {OpenBankingMappingConfigPage} from '@/app/(authenticated)/config/open-banking/mapping/client';
-import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB} from '@/lib/db';
-import {fetchAccountsForBank} from '@/lib/openbanking/fetchall';
+import {getAuthContextOrRedirect} from '@/lib/auth/user';
+import {withAuth} from '@/lib/grpc/auth';
+import {cachedCoreDataOrFetch} from '@/lib/db/cache';
+import {openBankingClient} from '@/lib/grpc/client';
 import {firstPositiveIntOrNull} from '@/lib/util/searchParams';
 import {Metadata} from 'next';
 import {notFound} from 'next/navigation';
@@ -10,65 +11,38 @@ export const metadata: Metadata = {
   title: 'Open Banking Mapping - Prosper',
 };
 
-async function getData(userId: number, bankId: number) {
-  const db = new DB({userId});
-  if (!bankId) {
-    return notFound();
-  }
-  const [dbBank] = await db.bankFindMany({
-    where: {
-      id: bankId,
-    },
-  });
-  if (!dbBank) {
-    return notFound();
-  }
-  const externalAccounts = await fetchAccountsForBank(db, bankId);
-  const dbBankAccounts = await db.bankAccountFindMany({
-    where: {
-      bankId,
-    },
-  });
-  return {
-    dbBank,
-    dbBankAccounts,
-    dbStocks: await db.stocksFindMany(),
-    dbMapping: await db.externalAccountMappingFindMany({
-      where: {
-        internalAccountId: {
-          in: dbBankAccounts.map(x => x.id),
-        },
-      },
-    }),
-    externalAccounts,
-  };
-}
-
 export default async function Page({
   searchParams,
 }: {
-  searchParams: {[key: string]: string | string[] | undefined};
+  searchParams: Promise<{[key: string]: string | string[] | undefined}>;
 }) {
-  const bankId = firstPositiveIntOrNull(searchParams['bankId']);
+  const bankId = firstPositiveIntOrNull((await searchParams)['bankId']);
   if (!bankId) {
     return notFound();
   }
-  const userId = await getUserIdOrRedirect();
-  const data = await getData(userId, bankId);
-  if (!data?.externalAccounts?.length) {
+  const auth = await getAuthContextOrRedirect();
+  const core = await cachedCoreDataOrFetch(auth);
+  const bank = core.banks.find(b => b.id === bankId);
+  if (!bank) {
+    return notFound();
+  }
+  const accountsForBank = core.bankAccounts.filter(a => a.bankId === bankId);
+  const [{response: external}, {response: mapping}] = await Promise.all([
+    openBankingClient.listExternalAccounts(withAuth({bankId}, auth)),
+    openBankingClient.listMappings(withAuth({bankId}, auth)),
+  ]);
+  if (!external.accounts.length) {
     return (
-      <div>
-        Bank {data.dbBank.name} is not connected to any open banking accounts.
-      </div>
+      <div>Bank {bank.name} is not connected to any open banking accounts.</div>
     );
   }
   return (
     <OpenBankingMappingConfigPage
-      dbBank={data.dbBank}
-      dbBankAccounts={data.dbBankAccounts}
-      dbMapping={data.dbMapping}
-      dbStocks={data.dbStocks}
-      externalAccounts={data.externalAccounts}
+      bank={bank}
+      bankAccounts={accountsForBank}
+      stocks={core.stocks}
+      mappings={mapping.mappings}
+      externalAccounts={external.accounts}
     />
   );
 }

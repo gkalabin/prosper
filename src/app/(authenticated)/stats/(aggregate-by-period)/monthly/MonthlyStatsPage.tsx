@@ -25,7 +25,7 @@ import {
   TransactionDataContextProvider,
   useTransactionDataContext,
 } from '@/lib/context/TransactionDataContext';
-import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
+import {AppData} from '@/lib/model/AppDataModel';
 import {Granularity} from '@/lib/util/Granularity';
 import {type Interval, endOfMonth, startOfMonth} from 'date-fns';
 import {useState} from 'react';
@@ -103,7 +103,7 @@ function NonEmptyPageContent() {
   );
 }
 
-export function MonthlyStatsPage({dbData}: {dbData: AllDatabaseData}) {
+export function MonthlyStatsPage({dbData}: {dbData: AppData}) {
   if (!isFullyConfigured(dbData)) {
     return <NotConfiguredYet />;
   }

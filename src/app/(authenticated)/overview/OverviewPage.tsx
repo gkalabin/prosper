@@ -17,7 +17,7 @@ import {
 } from '@/lib/context/CoreDataContext';
 import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
 import {TransactionDataContextProvider} from '@/lib/context/TransactionDataContext';
-import {AllDatabaseData} from '@/lib/model/AllDatabaseDataModel';
+import {AppData} from '@/lib/model/AppDataModel';
 import Link from 'next/link';
 
 function NonEmptyPageContent({hideBalances}: {hideBalances: boolean}) {
@@ -45,7 +45,7 @@ export function OverviewPage({
   dbData,
   hideBalances,
 }: {
-  dbData: AllDatabaseData;
+  dbData: AppData;
   hideBalances: boolean;
 }) {
   if (!isFullyConfigured(dbData)) {

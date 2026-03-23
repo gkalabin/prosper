@@ -1,0 +1,37 @@
+syntax = "proto3";
+package prosper.v1;
+option go_package = "prosper/gen/prosper/v1;prosperv1";
+
+import "google/protobuf/timestamp.proto";
+
+// RatesService provides exchange rates and stock quotes.
+service RatesService {
+  // GetMarketDataForUser returns every exchange rate and stock quote
+  // the given user needs to render their pages: rates from each
+  // currency they use to their display currency, plus quotes for every
+  // tracked stock. The backend derives the set of pairs from the user's
+  // accounts and DisplaySettings — the frontend does not need to know
+  // which pairs to ask for.
+  rpc GetMarketDataForUser(GetMarketDataForUserRequest)
+      returns (GetMarketDataForUserResponse);
+}
+
+message GetMarketDataForUserRequest { string session_id = 1; }
+
+message GetMarketDataForUserResponse {
+  repeated ExchangeRate rates = 1;
+  repeated StockQuote quotes = 2;
+}
+
+message StockQuote {
+  int32 stock_id = 1;
+  google.protobuf.Timestamp quote_timestamp = 2;
+  int64 price_per_share_nanos = 3;
+}
+
+message ExchangeRate {
+  string currency_code_from = 1;
+  string currency_code_to = 2;
+  google.protobuf.Timestamp rate_timestamp = 3;
+  int64 rate_nanos = 4;
+}

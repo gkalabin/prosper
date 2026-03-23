@@ -2,16 +2,18 @@
 import {AccountMappingRequest} from '@/app/api/open-banking/mapping/route';
 import {Button} from '@/components/ui/button';
 import {Select} from '@/components/ui/html-select';
-import {banksModelFromDatabaseData} from '@/lib/ClientSideModel';
-import {accountUnit} from '@/lib/model/BankAccount';
-import {Unit, isCurrency} from '@/lib/model/Unit';
-import {AccountDetails} from '@/lib/openbanking/interface';
 import {
-  Bank as DBBank,
-  BankAccount as DBBankAccount,
-  Stock as DBStock,
-  ExternalAccountMapping,
-} from '@prisma/client';
+  AccountMapping,
+  ExternalAccount,
+} from '@/lib/grpc/gen/prosper/v1/openbanking';
+import {
+  Bank as ProtoBank,
+  BankAccount as ProtoBankAccount,
+  Stock as ProtoStock,
+} from '@/lib/grpc/gen/prosper/v1/ledger';
+import {accountUnit, bankAccountModelFromDB} from '@/lib/model/BankAccount';
+import {stockModelFromDB} from '@/lib/model/Stock';
+import {Unit, isCurrency} from '@/lib/model/Unit';
 import {useState} from 'react';
 
 function UnitName({unit}: {unit: Unit}) {
@@ -22,36 +24,32 @@ function UnitName({unit}: {unit: Unit}) {
 }
 
 export function OpenBankingMappingConfigPage({
-  dbBank,
-  dbBankAccounts,
-  dbMapping: dbMappingInitial,
-  dbStocks,
+  bank,
+  bankAccounts,
+  mappings: mappingsInitial,
+  stocks,
   externalAccounts,
 }: {
-  dbBank: DBBank;
-  dbBankAccounts: DBBankAccount[];
-  dbMapping: ExternalAccountMapping[];
-  dbStocks: DBStock[];
-  externalAccounts: AccountDetails[];
+  bank: ProtoBank;
+  bankAccounts: ProtoBankAccount[];
+  mappings: AccountMapping[];
+  stocks: ProtoStock[];
+  externalAccounts: ExternalAccount[];
 }) {
   const [requestInFlight, setRequestInFlight] = useState(false);
   const [apiError, setApiError] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
-  const [[bank], allBankAccounts, stocks] = banksModelFromDatabaseData(
-    [dbBank],
-    dbBankAccounts,
-    dbStocks
-  );
-  const accountsForBank = allBankAccounts.filter(x => x.bankId === dbBank.id);
-  const [dbMapping, setDbMapping] = useState(dbMappingInitial);
+  const stockModels = stocks.map(stockModelFromDB);
+  const accountModels = bankAccounts.map(bankAccountModelFromDB);
+  const [storedMappings, setStoredMappings] = useState(mappingsInitial);
   const initialMapping = Object.fromEntries(
-    dbMapping.map(x => [x.externalAccountId, x.internalAccountId])
+    storedMappings.map(x => [x.externalAccountId, x.internalAccountId])
   );
   const [mapping, setMapping] = useState(
     Object.fromEntries(
       externalAccounts.map(a => [
-        a.externalAccountId,
-        initialMapping[a.externalAccountId] ?? -1,
+        a.externalId,
+        initialMapping[a.externalId] ?? -1,
       ])
     )
   );
@@ -62,16 +60,14 @@ export function OpenBankingMappingConfigPage({
     setStatusMessage('');
     setRequestInFlight(true);
     try {
-      const requestMapping = Object.entries(mapping).map(
-        ([externalAccountId, internalAccountId]) => {
-          return {
-            internalAccountId,
-            externalAccountId,
-          };
-        }
+      const requestMapping: AccountMapping[] = Object.entries(mapping).map(
+        ([externalAccountId, internalAccountId]) => ({
+          internalAccountId,
+          externalAccountId,
+        })
       );
       const body: AccountMappingRequest = {
-        bankId: dbBank.id,
+        bankId: bank.id,
         mapping: requestMapping,
       };
       const response = await fetch('/api/open-banking/mapping', {
@@ -79,7 +75,7 @@ export function OpenBankingMappingConfigPage({
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(body),
       });
-      setDbMapping(await response.json());
+      setStoredMappings(await response.json());
       setStatusMessage('Success!');
     } catch (error) {
       setApiError(`Failed to add: ${error}`);
@@ -90,24 +86,24 @@ export function OpenBankingMappingConfigPage({
     <>
       {statusMessage && <span className="text-green-500">{statusMessage}</span>}
       {externalAccounts.map(external => (
-        <div key={external.externalAccountId}>
+        <div key={external.externalId}>
           External account <i>{external.name}</i> connected with
           <Select
             disabled={requestInFlight}
-            value={mapping[external.externalAccountId]}
+            value={mapping[external.externalId]}
             onChange={e =>
               setMapping(old => ({
                 ...old,
-                [external.externalAccountId]: +e.target.value,
+                [external.externalId]: +e.target.value,
               }))
             }
           >
             <option value="0">None</option>
-            {accountsForBank.map(a => (
+            {accountModels.map(a => (
               <option key={a.id} value={a.id}>
                 <>
                   {bank.name} {a.name} (
-                  <UnitName unit={accountUnit(a, stocks)} />)
+                  <UnitName unit={accountUnit(a, stockModels)} />)
                 </>
               </option>
             ))}

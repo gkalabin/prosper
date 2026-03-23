@@ -1,11 +1,11 @@
-import {Tag as DBTag} from '@prisma/client';
+import {Tag as PbTag} from '@/lib/grpc/gen/prosper/v1/ledger';
 
 export type Tag = {
   id: number;
   name: string;
 };
 
-export function tagModelFromDB(init: DBTag): Tag {
+export function tagModelFromDB(init: PbTag): Tag {
   return {
     id: init.id,
     name: init.name,

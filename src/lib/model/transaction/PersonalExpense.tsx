@@ -1,7 +1,11 @@
-import {DBTransaction} from '@/lib/model/AllDatabaseDataModel';
+import {
+  LedgerAccount,
+  LedgerAccountType,
+  Transaction as PbTransaction,
+} from '@/lib/grpc/gen/prosper/v1/ledger';
+import {timestampToEpoch} from '@/lib/grpc/timestamp';
 import {TransactionCompanion} from '@/lib/model/transaction/TransactionCompanion';
 import {nanosToCents} from '@/lib/util/util';
-import {LedgerAccountType, LedgerAccount} from '@prisma/client';
 
 export type PersonalExpense = {
   kind: 'PersonalExpense';
@@ -19,14 +23,14 @@ export type PersonalExpense = {
 };
 
 export function personalExpenseFromDB(
-  tx: DBTransaction,
+  tx: PbTransaction,
   accounts: Map<number, LedgerAccount>
 ): PersonalExpense {
   if (!tx.categoryId) {
     throw new Error(`Expense ${tx.id}: no category`);
   }
   // TODO: enforce setting vendor on transaction create/edit and then switch check here to "!vendor"
-  if (tx.vendor === null) {
+  if (tx.vendor == null) {
     throw new Error(`Expense ${tx.id}: no vendor`);
   }
   // TODO: verify exactly 1 asset line and 1 expense line
@@ -50,15 +54,15 @@ export function personalExpenseFromDB(
   return {
     kind: 'PersonalExpense',
     id: tx.id,
-    timestampEpoch: new Date(tx.timestamp).getTime(),
+    timestampEpoch: timestampToEpoch(tx.timestamp),
     vendor: tx.vendor,
     amountCents: totalCents,
     companions,
     note: tx.note,
     accountId: assetAccount.bankAccountId,
     categoryId: tx.categoryId,
-    tagsIds: tx.tags.map(t => t.id),
-    tripId: tx.tripId,
+    tagsIds: tx.tagIds,
+    tripId: tx.tripId ?? null,
     // TODO: fill for expenses.
     refundGroupTransactionIds: [],
   };

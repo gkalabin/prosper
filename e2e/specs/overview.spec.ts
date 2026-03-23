@@ -89,7 +89,7 @@ test.describe('Overview', () => {
       exchange: 'NASDAQ',
       currencyCode: 'USD',
     });
-    await seed.createStockQuote(stock.id, 15000); // $150 per share
+    await seed.createStockQuote(stock.id, 150); // $150 per share
     const {user} = await seed.createUserWithTestData({
       bank: {name: 'Vanguard'},
       account: {name: 'AAPL Holdings', initialBalance: 10, stockId: stock.id},
@@ -112,7 +112,7 @@ test.describe('Overview', () => {
       exchange: 'NASDAQ',
       currencyCode: 'USD',
     });
-    await seed.createStockQuote(stock.id, 15000); // $150 per share
+    await seed.createStockQuote(stock.id, 150); // $150 per share
     const {user} = await seed.createUserWithTestData({
       bank: {name: 'Vanguard'},
       account: {name: 'TSLA Holdings', initialBalance: 10, stockId: stock.id},

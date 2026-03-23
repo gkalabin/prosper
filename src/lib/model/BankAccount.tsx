@@ -1,8 +1,11 @@
 import {assert} from '@/lib/assert';
+import {
+  Bank as PbBank,
+  BankAccount as PbBankAccount,
+} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {mustFindByCode} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';
 import {Unit} from '@/lib/model/Unit';
-import {Bank as DBBank, BankAccount as DBBankAccount} from '@prisma/client';
 
 export type Bank = {
   id: number;
@@ -10,7 +13,7 @@ export type Bank = {
   displayOrder: number;
 };
 
-export function bankModelFromDB(init: DBBank): Bank {
+export function bankModelFromDB(init: PbBank): Bank {
   return {
     id: init.id,
     name: init.name,
@@ -66,14 +69,14 @@ export type BankAccount = {
   joint: boolean;
 };
 
-export function bankAccountModelFromDB(init: DBBankAccount): BankAccount {
+export function bankAccountModelFromDB(init: PbBankAccount): BankAccount {
   return {
     id: init.id,
     name: init.name,
     bankId: init.bankId,
     initialBalanceCents: init.initialBalanceCents,
-    currencyCode: init.currencyCode,
-    stockId: init.stockId,
+    currencyCode: init.currencyCode ?? null,
+    stockId: init.stockId ?? null,
     displayOrder: init.displayOrder,
     archived: init.archived,
     joint: init.joint,

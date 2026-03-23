@@ -1,23 +1,23 @@
 import {BankPage} from '@/app/(authenticated)/bank/[bankId]/[name]/bank-page';
-import {getUserIdOrRedirect} from '@/lib/auth/user';
-import {DB, fetchAllDatabaseData} from '@/lib/db';
+import {getAuthContextOrRedirect} from '@/lib/auth/user';
+import {fetchAppData} from '@/lib/db';
+import {cachedCoreDataOrFetch} from '@/lib/db/cache';
+import {Bank as ProtoBank} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {logRequest} from '@/lib/util/log';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
-import {Bank} from '@prisma/client';
 import {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 
 type Props = {params: Promise<{bankId: string}>};
 
-async function fetchBank(props: Props): Promise<Bank | null> {
-  const userId = await getUserIdOrRedirect();
+async function fetchBank(props: Props): Promise<ProtoBank | null> {
+  const auth = await getAuthContextOrRedirect();
   const bankId = positiveIntOrNull((await props.params).bankId);
   if (!bankId) {
     return null;
   }
-  const db = new DB({userId});
-  const [bank] = await db.bankFindMany({where: {id: bankId}});
-  return bank ? bank : null;
+  const core = await cachedCoreDataOrFetch(auth);
+  return core.banks.find(b => b.id === bankId) ?? null;
 }
 
 export async function generateMetadata({params}: Props): Promise<Metadata> {
@@ -33,13 +33,12 @@ export async function generateMetadata({params}: Props): Promise<Metadata> {
 // 'name' parameter is unused intentionally, it is used only to make the URLs look
 // nice, but the actual bank is identified by a separate id parameter.
 export default async function Page({params}: Props) {
-  const userId = await getUserIdOrRedirect();
+  const auth = await getAuthContextOrRedirect();
   const bank = await fetchBank({params});
   if (!bank) {
     return notFound();
   }
-  logRequest('bank', `userId:${userId} bankId:${bank.id}`);
-  const db = new DB({userId});
-  const data = await fetchAllDatabaseData(db);
+  logRequest('bank', `userId:${auth.userId} bankId:${bank.id}`);
+  const data = await fetchAppData(auth);
   return <BankPage dbData={data} dbBank={bank} />;
 }

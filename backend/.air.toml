@@ -1,0 +1,17 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  pre_cmd = ["cd ../proto && buf generate"]
+  cmd = "go build -o ./tmp/prosper-backend ./cmd/prosper-backend"
+  bin = "./tmp/prosper-backend"
+  include_ext = ["go", "proto"]
+  include_dir = [".", "../proto"]
+  exclude_dir = ["tmp", "gen"]
+  delay = 1000
+
+[log]
+  time = true
+
+[misc]
+  clean_on_exit = true

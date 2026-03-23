@@ -10,9 +10,10 @@ import {
   Transaction,
 } from '@/lib/model/transaction/Transaction';
 import {
-  Transaction as DBTransaction,
-  TransactionLink as DBTransactionLink,
-} from '@prisma/client';
+  Transaction as PbTransaction,
+  TransactionLink as PbTransactionLink,
+  TransactionLinkType as PbTransactionLinkType,
+} from '@/lib/grpc/gen/prosper/v1/ledger';
 
 export enum TransactionLinkType {
   REFUND,
@@ -36,16 +37,16 @@ export type Refund = {
 export type TransactionLink = DebtSettling | Refund;
 
 export function transactionLinkModelFromDB(
-  dbLinks: DBTransactionLink[],
+  dbLinks: PbTransactionLink[],
   allTransactions: Transaction[],
   // TODO: instead of passing db model here, make client Transaction mode aware of versions.
   // This is to solve a problem with links between superseded transactions:
   // we pass all links here, including between superseded transactions, but these are not found
   // in the list of converted transactions to the client side model.
-  dbTransactions: DBTransaction[]
+  dbTransactions: PbTransaction[]
 ): TransactionLink[] {
   const supersededIds = new Set(
-    dbTransactions.map(t => t.supersedesId).filter(id => id !== null)
+    dbTransactions.map(t => t.supersedesId).filter((id): id is number => !!id)
   );
   const transactionById = new Map(allTransactions.map(t => [t.id, t]));
   const refunds = new Map<number, Refund>();
@@ -63,7 +64,7 @@ export function transactionLinkModelFromDB(
     }
     const {source, linked} = findSourceAndLinked(l, transactionById);
     switch (l.linkType) {
-      case 'REFUND': {
+      case PbTransactionLinkType.REFUND: {
         let refund = refunds.get(source.id);
         if (!refund) {
           if (!isExpense(source)) {
@@ -82,7 +83,7 @@ export function transactionLinkModelFromDB(
         refund.refunds.push(linked);
         break;
       }
-      case 'DEBT_SETTLING': {
+      case PbTransactionLinkType.DEBT_SETTLING: {
         if (!isThirdPartyExpense(source)) {
           throw new Error(
             `Debt settling ${l.id} source ${source.id} is not a third party expense`
@@ -107,7 +108,7 @@ export function transactionLinkModelFromDB(
 }
 
 function findSourceAndLinked(
-  dbLink: DBTransactionLink,
+  dbLink: PbTransactionLink,
   transactionById: Map<number, Transaction>
 ): {source: Transaction; linked: Transaction} {
   const source = transactionById.get(dbLink.sourceTransactionId);

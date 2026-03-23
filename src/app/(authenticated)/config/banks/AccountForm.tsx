@@ -18,12 +18,12 @@ import {
   UnitSchema,
 } from '@/lib/form-types/AccountFormSchema';
 import {AddOrUpdateButtonText} from '@/lib/i18n';
+import {BankAccount as ProtoBankAccount} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {Bank, BankAccount} from '@/lib/model/BankAccount';
 import {mustFindByCode} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';
 import {setFormErrors} from '@/lib/util/forms';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {BankAccount as DBBankAccount} from '@prisma/client';
 import {useForm} from 'react-hook-form';
 
 export function AccountForm({
@@ -38,7 +38,7 @@ export function AccountForm({
   bankAccounts: BankAccount[];
   bank: Bank;
   stocks: Stock[];
-  onAddedOrUpdated: (x: DBBankAccount) => void;
+  onAddedOrUpdated: (x: ProtoBankAccount) => void;
   onClose: () => void;
 }) {
   const addingNewAccount = !bankAccount;
