@@ -1,4 +1,5 @@
 'use client';
+import {StaleExchangeRatesWarning} from '@/components/StaleExchangeRatesWarning';
 import {MarketDataModel, marketModelFromDB} from '@/lib/ClientSideModel';
 import {MarketData as DBMarketData} from '@/lib/db/fetch';
 import {createContext, useContext} from 'react';
@@ -14,6 +15,10 @@ export function MarketDataContextProvider(props: {
   const model = marketModelFromDB(props.dbData);
   return (
     <MarketDataContext.Provider value={model}>
+      <StaleExchangeRatesWarning
+        dbExchangeRates={props.dbData.dbExchangeRates}
+        dbStockQuotes={props.dbData.dbStockQuotes}
+      />
       {props.children}
     </MarketDataContext.Provider>
   );

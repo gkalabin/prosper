@@ -1,4 +1,3 @@
-import {updateRatesFallback} from '@/lib/asset-rates/backfill';
 import {DB} from '@/lib/db';
 import {TransactionWithTagIds} from '@/lib/model/AllDatabaseDataModel';
 import {
@@ -141,8 +140,5 @@ export async function fetchMarketData({
       },
     ].map(f => f())
   );
-  console.time(timeLabel('updateRatesFallback'));
-  await updateRatesFallback(data);
-  console.timeEnd(timeLabel('updateRatesFallback'));
   return data;
 }

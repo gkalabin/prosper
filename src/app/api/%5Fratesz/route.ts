@@ -1,4 +1,4 @@
-import {REFRESH_INTERVAL_HOURS} from '@/lib/asset-rates/backfill';
+const REFRESH_INTERVAL_HOURS = 6;
 import {addLatestExchangeRates} from '@/lib/asset-rates/currency-rates';
 import {addLatestStockQuotes} from '@/lib/asset-rates/stock-quotes';
 import {logRequest} from '@/lib/util/log';

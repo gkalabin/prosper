@@ -1,4 +1,4 @@
-import {NO_HISTORY_LOOK_BACK_DAYS} from '@/lib/asset-rates/backfill';
+const NO_HISTORY_LOOK_BACK_DAYS = 30;
 import prisma from '@/lib/prisma';
 import {Stock as DBStock, Prisma} from '@prisma/client';
 import {addDays, differenceInHours, format, isSameDay} from 'date-fns';

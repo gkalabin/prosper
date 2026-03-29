@@ -1,4 +1,4 @@
-import {NO_HISTORY_LOOK_BACK_DAYS} from '@/lib/asset-rates/backfill';
+const NO_HISTORY_LOOK_BACK_DAYS = 30;
 import {getUsedCurrencyCodes} from '@/lib/asset-rates/used-currencies';
 import {Currency, NANOS_MULTIPLIER, allCurrencies} from '@/lib/model/Currency';
 import prisma from '@/lib/prisma';
