@@ -1,0 +1,12 @@
+/var/log/prosper/*.log {
+  weekly
+  rotate 4
+  compress
+  dateext
+  missingok
+  notifempty
+  create
+  postrotate
+    invoke-rc.d --quiet prosper restart > /dev/null
+  endscript
+}

@@ -1,0 +1,33 @@
+---
+- name: Install ddclient
+  apt:
+    name: ddclient
+    state: present
+  when: ddns_enabled
+
+- name: Configure ddclient
+  template:
+    src: ddclient.conf.j2
+    dest: /etc/ddclient.conf
+    owner: root
+    group: root
+    mode: '0600'
+  when: ddns_enabled
+  notify: restart ddclient
+
+- name: Configure default ddclient
+  template:
+    src: default_ddclient.j2
+    dest: /etc/default/ddclient
+    owner: root
+    group: root
+    mode: '0644'
+  when: ddns_enabled
+  notify: restart ddclient
+
+- name: Enable and start ddclient
+  service:
+    name: ddclient
+    state: started
+    enabled: yes
+  when: ddns_enabled

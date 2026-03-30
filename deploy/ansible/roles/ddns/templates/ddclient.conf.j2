@@ -1,0 +1,9 @@
+# No daemon option as systemd already daemonises ddclient.
+syslog=yes
+protocol=cloudflare
+use=web, web=ipify-ipv4
+ssl=yes
+login={{ ddns_login }}
+password={{ ddns_password }}
+zone={{ ddns_zone }}
+{{ ddns_zone }}
