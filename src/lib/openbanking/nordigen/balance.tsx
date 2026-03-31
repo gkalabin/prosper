@@ -5,6 +5,9 @@ export async function fetchBalance(
   token: NordigenToken,
   mapping: ExternalAccountMapping
 ): Promise<AccountBalance> {
+  if (!process.env.NORDIGEN_ENABLE_BALANCE_FETCH) {
+    throw new Error('Nordigen balance fetching is not enabled');
+  }
   const response = await fetch(
     `https://bankaccountdata.gocardless.com/api/v2/accounts/${mapping.externalAccountId}/balances/`,
     {
