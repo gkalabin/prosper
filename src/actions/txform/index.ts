@@ -63,7 +63,7 @@ export async function upsertTransaction(
   };
   if (data.expense) {
     await upsertExpense(dbUpdates, transaction, protos, userId, data);
-    invalidateCache();
+    await invalidateCache();
     return {
       status: 'SUCCESS',
       dbUpdates,
@@ -71,7 +71,7 @@ export async function upsertTransaction(
   }
   if (data.transfer) {
     await upsertTransfer(dbUpdates, transaction, protos, userId, data);
-    invalidateCache();
+    await invalidateCache();
     return {
       status: 'SUCCESS',
       dbUpdates,
@@ -79,7 +79,7 @@ export async function upsertTransaction(
   }
   if (data.income) {
     await upsertIncome(dbUpdates, transaction, protos, userId, data);
-    invalidateCache();
+    await invalidateCache();
     return {
       status: 'SUCCESS',
       dbUpdates,
