@@ -62,7 +62,9 @@ export async function addLatestStockQuotes(
   refreshIntervalHours: number
 ): Promise<boolean> {
   console.log('Starting stock quotes backfill');
-  const timingLabel = 'Stock quotes backfill ' + new Date().getTime();
+  const reqId = Math.random().toString(36).slice(2, 7);
+  const timingLabel =
+    'Stock quotes backfill ' + new Date().getTime() + ' [' + reqId + ']';
   console.time(timingLabel);
   const dbStocks = await prisma.stock.findMany();
   if (dbStocks.length == 0) {
