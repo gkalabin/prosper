@@ -17,12 +17,12 @@ export default async function LoginPage() {
   const hasCapacity = await hasCapacityToSignUp();
   return (
     <div className="flex h-full w-full justify-center">
-      <main className="mx-8 mt-24 w-[360px] place-self-center rounded-md border border-indigo-300 p-8 shadow-md">
+      <main className="mx-8 mt-24 w-[360px] place-self-center rounded-md border border-indigo-300 bg-white p-8 shadow-md dark:border-gray-700 dark:bg-gray-800">
         <section>
-          <h1 className="mb-8 text-center text-2xl font-bold leading-9 tracking-tight text-indigo-900">
+          <h1 className="mb-8 text-center text-2xl font-bold leading-9 tracking-tight text-indigo-900 dark:text-indigo-400">
             Prosper
           </h1>
-          <h2 className="mb-8 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">
+          <h2 className="mb-8 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900 dark:text-gray-100">
             Sign in to your account
           </h2>
         </section>
