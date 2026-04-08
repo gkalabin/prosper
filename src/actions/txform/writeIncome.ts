@@ -2,11 +2,11 @@ import {
   type EntryLineInput,
   type SplitInput,
   bankAccountUnit,
-  fetchOrCreateTagV2s,
+  fetchOrCreateTags,
   findOrCreateReceivableAccount,
   mustFindAccount,
   mustFindAsset,
-  writeUsedProtosV2,
+  writeUsedProtos,
 } from '@/actions/txform/shared';
 import {IncomeFormSchema} from '@/components/txform/income/types';
 import {assertDefined} from '@/lib/assert';
@@ -14,9 +14,9 @@ import {type TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototyp
 import {dollarToNanos} from '@/lib/util/util';
 import {
   LedgerAccountType,
-  LedgerAccountV2,
+  LedgerAccount,
   Prisma,
-  TransactionV2Type,
+  TransactionType,
 } from '@prisma/client';
 
 export async function writeIncome(
@@ -26,7 +26,7 @@ export async function writeIncome(
     iid: number;
     supersedesId: number | null;
     income: IncomeFormSchema;
-    ledgerAccounts: LedgerAccountV2[];
+    ledgerAccounts: LedgerAccount[];
     protos: TransactionPrototype[];
     transactionIdToSupersede: number | null;
   }
@@ -39,14 +39,14 @@ export async function writeIncome(
     userId
   );
   const splits = buildIncomeSplitContext(income);
-  const tags = await fetchOrCreateTagV2s(tx, income.tagNames, userId);
-  const newTx = await tx.transactionV2.create({
+  const tags = await fetchOrCreateTags(tx, income.tagNames, userId);
+  const newTx = await tx.transaction.create({
     data: {
       iid,
       userId,
       timestamp: income.timestamp,
       note: income.description ?? '',
-      type: TransactionV2Type.INCOME,
+      type: TransactionType.INCOME,
       payer: income.payer,
       categoryId: income.categoryId,
       supersedesId,
@@ -55,9 +55,9 @@ export async function writeIncome(
       splits: {create: splits},
     },
   });
-  await writeUsedProtosV2({tx, protos, transactionId: newTx.id, userId});
+  await writeUsedProtos({tx, protos, transactionId: newTx.id, userId});
   if (income.parentTransactionId) {
-    await tx.transactionLinkV2.create({
+    await tx.transactionLink.create({
       data: {
         sourceTransactionId: income.parentTransactionId,
         linkedTransactionId: newTx.id,
@@ -70,7 +70,7 @@ export async function writeIncome(
 async function buildIncomeEntryLines(
   tx: Prisma.TransactionClient,
   income: IncomeFormSchema,
-  ledgerAccounts: LedgerAccountV2[],
+  ledgerAccounts: LedgerAccount[],
   userId: number
 ): Promise<EntryLineInput[]> {
   const assetAccount = mustFindAsset(ledgerAccounts, income.accountId);

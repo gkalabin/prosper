@@ -21,9 +21,7 @@ model BankAccount {
   createdAt              DateTime                 @default(now())
   updatedAt              DateTime                 @updatedAt
   ExternalAccountMapping ExternalAccountMapping[]
-  outgoingTransactions   Transaction[]            @relation("OutgoingTransactions")
-  incomingTransactions   Transaction[]            @relation("IncomingTransactions")
-  LedgerAccountV2        LedgerAccountV2?
+  LedgerAccount          LedgerAccount?
 }
 
 model Bank {
@@ -52,7 +50,7 @@ model Stock {
   updatedAt    DateTime      @updatedAt
   BankAccount  BankAccount[]
   StockQuote   StockQuote[]
-  EntryLineV2  EntryLineV2[]
+  EntryLine    EntryLine[]
 }
 
 model Category {
@@ -65,8 +63,7 @@ model Category {
   parentCategoryId Int?
   children         Category[] @relation("ParentCategory")
 
-  transactions  Transaction[]
-  TransactionV2 TransactionV2[]
+  Transaction Transaction[]
 
   user      User     @relation(fields: [userId], references: [id])
   userId    Int
@@ -85,19 +82,18 @@ model Tag {
 }
 
 model Trip {
-  id            Int             @id @default(autoincrement())
-  name          String
-  country       String?
-  city          String?
-  destination   String?
-  start         DateTime?
-  end           DateTime?
-  user          User            @relation(fields: [userId], references: [id])
-  userId        Int
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  Transaction   Transaction[]
-  TransactionV2 TransactionV2[]
+  id          Int           @id @default(autoincrement())
+  name        String
+  country     String?
+  city        String?
+  destination String?
+  start       DateTime?
+  end         DateTime?
+  user        User          @relation(fields: [userId], references: [id])
+  userId      Int
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  Transaction Transaction[]
 }
 
 model DisplaySettings {
@@ -119,6 +115,7 @@ model ExternalAccountMapping {
   user              User        @relation(fields: [userId], references: [id])
 }
 
+// Maps external open-banking transactions to internal Transaction records.
 model TransactionPrototype {
   syntheticId           Int         @id @default(autoincrement())
   // not unique as multiple users can share the same bank and import the same transaction

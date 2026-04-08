@@ -6,20 +6,20 @@ import {
   Category,
   DisplaySettings,
   ExchangeRate,
-  LedgerAccountV2,
+  LedgerAccount,
   Stock,
   StockQuote,
-  TagV2,
-  TransactionLinkV2,
-  TransactionPrototypeV2,
+  Tag,
+  TransactionLink,
+  TransactionPrototype,
   Trip,
 } from '@prisma/client';
 
 export type TransactionData = {
   dbTransactions: DBTransaction[];
-  dbTransactionLinks: TransactionLinkV2[];
-  dbTransactionPrototypes: TransactionPrototypeV2[];
-  dbLedgerAccounts: LedgerAccountV2[];
+  dbTransactionLinks: TransactionLink[];
+  dbTransactionPrototypes: TransactionPrototype[];
+  dbLedgerAccounts: LedgerAccount[];
 };
 
 export async function fetchTransactionData({
@@ -63,7 +63,7 @@ export type CoreData = {
   dbBanks: Bank[];
   dbBankAccounts: BankAccount[];
   dbTrips: Trip[];
-  dbTags: TagV2[];
+  dbTags: Tag[];
   dbStocks: Stock[];
   dbDisplaySettings: DisplaySettings;
 };

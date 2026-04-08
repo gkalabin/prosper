@@ -10,8 +10,8 @@ import {
   Transaction,
 } from '@/lib/model/transaction/Transaction';
 import {
-  TransactionV2 as DBTransaction,
-  TransactionLinkV2 as DBTransactionLink,
+  Transaction as DBTransaction,
+  TransactionLink as DBTransactionLink,
 } from '@prisma/client';
 
 export enum TransactionLinkType {

@@ -5,7 +5,7 @@ import {
   DisplaySettings,
   ExchangeRate,
   StockQuote,
-  TagV2,
+  Tag,
   User,
 } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
@@ -54,10 +54,10 @@ export class TestFactory {
         .findMany(whereLogin)
         .then(u => u.map(({id}) => id));
       const whereUserId = {where: {userId: {in: userIds}}};
-      const transactionsIds = await prisma.transactionV2
+      const transactionsIds = await prisma.transaction
         .findMany(whereUserId)
         .then(t => t.map(({id}) => id));
-      await prisma.transactionLinkV2.deleteMany({
+      await prisma.transactionLink.deleteMany({
         where: {
           OR: [
             {sourceTransactionId: {in: transactionsIds}},
@@ -65,23 +65,22 @@ export class TestFactory {
           ],
         },
       });
-      await prisma.splitContextV2.deleteMany({
+      await prisma.splitContext.deleteMany({
         where: {transactionId: {in: transactionsIds}},
       });
-      await prisma.entryLineV2.deleteMany({
+      await prisma.entryLine.deleteMany({
         where: {transactionId: {in: transactionsIds}},
       });
-      await prisma.transactionPrototypeV2.deleteMany({
+      await prisma.transactionPrototype.deleteMany({
         where: {internalTransactionId: {in: transactionsIds}},
       });
-      await prisma.transactionV2.deleteMany({
+      await prisma.transaction.deleteMany({
         where: {id: {in: transactionsIds}},
       });
       await prisma.bankAccount.deleteMany(whereUserId);
-      await prisma.ledgerAccountV2.deleteMany(whereUserId);
+      await prisma.ledgerAccount.deleteMany(whereUserId);
       await prisma.bank.deleteMany(whereUserId);
       await prisma.category.deleteMany(whereUserId);
-      await prisma.tagV2.deleteMany(whereUserId);
       await prisma.tag.deleteMany(whereUserId);
       await prisma.trip.deleteMany(whereUserId);
       await prisma.displaySettings.deleteMany(whereUserId);
@@ -170,7 +169,7 @@ export class TestFactory {
       'EQUITY',
       'CURRENCY_EXCHANGE',
     ] as const;
-    await prisma.ledgerAccountV2.createMany({
+    await prisma.ledgerAccount.createMany({
       data: systemTypes.map(type => ({
         userId: user.id,
         name: `SYSTEM:${type}`,
@@ -216,7 +215,7 @@ export class TestFactory {
         ...restOverrides,
       },
     });
-    await prisma.ledgerAccountV2.create({
+    await prisma.ledgerAccount.create({
       data: {
         userId,
         name: account.name,
@@ -251,15 +250,15 @@ export class TestFactory {
     timestamp?: Date | string;
   }) {
     const amountNanos = BigInt(Math.round(initialBalance * NANOS_PER_DOLLAR));
-    const ledgerAccount = await prisma.ledgerAccountV2.findFirstOrThrow({
+    const ledgerAccount = await prisma.ledgerAccount.findFirstOrThrow({
       where: {userId, bankAccountId, type: 'ASSET'},
     });
-    const equityAccount = await prisma.ledgerAccountV2.findFirstOrThrow({
+    const equityAccount = await prisma.ledgerAccount.findFirstOrThrow({
       where: {userId, type: 'EQUITY'},
     });
     const iid = await this.nextIid(userId);
     const time = timestamp ? new Date(timestamp) : new Date();
-    return prisma.transactionV2.create({
+    return prisma.transaction.create({
       data: {
         iid,
         userId,
@@ -297,19 +296,19 @@ export class TestFactory {
 
   async getOrCreateReceivableAccount(userId: number, companionName: string) {
     const name = `RECEIVABLE:${companionName}`;
-    let ledgerAccountReceivable = await prisma.ledgerAccountV2.findFirst({
+    let ledgerAccountReceivable = await prisma.ledgerAccount.findFirst({
       where: {userId, type: 'RECEIVABLE', name},
     });
     if (!ledgerAccountReceivable) {
-      ledgerAccountReceivable = await prisma.ledgerAccountV2.create({
+      ledgerAccountReceivable = await prisma.ledgerAccount.create({
         data: {userId, name, type: 'RECEIVABLE'},
       });
     }
     return ledgerAccountReceivable;
   }
 
-  async createTag(userId: number, name: string, overrides?: Partial<TagV2>) {
-    return prisma.tagV2.create({
+  async createTag(userId: number, name: string, overrides?: Partial<Tag>) {
+    return prisma.tag.create({
       data: {
         userId,
         name,
@@ -387,10 +386,10 @@ export class TestFactory {
     const bankAccount = await prisma.bankAccount.findUniqueOrThrow({
       where: {id: account.id},
     });
-    const ledgerAccountAsset = await prisma.ledgerAccountV2.findUniqueOrThrow({
+    const ledgerAccountAsset = await prisma.ledgerAccount.findUniqueOrThrow({
       where: {bankAccountId: account.id},
     });
-    const ledgerAccountExpense = await prisma.ledgerAccountV2.findFirstOrThrow({
+    const ledgerAccountExpense = await prisma.ledgerAccount.findFirstOrThrow({
       where: {userId: user.id, type: 'EXPENSE'},
     });
     const currencyCode = bankAccount.currencyCode ?? undefined;
@@ -432,7 +431,7 @@ export class TestFactory {
         ],
       };
     }
-    return prisma.transactionV2.create({
+    return prisma.transaction.create({
       data: {
         iid,
         userId: user.id,
@@ -482,10 +481,10 @@ export class TestFactory {
     const bankAccount = await prisma.bankAccount.findUniqueOrThrow({
       where: {id: account.id},
     });
-    const ledgerAccountAsset = await prisma.ledgerAccountV2.findUniqueOrThrow({
+    const ledgerAccountAsset = await prisma.ledgerAccount.findUniqueOrThrow({
       where: {bankAccountId: account.id},
     });
-    const ledgerAccountIncome = await prisma.ledgerAccountV2.findFirstOrThrow({
+    const ledgerAccountIncome = await prisma.ledgerAccount.findFirstOrThrow({
       where: {userId: user.id, type: 'INCOME'},
     });
     const currencyCode = bankAccount.currencyCode ?? undefined;
@@ -527,7 +526,7 @@ export class TestFactory {
         ],
       };
     }
-    return prisma.transactionV2.create({
+    return prisma.transaction.create({
       data: {
         iid,
         userId: user.id,
@@ -584,13 +583,14 @@ export class TestFactory {
     const toBankAcct = await prisma.bankAccount.findUniqueOrThrow({
       where: {id: to.id},
     });
-    const ledgerAccountFromAsset =
-      await prisma.ledgerAccountV2.findUniqueOrThrow({
+    const ledgerAccountFromAsset = await prisma.ledgerAccount.findUniqueOrThrow(
+      {
         where: {bankAccountId: from.id},
-      });
-    const ledgerAccountToAsset = await prisma.ledgerAccountV2.findUniqueOrThrow(
-      {where: {bankAccountId: to.id}}
+      }
     );
+    const ledgerAccountToAsset = await prisma.ledgerAccount.findUniqueOrThrow({
+      where: {bankAccountId: to.id},
+    });
     const lines = [
       {
         ledgerAccountId: ledgerAccountFromAsset.id,
@@ -609,10 +609,11 @@ export class TestFactory {
       fromBankAcct.currencyCode !== toBankAcct.currencyCode ||
       fromBankAcct.stockId !== toBankAcct.stockId
     ) {
-      const ledgerAccountExchange =
-        await prisma.ledgerAccountV2.findFirstOrThrow({
+      const ledgerAccountExchange = await prisma.ledgerAccount.findFirstOrThrow(
+        {
           where: {userId: user.id, type: 'CURRENCY_EXCHANGE'},
-        });
+        }
+      );
       lines.push(
         {
           ledgerAccountId: ledgerAccountExchange.id,
@@ -628,7 +629,7 @@ export class TestFactory {
         }
       );
     }
-    return prisma.transactionV2.create({
+    return prisma.transaction.create({
       data: {
         iid,
         userId: user.id,
@@ -674,7 +675,7 @@ export class TestFactory {
     const ownShareAmountNanos = BigInt(ownShareAmount * NANOS_PER_DOLLAR);
     const time = timestamp ? new Date(timestamp) : new Date();
     const iid = await this.nextIid(user.id);
-    const ledgerAccountExpense = await prisma.ledgerAccountV2.findFirstOrThrow({
+    const ledgerAccountExpense = await prisma.ledgerAccount.findFirstOrThrow({
       where: {userId: user.id, type: 'EXPENSE'},
     });
     const ledgerAccountReceivable = await this.getOrCreateReceivableAccount(
@@ -695,7 +696,7 @@ export class TestFactory {
         stockId: undefined,
       },
     ];
-    return prisma.transactionV2.create({
+    return prisma.transaction.create({
       data: {
         iid,
         userId: user.id,
@@ -754,7 +755,7 @@ export class TestFactory {
     linkedTransactionId: number,
     linkType: 'REFUND' | 'DEBT_SETTLING'
   ) {
-    return prisma.transactionLinkV2.create({
+    return prisma.transactionLink.create({
       data: {
         sourceTransactionId,
         linkedTransactionId,

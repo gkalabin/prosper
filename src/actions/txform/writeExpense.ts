@@ -2,13 +2,13 @@ import {
   type EntryLineInput,
   type SplitInput,
   bankAccountUnit,
-  fetchOrCreateTagV2s,
+  fetchOrCreateTags,
   findOrCreateReceivableAccount,
   getOrCreateTrip,
   mustFindAccount,
   mustFindAsset,
   nextIid,
-  writeUsedProtosV2,
+  writeUsedProtos,
 } from '@/actions/txform/shared';
 import {ExpenseFormSchema} from '@/components/txform/expense/types';
 import {assert, assertDefined} from '@/lib/assert';
@@ -16,9 +16,9 @@ import {type TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototyp
 import {dollarToNanos} from '@/lib/util/util';
 import {
   LedgerAccountType,
-  LedgerAccountV2,
+  LedgerAccount,
   Prisma,
-  TransactionV2Type,
+  TransactionType,
 } from '@prisma/client';
 
 export async function writeExpense(
@@ -28,7 +28,7 @@ export async function writeExpense(
     iid: number;
     supersedesId: number | null;
     expense: ExpenseFormSchema;
-    ledgerAccounts: LedgerAccountV2[];
+    ledgerAccounts: LedgerAccount[];
     protos: TransactionPrototype[];
     transactionIdToSupersede: number | null;
   }
@@ -42,13 +42,13 @@ export async function writeExpense(
     userId
   );
   const splits = buildExpenseSplitContext(expense);
-  const tags = await fetchOrCreateTagV2s(tx, expense.tagNames, userId);
+  const tags = await fetchOrCreateTags(tx, expense.tagNames, userId);
   const trip = await getOrCreateTrip({
     tx,
     tripName: expense.tripName,
     userId,
   });
-  const newTx = await tx.transactionV2.create({
+  const newTx = await tx.transaction.create({
     data: {
       iid,
       userId,
@@ -57,7 +57,7 @@ export async function writeExpense(
       note: expense.description ?? '',
       vendor: expense.vendor,
       payer:
-        transactionType === TransactionV2Type.THIRD_PARTY_EXPENSE
+        transactionType === TransactionType.THIRD_PARTY_EXPENSE
           ? expense.payer
           : null,
       categoryId: expense.categoryId,
@@ -68,7 +68,7 @@ export async function writeExpense(
       splits: {create: splits},
     },
   });
-  await writeUsedProtosV2({tx, protos, transactionId: newTx.id, userId});
+  await writeUsedProtos({tx, protos, transactionId: newTx.id, userId});
   // Handle repayment: someone paid for the user and they already paid them back.
   // This results in two linked transactions.
   if (expense.sharingType === 'PAID_OTHER_REPAID') {
@@ -82,19 +82,19 @@ export async function writeExpense(
   }
 }
 
-function expenseTransactionType(expense: ExpenseFormSchema): TransactionV2Type {
+function expenseTransactionType(expense: ExpenseFormSchema): TransactionType {
   const paidSelf =
     expense.sharingType === 'PAID_SELF_NOT_SHARED' ||
     expense.sharingType === 'PAID_SELF_SHARED';
   return paidSelf
-    ? TransactionV2Type.EXPENSE
-    : TransactionV2Type.THIRD_PARTY_EXPENSE;
+    ? TransactionType.EXPENSE
+    : TransactionType.THIRD_PARTY_EXPENSE;
 }
 
 async function buildExpenseEntryLines(
   tx: Prisma.TransactionClient,
   expense: ExpenseFormSchema,
-  ledgerAccounts: LedgerAccountV2[],
+  ledgerAccounts: LedgerAccount[],
   userId: number
 ): Promise<EntryLineInput[]> {
   const paidSelf =
@@ -109,7 +109,7 @@ async function buildExpenseEntryLines(
 async function buildPaidSelfEntryLines(
   tx: Prisma.TransactionClient,
   expense: ExpenseFormSchema,
-  ledgerAccounts: LedgerAccountV2[],
+  ledgerAccounts: LedgerAccount[],
   userId: number
 ): Promise<EntryLineInput[]> {
   assertDefined(expense.accountId);
@@ -164,7 +164,7 @@ async function buildPaidSelfEntryLines(
 async function buildThirdPartyEntryLines(
   tx: Prisma.TransactionClient,
   expense: ExpenseFormSchema,
-  ledgerAccounts: LedgerAccountV2[],
+  ledgerAccounts: LedgerAccount[],
   userId: number
 ): Promise<EntryLineInput[]> {
   assert(
@@ -237,7 +237,7 @@ async function writeRepaymentForExpense(
     userId: number;
     sourceTransactionId: number;
     expense: ExpenseFormSchema;
-    ledgerAccounts: LedgerAccountV2[];
+    ledgerAccounts: LedgerAccount[];
     transactionIdToSupersede: number | null;
   }
 ) {
@@ -259,14 +259,14 @@ async function writeRepaymentForExpense(
     userId,
     args.transactionIdToSupersede
   );
-  const repaymentTx = await tx.transactionV2.create({
+  const repaymentTx = await tx.transaction.create({
     data: {
       iid: repaymentIid,
       userId,
       timestamp: repayment.timestamp,
       // TODO: i18n
       note: 'Paid back for ' + expense.vendor,
-      type: TransactionV2Type.EXPENSE,
+      type: TransactionType.EXPENSE,
       vendor: expense.payer,
       categoryId: repayment.categoryId,
       supersedesId: repaymentSupersedesId,
@@ -286,7 +286,7 @@ async function writeRepaymentForExpense(
       },
     },
   });
-  await tx.transactionLinkV2.create({
+  await tx.transactionLink.create({
     data: {
       sourceTransactionId: sourceTransactionId,
       linkedTransactionId: repaymentTx.id,
@@ -301,14 +301,14 @@ async function findRepaymentSupersedes(
   transactionIdToSupersede: number | null
 ): Promise<{repaymentSupersedesId: number | null; repaymentIid: number}> {
   if (transactionIdToSupersede !== null) {
-    const existingLink = await tx.transactionLinkV2.findFirst({
+    const existingLink = await tx.transactionLink.findFirst({
       where: {
         sourceTransactionId: transactionIdToSupersede,
         linkType: 'DEBT_SETTLING',
       },
     });
     if (existingLink) {
-      const oldRepayment = await tx.transactionV2.findUniqueOrThrow({
+      const oldRepayment = await tx.transaction.findUniqueOrThrow({
         where: {id: existingLink.linkedTransactionId},
       });
       return {

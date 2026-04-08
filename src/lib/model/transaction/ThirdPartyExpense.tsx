@@ -2,7 +2,7 @@ import {assert} from '@/lib/assert';
 import {DBTransaction} from '@/lib/model/AllDatabaseDataModel';
 import {TransactionCompanion} from '@/lib/model/transaction/TransactionCompanion';
 import {nanosToCents} from '@/lib/util/util';
-import {LedgerAccountType, LedgerAccountV2} from '@prisma/client';
+import {LedgerAccountType, LedgerAccount} from '@prisma/client';
 
 export type ThirdPartyExpense = {
   kind: 'ThirdPartyExpense';
@@ -20,9 +20,9 @@ export type ThirdPartyExpense = {
   tripId: number | null;
 };
 
-export function thirdPartyExpenseFromV2(
+export function thirdPartyExpenseFromDB(
   tx: DBTransaction,
-  accounts: Map<number, LedgerAccountV2>
+  accounts: Map<number, LedgerAccount>
 ): ThirdPartyExpense {
   assert(
     tx.splits.length > 0,

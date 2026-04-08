@@ -35,8 +35,8 @@ import {
   ExchangeRate as DBExchangeRate,
   Stock as DBStock,
   StockQuote as DBStockQuote,
-  TransactionPrototypeV2,
-  TransactionV2,
+  TransactionPrototype as DBTransactionPrototype,
+  Transaction as DBTransaction,
 } from '@prisma/client';
 import {addDays, closestTo, isBefore, startOfDay} from 'date-fns';
 
@@ -244,7 +244,7 @@ export type CoreDataModel = {
 
 export type TransactionDataModel = {
   transactions: Transaction[];
-  transactionPrototypes: TransactionPrototypeV2[];
+  transactionPrototypes: DBTransactionPrototype[];
   transactionLinks: TransactionLink[];
 };
 
@@ -261,7 +261,7 @@ export type AllClientDataModel = {
   trips: Trip[];
   tags: Tag[];
   exchange: StockAndCurrencyExchange;
-  transactionPrototypes: TransactionPrototypeV2[];
+  transactionPrototypes: DBTransactionPrototype[];
   transactionLinks: TransactionLink[];
 };
 
@@ -404,7 +404,7 @@ function compareTransactions(a: Transaction, b: Transaction) {
   return 0;
 }
 
-export function latestVersionOnly<T extends TransactionV2>(
+export function latestVersionOnly<T extends DBTransaction>(
   transactions: T[]
 ): T[] {
   const superseded = new Set<number>();

@@ -1,19 +1,19 @@
 import {
   type EntryLineInput,
   bankAccountUnit,
-  fetchOrCreateTagV2s,
+  fetchOrCreateTags,
   mustFindAccount,
   mustFindAsset,
-  writeUsedProtosV2,
+  writeUsedProtos,
 } from '@/actions/txform/shared';
 import {TransferFormSchema} from '@/components/txform/transfer/types';
 import {type TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {dollarToNanos} from '@/lib/util/util';
 import {
   LedgerAccountType,
-  LedgerAccountV2,
+  LedgerAccount,
   Prisma,
-  TransactionV2Type,
+  TransactionType,
 } from '@prisma/client';
 
 export async function writeTransfer(
@@ -23,34 +23,34 @@ export async function writeTransfer(
     iid: number;
     supersedesId: number | null;
     transfer: TransferFormSchema;
-    ledgerAccounts: LedgerAccountV2[];
+    ledgerAccounts: LedgerAccount[];
     protos: TransactionPrototype[];
     transactionIdToSupersede: number | null;
   }
 ) {
   const {userId, iid, supersedesId, transfer, ledgerAccounts, protos} = args;
   const entryLines = await buildTransferLines(tx, transfer, ledgerAccounts);
-  const tags = await fetchOrCreateTagV2s(tx, transfer.tagNames, userId);
-  const newTx = await tx.transactionV2.create({
+  const tags = await fetchOrCreateTags(tx, transfer.tagNames, userId);
+  const newTx = await tx.transaction.create({
     data: {
       iid,
       userId,
       timestamp: transfer.timestamp,
       note: transfer.description ?? '',
-      type: TransactionV2Type.TRANSFER,
+      type: TransactionType.TRANSFER,
       categoryId: transfer.categoryId,
       supersedesId,
       lines: {create: entryLines},
       tags: {connect: tags.map(t => ({id: t.id}))},
     },
   });
-  await writeUsedProtosV2({tx, protos, transactionId: newTx.id, userId});
+  await writeUsedProtos({tx, protos, transactionId: newTx.id, userId});
 }
 
 async function buildTransferLines(
   tx: Prisma.TransactionClient,
   transfer: TransferFormSchema,
-  ledgerAccounts: LedgerAccountV2[]
+  ledgerAccounts: LedgerAccount[]
 ): Promise<EntryLineInput[]> {
   const fromAsset = mustFindAsset(ledgerAccounts, transfer.fromAccountId);
   const toAsset = mustFindAsset(ledgerAccounts, transfer.toAccountId);

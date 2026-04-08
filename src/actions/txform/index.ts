@@ -1,6 +1,6 @@
 'use server';
 import {UpsertTransactionAPIResponse} from '@/actions/txform/types';
-import {writeTransactionV2} from '@/actions/txform/writeTransaction';
+import {writeTransaction} from '@/actions/txform/writeTransaction';
 import {
   TransactionFormSchema,
   transactionFormValidationSchema,
@@ -28,7 +28,7 @@ export async function upsertTransaction(
   }
   const data = validatedData.data;
   const protos = parseProtos(unsafeProtos);
-  await writeTransactionV2({
+  await writeTransaction({
     userId,
     form: data,
     protos,

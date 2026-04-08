@@ -8,7 +8,7 @@ import {
 } from '@/lib/model/BankAccount';
 import {Stock} from '@/lib/model/Stock';
 import {nanosToCents} from '@/lib/util/util';
-import {LedgerAccountType, LedgerAccountV2} from '@prisma/client';
+import {LedgerAccountType, LedgerAccount} from '@prisma/client';
 
 export type Transfer = {
   kind: 'Transfer';
@@ -23,9 +23,9 @@ export type Transfer = {
   tagsIds: number[];
 };
 
-export function transferFromV2(
+export function transferFromDB(
   tx: DBTransaction,
-  accounts: Map<number, LedgerAccountV2>
+  accounts: Map<number, LedgerAccount>
 ): Transfer {
   if (!tx.categoryId) {
     throw new Error(`Transfer ${tx.id}: missing category`);

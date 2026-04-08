@@ -7,7 +7,7 @@ import prisma from '@/lib/prisma';
 import {type TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {Prisma} from '@prisma/client';
 
-export async function writeTransactionV2({
+export async function writeTransaction({
   userId,
   form,
   protos,
@@ -19,7 +19,7 @@ export async function writeTransactionV2({
   transactionIdToSupersede: number | null;
 }): Promise<void> {
   await prisma.$transaction(async tx => {
-    const ledgerAccounts = await tx.ledgerAccountV2.findMany({
+    const ledgerAccounts = await tx.ledgerAccount.findMany({
       where: {userId},
     });
     const {iid, supersedesId} = await resolveIidAndSupersedes(
@@ -76,7 +76,7 @@ async function resolveIidAndSupersedes(
     return {iid: await nextIid(tx, userId), supersedesId: null};
   }
   // Editing: look up the current version to supersede.
-  const current = await tx.transactionV2.findUnique({
+  const current = await tx.transaction.findUnique({
     where: {id: transactionIdToSupersede, userId},
   });
   if (!current) {

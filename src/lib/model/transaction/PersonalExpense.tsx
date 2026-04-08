@@ -1,7 +1,7 @@
 import {DBTransaction} from '@/lib/model/AllDatabaseDataModel';
 import {TransactionCompanion} from '@/lib/model/transaction/TransactionCompanion';
 import {nanosToCents} from '@/lib/util/util';
-import {LedgerAccountType, LedgerAccountV2} from '@prisma/client';
+import {LedgerAccountType, LedgerAccount} from '@prisma/client';
 
 export type PersonalExpense = {
   kind: 'PersonalExpense';
@@ -18,9 +18,9 @@ export type PersonalExpense = {
   refundGroupTransactionIds: number[];
 };
 
-export function personalExpenseFromV2(
+export function personalExpenseFromDB(
   tx: DBTransaction,
-  accounts: Map<number, LedgerAccountV2>
+  accounts: Map<number, LedgerAccount>
 ): PersonalExpense {
   if (!tx.categoryId) {
     throw new Error(`Expense ${tx.id}: no category`);

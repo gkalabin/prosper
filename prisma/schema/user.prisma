@@ -18,10 +18,7 @@ model User {
   ExternalAccountMapping ExternalAccountMapping[]
   StarlingToken          StarlingToken[]
   Session                Session[]
-  LedgerAccountV2        LedgerAccountV2[]
-  TransactionV2          TransactionV2[]
-  TransactionPrototypeV2 TransactionPrototypeV2[]
-  TagV2                  TagV2[]
+  LedgerAccount          LedgerAccount[]
 }
 
 model Session {

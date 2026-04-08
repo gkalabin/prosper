@@ -27,7 +27,7 @@ import {
 } from '@/lib/txsuggestions/TransactionPrototype';
 import {combineTransfers} from '@/lib/txsuggestions/TransfersDetection';
 import {cn} from '@/lib/utils';
-import {TransactionPrototypeV2 as DBTransactionPrototype} from '@prisma/client';
+import {TransactionPrototype as DBTransactionPrototype} from '@prisma/client';
 import assert from 'assert';
 import {format} from 'date-fns';
 import {useEffect, useState} from 'react';

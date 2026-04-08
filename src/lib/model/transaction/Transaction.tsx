@@ -11,22 +11,22 @@ import {Stock} from '@/lib/model/Stock';
 import {Tag, mustFindTag} from '@/lib/model/Tag';
 import {Trip} from '@/lib/model/Trip';
 import {Unit, formatUnit} from '@/lib/model/Unit';
-import {Income, incomeFromV2} from '@/lib/model/transaction/Income';
+import {Income, incomeFromDB} from '@/lib/model/transaction/Income';
 import {
   OpeningBalance,
-  openingBalanceFromV2,
+  openingBalanceFromDB,
 } from '@/lib/model/transaction/OpeningBalance';
 import {
   PersonalExpense,
-  personalExpenseFromV2,
+  personalExpenseFromDB,
 } from '@/lib/model/transaction/PersonalExpense';
 import {
   ThirdPartyExpense,
-  thirdPartyExpenseFromV2,
+  thirdPartyExpenseFromDB,
 } from '@/lib/model/transaction/ThirdPartyExpense';
-import {Transfer, transferFromV2} from '@/lib/model/transaction/Transfer';
+import {Transfer, transferFromDB} from '@/lib/model/transaction/Transfer';
 import {notEmpty} from '@/lib/util/util';
-import {LedgerAccountV2, TransactionV2Type} from '@prisma/client';
+import {LedgerAccount, TransactionType} from '@prisma/client';
 
 export type Transaction =
   | PersonalExpense
@@ -47,22 +47,22 @@ export function hasTrip(value: Transaction): value is TransactionWithTrip {
 
 export function transactionModelFromDB(
   init: DBTransaction,
-  ledgerAccounts: LedgerAccountV2[]
+  ledgerAccounts: LedgerAccount[]
 ): Transaction {
-  const accounts = new Map<number, LedgerAccountV2>(
+  const accounts = new Map<number, LedgerAccount>(
     ledgerAccounts.map(a => [a.id, a])
   );
   switch (init.type) {
-    case TransactionV2Type.EXPENSE:
-      return personalExpenseFromV2(init, accounts);
-    case TransactionV2Type.THIRD_PARTY_EXPENSE:
-      return thirdPartyExpenseFromV2(init, accounts);
-    case TransactionV2Type.TRANSFER:
-      return transferFromV2(init, accounts);
-    case TransactionV2Type.INCOME:
-      return incomeFromV2(init, accounts);
-    case TransactionV2Type.OPENING_BALANCE:
-      return openingBalanceFromV2(init, accounts);
+    case TransactionType.EXPENSE:
+      return personalExpenseFromDB(init, accounts);
+    case TransactionType.THIRD_PARTY_EXPENSE:
+      return thirdPartyExpenseFromDB(init, accounts);
+    case TransactionType.TRANSFER:
+      return transferFromDB(init, accounts);
+    case TransactionType.INCOME:
+      return incomeFromDB(init, accounts);
+    case TransactionType.OPENING_BALANCE:
+      return openingBalanceFromDB(init, accounts);
     default: {
       const _exhaustiveCheck: never = init.type;
       throw new Error(`Unknown transaction type: ${_exhaustiveCheck}`);

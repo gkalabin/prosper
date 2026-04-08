@@ -1,7 +1,7 @@
 import {DBTransaction} from '@/lib/model/AllDatabaseDataModel';
 import {TransactionCompanion} from '@/lib/model/transaction/TransactionCompanion';
 import {nanosToCents} from '@/lib/util/util';
-import {LedgerAccountType, LedgerAccountV2} from '@prisma/client';
+import {LedgerAccountType, LedgerAccount} from '@prisma/client';
 
 export type Income = {
   kind: 'Income';
@@ -17,9 +17,9 @@ export type Income = {
   tripId: number | null;
 };
 
-export function incomeFromV2(
+export function incomeFromDB(
   tx: DBTransaction,
-  accounts: Map<number, LedgerAccountV2>
+  accounts: Map<number, LedgerAccount>
 ): Income {
   if (!tx.categoryId) {
     throw new Error(`Income ${tx.id}: missing category`);

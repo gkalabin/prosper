@@ -8,9 +8,9 @@ import {
 import {Stock} from '@/lib/model/Stock';
 import {nanosToCents} from '@/lib/util/util';
 import {
-  EntryLineV2 as DBEntryLine,
+  EntryLine as DBEntryLine,
   LedgerAccountType,
-  LedgerAccountV2,
+  LedgerAccount,
 } from '@prisma/client';
 
 export type OpeningBalance = {
@@ -21,9 +21,9 @@ export type OpeningBalance = {
   accountId: number;
 };
 
-export function openingBalanceFromV2(
+export function openingBalanceFromDB(
   tx: DBTransaction,
-  accounts: Map<number, LedgerAccountV2>
+  accounts: Map<number, LedgerAccount>
 ): OpeningBalance {
   const {line, account} = findAssetLineAndAccount(tx, accounts);
   const amountCents = nanosToCents(line.amountNanos);
@@ -36,7 +36,7 @@ export function openingBalanceFromV2(
   };
 }
 
-function mustFindAccount(accounts: Map<number, LedgerAccountV2>, id: number) {
+function mustFindAccount(accounts: Map<number, LedgerAccount>, id: number) {
   const account = accounts.get(id);
   if (!account) {
     throw new Error(`Account ${id} not found`);
@@ -46,8 +46,8 @@ function mustFindAccount(accounts: Map<number, LedgerAccountV2>, id: number) {
 
 function findAssetLineAndAccount(
   tx: DBTransaction,
-  accounts: Map<number, LedgerAccountV2>
-): {line: DBEntryLine; account: LedgerAccountV2} {
+  accounts: Map<number, LedgerAccount>
+): {line: DBEntryLine; account: LedgerAccount} {
   const assetLines = tx.lines.filter(l => {
     const acct = mustFindAccount(accounts, l.ledgerAccountId);
     return acct.type === LedgerAccountType.ASSET;

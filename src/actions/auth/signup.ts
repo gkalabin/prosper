@@ -85,7 +85,7 @@ export async function signUp(
       'CURRENCY_EXCHANGE',
     ] as const;
     for (const type of systemTypes) {
-      await tx.ledgerAccountV2.create({
+      await tx.ledgerAccount.create({
         data: {userId: user.id, name: `SYSTEM:${type}`, type},
       });
     }

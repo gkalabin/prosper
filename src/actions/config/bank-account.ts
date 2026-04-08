@@ -10,7 +10,7 @@ import {
 } from '@/lib/form-types/AccountFormSchema';
 import prisma from '@/lib/prisma';
 import {centsToNanos, dollarToCents} from '@/lib/util/util';
-import {BankAccount, LedgerAccountV2, Prisma} from '@prisma/client';
+import {BankAccount, LedgerAccount, Prisma} from '@prisma/client';
 import {type typeToFlattenedError} from 'zod';
 
 export type UpsertBankAccountResult =
@@ -66,7 +66,7 @@ export async function upsertBankAccount(
     const bankAccount = accountId
       ? await tx.bankAccount.update({data, where: {id: accountId}})
       : await tx.bankAccount.create({data});
-    const ledgerAccount = await tx.ledgerAccountV2.upsert({
+    const ledgerAccount = await tx.ledgerAccount.upsert({
       where: {bankAccountId: bankAccount.id},
       create: {
         userId,
@@ -94,13 +94,13 @@ async function makeOpeningBalanceLines(
   tx: Prisma.TransactionClient,
   userId: number,
   bankAccount: BankAccount,
-  ledgerAccount: LedgerAccountV2,
+  ledgerAccount: LedgerAccount,
   amountNanos: bigint
 ) {
   if (amountNanos == BigInt(0)) {
     return [];
   }
-  const equityAccounts = await tx.ledgerAccountV2.findMany({
+  const equityAccounts = await tx.ledgerAccount.findMany({
     where: {userId, type: 'EQUITY'},
   });
   if (equityAccounts.length != 1) {
@@ -129,7 +129,7 @@ async function syncOpeningBalance(
   tx: Prisma.TransactionClient,
   userId: number,
   bankAccount: BankAccount,
-  ledgerAccount: LedgerAccountV2,
+  ledgerAccount: LedgerAccount,
   amountNanos: bigint
 ) {
   const lines = await makeOpeningBalanceLines(
@@ -140,7 +140,7 @@ async function syncOpeningBalance(
     amountNanos
   );
   // Find the existing opening balance for this account (the current version).
-  const existing = await tx.transactionV2.findMany({
+  const existing = await tx.transaction.findMany({
     where: {
       userId,
       type: 'OPENING_BALANCE',
@@ -155,7 +155,7 @@ async function syncOpeningBalance(
   let supersedesId: number | null;
   if (!existing.length) {
     // no opening balance before, need to set new one.
-    const maxIid = await tx.transactionV2.aggregate({
+    const maxIid = await tx.transaction.aggregate({
       where: {userId},
       _max: {iid: true},
     });
@@ -174,7 +174,7 @@ async function syncOpeningBalance(
     iid = previous.iid;
     supersedesId = previous.id;
   }
-  await tx.transactionV2.create({
+  await tx.transaction.create({
     data: {
       iid,
       userId,

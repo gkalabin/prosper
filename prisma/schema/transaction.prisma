@@ -1,57 +1,132 @@
-enum TransactionType {
-  PERSONAL_EXPENSE
-  THIRD_PARTY_EXPENSE
-  INCOME
-  TRANSFER
+enum LedgerAccountType {
+    // 1:1 linked to BankAccount.
+    ASSET
+    // EXPENSE, INCOME, EQUITY are system accounts (one per user, prefixed "SYSTEM:").
+    EXPENSE
+    INCOME
+    EQUITY
+    // CURRENCY_EXCHANGE is a clearing account for multi-currency transfers.
+    CURRENCY_EXCHANGE
+    // RECEIVABLE tracks money owed by/to companions in shared expenses.
+    RECEIVABLE
 }
 
+model LedgerAccount {
+    id            Int               @id @default(autoincrement())
+    userId        Int
+    name          String
+    type          LedgerAccountType
+    // Only set for ASSET accounts.
+    bankAccountId Int?              @unique
+
+    user        User         @relation(fields: [userId], references: [id])
+    bankAccount BankAccount? @relation(fields: [bankAccountId], references: [id])
+    lines       EntryLine[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+enum TransactionType {
+    EXPENSE
+    INCOME
+    TRANSFER
+    THIRD_PARTY_EXPENSE
+    OPENING_BALANCE
+}
+
+// Immutable, append-only transaction record. Edits create new rows with the
+// same iid and a supersedesId pointing to the previous version. Deletions
+// create void rows (isVoid=true, no entry lines).
 model Transaction {
-  id          Int      @id @default(autoincrement())
-  timestamp   DateTime
-  description String
+    id        Int             @id @default(autoincrement())
+    // Per-user incrementing ID, stable across edits.
+    iid       Int
+    userId    Int
+    timestamp DateTime
+    note      String          @default("")
+    type      TransactionType
 
-  // categorisation
-  tags       Tag[]
-  category   Category @relation(fields: [categoryId], references: [id])
-  categoryId Int
+    vendor     String?
+    payer      String?
+    // Nullable because OPENING_BALANCE transactions have no category.
+    categoryId Int?
+    tripId     Int?
 
-  transactionType          TransactionType?
-  vendor                   String?
-  payer                    String?
-  otherPartyName           String?
-  ownShareAmountCents      Int?
-  trip                     Trip?            @relation(fields: [tripId], references: [id])
-  tripId                   Int?
-  outgoingAccount          BankAccount?     @relation("OutgoingTransactions", fields: [outgoingAccountId], references: [id])
-  outgoingAccountId        Int?
-  outgoingAmountCents      Int?
-  incomingAccount          BankAccount?     @relation("IncomingTransactions", fields: [incomingAccountId], references: [id])
-  incomingAccountId        Int?
-  incomingAmountCents      Int?
-  payerOutgoingAmountCents Int?
-  currencyCode             String?
+    // Points to Transaction.id of the previous version this row replaces.
+    supersedesId Int?
+    supersedes   Transaction?  @relation("Supersedes", fields: [supersedesId], references: [id])
+    supersededBy Transaction[] @relation("Supersedes")
 
-  user                   User                   @relation(fields: [userId], references: [id])
-  userId                 Int
-  createdAt              DateTime               @default(now())
-  updatedAt              DateTime               @updatedAt
-  TransactionPrototype   TransactionPrototype[]
-  SourceTransactionLinks TransactionLink[]      @relation(name: "SourceTransactionLinks")
-  LinkedTransactionLinks TransactionLink[]      @relation(name: "LinkedTransactionLinks")
+    // True when this version represents a deletion.
+    isVoid Boolean @default(false)
+
+    lines      EntryLine[]
+    tags       Tag[]
+    splits     SplitContext[]
+    prototypes TransactionPrototype[]
+
+    user     User      @relation(fields: [userId], references: [id])
+    category Category? @relation(fields: [categoryId], references: [id])
+    trip     Trip?     @relation(fields: [tripId], references: [id])
+
+    sourceLinks TransactionLink[] @relation("SourceTransactionLinks")
+    linkedLinks TransactionLink[] @relation("LinkedTransactionLinks")
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+// A single leg of a double-entry transaction. Every transaction has two or
+// more lines that must sum to zero per currency.
+model EntryLine {
+    id              Int     @id @default(autoincrement())
+    transactionId   Int
+    ledgerAccountId Int
+    // Exactly one of currencyCode / stockId must be set.
+    currencyCode    String?
+    stockId         Int?
+    // Positive = balance increases, negative = balance decreases.
+    amountNanos     BigInt
+
+    transaction Transaction   @relation(fields: [transactionId], references: [id])
+    account     LedgerAccount @relation(fields: [ledgerAccountId], references: [id])
+    stock       Stock?        @relation(fields: [stockId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+// Metadata for shared payments: who the companion is, their share of the
+// cost, and how much they actually paid.
+model SplitContext {
+    id                  Int    @id @default(autoincrement())
+    transactionId       Int
+    companionName       String
+    companionShareNanos BigInt
+    // TODO: this doesn't sound nice for income transactions. Rename.
+    companionPaidNanos  BigInt
+
+    transaction Transaction @relation(fields: [transactionId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }
 
 enum TransactionLinkType {
-  REFUND
-  DEBT_SETTLING
+    REFUND
+    DEBT_SETTLING
 }
 
+// Links between transactions, e.g. refunds or debt settlements.
 model TransactionLink {
-  id                  Int                 @id @default(autoincrement())
-  sourceTransaction   Transaction         @relation("SourceTransactionLinks", fields: [sourceTransactionId], references: [id])
-  sourceTransactionId Int
-  linkedTransaction   Transaction         @relation("LinkedTransactionLinks", fields: [linkedTransactionId], references: [id])
-  linkedTransactionId Int
-  linkType            TransactionLinkType
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
+    id                  Int                 @id @default(autoincrement())
+    sourceTransaction   Transaction         @relation("SourceTransactionLinks", fields: [sourceTransactionId], references: [id])
+    // References specific transaction versions (id, not iid).
+    sourceTransactionId Int
+    linkedTransaction   Transaction         @relation("LinkedTransactionLinks", fields: [linkedTransactionId], references: [id])
+    linkedTransactionId Int
+    linkType            TransactionLinkType
+    createdAt           DateTime            @default(now())
+    updatedAt           DateTime            @updatedAt
 }

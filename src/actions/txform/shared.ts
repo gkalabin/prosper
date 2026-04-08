@@ -4,9 +4,9 @@ import {
 } from '@/lib/txsuggestions/TransactionPrototype';
 import {
   LedgerAccountType,
-  LedgerAccountV2,
+  LedgerAccount,
   Prisma,
-  TagV2,
+  Tag,
   Trip,
 } from '@prisma/client';
 
@@ -31,7 +31,7 @@ export async function nextIid(
   tx: Prisma.TransactionClient,
   userId: number
 ): Promise<number> {
-  const result = await tx.transactionV2.aggregate({
+  const result = await tx.transaction.aggregate({
     where: {userId},
     _max: {iid: true},
   });
@@ -39,9 +39,9 @@ export async function nextIid(
 }
 
 export function mustFindAccount(
-  ledgerAccounts: LedgerAccountV2[],
+  ledgerAccounts: LedgerAccount[],
   type: LedgerAccountType
-): LedgerAccountV2 {
+): LedgerAccount {
   const accounts = ledgerAccounts.filter(a => a.type === type);
   if (accounts.length !== 1) {
     throw new Error(
@@ -52,9 +52,9 @@ export function mustFindAccount(
 }
 
 export function mustFindAsset(
-  ledgerAccounts: LedgerAccountV2[],
+  ledgerAccounts: LedgerAccount[],
   bankAccountId: number
-): LedgerAccountV2 {
+): LedgerAccount {
   const accounts = ledgerAccounts.filter(
     a => a.type === LedgerAccountType.ASSET && a.bankAccountId === bankAccountId
   );
@@ -68,10 +68,10 @@ export function mustFindAsset(
 
 export async function findOrCreateReceivableAccount(
   tx: Prisma.TransactionClient,
-  ledgerAccounts: LedgerAccountV2[],
+  ledgerAccounts: LedgerAccount[],
   companionName: string,
   userId: number
-): Promise<LedgerAccountV2> {
+): Promise<LedgerAccount> {
   const name = `RECEIVABLE:${companionName}`;
   const existing = ledgerAccounts.find(
     a => a.type === LedgerAccountType.RECEIVABLE && a.name === name
@@ -79,7 +79,7 @@ export async function findOrCreateReceivableAccount(
   if (existing) {
     return existing;
   }
-  const created = await tx.ledgerAccountV2.create({
+  const created = await tx.ledgerAccount.create({
     data: {userId, name, type: LedgerAccountType.RECEIVABLE},
   });
   // Add to the in-memory list so that other calls within the same
@@ -135,25 +135,25 @@ export async function getOrCreateTrip({
   return await tx.trip.create({data: tripNameAndUser});
 }
 
-export async function fetchOrCreateTagV2s(
+export async function fetchOrCreateTags(
   tx: Prisma.TransactionClient,
   tagNames: string[],
   userId: number
-): Promise<TagV2[]> {
+): Promise<Tag[]> {
   if (!tagNames.length) {
     return [];
   }
-  const existing = await tx.tagV2.findMany({
+  const existing = await tx.tag.findMany({
     where: {userId, name: {in: tagNames}},
   });
   const newNames = tagNames.filter(x => existing.every(t => t.name != x));
   const created = await Promise.all(
-    newNames.map(name => tx.tagV2.create({data: {name, userId}}))
+    newNames.map(name => tx.tag.create({data: {name, userId}}))
   );
   return [...existing, ...created];
 }
 
-export async function writeUsedProtosV2({
+export async function writeUsedProtos({
   tx,
   protos,
   transactionId,
@@ -175,7 +175,7 @@ export async function writeUsedProtosV2({
 
   await Promise.all(
     plainProtos.map(proto =>
-      tx.transactionPrototypeV2.create({
+      tx.transactionPrototype.create({
         data: {
           internalTransactionId: transactionId,
           externalId: proto.externalTransactionId,
