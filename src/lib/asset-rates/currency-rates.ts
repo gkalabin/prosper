@@ -4,7 +4,10 @@ import {Currency, NANOS_MULTIPLIER, allCurrencies} from '@/lib/model/Currency';
 import prisma from '@/lib/prisma';
 import {addDays, differenceInHours, format, isSameDay} from 'date-fns';
 import yahooFinance from 'yahoo-finance2';
-import {type HistoricalRowHistory} from 'yahoo-finance2/dist/esm/src/modules/historical';
+
+type HistoricalRow = Awaited<
+  ReturnType<typeof yahooFinance.historical>
+>[number];
 
 export async function fetchExchangeRates({
   startDate,
@@ -76,7 +79,7 @@ async function backfill({
     return;
   }
   const now = new Date();
-  const apiModelToDb = (x: HistoricalRowHistory) => {
+  const apiModelToDb = (x: HistoricalRow) => {
     return {
       currencyCodeFrom: sell.code,
       currencyCodeTo: buy.code,

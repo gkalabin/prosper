@@ -3,7 +3,8 @@ import {findByCode} from '@/lib/model/Currency';
 import prisma from '@/lib/prisma';
 import {Prisma} from '@prisma/client';
 import yahooFinance from 'yahoo-finance2';
-import {type Quote} from 'yahoo-finance2/dist/esm/src/modules/quote';
+
+type Quote = Awaited<ReturnType<typeof yahooFinance.quote>>;
 
 export async function fillUnitData(
   unit: UnitSchema,

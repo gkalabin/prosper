@@ -7,7 +7,6 @@ import {
 import {allCurrencies} from '@/lib/model/Currency';
 import {NextRequest, NextResponse} from 'next/server';
 import yahooFinance from 'yahoo-finance2';
-import {type SearchResult} from 'yahoo-finance2/dist/esm/src/modules/search';
 
 export async function GET(request: NextRequest): Promise<Response> {
   // Make sure the user is authenticated.
@@ -17,7 +16,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   if (!q) {
     return new Response(`query 'q' cannot be empty`, {status: 400});
   }
-  const found: SearchResult = await yahooFinance.search(q, {newsCount: 0});
+  const found = await yahooFinance.search(q, {newsCount: 0});
   const stocks: StockUnitSchema[] = found.quotes
     .filter(x => x.isYahooFinance)
     // Remove currencies as there is an internal list of currencies in the Currency class.
