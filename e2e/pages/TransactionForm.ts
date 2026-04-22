@@ -20,7 +20,8 @@ type IncomeFormData = {
 };
 
 type ThirdPartyExpenseFormData = {
-  amount: number;
+  amountFull: number;
+  amountOwn: number;
   datetime: Date;
   vendor: string;
   payer: string;
@@ -262,13 +263,15 @@ export class TransactionForm {
   }
 
   async fillThirdPartyExpenseForm({
-    amount,
+    amountFull,
+    amountOwn,
     datetime,
     vendor,
     payer,
     category,
   }: ThirdPartyExpenseFormData) {
-    await this.amountInput.fill(String(amount));
+    await this.amountInput.fill(String(amountFull));
+    await this.form.getByLabel('I owe').fill(String(amountOwn));
     this.maybeFillDateTime(datetime);
     await this.selectCategory(category);
     await this.form.getByLabel('This expense was paid by').fill(payer);

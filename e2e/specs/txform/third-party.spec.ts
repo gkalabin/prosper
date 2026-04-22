@@ -7,7 +7,7 @@ import {TransactionListPage} from '../../pages/TransactionListPage';
 //  - third party expense paid fully by someone else
 
 test.describe('Third-Party Expenses', () => {
-  test('new debt', async ({page, seed, loginAs}) => {
+  test('new shared debt', async ({page, seed, loginAs}) => {
     const {user} = await seed.createUserWithTestData({
       category: {name: 'Dining'},
     });
@@ -15,7 +15,8 @@ test.describe('Third-Party Expenses', () => {
     const addTxPage = new NewTransactionPage(page);
     await addTxPage.goto();
     await addTxPage.form.addThirdPartyExpenseDebt({
-      amount: 75,
+      amountFull: 75,
+      amountOwn: 37.5,
       datetime: new Date(),
       vendor: 'KFC',
       payer: 'John',
@@ -49,7 +50,8 @@ test.describe('Third-Party Expenses', () => {
     await listPage.goto();
     const form = await listPage.openEditForm('KFC');
     await form.editThirdPartyExpenseDebt({
-      amount: 90,
+      amountFull: 90,
+      amountOwn: 45,
       datetime: new Date(),
       vendor: 'Subway',
       payer: 'Jane',
@@ -76,7 +78,8 @@ test.describe('Third-Party Expenses', () => {
     const addTxPage = new NewTransactionPage(page);
     await addTxPage.goto();
     await addTxPage.form.addThirdPartyExpenseWithRepayment({
-      amount: 90,
+      amountFull: 90,
+      amountOwn: 45,
       datetime: new Date(),
       vendor: 'Subway',
       payer: 'Jane',
@@ -99,6 +102,32 @@ test.describe('Third-Party Expenses', () => {
       vendor: 'Jane',
       category: 'Repayments',
       account: 'HSBC: Current',
+    });
+  });
+
+  test('paid fully by other', async ({page, seed, loginAs}) => {
+    const {user} = await seed.createUserWithTestData({
+      category: {name: 'Dining'},
+    });
+    await loginAs(user);
+    const addTxPage = new NewTransactionPage(page);
+    await addTxPage.goto();
+    await addTxPage.form.addThirdPartyExpenseDebt({
+      amountFull: 80,
+      amountOwn: 80,
+      datetime: new Date(),
+      vendor: 'KFC',
+      payer: 'John',
+      category: 'Dining',
+    });
+    const listPage = new TransactionListPage(page);
+    await listPage.goto();
+    await listPage.expectThirdPartyTransaction('KFC', {
+      fullAmount: '$80',
+      ownShare: '$80',
+      vendor: 'KFC',
+      category: 'Dining',
+      payer: 'John',
     });
   });
 });

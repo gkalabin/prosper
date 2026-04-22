@@ -45,7 +45,7 @@ export async function signIn(
   // TODO: validate env on startup instead of warning to console.
   if (isUsingHTTP() && isProd()) {
     console.warn(
-      'Public app url is using HTTP, this is possible misconfiguration'
+      'Public app url is using HTTP, this is a possible misconfiguration'
     );
   }
   // Auth OK, set session.
