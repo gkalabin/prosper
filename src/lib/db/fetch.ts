@@ -28,8 +28,9 @@ export async function fetchTransactionData({
   userId: number;
 }): Promise<TransactionData> {
   const data = {} as TransactionData;
+  const reqId = Math.random().toString(36).slice(2, 7);
   const timeLabel = (label: string) =>
-    `[db] ${label} fetch for userId:${userId}`;
+    `[db] ${label} fetch for userId:${userId} [${reqId}]`;
   const db = new DB({userId});
   await Promise.all(
     [
@@ -74,8 +75,9 @@ export async function fetchCoreData({
   userId: number;
 }): Promise<CoreData> {
   const data = {} as CoreData;
+  const reqId = Math.random().toString(36).slice(2, 7);
   const timeLabel = (label: string) =>
-    `[db] ${label} fetch for userId:${userId}`;
+    `[db] ${label} fetch for userId:${userId} [${reqId}]`;
   const db = new DB({userId});
   await Promise.all(
     [
@@ -130,8 +132,9 @@ export async function fetchMarketData({
   userId: number;
 }): Promise<MarketData> {
   const data = {} as MarketData;
+  const reqId = Math.random().toString(36).slice(2, 7);
   const timeLabel = (label: string) =>
-    `[db] ${label} fetch for userId:${userId}`;
+    `[db] ${label} fetch for userId:${userId} [${reqId}]`;
   const db = new DB({userId});
   await Promise.all(
     [
