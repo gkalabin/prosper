@@ -6,11 +6,14 @@ import {useState} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function ExtraFields() {
-  const {setValue, watch, formState} = useFormContext<TransactionFormSchema>();
-  const note = watch('income.description');
-  const parentTransactionId = watch('income.parentTransactionId');
-  const [showNote, setShowNote] = useState(!!note);
-  const [showParent, setShowParent] = useState(!!parentTransactionId);
+  const {setValue, getValues, formState} =
+    useFormContext<TransactionFormSchema>();
+  const [showNote, setShowNote] = useState(
+    () => !!getValues('income.description')
+  );
+  const [showParent, setShowParent] = useState(
+    () => !!getValues('income.parentTransactionId')
+  );
   return (
     <>
       <div className="col-span-6 text-xs">
