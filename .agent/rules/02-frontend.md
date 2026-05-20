@@ -7,9 +7,9 @@ description: When working on client-side features
 
 ### Core Framework
 
-- **Next.js:** Use App Router conventions (`src/app`).
+- **Next.js:** Use App Router conventions (`frontend/app`).
 - **State:** Use standard React hooks for local state.
-- **Components:** Located in `src/components`. Keep them small and focused.
+- **Components:** Located in `frontend/components`. Keep them small and focused.
 
 ### Styling Guidelines
 

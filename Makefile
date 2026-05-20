@@ -1,4 +1,4 @@
-.PHONY: dev backend frontend proto stop e2e dockerrun-mac
+.PHONY: dev backend frontend proto lint dockerrun-mac
 
 # Load .env and export every variable when running dev targets.
 ifneq (,$(filter dev backend frontend,$(MAKECMDGOALS)))
@@ -15,18 +15,17 @@ dev:
 	wait
 
 backend:
-	cd backend && (air || go run ./cmd/prosper-backend)
+	cd backend && (air || go run ./cmd/backend)
 
 frontend:
-	npm run dev
+	cd frontend && npm run dev
 
 proto:
 	cd proto && buf generate
 
-stop:
-	@pkill -f prosper-backend 2>/dev/null || true
-	@pkill -f 'next dev' 2>/dev/null || true
-	@pkill -f '.next/standalone/server.js' 2>/dev/null || true
+# Run the full polyglot lint suite via lefthook.
+lint:
+	lefthook run lint --all-files
 
 # On MacOS docker containers run inside a VM, so --net=host doesn't work and
 # we need to map ports manually. Also DB_HOST should be host.docker.internal

@@ -9,8 +9,8 @@ description: When working on features requiring backend support
 
 - The Go backend (`backend/`) owns all business logic and database access. It
   exposes gRPC over a Unix domain socket.
-- The Next.js frontend (`src/`) is a thin client: server actions and API routes
-  forward to the backend over gRPC.
+- The Next.js frontend (`frontend/`) is a thin client: server actions and API
+  routes forward to the backend over gRPC.
 
 ### Data layer
 

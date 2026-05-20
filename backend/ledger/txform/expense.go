@@ -23,9 +23,9 @@ func repaymentNote(payee string) string {
 // THIRD_PARTY_EXPENSE because someone else paid the merchant.
 func expenseTransactionType(st prosperv1.SharingType) (model.TransactionType, error) {
 	switch st {
-	case prosperv1.SharingType_PAID_SELF_NOT_SHARED, prosperv1.SharingType_PAID_SELF_SHARED:
+	case prosperv1.SharingType_SHARING_TYPE_PAID_SELF_NOT_SHARED, prosperv1.SharingType_SHARING_TYPE_PAID_SELF_SHARED:
 		return model.TransactionExpense, nil
-	case prosperv1.SharingType_PAID_OTHER_OWED, prosperv1.SharingType_PAID_OTHER_REPAID:
+	case prosperv1.SharingType_SHARING_TYPE_PAID_OTHER_OWED, prosperv1.SharingType_SHARING_TYPE_PAID_OTHER_REPAID:
 		return model.TransactionThirdPartyExpense, nil
 	default:
 		return "", fmt.Errorf("invalid sharing type %v", st)
@@ -84,7 +84,7 @@ func writeExpense(ctx context.Context, tx *userdb.Tx, userID int32, req *prosper
 	if err := writeExpenseSplits(ctx, tx, userID, newID, e); err != nil {
 		return 0, err
 	}
-	if e.SharingType == prosperv1.SharingType_PAID_OTHER_REPAID {
+	if e.SharingType == prosperv1.SharingType_SHARING_TYPE_PAID_OTHER_REPAID {
 		if err := writeRepayment(ctx, tx, userID, req, accts, newID, e); err != nil {
 			return 0, err
 		}
@@ -94,9 +94,9 @@ func writeExpense(ctx context.Context, tx *userdb.Tx, userID int32, req *prosper
 
 func buildExpenseLines(ctx context.Context, tx *userdb.Tx, userID int32, accts *[]model.LedgerAccount, e *prosperv1.ExpenseFormInput) ([]model.EntryLine, error) {
 	switch e.SharingType {
-	case prosperv1.SharingType_PAID_SELF_NOT_SHARED, prosperv1.SharingType_PAID_SELF_SHARED:
+	case prosperv1.SharingType_SHARING_TYPE_PAID_SELF_NOT_SHARED, prosperv1.SharingType_SHARING_TYPE_PAID_SELF_SHARED:
 		return buildPaidSelfLines(ctx, tx, userID, accts, e)
-	case prosperv1.SharingType_PAID_OTHER_OWED, prosperv1.SharingType_PAID_OTHER_REPAID:
+	case prosperv1.SharingType_SHARING_TYPE_PAID_OTHER_OWED, prosperv1.SharingType_SHARING_TYPE_PAID_OTHER_REPAID:
 		return buildThirdPartyLines(ctx, tx, userID, accts, e)
 	default:
 		return nil, fmt.Errorf("invalid sharing type %v", e.SharingType)
@@ -127,7 +127,7 @@ func buildPaidSelfLines(ctx context.Context, tx *userdb.Tx, userID int32, accts 
 	lines := []model.EntryLine{
 		{LedgerAccountID: asset.ID, CurrencyCode: unit.CurrencyCode, StockID: unit.StockID, AmountNanos: -e.AmountNanos},
 	}
-	if e.SharingType == prosperv1.SharingType_PAID_SELF_NOT_SHARED {
+	if e.SharingType == prosperv1.SharingType_SHARING_TYPE_PAID_SELF_NOT_SHARED {
 		lines = append(lines, model.EntryLine{
 			LedgerAccountID: expenseAcc.ID,
 			CurrencyCode:    unit.CurrencyCode,
@@ -175,14 +175,14 @@ func buildThirdPartyLines(ctx context.Context, tx *userdb.Tx, userID int32, acct
 
 func writeExpenseSplits(ctx context.Context, tx *userdb.Tx, userID int32, transactionID int64, e *prosperv1.ExpenseFormInput) error {
 	switch e.SharingType {
-	case prosperv1.SharingType_PAID_SELF_NOT_SHARED:
+	case prosperv1.SharingType_SHARING_TYPE_PAID_SELF_NOT_SHARED:
 		return nil
-	case prosperv1.SharingType_PAID_SELF_SHARED:
+	case prosperv1.SharingType_SHARING_TYPE_PAID_SELF_SHARED:
 		if e.Companion == nil {
 			return errors.New("companion required for shared expense")
 		}
 		return common.InsertSplit(ctx, tx, userID, transactionID, *e.Companion, e.AmountNanos-e.OwnShareNanos, 0)
-	case prosperv1.SharingType_PAID_OTHER_OWED, prosperv1.SharingType_PAID_OTHER_REPAID:
+	case prosperv1.SharingType_SHARING_TYPE_PAID_OTHER_OWED, prosperv1.SharingType_SHARING_TYPE_PAID_OTHER_REPAID:
 		if e.Payer == nil {
 			return errors.New("payer required for third_party expense")
 		}
@@ -192,14 +192,14 @@ func writeExpenseSplits(ctx context.Context, tx *userdb.Tx, userID int32, transa
 }
 
 // writeRepayment records the settlement transaction (the user paying
-// the third-party payer back) that accompanies a PAID_OTHER_REPAID
+// the third-party payer back) that accompanies a SHARING_TYPE_PAID_OTHER_REPAID
 // expense, and links the two with a DEBT_SETTLING TransactionLink.
 func writeRepayment(ctx context.Context, tx *userdb.Tx, userID int32, req *prosperv1.WriteTransactionFormRequest, accts *[]model.LedgerAccount, sourceTxID int64, e *prosperv1.ExpenseFormInput) error {
 	if e.Repayment == nil {
-		return errors.New("repayment required for PAID_OTHER_REPAID")
+		return errors.New("repayment required for SHARING_TYPE_PAID_OTHER_REPAID")
 	}
 	if e.Payer == nil {
-		return errors.New("payer required for PAID_OTHER_REPAID")
+		return errors.New("payer required for SHARING_TYPE_PAID_OTHER_REPAID")
 	}
 	if e.Repayment.Timestamp == nil {
 		return errors.New("repayment.timestamp required")

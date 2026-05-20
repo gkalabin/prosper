@@ -322,10 +322,10 @@ message UpdateDisplaySettingsResponse {}
 
 enum SharingType {
   SHARING_TYPE_UNSPECIFIED = 0;
-  PAID_SELF_NOT_SHARED = 1;
-  PAID_SELF_SHARED = 2;
-  PAID_OTHER_OWED = 3;
-  PAID_OTHER_REPAID = 4;
+  SHARING_TYPE_PAID_SELF_NOT_SHARED = 1;
+  SHARING_TYPE_PAID_SELF_SHARED = 2;
+  SHARING_TYPE_PAID_OTHER_OWED = 3;
+  SHARING_TYPE_PAID_OTHER_REPAID = 4;
 }
 
 message WriteTransactionFormRequest {
@@ -367,7 +367,7 @@ message ExpenseFormInput {
   // Trip name. Created if missing for the user.
   optional string trip_name = 11;
   SharingType sharing_type = 12;
-  // Repayment info, only populated when sharing_type = PAID_OTHER_REPAID.
+  // Repayment info, only populated when sharing_type = SHARING_TYPE_PAID_OTHER_REPAID.
   optional RepaymentInput repayment = 13;
 }
 

@@ -3,8 +3,8 @@ tmp_dir = "tmp"
 
 [build]
   pre_cmd = ["cd ../proto && buf generate"]
-  cmd = "go build -o ./tmp/prosper-backend ./cmd/prosper-backend"
-  bin = "./tmp/prosper-backend"
+  cmd = "go build -o ./tmp/backend ./cmd/backend"
+  bin = "./tmp/backend"
   include_ext = ["go", "proto"]
   include_dir = [".", "../proto"]
   exclude_dir = ["tmp", "gen"]

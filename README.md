@@ -22,13 +22,24 @@
   - Docker image is available too for any other case.
   - Self hosting: just add DB and run the app.
 
+## Repository layout
+
+```
+backend/   Go gRPC server (entry point: cmd/backend).
+frontend/  Next.js app (its own package.json, tsconfig, jest, eslint).
+e2e/       Playwright end-to-end tests (own package.json, docker-compose, .env).
+proto/     Protobuf schemas (codegen targets backend/gen and frontend/lib/grpc/gen).
+scripts/   Shared shell helpers (container entrypoint, dev setup).
+deploy/    Terraform + Ansible for production rollout.
+```
+
 ## Running locally
 
-Check scripts/setup_dev_environment.sh for the list of dependencies. The script
-is runnable on OSX, on other platforms the necessary dependencies can be easily
-installed.
+Check `scripts/setup_dev_environment.sh` for the list of dependencies. The
+script is runnable on OSX; on other platforms the necessary dependencies can be
+easily installed.
 
-When the dependencies are installed, create `.env` file. Use `.env.example` to
+When the dependencies are installed, create a `.env` file. Use `.env.example` to
 get started.
 
 Start the database, then run

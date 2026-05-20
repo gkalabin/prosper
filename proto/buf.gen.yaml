@@ -6,8 +6,8 @@ plugins:
   - local: protoc-gen-go-grpc
     out: ../backend/gen
     opt: paths=source_relative
-  - local: ../node_modules/.bin/protoc-gen-ts
-    out: ../src/lib/grpc/gen
+  - local: ../frontend/node_modules/.bin/protoc-gen-ts
+    out: ../frontend/lib/grpc/gen
     opt:
       - generate_dependencies
       - long_type_bigint

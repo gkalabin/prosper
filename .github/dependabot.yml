@@ -3,29 +3,43 @@ version: 2
 updates:
   - package-ecosystem: 'github-actions'
     directory: '/'
-    # Disable labels on pull requests from Dependabot on GitHub.
     labels: []
     schedule:
       interval: 'daily'
   - package-ecosystem: 'npm'
     directory: '/'
-    # Disable labels on pull requests from Dependabot on GitHub.
+    labels: []
+    schedule:
+      interval: 'daily'
+    allow:
+      - dependency-type: 'all'
+  - package-ecosystem: 'npm'
+    directory: '/frontend'
     labels: []
     schedule:
       interval: 'daily'
     open-pull-requests-limit: 20
     allow:
-      # Allow both direct and indirect updates for all packages
       - dependency-type: 'all'
+  - package-ecosystem: 'npm'
+    directory: '/e2e'
+    labels: []
+    schedule:
+      interval: 'daily'
+    allow:
+      - dependency-type: 'all'
+  - package-ecosystem: 'gomod'
+    directory: '/backend'
+    labels: []
+    schedule:
+      interval: 'daily'
   - package-ecosystem: 'terraform'
-    directory: '/'
-    # Disable labels on pull requests from Dependabot on GitHub.
+    directory: '/deploy'
     labels: []
     schedule:
       interval: 'daily'
   - package-ecosystem: 'docker'
     directory: '/'
-    # Disable labels on pull requests from Dependabot on GitHub.
     labels: []
     schedule:
       interval: 'daily'

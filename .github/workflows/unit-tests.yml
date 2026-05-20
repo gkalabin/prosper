@@ -7,20 +7,27 @@ on:
 jobs:
   frontend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: {node-version: '20', cache: 'npm'}
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'frontend/package-lock.json'
       - run: npm ci
-      - run: npm run test
+      - run: npm test
 
   backend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with: {go-version: '1.25'}
       - run: go build ./...
-        working-directory: backend
       - run: go test ./...
-        working-directory: backend

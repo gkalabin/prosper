@@ -1,0 +1,60 @@
+lint:
+  parallel: true
+  jobs:
+    - name: eslint
+      glob: 'frontend/**/*.{js,jsx,ts,tsx}'
+      root: frontend/
+      run: npx eslint --max-warnings=0
+
+    - name: typecheck-frontend
+      glob: 'frontend/**/*.{ts,tsx}'
+      root: frontend/
+      run: npx tsc --noEmit
+
+    - name: typecheck-e2e
+      glob: 'e2e/**/*.ts'
+      root: e2e/
+      run: npx tsc --noEmit
+
+    - name: prettier
+      glob: '*.{js,jsx,ts,tsx,json,css,md,yml,yaml}'
+      run: npx prettier --check .
+
+    - name: golangci-lint
+      glob: 'backend/**/*.go'
+      root: backend/
+      run: golangci-lint run ./...
+
+    - name: buf-lint
+      glob: 'proto/**/*.proto'
+      root: proto/
+      run: buf lint
+
+    - name: typos
+      run: typos
+
+    - name: gitleaks
+      run: gitleaks detect --no-banner --redact
+
+pre-commit:
+  parallel: true
+  jobs:
+    - name: eslint
+      glob: 'frontend/**/*.{js,jsx,ts,tsx}'
+      root: frontend/
+      run: npx eslint --max-warnings=0 {staged_files}
+
+    - name: prettier
+      glob: '*.{js,jsx,ts,tsx,json,css,md,yml,yaml}'
+      run: npx prettier --check {staged_files}
+
+    - name: golangci-lint
+      glob: 'backend/**/*.go'
+      root: backend/
+      run: golangci-lint run {staged_files}
+
+    - name: typos
+      run: typos --force-exclude {staged_files}
+
+    - name: gitleaks
+      run: gitleaks protect --staged --no-banner --redact

@@ -1,56 +1,59 @@
 # syntax=docker/dockerfile:1.6
 
-# ── Go build stage ──
-FROM golang:1.25-alpine AS go-builder
+# ── Go backend build ──
+FROM golang:1.25-alpine AS backend-builder
 RUN apk add --no-cache git
 WORKDIR /build
 COPY backend/go.mod backend/go.sum ./backend/
 RUN cd backend && go mod download
 COPY backend/ ./backend/
-RUN cd backend && CGO_ENABLED=0 go build -o /prosper-backend ./cmd/prosper-backend
+RUN cd backend && CGO_ENABLED=0 go build -o /out/backend ./cmd/backend
 
 # ── Node base ──
-FROM node:24.15.0-alpine3.23 AS base
+FROM node:24.15.0-alpine3.23 AS node-base
 
-# Install dependencies only when needed
-FROM base AS deps
+# ── Frontend dependencies ──
+FROM node-base AS frontend-deps
 RUN apk add --no-cache libc6-compat
-WORKDIR /app
-COPY package.json package-lock.json ./
+WORKDIR /app/frontend
+COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci
 
-# Rebuild the source code only when needed
-FROM base AS builder
+# ── Frontend build ──
+FROM node-base AS frontend-builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-# To avoid exposing secrets in .env files explicitly remove all of the env files.
-RUN rm -f .env*
-RUN npm run build
+COPY --from=frontend-deps /app/frontend/node_modules ./frontend/node_modules
+COPY frontend/ ./frontend/
+# Avoid leaking any env files into the production image.
+RUN rm -f .env* frontend/.env*
+RUN cd frontend && npm run build
+# Standalone output emits server.js — rename to frontend.js so the backend
+# binary and the Node entrypoint have distinct, descriptive names.
+RUN mv frontend/.next/standalone/server.js frontend/.next/standalone/frontend.js
 
-# Production image, copy all the files and run next + go
-FROM base AS runner
+# ── Runtime image ──
+FROM node-base AS runner
 ENV NODE_ENV=production
-# Disable telemetry during runtime.
 ENV NEXT_TELEMETRY_DISABLED=1
-# Create a non-root user
 RUN addgroup --system --gid 1001 prosper
 RUN adduser --system --uid 1001 prosper
-# Remove npm entirely to avoid vulnerabilities in bundled dependencies
-# as we don't need npm in the runtime container.
+# npm is not needed at runtime; remove to shrink attack surface.
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 WORKDIR /app
-# Copy public assets.
-COPY --from=builder /app/public ./public
-# Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown prosper:prosper .next
-# Frontend.
-COPY --from=builder --chown=prosper:prosper /app/.next/standalone ./
-COPY --from=builder --chown=prosper:prosper /app/.next/static ./.next/static
-COPY --from=builder --chown=prosper:prosper /app/scripts/ ./scripts/
-# Backend.
-COPY --from=go-builder --chown=prosper:prosper /prosper-backend /app/prosper-backend
+
+# Public assets and prerender cache.
+COPY --from=frontend-builder /app/frontend/public ./public
+RUN mkdir .next && chown prosper:prosper .next
+
+# Frontend (standalone Node server + static assets).
+COPY --from=frontend-builder --chown=prosper:prosper /app/frontend/.next/standalone ./
+COPY --from=frontend-builder --chown=prosper:prosper /app/frontend/.next/static ./.next/static
+
+# Backend binary.
+COPY --from=backend-builder --chown=prosper:prosper /out/backend /app/backend
+
+# Container entrypoint.
+COPY --chown=prosper:prosper scripts/app_runtime.sh scripts/start.sh ./scripts/
 
 USER prosper
 EXPOSE 3000

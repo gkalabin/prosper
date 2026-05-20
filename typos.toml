@@ -1,0 +1,8 @@
+[files]
+extend-exclude = [
+  "**/*.ttf",
+]
+
+[default.extend-words]
+ba = "ba"
+nd = "nd"

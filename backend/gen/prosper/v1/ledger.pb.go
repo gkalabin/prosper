@@ -193,28 +193,28 @@ func (TransactionLinkType) EnumDescriptor() ([]byte, []int) {
 type SharingType int32
 
 const (
-	SharingType_SHARING_TYPE_UNSPECIFIED SharingType = 0
-	SharingType_PAID_SELF_NOT_SHARED     SharingType = 1
-	SharingType_PAID_SELF_SHARED         SharingType = 2
-	SharingType_PAID_OTHER_OWED          SharingType = 3
-	SharingType_PAID_OTHER_REPAID        SharingType = 4
+	SharingType_SHARING_TYPE_UNSPECIFIED          SharingType = 0
+	SharingType_SHARING_TYPE_PAID_SELF_NOT_SHARED SharingType = 1
+	SharingType_SHARING_TYPE_PAID_SELF_SHARED     SharingType = 2
+	SharingType_SHARING_TYPE_PAID_OTHER_OWED      SharingType = 3
+	SharingType_SHARING_TYPE_PAID_OTHER_REPAID    SharingType = 4
 )
 
 // Enum value maps for SharingType.
 var (
 	SharingType_name = map[int32]string{
 		0: "SHARING_TYPE_UNSPECIFIED",
-		1: "PAID_SELF_NOT_SHARED",
-		2: "PAID_SELF_SHARED",
-		3: "PAID_OTHER_OWED",
-		4: "PAID_OTHER_REPAID",
+		1: "SHARING_TYPE_PAID_SELF_NOT_SHARED",
+		2: "SHARING_TYPE_PAID_SELF_SHARED",
+		3: "SHARING_TYPE_PAID_OTHER_OWED",
+		4: "SHARING_TYPE_PAID_OTHER_REPAID",
 	}
 	SharingType_value = map[string]int32{
-		"SHARING_TYPE_UNSPECIFIED": 0,
-		"PAID_SELF_NOT_SHARED":     1,
-		"PAID_SELF_SHARED":         2,
-		"PAID_OTHER_OWED":          3,
-		"PAID_OTHER_REPAID":        4,
+		"SHARING_TYPE_UNSPECIFIED":          0,
+		"SHARING_TYPE_PAID_SELF_NOT_SHARED": 1,
+		"SHARING_TYPE_PAID_SELF_SHARED":     2,
+		"SHARING_TYPE_PAID_OTHER_OWED":      3,
+		"SHARING_TYPE_PAID_OTHER_REPAID":    4,
 	}
 )
 
@@ -3032,7 +3032,7 @@ type ExpenseFormInput struct {
 	// Trip name. Created if missing for the user.
 	TripName    *string     `protobuf:"bytes,11,opt,name=trip_name,json=tripName,proto3,oneof" json:"trip_name,omitempty"`
 	SharingType SharingType `protobuf:"varint,12,opt,name=sharing_type,json=sharingType,proto3,enum=prosper.v1.SharingType" json:"sharing_type,omitempty"`
-	// Repayment info, only populated when sharing_type = PAID_OTHER_REPAID.
+	// Repayment info, only populated when sharing_type = SHARING_TYPE_PAID_OTHER_REPAID.
 	Repayment     *RepaymentInput `protobuf:"bytes,13,opt,name=repayment,proto3,oneof" json:"repayment,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -3787,13 +3787,13 @@ const file_prosper_v1_ledger_proto_rawDesc = "" +
 	"\x13TransactionLinkType\x12%\n" +
 	"!TRANSACTION_LINK_TYPE_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cTRANSACTION_LINK_TYPE_REFUND\x10\x01\x12'\n" +
-	"#TRANSACTION_LINK_TYPE_DEBT_SETTLING\x10\x02*\x87\x01\n" +
+	"#TRANSACTION_LINK_TYPE_DEBT_SETTLING\x10\x02*\xbb\x01\n" +
 	"\vSharingType\x12\x1c\n" +
-	"\x18SHARING_TYPE_UNSPECIFIED\x10\x00\x12\x18\n" +
-	"\x14PAID_SELF_NOT_SHARED\x10\x01\x12\x14\n" +
-	"\x10PAID_SELF_SHARED\x10\x02\x12\x13\n" +
-	"\x0fPAID_OTHER_OWED\x10\x03\x12\x15\n" +
-	"\x11PAID_OTHER_REPAID\x10\x042\x90\x06\n" +
+	"\x18SHARING_TYPE_UNSPECIFIED\x10\x00\x12%\n" +
+	"!SHARING_TYPE_PAID_SELF_NOT_SHARED\x10\x01\x12!\n" +
+	"\x1dSHARING_TYPE_PAID_SELF_SHARED\x10\x02\x12 \n" +
+	"\x1cSHARING_TYPE_PAID_OTHER_OWED\x10\x03\x12\"\n" +
+	"\x1eSHARING_TYPE_PAID_OTHER_REPAID\x10\x042\x90\x06\n" +
 	"\rLedgerService\x12N\n" +
 	"\vGetCoreData\x12\x1e.prosper.v1.GetCoreDataRequest\x1a\x1f.prosper.v1.GetCoreDataResponse\x12Z\n" +
 	"\x0fGetTransactions\x12\".prosper.v1.GetTransactionsRequest\x1a#.prosper.v1.GetTransactionsResponse\x12r\n" +

@@ -1,7 +1,9 @@
-.next
+node_modules
 .vscode
 .claude
-src/lib/search/generated
-src/lib/grpc/gen
-playwright-report
-test-results
+frontend/.next
+frontend/lib/search/generated
+frontend/lib/grpc/gen
+backend/gen
+e2e/playwright-report
+e2e/test-results
