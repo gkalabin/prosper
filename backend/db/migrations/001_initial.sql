@@ -325,6 +325,6 @@ CREATE TABLE IF NOT EXISTS `_TagToTransaction` (
 
     UNIQUE INDEX `_TagToTransaction_AB_unique`(`A`, `B`),
     INDEX `_TagToTransaction_B_index`(`B`),
-    CONSTRAINT `_TagToTransaction_A_fkey` FOREIGN KEY (`A`) REFERENCES `Tag`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT `_TagToTransaction_B_fkey` FOREIGN KEY (`B`) REFERENCES `Transaction`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT `_TagV2ToTransactionV2_A_fkey` FOREIGN KEY (`A`) REFERENCES `Tag`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `_TagV2ToTransactionV2_B_fkey` FOREIGN KEY (`B`) REFERENCES `Transaction`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

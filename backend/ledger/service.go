@@ -212,8 +212,8 @@ func (s *Service) attachSplits(ctx context.Context, userID int32, byID map[int32
 func (s *Service) attachTagIDs(ctx context.Context, userID int32, byID map[int32]*prosperv1.Transaction) error {
 	var links []model.TagTransactionLink
 	if err := s.db.SelectForUser(ctx, &links, userID,
-		`SELECT tt.A, tt.B FROM _TagToTransaction tt
-		 JOIN Transaction t ON t.id = tt.B
+		`SELECT tt.tagId, tt.transactionId FROM TagTransaction tt
+		 JOIN Transaction t ON t.id = tt.transactionId
 		 WHERE t.userId = :userId`); err != nil {
 		return err
 	}

@@ -226,8 +226,8 @@ type SplitContext struct {
 }
 
 type TagTransactionLink struct {
-	TagID         int32 `db:"A"`
-	TransactionID int32 `db:"B"`
+	TagID         int32 `db:"tagId"`
+	TransactionID int32 `db:"transactionId"`
 }
 
 type TransactionLink struct {

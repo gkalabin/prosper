@@ -71,7 +71,10 @@ async function deleteTransactionsForUsers(
     return;
   }
   const txIn = txIds.map(() => '?').join(',');
-  await exec(`DELETE FROM _TagToTransaction WHERE B IN (${txIn})`, txIds);
+  await exec(
+    `DELETE FROM TagTransaction WHERE transactionId IN (${txIn})`,
+    txIds
+  );
   await exec(
     `DELETE FROM TransactionLink
      WHERE sourceTransactionId IN (${txIn}) OR linkedTransactionId IN (${txIn})`,

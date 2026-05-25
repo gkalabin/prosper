@@ -24,9 +24,9 @@ func writeTags(ctx context.Context, tx *userdb.Tx, userID int32, transactionID i
 		links[i] = model.TagTransactionLink{TagID: tagID, TransactionID: int32(transactionID)}
 	}
 	_, err = tx.Raw().NamedExecContext(ctx,
-		`INSERT INTO _TagToTransaction
-		        ( A,  B)
-		 VALUES (:A, :B)`,
+		`INSERT INTO TagTransaction
+		        ( tagId,  transactionId)
+		 VALUES (:tagId, :transactionId)`,
 		links)
 	return err
 }

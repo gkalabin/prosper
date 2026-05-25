@@ -85,8 +85,8 @@ func applyMigration(ctx context.Context, db *sqlx.DB, name, body string) error {
 		return err
 	}
 	defer tx.Rollback()
-	for _, raw := range strings.Split(body, ";") {
-		stmt := stripComments(raw)
+	for _, raw := range strings.Split(stripComments(body), ";") {
+		stmt := strings.TrimSpace(raw)
 		if stmt == "" {
 			continue
 		}

@@ -753,9 +753,9 @@ async function attachTags(
   tagIds: number[]
 ): Promise<void> {
   for (const tagId of tagIds) {
-    await exec(`INSERT INTO _TagToTransaction (A, B) VALUES (?, ?)`, [
-      tagId,
-      transactionId,
-    ]);
+    await exec(
+      `INSERT INTO TagTransaction (tagId, transactionId) VALUES (?, ?)`,
+      [tagId, transactionId]
+    );
   }
 }
