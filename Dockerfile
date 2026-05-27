@@ -1,26 +1,32 @@
 # syntax=docker/dockerfile:1.6
 
+# $BUILDPLATFORM resolves to the host's platform. Stages pinned to it run natively on the host instead
+# of $TARGETPLATFORM emulation, which is orders of magnitude slower. Safe to pin any stage
+# whose output is platform-independent or is explicitly cross-compiled for $TARGETPLATFORM.
+
 # ── Go build stage ──
-FROM golang:1.25-alpine AS go-builder
+FROM --platform=$BUILDPLATFORM golang:1.25-alpine AS go-builder
+ARG TARGETOS
+ARG TARGETARCH
 RUN apk add --no-cache git
 WORKDIR /build
 COPY backend/go.mod backend/go.sum ./backend/
 RUN cd backend && go mod download
 COPY backend/ ./backend/
-RUN cd backend && CGO_ENABLED=0 go build -o /prosper-backend ./cmd/prosper-backend
+RUN cd backend && CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+    go build -o /prosper-backend ./cmd/prosper-backend
 
 # ── Node base ──
 FROM node:24.15.0-alpine3.23 AS base
 
-# Install dependencies only when needed
-FROM base AS deps
+# Install dependencies only when needed.
+FROM --platform=$BUILDPLATFORM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# Rebuild the source code only when needed
-FROM base AS builder
+FROM --platform=$BUILDPLATFORM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
