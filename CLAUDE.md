@@ -69,8 +69,10 @@ Rules distilled from review feedback. Apply to any language or module.
 - Comments cover the function behaviour, why it exists.
 - Comments must not mention internal implementation details.
 - Comments must not mention chain of thought.
-- Comments must not mention how the function is used, e.g. "(function bla)
-  exists for foo module to call"
+- Comments must not enumerate consumers or downstream usages, e.g. "Used by
+  nginx as server_name and by certbot as the CN". Such lists read as exhaustive,
+  leak details the definition shouldn't own, and rot the moment a new consumer
+  is added. Describe what the value **is**, not who reads it.
 - Restructure to eliminate edge-case branches (e.g. do the empty-safe work first
   instead of `if len == 0 { return }`).
 
