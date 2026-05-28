@@ -45,7 +45,7 @@
     "tailwindcss-animate": "^1.0.7",
     "use-debounce": "^10.0.2",
     "yahoo-finance2": "^2.12.4",
-    "zod": "^3.23.8"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@protobuf-ts/plugin": "^2.11.1",
