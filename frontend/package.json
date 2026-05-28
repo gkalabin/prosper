@@ -29,7 +29,7 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-switch": "^1.2.6",
     "@types/echarts": "^4.9.22",
-    "@typescript-eslint/eslint-plugin": "^6.19.1",
+    "@typescript-eslint/eslint-plugin": "^8.60.0",
     "antlr4": "^4.13.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
