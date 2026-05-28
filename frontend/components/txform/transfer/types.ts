@@ -17,8 +17,20 @@ export const transferFormValidationSchema = z
     description: z.string().nullable(),
     tagNames: z.array(z.string()),
   })
-  .refine(data => isValid(data.timestamp), {
-    message: 'Invalid date',
-    path: ['timestamp'],
+  .superRefine((data, ctx) => {
+    if (!isValid(data.timestamp)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['timestamp'],
+        message: 'Invalid date',
+      });
+    }
+    if (data.fromAccountId === data.toAccountId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['toAccountId'],
+        message: 'Source and destination accounts must differ',
+      });
+    }
   });
 export type TransferFormSchema = z.infer<typeof transferFormValidationSchema>;

@@ -1,3 +1,4 @@
+import {findByCode} from '@/lib/model/Currency';
 import {isValid} from 'date-fns';
 import {z} from 'zod';
 
@@ -35,7 +36,7 @@ export const expenseFormValidationSchema = z
     ownShareAmount: z.coerce.number().nonnegative(),
     accountId: z.number().int().positive().nullable(),
     categoryId: z.number().int().positive(),
-    vendor: z.string(),
+    vendor: z.string().trim().min(1, 'Vendor is required'),
     companion: z.string().nullable(),
     payer: z.string().nullable(),
     currency: z.string().nullable(),
@@ -45,35 +46,68 @@ export const expenseFormValidationSchema = z
     description: z.string().nullable(),
     tripName: z.string().nullable(),
   })
-  .refine(
-    data => {
-      if (data.sharingType === 'PAID_OTHER_REPAID') {
-        return !!data.repayment;
-      }
-      return true;
-    },
-    {
-      message: 'Repayment data is missing',
+  .superRefine((data, ctx) => {
+    if (!isValid(data.timestamp)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['timestamp'],
+        message: 'Invalid date',
+      });
     }
-  )
-  .refine(
-    data => {
-      if (
-        data.sharingType === 'PAID_SELF_NOT_SHARED' ||
-        data.sharingType === 'PAID_SELF_SHARED'
-      ) {
-        // When paid self, the account should be specified.
-        return data.accountId !== null;
-      }
-      return true;
-    },
-    {
-      message: 'Account is required',
-      path: ['accountId'],
+    if (data.ownShareAmount > data.amount) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['ownShareAmount'],
+        message: "Own share amount can't be greater than the total amount",
+      });
     }
-  )
-  .refine(data => isValid(data.timestamp), {
-    message: 'Invalid date',
-    path: ['timestamp'],
+    const paidSelf =
+      data.sharingType === 'PAID_SELF_NOT_SHARED' ||
+      data.sharingType === 'PAID_SELF_SHARED';
+    if (paidSelf && data.accountId === null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['accountId'],
+        message: 'Account is required',
+      });
+    }
+    if (data.sharingType === 'PAID_SELF_SHARED' && !data.companion?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['companion'],
+        message: 'Companion is required for a shared expense',
+      });
+    }
+    const paidOther =
+      data.sharingType === 'PAID_OTHER_OWED' ||
+      data.sharingType === 'PAID_OTHER_REPAID';
+    if (paidOther && !data.payer?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['payer'],
+        message: 'Payer is required when someone else paid',
+      });
+    }
+    if (paidOther && !data.currency?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['currency'],
+        message: 'Currency is required when someone else paid',
+      });
+    }
+    if (paidOther && data.currency && !findByCode(data.currency)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['currency'],
+        message: `Unsupported currency: ${data.currency}`,
+      });
+    }
+    if (data.sharingType === 'PAID_OTHER_REPAID' && !data.repayment) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['repayment'],
+        message: 'Repayment details are required',
+      });
+    }
   });
 export type ExpenseFormSchema = z.infer<typeof expenseFormValidationSchema>;

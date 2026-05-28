@@ -15,17 +15,32 @@ export const incomeFormValidationSchema = z
     categoryId: z.number().int().positive(),
     isShared: z.boolean(),
     companion: z.string().nullable(),
-    payer: z.string(),
+    payer: z.string().trim().min(1, 'Payer is required'),
     tagNames: z.array(z.string()),
     description: z.string().nullable(),
     parentTransactionId: z.number().int().positive().nullable(),
   })
-  .refine(data => data.amount >= data.ownShareAmount, {
-    path: ['ownShareAmount'],
-    message: "Own share amount can't be greater than the total amount",
-  })
-  .refine(data => isValid(data.timestamp), {
-    message: 'Invalid date',
-    path: ['timestamp'],
+  .superRefine((data, ctx) => {
+    if (!isValid(data.timestamp)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['timestamp'],
+        message: 'Invalid date',
+      });
+    }
+    if (data.ownShareAmount > data.amount) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['ownShareAmount'],
+        message: "Own share amount can't be greater than the total amount",
+      });
+    }
+    if (data.isShared && !data.companion?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['companion'],
+        message: 'Companion is required for a shared income',
+      });
+    }
   });
 export type IncomeFormSchema = z.infer<typeof incomeFormValidationSchema>;
