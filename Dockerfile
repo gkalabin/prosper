@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.6
 
 # ── Go backend build ──
-FROM golang:1.25-alpine AS backend-builder
+FROM golang:1.26-alpine AS backend-builder
 RUN apk add --no-cache git
 WORKDIR /build
 COPY backend/go.mod backend/go.sum ./backend/
