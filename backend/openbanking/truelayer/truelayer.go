@@ -37,10 +37,8 @@ const (
 	scope          = "accounts balance transactions offline_access"
 	dateOnlyFormat = "2006-01-02"
 	// reconnectPath is appended to the public app URL to build the
-	// redirect URI used during the reconnect flow. The matching Next
-	// route at /api/open-banking/truelayer/connect handles the
-	// callback.
-	reconnectPath = "/api/open-banking/truelayer/connect?reconnect=1"
+	// redirect URI used during the reconnect flow.
+	reconnectPath = "/api/open-banking/truelayer/connect"
 )
 
 // Provider implements openbanking.Provider against TrueLayer's data API.
