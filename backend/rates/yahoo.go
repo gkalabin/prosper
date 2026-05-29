@@ -13,11 +13,13 @@ import (
 	"prosper/moneyutil"
 )
 
-// recentChartWindow is the lookback used when we only need Yahoo's
-// metadata (currency) and don't care about historical points.
-func recentChartWindow() time.Time {
-	return time.Now().AddDate(0, 0, -7)
-}
+const (
+	// Symbol search endpoint, returning the stocks matching a free-text query.
+	yahooSearchURL = "https://query1.finance.yahoo.com/v1/finance/search"
+
+	// Daily chart endpoint, taking a symbol and a [period1, period2] unix-second window.
+	yahooChartURLFormat = "https://query1.finance.yahoo.com/v8/finance/chart/%s?period1=%d&period2=%d&interval=1d"
+)
 
 // YahooProvider implements both CurrencyRateFetcher and StockQuoteFetcher
 // using Yahoo Finance's chart endpoint.
@@ -64,6 +66,56 @@ func (y *YahooProvider) FetchQuotes(ctx context.Context, _exchange, ticker strin
 	return out, nil
 }
 
+// SearchStocks queries Yahoo's symbol search endpoint and returns the
+// matching stocks excluding currencies.
+func (y *YahooProvider) SearchStocks(ctx context.Context, query string) ([]StockSearchResult, error) {
+	u := fmt.Sprintf("%s?q=%s&newsCount=0", yahooSearchURL, url.QueryEscape(query))
+	body, err := y.do(ctx, u)
+	if err != nil {
+		return nil, err
+	}
+	var resp yahooSearchResponse
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return nil, err
+	}
+	out := make([]StockSearchResult, 0, len(resp.Quotes))
+	for _, q := range resp.Quotes {
+		if !q.IsYahooFinance || q.QuoteType == "CURRENCY" {
+			continue
+		}
+		if q.Exchange == "" || q.Symbol == "" {
+			continue
+		}
+		out = append(out, StockSearchResult{
+			Exchange: q.Exchange,
+			Ticker:   q.Symbol,
+			Name:     firstNonEmpty(q.ShortName, q.LongName, q.TypeDisp),
+		})
+	}
+	return out, nil
+}
+
+func firstNonEmpty(values ...string) string {
+	for _, v := range values {
+		if v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+type yahooSearchResponse struct {
+	Quotes []struct {
+		Exchange       string `json:"exchange"`
+		Symbol         string `json:"symbol"`
+		ShortName      string `json:"shortname"`
+		LongName       string `json:"longname"`
+		TypeDisp       string `json:"typeDisp"`
+		QuoteType      string `json:"quoteType"`
+		IsYahooFinance bool   `json:"isYahooFinance"`
+	} `json:"quotes"`
+}
+
 // chartResult is the parsed shape of a Yahoo chart response: a list of
 // (date, close) points plus the quote currency.
 type chartResult struct {
@@ -98,8 +150,7 @@ type yahooChartResponse struct {
 // fetchChart returns daily close prices, dates (UTC midnight) and the
 // quote currency for a symbol.
 func (y *YahooProvider) fetchChart(ctx context.Context, symbol string, from time.Time) (chartResult, error) {
-	u := fmt.Sprintf("https://query1.finance.yahoo.com/v8/finance/chart/%s?period1=%d&period2=%d&interval=1d",
-		url.PathEscape(symbol), from.Unix(), time.Now().Unix())
+	u := fmt.Sprintf(yahooChartURLFormat, url.PathEscape(symbol), from.Unix(), time.Now().Unix())
 	body, err := y.do(ctx, u)
 	if err != nil {
 		return chartResult{}, err

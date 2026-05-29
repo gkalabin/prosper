@@ -14,6 +14,22 @@ service RatesService {
   // which pairs to ask for.
   rpc GetMarketDataForUser(GetMarketDataForUserRequest)
       returns (GetMarketDataForUserResponse);
+
+  // SearchStocks returns stocks matching a free-text query.
+  rpc SearchStocks(SearchStocksRequest) returns (SearchStocksResponse);
+}
+
+message SearchStocksRequest {
+  string session_id = 1;
+  string query = 2;
+}
+
+message SearchStocksResponse { repeated StockSearchResult stocks = 1; }
+
+message StockSearchResult {
+  string exchange = 1;
+  string ticker = 2;
+  string name = 3;
 }
 
 message GetMarketDataForUserRequest { string session_id = 1; }

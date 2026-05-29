@@ -4,10 +4,11 @@ import {
   StockUnitSchema,
   UnitSchema,
 } from '@/lib/form-types/AccountFormSchema';
+import {withAuth} from '@/lib/grpc/auth';
+import {ratesClient} from '@/lib/grpc/client';
 import {allCurrencies} from '@/lib/model/Currency';
 import {logApi} from '@/lib/util/log';
 import {NextRequest, NextResponse} from 'next/server';
-import yahooFinance from 'yahoo-finance2';
 
 export async function GET(request: NextRequest): Promise<Response> {
   const auth = await getAuthContextOrRedirect();
@@ -17,20 +18,15 @@ export async function GET(request: NextRequest): Promise<Response> {
   if (!q) {
     return new Response(`query 'q' cannot be empty`, {status: 400});
   }
-  const found = await yahooFinance.search(q, {newsCount: 0});
-  const stocks: StockUnitSchema[] = found.quotes
-    .filter(x => x.isYahooFinance)
-    // Remove currencies as there is an internal list of currencies in the Currency class.
-    .filter(x => x.quoteType !== 'CURRENCY')
-    .map(
-      (x): StockUnitSchema => ({
-        kind: 'stock',
-        exchange: x.exchange,
-        ticker: x.symbol,
-        name: x.shortname ?? x.longname ?? x.typeDisp,
-      })
-    )
-    .filter(x => x.exchange && x.ticker);
+  const {response} = await ratesClient.searchStocks(withAuth({query: q}, auth));
+  const stocks: StockUnitSchema[] = response.stocks.map(
+    (x): StockUnitSchema => ({
+      kind: 'stock',
+      exchange: x.exchange,
+      ticker: x.ticker,
+      name: x.name,
+    })
+  );
 
   const currencies: CurrencyUnitSchema[] = allCurrencies()
     .filter(c => c.code.toLowerCase().includes(q.toLowerCase()))
@@ -38,6 +34,6 @@ export async function GET(request: NextRequest): Promise<Response> {
       kind: 'currency',
       currencyCode: c.code,
     }));
-  const response: UnitSchema[] = [...stocks, ...currencies];
-  return NextResponse.json(response);
+  const units: UnitSchema[] = [...stocks, ...currencies];
+  return NextResponse.json(units);
 }

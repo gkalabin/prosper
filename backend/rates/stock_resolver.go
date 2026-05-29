@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 
@@ -19,17 +20,25 @@ type StockInfo struct {
 	CurrencyCode string
 }
 
-// StockMetadataFetcher resolves a (exchange, ticker) pair to a
-// StockInfo. Implementations: YahooProvider (via lookupStockInfo).
+// StockSearchResult is a single candidate stock surfaced by a
+// free-text search.
+type StockSearchResult struct {
+	Exchange string
+	Ticker   string
+	Name     string
+}
+
+// StockMetadataFetcher finds information about stocks.
 type StockMetadataFetcher interface {
 	LookupStock(ctx context.Context, exchange, ticker string) (StockInfo, error)
+	SearchStocks(ctx context.Context, query string) ([]StockSearchResult, error)
 }
 
 // LookupStock implements StockMetadataFetcher for YahooProvider. The
 // chart endpoint returns the quote currency in its meta block, so we
 // re-use the historical fetcher with a recent window.
 func (y *YahooProvider) LookupStock(ctx context.Context, _exchange, ticker string) (StockInfo, error) {
-	chart, err := y.fetchChart(ctx, ticker, recentChartWindow())
+	chart, err := y.fetchChart(ctx, ticker, time.Now().AddDate(0, 0, -7))
 	if err != nil {
 		return StockInfo{}, err
 	}
@@ -41,7 +50,6 @@ func (y *YahooProvider) LookupStock(ctx context.Context, _exchange, ticker strin
 
 // StockResolver looks up an existing Stock row by (exchange, ticker)
 // or, when none exists, fetches its metadata and inserts a new row.
-// Implements ledger.StockResolver.
 type StockResolver struct {
 	db   *sqlx.DB
 	meta StockMetadataFetcher

@@ -4,6 +4,8 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { RatesService } from "./rates";
+import type { SearchStocksResponse } from "./rates";
+import type { SearchStocksRequest } from "./rates";
 import { stackIntercept } from "@protobuf-ts/runtime-rpc";
 import type { GetMarketDataForUserResponse } from "./rates";
 import type { GetMarketDataForUserRequest } from "./rates";
@@ -26,6 +28,12 @@ export interface IRatesServiceClient {
      * @generated from protobuf rpc: GetMarketDataForUser
      */
     getMarketDataForUser(input: GetMarketDataForUserRequest, options?: RpcOptions): UnaryCall<GetMarketDataForUserRequest, GetMarketDataForUserResponse>;
+    /**
+     * SearchStocks returns stocks matching a free-text query.
+     *
+     * @generated from protobuf rpc: SearchStocks
+     */
+    searchStocks(input: SearchStocksRequest, options?: RpcOptions): UnaryCall<SearchStocksRequest, SearchStocksResponse>;
 }
 /**
  * RatesService provides exchange rates and stock quotes.
@@ -51,5 +59,14 @@ export class RatesServiceClient implements IRatesServiceClient, ServiceInfo {
     getMarketDataForUser(input: GetMarketDataForUserRequest, options?: RpcOptions): UnaryCall<GetMarketDataForUserRequest, GetMarketDataForUserResponse> {
         const method = this.methods[0], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetMarketDataForUserRequest, GetMarketDataForUserResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * SearchStocks returns stocks matching a free-text query.
+     *
+     * @generated from protobuf rpc: SearchStocks
+     */
+    searchStocks(input: SearchStocksRequest, options?: RpcOptions): UnaryCall<SearchStocksRequest, SearchStocksResponse> {
+        const method = this.methods[1], opt = this._transport.mergeOptions(options);
+        return stackIntercept<SearchStocksRequest, SearchStocksResponse>("unary", this._transport, method, opt, input);
     }
 }

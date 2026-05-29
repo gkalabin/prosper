@@ -13,6 +13,45 @@ import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "../../google/protobuf/timestamp";
 /**
+ * @generated from protobuf message prosper.v1.SearchStocksRequest
+ */
+export interface SearchStocksRequest {
+    /**
+     * @generated from protobuf field: string session_id = 1
+     */
+    sessionId: string;
+    /**
+     * @generated from protobuf field: string query = 2
+     */
+    query: string;
+}
+/**
+ * @generated from protobuf message prosper.v1.SearchStocksResponse
+ */
+export interface SearchStocksResponse {
+    /**
+     * @generated from protobuf field: repeated prosper.v1.StockSearchResult stocks = 1
+     */
+    stocks: StockSearchResult[];
+}
+/**
+ * @generated from protobuf message prosper.v1.StockSearchResult
+ */
+export interface StockSearchResult {
+    /**
+     * @generated from protobuf field: string exchange = 1
+     */
+    exchange: string;
+    /**
+     * @generated from protobuf field: string ticker = 2
+     */
+    ticker: string;
+    /**
+     * @generated from protobuf field: string name = 3
+     */
+    name: string;
+}
+/**
  * @generated from protobuf message prosper.v1.GetMarketDataForUserRequest
  */
 export interface GetMarketDataForUserRequest {
@@ -72,6 +111,171 @@ export interface ExchangeRate {
      */
     rateNanos: bigint;
 }
+// @generated message type with reflection information, may provide speed optimized methods
+class SearchStocksRequest$Type extends MessageType<SearchStocksRequest> {
+    constructor() {
+        super("prosper.v1.SearchStocksRequest", [
+            { no: 1, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "query", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SearchStocksRequest>): SearchStocksRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.sessionId = "";
+        message.query = "";
+        if (value !== undefined)
+            reflectionMergePartial<SearchStocksRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SearchStocksRequest): SearchStocksRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string session_id */ 1:
+                    message.sessionId = reader.string();
+                    break;
+                case /* string query */ 2:
+                    message.query = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SearchStocksRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string session_id = 1; */
+        if (message.sessionId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.sessionId);
+        /* string query = 2; */
+        if (message.query !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.query);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.SearchStocksRequest
+ */
+export const SearchStocksRequest = new SearchStocksRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SearchStocksResponse$Type extends MessageType<SearchStocksResponse> {
+    constructor() {
+        super("prosper.v1.SearchStocksResponse", [
+            { no: 1, name: "stocks", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => StockSearchResult }
+        ]);
+    }
+    create(value?: PartialMessage<SearchStocksResponse>): SearchStocksResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.stocks = [];
+        if (value !== undefined)
+            reflectionMergePartial<SearchStocksResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SearchStocksResponse): SearchStocksResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated prosper.v1.StockSearchResult stocks */ 1:
+                    message.stocks.push(StockSearchResult.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SearchStocksResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated prosper.v1.StockSearchResult stocks = 1; */
+        for (let i = 0; i < message.stocks.length; i++)
+            StockSearchResult.internalBinaryWrite(message.stocks[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.SearchStocksResponse
+ */
+export const SearchStocksResponse = new SearchStocksResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class StockSearchResult$Type extends MessageType<StockSearchResult> {
+    constructor() {
+        super("prosper.v1.StockSearchResult", [
+            { no: 1, name: "exchange", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 2, name: "ticker", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<StockSearchResult>): StockSearchResult {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.exchange = "";
+        message.ticker = "";
+        message.name = "";
+        if (value !== undefined)
+            reflectionMergePartial<StockSearchResult>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StockSearchResult): StockSearchResult {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string exchange */ 1:
+                    message.exchange = reader.string();
+                    break;
+                case /* string ticker */ 2:
+                    message.ticker = reader.string();
+                    break;
+                case /* string name */ 3:
+                    message.name = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: StockSearchResult, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string exchange = 1; */
+        if (message.exchange !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.exchange);
+        /* string ticker = 2; */
+        if (message.ticker !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.ticker);
+        /* string name = 3; */
+        if (message.name !== "")
+            writer.tag(3, WireType.LengthDelimited).string(message.name);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.StockSearchResult
+ */
+export const StockSearchResult = new StockSearchResult$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class GetMarketDataForUserRequest$Type extends MessageType<GetMarketDataForUserRequest> {
     constructor() {
@@ -310,5 +514,6 @@ export const ExchangeRate = new ExchangeRate$Type();
  * @generated ServiceType for protobuf service prosper.v1.RatesService
  */
 export const RatesService = new ServiceType("prosper.v1.RatesService", [
-    { name: "GetMarketDataForUser", options: {}, I: GetMarketDataForUserRequest, O: GetMarketDataForUserResponse }
+    { name: "GetMarketDataForUser", options: {}, I: GetMarketDataForUserRequest, O: GetMarketDataForUserResponse },
+    { name: "SearchStocks", options: {}, I: SearchStocksRequest, O: SearchStocksResponse }
 ]);
