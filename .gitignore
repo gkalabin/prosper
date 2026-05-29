@@ -4,6 +4,7 @@ node_modules/
 .env*.local
 .vscode
 .antlr
+planning
 
 # Frontend (Next.js).
 frontend/.next/
