@@ -10,7 +10,7 @@ COPY backend/ ./backend/
 RUN cd backend && CGO_ENABLED=0 go build -o /out/backend ./cmd/backend
 
 # ── Node base ──
-FROM node:24.15.0-alpine3.23 AS node-base
+FROM node:24.16.0-alpine3.23 AS node-base
 
 # ── Frontend dependencies ──
 FROM node-base AS frontend-deps
