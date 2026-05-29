@@ -1,19 +1,14 @@
--- Initial schema. Tables are declared in dependency order so foreign
--- keys can be defined inline alongside the columns they reference.
---
--- The CREATE TABLE statements use IF NOT EXISTS so the migration runs
--- cleanly against databases that were provisioned via the legacy
--- `prisma db push` flow.
+-- Applied automatically by the backend on startup.
 
 CREATE TABLE IF NOT EXISTS `User` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `login` VARCHAR(191) NOT NULL,
     `password` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
-    UNIQUE INDEX `User_login_key`(`login`),
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `User_login_key` (`login`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `Stock` (
@@ -23,7 +18,7 @@ CREATE TABLE IF NOT EXISTS `Stock` (
     `ticker` VARCHAR(191) NOT NULL,
     `currencyCode` VARCHAR(191) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -34,10 +29,10 @@ CREATE TABLE IF NOT EXISTS `Bank` (
     `displayOrder` INTEGER NOT NULL DEFAULT 0,
     `userId` INTEGER NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`),
-    CONSTRAINT `Bank_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT `Bank_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `BankAccount` (
@@ -47,17 +42,17 @@ CREATE TABLE IF NOT EXISTS `BankAccount` (
     `currencyCode` VARCHAR(191) NULL,
     `stockId` INTEGER NULL,
     `displayOrder` INTEGER NOT NULL DEFAULT 0,
-    `archived` BOOLEAN NOT NULL DEFAULT false,
-    `joint` BOOLEAN NOT NULL DEFAULT false,
+    `archived` BOOLEAN NOT NULL DEFAULT FALSE,
+    `joint` BOOLEAN NOT NULL DEFAULT FALSE,
     `initialBalanceCents` INTEGER NOT NULL DEFAULT 0,
     `userId` INTEGER NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`),
-    CONSTRAINT `BankAccount_bankId_fkey` FOREIGN KEY (`bankId`) REFERENCES `Bank`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT `BankAccount_stockId_fkey` FOREIGN KEY (`stockId`) REFERENCES `Stock`(`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT `BankAccount_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT `BankAccount_bankId_fkey` FOREIGN KEY (`bankId`) REFERENCES `Bank` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `BankAccount_stockId_fkey` FOREIGN KEY (`stockId`) REFERENCES `Stock` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT `BankAccount_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `Category` (
@@ -67,11 +62,11 @@ CREATE TABLE IF NOT EXISTS `Category` (
     `parentCategoryId` INTEGER NULL,
     `userId` INTEGER NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`),
-    CONSTRAINT `Category_parentCategoryId_fkey` FOREIGN KEY (`parentCategoryId`) REFERENCES `Category`(`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT `Category_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT `Category_parentCategoryId_fkey` FOREIGN KEY (`parentCategoryId`) REFERENCES `Category` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT `Category_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `Tag` (
@@ -79,10 +74,10 @@ CREATE TABLE IF NOT EXISTS `Tag` (
     `name` VARCHAR(191) NOT NULL,
     `userId` INTEGER NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`),
-    CONSTRAINT `Tag_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT `Tag_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `Trip` (
@@ -95,21 +90,21 @@ CREATE TABLE IF NOT EXISTS `Trip` (
     `end` DATETIME(3) NULL,
     `userId` INTEGER NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`),
-    CONSTRAINT `Trip_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT `Trip_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `DisplaySettings` (
+    `userId` INTEGER NOT NULL,
     `displayCurrencyCode` VARCHAR(191) NOT NULL,
     `excludeCategoryIdsInStats` VARCHAR(191) NOT NULL,
-    `userId` INTEGER NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
-    UNIQUE INDEX `DisplaySettings_userId_key`(`userId`),
-    CONSTRAINT `DisplaySettings_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+    PRIMARY KEY (`userId`),
+    CONSTRAINT `DisplaySettings_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `ExternalAccountMapping` (
@@ -117,11 +112,11 @@ CREATE TABLE IF NOT EXISTS `ExternalAccountMapping` (
     `externalAccountId` VARCHAR(191) NOT NULL,
     `userId` INTEGER NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
-    UNIQUE INDEX `ExternalAccountMapping_internalAccountId_key`(`internalAccountId`),
-    CONSTRAINT `ExternalAccountMapping_internalAccountId_fkey` FOREIGN KEY (`internalAccountId`) REFERENCES `BankAccount`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT `ExternalAccountMapping_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+    UNIQUE INDEX `ExternalAccountMapping_internalAccountId_key` (`internalAccountId`),
+    CONSTRAINT `ExternalAccountMapping_internalAccountId_fkey` FOREIGN KEY (`internalAccountId`) REFERENCES `BankAccount` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `ExternalAccountMapping_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `LedgerAccount` (
@@ -131,12 +126,12 @@ CREATE TABLE IF NOT EXISTS `LedgerAccount` (
     `type` ENUM('ASSET', 'EXPENSE', 'INCOME', 'EQUITY', 'CURRENCY_EXCHANGE', 'RECEIVABLE') NOT NULL,
     `bankAccountId` INTEGER NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
-    UNIQUE INDEX `LedgerAccount_bankAccountId_key`(`bankAccountId`),
     PRIMARY KEY (`id`),
-    CONSTRAINT `LedgerAccount_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT `LedgerAccount_bankAccountId_fkey` FOREIGN KEY (`bankAccountId`) REFERENCES `BankAccount`(`id`) ON DELETE SET NULL ON UPDATE CASCADE
+    UNIQUE INDEX `LedgerAccount_bankAccountId_key` (`bankAccountId`),
+    CONSTRAINT `LedgerAccount_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `LedgerAccount_bankAccountId_fkey` FOREIGN KEY (`bankAccountId`) REFERENCES `BankAccount` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `Transaction` (
@@ -151,15 +146,15 @@ CREATE TABLE IF NOT EXISTS `Transaction` (
     `categoryId` INTEGER NULL,
     `tripId` INTEGER NULL,
     `supersedesId` INTEGER NULL,
-    `isVoid` BOOLEAN NOT NULL DEFAULT false,
+    `isVoid` BOOLEAN NOT NULL DEFAULT FALSE,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`),
-    CONSTRAINT `Transaction_supersedesId_fkey` FOREIGN KEY (`supersedesId`) REFERENCES `Transaction`(`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT `Transaction_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT `Transaction_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `Category`(`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-    CONSTRAINT `Transaction_tripId_fkey` FOREIGN KEY (`tripId`) REFERENCES `Trip`(`id`) ON DELETE SET NULL ON UPDATE CASCADE
+    CONSTRAINT `Transaction_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `Transaction_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `Category` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT `Transaction_tripId_fkey` FOREIGN KEY (`tripId`) REFERENCES `Trip` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT `Transaction_supersedesId_fkey` FOREIGN KEY (`supersedesId`) REFERENCES `Transaction` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `EntryLine` (
@@ -169,13 +164,16 @@ CREATE TABLE IF NOT EXISTS `EntryLine` (
     `currencyCode` VARCHAR(191) NULL,
     `stockId` INTEGER NULL,
     `amountNanos` BIGINT NOT NULL,
+    `userId` INTEGER NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`),
-    CONSTRAINT `EntryLine_transactionId_fkey` FOREIGN KEY (`transactionId`) REFERENCES `Transaction`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT `EntryLine_ledgerAccountId_fkey` FOREIGN KEY (`ledgerAccountId`) REFERENCES `LedgerAccount`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT `EntryLine_stockId_fkey` FOREIGN KEY (`stockId`) REFERENCES `Stock`(`id`) ON DELETE SET NULL ON UPDATE CASCADE
+    INDEX `EntryLine_userId_idx` (`userId`),
+    CONSTRAINT `EntryLine_transactionId_fkey` FOREIGN KEY (`transactionId`) REFERENCES `Transaction` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `EntryLine_ledgerAccountId_fkey` FOREIGN KEY (`ledgerAccountId`) REFERENCES `LedgerAccount` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `EntryLine_stockId_fkey` FOREIGN KEY (`stockId`) REFERENCES `Stock` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT `EntryLine_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `SplitContext` (
@@ -184,11 +182,14 @@ CREATE TABLE IF NOT EXISTS `SplitContext` (
     `companionName` VARCHAR(191) NOT NULL,
     `companionShareNanos` BIGINT NOT NULL,
     `companionPaidNanos` BIGINT NOT NULL,
+    `userId` INTEGER NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`),
-    CONSTRAINT `SplitContext_transactionId_fkey` FOREIGN KEY (`transactionId`) REFERENCES `Transaction`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+    INDEX `SplitContext_userId_idx` (`userId`),
+    CONSTRAINT `SplitContext_transactionId_fkey` FOREIGN KEY (`transactionId`) REFERENCES `Transaction` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `SplitContext_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `TransactionLink` (
@@ -196,12 +197,15 @@ CREATE TABLE IF NOT EXISTS `TransactionLink` (
     `sourceTransactionId` INTEGER NOT NULL,
     `linkedTransactionId` INTEGER NOT NULL,
     `linkType` ENUM('REFUND', 'DEBT_SETTLING') NOT NULL,
+    `userId` INTEGER NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`),
-    CONSTRAINT `TransactionLink_sourceTransactionId_fkey` FOREIGN KEY (`sourceTransactionId`) REFERENCES `Transaction`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT `TransactionLink_linkedTransactionId_fkey` FOREIGN KEY (`linkedTransactionId`) REFERENCES `Transaction`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+    INDEX `TransactionLink_userId_idx` (`userId`),
+    CONSTRAINT `TransactionLink_sourceTransactionId_fkey` FOREIGN KEY (`sourceTransactionId`) REFERENCES `Transaction` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `TransactionLink_linkedTransactionId_fkey` FOREIGN KEY (`linkedTransactionId`) REFERENCES `Transaction` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `TransactionLink_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `TransactionPrototype` (
@@ -211,11 +215,11 @@ CREATE TABLE IF NOT EXISTS `TransactionPrototype` (
     `internalTransactionId` INTEGER NOT NULL,
     `userId` INTEGER NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`syntheticId`),
-    CONSTRAINT `TransactionPrototype_internalTransactionId_fkey` FOREIGN KEY (`internalTransactionId`) REFERENCES `Transaction`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT `TransactionPrototype_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+    CONSTRAINT `TransactionPrototype_internalTransactionId_fkey` FOREIGN KEY (`internalTransactionId`) REFERENCES `Transaction` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `TransactionPrototype_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `Session` (
@@ -224,7 +228,7 @@ CREATE TABLE IF NOT EXISTS `Session` (
     `expiresAt` DATETIME(3) NOT NULL,
 
     PRIMARY KEY (`id`),
-    CONSTRAINT `Session_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT `Session_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `TrueLayerToken` (
@@ -236,12 +240,12 @@ CREATE TABLE IF NOT EXISTS `TrueLayerToken` (
     `refreshValidUntil` DATETIME(3) NOT NULL,
     `userId` INTEGER NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
-    UNIQUE INDEX `TrueLayerToken_bankId_key`(`bankId`),
     PRIMARY KEY (`id`),
-    CONSTRAINT `TrueLayerToken_bankId_fkey` FOREIGN KEY (`bankId`) REFERENCES `Bank`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT `TrueLayerToken_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+    UNIQUE INDEX `TrueLayerToken_bankId_key` (`bankId`),
+    CONSTRAINT `TrueLayerToken_bankId_fkey` FOREIGN KEY (`bankId`) REFERENCES `Bank` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `TrueLayerToken_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `NordigenToken` (
@@ -253,12 +257,12 @@ CREATE TABLE IF NOT EXISTS `NordigenToken` (
     `refreshValidUntil` DATETIME(3) NOT NULL,
     `userId` INTEGER NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
-    UNIQUE INDEX `NordigenToken_bankId_key`(`bankId`),
     PRIMARY KEY (`id`),
-    CONSTRAINT `NordigenToken_bankId_fkey` FOREIGN KEY (`bankId`) REFERENCES `Bank`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT `NordigenToken_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+    UNIQUE INDEX `NordigenToken_bankId_key` (`bankId`),
+    CONSTRAINT `NordigenToken_bankId_fkey` FOREIGN KEY (`bankId`) REFERENCES `Bank` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `NordigenToken_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `NordigenRequisition` (
@@ -267,15 +271,16 @@ CREATE TABLE IF NOT EXISTS `NordigenRequisition` (
     `institutionId` VARCHAR(191) NOT NULL,
     `bankId` INTEGER NOT NULL,
     `userId` INTEGER NOT NULL,
-    `completed` BOOLEAN NOT NULL DEFAULT false,
+    `completed` BOOLEAN NOT NULL DEFAULT FALSE,
+    `wasReconnect` BOOLEAN NOT NULL DEFAULT FALSE,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
-    UNIQUE INDEX `NordigenRequisition_requisitionId_key`(`requisitionId`),
-    UNIQUE INDEX `NordigenRequisition_bankId_key`(`bankId`),
     PRIMARY KEY (`id`),
-    CONSTRAINT `NordigenRequisition_bankId_fkey` FOREIGN KEY (`bankId`) REFERENCES `Bank`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT `NordigenRequisition_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+    UNIQUE INDEX `NordigenRequisition_requisitionId_key` (`requisitionId`),
+    UNIQUE INDEX `NordigenRequisition_bankId_key` (`bankId`),
+    CONSTRAINT `NordigenRequisition_bankId_fkey` FOREIGN KEY (`bankId`) REFERENCES `Bank` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `NordigenRequisition_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `StarlingToken` (
@@ -287,12 +292,12 @@ CREATE TABLE IF NOT EXISTS `StarlingToken` (
     `refreshValidUntil` DATETIME(3) NOT NULL,
     `userId` INTEGER NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
-    UNIQUE INDEX `StarlingToken_bankId_key`(`bankId`),
     PRIMARY KEY (`id`),
-    CONSTRAINT `StarlingToken_bankId_fkey` FOREIGN KEY (`bankId`) REFERENCES `Bank`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT `StarlingToken_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+    UNIQUE INDEX `StarlingToken_bankId_key` (`bankId`),
+    CONSTRAINT `StarlingToken_bankId_fkey` FOREIGN KEY (`bankId`) REFERENCES `Bank` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT `StarlingToken_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `ExchangeRate` (
@@ -300,31 +305,37 @@ CREATE TABLE IF NOT EXISTS `ExchangeRate` (
     `currencyCodeFrom` VARCHAR(191) NOT NULL,
     `currencyCodeTo` VARCHAR(191) NOT NULL,
     `rateTimestamp` DATETIME(3) NOT NULL,
-    `rateNanos` BIGINT NOT NULL,
+    `rateNanos` BIGINT NULL,
+    `fetchStatus` VARCHAR(32) NOT NULL DEFAULT 'ok',
+    `fetchedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    UNIQUE INDEX `ExchangeRate_pair_timestamp` (`currencyCodeFrom`, `currencyCodeTo`, `rateTimestamp`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `StockQuote` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `stockId` INTEGER NOT NULL,
     `quoteTimestamp` DATETIME(3) NOT NULL,
-    `value` INTEGER NOT NULL,
+    `value` BIGINT NULL,
+    `fetchStatus` VARCHAR(32) NOT NULL DEFAULT 'ok',
+    `fetchedAt` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
+    `updatedAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
     PRIMARY KEY (`id`),
-    CONSTRAINT `StockQuote_stockId_fkey` FOREIGN KEY (`stockId`) REFERENCES `Stock`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+    UNIQUE INDEX `StockQuote_stock_timestamp` (`stockId`, `quoteTimestamp`),
+    CONSTRAINT `StockQuote_stockId_fkey` FOREIGN KEY (`stockId`) REFERENCES `Stock` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `_TagToTransaction` (
-    `A` INTEGER NOT NULL,
-    `B` INTEGER NOT NULL,
+CREATE TABLE IF NOT EXISTS `TagTransaction` (
+    `tagId` INTEGER NOT NULL,
+    `transactionId` INTEGER NOT NULL,
 
-    UNIQUE INDEX `_TagToTransaction_AB_unique`(`A`, `B`),
-    INDEX `_TagToTransaction_B_index`(`B`),
-    CONSTRAINT `_TagV2ToTransactionV2_A_fkey` FOREIGN KEY (`A`) REFERENCES `Tag`(`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-    CONSTRAINT `_TagV2ToTransactionV2_B_fkey` FOREIGN KEY (`B`) REFERENCES `Transaction`(`id`) ON DELETE CASCADE ON UPDATE CASCADE
+    UNIQUE INDEX `TagTransaction_tagId_transactionId_unique` (`tagId`, `transactionId`),
+    INDEX `TagTransaction_transactionId_index` (`transactionId`),
+    CONSTRAINT `TagTransaction_tagId_fkey` FOREIGN KEY (`tagId`) REFERENCES `Tag` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT `TagTransaction_transactionId_fkey` FOREIGN KEY (`transactionId`) REFERENCES `Transaction` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
