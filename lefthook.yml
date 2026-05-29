@@ -41,6 +41,10 @@ pre-commit:
   jobs:
     - name: eslint
       glob: 'frontend/**/*.{js,jsx,ts,tsx}'
+      # Switch to --no-warn-ignored when using eslint v10
+      exclude:
+        - 'frontend/lib/grpc/gen/**'
+        - 'frontend/lib/search/generated/**'
       root: frontend/
       run: npx eslint --max-warnings=0 {staged_files}
 
@@ -51,7 +55,7 @@ pre-commit:
     - name: golangci-lint
       glob: 'backend/**/*.go'
       root: backend/
-      run: golangci-lint run {staged_files}
+      run: golangci-lint run ./...
 
     - name: typos
       run: typos --force-exclude {staged_files}
