@@ -23,6 +23,7 @@ type Service struct {
 	cfg             *config.Config
 	currencyFetcher CurrencyRateFetcher
 	stockFetcher    StockQuoteFetcher
+	stockMeta       StockMetadataFetcher
 
 	// trigger carries out-of-band fetch signals (e.g. when
 	// LedgerService.UpsertBankAccount introduces a new currency).
@@ -37,6 +38,7 @@ func NewService(db *sqlx.DB, cfg *config.Config) *Service {
 		cfg:             cfg,
 		currencyFetcher: yahoo,
 		stockFetcher:    yahoo,
+		stockMeta:       yahoo,
 		trigger:         make(chan struct{}, 1),
 	}
 }
@@ -99,6 +101,25 @@ func (s *Service) GetMarketDataForUser(ctx context.Context, _ *prosperv1.GetMark
 			continue
 		}
 		resp.Quotes = append(resp.Quotes, stockQuoteToProto(q))
+	}
+	return resp, nil
+}
+
+// SearchStocks returns the stocks matching a free-text query.
+func (s *Service) SearchStocks(ctx context.Context, req *prosperv1.SearchStocksRequest) (*prosperv1.SearchStocksResponse, error) {
+	results, err := s.stockMeta.SearchStocks(ctx, req.GetQuery())
+	if err != nil {
+		return nil, err
+	}
+	resp := &prosperv1.SearchStocksResponse{
+		Stocks: make([]*prosperv1.StockSearchResult, 0, len(results)),
+	}
+	for _, r := range results {
+		resp.Stocks = append(resp.Stocks, &prosperv1.StockSearchResult{
+			Exchange: r.Exchange,
+			Ticker:   r.Ticker,
+			Name:     r.Name,
+		})
 	}
 	return resp, nil
 }

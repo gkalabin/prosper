@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	RatesService_GetMarketDataForUser_FullMethodName = "/prosper.v1.RatesService/GetMarketDataForUser"
+	RatesService_SearchStocks_FullMethodName         = "/prosper.v1.RatesService/SearchStocks"
 )
 
 // RatesServiceClient is the client API for RatesService service.
@@ -35,6 +36,8 @@ type RatesServiceClient interface {
 	// accounts and DisplaySettings — the frontend does not need to know
 	// which pairs to ask for.
 	GetMarketDataForUser(ctx context.Context, in *GetMarketDataForUserRequest, opts ...grpc.CallOption) (*GetMarketDataForUserResponse, error)
+	// SearchStocks returns stocks matching a free-text query.
+	SearchStocks(ctx context.Context, in *SearchStocksRequest, opts ...grpc.CallOption) (*SearchStocksResponse, error)
 }
 
 type ratesServiceClient struct {
@@ -55,6 +58,16 @@ func (c *ratesServiceClient) GetMarketDataForUser(ctx context.Context, in *GetMa
 	return out, nil
 }
 
+func (c *ratesServiceClient) SearchStocks(ctx context.Context, in *SearchStocksRequest, opts ...grpc.CallOption) (*SearchStocksResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SearchStocksResponse)
+	err := c.cc.Invoke(ctx, RatesService_SearchStocks_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RatesServiceServer is the server API for RatesService service.
 // All implementations must embed UnimplementedRatesServiceServer
 // for forward compatibility.
@@ -68,6 +81,8 @@ type RatesServiceServer interface {
 	// accounts and DisplaySettings — the frontend does not need to know
 	// which pairs to ask for.
 	GetMarketDataForUser(context.Context, *GetMarketDataForUserRequest) (*GetMarketDataForUserResponse, error)
+	// SearchStocks returns stocks matching a free-text query.
+	SearchStocks(context.Context, *SearchStocksRequest) (*SearchStocksResponse, error)
 	mustEmbedUnimplementedRatesServiceServer()
 }
 
@@ -80,6 +95,9 @@ type UnimplementedRatesServiceServer struct{}
 
 func (UnimplementedRatesServiceServer) GetMarketDataForUser(context.Context, *GetMarketDataForUserRequest) (*GetMarketDataForUserResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMarketDataForUser not implemented")
+}
+func (UnimplementedRatesServiceServer) SearchStocks(context.Context, *SearchStocksRequest) (*SearchStocksResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SearchStocks not implemented")
 }
 func (UnimplementedRatesServiceServer) mustEmbedUnimplementedRatesServiceServer() {}
 func (UnimplementedRatesServiceServer) testEmbeddedByValue()                      {}
@@ -120,6 +138,24 @@ func _RatesService_GetMarketDataForUser_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RatesService_SearchStocks_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SearchStocksRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RatesServiceServer).SearchStocks(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RatesService_SearchStocks_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RatesServiceServer).SearchStocks(ctx, req.(*SearchStocksRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RatesService_ServiceDesc is the grpc.ServiceDesc for RatesService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -130,6 +166,10 @@ var RatesService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMarketDataForUser",
 			Handler:    _RatesService_GetMarketDataForUser_Handler,
+		},
+		{
+			MethodName: "SearchStocks",
+			Handler:    _RatesService_SearchStocks_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

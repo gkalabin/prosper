@@ -22,6 +22,162 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+type SearchStocksRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	Query         string                 `protobuf:"bytes,2,opt,name=query,proto3" json:"query,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchStocksRequest) Reset() {
+	*x = SearchStocksRequest{}
+	mi := &file_prosper_v1_rates_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchStocksRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchStocksRequest) ProtoMessage() {}
+
+func (x *SearchStocksRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_prosper_v1_rates_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchStocksRequest.ProtoReflect.Descriptor instead.
+func (*SearchStocksRequest) Descriptor() ([]byte, []int) {
+	return file_prosper_v1_rates_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *SearchStocksRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *SearchStocksRequest) GetQuery() string {
+	if x != nil {
+		return x.Query
+	}
+	return ""
+}
+
+type SearchStocksResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Stocks        []*StockSearchResult   `protobuf:"bytes,1,rep,name=stocks,proto3" json:"stocks,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SearchStocksResponse) Reset() {
+	*x = SearchStocksResponse{}
+	mi := &file_prosper_v1_rates_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SearchStocksResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SearchStocksResponse) ProtoMessage() {}
+
+func (x *SearchStocksResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_prosper_v1_rates_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SearchStocksResponse.ProtoReflect.Descriptor instead.
+func (*SearchStocksResponse) Descriptor() ([]byte, []int) {
+	return file_prosper_v1_rates_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *SearchStocksResponse) GetStocks() []*StockSearchResult {
+	if x != nil {
+		return x.Stocks
+	}
+	return nil
+}
+
+type StockSearchResult struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Exchange      string                 `protobuf:"bytes,1,opt,name=exchange,proto3" json:"exchange,omitempty"`
+	Ticker        string                 `protobuf:"bytes,2,opt,name=ticker,proto3" json:"ticker,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StockSearchResult) Reset() {
+	*x = StockSearchResult{}
+	mi := &file_prosper_v1_rates_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StockSearchResult) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StockSearchResult) ProtoMessage() {}
+
+func (x *StockSearchResult) ProtoReflect() protoreflect.Message {
+	mi := &file_prosper_v1_rates_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StockSearchResult.ProtoReflect.Descriptor instead.
+func (*StockSearchResult) Descriptor() ([]byte, []int) {
+	return file_prosper_v1_rates_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *StockSearchResult) GetExchange() string {
+	if x != nil {
+		return x.Exchange
+	}
+	return ""
+}
+
+func (x *StockSearchResult) GetTicker() string {
+	if x != nil {
+		return x.Ticker
+	}
+	return ""
+}
+
+func (x *StockSearchResult) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
 type GetMarketDataForUserRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
@@ -31,7 +187,7 @@ type GetMarketDataForUserRequest struct {
 
 func (x *GetMarketDataForUserRequest) Reset() {
 	*x = GetMarketDataForUserRequest{}
-	mi := &file_prosper_v1_rates_proto_msgTypes[0]
+	mi := &file_prosper_v1_rates_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +199,7 @@ func (x *GetMarketDataForUserRequest) String() string {
 func (*GetMarketDataForUserRequest) ProtoMessage() {}
 
 func (x *GetMarketDataForUserRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_rates_proto_msgTypes[0]
+	mi := &file_prosper_v1_rates_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +212,7 @@ func (x *GetMarketDataForUserRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMarketDataForUserRequest.ProtoReflect.Descriptor instead.
 func (*GetMarketDataForUserRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_rates_proto_rawDescGZIP(), []int{0}
+	return file_prosper_v1_rates_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *GetMarketDataForUserRequest) GetSessionId() string {
@@ -76,7 +232,7 @@ type GetMarketDataForUserResponse struct {
 
 func (x *GetMarketDataForUserResponse) Reset() {
 	*x = GetMarketDataForUserResponse{}
-	mi := &file_prosper_v1_rates_proto_msgTypes[1]
+	mi := &file_prosper_v1_rates_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -88,7 +244,7 @@ func (x *GetMarketDataForUserResponse) String() string {
 func (*GetMarketDataForUserResponse) ProtoMessage() {}
 
 func (x *GetMarketDataForUserResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_rates_proto_msgTypes[1]
+	mi := &file_prosper_v1_rates_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -101,7 +257,7 @@ func (x *GetMarketDataForUserResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetMarketDataForUserResponse.ProtoReflect.Descriptor instead.
 func (*GetMarketDataForUserResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_rates_proto_rawDescGZIP(), []int{1}
+	return file_prosper_v1_rates_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *GetMarketDataForUserResponse) GetRates() []*ExchangeRate {
@@ -129,7 +285,7 @@ type StockQuote struct {
 
 func (x *StockQuote) Reset() {
 	*x = StockQuote{}
-	mi := &file_prosper_v1_rates_proto_msgTypes[2]
+	mi := &file_prosper_v1_rates_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -141,7 +297,7 @@ func (x *StockQuote) String() string {
 func (*StockQuote) ProtoMessage() {}
 
 func (x *StockQuote) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_rates_proto_msgTypes[2]
+	mi := &file_prosper_v1_rates_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -154,7 +310,7 @@ func (x *StockQuote) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StockQuote.ProtoReflect.Descriptor instead.
 func (*StockQuote) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_rates_proto_rawDescGZIP(), []int{2}
+	return file_prosper_v1_rates_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *StockQuote) GetStockId() int32 {
@@ -190,7 +346,7 @@ type ExchangeRate struct {
 
 func (x *ExchangeRate) Reset() {
 	*x = ExchangeRate{}
-	mi := &file_prosper_v1_rates_proto_msgTypes[3]
+	mi := &file_prosper_v1_rates_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -202,7 +358,7 @@ func (x *ExchangeRate) String() string {
 func (*ExchangeRate) ProtoMessage() {}
 
 func (x *ExchangeRate) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_rates_proto_msgTypes[3]
+	mi := &file_prosper_v1_rates_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -215,7 +371,7 @@ func (x *ExchangeRate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExchangeRate.ProtoReflect.Descriptor instead.
 func (*ExchangeRate) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_rates_proto_rawDescGZIP(), []int{3}
+	return file_prosper_v1_rates_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ExchangeRate) GetCurrencyCodeFrom() string {
@@ -251,7 +407,17 @@ var File_prosper_v1_rates_proto protoreflect.FileDescriptor
 const file_prosper_v1_rates_proto_rawDesc = "" +
 	"\n" +
 	"\x16prosper/v1/rates.proto\x12\n" +
-	"prosper.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"<\n" +
+	"prosper.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"J\n" +
+	"\x13SearchStocksRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
+	"\x05query\x18\x02 \x01(\tR\x05query\"M\n" +
+	"\x14SearchStocksResponse\x125\n" +
+	"\x06stocks\x18\x01 \x03(\v2\x1d.prosper.v1.StockSearchResultR\x06stocks\"[\n" +
+	"\x11StockSearchResult\x12\x1a\n" +
+	"\bexchange\x18\x01 \x01(\tR\bexchange\x12\x16\n" +
+	"\x06ticker\x18\x02 \x01(\tR\x06ticker\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\"<\n" +
 	"\x1bGetMarketDataForUserRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\"~\n" +
@@ -268,9 +434,10 @@ const file_prosper_v1_rates_proto_rawDesc = "" +
 	"\x10currency_code_to\x18\x02 \x01(\tR\x0ecurrencyCodeTo\x12A\n" +
 	"\x0erate_timestamp\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\rrateTimestamp\x12\x1d\n" +
 	"\n" +
-	"rate_nanos\x18\x04 \x01(\x03R\trateNanos2y\n" +
+	"rate_nanos\x18\x04 \x01(\x03R\trateNanos2\xcc\x01\n" +
 	"\fRatesService\x12i\n" +
-	"\x14GetMarketDataForUser\x12'.prosper.v1.GetMarketDataForUserRequest\x1a(.prosper.v1.GetMarketDataForUserResponseB\"Z prosper/gen/prosper/v1;prosperv1b\x06proto3"
+	"\x14GetMarketDataForUser\x12'.prosper.v1.GetMarketDataForUserRequest\x1a(.prosper.v1.GetMarketDataForUserResponse\x12Q\n" +
+	"\fSearchStocks\x12\x1f.prosper.v1.SearchStocksRequest\x1a .prosper.v1.SearchStocksResponseB\"Z prosper/gen/prosper/v1;prosperv1b\x06proto3"
 
 var (
 	file_prosper_v1_rates_proto_rawDescOnce sync.Once
@@ -284,26 +451,32 @@ func file_prosper_v1_rates_proto_rawDescGZIP() []byte {
 	return file_prosper_v1_rates_proto_rawDescData
 }
 
-var file_prosper_v1_rates_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_prosper_v1_rates_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_prosper_v1_rates_proto_goTypes = []any{
-	(*GetMarketDataForUserRequest)(nil),  // 0: prosper.v1.GetMarketDataForUserRequest
-	(*GetMarketDataForUserResponse)(nil), // 1: prosper.v1.GetMarketDataForUserResponse
-	(*StockQuote)(nil),                   // 2: prosper.v1.StockQuote
-	(*ExchangeRate)(nil),                 // 3: prosper.v1.ExchangeRate
-	(*timestamppb.Timestamp)(nil),        // 4: google.protobuf.Timestamp
+	(*SearchStocksRequest)(nil),          // 0: prosper.v1.SearchStocksRequest
+	(*SearchStocksResponse)(nil),         // 1: prosper.v1.SearchStocksResponse
+	(*StockSearchResult)(nil),            // 2: prosper.v1.StockSearchResult
+	(*GetMarketDataForUserRequest)(nil),  // 3: prosper.v1.GetMarketDataForUserRequest
+	(*GetMarketDataForUserResponse)(nil), // 4: prosper.v1.GetMarketDataForUserResponse
+	(*StockQuote)(nil),                   // 5: prosper.v1.StockQuote
+	(*ExchangeRate)(nil),                 // 6: prosper.v1.ExchangeRate
+	(*timestamppb.Timestamp)(nil),        // 7: google.protobuf.Timestamp
 }
 var file_prosper_v1_rates_proto_depIdxs = []int32{
-	3, // 0: prosper.v1.GetMarketDataForUserResponse.rates:type_name -> prosper.v1.ExchangeRate
-	2, // 1: prosper.v1.GetMarketDataForUserResponse.quotes:type_name -> prosper.v1.StockQuote
-	4, // 2: prosper.v1.StockQuote.quote_timestamp:type_name -> google.protobuf.Timestamp
-	4, // 3: prosper.v1.ExchangeRate.rate_timestamp:type_name -> google.protobuf.Timestamp
-	0, // 4: prosper.v1.RatesService.GetMarketDataForUser:input_type -> prosper.v1.GetMarketDataForUserRequest
-	1, // 5: prosper.v1.RatesService.GetMarketDataForUser:output_type -> prosper.v1.GetMarketDataForUserResponse
-	5, // [5:6] is the sub-list for method output_type
-	4, // [4:5] is the sub-list for method input_type
-	4, // [4:4] is the sub-list for extension type_name
-	4, // [4:4] is the sub-list for extension extendee
-	0, // [0:4] is the sub-list for field type_name
+	2, // 0: prosper.v1.SearchStocksResponse.stocks:type_name -> prosper.v1.StockSearchResult
+	6, // 1: prosper.v1.GetMarketDataForUserResponse.rates:type_name -> prosper.v1.ExchangeRate
+	5, // 2: prosper.v1.GetMarketDataForUserResponse.quotes:type_name -> prosper.v1.StockQuote
+	7, // 3: prosper.v1.StockQuote.quote_timestamp:type_name -> google.protobuf.Timestamp
+	7, // 4: prosper.v1.ExchangeRate.rate_timestamp:type_name -> google.protobuf.Timestamp
+	3, // 5: prosper.v1.RatesService.GetMarketDataForUser:input_type -> prosper.v1.GetMarketDataForUserRequest
+	0, // 6: prosper.v1.RatesService.SearchStocks:input_type -> prosper.v1.SearchStocksRequest
+	4, // 7: prosper.v1.RatesService.GetMarketDataForUser:output_type -> prosper.v1.GetMarketDataForUserResponse
+	1, // 8: prosper.v1.RatesService.SearchStocks:output_type -> prosper.v1.SearchStocksResponse
+	7, // [7:9] is the sub-list for method output_type
+	5, // [5:7] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_prosper_v1_rates_proto_init() }
@@ -317,7 +490,7 @@ func file_prosper_v1_rates_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_prosper_v1_rates_proto_rawDesc), len(file_prosper_v1_rates_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
