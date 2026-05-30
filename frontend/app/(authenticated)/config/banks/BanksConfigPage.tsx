@@ -165,13 +165,17 @@ const BankConnections = ({
         <Button variant="link" size="inherit" asChild>
           <Link
             href={`/config/open-banking/starling/connect?bankId=${bank.id}`}
+            prefetch={false}
           >
             Starling (UK)
           </Link>
         </Button>
         ,{' '}
         <Button variant="link" size="inherit" asChild>
-          <Link href={`/api/open-banking/truelayer/connect?bankId=${bank.id}`}>
+          <Link
+            href={`/api/open-banking/truelayer/connect?bankId=${bank.id}`}
+            prefetch={false}
+          >
             TrueLayer (UK)
           </Link>
         </Button>
@@ -179,6 +183,7 @@ const BankConnections = ({
         <Button variant="link" size="inherit" asChild>
           <Link
             href={`/config/open-banking/nordigen/connect?bankId=${bank.id}`}
+            prefetch={false}
           >
             Nordigen (EU+UK)
           </Link>
