@@ -154,8 +154,7 @@ message CompleteTrueLayerConnectionResponse {
 message StartNordigenConnectionRequest {
   int32 bank_id = 1;
   string institution_id = 2;
-  string redirect_uri = 3;
-  string session_id = 4;
+  string session_id = 3;
 }
 
 message StartNordigenConnectionResponse {

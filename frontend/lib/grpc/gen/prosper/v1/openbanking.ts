@@ -200,11 +200,7 @@ export interface StartNordigenConnectionRequest {
      */
     institutionId: string;
     /**
-     * @generated from protobuf field: string redirect_uri = 3
-     */
-    redirectUri: string;
-    /**
-     * @generated from protobuf field: string session_id = 4
+     * @generated from protobuf field: string session_id = 3
      */
     sessionId: string;
 }
@@ -1244,15 +1240,13 @@ class StartNordigenConnectionRequest$Type extends MessageType<StartNordigenConne
         super("prosper.v1.StartNordigenConnectionRequest", [
             { no: 1, name: "bank_id", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
             { no: 2, name: "institution_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "redirect_uri", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<StartNordigenConnectionRequest>): StartNordigenConnectionRequest {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.bankId = 0;
         message.institutionId = "";
-        message.redirectUri = "";
         message.sessionId = "";
         if (value !== undefined)
             reflectionMergePartial<StartNordigenConnectionRequest>(this, message, value);
@@ -1269,10 +1263,7 @@ class StartNordigenConnectionRequest$Type extends MessageType<StartNordigenConne
                 case /* string institution_id */ 2:
                     message.institutionId = reader.string();
                     break;
-                case /* string redirect_uri */ 3:
-                    message.redirectUri = reader.string();
-                    break;
-                case /* string session_id */ 4:
+                case /* string session_id */ 3:
                     message.sessionId = reader.string();
                     break;
                 default:
@@ -1293,12 +1284,9 @@ class StartNordigenConnectionRequest$Type extends MessageType<StartNordigenConne
         /* string institution_id = 2; */
         if (message.institutionId !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.institutionId);
-        /* string redirect_uri = 3; */
-        if (message.redirectUri !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.redirectUri);
-        /* string session_id = 4; */
+        /* string session_id = 3; */
         if (message.sessionId !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.sessionId);
+            writer.tag(3, WireType.LengthDelimited).string(message.sessionId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

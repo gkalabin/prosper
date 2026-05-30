@@ -779,8 +779,7 @@ type StartNordigenConnectionRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	BankId        int32                  `protobuf:"varint,1,opt,name=bank_id,json=bankId,proto3" json:"bank_id,omitempty"`
 	InstitutionId string                 `protobuf:"bytes,2,opt,name=institution_id,json=institutionId,proto3" json:"institution_id,omitempty"`
-	RedirectUri   string                 `protobuf:"bytes,3,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
-	SessionId     string                 `protobuf:"bytes,4,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	SessionId     string                 `protobuf:"bytes,3,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -825,13 +824,6 @@ func (x *StartNordigenConnectionRequest) GetBankId() int32 {
 func (x *StartNordigenConnectionRequest) GetInstitutionId() string {
 	if x != nil {
 		return x.InstitutionId
-	}
-	return ""
-}
-
-func (x *StartNordigenConnectionRequest) GetRedirectUri() string {
-	if x != nil {
-		return x.RedirectUri
 	}
 	return ""
 }
@@ -2021,13 +2013,12 @@ const file_prosper_v1_openbanking_proto_rawDesc = "" +
 	"\n" +
 	"session_id\x18\x03 \x01(\tR\tsessionId\"J\n" +
 	"#CompleteTrueLayerConnectionResponse\x12#\n" +
-	"\rwas_reconnect\x18\x01 \x01(\bR\fwasReconnect\"\xa2\x01\n" +
+	"\rwas_reconnect\x18\x01 \x01(\bR\fwasReconnect\"\x7f\n" +
 	"\x1eStartNordigenConnectionRequest\x12\x17\n" +
 	"\abank_id\x18\x01 \x01(\x05R\x06bankId\x12%\n" +
-	"\x0einstitution_id\x18\x02 \x01(\tR\rinstitutionId\x12!\n" +
-	"\fredirect_uri\x18\x03 \x01(\tR\vredirectUri\x12\x1d\n" +
+	"\x0einstitution_id\x18\x02 \x01(\tR\rinstitutionId\x12\x1d\n" +
 	"\n" +
-	"session_id\x18\x04 \x01(\tR\tsessionId\"<\n" +
+	"session_id\x18\x03 \x01(\tR\tsessionId\"<\n" +
 	"\x1fStartNordigenConnectionResponse\x12\x19\n" +
 	"\bauth_url\x18\x01 \x01(\tR\aauthUrl\"`\n" +
 	"!CompleteNordigenConnectionRequest\x12\x1c\n" +

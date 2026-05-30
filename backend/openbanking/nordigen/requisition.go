@@ -46,14 +46,14 @@ type accountDetails struct {
 // chosen institution. Returns the local reference (stored alongside
 // the requisition record) and the hosted authorization link the user
 // should be redirected to.
-func (n *Provider) CreateRequisition(ctx context.Context, userID, bankID int32, institutionID, redirectURI string) (reference, authLink string, err error) {
+func (n *Provider) CreateRequisition(ctx context.Context, userID, bankID int32, institutionID string) (reference, authLink string, err error) {
 	access, wasReconnect, err := n.ensureToken(ctx, userID, bankID)
 	if err != nil {
 		return "", "", err
 	}
 	reference = newRequisitionReference()
 	body, _ := json.Marshal(map[string]string{
-		"redirect":       redirectURI,
+		"redirect":       n.redirectURI(),
 		"institution_id": institutionID,
 		"reference":      reference,
 	})

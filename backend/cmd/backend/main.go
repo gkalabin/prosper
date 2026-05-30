@@ -88,7 +88,7 @@ func main() {
 		log.Println("openbanking: truelayer provider disabled (credentials not configured)")
 	}
 	if cfg.NordigenSecretID != "" && cfg.NordigenSecretKey != "" {
-		obSrv.RegisterProvider(nordigen.New(udb, cfg.NordigenSecretID, cfg.NordigenSecretKey))
+		obSrv.RegisterProvider(nordigen.New(udb, cfg.NordigenSecretID, cfg.NordigenSecretKey, cfg.PublicAppURL))
 		log.Println("openbanking: nordigen provider registered")
 	} else {
 		log.Println("openbanking: nordigen provider disabled (credentials not configured)")

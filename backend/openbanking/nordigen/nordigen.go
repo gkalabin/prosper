@@ -21,26 +21,40 @@ const apiBase = "https://bankaccountdata.gocardless.com/api/v2"
 // dateOnlyFormat matches Nordigen's "YYYY-MM-DD" wire format.
 const dateOnlyFormat = "2006-01-02"
 
+// connectedPath is the path the browser lands on after authorizing on Nordigen.
+const connectedPath = "/api/open-banking/nordigen/connected"
+
 // Provider implements openbanking.Provider against the GoCardless Bank
 // Account Data API.
 type Provider struct {
-	db         *userdb.DB
-	secretID   string
-	secretKey  string
-	httpClient *http.Client
+	db        *userdb.DB
+	secretID  string
+	secretKey string
+	// publicAppURL is the origin the user's browser reaches the Next
+	// frontend at. Used to derive the connection redirect URI without
+	// asking the caller for it.
+	publicAppURL string
+	httpClient   *http.Client
 
 	appTokenMu     sync.Mutex
 	appToken       string
 	appTokenExpiry time.Time
 }
 
-func New(db *userdb.DB, secretID, secretKey string) *Provider {
+func New(db *userdb.DB, secretID, secretKey, publicAppURL string) *Provider {
 	return &Provider{
-		db:         db,
-		secretID:   secretID,
-		secretKey:  secretKey,
-		httpClient: httpx.NewClient(),
+		db:           db,
+		secretID:     secretID,
+		secretKey:    secretKey,
+		publicAppURL: publicAppURL,
+		httpClient:   httpx.NewClient(),
 	}
+}
+
+// redirectURI is the absolute URL the browser lands on after the user
+// authorizes the app on Nordigen's side.
+func (n *Provider) redirectURI() string {
+	return n.publicAppURL + connectedPath
 }
 
 func (*Provider) Kind() prosperv1.Provider { return prosperv1.Provider_PROVIDER_NORDIGEN }

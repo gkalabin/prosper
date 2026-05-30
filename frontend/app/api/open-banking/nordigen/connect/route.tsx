@@ -22,9 +22,8 @@ export async function GET(request: NextRequest): Promise<Response> {
     bankId,
     institutionId,
   });
-  const redirectURI = `${process.env.PUBLIC_APP_URL}/api/open-banking/nordigen/connected`;
   const {response} = await openBankingClient.startNordigenConnection(
-    withAuth({bankId, institutionId, redirectUri: redirectURI}, auth)
+    withAuth({bankId, institutionId}, auth)
   );
   return redirect(response.authUrl);
 }

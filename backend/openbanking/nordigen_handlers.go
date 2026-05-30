@@ -25,7 +25,7 @@ func (s *Service) StartNordigenConnection(ctx context.Context, req *prosperv1.St
 	if err != nil {
 		return nil, err
 	}
-	_, link, err := nd.CreateRequisition(ctx, userID, req.BankId, req.InstitutionId, req.RedirectUri)
+	_, link, err := nd.CreateRequisition(ctx, userID, req.BankId, req.InstitutionId)
 	if err != nil {
 		return nil, err
 	}
