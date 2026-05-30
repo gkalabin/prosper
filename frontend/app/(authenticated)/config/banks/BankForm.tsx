@@ -39,12 +39,16 @@ export function BankForm({
     },
   });
   const handleSubmit = async (values: BankFormSchema) => {
-    const result = await upsertBank(bank?.id ?? null, values);
-    if (result.status === 'CLIENT_ERROR') {
+    try {
+      const result = await upsertBank(bank?.id ?? null, values);
+      if (result.status === 'SUCCESS') {
+        onAddedOrUpdated(result.data);
+        return;
+      }
       setFormErrors(result.errors, form.setError);
-      return;
+    } catch (error) {
+      form.setError('root', {message: `Failed to save bank: ${error}`});
     }
-    onAddedOrUpdated(result.data);
   };
   return (
     <Form {...form}>
