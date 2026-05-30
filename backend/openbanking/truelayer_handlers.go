@@ -25,7 +25,7 @@ func (s *Service) StartTrueLayerConnection(_ context.Context, req *prosperv1.Sta
 		return nil, err
 	}
 	return &prosperv1.StartTrueLayerConnectionResponse{
-		AuthUrl: tl.AuthURL(req.BankId, req.RedirectUri),
+		AuthUrl: tl.AuthURL(req.BankId),
 	}, nil
 }
 
@@ -35,7 +35,7 @@ func (s *Service) CompleteTrueLayerConnection(ctx context.Context, req *prosperv
 	if err != nil {
 		return nil, err
 	}
-	wasReconnect, err := tl.ExchangeCode(ctx, userID, req.BankId, req.Code, req.RedirectUri)
+	wasReconnect, err := tl.ExchangeCode(ctx, userID, req.BankId, req.Code)
 	if err != nil {
 		return nil, err
 	}

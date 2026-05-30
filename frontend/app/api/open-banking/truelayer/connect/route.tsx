@@ -11,7 +11,6 @@ export async function GET(request: NextRequest): Promise<Response> {
   const auth = await getAuthContextOrRedirect();
   const query = request.nextUrl.searchParams;
   const code = query.get('code');
-  const redirectURI = `${process.env.PUBLIC_APP_URL}/api/open-banking/truelayer/connect`;
   if (!code) {
     const connectingBankId = positiveIntOrNull(query.get('bankId'));
     if (!connectingBankId) {
@@ -23,7 +22,7 @@ export async function GET(request: NextRequest): Promise<Response> {
       bankId: connectingBankId,
     });
     const {response} = await openBankingClient.startTrueLayerConnection(
-      withAuth({bankId: connectingBankId, redirectUri: redirectURI}, auth)
+      withAuth({bankId: connectingBankId}, auth)
     );
     return redirect(response.authUrl);
   }
@@ -38,9 +37,7 @@ export async function GET(request: NextRequest): Promise<Response> {
     bankId,
   });
   const result = await openBankingClient
-    .completeTrueLayerConnection(
-      withAuth({bankId, code, redirectUri: redirectURI}, auth)
-    )
+    .completeTrueLayerConnection(withAuth({bankId, code}, auth))
     .then(
       ({response}) => ({ok: true, wasReconnect: response.wasReconnect}) as const
     )

@@ -130,10 +130,7 @@ message ConnectionExpiration {
 
 message StartTrueLayerConnectionRequest {
   int32 bank_id = 1;
-  // Absolute redirect URI the browser will land on after the user
-  // authorizes the app on TrueLayer's side.
-  string redirect_uri = 2;
-  string session_id = 3;
+  string session_id = 2;
 }
 
 message StartTrueLayerConnectionResponse {
@@ -146,8 +143,7 @@ message CompleteTrueLayerConnectionRequest {
   // OAuth authorization code returned by TrueLayer's auth,
   // exchanged on the server for access/refresh tokens.
   string code = 2;
-  string redirect_uri = 3;
-  string session_id = 4;
+  string session_id = 3;
 }
 
 message CompleteTrueLayerConnectionResponse {

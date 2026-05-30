@@ -141,14 +141,7 @@ export interface StartTrueLayerConnectionRequest {
      */
     bankId: number;
     /**
-     * Absolute redirect URI the browser will land on after the user
-     * authorizes the app on TrueLayer's side.
-     *
-     * @generated from protobuf field: string redirect_uri = 2
-     */
-    redirectUri: string;
-    /**
-     * @generated from protobuf field: string session_id = 3
+     * @generated from protobuf field: string session_id = 2
      */
     sessionId: string;
 }
@@ -179,11 +172,7 @@ export interface CompleteTrueLayerConnectionRequest {
      */
     code: string;
     /**
-     * @generated from protobuf field: string redirect_uri = 3
-     */
-    redirectUri: string;
-    /**
-     * @generated from protobuf field: string session_id = 4
+     * @generated from protobuf field: string session_id = 3
      */
     sessionId: string;
 }
@@ -1042,14 +1031,12 @@ class StartTrueLayerConnectionRequest$Type extends MessageType<StartTrueLayerCon
     constructor() {
         super("prosper.v1.StartTrueLayerConnectionRequest", [
             { no: 1, name: "bank_id", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 2, name: "redirect_uri", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<StartTrueLayerConnectionRequest>): StartTrueLayerConnectionRequest {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.bankId = 0;
-        message.redirectUri = "";
         message.sessionId = "";
         if (value !== undefined)
             reflectionMergePartial<StartTrueLayerConnectionRequest>(this, message, value);
@@ -1063,10 +1050,7 @@ class StartTrueLayerConnectionRequest$Type extends MessageType<StartTrueLayerCon
                 case /* int32 bank_id */ 1:
                     message.bankId = reader.int32();
                     break;
-                case /* string redirect_uri */ 2:
-                    message.redirectUri = reader.string();
-                    break;
-                case /* string session_id */ 3:
+                case /* string session_id */ 2:
                     message.sessionId = reader.string();
                     break;
                 default:
@@ -1084,12 +1068,9 @@ class StartTrueLayerConnectionRequest$Type extends MessageType<StartTrueLayerCon
         /* int32 bank_id = 1; */
         if (message.bankId !== 0)
             writer.tag(1, WireType.Varint).int32(message.bankId);
-        /* string redirect_uri = 2; */
-        if (message.redirectUri !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.redirectUri);
-        /* string session_id = 3; */
+        /* string session_id = 2; */
         if (message.sessionId !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.sessionId);
+            writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -1153,15 +1134,13 @@ class CompleteTrueLayerConnectionRequest$Type extends MessageType<CompleteTrueLa
         super("prosper.v1.CompleteTrueLayerConnectionRequest", [
             { no: 1, name: "bank_id", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
             { no: 2, name: "code", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "redirect_uri", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 4, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<CompleteTrueLayerConnectionRequest>): CompleteTrueLayerConnectionRequest {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.bankId = 0;
         message.code = "";
-        message.redirectUri = "";
         message.sessionId = "";
         if (value !== undefined)
             reflectionMergePartial<CompleteTrueLayerConnectionRequest>(this, message, value);
@@ -1178,10 +1157,7 @@ class CompleteTrueLayerConnectionRequest$Type extends MessageType<CompleteTrueLa
                 case /* string code */ 2:
                     message.code = reader.string();
                     break;
-                case /* string redirect_uri */ 3:
-                    message.redirectUri = reader.string();
-                    break;
-                case /* string session_id */ 4:
+                case /* string session_id */ 3:
                     message.sessionId = reader.string();
                     break;
                 default:
@@ -1202,12 +1178,9 @@ class CompleteTrueLayerConnectionRequest$Type extends MessageType<CompleteTrueLa
         /* string code = 2; */
         if (message.code !== "")
             writer.tag(2, WireType.LengthDelimited).string(message.code);
-        /* string redirect_uri = 3; */
-        if (message.redirectUri !== "")
-            writer.tag(3, WireType.LengthDelimited).string(message.redirectUri);
-        /* string session_id = 4; */
+        /* string session_id = 3; */
         if (message.sessionId !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.sessionId);
+            writer.tag(3, WireType.LengthDelimited).string(message.sessionId);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

@@ -36,9 +36,9 @@ const (
 	// flow.
 	scope          = "accounts balance transactions offline_access"
 	dateOnlyFormat = "2006-01-02"
-	// reconnectPath is appended to the public app URL to build the
-	// redirect URI used during the reconnect flow.
-	reconnectPath = "/api/open-banking/truelayer/connect"
+	// connectPath is appended to the public app URL to build the
+	// redirect URI the browser lands on after authorizing on TrueLayer.
+	connectPath = "/api/open-banking/truelayer/connect"
 )
 
 // Provider implements openbanking.Provider against TrueLayer's data API.
@@ -217,15 +217,21 @@ func (t *Provider) ListExternalAccounts(ctx context.Context, userID, bankID int3
 	return out, nil
 }
 
+// redirectURI is the absolute URL the browser lands on after the user
+// authorizes the app on TrueLayer's side.
+func (t *Provider) redirectURI() string {
+	return t.publicAppURL + connectPath
+}
+
 // AuthURL returns the TrueLayer hosted authorization URL the browser
 // should redirect to. The bank id is passed as the OAuth `state` so the
 // callback can identify which bank the new tokens belong to.
-func (t *Provider) AuthURL(bankID int32, redirectURI string) string {
+func (t *Provider) AuthURL(bankID int32) string {
 	q := url.Values{}
 	q.Set("response_type", "code")
 	q.Set("client_id", t.clientID)
 	q.Set("scope", scope)
-	q.Set("redirect_uri", redirectURI)
+	q.Set("redirect_uri", t.redirectURI())
 	q.Set("state", fmt.Sprintf("%d", bankID))
 	return authURL + "?" + q.Encode()
 }
@@ -234,11 +240,11 @@ func (t *Provider) AuthURL(bankID int32, redirectURI string) string {
 // tokens and stores them against bank_id. The returned wasReconnect
 // flag is true when a prior token row was replaced (the user is
 // re-authorising) and false when this stored the bank's first token.
-func (t *Provider) ExchangeCode(ctx context.Context, userID, bankID int32, code, redirectURI string) (bool, error) {
+func (t *Provider) ExchangeCode(ctx context.Context, userID, bankID int32, code string) (bool, error) {
 	r, err := t.requestToken(ctx, url.Values{
 		"grant_type":   {"authorization_code"},
 		"code":         {code},
-		"redirect_uri": {redirectURI},
+		"redirect_uri": {t.redirectURI()},
 	})
 	if err != nil {
 		return false, err
@@ -311,10 +317,9 @@ func (t *Provider) bestEffortRevoke(ctx context.Context, access string) {
 }
 
 // ReconnectURL returns the URL the user should be redirected to in
-// order to reauthorise an existing bank. The redirect URI is built
-// from the configured public app URL — the caller doesn't pass it in.
+// order to reauthorise an existing bank.
 func (t *Provider) ReconnectURL(_ context.Context, _, bankID int32) (string, error) {
-	return t.AuthURL(bankID, t.publicAppURL+reconnectPath), nil
+	return t.AuthURL(bankID), nil
 }
 
 // getJSON issues an authorised GET and decodes the response body

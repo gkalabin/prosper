@@ -572,12 +572,9 @@ func (x *ConnectionExpiration) GetProvider() Provider {
 }
 
 type StartTrueLayerConnectionRequest struct {
-	state  protoimpl.MessageState `protogen:"open.v1"`
-	BankId int32                  `protobuf:"varint,1,opt,name=bank_id,json=bankId,proto3" json:"bank_id,omitempty"`
-	// Absolute redirect URI the browser will land on after the user
-	// authorizes the app on TrueLayer's side.
-	RedirectUri   string `protobuf:"bytes,2,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
-	SessionId     string `protobuf:"bytes,3,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BankId        int32                  `protobuf:"varint,1,opt,name=bank_id,json=bankId,proto3" json:"bank_id,omitempty"`
+	SessionId     string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -617,13 +614,6 @@ func (x *StartTrueLayerConnectionRequest) GetBankId() int32 {
 		return x.BankId
 	}
 	return 0
-}
-
-func (x *StartTrueLayerConnectionRequest) GetRedirectUri() string {
-	if x != nil {
-		return x.RedirectUri
-	}
-	return ""
 }
 
 func (x *StartTrueLayerConnectionRequest) GetSessionId() string {
@@ -684,8 +674,7 @@ type CompleteTrueLayerConnectionRequest struct {
 	// OAuth authorization code returned by TrueLayer's auth,
 	// exchanged on the server for access/refresh tokens.
 	Code          string `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
-	RedirectUri   string `protobuf:"bytes,3,opt,name=redirect_uri,json=redirectUri,proto3" json:"redirect_uri,omitempty"`
-	SessionId     string `protobuf:"bytes,4,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	SessionId     string `protobuf:"bytes,3,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -730,13 +719,6 @@ func (x *CompleteTrueLayerConnectionRequest) GetBankId() int32 {
 func (x *CompleteTrueLayerConnectionRequest) GetCode() string {
 	if x != nil {
 		return x.Code
-	}
-	return ""
-}
-
-func (x *CompleteTrueLayerConnectionRequest) GetRedirectUri() string {
-	if x != nil {
-		return x.RedirectUri
 	}
 	return ""
 }
@@ -2026,20 +2008,18 @@ const file_prosper_v1_openbanking_proto_rawDesc = "" +
 	"\abank_id\x18\x01 \x01(\x05R\x06bankId\x129\n" +
 	"\n" +
 	"expires_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\texpiresAt\x120\n" +
-	"\bprovider\x18\x03 \x01(\x0e2\x14.prosper.v1.ProviderR\bprovider\"|\n" +
+	"\bprovider\x18\x03 \x01(\x0e2\x14.prosper.v1.ProviderR\bprovider\"Y\n" +
 	"\x1fStartTrueLayerConnectionRequest\x12\x17\n" +
-	"\abank_id\x18\x01 \x01(\x05R\x06bankId\x12!\n" +
-	"\fredirect_uri\x18\x02 \x01(\tR\vredirectUri\x12\x1d\n" +
+	"\abank_id\x18\x01 \x01(\x05R\x06bankId\x12\x1d\n" +
 	"\n" +
-	"session_id\x18\x03 \x01(\tR\tsessionId\"=\n" +
+	"session_id\x18\x02 \x01(\tR\tsessionId\"=\n" +
 	" StartTrueLayerConnectionResponse\x12\x19\n" +
-	"\bauth_url\x18\x01 \x01(\tR\aauthUrl\"\x93\x01\n" +
+	"\bauth_url\x18\x01 \x01(\tR\aauthUrl\"p\n" +
 	"\"CompleteTrueLayerConnectionRequest\x12\x17\n" +
 	"\abank_id\x18\x01 \x01(\x05R\x06bankId\x12\x12\n" +
-	"\x04code\x18\x02 \x01(\tR\x04code\x12!\n" +
-	"\fredirect_uri\x18\x03 \x01(\tR\vredirectUri\x12\x1d\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\x12\x1d\n" +
 	"\n" +
-	"session_id\x18\x04 \x01(\tR\tsessionId\"J\n" +
+	"session_id\x18\x03 \x01(\tR\tsessionId\"J\n" +
 	"#CompleteTrueLayerConnectionResponse\x12#\n" +
 	"\rwas_reconnect\x18\x01 \x01(\bR\fwasReconnect\"\xa2\x01\n" +
 	"\x1eStartNordigenConnectionRequest\x12\x17\n" +
