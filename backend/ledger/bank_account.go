@@ -7,7 +7,6 @@ import (
 
 	"prosper/auth"
 	prosperv1 "prosper/gen/prosper/v1"
-	"prosper/ledger/common"
 	"prosper/model"
 	"prosper/userdb"
 )
@@ -73,7 +72,7 @@ func (s *Service) UpsertBankAccount(ctx context.Context, req *prosperv1.UpsertBa
 	}
 	defer tx.Rollback()
 
-	unit, err := s.resolveAccountUnit(ctx, tx, userID, req)
+	unit, err := s.materializeUnit(ctx, req.Unit)
 	if err != nil {
 		return nil, err
 	}
@@ -146,6 +145,8 @@ func updateBankAccountRow(ctx context.Context, tx *userdb.Tx, bankAccount model.
 		`UPDATE BankAccount
 		    SET name                = :name,
 		        bankId              = :bankId,
+		        currencyCode        = :currencyCode,
+		        stockId             = :stockId,
 		        joint               = :joint,
 		        archived            = :archived,
 		        displayOrder        = :displayOrder,
@@ -201,32 +202,12 @@ func insertBankAccountRow(ctx context.Context, tx *userdb.Tx, bankAccount model.
 	return id, nil
 }
 
-// resolveAccountUnit returns the bank account unit, enforcing that
-// existing accounts may not change their unit.
-func (s *Service) resolveAccountUnit(ctx context.Context, tx *userdb.Tx, userID int32, req *prosperv1.UpsertBankAccountRequest) (model.Unit, error) {
-	if req.Unit == nil || req.Unit.Unit == nil {
-		return model.Unit{}, errors.New("unit required")
-	}
-	newUnit, err := s.materializeUnit(ctx, req.Unit)
-	if err != nil {
-		return model.Unit{}, err
-	}
-	if req.AccountId == nil {
-		return newUnit, nil
-	}
-	existing, err := common.LoadBankAccountUnit(ctx, tx, userID, *req.AccountId)
-	if err != nil {
-		return model.Unit{}, err
-	}
-	if !existing.Matches(newUnit) {
-		return model.Unit{}, errors.New("bank account unit cannot be changed")
-	}
-	return existing, nil
-}
-
 // materializeUnit converts the proto AccountUnit into a Unit,
 // resolving new_stock specs through the StockResolver.
 func (s *Service) materializeUnit(ctx context.Context, u *prosperv1.AccountUnit) (model.Unit, error) {
+	if u == nil || u.Unit == nil {
+		return model.Unit{}, errors.New("unit required")
+	}
 	switch v := u.Unit.(type) {
 	case *prosperv1.AccountUnit_CurrencyCode:
 		code := v.CurrencyCode
