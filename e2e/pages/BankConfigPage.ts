@@ -50,12 +50,12 @@ export class BankConfigPage {
   async createAccount({
     bankName,
     accountName,
-    currency,
+    unit,
     balance,
   }: {
     bankName: string;
     accountName: string;
-    currency: string;
+    unit: string;
     balance: number;
   }) {
     const bankSection = this.getBankSection(bankName);
@@ -67,8 +67,7 @@ export class BankConfigPage {
     await accountForm
       .getByRole('combobox', {name: 'Account currency or stock'})
       .click();
-    // TODO: remove first?
-    await this.page.getByRole('option', {name: currency}).first().click();
+    await this.page.getByRole('option', {name: unit, exact: true}).click();
     await accountForm.getByLabel('Initial balance').fill(balance.toString());
     const addAccountButton = accountForm.getByRole('button', {name: 'Add'});
     await addAccountButton.click();

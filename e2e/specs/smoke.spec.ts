@@ -33,7 +33,7 @@ test.describe('Smoke Tests', () => {
     await bankPage.createAccount({
       bankName,
       accountName: 'Test Account',
-      currency: 'USD',
+      unit: 'USD',
       balance: 200,
     });
     // 3. Add Transaction

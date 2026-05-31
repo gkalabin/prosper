@@ -45,7 +45,7 @@ test.describe('Account Management', () => {
     await bankConfigPage.createAccount({
       bankName: bank.name,
       accountName: 'Savings',
-      currency: 'USD',
+      unit: 'USD',
       balance: 1000,
     });
     // Then: the account appears under the bank
@@ -76,7 +76,7 @@ test.describe('Account Management', () => {
     await bankConfigPage.createAccount({
       bankName: bank.name,
       accountName: 'AAPL Stock',
-      currency: `${stock.name} (${stock.ticker})`,
+      unit: `Apple (AAPL, USD)`,
       balance: 50, // number of shares
     });
     // Then
