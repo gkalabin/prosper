@@ -19,21 +19,21 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	OpenBankingService_GetOpenBankingTransactions_FullMethodName  = "/prosper.v1.OpenBankingService/GetOpenBankingTransactions"
-	OpenBankingService_GetBalances_FullMethodName                 = "/prosper.v1.OpenBankingService/GetBalances"
-	OpenBankingService_GetConnectionStatus_FullMethodName         = "/prosper.v1.OpenBankingService/GetConnectionStatus"
-	OpenBankingService_StartTrueLayerConnection_FullMethodName    = "/prosper.v1.OpenBankingService/StartTrueLayerConnection"
-	OpenBankingService_CompleteTrueLayerConnection_FullMethodName = "/prosper.v1.OpenBankingService/CompleteTrueLayerConnection"
-	OpenBankingService_StartNordigenConnection_FullMethodName     = "/prosper.v1.OpenBankingService/StartNordigenConnection"
-	OpenBankingService_CompleteNordigenConnection_FullMethodName  = "/prosper.v1.OpenBankingService/CompleteNordigenConnection"
-	OpenBankingService_SetStarlingToken_FullMethodName            = "/prosper.v1.OpenBankingService/SetStarlingToken"
-	OpenBankingService_Disconnect_FullMethodName                  = "/prosper.v1.OpenBankingService/Disconnect"
-	OpenBankingService_ReconnectInfo_FullMethodName               = "/prosper.v1.OpenBankingService/ReconnectInfo"
-	OpenBankingService_ListExternalAccounts_FullMethodName        = "/prosper.v1.OpenBankingService/ListExternalAccounts"
-	OpenBankingService_ListMappings_FullMethodName                = "/prosper.v1.OpenBankingService/ListMappings"
-	OpenBankingService_SetMappings_FullMethodName                 = "/prosper.v1.OpenBankingService/SetMappings"
-	OpenBankingService_ListNordigenInstitutions_FullMethodName    = "/prosper.v1.OpenBankingService/ListNordigenInstitutions"
-	OpenBankingService_ListNordigenCountries_FullMethodName       = "/prosper.v1.OpenBankingService/ListNordigenCountries"
+	OpenBankingService_GetOpenBankingTransactions_FullMethodName   = "/prosper.v1.OpenBankingService/GetOpenBankingTransactions"
+	OpenBankingService_GetBalances_FullMethodName                  = "/prosper.v1.OpenBankingService/GetBalances"
+	OpenBankingService_GetConnectionStatus_FullMethodName          = "/prosper.v1.OpenBankingService/GetConnectionStatus"
+	OpenBankingService_StartTrueLayerConnection_FullMethodName     = "/prosper.v1.OpenBankingService/StartTrueLayerConnection"
+	OpenBankingService_CompleteTrueLayerConnection_FullMethodName  = "/prosper.v1.OpenBankingService/CompleteTrueLayerConnection"
+	OpenBankingService_StartGoCardlessConnection_FullMethodName    = "/prosper.v1.OpenBankingService/StartGoCardlessConnection"
+	OpenBankingService_CompleteGoCardlessConnection_FullMethodName = "/prosper.v1.OpenBankingService/CompleteGoCardlessConnection"
+	OpenBankingService_SetStarlingToken_FullMethodName             = "/prosper.v1.OpenBankingService/SetStarlingToken"
+	OpenBankingService_Disconnect_FullMethodName                   = "/prosper.v1.OpenBankingService/Disconnect"
+	OpenBankingService_ReconnectInfo_FullMethodName                = "/prosper.v1.OpenBankingService/ReconnectInfo"
+	OpenBankingService_ListExternalAccounts_FullMethodName         = "/prosper.v1.OpenBankingService/ListExternalAccounts"
+	OpenBankingService_ListMappings_FullMethodName                 = "/prosper.v1.OpenBankingService/ListMappings"
+	OpenBankingService_SetMappings_FullMethodName                  = "/prosper.v1.OpenBankingService/SetMappings"
+	OpenBankingService_ListGoCardlessInstitutions_FullMethodName   = "/prosper.v1.OpenBankingService/ListGoCardlessInstitutions"
+	OpenBankingService_ListGoCardlessCountries_FullMethodName      = "/prosper.v1.OpenBankingService/ListGoCardlessCountries"
 )
 
 // OpenBankingServiceClient is the client API for OpenBankingService service.
@@ -55,13 +55,13 @@ type OpenBankingServiceClient interface {
 	// tokens and stores them. Returns the bank id so the caller can
 	// redirect the user to the mapping page.
 	CompleteTrueLayerConnection(ctx context.Context, in *CompleteTrueLayerConnectionRequest, opts ...grpc.CallOption) (*CompleteTrueLayerConnectionResponse, error)
-	// StartNordigenConnection creates a requisition and returns the
+	// StartGoCardlessConnection creates a requisition and returns the
 	// hosted authorization link. The reference is stored alongside the
 	// requisition for later lookup.
-	StartNordigenConnection(ctx context.Context, in *StartNordigenConnectionRequest, opts ...grpc.CallOption) (*StartNordigenConnectionResponse, error)
-	// CompleteNordigenConnection marks a requisition complete and
+	StartGoCardlessConnection(ctx context.Context, in *StartGoCardlessConnectionRequest, opts ...grpc.CallOption) (*StartGoCardlessConnectionResponse, error)
+	// CompleteGoCardlessConnection marks a requisition complete and
 	// returns the bank id behind the supplied reference.
-	CompleteNordigenConnection(ctx context.Context, in *CompleteNordigenConnectionRequest, opts ...grpc.CallOption) (*CompleteNordigenConnectionResponse, error)
+	CompleteGoCardlessConnection(ctx context.Context, in *CompleteGoCardlessConnectionRequest, opts ...grpc.CallOption) (*CompleteGoCardlessConnectionResponse, error)
 	// SetStarlingToken stores a manually entered Starling personal
 	// access token.
 	SetStarlingToken(ctx context.Context, in *SetStarlingTokenRequest, opts ...grpc.CallOption) (*SetStarlingTokenResponse, error)
@@ -82,8 +82,8 @@ type OpenBankingServiceClient interface {
 	// existing rows for the bank's internal accounts are removed before
 	// the new set is inserted.
 	SetMappings(ctx context.Context, in *SetMappingsRequest, opts ...grpc.CallOption) (*SetMappingsResponse, error)
-	ListNordigenInstitutions(ctx context.Context, in *ListNordigenInstitutionsRequest, opts ...grpc.CallOption) (*ListNordigenInstitutionsResponse, error)
-	ListNordigenCountries(ctx context.Context, in *ListNordigenCountriesRequest, opts ...grpc.CallOption) (*ListNordigenCountriesResponse, error)
+	ListGoCardlessInstitutions(ctx context.Context, in *ListGoCardlessInstitutionsRequest, opts ...grpc.CallOption) (*ListGoCardlessInstitutionsResponse, error)
+	ListGoCardlessCountries(ctx context.Context, in *ListGoCardlessCountriesRequest, opts ...grpc.CallOption) (*ListGoCardlessCountriesResponse, error)
 }
 
 type openBankingServiceClient struct {
@@ -144,20 +144,20 @@ func (c *openBankingServiceClient) CompleteTrueLayerConnection(ctx context.Conte
 	return out, nil
 }
 
-func (c *openBankingServiceClient) StartNordigenConnection(ctx context.Context, in *StartNordigenConnectionRequest, opts ...grpc.CallOption) (*StartNordigenConnectionResponse, error) {
+func (c *openBankingServiceClient) StartGoCardlessConnection(ctx context.Context, in *StartGoCardlessConnectionRequest, opts ...grpc.CallOption) (*StartGoCardlessConnectionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(StartNordigenConnectionResponse)
-	err := c.cc.Invoke(ctx, OpenBankingService_StartNordigenConnection_FullMethodName, in, out, cOpts...)
+	out := new(StartGoCardlessConnectionResponse)
+	err := c.cc.Invoke(ctx, OpenBankingService_StartGoCardlessConnection_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *openBankingServiceClient) CompleteNordigenConnection(ctx context.Context, in *CompleteNordigenConnectionRequest, opts ...grpc.CallOption) (*CompleteNordigenConnectionResponse, error) {
+func (c *openBankingServiceClient) CompleteGoCardlessConnection(ctx context.Context, in *CompleteGoCardlessConnectionRequest, opts ...grpc.CallOption) (*CompleteGoCardlessConnectionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(CompleteNordigenConnectionResponse)
-	err := c.cc.Invoke(ctx, OpenBankingService_CompleteNordigenConnection_FullMethodName, in, out, cOpts...)
+	out := new(CompleteGoCardlessConnectionResponse)
+	err := c.cc.Invoke(ctx, OpenBankingService_CompleteGoCardlessConnection_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -224,20 +224,20 @@ func (c *openBankingServiceClient) SetMappings(ctx context.Context, in *SetMappi
 	return out, nil
 }
 
-func (c *openBankingServiceClient) ListNordigenInstitutions(ctx context.Context, in *ListNordigenInstitutionsRequest, opts ...grpc.CallOption) (*ListNordigenInstitutionsResponse, error) {
+func (c *openBankingServiceClient) ListGoCardlessInstitutions(ctx context.Context, in *ListGoCardlessInstitutionsRequest, opts ...grpc.CallOption) (*ListGoCardlessInstitutionsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListNordigenInstitutionsResponse)
-	err := c.cc.Invoke(ctx, OpenBankingService_ListNordigenInstitutions_FullMethodName, in, out, cOpts...)
+	out := new(ListGoCardlessInstitutionsResponse)
+	err := c.cc.Invoke(ctx, OpenBankingService_ListGoCardlessInstitutions_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *openBankingServiceClient) ListNordigenCountries(ctx context.Context, in *ListNordigenCountriesRequest, opts ...grpc.CallOption) (*ListNordigenCountriesResponse, error) {
+func (c *openBankingServiceClient) ListGoCardlessCountries(ctx context.Context, in *ListGoCardlessCountriesRequest, opts ...grpc.CallOption) (*ListGoCardlessCountriesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(ListNordigenCountriesResponse)
-	err := c.cc.Invoke(ctx, OpenBankingService_ListNordigenCountries_FullMethodName, in, out, cOpts...)
+	out := new(ListGoCardlessCountriesResponse)
+	err := c.cc.Invoke(ctx, OpenBankingService_ListGoCardlessCountries_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -263,13 +263,13 @@ type OpenBankingServiceServer interface {
 	// tokens and stores them. Returns the bank id so the caller can
 	// redirect the user to the mapping page.
 	CompleteTrueLayerConnection(context.Context, *CompleteTrueLayerConnectionRequest) (*CompleteTrueLayerConnectionResponse, error)
-	// StartNordigenConnection creates a requisition and returns the
+	// StartGoCardlessConnection creates a requisition and returns the
 	// hosted authorization link. The reference is stored alongside the
 	// requisition for later lookup.
-	StartNordigenConnection(context.Context, *StartNordigenConnectionRequest) (*StartNordigenConnectionResponse, error)
-	// CompleteNordigenConnection marks a requisition complete and
+	StartGoCardlessConnection(context.Context, *StartGoCardlessConnectionRequest) (*StartGoCardlessConnectionResponse, error)
+	// CompleteGoCardlessConnection marks a requisition complete and
 	// returns the bank id behind the supplied reference.
-	CompleteNordigenConnection(context.Context, *CompleteNordigenConnectionRequest) (*CompleteNordigenConnectionResponse, error)
+	CompleteGoCardlessConnection(context.Context, *CompleteGoCardlessConnectionRequest) (*CompleteGoCardlessConnectionResponse, error)
 	// SetStarlingToken stores a manually entered Starling personal
 	// access token.
 	SetStarlingToken(context.Context, *SetStarlingTokenRequest) (*SetStarlingTokenResponse, error)
@@ -290,8 +290,8 @@ type OpenBankingServiceServer interface {
 	// existing rows for the bank's internal accounts are removed before
 	// the new set is inserted.
 	SetMappings(context.Context, *SetMappingsRequest) (*SetMappingsResponse, error)
-	ListNordigenInstitutions(context.Context, *ListNordigenInstitutionsRequest) (*ListNordigenInstitutionsResponse, error)
-	ListNordigenCountries(context.Context, *ListNordigenCountriesRequest) (*ListNordigenCountriesResponse, error)
+	ListGoCardlessInstitutions(context.Context, *ListGoCardlessInstitutionsRequest) (*ListGoCardlessInstitutionsResponse, error)
+	ListGoCardlessCountries(context.Context, *ListGoCardlessCountriesRequest) (*ListGoCardlessCountriesResponse, error)
 	mustEmbedUnimplementedOpenBankingServiceServer()
 }
 
@@ -317,11 +317,11 @@ func (UnimplementedOpenBankingServiceServer) StartTrueLayerConnection(context.Co
 func (UnimplementedOpenBankingServiceServer) CompleteTrueLayerConnection(context.Context, *CompleteTrueLayerConnectionRequest) (*CompleteTrueLayerConnectionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method CompleteTrueLayerConnection not implemented")
 }
-func (UnimplementedOpenBankingServiceServer) StartNordigenConnection(context.Context, *StartNordigenConnectionRequest) (*StartNordigenConnectionResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method StartNordigenConnection not implemented")
+func (UnimplementedOpenBankingServiceServer) StartGoCardlessConnection(context.Context, *StartGoCardlessConnectionRequest) (*StartGoCardlessConnectionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StartGoCardlessConnection not implemented")
 }
-func (UnimplementedOpenBankingServiceServer) CompleteNordigenConnection(context.Context, *CompleteNordigenConnectionRequest) (*CompleteNordigenConnectionResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method CompleteNordigenConnection not implemented")
+func (UnimplementedOpenBankingServiceServer) CompleteGoCardlessConnection(context.Context, *CompleteGoCardlessConnectionRequest) (*CompleteGoCardlessConnectionResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CompleteGoCardlessConnection not implemented")
 }
 func (UnimplementedOpenBankingServiceServer) SetStarlingToken(context.Context, *SetStarlingTokenRequest) (*SetStarlingTokenResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetStarlingToken not implemented")
@@ -341,11 +341,11 @@ func (UnimplementedOpenBankingServiceServer) ListMappings(context.Context, *List
 func (UnimplementedOpenBankingServiceServer) SetMappings(context.Context, *SetMappingsRequest) (*SetMappingsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SetMappings not implemented")
 }
-func (UnimplementedOpenBankingServiceServer) ListNordigenInstitutions(context.Context, *ListNordigenInstitutionsRequest) (*ListNordigenInstitutionsResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListNordigenInstitutions not implemented")
+func (UnimplementedOpenBankingServiceServer) ListGoCardlessInstitutions(context.Context, *ListGoCardlessInstitutionsRequest) (*ListGoCardlessInstitutionsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListGoCardlessInstitutions not implemented")
 }
-func (UnimplementedOpenBankingServiceServer) ListNordigenCountries(context.Context, *ListNordigenCountriesRequest) (*ListNordigenCountriesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method ListNordigenCountries not implemented")
+func (UnimplementedOpenBankingServiceServer) ListGoCardlessCountries(context.Context, *ListGoCardlessCountriesRequest) (*ListGoCardlessCountriesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListGoCardlessCountries not implemented")
 }
 func (UnimplementedOpenBankingServiceServer) mustEmbedUnimplementedOpenBankingServiceServer() {}
 func (UnimplementedOpenBankingServiceServer) testEmbeddedByValue()                            {}
@@ -458,38 +458,38 @@ func _OpenBankingService_CompleteTrueLayerConnection_Handler(srv interface{}, ct
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OpenBankingService_StartNordigenConnection_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(StartNordigenConnectionRequest)
+func _OpenBankingService_StartGoCardlessConnection_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartGoCardlessConnectionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OpenBankingServiceServer).StartNordigenConnection(ctx, in)
+		return srv.(OpenBankingServiceServer).StartGoCardlessConnection(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: OpenBankingService_StartNordigenConnection_FullMethodName,
+		FullMethod: OpenBankingService_StartGoCardlessConnection_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenBankingServiceServer).StartNordigenConnection(ctx, req.(*StartNordigenConnectionRequest))
+		return srv.(OpenBankingServiceServer).StartGoCardlessConnection(ctx, req.(*StartGoCardlessConnectionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OpenBankingService_CompleteNordigenConnection_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CompleteNordigenConnectionRequest)
+func _OpenBankingService_CompleteGoCardlessConnection_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CompleteGoCardlessConnectionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OpenBankingServiceServer).CompleteNordigenConnection(ctx, in)
+		return srv.(OpenBankingServiceServer).CompleteGoCardlessConnection(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: OpenBankingService_CompleteNordigenConnection_FullMethodName,
+		FullMethod: OpenBankingService_CompleteGoCardlessConnection_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenBankingServiceServer).CompleteNordigenConnection(ctx, req.(*CompleteNordigenConnectionRequest))
+		return srv.(OpenBankingServiceServer).CompleteGoCardlessConnection(ctx, req.(*CompleteGoCardlessConnectionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -602,38 +602,38 @@ func _OpenBankingService_SetMappings_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OpenBankingService_ListNordigenInstitutions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListNordigenInstitutionsRequest)
+func _OpenBankingService_ListGoCardlessInstitutions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListGoCardlessInstitutionsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OpenBankingServiceServer).ListNordigenInstitutions(ctx, in)
+		return srv.(OpenBankingServiceServer).ListGoCardlessInstitutions(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: OpenBankingService_ListNordigenInstitutions_FullMethodName,
+		FullMethod: OpenBankingService_ListGoCardlessInstitutions_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenBankingServiceServer).ListNordigenInstitutions(ctx, req.(*ListNordigenInstitutionsRequest))
+		return srv.(OpenBankingServiceServer).ListGoCardlessInstitutions(ctx, req.(*ListGoCardlessInstitutionsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _OpenBankingService_ListNordigenCountries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListNordigenCountriesRequest)
+func _OpenBankingService_ListGoCardlessCountries_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListGoCardlessCountriesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OpenBankingServiceServer).ListNordigenCountries(ctx, in)
+		return srv.(OpenBankingServiceServer).ListGoCardlessCountries(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: OpenBankingService_ListNordigenCountries_FullMethodName,
+		FullMethod: OpenBankingService_ListGoCardlessCountries_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenBankingServiceServer).ListNordigenCountries(ctx, req.(*ListNordigenCountriesRequest))
+		return srv.(OpenBankingServiceServer).ListGoCardlessCountries(ctx, req.(*ListGoCardlessCountriesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -666,12 +666,12 @@ var OpenBankingService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _OpenBankingService_CompleteTrueLayerConnection_Handler,
 		},
 		{
-			MethodName: "StartNordigenConnection",
-			Handler:    _OpenBankingService_StartNordigenConnection_Handler,
+			MethodName: "StartGoCardlessConnection",
+			Handler:    _OpenBankingService_StartGoCardlessConnection_Handler,
 		},
 		{
-			MethodName: "CompleteNordigenConnection",
-			Handler:    _OpenBankingService_CompleteNordigenConnection_Handler,
+			MethodName: "CompleteGoCardlessConnection",
+			Handler:    _OpenBankingService_CompleteGoCardlessConnection_Handler,
 		},
 		{
 			MethodName: "SetStarlingToken",
@@ -698,12 +698,12 @@ var OpenBankingService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _OpenBankingService_SetMappings_Handler,
 		},
 		{
-			MethodName: "ListNordigenInstitutions",
-			Handler:    _OpenBankingService_ListNordigenInstitutions_Handler,
+			MethodName: "ListGoCardlessInstitutions",
+			Handler:    _OpenBankingService_ListGoCardlessInstitutions_Handler,
 		},
 		{
-			MethodName: "ListNordigenCountries",
-			Handler:    _OpenBankingService_ListNordigenCountries_Handler,
+			MethodName: "ListGoCardlessCountries",
+			Handler:    _OpenBankingService_ListGoCardlessCountries_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

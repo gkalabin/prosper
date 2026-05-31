@@ -27,7 +27,7 @@ var providerTokenTables = []struct {
 	query    string
 }{
 	{prosperv1.Provider_PROVIDER_TRUELAYER, `SELECT COUNT(*) FROM TrueLayerToken WHERE bankId = :bankId AND userId = :userId`},
-	{prosperv1.Provider_PROVIDER_NORDIGEN, `SELECT COUNT(*) FROM NordigenToken WHERE bankId = :bankId AND userId = :userId`},
+	{prosperv1.Provider_PROVIDER_GOCARDLESS, `SELECT COUNT(*) FROM GoCardlessToken WHERE bankId = :bankId AND userId = :userId`},
 	{prosperv1.Provider_PROVIDER_STARLING, `SELECT COUNT(*) FROM StarlingToken WHERE bankId = :bankId AND userId = :userId`},
 }
 

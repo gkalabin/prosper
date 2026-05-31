@@ -18,8 +18,8 @@ const USER_TABLES_BY_USER_ID = [
   'Trip',
   'DisplaySettings',
   'TrueLayerToken',
-  'NordigenToken',
-  'NordigenRequisition',
+  'GoCardlessToken',
+  'GoCardlessRequisition',
   'StarlingToken',
   'Session',
 ];

@@ -1,4 +1,4 @@
-package nordigen
+package gocardless
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 
 const balancesURL = apiBase + "/accounts/%s/balances/"
 
-// usableBalanceTypes lists the Nordigen balance types we accept, in
+// usableBalanceTypes lists the GoCardless balance types we accept, in
 // order of preference. The API returns a heterogeneous list and we
 // pick the first one of these we encounter.
 var usableBalanceTypes = []string{"interimAvailable", "expected"}
@@ -47,5 +47,5 @@ func (n *Provider) FetchBalance(ctx context.Context, userID, bankID int32, exter
 			return amount, nil
 		}
 	}
-	return 0, fmt.Errorf("nordigen: no usable balance for account %s among %v", externalAccountID, usableBalanceTypes)
+	return 0, fmt.Errorf("gocardless: no usable balance for account %s among %v", externalAccountID, usableBalanceTypes)
 }

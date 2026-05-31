@@ -1,4 +1,4 @@
-package nordigen
+package gocardless
 
 import (
 	"bytes"
@@ -11,12 +11,12 @@ import (
 	"prosper/openbanking/httpx"
 )
 
-// nordigenJSON issues an HTTP request against the Nordigen API and
+// gocardlessJSON issues an HTTP request against the GoCardless API and
 // decodes the response body into dest. When body is non-nil, the body
 // is sent as JSON. When access is non-empty, a Bearer authorization
 // header is attached. Non-2xx responses are surfaced as errors that
 // include the response body so callers can debug them.
-func (n *Provider) nordigenJSON(ctx context.Context, method, url, access string, body []byte, dest any) error {
+func (n *Provider) gocardlessJSON(ctx context.Context, method, url, access string, body []byte, dest any) error {
 	var reader io.Reader
 	if body != nil {
 		reader = bytes.NewReader(body)
@@ -41,7 +41,7 @@ func (n *Provider) nordigenJSON(ctx context.Context, method, url, access string,
 		return err
 	}
 	if !httpx.IsSuccess(resp.StatusCode) {
-		return fmt.Errorf("nordigen %s %s HTTP %d: %s", method, url, resp.StatusCode, string(respBody))
+		return fmt.Errorf("gocardless %s %s HTTP %d: %s", method, url, resp.StatusCode, string(respBody))
 	}
 	return json.Unmarshal(respBody, dest)
 }
@@ -49,11 +49,11 @@ func (n *Provider) nordigenJSON(ctx context.Context, method, url, access string,
 // postJSON is shorthand for an unauthenticated POST with a JSON body
 // that decodes the response into dest.
 func (n *Provider) postJSON(ctx context.Context, url string, body []byte, dest any) error {
-	return n.nordigenJSON(ctx, http.MethodPost, url, "", body, dest)
+	return n.gocardlessJSON(ctx, http.MethodPost, url, "", body, dest)
 }
 
 // getJSON is shorthand for a Bearer-authorised GET that decodes the
 // response into dest.
 func (n *Provider) getJSON(ctx context.Context, url, access string, dest any) error {
-	return n.nordigenJSON(ctx, http.MethodGet, url, access, nil, dest)
+	return n.gocardlessJSON(ctx, http.MethodGet, url, access, nil, dest)
 }

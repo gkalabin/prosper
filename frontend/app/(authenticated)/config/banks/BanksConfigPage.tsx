@@ -24,7 +24,7 @@ const BanksList = (props: {
   bankAccounts: BankAccount[];
   stocks: Stock[];
   trueLayerBankIds: number[];
-  nordigenBankIds: number[];
+  gocardlessBankIds: number[];
   starlingBankIds: number[];
   onBankUpdated: (updated: ProtoBank) => void;
   onAccountAddedOrUpdated: (x: ProtoBankAccount) => void;
@@ -41,7 +41,7 @@ const BanksList = (props: {
           bankAccounts={props.bankAccounts.filter(x => x.bankId == bank.id)}
           stocks={props.stocks}
           isTrueLayer={props.trueLayerBankIds.includes(bank.id)}
-          isNordigen={props.nordigenBankIds.includes(bank.id)}
+          isGoCardless={props.gocardlessBankIds.includes(bank.id)}
           isStarling={props.starlingBankIds.includes(bank.id)}
           onBankUpdated={props.onBankUpdated}
           onAccountAddedOrUpdated={props.onAccountAddedOrUpdated}
@@ -56,7 +56,7 @@ function BanksListItem({
   bankAccounts,
   stocks,
   isTrueLayer,
-  isNordigen,
+  isGoCardless,
   isStarling,
   onBankUpdated,
   onAccountAddedOrUpdated,
@@ -65,7 +65,7 @@ function BanksListItem({
   bankAccounts: BankAccount[];
   stocks: Stock[];
   isTrueLayer: boolean;
-  isNordigen: boolean;
+  isGoCardless: boolean;
   isStarling: boolean;
   onBankUpdated: (updated: ProtoBank) => void;
   onAccountAddedOrUpdated: (x: ProtoBankAccount) => void;
@@ -93,7 +93,7 @@ function BanksListItem({
           {!editBankFormDisplayed && (
             <div className="text-sm text-gray-600">
               <BankConnections
-                {...{isTrueLayer, isNordigen, isStarling, bank}}
+                {...{isTrueLayer, isGoCardless, isStarling, bank}}
               />
             </div>
           )}
@@ -149,16 +149,16 @@ function BanksListItem({
 
 const BankConnections = ({
   isTrueLayer,
-  isNordigen,
+  isGoCardless,
   isStarling,
   bank,
 }: {
   isTrueLayer: boolean;
-  isNordigen: boolean;
+  isGoCardless: boolean;
   isStarling: boolean;
   bank: Bank;
 }) => {
-  if (!isTrueLayer && !isNordigen && !isStarling) {
+  if (!isTrueLayer && !isGoCardless && !isStarling) {
     return (
       <div>
         Connect with{' '}
@@ -182,10 +182,10 @@ const BankConnections = ({
         or{' '}
         <Button variant="link" size="inherit" asChild>
           <Link
-            href={`/config/open-banking/nordigen/connect?bankId=${bank.id}`}
+            href={`/config/open-banking/gocardless/connect?bankId=${bank.id}`}
             prefetch={false}
           >
-            Nordigen (EU+UK)
+            GoCardless (EU+UK)
           </Link>
         </Button>
       </div>
@@ -194,7 +194,7 @@ const BankConnections = ({
   return (
     <>
       {isTrueLayer && <TrueLayerActions bank={bank} />}
-      {isNordigen && <NordigenActions bank={bank} />}
+      {isGoCardless && <GoCardlessActions bank={bank} />}
       {isStarling && <StarlingActions bank={bank} />}
     </>
   );
@@ -211,10 +211,10 @@ const TrueLayerActions = ({bank}: {bank: Bank}) => {
   );
 };
 
-const NordigenActions = ({bank}: {bank: Bank}) => {
+const GoCardlessActions = ({bank}: {bank: Bank}) => {
   return (
     <div className="space-x-3">
-      <span>Connected with Nordigen</span>
+      <span>Connected with GoCardless</span>
       <ConfigureOpenBankingConnectionLink bank={bank} />
       <ReconnectOpenBankingLink bank={bank} />
       <DisconnectOpenBankingLink bank={bank} />
@@ -306,7 +306,7 @@ export function BanksConfigPage({
   bankAccounts: bankAccountsInitial,
   stocks: stocksInitial,
   trueLayerBankIds,
-  nordigenBankIds,
+  gocardlessBankIds,
   starlingBankIds,
   displaySettings,
 }: {
@@ -314,7 +314,7 @@ export function BanksConfigPage({
   bankAccounts: ProtoBankAccount[];
   stocks: ProtoStock[];
   trueLayerBankIds: number[];
-  nordigenBankIds: number[];
+  gocardlessBankIds: number[];
   starlingBankIds: number[];
   displaySettings: ProtoDisplaySettings;
 }) {
@@ -336,7 +336,7 @@ export function BanksConfigPage({
         bankAccounts={bankAccounts}
         stocks={stocks}
         trueLayerBankIds={trueLayerBankIds}
-        nordigenBankIds={nordigenBankIds}
+        gocardlessBankIds={gocardlessBankIds}
         starlingBankIds={starlingBankIds}
         onBankUpdated={updateState(setProtoBanks)}
         onAccountAddedOrUpdated={updateState(setProtoBankAccounts)}

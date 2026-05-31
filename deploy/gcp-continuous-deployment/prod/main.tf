@@ -13,8 +13,8 @@ module "gcp_continuous_deployment_prod" {
   domain_name              = var.domain_name
   true_layer_client_id     = var.true_layer_client_id
   true_layer_client_secret = var.true_layer_client_secret
-  nordigen_secret_id       = var.nordigen_secret_id
-  nordigen_secret_key      = var.nordigen_secret_key
+  gocardless_secret_id       = var.gocardless_secret_id
+  gocardless_secret_key      = var.gocardless_secret_key
   cloudsource_repo_name    = var.cloudsource_repo_name
   db_deletion_protection   = true
 }

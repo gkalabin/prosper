@@ -1,4 +1,4 @@
-package nordigen
+package gocardless
 
 import (
 	"context"
@@ -20,7 +20,7 @@ import (
 const (
 	requisitionsURL  = apiBase + "/requisitions/"
 	accountDetailURL = apiBase + "/accounts/%s/details/"
-	// requisitionLife is the conservative end of Nordigen's 90-180
+	// requisitionLife is the conservative end of GoCardless's 90-180
 	// day requisition lifetime; we report this as the connection expiry.
 	requisitionLife = 90 * 24 * time.Hour
 )
@@ -42,7 +42,7 @@ type accountDetails struct {
 	} `json:"account"`
 }
 
-// CreateRequisition kicks off a Nordigen authorization flow for the
+// CreateRequisition kicks off a GoCardless authorization flow for the
 // chosen institution. Returns the local reference (stored alongside
 // the requisition record) and the hosted authorization link the user
 // should be redirected to.
@@ -58,10 +58,10 @@ func (n *Provider) CreateRequisition(ctx context.Context, userID, bankID int32, 
 		"reference":      reference,
 	})
 	var rr requisitionResponse
-	if err := n.nordigenJSON(ctx, http.MethodPost, requisitionsURL, access, body, &rr); err != nil {
+	if err := n.gocardlessJSON(ctx, http.MethodPost, requisitionsURL, access, body, &rr); err != nil {
 		return "", "", err
 	}
-	row := model.NordigenRequisition{
+	row := model.GoCardlessRequisition{
 		ID:            reference,
 		RequisitionID: rr.ID,
 		InstitutionID: institutionID,
@@ -71,7 +71,7 @@ func (n *Provider) CreateRequisition(ctx context.Context, userID, bankID int32, 
 		WasReconnect:  wasReconnect,
 	}
 	if _, err := n.db.NamedExecForUser(ctx, userID,
-		`INSERT INTO NordigenRequisition
+		`INSERT INTO GoCardlessRequisition
 		        ( id,  requisitionId,  institutionId,  userId,  bankId,  completed,  wasReconnect)
 		 VALUES (:id, :requisitionId, :institutionId, :userId, :bankId, :completed, :wasReconnect)
 		 ON DUPLICATE KEY UPDATE id            = VALUES(id),
@@ -96,17 +96,17 @@ func newRequisitionReference() string {
 // reference as completed. Returns the bank id it belongs to and
 // whether the requisition was created as part of a reconnect.
 func (n *Provider) CompleteRequisition(ctx context.Context, userID int32, reference string) (int32, bool, error) {
-	var row model.NordigenRequisition
+	var row model.GoCardlessRequisition
 	if err := n.db.GetForUser(ctx, &row, userID,
 		`SELECT *
-		   FROM NordigenRequisition
+		   FROM GoCardlessRequisition
 		  WHERE id     = :id
 		    AND userId = :userId`,
 		map[string]any{"id": reference}); err != nil {
 		return 0, false, err
 	}
 	if _, err := n.db.ExecForUser(ctx, userID,
-		`UPDATE NordigenRequisition
+		`UPDATE GoCardlessRequisition
 		    SET completed = TRUE
 		  WHERE id     = :id
 		    AND userId = :userId`,
@@ -135,7 +135,7 @@ func (n *Provider) ListExternalAccounts(ctx context.Context, userID, bankID int3
 	for _, accID := range r.Accounts {
 		var d accountDetails
 		if err := n.getJSON(ctx, fmt.Sprintf(accountDetailURL, accID), access, &d); err != nil {
-			log.Printf("nordigen: account %s details: %v", accID, err)
+			log.Printf("gocardless: account %s details: %v", accID, err)
 			continue
 		}
 		name := fmt.Sprintf("%s (%s %s)", d.Account.OwnerName, d.Account.Currency, d.Account.IBAN)
@@ -144,37 +144,37 @@ func (n *Provider) ListExternalAccounts(ctx context.Context, userID, bankID int3
 	return out, nil
 }
 
-// requisitionID returns the Nordigen requisition id stored against
+// requisitionID returns the GoCardless requisition id stored against
 // (user, bank). Missing or unconnected pairs are reported as errors —
 // callers should treat them as "not connected".
 func (n *Provider) requisitionID(ctx context.Context, userID, bankID int32) (string, error) {
 	var id string
 	if err := n.db.GetForUser(ctx, &id, userID,
 		`SELECT requisitionId
-		   FROM NordigenRequisition
+		   FROM GoCardlessRequisition
 		  WHERE bankId = :bankId
 		    AND userId = :userId`,
 		map[string]any{"bankId": bankID}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return "", fmt.Errorf("nordigen: bank %d not connected", bankID)
+			return "", fmt.Errorf("gocardless: bank %d not connected", bankID)
 		}
 		return "", err
 	}
 	return id, nil
 }
 
-// ConnectionExpiresAt returns when the Nordigen requisition for this
+// ConnectionExpiresAt returns when the GoCardless requisition for this
 // bank is expected to expire.
 func (n *Provider) ConnectionExpiresAt(ctx context.Context, userID, bankID int32) (time.Time, error) {
 	var createdAt time.Time
 	if err := n.db.GetForUser(ctx, &createdAt, userID,
 		`SELECT createdAt
-		   FROM NordigenRequisition
+		   FROM GoCardlessRequisition
 		  WHERE bankId = :bankId
 		    AND userId = :userId`,
 		map[string]any{"bankId": bankID}); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			return time.Time{}, fmt.Errorf("nordigen: bank %d not connected", bankID)
+			return time.Time{}, fmt.Errorf("gocardless: bank %d not connected", bankID)
 		}
 		return time.Time{}, err
 	}
@@ -187,23 +187,23 @@ func (n *Provider) LastInstitutionID(ctx context.Context, userID, bankID int32) 
 	var id string
 	err := n.db.GetForUser(ctx, &id, userID,
 		`SELECT institutionId
-		   FROM NordigenRequisition
+		   FROM GoCardlessRequisition
 		  WHERE bankId = :bankId
 		    AND userId = :userId`,
 		map[string]any{"bankId": bankID})
 	if errors.Is(err, sql.ErrNoRows) {
-		return "", fmt.Errorf("nordigen: bank %d not connected", bankID)
+		return "", fmt.Errorf("gocardless: bank %d not connected", bankID)
 	}
 	return id, err
 }
 
-// Disconnect best-effort revokes the requisition at Nordigen and
+// Disconnect best-effort revokes the requisition at GoCardless and
 // deletes both the requisition row and the access tokens.
 func (n *Provider) Disconnect(ctx context.Context, userID, bankID int32) error {
 	var requisitionID string
 	err := n.db.GetForUser(ctx, &requisitionID, userID,
 		`SELECT requisitionId
-		   FROM NordigenRequisition
+		   FROM GoCardlessRequisition
 		  WHERE bankId = :bankId
 		    AND userId = :userId`,
 		map[string]any{"bankId": bankID})
@@ -216,14 +216,14 @@ func (n *Provider) Disconnect(ctx context.Context, userID, bankID int32) error {
 		}
 	}
 	if _, err := n.db.ExecForUser(ctx, userID,
-		`DELETE FROM NordigenRequisition
+		`DELETE FROM GoCardlessRequisition
 		  WHERE bankId = :bankId
 		    AND userId = :userId`,
 		map[string]any{"bankId": bankID}); err != nil {
 		return err
 	}
 	if _, err := n.db.ExecForUser(ctx, userID,
-		`DELETE FROM NordigenToken
+		`DELETE FROM GoCardlessToken
 		  WHERE bankId = :bankId
 		    AND userId = :userId`,
 		map[string]any{"bankId": bankID}); err != nil {
@@ -232,7 +232,7 @@ func (n *Provider) Disconnect(ctx context.Context, userID, bankID int32) error {
 	return nil
 }
 
-// bestEffortRevoke calls Nordigen's DELETE /requisitions endpoint and
+// bestEffortRevoke calls GoCardless's DELETE /requisitions endpoint and
 // drains the response. Failures are logged so a permanently broken
 // upstream surfaces in the logs, but the caller proceeds either way.
 func (n *Provider) bestEffortRevoke(ctx context.Context, requisitionID, access string) {
@@ -241,13 +241,13 @@ func (n *Provider) bestEffortRevoke(ctx context.Context, requisitionID, access s
 	req.Header.Set("Authorization", "Bearer "+access)
 	resp, err := n.httpClient.Do(req)
 	if err != nil {
-		log.Printf("nordigen: revoke requisition %s: %v", requisitionID, err)
+		log.Printf("gocardless: revoke requisition %s: %v", requisitionID, err)
 		return
 	}
 	defer resp.Body.Close()
 	if !httpx.IsSuccess(resp.StatusCode) {
 		body, _ := io.ReadAll(resp.Body)
-		log.Printf("nordigen: revoke requisition %s HTTP %d: %s", requisitionID, resp.StatusCode, string(body))
+		log.Printf("gocardless: revoke requisition %s HTTP %d: %s", requisitionID, resp.StatusCode, string(body))
 		return
 	}
 	io.Copy(io.Discard, resp.Body)

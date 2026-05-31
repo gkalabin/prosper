@@ -1,4 +1,4 @@
-package nordigen
+package gocardless
 
 import (
 	"context"
@@ -23,7 +23,7 @@ type tokenResponse struct {
 	RefreshExpiresIn int    `json:"refresh_expires"`
 }
 
-// requestNewToken hits Nordigen's /token/new endpoint and returns the
+// requestNewToken hits GoCardless's /token/new endpoint and returns the
 // parsed response.
 func (n *Provider) requestNewToken(ctx context.Context) (tokenResponse, error) {
 	body, _ := json.Marshal(map[string]string{
@@ -38,11 +38,11 @@ func (n *Provider) requestNewToken(ctx context.Context) (tokenResponse, error) {
 }
 
 // accessToken returns a usable Bearer token for the bank's stored
-// credentials, refreshing or re-creating it from Nordigen as needed.
+// credentials, refreshing or re-creating it from GoCardless as needed.
 func (n *Provider) accessToken(ctx context.Context, userID, bankID int32) (string, error) {
 	var tok model.OpenBankingToken
 	if err := n.db.GetForUser(ctx, &tok, userID,
-		`SELECT * FROM NordigenToken WHERE bankId = :bankId AND userId = :userId`,
+		`SELECT * FROM GoCardlessToken WHERE bankId = :bankId AND userId = :userId`,
 		map[string]any{"bankId": bankID}); err != nil {
 		return "", err
 	}
@@ -65,7 +65,7 @@ func (n *Provider) refreshAccessToken(ctx context.Context, userID, bankID int32,
 	}
 	until := time.Now().Add(time.Duration(r.AccessExpiresIn) * time.Second)
 	if _, err := n.db.ExecForUser(ctx, userID,
-		`UPDATE NordigenToken
+		`UPDATE GoCardlessToken
 		    SET access           = :access,
 		        accessValidUntil = :accessValidUntil
 		  WHERE bankId = :bankId
@@ -89,7 +89,7 @@ func (n *Provider) replaceAccessToken(ctx context.Context, userID, bankID int32)
 	}
 	access, refresh := tokenValidities(r)
 	if _, err := n.db.ExecForUser(ctx, userID,
-		`UPDATE NordigenToken
+		`UPDATE GoCardlessToken
 		    SET access            = :access,
 		        accessValidUntil  = :accessValidUntil,
 		        refresh           = :refresh,
@@ -109,14 +109,14 @@ func (n *Provider) replaceAccessToken(ctx context.Context, userID, bankID int32)
 }
 
 // ensureToken returns a usable access token for the bank, creating
-// the initial NordigenToken row on first connection. Returns
+// the initial GoCardlessToken row on first connection. Returns
 // wasReconnect=true when a token already existed (i.e. the user is
 // re-authorising) and false when this is a brand-new connection.
 func (n *Provider) ensureToken(ctx context.Context, userID, bankID int32) (string, bool, error) {
 	var existing int
 	if err := n.db.GetForUser(ctx, &existing, userID,
 		`SELECT COUNT(*)
-		   FROM NordigenToken
+		   FROM GoCardlessToken
 		  WHERE bankId = :bankId
 		    AND userId = :userId`,
 		map[string]any{"bankId": bankID}); err != nil {
@@ -132,7 +132,7 @@ func (n *Provider) ensureToken(ctx context.Context, userID, bankID int32) (strin
 	}
 	access, refresh := tokenValidities(r)
 	if _, err := n.db.NamedExecForUser(ctx, userID,
-		`INSERT INTO NordigenToken
+		`INSERT INTO GoCardlessToken
 		        ( userId,  bankId,  access,  accessValidUntil,  refresh,  refreshValidUntil)
 		 VALUES (:userId, :bankId, :access, :accessValidUntil, :refresh, :refreshValidUntil)`,
 		model.OpenBankingToken{
@@ -147,7 +147,7 @@ func (n *Provider) ensureToken(ctx context.Context, userID, bankID int32) (strin
 	return r.Access, false, nil
 }
 
-// appLevelToken returns a process-wide Nordigen token suitable for
+// appLevelToken returns a process-wide GoCardless token suitable for
 // catalog queries (institutions list) that don't belong to a specific
 // bank. The token is cached in-memory until expiry to avoid hammering
 // the token endpoint.

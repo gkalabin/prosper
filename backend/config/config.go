@@ -27,8 +27,8 @@ type Config struct {
 
 	TrueLayerClientID     string
 	TrueLayerClientSecret string
-	NordigenSecretID      string
-	NordigenSecretKey     string
+	GoCardlessSecretID    string
+	GoCardlessSecretKey   string
 
 	PublicAppURL string
 }
@@ -44,8 +44,8 @@ func MustLoad() *Config {
 		RateRefreshInterval:   getDuration("RATE_REFRESH_INTERVAL", defaultRateRefreshInterval),
 		TrueLayerClientID:     os.Getenv("TRUE_LAYER_CLIENT_ID"),
 		TrueLayerClientSecret: os.Getenv("TRUE_LAYER_CLIENT_SECRET"),
-		NordigenSecretID:      os.Getenv("NORDIGEN_SECRET_ID"),
-		NordigenSecretKey:     os.Getenv("NORDIGEN_SECRET_KEY"),
+		GoCardlessSecretID:    os.Getenv("GOCARDLESS_SECRET_ID"),
+		GoCardlessSecretKey:   os.Getenv("GOCARDLESS_SECRET_KEY"),
 		PublicAppURL:          os.Getenv("PUBLIC_APP_URL"),
 	}
 }

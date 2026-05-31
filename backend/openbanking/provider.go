@@ -1,4 +1,4 @@
-// Package openbanking talks to TrueLayer, Nordigen and Starling so the
+// Package openbanking talks to TrueLayer, GoCardless and Starling so the
 // app can ingest open banking transaction feeds and account balances.
 package openbanking
 
@@ -10,7 +10,7 @@ import (
 )
 
 // Provider abstracts external open banking integrations.
-// Implementations: TrueLayer, Nordigen, Starling.
+// Implementations: TrueLayer, GoCardless, Starling.
 type Provider interface {
 	// Kind returns the proto enum identifying this provider.
 	Kind() prosperv1.Provider

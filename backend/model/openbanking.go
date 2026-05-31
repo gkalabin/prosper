@@ -14,7 +14,7 @@ type OpenBankingMapping struct {
 }
 
 // OpenBankingToken is the shared shape of the per-provider token tables
-// (TrueLayerToken, NordigenToken, StarlingToken).
+// (TrueLayerToken, GoCardlessToken, StarlingToken).
 type OpenBankingToken struct {
 	ID                string    `db:"id"`
 	UserID            int32     `db:"userId"`
@@ -27,8 +27,8 @@ type OpenBankingToken struct {
 	UpdatedAt         time.Time `db:"updatedAt"`
 }
 
-// NordigenRequisition used for Nordigen authorization flow.
-type NordigenRequisition struct {
+// GoCardlessRequisition used for GoCardless authorization flow.
+type GoCardlessRequisition struct {
 	ID            string    `db:"id"`
 	RequisitionID string    `db:"requisitionId"`
 	InstitutionID string    `db:"institutionId"`

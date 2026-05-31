@@ -1,10 +1,10 @@
-import {CountriesSelector} from '@/app/(authenticated)/config/open-banking/nordigen/connect/CountriesSelector';
-import {InstitutionSelector} from '@/app/(authenticated)/config/open-banking/nordigen/connect/InstitutionSelector';
+import {CountriesSelector} from '@/app/(authenticated)/config/open-banking/gocardless/connect/CountriesSelector';
+import {InstitutionSelector} from '@/app/(authenticated)/config/open-banking/gocardless/connect/InstitutionSelector';
 import {getAuthContextOrRedirect} from '@/lib/auth/user';
 import {withAuth} from '@/lib/grpc/auth';
 import {cachedCoreDataOrFetch} from '@/lib/db/cache';
 import {openBankingClient} from '@/lib/grpc/client';
-import {NordigenInstitution} from '@/lib/grpc/gen/prosper/v1/openbanking';
+import {GoCardlessInstitution} from '@/lib/grpc/gen/prosper/v1/openbanking';
 import {
   firstPositiveIntOrNull,
   firstValueOrNull,
@@ -13,7 +13,7 @@ import {Metadata} from 'next';
 import {notFound} from 'next/navigation';
 
 export const metadata: Metadata = {
-  title: 'Nordigen Connect - Prosper',
+  title: 'GoCardless Connect - Prosper',
 };
 
 export default async function Page({
@@ -34,21 +34,21 @@ export default async function Page({
   }
   const country = firstValueOrNull(resolvedSearchParams['country']);
   if (!country) {
-    const {response} = await openBankingClient.listNordigenCountries(
+    const {response} = await openBankingClient.listGoCardlessCountries(
       withAuth({}, auth)
     );
     return <CountriesSelector bank={bank} countries={response.countries} />;
   }
   const {response: countriesResp} =
-    await openBankingClient.listNordigenCountries(withAuth({}, auth));
+    await openBankingClient.listGoCardlessCountries(withAuth({}, auth));
   if (!countriesResp.countries.find(c => c.code === country)) {
     return notFound();
   }
   const {response: institutionsResp} =
-    await openBankingClient.listNordigenInstitutions(
+    await openBankingClient.listGoCardlessInstitutions(
       withAuth({countryCode: country}, auth)
     );
-  const institutions: NordigenInstitution[] = [
+  const institutions: GoCardlessInstitution[] = [
     ...institutionsResp.institutions,
   ];
   institutions.sort((a, b) => a.name.localeCompare(b.name));

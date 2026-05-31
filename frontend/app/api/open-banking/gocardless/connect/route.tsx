@@ -17,12 +17,12 @@ export async function GET(request: NextRequest): Promise<Response> {
     return new Response(`institutionId is missing`, {status: 400});
   }
   const auth = await getAuthContextOrRedirect();
-  logApi('GET', '/api/open-banking/nordigen/connect', {
+  logApi('GET', '/api/open-banking/gocardless/connect', {
     userId: auth.userId,
     bankId,
     institutionId,
   });
-  const {response} = await openBankingClient.startNordigenConnection(
+  const {response} = await openBankingClient.startGoCardlessConnection(
     withAuth({bankId, institutionId}, auth)
   );
   return redirect(response.authUrl);

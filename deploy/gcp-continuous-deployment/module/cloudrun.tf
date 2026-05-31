@@ -81,12 +81,12 @@ resource "google_cloud_run_v2_service" "prosper" {
         value = var.true_layer_client_secret
       }
       env {
-        name  = "NORDIGEN_SECRET_ID"
-        value = var.nordigen_secret_id
+        name  = "GOCARDLESS_SECRET_ID"
+        value = var.gocardless_secret_id
       }
       env {
-        name  = "NORDIGEN_SECRET_KEY"
-        value = var.nordigen_secret_key
+        name  = "GOCARDLESS_SECRET_KEY"
+        value = var.gocardless_secret_key
       }
 
       volume_mounts {

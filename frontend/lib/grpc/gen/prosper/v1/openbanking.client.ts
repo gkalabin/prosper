@@ -4,10 +4,10 @@
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { OpenBankingService } from "./openbanking";
-import type { ListNordigenCountriesResponse } from "./openbanking";
-import type { ListNordigenCountriesRequest } from "./openbanking";
-import type { ListNordigenInstitutionsResponse } from "./openbanking";
-import type { ListNordigenInstitutionsRequest } from "./openbanking";
+import type { ListGoCardlessCountriesResponse } from "./openbanking";
+import type { ListGoCardlessCountriesRequest } from "./openbanking";
+import type { ListGoCardlessInstitutionsResponse } from "./openbanking";
+import type { ListGoCardlessInstitutionsRequest } from "./openbanking";
 import type { SetMappingsResponse } from "./openbanking";
 import type { SetMappingsRequest } from "./openbanking";
 import type { ListMappingsResponse } from "./openbanking";
@@ -20,10 +20,10 @@ import type { DisconnectResponse } from "./openbanking";
 import type { DisconnectRequest } from "./openbanking";
 import type { SetStarlingTokenResponse } from "./openbanking";
 import type { SetStarlingTokenRequest } from "./openbanking";
-import type { CompleteNordigenConnectionResponse } from "./openbanking";
-import type { CompleteNordigenConnectionRequest } from "./openbanking";
-import type { StartNordigenConnectionResponse } from "./openbanking";
-import type { StartNordigenConnectionRequest } from "./openbanking";
+import type { CompleteGoCardlessConnectionResponse } from "./openbanking";
+import type { CompleteGoCardlessConnectionRequest } from "./openbanking";
+import type { StartGoCardlessConnectionResponse } from "./openbanking";
+import type { StartGoCardlessConnectionRequest } from "./openbanking";
 import type { CompleteTrueLayerConnectionResponse } from "./openbanking";
 import type { CompleteTrueLayerConnectionRequest } from "./openbanking";
 import type { StartTrueLayerConnectionResponse } from "./openbanking";
@@ -74,20 +74,20 @@ export interface IOpenBankingServiceClient {
      */
     completeTrueLayerConnection(input: CompleteTrueLayerConnectionRequest, options?: RpcOptions): UnaryCall<CompleteTrueLayerConnectionRequest, CompleteTrueLayerConnectionResponse>;
     /**
-     * StartNordigenConnection creates a requisition and returns the
+     * StartGoCardlessConnection creates a requisition and returns the
      * hosted authorization link. The reference is stored alongside the
      * requisition for later lookup.
      *
-     * @generated from protobuf rpc: StartNordigenConnection
+     * @generated from protobuf rpc: StartGoCardlessConnection
      */
-    startNordigenConnection(input: StartNordigenConnectionRequest, options?: RpcOptions): UnaryCall<StartNordigenConnectionRequest, StartNordigenConnectionResponse>;
+    startGoCardlessConnection(input: StartGoCardlessConnectionRequest, options?: RpcOptions): UnaryCall<StartGoCardlessConnectionRequest, StartGoCardlessConnectionResponse>;
     /**
-     * CompleteNordigenConnection marks a requisition complete and
+     * CompleteGoCardlessConnection marks a requisition complete and
      * returns the bank id behind the supplied reference.
      *
-     * @generated from protobuf rpc: CompleteNordigenConnection
+     * @generated from protobuf rpc: CompleteGoCardlessConnection
      */
-    completeNordigenConnection(input: CompleteNordigenConnectionRequest, options?: RpcOptions): UnaryCall<CompleteNordigenConnectionRequest, CompleteNordigenConnectionResponse>;
+    completeGoCardlessConnection(input: CompleteGoCardlessConnectionRequest, options?: RpcOptions): UnaryCall<CompleteGoCardlessConnectionRequest, CompleteGoCardlessConnectionResponse>;
     /**
      * SetStarlingToken stores a manually entered Starling personal
      * access token.
@@ -133,13 +133,13 @@ export interface IOpenBankingServiceClient {
      */
     setMappings(input: SetMappingsRequest, options?: RpcOptions): UnaryCall<SetMappingsRequest, SetMappingsResponse>;
     /**
-     * @generated from protobuf rpc: ListNordigenInstitutions
+     * @generated from protobuf rpc: ListGoCardlessInstitutions
      */
-    listNordigenInstitutions(input: ListNordigenInstitutionsRequest, options?: RpcOptions): UnaryCall<ListNordigenInstitutionsRequest, ListNordigenInstitutionsResponse>;
+    listGoCardlessInstitutions(input: ListGoCardlessInstitutionsRequest, options?: RpcOptions): UnaryCall<ListGoCardlessInstitutionsRequest, ListGoCardlessInstitutionsResponse>;
     /**
-     * @generated from protobuf rpc: ListNordigenCountries
+     * @generated from protobuf rpc: ListGoCardlessCountries
      */
-    listNordigenCountries(input: ListNordigenCountriesRequest, options?: RpcOptions): UnaryCall<ListNordigenCountriesRequest, ListNordigenCountriesResponse>;
+    listGoCardlessCountries(input: ListGoCardlessCountriesRequest, options?: RpcOptions): UnaryCall<ListGoCardlessCountriesRequest, ListGoCardlessCountriesResponse>;
 }
 /**
  * OpenBankingService manages all open banking state:
@@ -198,25 +198,25 @@ export class OpenBankingServiceClient implements IOpenBankingServiceClient, Serv
         return stackIntercept<CompleteTrueLayerConnectionRequest, CompleteTrueLayerConnectionResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * StartNordigenConnection creates a requisition and returns the
+     * StartGoCardlessConnection creates a requisition and returns the
      * hosted authorization link. The reference is stored alongside the
      * requisition for later lookup.
      *
-     * @generated from protobuf rpc: StartNordigenConnection
+     * @generated from protobuf rpc: StartGoCardlessConnection
      */
-    startNordigenConnection(input: StartNordigenConnectionRequest, options?: RpcOptions): UnaryCall<StartNordigenConnectionRequest, StartNordigenConnectionResponse> {
+    startGoCardlessConnection(input: StartGoCardlessConnectionRequest, options?: RpcOptions): UnaryCall<StartGoCardlessConnectionRequest, StartGoCardlessConnectionResponse> {
         const method = this.methods[5], opt = this._transport.mergeOptions(options);
-        return stackIntercept<StartNordigenConnectionRequest, StartNordigenConnectionResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<StartGoCardlessConnectionRequest, StartGoCardlessConnectionResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * CompleteNordigenConnection marks a requisition complete and
+     * CompleteGoCardlessConnection marks a requisition complete and
      * returns the bank id behind the supplied reference.
      *
-     * @generated from protobuf rpc: CompleteNordigenConnection
+     * @generated from protobuf rpc: CompleteGoCardlessConnection
      */
-    completeNordigenConnection(input: CompleteNordigenConnectionRequest, options?: RpcOptions): UnaryCall<CompleteNordigenConnectionRequest, CompleteNordigenConnectionResponse> {
+    completeGoCardlessConnection(input: CompleteGoCardlessConnectionRequest, options?: RpcOptions): UnaryCall<CompleteGoCardlessConnectionRequest, CompleteGoCardlessConnectionResponse> {
         const method = this.methods[6], opt = this._transport.mergeOptions(options);
-        return stackIntercept<CompleteNordigenConnectionRequest, CompleteNordigenConnectionResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<CompleteGoCardlessConnectionRequest, CompleteGoCardlessConnectionResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * SetStarlingToken stores a manually entered Starling personal
@@ -281,17 +281,17 @@ export class OpenBankingServiceClient implements IOpenBankingServiceClient, Serv
         return stackIntercept<SetMappingsRequest, SetMappingsResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: ListNordigenInstitutions
+     * @generated from protobuf rpc: ListGoCardlessInstitutions
      */
-    listNordigenInstitutions(input: ListNordigenInstitutionsRequest, options?: RpcOptions): UnaryCall<ListNordigenInstitutionsRequest, ListNordigenInstitutionsResponse> {
+    listGoCardlessInstitutions(input: ListGoCardlessInstitutionsRequest, options?: RpcOptions): UnaryCall<ListGoCardlessInstitutionsRequest, ListGoCardlessInstitutionsResponse> {
         const method = this.methods[13], opt = this._transport.mergeOptions(options);
-        return stackIntercept<ListNordigenInstitutionsRequest, ListNordigenInstitutionsResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<ListGoCardlessInstitutionsRequest, ListGoCardlessInstitutionsResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: ListNordigenCountries
+     * @generated from protobuf rpc: ListGoCardlessCountries
      */
-    listNordigenCountries(input: ListNordigenCountriesRequest, options?: RpcOptions): UnaryCall<ListNordigenCountriesRequest, ListNordigenCountriesResponse> {
+    listGoCardlessCountries(input: ListGoCardlessCountriesRequest, options?: RpcOptions): UnaryCall<ListGoCardlessCountriesRequest, ListGoCardlessCountriesResponse> {
         const method = this.methods[14], opt = this._transport.mergeOptions(options);
-        return stackIntercept<ListNordigenCountriesRequest, ListNordigenCountriesResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<ListGoCardlessCountriesRequest, ListGoCardlessCountriesResponse>("unary", this._transport, method, opt, input);
     }
 }

@@ -1,6 +1,6 @@
-// Package nordigen implements the open-banking Provider against the
+// Package gocardless implements the open-banking Provider against the
 // GoCardless Bank Account Data API.
-package nordigen
+package gocardless
 
 import (
 	"context"
@@ -14,15 +14,15 @@ import (
 	"prosper/userdb"
 )
 
-// apiBase is the root of every Nordigen URL. Per-endpoint URL
+// apiBase is the root of every GoCardless URL. Per-endpoint URL
 // constants live in the file that uses them.
 const apiBase = "https://bankaccountdata.gocardless.com/api/v2"
 
-// dateOnlyFormat matches Nordigen's "YYYY-MM-DD" wire format.
+// dateOnlyFormat matches GoCardless's "YYYY-MM-DD" wire format.
 const dateOnlyFormat = "2006-01-02"
 
-// connectedPath is the path the browser lands on after authorizing on Nordigen.
-const connectedPath = "/api/open-banking/nordigen/connected"
+// connectedPath is the path the browser lands on after authorizing on GoCardless.
+const connectedPath = "/api/open-banking/gocardless/connected"
 
 // Provider implements openbanking.Provider against the GoCardless Bank
 // Account Data API.
@@ -52,16 +52,16 @@ func New(db *userdb.DB, secretID, secretKey, publicAppURL string) *Provider {
 }
 
 // redirectURI is the absolute URL the browser lands on after the user
-// authorizes the app on Nordigen's side.
+// authorizes the app on GoCardless's side.
 func (n *Provider) redirectURI() string {
 	return n.publicAppURL + connectedPath
 }
 
-func (*Provider) Kind() prosperv1.Provider { return prosperv1.Provider_PROVIDER_NORDIGEN }
+func (*Provider) Kind() prosperv1.Provider { return prosperv1.Provider_PROVIDER_GOCARDLESS }
 
 // ReconnectURL returns the in-app path the frontend reconnect flow
 // should redirect to. The Next page at
-// /config/open-banking/nordigen/connect owns the actual flow; we just
+// /config/open-banking/gocardless/connect owns the actual flow; we just
 // hand it the institutionId from the most recent requisition.
 func (n *Provider) ReconnectURL(ctx context.Context, userID, bankID int32) (string, error) {
 	institutionID, err := n.LastInstitutionID(ctx, userID, bankID)
@@ -72,5 +72,5 @@ func (n *Provider) ReconnectURL(ctx context.Context, userID, bankID int32) (stri
 }
 
 func reconnectPath(bankID int32, institutionID string) string {
-	return fmt.Sprintf("/config/open-banking/nordigen/connect?bankId=%d&institutionId=%s", bankID, institutionID)
+	return fmt.Sprintf("/config/open-banking/gocardless/connect?bankId=%d&institutionId=%s", bankID, institutionID)
 }

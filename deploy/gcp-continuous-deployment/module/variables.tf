@@ -25,12 +25,12 @@ variable "true_layer_client_secret" {
   default   = null
 }
 
-variable "nordigen_secret_id" {
+variable "gocardless_secret_id" {
   type    = string
   default = null
 }
 
-variable "nordigen_secret_key" {
+variable "gocardless_secret_key" {
   type      = string
   sensitive = true
   default   = null

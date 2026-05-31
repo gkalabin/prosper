@@ -17,7 +17,7 @@ import (
 	prosperv1 "prosper/gen/prosper/v1"
 	"prosper/ledger"
 	"prosper/openbanking"
-	"prosper/openbanking/nordigen"
+	"prosper/openbanking/gocardless"
 	"prosper/openbanking/starling"
 	"prosper/openbanking/truelayer"
 	"prosper/rates"
@@ -87,11 +87,11 @@ func main() {
 	} else {
 		log.Println("openbanking: truelayer provider disabled (credentials not configured)")
 	}
-	if cfg.NordigenSecretID != "" && cfg.NordigenSecretKey != "" {
-		obSrv.RegisterProvider(nordigen.New(udb, cfg.NordigenSecretID, cfg.NordigenSecretKey, cfg.PublicAppURL))
-		log.Println("openbanking: nordigen provider registered")
+	if cfg.GoCardlessSecretID != "" && cfg.GoCardlessSecretKey != "" {
+		obSrv.RegisterProvider(gocardless.New(udb, cfg.GoCardlessSecretID, cfg.GoCardlessSecretKey, cfg.PublicAppURL))
+		log.Println("openbanking: gocardless provider registered")
 	} else {
-		log.Println("openbanking: nordigen provider disabled (credentials not configured)")
+		log.Println("openbanking: gocardless provider disabled (credentials not configured)")
 	}
 	obSrv.RegisterProvider(starling.New(udb))
 	log.Println("openbanking: starling provider registered")

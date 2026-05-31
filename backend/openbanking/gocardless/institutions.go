@@ -1,4 +1,4 @@
-package nordigen
+package gocardless
 
 import (
 	"context"
@@ -16,10 +16,10 @@ type institutionItem struct {
 	Logo string `json:"logo"`
 }
 
-// ListInstitutions queries Nordigen's institutions catalog for a
+// ListInstitutions queries GoCardless's institutions catalog for a
 // country code (uppercased ISO 3166-1 alpha-2) and returns them as
 // proto messages.
-func (n *Provider) ListInstitutions(ctx context.Context, country string) ([]*prosperv1.NordigenInstitution, error) {
+func (n *Provider) ListInstitutions(ctx context.Context, country string) ([]*prosperv1.GoCardlessInstitution, error) {
 	access, err := n.appLevelToken(ctx)
 	if err != nil {
 		return nil, err
@@ -30,9 +30,9 @@ func (n *Provider) ListInstitutions(ctx context.Context, country string) ([]*pro
 	if err := n.getJSON(ctx, institutionsURL+"?"+q.Encode(), access, &items); err != nil {
 		return nil, err
 	}
-	out := make([]*prosperv1.NordigenInstitution, 0, len(items))
+	out := make([]*prosperv1.GoCardlessInstitution, 0, len(items))
 	for _, i := range items {
-		out = append(out, &prosperv1.NordigenInstitution{
+		out = append(out, &prosperv1.GoCardlessInstitution{
 			Id:      i.ID,
 			Name:    i.Name,
 			LogoUrl: i.Logo,

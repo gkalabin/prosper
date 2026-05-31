@@ -19,8 +19,8 @@ export default async function Page() {
   const trueLayerBanks = status.expirations
     .filter(e => e.provider === Provider.TRUELAYER)
     .map(e => e.bankId);
-  const nordigenBanks = status.expirations
-    .filter(e => e.provider === Provider.NORDIGEN)
+  const gocardlessBanks = status.expirations
+    .filter(e => e.provider === Provider.GOCARDLESS)
     .map(e => e.bankId);
   const starlingBanks = status.expirations
     .filter(e => e.provider === Provider.STARLING)
@@ -31,7 +31,7 @@ export default async function Page() {
       bankAccounts={core.bankAccounts}
       stocks={core.stocks}
       trueLayerBankIds={trueLayerBanks}
-      nordigenBankIds={nordigenBanks}
+      gocardlessBankIds={gocardlessBanks}
       starlingBankIds={starlingBanks}
       displaySettings={core.displaySettings}
     />

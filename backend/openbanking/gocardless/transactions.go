@@ -1,4 +1,4 @@
-package nordigen
+package gocardless
 
 import (
 	"context"
@@ -36,7 +36,7 @@ type transactionsResponse struct {
 	} `json:"transactions"`
 }
 
-// FetchTransactions returns Nordigen's transactions
+// FetchTransactions returns GoCardless's transactions
 // for the external account.
 func (n *Provider) FetchTransactions(ctx context.Context, userID, bankID int32, externalAccountID string, since time.Time) ([]*prosperv1.OpenBankingTransaction, error) {
 	access, err := n.accessToken(ctx, userID, bankID)
@@ -61,12 +61,12 @@ func appendItems(out []*prosperv1.OpenBankingTransaction, items []transactionIte
 	for _, item := range items {
 		ts, err := itemTimestamp(item)
 		if err != nil {
-			log.Printf("nordigen: %s transaction %s on account %s: %v", kind, item.TransactionID, accountID, err)
+			log.Printf("gocardless: %s transaction %s on account %s: %v", kind, item.TransactionID, accountID, err)
 			continue
 		}
 		amount, err := moneyutil.ParseDecimalToNanos(item.Amount.Amount)
 		if err != nil {
-			log.Printf("nordigen: %s transaction %s on account %s: parse amount %q: %v",
+			log.Printf("gocardless: %s transaction %s on account %s: parse amount %q: %v",
 				kind, item.TransactionID, accountID, item.Amount.Amount, err)
 			continue
 		}
@@ -97,7 +97,7 @@ func description(item transactionItem) string {
 	return ""
 }
 
-// itemTimestamp returns the most precise timestamp Nordigen
+// itemTimestamp returns the most precise timestamp GoCardless
 // supplied for the item. valueDateTime is preferred because it
 // represents when the funds become effective; the date-only forms are
 // only used as fallbacks.

@@ -12,11 +12,11 @@ export async function GET(request: NextRequest): Promise<Response> {
     return new Response(`ref is missing`, {status: 400});
   }
   const auth = await getAuthContextOrRedirect();
-  logApi('GET', '/api/open-banking/nordigen/connected', {
+  logApi('GET', '/api/open-banking/gocardless/connected', {
     userId: auth.userId,
     ref,
   });
-  const {response} = await openBankingClient.completeNordigenConnection(
+  const {response} = await openBankingClient.completeGoCardlessConnection(
     withAuth({reference: ref}, auth)
   );
   return redirect(

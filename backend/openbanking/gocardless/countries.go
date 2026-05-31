@@ -1,8 +1,8 @@
-package nordigen
+package gocardless
 
 import prosperv1 "prosper/gen/prosper/v1"
 
-// supportedCountries is the static catalog of countries Nordigen
+// supportedCountries is the static catalog of countries GoCardless
 // supports, returned by Countries.
 var supportedCountries = []struct {
 	code string
@@ -41,13 +41,13 @@ var supportedCountries = []struct {
 	{"SK", "Slovakia"},
 }
 
-// Countries returns the static list of supported Nordigen countries
-// for the listing RPC. Nordigen doesn't publish a programmatic catalog
+// Countries returns the static list of supported GoCardless countries
+// for the listing RPC. GoCardless doesn't publish a programmatic catalog
 // of supported countries, so we curate this list.
-func Countries() []*prosperv1.NordigenCountry {
-	out := make([]*prosperv1.NordigenCountry, 0, len(supportedCountries))
+func Countries() []*prosperv1.GoCardlessCountry {
+	out := make([]*prosperv1.GoCardlessCountry, 0, len(supportedCountries))
 	for _, c := range supportedCountries {
-		out = append(out, &prosperv1.NordigenCountry{Code: c.code, Name: c.name})
+		out = append(out, &prosperv1.GoCardlessCountry{Code: c.code, Name: c.name})
 	}
 	return out
 }
