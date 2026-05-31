@@ -10,6 +10,9 @@ const stockUnitSchema = z.object({
   ticker: z.string().min(1),
   exchange: z.string().min(1),
   name: z.string().min(1),
+  currencyCode: z.string().min(1),
+  // Latest price per share, may be zero if not known.
+  pricePerShareNanos: z.number().optional(),
 });
 
 const unitSchema = z.union([currencyUnitSchema, stockUnitSchema]);

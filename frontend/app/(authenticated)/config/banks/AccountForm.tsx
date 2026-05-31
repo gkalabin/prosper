@@ -219,6 +219,7 @@ function useInitialFormValues(
       ticker: stock.ticker,
       exchange: stock.exchange,
       name: stock.name,
+      currencyCode: stock.currencyCode,
     };
   } else if (bankAccount.currencyCode) {
     unit = {

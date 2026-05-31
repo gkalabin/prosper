@@ -5,11 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
+	"sort"
 	"strings"
+	"sync"
 	"time"
 
+	prosperv1 "prosper/gen/prosper/v1"
 	"prosper/moneyutil"
 )
 
@@ -68,7 +72,7 @@ func (y *YahooProvider) FetchQuotes(ctx context.Context, _exchange, ticker strin
 
 // SearchStocks queries Yahoo's symbol search endpoint and returns the
 // matching stocks excluding currencies.
-func (y *YahooProvider) SearchStocks(ctx context.Context, query string) ([]StockSearchResult, error) {
+func (y *YahooProvider) SearchStocks(ctx context.Context, query string) ([]*prosperv1.StockSearchResult, error) {
 	u := fmt.Sprintf("%s?q=%s&newsCount=0", yahooSearchURL, url.QueryEscape(query))
 	body, err := y.do(ctx, u)
 	if err != nil {
@@ -78,7 +82,7 @@ func (y *YahooProvider) SearchStocks(ctx context.Context, query string) ([]Stock
 	if err := json.Unmarshal(body, &resp); err != nil {
 		return nil, err
 	}
-	out := make([]StockSearchResult, 0, len(resp.Quotes))
+	out := make([]*prosperv1.StockSearchResult, 0, len(resp.Quotes))
 	for _, q := range resp.Quotes {
 		if !q.IsYahooFinance || q.QuoteType == "CURRENCY" {
 			continue
@@ -86,13 +90,37 @@ func (y *YahooProvider) SearchStocks(ctx context.Context, query string) ([]Stock
 		if q.Exchange == "" || q.Symbol == "" {
 			continue
 		}
-		out = append(out, StockSearchResult{
+		out = append(out, &prosperv1.StockSearchResult{
 			Exchange: q.Exchange,
 			Ticker:   q.Symbol,
-			Name:     firstNonEmpty(q.ShortName, q.LongName, q.TypeDisp),
+			Name:     firstNonEmpty(q.LongName, q.ShortName, q.TypeDisp),
 		})
 	}
+	y.attachLatestPrices(ctx, out)
 	return out, nil
+}
+
+// attachLatestPrices fills in the latest price and currency of each
+// result in place, fetching quotes concurrently. A failed or missing
+// quote leaves the price at zero.
+func (y *YahooProvider) attachLatestPrices(ctx context.Context, results []*prosperv1.StockSearchResult) {
+	// Fetch last 7 days of prices to account for any bank holidays.
+	priceSince := time.Now().AddDate(0, 0, -7)
+	var wg sync.WaitGroup
+	for _, r := range results {
+		wg.Add(1)
+		go func(r *prosperv1.StockSearchResult) {
+			defer wg.Done()
+			chart, err := y.fetchChart(ctx, r.Ticker, priceSince)
+			if err != nil {
+				log.Printf("rates: latest price for %s: %v", r.Ticker, err)
+				return
+			}
+			r.PricePerShareNanos = chart.latestPriceNanos()
+			r.CurrencyCode = chart.currency
+		}(r)
+	}
+	wg.Wait()
 }
 
 func firstNonEmpty(values ...string) string {
@@ -121,6 +149,15 @@ type yahooSearchResponse struct {
 type chartResult struct {
 	currency string
 	points   []chartPoint
+}
+
+// latestPriceNanos returns the most recent close price, or zero when
+// the chart has no points.
+func (c chartResult) latestPriceNanos() int64 {
+	if len(c.points) == 0 {
+		return 0
+	}
+	return c.points[len(c.points)-1].closeNanos
 }
 
 type chartPoint struct {
@@ -180,6 +217,10 @@ func (y *YahooProvider) fetchChart(ctx context.Context, symbol string, from time
 			closeNanos: moneyutil.FloatUnitsToNanos(*closes[i]),
 		})
 	}
+	// Do not rely on yahoo response being sorted, do it ourselves.
+	sort.Slice(out.points, func(i, j int) bool {
+		return out.points[i].date.Before(out.points[j].date)
+	})
 	return out, nil
 }
 

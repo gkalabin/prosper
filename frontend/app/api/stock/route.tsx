@@ -25,15 +25,13 @@ export async function GET(request: NextRequest): Promise<Response> {
       exchange: x.exchange,
       ticker: x.ticker,
       name: x.name,
+      currencyCode: x.currencyCode,
+      pricePerShareNanos: Number(x.pricePerShareNanos),
     })
   );
-
   const currencies: CurrencyUnitSchema[] = allCurrencies()
     .filter(c => c.code.toLowerCase().includes(q.toLowerCase()))
-    .map(c => ({
-      kind: 'currency',
-      currencyCode: c.code,
-    }));
+    .map(c => ({kind: 'currency', currencyCode: c.code}));
   const units: UnitSchema[] = [...stocks, ...currencies];
   return NextResponse.json(units);
 }

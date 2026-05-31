@@ -6,9 +6,11 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
+import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {UnitSchema} from '@/lib/form-types/AccountFormSchema';
-import {allCurrencies} from '@/lib/model/Currency';
+import {allCurrencies, findByCode, mustFindByCode} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';
+import {nanosToCents} from '@/lib/util/util';
 import {cn} from '@/lib/utils';
 import {CheckIcon, ChevronUpDownIcon} from '@heroicons/react/24/outline';
 import {useEffect, useState} from 'react';
@@ -17,11 +19,19 @@ import {useDebounce} from 'use-debounce';
 function labelFor(unit: UnitSchema) {
   if (unit.kind === 'currency') {
     return unit.currencyCode;
-  } else if (unit.kind === 'stock') {
-    return `${unit.name} (${unit.ticker})`;
-  } else {
-    return 'Unknown';
   }
+  if (unit.kind === 'stock') {
+    if (!unit.pricePerShareNanos || !findByCode(unit.currencyCode)) {
+      return `${unit.name} (${unit.ticker}, ${unit.currencyCode})`;
+    }
+    const price = new AmountWithCurrency({
+      amountCents: nanosToCents(BigInt(unit.pricePerShareNanos)),
+      currency: mustFindByCode(unit.currencyCode),
+    });
+    return `${unit.name} (${unit.ticker} — ${price.format()})`;
+  }
+  const _exhaustivenessCheck: never = unit;
+  throw new Error(`Unexpected unit: ${_exhaustivenessCheck}`);
 }
 
 function unitID(u: UnitSchema): string {
@@ -58,6 +68,7 @@ export function UnitSelect({
       ticker: s.ticker,
       exchange: s.exchange,
       name: s.name,
+      currencyCode: s.currencyCode,
     })
   );
   const initialOptions = [...currencies, ...initialStocks];
@@ -107,7 +118,7 @@ function UnitSelectDropdownContent({
   const [loading, setLoading] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [items, setItems] = useState(initialItems);
-  const [debouncedQuery] = useDebounce(searchQuery, 200);
+  const [debouncedQuery] = useDebounce(searchQuery, 1000);
   const [forceRetry, setForceRetry] = useState(false);
 
   const initialOptionIds = new Set(initialItems.map(unitID));

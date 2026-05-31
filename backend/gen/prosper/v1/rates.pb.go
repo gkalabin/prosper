@@ -119,12 +119,15 @@ func (x *SearchStocksResponse) GetStocks() []*StockSearchResult {
 }
 
 type StockSearchResult struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Exchange      string                 `protobuf:"bytes,1,opt,name=exchange,proto3" json:"exchange,omitempty"`
-	Ticker        string                 `protobuf:"bytes,2,opt,name=ticker,proto3" json:"ticker,omitempty"`
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state    protoimpl.MessageState `protogen:"open.v1"`
+	Exchange string                 `protobuf:"bytes,1,opt,name=exchange,proto3" json:"exchange,omitempty"`
+	Ticker   string                 `protobuf:"bytes,2,opt,name=ticker,proto3" json:"ticker,omitempty"`
+	Name     string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	// Latest known price per share, zero when unavailable.
+	PricePerShareNanos int64  `protobuf:"varint,4,opt,name=price_per_share_nanos,json=pricePerShareNanos,proto3" json:"price_per_share_nanos,omitempty"`
+	CurrencyCode       string `protobuf:"bytes,5,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *StockSearchResult) Reset() {
@@ -174,6 +177,20 @@ func (x *StockSearchResult) GetTicker() string {
 func (x *StockSearchResult) GetName() string {
 	if x != nil {
 		return x.Name
+	}
+	return ""
+}
+
+func (x *StockSearchResult) GetPricePerShareNanos() int64 {
+	if x != nil {
+		return x.PricePerShareNanos
+	}
+	return 0
+}
+
+func (x *StockSearchResult) GetCurrencyCode() string {
+	if x != nil {
+		return x.CurrencyCode
 	}
 	return ""
 }
@@ -413,11 +430,13 @@ const file_prosper_v1_rates_proto_rawDesc = "" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12\x14\n" +
 	"\x05query\x18\x02 \x01(\tR\x05query\"M\n" +
 	"\x14SearchStocksResponse\x125\n" +
-	"\x06stocks\x18\x01 \x03(\v2\x1d.prosper.v1.StockSearchResultR\x06stocks\"[\n" +
+	"\x06stocks\x18\x01 \x03(\v2\x1d.prosper.v1.StockSearchResultR\x06stocks\"\xb3\x01\n" +
 	"\x11StockSearchResult\x12\x1a\n" +
 	"\bexchange\x18\x01 \x01(\tR\bexchange\x12\x16\n" +
 	"\x06ticker\x18\x02 \x01(\tR\x06ticker\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\"<\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x121\n" +
+	"\x15price_per_share_nanos\x18\x04 \x01(\x03R\x12pricePerShareNanos\x12#\n" +
+	"\rcurrency_code\x18\x05 \x01(\tR\fcurrencyCode\"<\n" +
 	"\x1bGetMarketDataForUserRequest\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\"~\n" +

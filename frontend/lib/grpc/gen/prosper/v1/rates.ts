@@ -50,6 +50,16 @@ export interface StockSearchResult {
      * @generated from protobuf field: string name = 3
      */
     name: string;
+    /**
+     * Latest known price per share, zero when unavailable.
+     *
+     * @generated from protobuf field: int64 price_per_share_nanos = 4
+     */
+    pricePerShareNanos: bigint;
+    /**
+     * @generated from protobuf field: string currency_code = 5
+     */
+    currencyCode: string;
 }
 /**
  * @generated from protobuf message prosper.v1.GetMarketDataForUserRequest
@@ -219,7 +229,9 @@ class StockSearchResult$Type extends MessageType<StockSearchResult> {
         super("prosper.v1.StockSearchResult", [
             { no: 1, name: "exchange", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "ticker", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 3, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 4, name: "price_per_share_nanos", kind: "scalar", T: 3 /*ScalarType.INT64*/, L: 0 /*LongType.BIGINT*/ },
+            { no: 5, name: "currency_code", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<StockSearchResult>): StockSearchResult {
@@ -227,6 +239,8 @@ class StockSearchResult$Type extends MessageType<StockSearchResult> {
         message.exchange = "";
         message.ticker = "";
         message.name = "";
+        message.pricePerShareNanos = 0n;
+        message.currencyCode = "";
         if (value !== undefined)
             reflectionMergePartial<StockSearchResult>(this, message, value);
         return message;
@@ -244,6 +258,12 @@ class StockSearchResult$Type extends MessageType<StockSearchResult> {
                     break;
                 case /* string name */ 3:
                     message.name = reader.string();
+                    break;
+                case /* int64 price_per_share_nanos */ 4:
+                    message.pricePerShareNanos = reader.int64().toBigInt();
+                    break;
+                case /* string currency_code */ 5:
+                    message.currencyCode = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -266,6 +286,12 @@ class StockSearchResult$Type extends MessageType<StockSearchResult> {
         /* string name = 3; */
         if (message.name !== "")
             writer.tag(3, WireType.LengthDelimited).string(message.name);
+        /* int64 price_per_share_nanos = 4; */
+        if (message.pricePerShareNanos !== 0n)
+            writer.tag(4, WireType.Varint).int64(message.pricePerShareNanos);
+        /* string currency_code = 5; */
+        if (message.currencyCode !== "")
+            writer.tag(5, WireType.LengthDelimited).string(message.currencyCode);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

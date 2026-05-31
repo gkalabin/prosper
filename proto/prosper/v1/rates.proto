@@ -30,6 +30,9 @@ message StockSearchResult {
   string exchange = 1;
   string ticker = 2;
   string name = 3;
+  // Latest known price per share, zero when unavailable.
+  int64 price_per_share_nanos = 4;
+  string currency_code = 5;
 }
 
 message GetMarketDataForUserRequest { string session_id = 1; }

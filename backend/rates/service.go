@@ -107,21 +107,11 @@ func (s *Service) GetMarketDataForUser(ctx context.Context, _ *prosperv1.GetMark
 
 // SearchStocks returns the stocks matching a free-text query.
 func (s *Service) SearchStocks(ctx context.Context, req *prosperv1.SearchStocksRequest) (*prosperv1.SearchStocksResponse, error) {
-	results, err := s.stockMeta.SearchStocks(ctx, req.GetQuery())
+	stocks, err := s.stockMeta.SearchStocks(ctx, req.GetQuery())
 	if err != nil {
 		return nil, err
 	}
-	resp := &prosperv1.SearchStocksResponse{
-		Stocks: make([]*prosperv1.StockSearchResult, 0, len(results)),
-	}
-	for _, r := range results {
-		resp.Stocks = append(resp.Stocks, &prosperv1.StockSearchResult{
-			Exchange: r.Exchange,
-			Ticker:   r.Ticker,
-			Name:     r.Name,
-		})
-	}
-	return resp, nil
+	return &prosperv1.SearchStocksResponse{Stocks: stocks}, nil
 }
 
 // allExchangeRates returns the entire stored history for (from, to).

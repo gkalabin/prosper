@@ -10,6 +10,7 @@ import (
 
 	"github.com/jmoiron/sqlx"
 
+	prosperv1 "prosper/gen/prosper/v1"
 	"prosper/model"
 )
 
@@ -20,18 +21,10 @@ type StockInfo struct {
 	CurrencyCode string
 }
 
-// StockSearchResult is a single candidate stock surfaced by a
-// free-text search.
-type StockSearchResult struct {
-	Exchange string
-	Ticker   string
-	Name     string
-}
-
 // StockMetadataFetcher finds information about stocks.
 type StockMetadataFetcher interface {
 	LookupStock(ctx context.Context, exchange, ticker string) (StockInfo, error)
-	SearchStocks(ctx context.Context, query string) ([]StockSearchResult, error)
+	SearchStocks(ctx context.Context, query string) ([]*prosperv1.StockSearchResult, error)
 }
 
 // LookupStock implements StockMetadataFetcher for YahooProvider. The
