@@ -16,7 +16,7 @@ type OpenBankingMapping struct {
 // OpenBankingToken is the shared shape of the per-provider token tables
 // (TrueLayerToken, GoCardlessToken, StarlingToken).
 type OpenBankingToken struct {
-	ID                string    `db:"id"`
+	ID                int32     `db:"id"`
 	UserID            int32     `db:"userId"`
 	BankID            int32     `db:"bankId"`
 	Access            string    `db:"access"`
