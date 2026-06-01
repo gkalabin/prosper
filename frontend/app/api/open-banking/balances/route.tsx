@@ -2,13 +2,19 @@ import {getAuthContextOrRedirect} from '@/lib/auth/user';
 import {withAuth} from '@/lib/grpc/auth';
 import {openBankingClient} from '@/lib/grpc/client';
 import {timestampToEpoch} from '@/lib/grpc/timestamp';
-import {
-  AccountBalance,
-  ConnectionExpiration,
-} from '@/lib/openbanking/interface';
 import {logApi} from '@/lib/util/log';
 import {nanosToCents} from '@/lib/util/util';
 import {NextResponse} from 'next/server';
+
+interface AccountBalance {
+  internalAccountId: number;
+  balanceCents: number;
+}
+
+interface ConnectionExpiration {
+  bankId: number;
+  expirationEpoch: number;
+}
 
 export interface OpenBankingBalances {
   balances: AccountBalance[];
