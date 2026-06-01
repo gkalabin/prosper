@@ -6,12 +6,12 @@ import {logApi} from '@/lib/util/log';
 import {nanosToCents} from '@/lib/util/util';
 import {NextResponse} from 'next/server';
 
-interface AccountBalance {
+export interface AccountBalance {
   internalAccountId: number;
   balanceCents: number;
 }
 
-interface ConnectionExpiration {
+export interface ConnectionExpiration {
   bankId: number;
   expirationEpoch: number;
 }
