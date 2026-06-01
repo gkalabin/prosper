@@ -43,9 +43,10 @@ message GetMarketDataForUserResponse {
 }
 
 message StockQuote {
-  int32 stock_id = 1;
-  google.protobuf.Timestamp quote_timestamp = 2;
-  int64 price_per_share_nanos = 3;
+  string stock_exchange = 1;
+  string stock_ticker = 2;
+  google.protobuf.Timestamp quote_timestamp = 3;
+  int64 price_per_share_nanos = 4;
 }
 
 message ExchangeRate {

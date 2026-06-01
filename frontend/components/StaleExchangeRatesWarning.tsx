@@ -1,9 +1,7 @@
 'use client';
 import {Button} from '@/components/ui/button';
-import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {ExchangeRate, StockQuote} from '@/lib/grpc/gen/prosper/v1/rates';
 import {timestampToEpoch} from '@/lib/grpc/timestamp';
-import {Stock} from '@/lib/model/Stock';
 import {differenceInDays} from 'date-fns';
 import {useState} from 'react';
 
@@ -27,11 +25,10 @@ export function StaleExchangeRatesWarning({
   dbExchangeRates: ExchangeRate[];
   dbStockQuotes: StockQuote[];
 }) {
-  const {stocks} = useCoreDataContext();
   const [showDetails, setShowDetails] = useState(false);
   const now = Date.now();
   const stalePairs = findStaleCurrencyPairs(dbExchangeRates, now);
-  const staleTickers = findStaleStockQuotes(dbStockQuotes, stocks, now);
+  const staleTickers = findStaleStockQuotes(dbStockQuotes, now);
   if (stalePairs.length === 0 && staleTickers.length === 0) {
     return null;
   }
@@ -107,21 +104,12 @@ function findStaleCurrencyPairs(
 
 function findStaleStockQuotes(
   quotes: StockQuote[],
-  stocks: Stock[],
   now: number
 ): StaleStockQuoteEntry[] {
-  const tickerByStockId = new Map(stocks.map(s => [s.id, s.ticker]));
   const latestByTicker = new Map<string, number>();
   for (const q of quotes) {
     const observedAtEpoch = timestampToEpoch(q.quoteTimestamp);
-    const ticker = tickerByStockId.get(q.stockId);
-    if (!ticker) {
-      console.warn(
-        `Dropping stock quote at ${new Date(observedAtEpoch).toISOString()}: ` +
-          `no stock found with id ${q.stockId}`
-      );
-      continue;
-    }
+    const ticker = q.stockTicker;
     const existing = latestByTicker.get(ticker);
     if (!existing || observedAtEpoch > existing) {
       latestByTicker.set(ticker, observedAtEpoch);

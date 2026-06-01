@@ -63,8 +63,8 @@ func writeTransfer(ctx context.Context, tx *userdb.Tx, userID int32, req *prospe
 func buildTransferLines(accts []model.LedgerAccount, fromAsset, toAsset model.LedgerAccount, fromUnit, toUnit model.Unit, t *prosperv1.TransferFormInput) ([]model.EntryLine, error) {
 	if fromUnit.Matches(toUnit) {
 		return []model.EntryLine{
-			{LedgerAccountID: fromAsset.ID, CurrencyCode: fromUnit.CurrencyCode, StockID: fromUnit.StockID, AmountNanos: -t.AmountSentNanos},
-			{LedgerAccountID: toAsset.ID, CurrencyCode: toUnit.CurrencyCode, StockID: toUnit.StockID, AmountNanos: t.AmountReceivedNanos},
+			{LedgerAccountID: fromAsset.ID, CurrencyCode: fromUnit.CurrencyCode, StockExchange: fromUnit.StockExchange, StockTicker: fromUnit.StockTicker, AmountNanos: -t.AmountSentNanos},
+			{LedgerAccountID: toAsset.ID, CurrencyCode: toUnit.CurrencyCode, StockExchange: toUnit.StockExchange, StockTicker: toUnit.StockTicker, AmountNanos: t.AmountReceivedNanos},
 		}, nil
 	}
 	fx, err := common.MustFindByType(accts, model.LedgerAccountCurrencyExchange)
@@ -72,9 +72,9 @@ func buildTransferLines(accts []model.LedgerAccount, fromAsset, toAsset model.Le
 		return nil, err
 	}
 	return []model.EntryLine{
-		{LedgerAccountID: fromAsset.ID, CurrencyCode: fromUnit.CurrencyCode, StockID: fromUnit.StockID, AmountNanos: -t.AmountSentNanos},
-		{LedgerAccountID: fx.ID, CurrencyCode: fromUnit.CurrencyCode, StockID: fromUnit.StockID, AmountNanos: t.AmountSentNanos},
-		{LedgerAccountID: fx.ID, CurrencyCode: toUnit.CurrencyCode, StockID: toUnit.StockID, AmountNanos: -t.AmountReceivedNanos},
-		{LedgerAccountID: toAsset.ID, CurrencyCode: toUnit.CurrencyCode, StockID: toUnit.StockID, AmountNanos: t.AmountReceivedNanos},
+		{LedgerAccountID: fromAsset.ID, CurrencyCode: fromUnit.CurrencyCode, StockExchange: fromUnit.StockExchange, StockTicker: fromUnit.StockTicker, AmountNanos: -t.AmountSentNanos},
+		{LedgerAccountID: fx.ID, CurrencyCode: fromUnit.CurrencyCode, StockExchange: fromUnit.StockExchange, StockTicker: fromUnit.StockTicker, AmountNanos: t.AmountSentNanos},
+		{LedgerAccountID: fx.ID, CurrencyCode: toUnit.CurrencyCode, StockExchange: toUnit.StockExchange, StockTicker: toUnit.StockTicker, AmountNanos: -t.AmountReceivedNanos},
+		{LedgerAccountID: toAsset.ID, CurrencyCode: toUnit.CurrencyCode, StockExchange: toUnit.StockExchange, StockTicker: toUnit.StockTicker, AmountNanos: t.AmountReceivedNanos},
 	}, nil
 }

@@ -86,6 +86,7 @@ export function mkAccount(name: string, bank: Bank): BankAccount {
     bankId: bank.id,
     initialBalanceCents: 0,
     currencyCode: 'GBP',
+    stock: null,
     displayOrder: 0,
     archived: false,
     joint: false,

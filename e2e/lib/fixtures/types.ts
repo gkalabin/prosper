@@ -6,13 +6,16 @@ export type User = {id: number; login: string; password: string};
 export type UserWithRawPassword = User & {rawPassword: string};
 export type Bank = {id: number; userId: number; name: string};
 
+// StockKey identifies a stock by its (exchange, ticker) natural key.
+export type StockKey = {exchange: string; ticker: string};
+
 export type BankAccount = {
   id: number;
   userId: number;
   bankId: number;
   name: string;
   currencyCode: string | null;
-  stockId: number | null;
+  stock: StockKey | null;
   archived?: boolean;
   joint?: boolean;
   displayOrder?: number;
@@ -29,7 +32,6 @@ export type Category = {
 export type Tag = {id: number; userId: number; name: string};
 
 export type Stock = {
-  id: number;
   name: string;
   ticker: string;
   exchange: string;

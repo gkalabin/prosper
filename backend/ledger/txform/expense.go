@@ -125,13 +125,14 @@ func buildPaidSelfLines(ctx context.Context, tx *userdb.Tx, userID int32, accts 
 		return nil, err
 	}
 	lines := []model.EntryLine{
-		{LedgerAccountID: asset.ID, CurrencyCode: unit.CurrencyCode, StockID: unit.StockID, AmountNanos: -e.AmountNanos},
+		{LedgerAccountID: asset.ID, CurrencyCode: unit.CurrencyCode, StockExchange: unit.StockExchange, StockTicker: unit.StockTicker, AmountNanos: -e.AmountNanos},
 	}
 	if e.SharingType == prosperv1.SharingType_SHARING_TYPE_PAID_SELF_NOT_SHARED {
 		lines = append(lines, model.EntryLine{
 			LedgerAccountID: expenseAcc.ID,
 			CurrencyCode:    unit.CurrencyCode,
-			StockID:         unit.StockID,
+			StockExchange:   unit.StockExchange,
+			StockTicker:     unit.StockTicker,
 			AmountNanos:     e.AmountNanos,
 		})
 		return lines, nil
@@ -145,8 +146,8 @@ func buildPaidSelfLines(ctx context.Context, tx *userdb.Tx, userID int32, accts 
 	}
 	companionShare := e.AmountNanos - e.OwnShareNanos
 	lines = append(lines,
-		model.EntryLine{LedgerAccountID: expenseAcc.ID, CurrencyCode: unit.CurrencyCode, StockID: unit.StockID, AmountNanos: e.OwnShareNanos},
-		model.EntryLine{LedgerAccountID: receivable.ID, CurrencyCode: unit.CurrencyCode, StockID: unit.StockID, AmountNanos: companionShare},
+		model.EntryLine{LedgerAccountID: expenseAcc.ID, CurrencyCode: unit.CurrencyCode, StockExchange: unit.StockExchange, StockTicker: unit.StockTicker, AmountNanos: e.OwnShareNanos},
+		model.EntryLine{LedgerAccountID: receivable.ID, CurrencyCode: unit.CurrencyCode, StockExchange: unit.StockExchange, StockTicker: unit.StockTicker, AmountNanos: companionShare},
 	)
 	return lines, nil
 }
@@ -239,8 +240,8 @@ func writeRepayment(ctx context.Context, tx *userdb.Tx, userID int32, req *prosp
 		return err
 	}
 	lines := []model.EntryLine{
-		{LedgerAccountID: asset.ID, CurrencyCode: unit.CurrencyCode, StockID: unit.StockID, AmountNanos: -e.OwnShareNanos},
-		{LedgerAccountID: receivable.ID, CurrencyCode: unit.CurrencyCode, StockID: unit.StockID, AmountNanos: e.OwnShareNanos},
+		{LedgerAccountID: asset.ID, CurrencyCode: unit.CurrencyCode, StockExchange: unit.StockExchange, StockTicker: unit.StockTicker, AmountNanos: -e.OwnShareNanos},
+		{LedgerAccountID: receivable.ID, CurrencyCode: unit.CurrencyCode, StockExchange: unit.StockExchange, StockTicker: unit.StockTicker, AmountNanos: e.OwnShareNanos},
 	}
 	if err := common.InsertEntryLines(ctx, tx, userID, repaymentID, lines); err != nil {
 		return err

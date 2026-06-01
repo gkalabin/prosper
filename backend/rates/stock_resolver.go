@@ -2,8 +2,6 @@ package rates
 
 import (
 	"context"
-	"database/sql"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -52,25 +50,26 @@ func NewStockResolver(db *sqlx.DB, meta StockMetadataFetcher) *StockResolver {
 	return &StockResolver{db: db, meta: meta}
 }
 
-// ResolveOrCreate returns the Stock.id for (exchange, ticker), creating
-// a row if missing.
-func (r *StockResolver) ResolveOrCreate(ctx context.Context, exchange, ticker string) (int32, error) {
+// EnsureStock guarantees a Stock row exists for (exchange, ticker),
+// creating it from fetched metadata when missing. The exchange and
+// ticker must already be uppercased by the caller.
+func (r *StockResolver) EnsureStock(ctx context.Context, exchange, ticker string) error {
 	exchange = strings.ToUpper(exchange)
 	ticker = strings.ToUpper(ticker)
-	var id int32
-	err := r.db.GetContext(ctx, &id,
-		`SELECT id FROM Stock WHERE exchange = ? AND ticker = ?`, exchange, ticker)
-	if err == nil {
-		return id, nil
+	var n int
+	err := r.db.GetContext(ctx, &n,
+		`SELECT COUNT(*) FROM Stock WHERE exchange = ? AND ticker = ?`, exchange, ticker)
+	if err != nil {
+		return err
 	}
-	if !errors.Is(err, sql.ErrNoRows) {
-		return 0, err
+	if n > 0 {
+		return nil
 	}
 	info, err := r.meta.LookupStock(ctx, exchange, ticker)
 	if err != nil {
-		return 0, fmt.Errorf("metadata lookup for %s: %w", ticker, err)
+		return fmt.Errorf("metadata lookup for %s: %w", ticker, err)
 	}
-	res, err := r.db.NamedExecContext(ctx,
+	if _, err := r.db.NamedExecContext(ctx,
 		`INSERT INTO Stock
 		        ( name,  exchange,  ticker,  currencyCode)
 		 VALUES (:name, :exchange, :ticker, :currencyCode)`,
@@ -79,13 +78,8 @@ func (r *StockResolver) ResolveOrCreate(ctx context.Context, exchange, ticker st
 			Exchange:     exchange,
 			Ticker:       ticker,
 			CurrencyCode: strings.ToUpper(info.CurrencyCode),
-		})
-	if err != nil {
-		return 0, err
+		}); err != nil {
+		return err
 	}
-	newID, err := res.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
-	return int32(newID), nil
+	return nil
 }

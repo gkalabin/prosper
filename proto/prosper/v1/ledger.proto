@@ -115,9 +115,9 @@ message BankAccount {
   int32 id = 1;
   string name = 2;
   int32 bank_id = 3;
-  // Either currency_code or stock_id is set, never both.
+  // Either currency_code or stock is set, never both.
   optional string currency_code = 4;
-  optional int32 stock_id = 5;
+  optional StockKey stock = 5;
   bool joint = 6;
   bool archived = 7;
   int32 display_order = 8;
@@ -146,12 +146,17 @@ message Trip {
   optional google.protobuf.Timestamp end = 7;
 }
 
+// StockKey identifies a stock by its (exchange, ticker) natural key.
+message StockKey {
+  string exchange = 1;
+  string ticker = 2;
+}
+
 message Stock {
-  int32 id = 1;
-  string name = 2;
-  string exchange = 3;
-  string ticker = 4;
-  string currency_code = 5;
+  string exchange = 1;
+  string ticker = 2;
+  string name = 3;
+  string currency_code = 4;
 }
 
 message DisplaySettings {
@@ -208,9 +213,9 @@ message EntryLine {
   int32 id = 1;
   int32 transaction_id = 2;
   int32 ledger_account_id = 3;
-  // Exactly one of currency_code / stock_id is set.
+  // Exactly one of currency_code / stock is set.
   optional string currency_code = 4;
-  optional int32 stock_id = 5;
+  optional StockKey stock = 5;
   int64 amount_nanos = 6;
 }
 
@@ -278,20 +283,13 @@ message UpsertBankRequest {
 message UpsertBankResponse { int32 bank_id = 1; }
 
 // AccountUnit specifies the unit of a bank account. Currency uses a
-// known ISO code; stock either references an existing stock_id, or
-// describes a new (exchange, ticker) pair the backend will create on
-// the fly.
+// known ISO code; stock references a (exchange, ticker) pair the
+// backend resolves to an existing row or creates on the fly.
 message AccountUnit {
   oneof unit {
     string currency_code = 1;
-    int32 stock_id = 2;
-    StockSpec new_stock = 3;
+    StockKey stock = 2;
   }
-}
-
-message StockSpec {
-  string exchange = 1;
-  string ticker = 2;
 }
 
 message UpsertBankAccountRequest {

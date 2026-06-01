@@ -899,13 +899,13 @@ type BankAccount struct {
 	Id     int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name   string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	BankId int32                  `protobuf:"varint,3,opt,name=bank_id,json=bankId,proto3" json:"bank_id,omitempty"`
-	// Either currency_code or stock_id is set, never both.
-	CurrencyCode        *string `protobuf:"bytes,4,opt,name=currency_code,json=currencyCode,proto3,oneof" json:"currency_code,omitempty"`
-	StockId             *int32  `protobuf:"varint,5,opt,name=stock_id,json=stockId,proto3,oneof" json:"stock_id,omitempty"`
-	Joint               bool    `protobuf:"varint,6,opt,name=joint,proto3" json:"joint,omitempty"`
-	Archived            bool    `protobuf:"varint,7,opt,name=archived,proto3" json:"archived,omitempty"`
-	DisplayOrder        int32   `protobuf:"varint,8,opt,name=display_order,json=displayOrder,proto3" json:"display_order,omitempty"`
-	InitialBalanceCents int32   `protobuf:"varint,9,opt,name=initial_balance_cents,json=initialBalanceCents,proto3" json:"initial_balance_cents,omitempty"`
+	// Either currency_code or stock is set, never both.
+	CurrencyCode        *string   `protobuf:"bytes,4,opt,name=currency_code,json=currencyCode,proto3,oneof" json:"currency_code,omitempty"`
+	Stock               *StockRef `protobuf:"bytes,5,opt,name=stock,proto3,oneof" json:"stock,omitempty"`
+	Joint               bool      `protobuf:"varint,6,opt,name=joint,proto3" json:"joint,omitempty"`
+	Archived            bool      `protobuf:"varint,7,opt,name=archived,proto3" json:"archived,omitempty"`
+	DisplayOrder        int32     `protobuf:"varint,8,opt,name=display_order,json=displayOrder,proto3" json:"display_order,omitempty"`
+	InitialBalanceCents int32     `protobuf:"varint,9,opt,name=initial_balance_cents,json=initialBalanceCents,proto3" json:"initial_balance_cents,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -968,11 +968,11 @@ func (x *BankAccount) GetCurrencyCode() string {
 	return ""
 }
 
-func (x *BankAccount) GetStockId() int32 {
-	if x != nil && x.StockId != nil {
-		return *x.StockId
+func (x *BankAccount) GetStock() *StockRef {
+	if x != nil {
+		return x.Stock
 	}
-	return 0
+	return nil
 }
 
 func (x *BankAccount) GetJoint() bool {
@@ -1215,20 +1215,72 @@ func (x *Trip) GetEnd() *timestamppb.Timestamp {
 	return nil
 }
 
+// StockRef identifies a stock by its (exchange, ticker) natural key.
+type StockRef struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Exchange      string                 `protobuf:"bytes,1,opt,name=exchange,proto3" json:"exchange,omitempty"`
+	Ticker        string                 `protobuf:"bytes,2,opt,name=ticker,proto3" json:"ticker,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StockRef) Reset() {
+	*x = StockRef{}
+	mi := &file_prosper_v1_ledger_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StockRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StockRef) ProtoMessage() {}
+
+func (x *StockRef) ProtoReflect() protoreflect.Message {
+	mi := &file_prosper_v1_ledger_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StockRef.ProtoReflect.Descriptor instead.
+func (*StockRef) Descriptor() ([]byte, []int) {
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *StockRef) GetExchange() string {
+	if x != nil {
+		return x.Exchange
+	}
+	return ""
+}
+
+func (x *StockRef) GetTicker() string {
+	if x != nil {
+		return x.Ticker
+	}
+	return ""
+}
+
 type Stock struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
-	Exchange      string                 `protobuf:"bytes,3,opt,name=exchange,proto3" json:"exchange,omitempty"`
-	Ticker        string                 `protobuf:"bytes,4,opt,name=ticker,proto3" json:"ticker,omitempty"`
-	CurrencyCode  string                 `protobuf:"bytes,5,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
+	Exchange      string                 `protobuf:"bytes,1,opt,name=exchange,proto3" json:"exchange,omitempty"`
+	Ticker        string                 `protobuf:"bytes,2,opt,name=ticker,proto3" json:"ticker,omitempty"`
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	CurrencyCode  string                 `protobuf:"bytes,4,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *Stock) Reset() {
 	*x = Stock{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[17]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1240,7 +1292,7 @@ func (x *Stock) String() string {
 func (*Stock) ProtoMessage() {}
 
 func (x *Stock) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[17]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1253,21 +1305,7 @@ func (x *Stock) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Stock.ProtoReflect.Descriptor instead.
 func (*Stock) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{17}
-}
-
-func (x *Stock) GetId() int32 {
-	if x != nil {
-		return x.Id
-	}
-	return 0
-}
-
-func (x *Stock) GetName() string {
-	if x != nil {
-		return x.Name
-	}
-	return ""
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *Stock) GetExchange() string {
@@ -1280,6 +1318,13 @@ func (x *Stock) GetExchange() string {
 func (x *Stock) GetTicker() string {
 	if x != nil {
 		return x.Ticker
+	}
+	return ""
+}
+
+func (x *Stock) GetName() string {
+	if x != nil {
+		return x.Name
 	}
 	return ""
 }
@@ -1301,7 +1346,7 @@ type DisplaySettings struct {
 
 func (x *DisplaySettings) Reset() {
 	*x = DisplaySettings{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[18]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1313,7 +1358,7 @@ func (x *DisplaySettings) String() string {
 func (*DisplaySettings) ProtoMessage() {}
 
 func (x *DisplaySettings) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[18]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1326,7 +1371,7 @@ func (x *DisplaySettings) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisplaySettings.ProtoReflect.Descriptor instead.
 func (*DisplaySettings) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{18}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *DisplaySettings) GetDisplayCurrencyCode() string {
@@ -1352,7 +1397,7 @@ type GetCoreDataRequest struct {
 
 func (x *GetCoreDataRequest) Reset() {
 	*x = GetCoreDataRequest{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[19]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1364,7 +1409,7 @@ func (x *GetCoreDataRequest) String() string {
 func (*GetCoreDataRequest) ProtoMessage() {}
 
 func (x *GetCoreDataRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[19]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1377,7 +1422,7 @@ func (x *GetCoreDataRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCoreDataRequest.ProtoReflect.Descriptor instead.
 func (*GetCoreDataRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{19}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *GetCoreDataRequest) GetSessionId() string {
@@ -1402,7 +1447,7 @@ type GetCoreDataResponse struct {
 
 func (x *GetCoreDataResponse) Reset() {
 	*x = GetCoreDataResponse{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[20]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1414,7 +1459,7 @@ func (x *GetCoreDataResponse) String() string {
 func (*GetCoreDataResponse) ProtoMessage() {}
 
 func (x *GetCoreDataResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[20]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1427,7 +1472,7 @@ func (x *GetCoreDataResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetCoreDataResponse.ProtoReflect.Descriptor instead.
 func (*GetCoreDataResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{20}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *GetCoreDataResponse) GetBanks() []*Bank {
@@ -1492,7 +1537,7 @@ type LedgerAccount struct {
 
 func (x *LedgerAccount) Reset() {
 	*x = LedgerAccount{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[21]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1504,7 +1549,7 @@ func (x *LedgerAccount) String() string {
 func (*LedgerAccount) ProtoMessage() {}
 
 func (x *LedgerAccount) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[21]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1517,7 +1562,7 @@ func (x *LedgerAccount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LedgerAccount.ProtoReflect.Descriptor instead.
 func (*LedgerAccount) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{21}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *LedgerAccount) GetId() int32 {
@@ -1553,17 +1598,17 @@ type EntryLine struct {
 	Id              int32                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	TransactionId   int32                  `protobuf:"varint,2,opt,name=transaction_id,json=transactionId,proto3" json:"transaction_id,omitempty"`
 	LedgerAccountId int32                  `protobuf:"varint,3,opt,name=ledger_account_id,json=ledgerAccountId,proto3" json:"ledger_account_id,omitempty"`
-	// Exactly one of currency_code / stock_id is set.
-	CurrencyCode  *string `protobuf:"bytes,4,opt,name=currency_code,json=currencyCode,proto3,oneof" json:"currency_code,omitempty"`
-	StockId       *int32  `protobuf:"varint,5,opt,name=stock_id,json=stockId,proto3,oneof" json:"stock_id,omitempty"`
-	AmountNanos   int64   `protobuf:"varint,6,opt,name=amount_nanos,json=amountNanos,proto3" json:"amount_nanos,omitempty"`
+	// Exactly one of currency_code / stock is set.
+	CurrencyCode  *string   `protobuf:"bytes,4,opt,name=currency_code,json=currencyCode,proto3,oneof" json:"currency_code,omitempty"`
+	Stock         *StockRef `protobuf:"bytes,5,opt,name=stock,proto3,oneof" json:"stock,omitempty"`
+	AmountNanos   int64     `protobuf:"varint,6,opt,name=amount_nanos,json=amountNanos,proto3" json:"amount_nanos,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *EntryLine) Reset() {
 	*x = EntryLine{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[22]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1575,7 +1620,7 @@ func (x *EntryLine) String() string {
 func (*EntryLine) ProtoMessage() {}
 
 func (x *EntryLine) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[22]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1588,7 +1633,7 @@ func (x *EntryLine) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EntryLine.ProtoReflect.Descriptor instead.
 func (*EntryLine) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{22}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *EntryLine) GetId() int32 {
@@ -1619,11 +1664,11 @@ func (x *EntryLine) GetCurrencyCode() string {
 	return ""
 }
 
-func (x *EntryLine) GetStockId() int32 {
-	if x != nil && x.StockId != nil {
-		return *x.StockId
+func (x *EntryLine) GetStock() *StockRef {
+	if x != nil {
+		return x.Stock
 	}
-	return 0
+	return nil
 }
 
 func (x *EntryLine) GetAmountNanos() int64 {
@@ -1646,7 +1691,7 @@ type SplitContext struct {
 
 func (x *SplitContext) Reset() {
 	*x = SplitContext{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[23]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1658,7 +1703,7 @@ func (x *SplitContext) String() string {
 func (*SplitContext) ProtoMessage() {}
 
 func (x *SplitContext) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[23]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1671,7 +1716,7 @@ func (x *SplitContext) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SplitContext.ProtoReflect.Descriptor instead.
 func (*SplitContext) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{23}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *SplitContext) GetId() int32 {
@@ -1721,7 +1766,7 @@ type TransactionLink struct {
 
 func (x *TransactionLink) Reset() {
 	*x = TransactionLink{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[24]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1733,7 +1778,7 @@ func (x *TransactionLink) String() string {
 func (*TransactionLink) ProtoMessage() {}
 
 func (x *TransactionLink) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[24]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1746,7 +1791,7 @@ func (x *TransactionLink) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransactionLink.ProtoReflect.Descriptor instead.
 func (*TransactionLink) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{24}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *TransactionLink) GetId() int32 {
@@ -1788,7 +1833,7 @@ type TransactionPrototype struct {
 
 func (x *TransactionPrototype) Reset() {
 	*x = TransactionPrototype{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[25]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1800,7 +1845,7 @@ func (x *TransactionPrototype) String() string {
 func (*TransactionPrototype) ProtoMessage() {}
 
 func (x *TransactionPrototype) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[25]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1813,7 +1858,7 @@ func (x *TransactionPrototype) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransactionPrototype.ProtoReflect.Descriptor instead.
 func (*TransactionPrototype) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{25}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *TransactionPrototype) GetExternalId() string {
@@ -1860,7 +1905,7 @@ type Transaction struct {
 
 func (x *Transaction) Reset() {
 	*x = Transaction{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[26]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1872,7 +1917,7 @@ func (x *Transaction) String() string {
 func (*Transaction) ProtoMessage() {}
 
 func (x *Transaction) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[26]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1885,7 +1930,7 @@ func (x *Transaction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Transaction.ProtoReflect.Descriptor instead.
 func (*Transaction) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{26}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *Transaction) GetId() int32 {
@@ -1995,7 +2040,7 @@ type GetTransactionsRequest struct {
 
 func (x *GetTransactionsRequest) Reset() {
 	*x = GetTransactionsRequest{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[27]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2007,7 +2052,7 @@ func (x *GetTransactionsRequest) String() string {
 func (*GetTransactionsRequest) ProtoMessage() {}
 
 func (x *GetTransactionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[27]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2020,7 +2065,7 @@ func (x *GetTransactionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTransactionsRequest.ProtoReflect.Descriptor instead.
 func (*GetTransactionsRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{27}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *GetTransactionsRequest) GetSessionId() string {
@@ -2042,7 +2087,7 @@ type GetTransactionsResponse struct {
 
 func (x *GetTransactionsResponse) Reset() {
 	*x = GetTransactionsResponse{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[28]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2054,7 +2099,7 @@ func (x *GetTransactionsResponse) String() string {
 func (*GetTransactionsResponse) ProtoMessage() {}
 
 func (x *GetTransactionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[28]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2067,7 +2112,7 @@ func (x *GetTransactionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTransactionsResponse.ProtoReflect.Descriptor instead.
 func (*GetTransactionsResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{28}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *GetTransactionsResponse) GetTransactions() []*Transaction {
@@ -2109,7 +2154,7 @@ type ListAvailableCurrenciesRequest struct {
 
 func (x *ListAvailableCurrenciesRequest) Reset() {
 	*x = ListAvailableCurrenciesRequest{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[29]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2121,7 +2166,7 @@ func (x *ListAvailableCurrenciesRequest) String() string {
 func (*ListAvailableCurrenciesRequest) ProtoMessage() {}
 
 func (x *ListAvailableCurrenciesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[29]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2134,7 +2179,7 @@ func (x *ListAvailableCurrenciesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAvailableCurrenciesRequest.ProtoReflect.Descriptor instead.
 func (*ListAvailableCurrenciesRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{29}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ListAvailableCurrenciesRequest) GetSessionId() string {
@@ -2153,7 +2198,7 @@ type ListAvailableCurrenciesResponse struct {
 
 func (x *ListAvailableCurrenciesResponse) Reset() {
 	*x = ListAvailableCurrenciesResponse{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[30]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2165,7 +2210,7 @@ func (x *ListAvailableCurrenciesResponse) String() string {
 func (*ListAvailableCurrenciesResponse) ProtoMessage() {}
 
 func (x *ListAvailableCurrenciesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[30]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2178,7 +2223,7 @@ func (x *ListAvailableCurrenciesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListAvailableCurrenciesResponse.ProtoReflect.Descriptor instead.
 func (*ListAvailableCurrenciesResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{30}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ListAvailableCurrenciesResponse) GetCurrencies() []*CurrencyInfo {
@@ -2198,7 +2243,7 @@ type CurrencyInfo struct {
 
 func (x *CurrencyInfo) Reset() {
 	*x = CurrencyInfo{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[31]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2210,7 +2255,7 @@ func (x *CurrencyInfo) String() string {
 func (*CurrencyInfo) ProtoMessage() {}
 
 func (x *CurrencyInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[31]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2223,7 +2268,7 @@ func (x *CurrencyInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CurrencyInfo.ProtoReflect.Descriptor instead.
 func (*CurrencyInfo) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{31}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *CurrencyInfo) GetCode() string {
@@ -2250,7 +2295,7 @@ type UpsertBankRequest struct {
 
 func (x *UpsertBankRequest) Reset() {
 	*x = UpsertBankRequest{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[32]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2262,7 +2307,7 @@ func (x *UpsertBankRequest) String() string {
 func (*UpsertBankRequest) ProtoMessage() {}
 
 func (x *UpsertBankRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[32]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2275,7 +2320,7 @@ func (x *UpsertBankRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpsertBankRequest.ProtoReflect.Descriptor instead.
 func (*UpsertBankRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{32}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *UpsertBankRequest) GetBank() *Bank {
@@ -2301,7 +2346,7 @@ type UpsertBankResponse struct {
 
 func (x *UpsertBankResponse) Reset() {
 	*x = UpsertBankResponse{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[33]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2313,7 +2358,7 @@ func (x *UpsertBankResponse) String() string {
 func (*UpsertBankResponse) ProtoMessage() {}
 
 func (x *UpsertBankResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[33]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2326,7 +2371,7 @@ func (x *UpsertBankResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpsertBankResponse.ProtoReflect.Descriptor instead.
 func (*UpsertBankResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{33}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *UpsertBankResponse) GetBankId() int32 {
@@ -2337,16 +2382,14 @@ func (x *UpsertBankResponse) GetBankId() int32 {
 }
 
 // AccountUnit specifies the unit of a bank account. Currency uses a
-// known ISO code; stock either references an existing stock_id, or
-// describes a new (exchange, ticker) pair the backend will create on
-// the fly.
+// known ISO code; stock references a (exchange, ticker) pair the
+// backend resolves to an existing row or creates on the fly.
 type AccountUnit struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Unit:
 	//
 	//	*AccountUnit_CurrencyCode
-	//	*AccountUnit_StockId
-	//	*AccountUnit_NewStock
+	//	*AccountUnit_Stock
 	Unit          isAccountUnit_Unit `protobuf_oneof:"unit"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2354,7 +2397,7 @@ type AccountUnit struct {
 
 func (x *AccountUnit) Reset() {
 	*x = AccountUnit{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[34]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2366,7 +2409,7 @@ func (x *AccountUnit) String() string {
 func (*AccountUnit) ProtoMessage() {}
 
 func (x *AccountUnit) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[34]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2379,7 +2422,7 @@ func (x *AccountUnit) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AccountUnit.ProtoReflect.Descriptor instead.
 func (*AccountUnit) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{34}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *AccountUnit) GetUnit() isAccountUnit_Unit {
@@ -2398,19 +2441,10 @@ func (x *AccountUnit) GetCurrencyCode() string {
 	return ""
 }
 
-func (x *AccountUnit) GetStockId() int32 {
+func (x *AccountUnit) GetStock() *StockRef {
 	if x != nil {
-		if x, ok := x.Unit.(*AccountUnit_StockId); ok {
-			return x.StockId
-		}
-	}
-	return 0
-}
-
-func (x *AccountUnit) GetNewStock() *StockSpec {
-	if x != nil {
-		if x, ok := x.Unit.(*AccountUnit_NewStock); ok {
-			return x.NewStock
+		if x, ok := x.Unit.(*AccountUnit_Stock); ok {
+			return x.Stock
 		}
 	}
 	return nil
@@ -2424,71 +2458,13 @@ type AccountUnit_CurrencyCode struct {
 	CurrencyCode string `protobuf:"bytes,1,opt,name=currency_code,json=currencyCode,proto3,oneof"`
 }
 
-type AccountUnit_StockId struct {
-	StockId int32 `protobuf:"varint,2,opt,name=stock_id,json=stockId,proto3,oneof"`
-}
-
-type AccountUnit_NewStock struct {
-	NewStock *StockSpec `protobuf:"bytes,3,opt,name=new_stock,json=newStock,proto3,oneof"`
+type AccountUnit_Stock struct {
+	Stock *StockRef `protobuf:"bytes,2,opt,name=stock,proto3,oneof"`
 }
 
 func (*AccountUnit_CurrencyCode) isAccountUnit_Unit() {}
 
-func (*AccountUnit_StockId) isAccountUnit_Unit() {}
-
-func (*AccountUnit_NewStock) isAccountUnit_Unit() {}
-
-type StockSpec struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Exchange      string                 `protobuf:"bytes,1,opt,name=exchange,proto3" json:"exchange,omitempty"`
-	Ticker        string                 `protobuf:"bytes,2,opt,name=ticker,proto3" json:"ticker,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *StockSpec) Reset() {
-	*x = StockSpec{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[35]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *StockSpec) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*StockSpec) ProtoMessage() {}
-
-func (x *StockSpec) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[35]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use StockSpec.ProtoReflect.Descriptor instead.
-func (*StockSpec) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{35}
-}
-
-func (x *StockSpec) GetExchange() string {
-	if x != nil {
-		return x.Exchange
-	}
-	return ""
-}
-
-func (x *StockSpec) GetTicker() string {
-	if x != nil {
-		return x.Ticker
-	}
-	return ""
-}
+func (*AccountUnit_Stock) isAccountUnit_Unit() {}
 
 type UpsertBankAccountRequest struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -3518,19 +3494,19 @@ const file_prosper_v1_ledger_proto_rawDesc = "" +
 	"\x04Bank\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12#\n" +
-	"\rdisplay_order\x18\x03 \x01(\x05R\fdisplayOrder\"\xbe\x02\n" +
+	"\rdisplay_order\x18\x03 \x01(\x05R\fdisplayOrder\"\xcc\x02\n" +
 	"\vBankAccount\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x17\n" +
 	"\abank_id\x18\x03 \x01(\x05R\x06bankId\x12(\n" +
-	"\rcurrency_code\x18\x04 \x01(\tH\x00R\fcurrencyCode\x88\x01\x01\x12\x1e\n" +
-	"\bstock_id\x18\x05 \x01(\x05H\x01R\astockId\x88\x01\x01\x12\x14\n" +
+	"\rcurrency_code\x18\x04 \x01(\tH\x00R\fcurrencyCode\x88\x01\x01\x12/\n" +
+	"\x05stock\x18\x05 \x01(\v2\x14.prosper.v1.StockRefH\x01R\x05stock\x88\x01\x01\x12\x14\n" +
 	"\x05joint\x18\x06 \x01(\bR\x05joint\x12\x1a\n" +
 	"\barchived\x18\a \x01(\bR\barchived\x12#\n" +
 	"\rdisplay_order\x18\b \x01(\x05R\fdisplayOrder\x122\n" +
 	"\x15initial_balance_cents\x18\t \x01(\x05R\x13initialBalanceCentsB\x10\n" +
-	"\x0e_currency_codeB\v\n" +
-	"\t_stock_id\"\x9d\x01\n" +
+	"\x0e_currency_codeB\b\n" +
+	"\x06_stock\"\x9d\x01\n" +
 	"\bCategory\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12#\n" +
@@ -3553,13 +3529,15 @@ const file_prosper_v1_ledger_proto_rawDesc = "" +
 	"\x05_cityB\x0e\n" +
 	"\f_destinationB\b\n" +
 	"\x06_startB\x06\n" +
-	"\x04_end\"\x84\x01\n" +
-	"\x05Stock\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x05R\x02id\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1a\n" +
-	"\bexchange\x18\x03 \x01(\tR\bexchange\x12\x16\n" +
-	"\x06ticker\x18\x04 \x01(\tR\x06ticker\x12#\n" +
-	"\rcurrency_code\x18\x05 \x01(\tR\fcurrencyCode\"\x87\x01\n" +
+	"\x04_end\">\n" +
+	"\bStockRef\x12\x1a\n" +
+	"\bexchange\x18\x01 \x01(\tR\bexchange\x12\x16\n" +
+	"\x06ticker\x18\x02 \x01(\tR\x06ticker\"t\n" +
+	"\x05Stock\x12\x1a\n" +
+	"\bexchange\x18\x01 \x01(\tR\bexchange\x12\x16\n" +
+	"\x06ticker\x18\x02 \x01(\tR\x06ticker\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12#\n" +
+	"\rcurrency_code\x18\x04 \x01(\tR\fcurrencyCode\"\x87\x01\n" +
 	"\x0fDisplaySettings\x122\n" +
 	"\x15display_currency_code\x18\x01 \x01(\tR\x13displayCurrencyCode\x12@\n" +
 	"\x1dexclude_category_ids_in_stats\x18\x02 \x03(\x05R\x19excludeCategoryIdsInStats\"3\n" +
@@ -3581,16 +3559,16 @@ const file_prosper_v1_ledger_proto_rawDesc = "" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x121\n" +
 	"\x04type\x18\x03 \x01(\x0e2\x1d.prosper.v1.LedgerAccountTypeR\x04type\x12+\n" +
 	"\x0fbank_account_id\x18\x04 \x01(\x05H\x00R\rbankAccountId\x88\x01\x01B\x12\n" +
-	"\x10_bank_account_id\"\xfa\x01\n" +
+	"\x10_bank_account_id\"\x88\x02\n" +
 	"\tEntryLine\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12%\n" +
 	"\x0etransaction_id\x18\x02 \x01(\x05R\rtransactionId\x12*\n" +
 	"\x11ledger_account_id\x18\x03 \x01(\x05R\x0fledgerAccountId\x12(\n" +
-	"\rcurrency_code\x18\x04 \x01(\tH\x00R\fcurrencyCode\x88\x01\x01\x12\x1e\n" +
-	"\bstock_id\x18\x05 \x01(\x05H\x01R\astockId\x88\x01\x01\x12!\n" +
+	"\rcurrency_code\x18\x04 \x01(\tH\x00R\fcurrencyCode\x88\x01\x01\x12/\n" +
+	"\x05stock\x18\x05 \x01(\v2\x14.prosper.v1.StockRefH\x01R\x05stock\x88\x01\x01\x12!\n" +
 	"\famount_nanos\x18\x06 \x01(\x03R\vamountNanosB\x10\n" +
-	"\x0e_currency_codeB\v\n" +
-	"\t_stock_id\"\xd2\x01\n" +
+	"\x0e_currency_codeB\b\n" +
+	"\x06_stock\"\xd2\x01\n" +
 	"\fSplitContext\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x05R\x02id\x12%\n" +
 	"\x0etransaction_id\x18\x02 \x01(\x05R\rtransactionId\x12%\n" +
@@ -3655,15 +3633,11 @@ const file_prosper_v1_ledger_proto_rawDesc = "" +
 	"\n" +
 	"session_id\x18\x02 \x01(\tR\tsessionId\"-\n" +
 	"\x12UpsertBankResponse\x12\x17\n" +
-	"\abank_id\x18\x01 \x01(\x05R\x06bankId\"\x8f\x01\n" +
+	"\abank_id\x18\x01 \x01(\x05R\x06bankId\"j\n" +
 	"\vAccountUnit\x12%\n" +
-	"\rcurrency_code\x18\x01 \x01(\tH\x00R\fcurrencyCode\x12\x1b\n" +
-	"\bstock_id\x18\x02 \x01(\x05H\x00R\astockId\x124\n" +
-	"\tnew_stock\x18\x03 \x01(\v2\x15.prosper.v1.StockSpecH\x00R\bnewStockB\x06\n" +
-	"\x04unit\"?\n" +
-	"\tStockSpec\x12\x1a\n" +
-	"\bexchange\x18\x01 \x01(\tR\bexchange\x12\x16\n" +
-	"\x06ticker\x18\x02 \x01(\tR\x06ticker\"\xd1\x02\n" +
+	"\rcurrency_code\x18\x01 \x01(\tH\x00R\fcurrencyCode\x12,\n" +
+	"\x05stock\x18\x02 \x01(\v2\x14.prosper.v1.StockRefH\x00R\x05stockB\x06\n" +
+	"\x04unit\"\xd1\x02\n" +
 	"\x18UpsertBankAccountRequest\x12\"\n" +
 	"\n" +
 	"account_id\x18\x01 \x01(\x05H\x00R\taccountId\x88\x01\x01\x12\x12\n" +
@@ -3849,25 +3823,25 @@ var file_prosper_v1_ledger_proto_goTypes = []any{
 	(*Category)(nil),                        // 18: prosper.v1.Category
 	(*Tag)(nil),                             // 19: prosper.v1.Tag
 	(*Trip)(nil),                            // 20: prosper.v1.Trip
-	(*Stock)(nil),                           // 21: prosper.v1.Stock
-	(*DisplaySettings)(nil),                 // 22: prosper.v1.DisplaySettings
-	(*GetCoreDataRequest)(nil),              // 23: prosper.v1.GetCoreDataRequest
-	(*GetCoreDataResponse)(nil),             // 24: prosper.v1.GetCoreDataResponse
-	(*LedgerAccount)(nil),                   // 25: prosper.v1.LedgerAccount
-	(*EntryLine)(nil),                       // 26: prosper.v1.EntryLine
-	(*SplitContext)(nil),                    // 27: prosper.v1.SplitContext
-	(*TransactionLink)(nil),                 // 28: prosper.v1.TransactionLink
-	(*TransactionPrototype)(nil),            // 29: prosper.v1.TransactionPrototype
-	(*Transaction)(nil),                     // 30: prosper.v1.Transaction
-	(*GetTransactionsRequest)(nil),          // 31: prosper.v1.GetTransactionsRequest
-	(*GetTransactionsResponse)(nil),         // 32: prosper.v1.GetTransactionsResponse
-	(*ListAvailableCurrenciesRequest)(nil),  // 33: prosper.v1.ListAvailableCurrenciesRequest
-	(*ListAvailableCurrenciesResponse)(nil), // 34: prosper.v1.ListAvailableCurrenciesResponse
-	(*CurrencyInfo)(nil),                    // 35: prosper.v1.CurrencyInfo
-	(*UpsertBankRequest)(nil),               // 36: prosper.v1.UpsertBankRequest
-	(*UpsertBankResponse)(nil),              // 37: prosper.v1.UpsertBankResponse
-	(*AccountUnit)(nil),                     // 38: prosper.v1.AccountUnit
-	(*StockSpec)(nil),                       // 39: prosper.v1.StockSpec
+	(*StockRef)(nil),                        // 21: prosper.v1.StockRef
+	(*Stock)(nil),                           // 22: prosper.v1.Stock
+	(*DisplaySettings)(nil),                 // 23: prosper.v1.DisplaySettings
+	(*GetCoreDataRequest)(nil),              // 24: prosper.v1.GetCoreDataRequest
+	(*GetCoreDataResponse)(nil),             // 25: prosper.v1.GetCoreDataResponse
+	(*LedgerAccount)(nil),                   // 26: prosper.v1.LedgerAccount
+	(*EntryLine)(nil),                       // 27: prosper.v1.EntryLine
+	(*SplitContext)(nil),                    // 28: prosper.v1.SplitContext
+	(*TransactionLink)(nil),                 // 29: prosper.v1.TransactionLink
+	(*TransactionPrototype)(nil),            // 30: prosper.v1.TransactionPrototype
+	(*Transaction)(nil),                     // 31: prosper.v1.Transaction
+	(*GetTransactionsRequest)(nil),          // 32: prosper.v1.GetTransactionsRequest
+	(*GetTransactionsResponse)(nil),         // 33: prosper.v1.GetTransactionsResponse
+	(*ListAvailableCurrenciesRequest)(nil),  // 34: prosper.v1.ListAvailableCurrenciesRequest
+	(*ListAvailableCurrenciesResponse)(nil), // 35: prosper.v1.ListAvailableCurrenciesResponse
+	(*CurrencyInfo)(nil),                    // 36: prosper.v1.CurrencyInfo
+	(*UpsertBankRequest)(nil),               // 37: prosper.v1.UpsertBankRequest
+	(*UpsertBankResponse)(nil),              // 38: prosper.v1.UpsertBankResponse
+	(*AccountUnit)(nil),                     // 39: prosper.v1.AccountUnit
 	(*UpsertBankAccountRequest)(nil),        // 40: prosper.v1.UpsertBankAccountRequest
 	(*UpsertBankAccountResponse)(nil),       // 41: prosper.v1.UpsertBankAccountResponse
 	(*UpsertCategoryRequest)(nil),           // 42: prosper.v1.UpsertCategoryRequest
@@ -3886,74 +3860,76 @@ var file_prosper_v1_ledger_proto_goTypes = []any{
 var file_prosper_v1_ledger_proto_depIdxs = []int32{
 	53, // 0: prosper.v1.ValidateSessionResponse.extended_expires_at:type_name -> google.protobuf.Timestamp
 	53, // 1: prosper.v1.CreateSessionResponse.expires_at:type_name -> google.protobuf.Timestamp
-	53, // 2: prosper.v1.Trip.start:type_name -> google.protobuf.Timestamp
-	53, // 3: prosper.v1.Trip.end:type_name -> google.protobuf.Timestamp
-	16, // 4: prosper.v1.GetCoreDataResponse.banks:type_name -> prosper.v1.Bank
-	17, // 5: prosper.v1.GetCoreDataResponse.bank_accounts:type_name -> prosper.v1.BankAccount
-	18, // 6: prosper.v1.GetCoreDataResponse.categories:type_name -> prosper.v1.Category
-	19, // 7: prosper.v1.GetCoreDataResponse.tags:type_name -> prosper.v1.Tag
-	20, // 8: prosper.v1.GetCoreDataResponse.trips:type_name -> prosper.v1.Trip
-	21, // 9: prosper.v1.GetCoreDataResponse.stocks:type_name -> prosper.v1.Stock
-	22, // 10: prosper.v1.GetCoreDataResponse.display_settings:type_name -> prosper.v1.DisplaySettings
-	1,  // 11: prosper.v1.LedgerAccount.type:type_name -> prosper.v1.LedgerAccountType
-	2,  // 12: prosper.v1.TransactionLink.link_type:type_name -> prosper.v1.TransactionLinkType
-	53, // 13: prosper.v1.Transaction.timestamp:type_name -> google.protobuf.Timestamp
-	0,  // 14: prosper.v1.Transaction.type:type_name -> prosper.v1.TransactionType
-	26, // 15: prosper.v1.Transaction.lines:type_name -> prosper.v1.EntryLine
-	27, // 16: prosper.v1.Transaction.splits:type_name -> prosper.v1.SplitContext
-	30, // 17: prosper.v1.GetTransactionsResponse.transactions:type_name -> prosper.v1.Transaction
-	28, // 18: prosper.v1.GetTransactionsResponse.links:type_name -> prosper.v1.TransactionLink
-	29, // 19: prosper.v1.GetTransactionsResponse.prototypes:type_name -> prosper.v1.TransactionPrototype
-	25, // 20: prosper.v1.GetTransactionsResponse.ledger_accounts:type_name -> prosper.v1.LedgerAccount
-	35, // 21: prosper.v1.ListAvailableCurrenciesResponse.currencies:type_name -> prosper.v1.CurrencyInfo
-	16, // 22: prosper.v1.UpsertBankRequest.bank:type_name -> prosper.v1.Bank
-	39, // 23: prosper.v1.AccountUnit.new_stock:type_name -> prosper.v1.StockSpec
-	38, // 24: prosper.v1.UpsertBankAccountRequest.unit:type_name -> prosper.v1.AccountUnit
-	18, // 25: prosper.v1.UpsertCategoryRequest.category:type_name -> prosper.v1.Category
-	22, // 26: prosper.v1.UpdateDisplaySettingsRequest.settings:type_name -> prosper.v1.DisplaySettings
-	47, // 27: prosper.v1.WriteTransactionFormRequest.used_protos:type_name -> prosper.v1.TransactionPrototypeInput
-	48, // 28: prosper.v1.WriteTransactionFormRequest.expense:type_name -> prosper.v1.ExpenseFormInput
-	50, // 29: prosper.v1.WriteTransactionFormRequest.income:type_name -> prosper.v1.IncomeFormInput
-	51, // 30: prosper.v1.WriteTransactionFormRequest.transfer:type_name -> prosper.v1.TransferFormInput
-	53, // 31: prosper.v1.ExpenseFormInput.timestamp:type_name -> google.protobuf.Timestamp
-	3,  // 32: prosper.v1.ExpenseFormInput.sharing_type:type_name -> prosper.v1.SharingType
-	49, // 33: prosper.v1.ExpenseFormInput.repayment:type_name -> prosper.v1.RepaymentInput
-	53, // 34: prosper.v1.RepaymentInput.timestamp:type_name -> google.protobuf.Timestamp
-	53, // 35: prosper.v1.IncomeFormInput.timestamp:type_name -> google.protobuf.Timestamp
-	53, // 36: prosper.v1.TransferFormInput.timestamp:type_name -> google.protobuf.Timestamp
-	23, // 37: prosper.v1.LedgerService.GetCoreData:input_type -> prosper.v1.GetCoreDataRequest
-	31, // 38: prosper.v1.LedgerService.GetTransactions:input_type -> prosper.v1.GetTransactionsRequest
-	33, // 39: prosper.v1.LedgerService.ListAvailableCurrencies:input_type -> prosper.v1.ListAvailableCurrenciesRequest
-	46, // 40: prosper.v1.LedgerService.WriteTransactionForm:input_type -> prosper.v1.WriteTransactionFormRequest
-	40, // 41: prosper.v1.LedgerService.UpsertBankAccount:input_type -> prosper.v1.UpsertBankAccountRequest
-	36, // 42: prosper.v1.LedgerService.UpsertBank:input_type -> prosper.v1.UpsertBankRequest
-	42, // 43: prosper.v1.LedgerService.UpsertCategory:input_type -> prosper.v1.UpsertCategoryRequest
-	44, // 44: prosper.v1.LedgerService.UpdateDisplaySettings:input_type -> prosper.v1.UpdateDisplaySettingsRequest
-	4,  // 45: prosper.v1.AuthService.ValidateSession:input_type -> prosper.v1.ValidateSessionRequest
-	6,  // 46: prosper.v1.AuthService.CreateSession:input_type -> prosper.v1.CreateSessionRequest
-	8,  // 47: prosper.v1.AuthService.DeleteSession:input_type -> prosper.v1.DeleteSessionRequest
-	10, // 48: prosper.v1.AuthService.Authenticate:input_type -> prosper.v1.AuthenticateRequest
-	12, // 49: prosper.v1.AuthService.CountUsers:input_type -> prosper.v1.CountUsersRequest
-	14, // 50: prosper.v1.AuthService.Register:input_type -> prosper.v1.RegisterRequest
-	24, // 51: prosper.v1.LedgerService.GetCoreData:output_type -> prosper.v1.GetCoreDataResponse
-	32, // 52: prosper.v1.LedgerService.GetTransactions:output_type -> prosper.v1.GetTransactionsResponse
-	34, // 53: prosper.v1.LedgerService.ListAvailableCurrencies:output_type -> prosper.v1.ListAvailableCurrenciesResponse
-	52, // 54: prosper.v1.LedgerService.WriteTransactionForm:output_type -> prosper.v1.WriteTransactionFormResponse
-	41, // 55: prosper.v1.LedgerService.UpsertBankAccount:output_type -> prosper.v1.UpsertBankAccountResponse
-	37, // 56: prosper.v1.LedgerService.UpsertBank:output_type -> prosper.v1.UpsertBankResponse
-	43, // 57: prosper.v1.LedgerService.UpsertCategory:output_type -> prosper.v1.UpsertCategoryResponse
-	45, // 58: prosper.v1.LedgerService.UpdateDisplaySettings:output_type -> prosper.v1.UpdateDisplaySettingsResponse
-	5,  // 59: prosper.v1.AuthService.ValidateSession:output_type -> prosper.v1.ValidateSessionResponse
-	7,  // 60: prosper.v1.AuthService.CreateSession:output_type -> prosper.v1.CreateSessionResponse
-	9,  // 61: prosper.v1.AuthService.DeleteSession:output_type -> prosper.v1.DeleteSessionResponse
-	11, // 62: prosper.v1.AuthService.Authenticate:output_type -> prosper.v1.AuthenticateResponse
-	13, // 63: prosper.v1.AuthService.CountUsers:output_type -> prosper.v1.CountUsersResponse
-	15, // 64: prosper.v1.AuthService.Register:output_type -> prosper.v1.RegisterResponse
-	51, // [51:65] is the sub-list for method output_type
-	37, // [37:51] is the sub-list for method input_type
-	37, // [37:37] is the sub-list for extension type_name
-	37, // [37:37] is the sub-list for extension extendee
-	0,  // [0:37] is the sub-list for field type_name
+	21, // 2: prosper.v1.BankAccount.stock:type_name -> prosper.v1.StockRef
+	53, // 3: prosper.v1.Trip.start:type_name -> google.protobuf.Timestamp
+	53, // 4: prosper.v1.Trip.end:type_name -> google.protobuf.Timestamp
+	16, // 5: prosper.v1.GetCoreDataResponse.banks:type_name -> prosper.v1.Bank
+	17, // 6: prosper.v1.GetCoreDataResponse.bank_accounts:type_name -> prosper.v1.BankAccount
+	18, // 7: prosper.v1.GetCoreDataResponse.categories:type_name -> prosper.v1.Category
+	19, // 8: prosper.v1.GetCoreDataResponse.tags:type_name -> prosper.v1.Tag
+	20, // 9: prosper.v1.GetCoreDataResponse.trips:type_name -> prosper.v1.Trip
+	22, // 10: prosper.v1.GetCoreDataResponse.stocks:type_name -> prosper.v1.Stock
+	23, // 11: prosper.v1.GetCoreDataResponse.display_settings:type_name -> prosper.v1.DisplaySettings
+	1,  // 12: prosper.v1.LedgerAccount.type:type_name -> prosper.v1.LedgerAccountType
+	21, // 13: prosper.v1.EntryLine.stock:type_name -> prosper.v1.StockRef
+	2,  // 14: prosper.v1.TransactionLink.link_type:type_name -> prosper.v1.TransactionLinkType
+	53, // 15: prosper.v1.Transaction.timestamp:type_name -> google.protobuf.Timestamp
+	0,  // 16: prosper.v1.Transaction.type:type_name -> prosper.v1.TransactionType
+	27, // 17: prosper.v1.Transaction.lines:type_name -> prosper.v1.EntryLine
+	28, // 18: prosper.v1.Transaction.splits:type_name -> prosper.v1.SplitContext
+	31, // 19: prosper.v1.GetTransactionsResponse.transactions:type_name -> prosper.v1.Transaction
+	29, // 20: prosper.v1.GetTransactionsResponse.links:type_name -> prosper.v1.TransactionLink
+	30, // 21: prosper.v1.GetTransactionsResponse.prototypes:type_name -> prosper.v1.TransactionPrototype
+	26, // 22: prosper.v1.GetTransactionsResponse.ledger_accounts:type_name -> prosper.v1.LedgerAccount
+	36, // 23: prosper.v1.ListAvailableCurrenciesResponse.currencies:type_name -> prosper.v1.CurrencyInfo
+	16, // 24: prosper.v1.UpsertBankRequest.bank:type_name -> prosper.v1.Bank
+	21, // 25: prosper.v1.AccountUnit.stock:type_name -> prosper.v1.StockRef
+	39, // 26: prosper.v1.UpsertBankAccountRequest.unit:type_name -> prosper.v1.AccountUnit
+	18, // 27: prosper.v1.UpsertCategoryRequest.category:type_name -> prosper.v1.Category
+	23, // 28: prosper.v1.UpdateDisplaySettingsRequest.settings:type_name -> prosper.v1.DisplaySettings
+	47, // 29: prosper.v1.WriteTransactionFormRequest.used_protos:type_name -> prosper.v1.TransactionPrototypeInput
+	48, // 30: prosper.v1.WriteTransactionFormRequest.expense:type_name -> prosper.v1.ExpenseFormInput
+	50, // 31: prosper.v1.WriteTransactionFormRequest.income:type_name -> prosper.v1.IncomeFormInput
+	51, // 32: prosper.v1.WriteTransactionFormRequest.transfer:type_name -> prosper.v1.TransferFormInput
+	53, // 33: prosper.v1.ExpenseFormInput.timestamp:type_name -> google.protobuf.Timestamp
+	3,  // 34: prosper.v1.ExpenseFormInput.sharing_type:type_name -> prosper.v1.SharingType
+	49, // 35: prosper.v1.ExpenseFormInput.repayment:type_name -> prosper.v1.RepaymentInput
+	53, // 36: prosper.v1.RepaymentInput.timestamp:type_name -> google.protobuf.Timestamp
+	53, // 37: prosper.v1.IncomeFormInput.timestamp:type_name -> google.protobuf.Timestamp
+	53, // 38: prosper.v1.TransferFormInput.timestamp:type_name -> google.protobuf.Timestamp
+	24, // 39: prosper.v1.LedgerService.GetCoreData:input_type -> prosper.v1.GetCoreDataRequest
+	32, // 40: prosper.v1.LedgerService.GetTransactions:input_type -> prosper.v1.GetTransactionsRequest
+	34, // 41: prosper.v1.LedgerService.ListAvailableCurrencies:input_type -> prosper.v1.ListAvailableCurrenciesRequest
+	46, // 42: prosper.v1.LedgerService.WriteTransactionForm:input_type -> prosper.v1.WriteTransactionFormRequest
+	40, // 43: prosper.v1.LedgerService.UpsertBankAccount:input_type -> prosper.v1.UpsertBankAccountRequest
+	37, // 44: prosper.v1.LedgerService.UpsertBank:input_type -> prosper.v1.UpsertBankRequest
+	42, // 45: prosper.v1.LedgerService.UpsertCategory:input_type -> prosper.v1.UpsertCategoryRequest
+	44, // 46: prosper.v1.LedgerService.UpdateDisplaySettings:input_type -> prosper.v1.UpdateDisplaySettingsRequest
+	4,  // 47: prosper.v1.AuthService.ValidateSession:input_type -> prosper.v1.ValidateSessionRequest
+	6,  // 48: prosper.v1.AuthService.CreateSession:input_type -> prosper.v1.CreateSessionRequest
+	8,  // 49: prosper.v1.AuthService.DeleteSession:input_type -> prosper.v1.DeleteSessionRequest
+	10, // 50: prosper.v1.AuthService.Authenticate:input_type -> prosper.v1.AuthenticateRequest
+	12, // 51: prosper.v1.AuthService.CountUsers:input_type -> prosper.v1.CountUsersRequest
+	14, // 52: prosper.v1.AuthService.Register:input_type -> prosper.v1.RegisterRequest
+	25, // 53: prosper.v1.LedgerService.GetCoreData:output_type -> prosper.v1.GetCoreDataResponse
+	33, // 54: prosper.v1.LedgerService.GetTransactions:output_type -> prosper.v1.GetTransactionsResponse
+	35, // 55: prosper.v1.LedgerService.ListAvailableCurrencies:output_type -> prosper.v1.ListAvailableCurrenciesResponse
+	52, // 56: prosper.v1.LedgerService.WriteTransactionForm:output_type -> prosper.v1.WriteTransactionFormResponse
+	41, // 57: prosper.v1.LedgerService.UpsertBankAccount:output_type -> prosper.v1.UpsertBankAccountResponse
+	38, // 58: prosper.v1.LedgerService.UpsertBank:output_type -> prosper.v1.UpsertBankResponse
+	43, // 59: prosper.v1.LedgerService.UpsertCategory:output_type -> prosper.v1.UpsertCategoryResponse
+	45, // 60: prosper.v1.LedgerService.UpdateDisplaySettings:output_type -> prosper.v1.UpdateDisplaySettingsResponse
+	5,  // 61: prosper.v1.AuthService.ValidateSession:output_type -> prosper.v1.ValidateSessionResponse
+	7,  // 62: prosper.v1.AuthService.CreateSession:output_type -> prosper.v1.CreateSessionResponse
+	9,  // 63: prosper.v1.AuthService.DeleteSession:output_type -> prosper.v1.DeleteSessionResponse
+	11, // 64: prosper.v1.AuthService.Authenticate:output_type -> prosper.v1.AuthenticateResponse
+	13, // 65: prosper.v1.AuthService.CountUsers:output_type -> prosper.v1.CountUsersResponse
+	15, // 66: prosper.v1.AuthService.Register:output_type -> prosper.v1.RegisterResponse
+	53, // [53:67] is the sub-list for method output_type
+	39, // [39:53] is the sub-list for method input_type
+	39, // [39:39] is the sub-list for extension type_name
+	39, // [39:39] is the sub-list for extension extendee
+	0,  // [0:39] is the sub-list for field type_name
 }
 
 func init() { file_prosper_v1_ledger_proto_init() }
@@ -3965,13 +3941,12 @@ func file_prosper_v1_ledger_proto_init() {
 	file_prosper_v1_ledger_proto_msgTypes[13].OneofWrappers = []any{}
 	file_prosper_v1_ledger_proto_msgTypes[14].OneofWrappers = []any{}
 	file_prosper_v1_ledger_proto_msgTypes[16].OneofWrappers = []any{}
-	file_prosper_v1_ledger_proto_msgTypes[21].OneofWrappers = []any{}
 	file_prosper_v1_ledger_proto_msgTypes[22].OneofWrappers = []any{}
-	file_prosper_v1_ledger_proto_msgTypes[26].OneofWrappers = []any{}
-	file_prosper_v1_ledger_proto_msgTypes[34].OneofWrappers = []any{
+	file_prosper_v1_ledger_proto_msgTypes[23].OneofWrappers = []any{}
+	file_prosper_v1_ledger_proto_msgTypes[27].OneofWrappers = []any{}
+	file_prosper_v1_ledger_proto_msgTypes[35].OneofWrappers = []any{
 		(*AccountUnit_CurrencyCode)(nil),
-		(*AccountUnit_StockId)(nil),
-		(*AccountUnit_NewStock)(nil),
+		(*AccountUnit_Stock)(nil),
 	}
 	file_prosper_v1_ledger_proto_msgTypes[36].OneofWrappers = []any{}
 	file_prosper_v1_ledger_proto_msgTypes[42].OneofWrappers = []any{

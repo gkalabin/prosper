@@ -81,8 +81,8 @@ func writeIncome(ctx context.Context, tx *userdb.Tx, userID int32, req *prosperv
 // counted as income.
 func buildSoloIncomeLines(in *prosperv1.IncomeFormInput, asset, incomeAcc model.LedgerAccount, unit model.Unit) []model.EntryLine {
 	return []model.EntryLine{
-		{LedgerAccountID: asset.ID, CurrencyCode: unit.CurrencyCode, StockID: unit.StockID, AmountNanos: in.AmountNanos},
-		{LedgerAccountID: incomeAcc.ID, CurrencyCode: unit.CurrencyCode, StockID: unit.StockID, AmountNanos: -in.AmountNanos},
+		{LedgerAccountID: asset.ID, CurrencyCode: unit.CurrencyCode, StockExchange: unit.StockExchange, StockTicker: unit.StockTicker, AmountNanos: in.AmountNanos},
+		{LedgerAccountID: incomeAcc.ID, CurrencyCode: unit.CurrencyCode, StockExchange: unit.StockExchange, StockTicker: unit.StockTicker, AmountNanos: -in.AmountNanos},
 	}
 }
 
@@ -100,8 +100,8 @@ func buildSharedIncomeLines(ctx context.Context, tx *userdb.Tx, userID int32, ac
 		return nil, err
 	}
 	return []model.EntryLine{
-		{LedgerAccountID: asset.ID, CurrencyCode: unit.CurrencyCode, StockID: unit.StockID, AmountNanos: in.AmountNanos},
-		{LedgerAccountID: incomeAcc.ID, CurrencyCode: unit.CurrencyCode, StockID: unit.StockID, AmountNanos: -in.OwnShareNanos},
-		{LedgerAccountID: recv.ID, CurrencyCode: unit.CurrencyCode, StockID: unit.StockID, AmountNanos: -companionShare},
+		{LedgerAccountID: asset.ID, CurrencyCode: unit.CurrencyCode, StockExchange: unit.StockExchange, StockTicker: unit.StockTicker, AmountNanos: in.AmountNanos},
+		{LedgerAccountID: incomeAcc.ID, CurrencyCode: unit.CurrencyCode, StockExchange: unit.StockExchange, StockTicker: unit.StockTicker, AmountNanos: -in.OwnShareNanos},
+		{LedgerAccountID: recv.ID, CurrencyCode: unit.CurrencyCode, StockExchange: unit.StockExchange, StockTicker: unit.StockTicker, AmountNanos: -companionShare},
 	}, nil
 }

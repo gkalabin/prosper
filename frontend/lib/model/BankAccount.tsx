@@ -4,7 +4,7 @@ import {
   BankAccount as PbBankAccount,
 } from '@/lib/grpc/gen/prosper/v1/ledger';
 import {mustFindByCode} from '@/lib/model/Currency';
-import {Stock} from '@/lib/model/Stock';
+import {Stock, StockKey, stockKeysEqual} from '@/lib/model/Stock';
 import {Unit} from '@/lib/model/Unit';
 
 export type Bank = {
@@ -63,7 +63,7 @@ export type BankAccount = {
   bankId: number;
   initialBalanceCents: number;
   currencyCode: string | null;
-  stockId?: number | null;
+  stock: StockKey | null;
   displayOrder: number;
   archived: boolean;
   joint: boolean;
@@ -76,7 +76,9 @@ export function bankAccountModelFromDB(init: PbBankAccount): BankAccount {
     bankId: init.bankId,
     initialBalanceCents: init.initialBalanceCents,
     currencyCode: init.currencyCode ?? null,
-    stockId: init.stockId ?? null,
+    stock: init.stock
+      ? {exchange: init.stock.exchange, ticker: init.stock.ticker}
+      : null,
     displayOrder: init.displayOrder,
     archived: init.archived,
     joint: init.joint,
@@ -87,11 +89,14 @@ export function accountUnit(account: BankAccount, stocks: Stock[]): Unit {
   if (account.currencyCode) {
     return mustFindByCode(account.currencyCode);
   }
-  if (account.stockId) {
-    const stock = stocks.find(s => s.id == account.stockId);
+  if (account.stock) {
+    const key = account.stock;
+    const stock = stocks.find(
+      s => s.exchange == key.exchange && s.ticker == key.ticker
+    );
     if (!stock) {
       throw new Error(
-        `Cannot find stock ${account.stockId} for account ${account.id}`
+        `Cannot find stock ${key.exchange}/${key.ticker} for account ${account.id}`
       );
     }
     return stock;
@@ -134,8 +139,8 @@ export function accountUnitsEqual(a: BankAccount, b: BankAccount): boolean {
   if (a.currencyCode && b.currencyCode) {
     return a.currencyCode === b.currencyCode;
   }
-  if (a.stockId && b.stockId) {
-    return a.stockId === b.stockId;
+  if (a.stock && b.stock) {
+    return stockKeysEqual(a.stock, b.stock);
   }
   return false;
 }

@@ -293,9 +293,10 @@ func (x *GetMarketDataForUserResponse) GetQuotes() []*StockQuote {
 
 type StockQuote struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
-	StockId            int32                  `protobuf:"varint,1,opt,name=stock_id,json=stockId,proto3" json:"stock_id,omitempty"`
+	StockExchange      string                 `protobuf:"bytes,1,opt,name=stock_exchange,json=stockExchange,proto3" json:"stock_exchange,omitempty"`
 	QuoteTimestamp     *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=quote_timestamp,json=quoteTimestamp,proto3" json:"quote_timestamp,omitempty"`
 	PricePerShareNanos int64                  `protobuf:"varint,3,opt,name=price_per_share_nanos,json=pricePerShareNanos,proto3" json:"price_per_share_nanos,omitempty"`
+	StockTicker        string                 `protobuf:"bytes,4,opt,name=stock_ticker,json=stockTicker,proto3" json:"stock_ticker,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
@@ -330,11 +331,11 @@ func (*StockQuote) Descriptor() ([]byte, []int) {
 	return file_prosper_v1_rates_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *StockQuote) GetStockId() int32 {
+func (x *StockQuote) GetStockExchange() string {
 	if x != nil {
-		return x.StockId
+		return x.StockExchange
 	}
-	return 0
+	return ""
 }
 
 func (x *StockQuote) GetQuoteTimestamp() *timestamppb.Timestamp {
@@ -349,6 +350,13 @@ func (x *StockQuote) GetPricePerShareNanos() int64 {
 		return x.PricePerShareNanos
 	}
 	return 0
+}
+
+func (x *StockQuote) GetStockTicker() string {
+	if x != nil {
+		return x.StockTicker
+	}
+	return ""
 }
 
 type ExchangeRate struct {
@@ -442,12 +450,13 @@ const file_prosper_v1_rates_proto_rawDesc = "" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\"~\n" +
 	"\x1cGetMarketDataForUserResponse\x12.\n" +
 	"\x05rates\x18\x01 \x03(\v2\x18.prosper.v1.ExchangeRateR\x05rates\x12.\n" +
-	"\x06quotes\x18\x02 \x03(\v2\x16.prosper.v1.StockQuoteR\x06quotes\"\x9f\x01\n" +
+	"\x06quotes\x18\x02 \x03(\v2\x16.prosper.v1.StockQuoteR\x06quotes\"\xce\x01\n" +
 	"\n" +
-	"StockQuote\x12\x19\n" +
-	"\bstock_id\x18\x01 \x01(\x05R\astockId\x12C\n" +
+	"StockQuote\x12%\n" +
+	"\x0estock_exchange\x18\x01 \x01(\tR\rstockExchange\x12C\n" +
 	"\x0fquote_timestamp\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x0equoteTimestamp\x121\n" +
-	"\x15price_per_share_nanos\x18\x03 \x01(\x03R\x12pricePerShareNanos\"\xc8\x01\n" +
+	"\x15price_per_share_nanos\x18\x03 \x01(\x03R\x12pricePerShareNanos\x12!\n" +
+	"\fstock_ticker\x18\x04 \x01(\tR\vstockTicker\"\xc8\x01\n" +
 	"\fExchangeRate\x12,\n" +
 	"\x12currency_code_from\x18\x01 \x01(\tR\x10currencyCodeFrom\x12(\n" +
 	"\x10currency_code_to\x18\x02 \x01(\tR\x0ecurrencyCodeTo\x12A\n" +

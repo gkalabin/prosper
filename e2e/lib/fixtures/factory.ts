@@ -10,6 +10,7 @@ import {
   BankAccount,
   Category,
   Stock,
+  StockKey,
   Tag,
   TestDataBundle,
   TransactionContext,
@@ -38,9 +39,38 @@ import {
   TEST_USER_PASSWORD,
 } from './constants';
 
-interface BankAccountRow extends RowDataPacket, BankAccount {}
+// BankAccountRow mirrors the raw BankAccount SQL columns, including the
+// (stockExchange, stockTicker) pair that the logical BankAccount exposes
+// as a single `stock` key.
+interface BankAccountRow extends RowDataPacket {
+  id: number;
+  userId: number;
+  bankId: number;
+  name: string;
+  currencyCode: string | null;
+  stockExchange: string | null;
+  stockTicker: string | null;
+  archived: number;
+  joint: number;
+  displayOrder: number;
+}
 interface IDRow extends RowDataPacket {
   id: number;
+}
+interface StockRow extends RowDataPacket {
+  name: string;
+  ticker: string;
+  exchange: string;
+  currencyCode: string;
+}
+
+// stockKeyOf returns the (exchange, ticker) pair of a stock-denominated
+// account row, or null when the account is currency-denominated.
+function stockKeyOf(row: BankAccountRow): StockKey | null {
+  if (row.stockExchange === null || row.stockTicker === null) {
+    return null;
+  }
+  return {exchange: row.stockExchange, ticker: row.stockTicker};
 }
 
 export class TestFactory {
@@ -142,24 +172,24 @@ export class TestFactory {
     bankId: number,
     overrides?: Partial<BankAccount> & {initialBalance?: number}
   ): Promise<BankAccount> {
-    const stockId = overrides?.stockId ?? null;
-    const currencyCode =
-      stockId === null
-        ? (overrides?.currencyCode ?? DEFAULT_TEST_CURRENCY)
-        : null;
+    const stock = overrides?.stock ?? null;
+    const currencyCode = stock
+      ? null
+      : (overrides?.currencyCode ?? DEFAULT_TEST_CURRENCY);
     const name = overrides?.name ?? 'Test Account';
     const archived = overrides?.archived ?? false;
     const joint = overrides?.joint ?? false;
     const displayOrder = overrides?.displayOrder ?? 0;
     const id = await insert(
-      `INSERT INTO BankAccount (userId, bankId, name, currencyCode, stockId, archived, joint, displayOrder)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO BankAccount (userId, bankId, name, currencyCode, stockExchange, stockTicker, archived, joint, displayOrder)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         userId,
         bankId,
         name,
         currencyCode,
-        stockId,
+        stock?.exchange ?? null,
+        stock?.ticker ?? null,
         archived,
         joint,
         displayOrder,
@@ -176,10 +206,10 @@ export class TestFactory {
         bankAccountId: id,
         initialBalance: overrides.initialBalance,
         currencyCode,
-        stockId,
+        stock,
       });
     }
-    return {id, userId, bankId, name, currencyCode, stockId};
+    return {id, userId, bankId, name, currencyCode, stock};
   }
 
   private async openingBalance({
@@ -187,14 +217,14 @@ export class TestFactory {
     bankAccountId,
     initialBalance,
     currencyCode,
-    stockId,
+    stock,
     timestamp,
   }: {
     userId: number;
     bankAccountId: number;
     initialBalance: number;
     currencyCode?: string | null;
-    stockId?: number | null;
+    stock?: StockKey | null;
     timestamp?: Date | string;
   }) {
     const amountNanos = BigInt(Math.round(initialBalance * NANOS_PER_DOLLAR));
@@ -224,7 +254,7 @@ export class TestFactory {
       txId,
       assetRow.id,
       currencyCode ?? null,
-      stockId ?? null,
+      stock ?? null,
       amountNanos
     );
     await insertLine(
@@ -232,7 +262,7 @@ export class TestFactory {
       txId,
       equityRow.id,
       currencyCode ?? null,
-      stockId ?? null,
+      stock ?? null,
       -amountNanos
     );
     return txId;
@@ -290,20 +320,44 @@ export class TestFactory {
     exchange: string;
     currencyCode: string;
   }): Promise<Stock> {
-    const id = await insert(
+    // The Stock catalog is shared across tests and cleaned only at teardown,
+    // so seeding the same (exchange, ticker) from multiple tests must be
+    // idempotent. Reuse a matching row; reject a conflicting redefinition.
+    const found = await query<StockRow[]>(
+      `SELECT name, ticker, exchange, currencyCode FROM Stock
+       WHERE exchange = ? AND ticker = ?`,
+      [exchange, ticker]
+    );
+    if (found.length > 1) {
+      throw new Error(
+        `Stock ${exchange}-${ticker} appears ${found.length} times in Stock table`
+      );
+    }
+    if (found.length == 1) {
+      const existing = found[0];
+      if (existing.name !== name || existing.currencyCode !== currencyCode) {
+        throw new Error(
+          `Stock ${exchange}-${ticker} already seeded as ` +
+            `{name: ${existing.name}, currencyCode: ${existing.currencyCode}}, ` +
+            `cannot redefine as {name: ${name}, currencyCode: ${currencyCode}}`
+        );
+      }
+      return existing;
+    }
+    await exec(
       `INSERT INTO Stock (name, ticker, exchange, currencyCode)
        VALUES (?, ?, ?, ?)`,
       [name, ticker, exchange, currencyCode]
     );
-    return {id, name, ticker, exchange, currencyCode};
+    return {name, ticker, exchange, currencyCode};
   }
 
-  async createStockQuote(stockId: number, pricePerShare: number) {
+  async createStockQuote(stock: StockKey, pricePerShare: number) {
     const valueCents = Math.round(pricePerShare * 100);
     await exec(
-      `INSERT INTO StockQuote (stockId, value, quoteTimestamp)
-       VALUES (?, ?, NOW(3))`,
-      [stockId, valueCents]
+      `INSERT INTO StockQuote (stockExchange, stockTicker, value, quoteTimestamp)
+       VALUES (?, ?, ?, NOW(3))`,
+      [stock.exchange, stock.ticker, valueCents]
     );
   }
 
@@ -348,7 +402,7 @@ export class TestFactory {
       [user.id]
     );
     const currencyCode = bankAccountRow.currencyCode ?? null;
-    const stockId = bankAccountRow.stockId ?? null;
+    const stock = stockKeyOf(bankAccountRow);
     const txId = await insert(
       `INSERT INTO Transaction (iid, userId, type, timestamp, categoryId, note, vendor, tripId)
        VALUES (?, ?, 'EXPENSE', ?, ?, ?, ?, ?)`,
@@ -367,7 +421,7 @@ export class TestFactory {
       txId,
       assetRow.id,
       currencyCode,
-      stockId,
+      stock,
       -amountNanos
     );
     await insertLine(
@@ -375,7 +429,7 @@ export class TestFactory {
       txId,
       expenseRow.id,
       currencyCode,
-      stockId,
+      stock,
       ownShareAmountNanos
     );
     if (otherPartyName) {
@@ -389,7 +443,7 @@ export class TestFactory {
         txId,
         recv.id,
         currencyCode,
-        stockId,
+        stock,
         companionShareNanos
       );
       await exec(
@@ -445,7 +499,7 @@ export class TestFactory {
       [user.id]
     );
     const currencyCode = bankAccountRow.currencyCode ?? null;
-    const stockId = bankAccountRow.stockId ?? null;
+    const stock = stockKeyOf(bankAccountRow);
     const txId = await insert(
       `INSERT INTO Transaction (iid, userId, type, timestamp, categoryId, note, payer, tripId)
        VALUES (?, ?, 'INCOME', ?, ?, ?, ?, ?)`,
@@ -464,7 +518,7 @@ export class TestFactory {
       txId,
       assetRow.id,
       currencyCode,
-      stockId,
+      stock,
       amountNanos
     );
     await insertLine(
@@ -472,7 +526,7 @@ export class TestFactory {
       txId,
       incomeRow.id,
       currencyCode,
-      stockId,
+      stock,
       -ownShareAmountNanos
     );
     if (otherPartyName) {
@@ -486,7 +540,7 @@ export class TestFactory {
         txId,
         recv.id,
         currencyCode,
-        stockId,
+        stock,
         -companionShareNanos
       );
       await exec(
@@ -539,6 +593,8 @@ export class TestFactory {
       `SELECT * FROM BankAccount WHERE id = ?`,
       [to.id]
     );
+    const fromStock = stockKeyOf(fromBank);
+    const toStock = stockKeyOf(toBank);
     const [fromAsset] = await query<IDRow[]>(
       `SELECT id FROM LedgerAccount WHERE bankAccountId = ?`,
       [from.id]
@@ -557,7 +613,7 @@ export class TestFactory {
       txId,
       fromAsset.id,
       fromBank.currencyCode,
-      fromBank.stockId,
+      fromStock,
       -amountNanos
     );
     await insertLine(
@@ -565,12 +621,13 @@ export class TestFactory {
       txId,
       toAsset.id,
       toBank.currencyCode,
-      toBank.stockId,
+      toStock,
       receivedAmountNanos
     );
     if (
       fromBank.currencyCode !== toBank.currencyCode ||
-      fromBank.stockId !== toBank.stockId
+      fromBank.stockExchange !== toBank.stockExchange ||
+      fromBank.stockTicker !== toBank.stockTicker
     ) {
       const [fxRow] = await query<IDRow[]>(
         `SELECT id FROM LedgerAccount WHERE userId = ? AND type = 'CURRENCY_EXCHANGE'`,
@@ -581,7 +638,7 @@ export class TestFactory {
         txId,
         fxRow.id,
         fromBank.currencyCode,
-        fromBank.stockId,
+        fromStock,
         amountNanos
       );
       await insertLine(
@@ -589,7 +646,7 @@ export class TestFactory {
         txId,
         fxRow.id,
         toBank.currencyCode,
-        toBank.stockId,
+        toStock,
         -receivedAmountNanos
       );
     }
@@ -731,18 +788,19 @@ async function insertLine(
   transactionId: number,
   ledgerAccountId: number,
   currencyCode: string | null,
-  stockId: number | null,
+  stock: StockKey | null,
   amountNanos: bigint
 ): Promise<void> {
   await exec(
-    `INSERT INTO EntryLine (userId, transactionId, ledgerAccountId, currencyCode, stockId, amountNanos)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO EntryLine (userId, transactionId, ledgerAccountId, currencyCode, stockExchange, stockTicker, amountNanos)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [
       userId,
       transactionId,
       ledgerAccountId,
       currencyCode,
-      stockId,
+      stock?.exchange ?? null,
+      stock?.ticker ?? null,
       amountNanos.toString(),
     ]
   );

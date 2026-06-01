@@ -27,7 +27,8 @@ func LoadBankAccountUnit(ctx context.Context, tx *userdb.Tx, userID, bankAccount
 	var unit model.Unit
 	err := tx.GetForUser(ctx, &unit, userID,
 		`SELECT currencyCode,
-		        stockId
+		        stockExchange,
+		        stockTicker
 		   FROM BankAccount
 		  WHERE id     = :id
 		    AND userId = :userId`,
@@ -35,7 +36,7 @@ func LoadBankAccountUnit(ctx context.Context, tx *userdb.Tx, userID, bankAccount
 	if err != nil {
 		return model.Unit{}, fmt.Errorf("bank account %d: %w", bankAccountID, err)
 	}
-	if _, err := model.NewUnit(unit.CurrencyCode, unit.StockID); err != nil {
+	if _, err := model.NewUnit(unit.CurrencyCode, unit.StockExchange, unit.StockTicker); err != nil {
 		return model.Unit{}, fmt.Errorf("bank account %d: %w", bankAccountID, err)
 	}
 	return unit, nil
@@ -168,8 +169,8 @@ func InsertEntryLines(ctx context.Context, tx *userdb.Tx, userID int32, transact
 	}
 	_, err := tx.NamedExecForUser(ctx, userID,
 		`INSERT INTO EntryLine
-		        ( userId,  transactionId,  ledgerAccountId,  currencyCode,  stockId,  amountNanos)
-		 VALUES (:userId, :transactionId, :ledgerAccountId, :currencyCode, :stockId, :amountNanos)`,
+		        ( userId,  transactionId,  ledgerAccountId,  currencyCode,  stockExchange,  stockTicker,  amountNanos)
+		 VALUES (:userId, :transactionId, :ledgerAccountId, :currencyCode, :stockExchange, :stockTicker, :amountNanos)`,
 		rows)
 	return err
 }

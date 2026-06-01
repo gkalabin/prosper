@@ -88,9 +88,9 @@ export interface GetMarketDataForUserResponse {
  */
 export interface StockQuote {
     /**
-     * @generated from protobuf field: int32 stock_id = 1
+     * @generated from protobuf field: string stock_exchange = 1
      */
-    stockId: number;
+    stockExchange: string;
     /**
      * @generated from protobuf field: google.protobuf.Timestamp quote_timestamp = 2
      */
@@ -99,6 +99,10 @@ export interface StockQuote {
      * @generated from protobuf field: int64 price_per_share_nanos = 3
      */
     pricePerShareNanos: bigint;
+    /**
+     * @generated from protobuf field: string stock_ticker = 4
+     */
+    stockTicker: string;
 }
 /**
  * @generated from protobuf message prosper.v1.ExchangeRate
@@ -408,15 +412,17 @@ export const GetMarketDataForUserResponse = new GetMarketDataForUserResponse$Typ
 class StockQuote$Type extends MessageType<StockQuote> {
     constructor() {
         super("prosper.v1.StockQuote", [
-            { no: 1, name: "stock_id", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 1, name: "stock_exchange", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "quote_timestamp", kind: "message", T: () => Timestamp },
-            { no: 3, name: "price_per_share_nanos", kind: "scalar", T: 3 /*ScalarType.INT64*/, L: 0 /*LongType.BIGINT*/ }
+            { no: 3, name: "price_per_share_nanos", kind: "scalar", T: 3 /*ScalarType.INT64*/, L: 0 /*LongType.BIGINT*/ },
+            { no: 4, name: "stock_ticker", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
     create(value?: PartialMessage<StockQuote>): StockQuote {
         const message = globalThis.Object.create((this.messagePrototype!));
-        message.stockId = 0;
+        message.stockExchange = "";
         message.pricePerShareNanos = 0n;
+        message.stockTicker = "";
         if (value !== undefined)
             reflectionMergePartial<StockQuote>(this, message, value);
         return message;
@@ -426,14 +432,17 @@ class StockQuote$Type extends MessageType<StockQuote> {
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* int32 stock_id */ 1:
-                    message.stockId = reader.int32();
+                case /* string stock_exchange */ 1:
+                    message.stockExchange = reader.string();
                     break;
                 case /* google.protobuf.Timestamp quote_timestamp */ 2:
                     message.quoteTimestamp = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.quoteTimestamp);
                     break;
                 case /* int64 price_per_share_nanos */ 3:
                     message.pricePerShareNanos = reader.int64().toBigInt();
+                    break;
+                case /* string stock_ticker */ 4:
+                    message.stockTicker = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -447,15 +456,18 @@ class StockQuote$Type extends MessageType<StockQuote> {
         return message;
     }
     internalBinaryWrite(message: StockQuote, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* int32 stock_id = 1; */
-        if (message.stockId !== 0)
-            writer.tag(1, WireType.Varint).int32(message.stockId);
+        /* string stock_exchange = 1; */
+        if (message.stockExchange !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.stockExchange);
         /* google.protobuf.Timestamp quote_timestamp = 2; */
         if (message.quoteTimestamp)
             Timestamp.internalBinaryWrite(message.quoteTimestamp, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         /* int64 price_per_share_nanos = 3; */
         if (message.pricePerShareNanos !== 0n)
             writer.tag(3, WireType.Varint).int64(message.pricePerShareNanos);
+        /* string stock_ticker = 4; */
+        if (message.stockTicker !== "")
+            writer.tag(4, WireType.LengthDelimited).string(message.stockTicker);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

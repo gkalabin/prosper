@@ -28,7 +28,7 @@ import {
   sortCategories,
 } from '@/lib/model/Category';
 import {Currency, NANOS_MULTIPLIER, mustFindByCode} from '@/lib/model/Currency';
-import {Stock, stockModelFromDB} from '@/lib/model/Stock';
+import {Stock, stockKey, stockModelFromDB} from '@/lib/model/Stock';
 import {Tag, tagModelFromDB} from '@/lib/model/Tag';
 import {
   Transaction,
@@ -177,18 +177,19 @@ type Timeseries = Map<number, number>;
 const NANOS_PER_CENT = 10_000_000n;
 
 export class StockQuotes {
-  private readonly quotesByStockId: Map<number, Timeseries>;
+  private readonly quotesByStock: Map<string, Timeseries>;
 
   public constructor(init: PbStockQuote[]) {
-    this.quotesByStockId = new Map();
+    this.quotesByStock = new Map();
     for (const r of init) {
       const cents = Number(BigInt(r.pricePerShareNanos) / NANOS_PER_CENT);
       const day = utcStartOfDay(timestampToEpoch(r.quoteTimestamp));
-      const timeseries = this.quotesByStockId.get(r.stockId) ?? new Map();
+      const key = stockKey({exchange: r.stockExchange, ticker: r.stockTicker});
+      const timeseries = this.quotesByStock.get(key) ?? new Map();
       timeseries.set(day, cents);
-      this.quotesByStockId.set(r.stockId, timeseries);
+      this.quotesByStock.set(key, timeseries);
     }
-    for (const quotes of this.quotesByStockId.values()) {
+    for (const quotes of this.quotesByStock.values()) {
       backfillMissingDates(quotes);
     }
   }
@@ -213,7 +214,7 @@ export class StockQuotes {
   }
 
   private findQuote(stock: Stock, when: Date | number): number | undefined {
-    const quotesForStock = this.quotesByStockId.get(stock.id);
+    const quotesForStock = this.quotesByStock.get(stockKey(stock));
     if (!quotesForStock) {
       return undefined;
     }

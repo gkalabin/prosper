@@ -27,7 +27,7 @@ func bankAccountToProto(a *model.BankAccount) *prosperv1.BankAccount {
 		Name:                a.Name,
 		BankId:              a.BankID,
 		CurrencyCode:        a.CurrencyCode,
-		StockId:             a.StockID,
+		Stock:               stockRef(a.StockExchange, a.StockTicker),
 		Joint:               a.Joint,
 		Archived:            a.Archived,
 		DisplayOrder:        a.DisplayOrder,
@@ -67,12 +67,21 @@ func tripToProto(t *model.Trip) *prosperv1.Trip {
 
 func stockToProto(s *model.Stock) *prosperv1.Stock {
 	return &prosperv1.Stock{
-		Id:           s.ID,
 		Name:         s.Name,
 		Exchange:     s.Exchange,
 		Ticker:       s.Ticker,
 		CurrencyCode: s.CurrencyCode,
 	}
+}
+
+// stockRef wraps the (exchange, ticker) pair into a StockRef, returning
+// nil when the row is not stock-denominated.
+// TODO: this is stockKey now, rename and regen proto
+func stockRef(exchange, ticker *string) *prosperv1.StockRef {
+	if exchange == nil || ticker == nil {
+		return nil
+	}
+	return &prosperv1.StockRef{Exchange: *exchange, Ticker: *ticker}
 }
 
 func displaySettingsToProto(d *model.DisplaySettings) *prosperv1.DisplaySettings {
@@ -124,7 +133,7 @@ func entryLineToProto(l *model.EntryLine) *prosperv1.EntryLine {
 		TransactionId:   l.TransactionID,
 		LedgerAccountId: l.LedgerAccountID,
 		CurrencyCode:    l.CurrencyCode,
-		StockId:         l.StockID,
+		Stock:           stockRef(l.StockExchange, l.StockTicker),
 		AmountNanos:     l.AmountNanos,
 	}
 }

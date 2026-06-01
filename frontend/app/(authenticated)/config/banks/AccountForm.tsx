@@ -207,11 +207,14 @@ function useInitialFormValues(
   }
 
   let unit: UnitSchema;
-  if (bankAccount.stockId) {
-    const stock = stocks.find(s => s.id === bankAccount.stockId);
+  if (bankAccount.stock) {
+    const key = bankAccount.stock;
+    const stock = stocks.find(
+      s => s.exchange === key.exchange && s.ticker === key.ticker
+    );
     if (!stock) {
       throw new Error(
-        `BankAccount ${bankAccount.id} has stockId ${bankAccount.stockId} but it does not exist`
+        `BankAccount ${bankAccount.id} has stock ${key.exchange}/${key.ticker} but it does not exist`
       );
     }
     unit = {

@@ -219,7 +219,7 @@ func (s *Service) refreshAllStocks(ctx context.Context) error {
 }
 
 func (s *Service) refreshStock(ctx context.Context, st *model.Stock) error {
-	from, err := s.nextFetchStartForStock(ctx, st.ID)
+	from, err := s.nextFetchStartForStock(ctx, st.Exchange, st.Ticker)
 	if err != nil {
 		return err
 	}
@@ -234,27 +234,28 @@ func (s *Service) refreshStock(ctx context.Context, st *model.Stock) error {
 	for i, q := range quotes {
 		valueCents := q.ClosePriceNanos / moneyutil.NanosPerCent
 		rows[i] = model.StockQuote{
-			StockID:        st.ID,
+			StockExchange:  st.Exchange,
+			StockTicker:    st.Ticker,
 			QuoteTimestamp: q.QuoteDate,
 			Value:          &valueCents,
 		}
 	}
 	_, err = s.db.NamedExecContext(ctx,
 		`INSERT INTO StockQuote
-		        ( stockId,  quoteTimestamp,  value)
-		 VALUES (:stockId, :quoteTimestamp, :value)
+		        ( stockExchange,  stockTicker,  quoteTimestamp,  value)
+		 VALUES (:stockExchange, :stockTicker, :quoteTimestamp, :value)
 		 ON DUPLICATE KEY UPDATE value = VALUES(value)`,
 		rows)
 	return err
 }
 
-func (s *Service) nextFetchStartForStock(ctx context.Context, stockID int32) (time.Time, error) {
+func (s *Service) nextFetchStartForStock(ctx context.Context, exchange, ticker string) (time.Time, error) {
 	var latest model.StockQuote
 	err := s.db.GetContext(ctx, &latest,
 		`SELECT * FROM StockQuote
-		 WHERE stockId = ?
+		 WHERE stockExchange = ? AND stockTicker = ?
 		 ORDER BY quoteTimestamp DESC LIMIT 1`,
-		stockID)
+		exchange, ticker)
 	now := time.Now().UTC()
 	if errors.Is(err, sql.ErrNoRows) {
 		return now.AddDate(0, 0, -initialFetchWindowDays), nil

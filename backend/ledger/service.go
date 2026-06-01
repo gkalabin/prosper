@@ -20,11 +20,10 @@ type RateTrigger interface {
 	TriggerFetch()
 }
 
-// StockResolver resolves a stock identifier to an existing Stock row,
-// creating one (with the help of an external metadata source) when no
-// match exists.
+// StockResolver guarantees a Stock row exists for the given
+// (exchange, ticker), creating one when no match exists.
 type StockResolver interface {
-	ResolveOrCreate(ctx context.Context, exchange, ticker string) (stockID int32, err error)
+	EnsureStock(ctx context.Context, exchange, ticker string) error
 }
 
 type Service struct {

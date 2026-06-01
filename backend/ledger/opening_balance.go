@@ -62,8 +62,8 @@ func syncOpeningBalance(ctx context.Context, tx *userdb.Tx, userID, bankAccountI
 		return err
 	}
 	lines := []model.EntryLine{
-		{LedgerAccountID: asset.ID, CurrencyCode: unit.CurrencyCode, StockID: unit.StockID, AmountNanos: amountNanos},
-		{LedgerAccountID: equity.ID, CurrencyCode: unit.CurrencyCode, StockID: unit.StockID, AmountNanos: -amountNanos},
+		{LedgerAccountID: asset.ID, CurrencyCode: unit.CurrencyCode, StockExchange: unit.StockExchange, StockTicker: unit.StockTicker, AmountNanos: amountNanos},
+		{LedgerAccountID: equity.ID, CurrencyCode: unit.CurrencyCode, StockExchange: unit.StockExchange, StockTicker: unit.StockTicker, AmountNanos: -amountNanos},
 	}
 	return common.InsertEntryLines(ctx, tx, userID, newID, lines)
 }

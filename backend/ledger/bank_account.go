@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"prosper/auth"
 	prosperv1 "prosper/gen/prosper/v1"
@@ -87,7 +88,8 @@ func (s *Service) UpsertBankAccount(ctx context.Context, req *prosperv1.UpsertBa
 		Name:                req.Name,
 		BankID:              req.BankId,
 		CurrencyCode:        unit.CurrencyCode,
-		StockID:             unit.StockID,
+		StockExchange:       unit.StockExchange,
+		StockTicker:         unit.StockTicker,
 		Joint:               req.Joint,
 		Archived:            req.Archived,
 		DisplayOrder:        req.DisplayOrder,
@@ -146,7 +148,8 @@ func updateBankAccountRow(ctx context.Context, tx *userdb.Tx, bankAccount model.
 		    SET name                = :name,
 		        bankId              = :bankId,
 		        currencyCode        = :currencyCode,
-		        stockId             = :stockId,
+		        stockExchange       = :stockExchange,
+		        stockTicker         = :stockTicker,
 		        joint               = :joint,
 		        archived            = :archived,
 		        displayOrder        = :displayOrder,
@@ -175,8 +178,8 @@ func updateBankAccountRow(ctx context.Context, tx *userdb.Tx, bankAccount model.
 func insertBankAccountRow(ctx context.Context, tx *userdb.Tx, bankAccount model.BankAccount) (int32, error) {
 	res, err := tx.NamedExecForUser(ctx, bankAccount.UserID,
 		`INSERT INTO BankAccount
-		        ( userId,  name,  bankId,  currencyCode,  stockId,  joint,  archived,  displayOrder,  initialBalanceCents)
-		 VALUES (:userId, :name, :bankId, :currencyCode, :stockId, :joint, :archived, :displayOrder, :initialBalanceCents)`,
+		        ( userId,  name,  bankId,  currencyCode,  stockExchange,  stockTicker,  joint,  archived,  displayOrder,  initialBalanceCents)
+		 VALUES (:userId, :name, :bankId, :currencyCode, :stockExchange, :stockTicker, :joint, :archived, :displayOrder, :initialBalanceCents)`,
 		bankAccount)
 	if err != nil {
 		return 0, err
@@ -211,16 +214,14 @@ func (s *Service) materializeUnit(ctx context.Context, u *prosperv1.AccountUnit)
 	switch v := u.Unit.(type) {
 	case *prosperv1.AccountUnit_CurrencyCode:
 		code := v.CurrencyCode
-		return model.NewUnit(&code, nil)
-	case *prosperv1.AccountUnit_StockId:
-		id := v.StockId
-		return model.NewUnit(nil, &id)
-	case *prosperv1.AccountUnit_NewStock:
-		stockID, err := s.stockResolver.ResolveOrCreate(ctx, v.NewStock.Exchange, v.NewStock.Ticker)
-		if err != nil {
-			return model.Unit{}, fmt.Errorf("resolve stock %s/%s: %w", v.NewStock.Exchange, v.NewStock.Ticker, err)
+		return model.NewUnit(&code, nil, nil)
+	case *prosperv1.AccountUnit_Stock:
+		exchange := strings.ToUpper(v.Stock.Exchange)
+		ticker := strings.ToUpper(v.Stock.Ticker)
+		if err := s.stockResolver.EnsureStock(ctx, exchange, ticker); err != nil {
+			return model.Unit{}, fmt.Errorf("resolve stock %s/%s: %w", exchange, ticker, err)
 		}
-		return model.NewUnit(nil, &stockID)
+		return model.NewUnit(nil, &exchange, &ticker)
 	default:
 		return model.Unit{}, fmt.Errorf("unsupported account unit %T", v)
 	}

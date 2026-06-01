@@ -96,8 +96,8 @@ func (s *Service) GetMarketDataForUser(ctx context.Context, _ *prosperv1.GetMark
 	for i := range quotes {
 		q := &quotes[i]
 		if q.Value == nil {
-			log.Printf("rates: stock quote id=%d stockId=%d at %s has null value, skipping",
-				q.ID, q.StockID, q.QuoteTimestamp)
+			log.Printf("rates: stock quote id=%d stock=%s/%s at %s has null value, skipping",
+				q.ID, q.StockExchange, q.StockTicker, q.QuoteTimestamp)
 			continue
 		}
 		resp.Quotes = append(resp.Quotes, stockQuoteToProto(q))
@@ -150,7 +150,8 @@ func exchangeRateToProto(r *model.ExchangeRate) *prosperv1.ExchangeRate {
 
 func stockQuoteToProto(q *model.StockQuote) *prosperv1.StockQuote {
 	return &prosperv1.StockQuote{
-		StockId:            q.StockID,
+		StockExchange:      q.StockExchange,
+		StockTicker:        q.StockTicker,
 		QuoteTimestamp:     timestamppb.New(q.QuoteTimestamp),
 		PricePerShareNanos: *q.Value * moneyutil.NanosPerCent,
 	}
@@ -176,11 +177,11 @@ func (s *Service) currenciesForUser(ctx context.Context, userID int32) ([]string
 		SELECT currencyCode FROM BankAccount WHERE userId = ? AND currencyCode IS NOT NULL
 		UNION
 		SELECT s.currencyCode FROM BankAccount ba
-			JOIN Stock s ON s.id = ba.stockId WHERE ba.userId = ?
+			JOIN Stock s ON s.exchange = ba.stockExchange AND s.ticker = ba.stockTicker WHERE ba.userId = ?
 		UNION
 		SELECT s.currencyCode FROM EntryLine el
 			JOIN Transaction t ON t.id = el.transactionId
-			JOIN Stock s ON s.id = el.stockId WHERE t.userId = ?
+			JOIN Stock s ON s.exchange = el.stockExchange AND s.ticker = el.stockTicker WHERE t.userId = ?
 		UNION
 		SELECT el.currencyCode FROM EntryLine el
 			JOIN Transaction t ON t.id = el.transactionId

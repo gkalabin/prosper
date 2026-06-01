@@ -72,8 +72,8 @@ function unitInputFromForm(unit: AccountFormSchema['unit']): AccountUnit {
   }
   return {
     unit: {
-      oneofKind: 'newStock',
-      newStock: {exchange: unit.exchange, ticker: unit.ticker},
+      oneofKind: 'stock',
+      stock: {exchange: unit.exchange, ticker: unit.ticker},
     },
   };
 }

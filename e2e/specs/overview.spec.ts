@@ -89,10 +89,14 @@ test.describe('Overview', () => {
       exchange: 'NASDAQ',
       currencyCode: 'USD',
     });
-    await seed.createStockQuote(stock.id, 150); // $150 per share
+    await seed.createStockQuote(stock, 150); // $150 per share
     const {user} = await seed.createUserWithTestData({
       bank: {name: 'Vanguard'},
-      account: {name: 'AAPL Holdings', initialBalance: 10, stockId: stock.id},
+      account: {
+        name: 'AAPL Holdings',
+        initialBalance: 10,
+        stock: {exchange: 'NASDAQ', ticker: 'AAPL'},
+      },
     });
     await loginAs(user);
     const overviewPage = new OverviewPage(page);
@@ -112,10 +116,14 @@ test.describe('Overview', () => {
       exchange: 'NASDAQ',
       currencyCode: 'USD',
     });
-    await seed.createStockQuote(stock.id, 150); // $150 per share
+    await seed.createStockQuote(stock, 150); // $150 per share
     const {user} = await seed.createUserWithTestData({
       bank: {name: 'Vanguard'},
-      account: {name: 'TSLA Holdings', initialBalance: 10, stockId: stock.id},
+      account: {
+        name: 'TSLA Holdings',
+        initialBalance: 10,
+        stock: {exchange: 'NASDAQ', ticker: 'TSLA'},
+      },
     });
     await seed.updateDisplaySettings(user.id, {displayCurrencyCode: 'EUR'});
     await seed.createExchangeRate('USD', 'EUR', 0.92); // 1 USD = 0.92 EUR

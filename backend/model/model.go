@@ -6,8 +6,8 @@ import (
 )
 
 // ErrInvalidUnit signals a row that has neither or both of
-// currencyCode and stockId set.
-var ErrInvalidUnit = errors.New("must have exactly one of currencyCode or stockId")
+// currencyCode and the (stockExchange, stockTicker) pair set.
+var ErrInvalidUnit = errors.New("must have exactly one of currencyCode or stock (exchange, ticker)")
 
 // LedgerAccountType is the typed enum stored in LedgerAccount.type.
 // Values must match the SQL enum strings.
@@ -56,7 +56,8 @@ type BankAccount struct {
 	Name                string    `db:"name"`
 	BankID              int32     `db:"bankId"`
 	CurrencyCode        *string   `db:"currencyCode"`
-	StockID             *int32    `db:"stockId"`
+	StockExchange       *string   `db:"stockExchange"`
+	StockTicker         *string   `db:"stockTicker"`
 	Joint               bool      `db:"joint"`
 	Archived            bool      `db:"archived"`
 	DisplayOrder        int32     `db:"displayOrder"`
@@ -66,25 +67,31 @@ type BankAccount struct {
 }
 
 // Unit returns the bank account's unit of value. Every BankAccount
-// has exactly one of (CurrencyCode, StockID) set; rows that violate
+// has exactly one of (CurrencyCode, stock pair) set; rows that violate
 // the invariant are reported as an error.
 func (b BankAccount) Unit() (Unit, error) {
-	return NewUnit(b.CurrencyCode, b.StockID)
+	return NewUnit(b.CurrencyCode, b.StockExchange, b.StockTicker)
 }
 
-// Unit is the unit of value of a row: either a currency or a stock.
+// Unit is the unit of value of a row: either a currency or a stock
+// identified by its (exchange, ticker) pair.
 type Unit struct {
-	CurrencyCode *string `db:"currencyCode"`
-	StockID      *int32  `db:"stockId"`
+	CurrencyCode  *string `db:"currencyCode"`
+	StockExchange *string `db:"stockExchange"`
+	StockTicker   *string `db:"stockTicker"`
 }
 
-// NewUnit builds a Unit from the two columns, rejecting rows that
-// have neither or both set.
-func NewUnit(currencyCode *string, stockID *int32) (Unit, error) {
-	if (currencyCode != nil) == (stockID != nil) {
+// NewUnit builds a Unit from the columns, rejecting rows that set both
+// a currency and a stock, or neither. The stock exchange and ticker
+// must be set together.
+func NewUnit(currencyCode, stockExchange, stockTicker *string) (Unit, error) {
+	if (stockExchange != nil) != (stockTicker != nil) {
 		return Unit{}, ErrInvalidUnit
 	}
-	return Unit{CurrencyCode: currencyCode, StockID: stockID}, nil
+	if (currencyCode != nil) == (stockExchange != nil) {
+		return Unit{}, ErrInvalidUnit
+	}
+	return Unit{CurrencyCode: currencyCode, StockExchange: stockExchange, StockTicker: stockTicker}, nil
 }
 
 // Matches reports whether two units are denominated in the same
@@ -93,14 +100,13 @@ func (u Unit) Matches(other Unit) bool {
 	if u.CurrencyCode != nil && other.CurrencyCode != nil {
 		return *u.CurrencyCode == *other.CurrencyCode
 	}
-	if u.StockID != nil && other.StockID != nil {
-		return *u.StockID == *other.StockID
+	if u.StockExchange != nil && other.StockExchange != nil {
+		return *u.StockExchange == *other.StockExchange && *u.StockTicker == *other.StockTicker
 	}
 	return false
 }
 
 type Stock struct {
-	ID           int32     `db:"id"`
 	Name         string    `db:"name"`
 	Exchange     string    `db:"exchange"`
 	Ticker       string    `db:"ticker"`
@@ -162,7 +168,8 @@ type ExchangeRate struct {
 
 type StockQuote struct {
 	ID             int32     `db:"id"`
-	StockID        int32     `db:"stockId"`
+	StockExchange  string    `db:"stockExchange"`
+	StockTicker    string    `db:"stockTicker"`
 	QuoteTimestamp time.Time `db:"quoteTimestamp"`
 	Value          *int64    `db:"value"`
 	FetchStatus    string    `db:"fetchStatus"`
@@ -208,7 +215,8 @@ type EntryLine struct {
 	TransactionID   int32     `db:"transactionId"`
 	LedgerAccountID int32     `db:"ledgerAccountId"`
 	CurrencyCode    *string   `db:"currencyCode"`
-	StockID         *int32    `db:"stockId"`
+	StockExchange   *string   `db:"stockExchange"`
+	StockTicker     *string   `db:"stockTicker"`
 	AmountNanos     int64     `db:"amountNanos"`
 	CreatedAt       time.Time `db:"createdAt"`
 	UpdatedAt       time.Time `db:"updatedAt"`
