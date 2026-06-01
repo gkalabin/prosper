@@ -1,5 +1,12 @@
-import {Transaction as OpenBankingTransaction} from '@/lib/openbanking/interface';
 import {z} from 'zod';
+
+interface OpenBankingTransaction {
+  externalTransactionId: string;
+  timestampEpoch: number;
+  description: string;
+  amountCents: number;
+  internalAccountId: number;
+}
 
 const withdrawalOrDepositFieldsSchema = z.object({
   externalTransactionId: z.string(),
