@@ -9,7 +9,7 @@ import {
 import {Select} from '@/components/ui/html-select';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AppDataModel';
-import {BankAccount, fullAccountName} from '@/lib/model/BankAccount';
+import {Bank, BankAccount, accountBank} from '@/lib/model/BankAccount';
 import {useFormContext} from 'react-hook-form';
 
 export function Account({
@@ -30,54 +30,68 @@ export function Account({
     <FormField
       control={control}
       name={fieldName}
-      render={({field}) => (
-        <FormItem className="col-span-6">
-          <FormLabel>{label}</FormLabel>
-          <FormControl>
-            <Select
-              {...field}
-              value={field.value?.toString()}
-              onChange={e => field.onChange(parseInt(e.target.value, 10))}
-            >
-              {accountOptions({
-                displayAccounts,
-                allAccounts,
-                accountId: field.value,
-              }).map(x => (
-                <option key={x.id} value={x.id}>
-                  {fullAccountName(x, banks)}
-                </option>
-              ))}
-            </Select>
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
+      render={({field}) => {
+        return (
+          <FormItem className="col-span-6">
+            <FormLabel>{label}</FormLabel>
+            <FormControl>
+              <Select
+                {...field}
+                value={field.value?.toString()}
+                onChange={e => field.onChange(parseInt(e.target.value, 10))}
+              >
+                {accountGroups({
+                  displayAccounts,
+                  allAccounts,
+                  accountId: field.value,
+                  banks,
+                }).map(group => (
+                  <optgroup key={group.bank.id} label={group.bank.name}>
+                    {group.accounts.map(x => (
+                      <option key={x.id} value={x.id}>
+                        {x.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </Select>
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        );
+      }}
     />
   );
 }
 
-// Returns a list of accounts to display in the dropdown.
-// Makes sure the current selection is always in the list
-// even if it's not in the displayAccounts (e.g. when the account has been archived).
-function accountOptions({
+// Groups the accounts to display by their bank, preserving account order within
+// each bank.
+function accountGroups({
   displayAccounts,
   allAccounts,
   accountId,
+  banks,
 }: {
   displayAccounts: BankAccount[];
   allAccounts: BankAccount[];
   accountId: number | null;
-}) {
-  if (!accountId) {
-    return displayAccounts;
+  banks: Bank[];
+}): {bank: Bank; accounts: BankAccount[]}[] {
+  // Include the currently selected account even if it's not in displayAccounts.
+  const selected = allAccounts.find(x => x.id == accountId);
+  const accounts =
+    selected && !displayAccounts.some(x => x.id == accountId)
+      ? [selected, ...displayAccounts]
+      : displayAccounts;
+  const groups: Array<{bank: Bank; accounts: Array<BankAccount>}> = [];
+  for (const account of accounts) {
+    const bank = accountBank(account, banks);
+    const group = groups.find(g => g.bank.id == bank.id);
+    if (group) {
+      group.accounts.push(account);
+    } else {
+      groups.push({bank, accounts: [account]});
+    }
   }
-  if (displayAccounts.some(x => x.id == accountId)) {
-    return displayAccounts;
-  }
-  const account = allAccounts.find(x => x.id == accountId);
-  if (!account) {
-    return displayAccounts;
-  }
-  return [account, ...displayAccounts];
+  return groups;
 }

@@ -16,8 +16,8 @@ test.describe('Transfer Transaction Form', () => {
     await addTxPage.form.addTransfer({
       amountSent: 150,
       datetime: new Date(),
-      accountFrom: 'Current',
-      accountTo: 'Savings',
+      accountFrom: {bank: 'HSBC', name: 'Current'},
+      accountTo: {bank: 'HSBC', name: 'Savings'},
       category: 'Transfers',
     });
     const listPage = new TransactionListPage(page);
@@ -49,8 +49,8 @@ test.describe('Transfer Transaction Form', () => {
       amountSent: 100,
       amountReceived: 90,
       datetime: new Date(),
-      accountFrom: 'USD Current',
-      accountTo: 'EUR Current',
+      accountFrom: {bank: 'Monzo', name: 'USD Current'},
+      accountTo: {bank: 'Monzo', name: 'EUR Current'},
       category: 'Transfers',
     });
     const listPage = new TransactionListPage(page);
@@ -90,8 +90,8 @@ test.describe('Transfer Transaction Form', () => {
     const form = await listPage.openEditForm('$150');
     await form.editTransfer({
       amountSent: 300,
-      accountFrom: 'Checking',
-      accountTo: 'Current',
+      accountFrom: {bank: 'HSBC', name: 'Checking'},
+      accountTo: {bank: 'HSBC', name: 'Current'},
       category: 'Self',
     });
     await expect(listPage.getTransactionListItem('$150')).not.toBeVisible();
@@ -132,8 +132,8 @@ test.describe('Transfer Transaction Form', () => {
     await form.editTransfer({
       amountSent: 300,
       amountReceived: 280,
-      accountFrom: 'USD Current',
-      accountTo: 'EUR',
+      accountFrom: {bank: 'Monzo', name: 'USD Current'},
+      accountTo: {bank: 'Monzo', name: 'EUR'},
       category: 'Transfers',
     });
     await expect(listPage.getTransactionListItem('$450')).not.toBeVisible();
@@ -173,8 +173,8 @@ test.describe('Transfer Transaction Form', () => {
     const form = await listPage.openEditForm('$450');
     await form.editTransfer({
       amountSent: 250,
-      accountFrom: 'USD Current',
-      accountTo: 'USD Savings',
+      accountFrom: {bank: 'Monzo', name: 'USD Current'},
+      accountTo: {bank: 'Monzo', name: 'USD Savings'},
       category: 'Transfers',
     });
     await expect(listPage.getTransactionListItem('$450')).not.toBeVisible();

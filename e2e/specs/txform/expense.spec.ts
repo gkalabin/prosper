@@ -130,7 +130,7 @@ test.describe('Expense Transactions', () => {
     const listPage = new TransactionListPage(page);
     await listPage.goto();
     const form = await listPage.openEditForm('Chipotle');
-    await form.editExpense({account: 'Credit Card'});
+    await form.editExpense({account: {bank: 'Chase', name: 'Credit Card'}});
     await overviewPage.goto();
     await overviewPage.expectAccountBalance('Chase', 'Current', '$500');
     await overviewPage.expectAccountBalance('Chase', 'Credit Card', '$250');

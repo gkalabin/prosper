@@ -14,7 +14,7 @@ test.describe('Income Transaction Form', () => {
     await addTxPage.goto();
     await addTxPage.form.addIncome({
       amount: 1500,
-      account: 'HSBC: Current',
+      account: {bank: 'HSBC', name: 'Current'},
       datetime: new Date(),
       payer: 'Acme Corp',
       category: 'Salary',
@@ -45,7 +45,7 @@ test.describe('Income Transaction Form', () => {
     await form.editIncome({
       amount: 240,
       payer: 'Meta',
-      account: 'Card',
+      account: {bank: 'HSBC', name: 'Card'},
       category: 'Salary',
     });
     await listPage.expectIncomeTransaction('Meta', {

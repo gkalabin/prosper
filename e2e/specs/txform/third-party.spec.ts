@@ -84,7 +84,7 @@ test.describe('Third-Party Expenses', () => {
       vendor: 'Subway',
       payer: 'Jane',
       category: 'Dining',
-      repaymentAccount: 'HSBC: Current',
+      repaymentAccount: {bank: 'HSBC', name: 'Current'},
       repaymentCategory: 'Repayments',
     });
     const listPage = new TransactionListPage(page);

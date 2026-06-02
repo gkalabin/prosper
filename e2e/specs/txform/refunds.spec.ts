@@ -18,7 +18,7 @@ test.describe('Refunds', () => {
       amount: 70,
       datetime: new Date(),
       payer: 'Amazon',
-      account: 'Chase: Current',
+      account: {bank: 'Chase', name: 'Current'},
       category: 'Refunds',
       refundForVendor: 'Amazon',
     });
@@ -64,7 +64,7 @@ test.describe('Refunds', () => {
     const form = await listPage.openEditForm('+$70');
     await form.editIncome({
       amount: 70,
-      account: 'Chase: Current',
+      account: {bank: 'Chase', name: 'Current'},
       category: 'Refunds',
       payer: 'Amazon',
       refundForVendor: null,
@@ -89,7 +89,7 @@ test.describe('Refunds', () => {
       datetime: new Date(),
       // Using distinct payer name to easier validate the refund links.
       payer: 'Amazon Refund 1',
-      account: 'Chase: Current',
+      account: {bank: 'Chase', name: 'Current'},
       category: 'Refunds',
       refundForVendor: 'Amazon',
     });
@@ -97,7 +97,7 @@ test.describe('Refunds', () => {
       amount: 40,
       datetime: new Date(),
       payer: 'Amazon Refund 2',
-      account: 'Chase: Current',
+      account: {bank: 'Chase', name: 'Current'},
       category: 'Refunds',
       refundForVendor: 'Amazon',
     });
@@ -142,7 +142,7 @@ test.describe('Refunds', () => {
       amount: 70,
       datetime: new Date(),
       payer: 'Amazon',
-      account: 'Chase: Current',
+      account: {bank: 'Chase', name: 'Current'},
       category: 'Refunds',
       refundForVendor: 'Amazon',
     });

@@ -1,9 +1,14 @@
 import {type Locator, expect} from '@playwright/test';
 import {format} from 'date-fns';
 
+type AccountRef = {
+  bank: string;
+  name: string;
+};
+
 type TransferFormData = {
-  accountFrom: string;
-  accountTo: string;
+  accountFrom: AccountRef;
+  accountTo: AccountRef;
   amountSent: number;
   category: string;
   amountReceived?: number;
@@ -11,7 +16,7 @@ type TransferFormData = {
 };
 
 type IncomeFormData = {
-  account: string;
+  account: AccountRef;
   amount: number;
   payer: string;
   category: string;
@@ -141,7 +146,7 @@ export class TransactionForm {
   async addThirdPartyExpenseWithRepayment(
     data: ThirdPartyExpenseFormData & {
       repaymentCategory: string;
-      repaymentAccount: string;
+      repaymentAccount: AccountRef;
     }
   ) {
     const {repaymentCategory, repaymentAccount} = data;
@@ -165,7 +170,7 @@ export class TransactionForm {
   }: {
     amount?: number;
     vendor?: string;
-    account?: string;
+    account?: AccountRef;
     category?: string;
   }) {
     if (amount !== undefined) {
@@ -286,19 +291,13 @@ export class TransactionForm {
     await this.dateInput.fill(formattedDatetime);
   }
 
-  private async selectAccount(label: string | RegExp, accountName: string) {
+  private async selectAccount(label: string | RegExp, account: AccountRef) {
     const selectField = this.form.getByLabel(label);
-    const options = await selectField.locator('option').all();
-    for (const option of options) {
-      const text = await option.textContent();
-      if (!text?.includes(accountName)) {
-        continue;
-      }
-      const value = await option.getAttribute('value');
-      await selectField.selectOption(value);
-      return;
-    }
-    throw new Error(`Account "${accountName}" not found in dropdown`);
+    const value = await selectField
+      .locator(`optgroup[label="${account.bank}"]`)
+      .getByText(account.name, {exact: true})
+      .getAttribute('value');
+    await selectField.selectOption(value);
   }
 
   private async fillCommonFields({
