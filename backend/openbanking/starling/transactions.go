@@ -22,8 +22,11 @@ type feedResponse struct {
 		} `json:"amount"`
 		TransactionTime  string `json:"transactionTime"`
 		CounterPartyName string `json:"counterPartyName"`
+		Status           string `json:"status"`
 	} `json:"feedItems"`
 }
+
+const statusDeclined = "DECLINED"
 
 func (s *Provider) FetchTransactions(ctx context.Context, userID, bankID int32, externalAccountID string, since time.Time) ([]*prosperv1.OpenBankingTransaction, error) {
 	access, err := s.accessToken(ctx, userID, bankID)
@@ -40,6 +43,9 @@ func (s *Provider) FetchTransactions(ctx context.Context, userID, bankID int32, 
 	}
 	out := make([]*prosperv1.OpenBankingTransaction, 0, len(r.FeedItems))
 	for _, it := range r.FeedItems {
+		if it.Status == statusDeclined {
+			continue
+		}
 		ts, _ := time.Parse(time.RFC3339, it.TransactionTime)
 		amount := it.Amount.MinorUnits * moneyutil.NanosPerCent
 		if it.Direction == "OUT" {
