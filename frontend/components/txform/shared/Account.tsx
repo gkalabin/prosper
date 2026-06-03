@@ -9,7 +9,7 @@ import {
 import {Select} from '@/components/ui/html-select';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AppDataModel';
-import {Bank, BankAccount, accountBank} from '@/lib/model/BankAccount';
+import {Bank, BankAccount, groupAccountsByBank} from '@/lib/model/BankAccount';
 import {useFormContext} from 'react-hook-form';
 
 export function Account({
@@ -83,15 +83,5 @@ function accountGroups({
     selected && !displayAccounts.some(x => x.id == accountId)
       ? [selected, ...displayAccounts]
       : displayAccounts;
-  const groups: Array<{bank: Bank; accounts: Array<BankAccount>}> = [];
-  for (const account of accounts) {
-    const bank = accountBank(account, banks);
-    const group = groups.find(g => g.bank.id == bank.id);
-    if (group) {
-      group.accounts.push(account);
-    } else {
-      groups.push({bank, accounts: [account]});
-    }
-  }
-  return groups;
+  return groupAccountsByBank(accounts, banks);
 }

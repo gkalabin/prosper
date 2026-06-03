@@ -114,6 +114,25 @@ export function accountBank(account: BankAccount, banks: Bank[]): Bank {
   return bank;
 }
 
+// Groups accounts by their bank, preserving account order within each bank and
+// bank order by first appearance.
+export function groupAccountsByBank(
+  accounts: BankAccount[],
+  banks: Bank[]
+): {bank: Bank; accounts: BankAccount[]}[] {
+  const groups: {bank: Bank; accounts: BankAccount[]}[] = [];
+  for (const account of accounts) {
+    const bank = accountBank(account, banks);
+    const group = groups.find(g => g.bank.id == bank.id);
+    if (group) {
+      group.accounts.push(account);
+    } else {
+      groups.push({bank, accounts: [account]});
+    }
+  }
+  return groups;
+}
+
 export function fullAccountName(account: BankAccount, banks: Bank[]): string {
   const bank = banks.find(b => b.id == account.bankId);
   if (!bank) {

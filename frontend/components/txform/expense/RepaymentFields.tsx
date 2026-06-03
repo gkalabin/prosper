@@ -15,7 +15,7 @@ import {Input} from '@/components/ui/input';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AppDataModel';
-import {fullAccountName} from '@/lib/model/BankAccount';
+import {groupAccountsByBank} from '@/lib/model/BankAccount';
 import {useFormContext, useWatch} from 'react-hook-form';
 
 export function RepaymentFields() {
@@ -71,10 +71,14 @@ function RepaymentAccountFrom() {
               value={field.value?.toString()}
               onChange={e => field.onChange(parseInt(e.target.value, 10))}
             >
-              {accounts.map(x => (
-                <option key={x.id} value={x.id}>
-                  {fullAccountName(x, banks)}
-                </option>
+              {groupAccountsByBank(accounts, banks).map(group => (
+                <optgroup key={group.bank.id} label={group.bank.name}>
+                  {group.accounts.map(x => (
+                    <option key={x.id} value={x.id}>
+                      {x.name}
+                    </option>
+                  ))}
+                </optgroup>
               ))}
             </Select>
           </FormControl>
