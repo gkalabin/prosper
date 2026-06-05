@@ -1,14 +1,9 @@
 'use client';
-import {
-  useOpenBankingBalances,
-  useOpenBankingTransactions,
-} from '@/lib/openbanking/context';
+import {useOpenBankingBalances} from '@/lib/openbanking/context';
 
 export function OpenBankingBalancesLoadingIndicator() {
   const {isError: obBalancesError, isLoading: obBalancesLoading} =
     useOpenBankingBalances();
-  // Just trigger the loading of transactions, so they are cached for later.
-  useOpenBankingTransactions();
   return (
     <>
       {obBalancesError && (

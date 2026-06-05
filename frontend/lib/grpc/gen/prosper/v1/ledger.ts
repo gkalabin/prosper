@@ -196,9 +196,9 @@ export interface BankAccount {
      */
     currencyCode?: string;
     /**
-     * @generated from protobuf field: optional prosper.v1.StockRef stock = 5
+     * @generated from protobuf field: optional prosper.v1.StockKey stock = 5
      */
-    stock?: StockRef;
+    stock?: StockKey;
     /**
      * @generated from protobuf field: bool joint = 6
      */
@@ -284,11 +284,11 @@ export interface Trip {
     end?: Timestamp;
 }
 /**
- * StockRef identifies a stock by its (exchange, ticker) natural key.
+ * StockKey identifies a stock by its (exchange, ticker) natural key.
  *
- * @generated from protobuf message prosper.v1.StockRef
+ * @generated from protobuf message prosper.v1.StockKey
  */
-export interface StockRef {
+export interface StockKey {
     /**
      * @generated from protobuf field: string exchange = 1
      */
@@ -420,9 +420,9 @@ export interface EntryLine {
      */
     currencyCode?: string;
     /**
-     * @generated from protobuf field: optional prosper.v1.StockRef stock = 5
+     * @generated from protobuf field: optional prosper.v1.StockKey stock = 5
      */
-    stock?: StockRef;
+    stock?: StockKey;
     /**
      * @generated from protobuf field: int64 amount_nanos = 6
      */
@@ -660,9 +660,9 @@ export interface AccountUnit {
     } | {
         oneofKind: "stock";
         /**
-         * @generated from protobuf field: prosper.v1.StockRef stock = 2
+         * @generated from protobuf field: prosper.v1.StockKey stock = 2
          */
-        stock: StockRef;
+        stock: StockKey;
     } | {
         oneofKind: undefined;
     };
@@ -1790,7 +1790,7 @@ class BankAccount$Type extends MessageType<BankAccount> {
             { no: 2, name: "name", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 3, name: "bank_id", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
             { no: 4, name: "currency_code", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "stock", kind: "message", T: () => StockRef },
+            { no: 5, name: "stock", kind: "message", T: () => StockKey },
             { no: 6, name: "joint", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 7, name: "archived", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 8, name: "display_order", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
@@ -1827,8 +1827,8 @@ class BankAccount$Type extends MessageType<BankAccount> {
                 case /* optional string currency_code */ 4:
                     message.currencyCode = reader.string();
                     break;
-                case /* optional prosper.v1.StockRef stock */ 5:
-                    message.stock = StockRef.internalBinaryRead(reader, reader.uint32(), options, message.stock);
+                case /* optional prosper.v1.StockKey stock */ 5:
+                    message.stock = StockKey.internalBinaryRead(reader, reader.uint32(), options, message.stock);
                     break;
                 case /* bool joint */ 6:
                     message.joint = reader.bool();
@@ -1866,9 +1866,9 @@ class BankAccount$Type extends MessageType<BankAccount> {
         /* optional string currency_code = 4; */
         if (message.currencyCode !== undefined)
             writer.tag(4, WireType.LengthDelimited).string(message.currencyCode);
-        /* optional prosper.v1.StockRef stock = 5; */
+        /* optional prosper.v1.StockKey stock = 5; */
         if (message.stock)
-            StockRef.internalBinaryWrite(message.stock, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+            StockKey.internalBinaryWrite(message.stock, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
         /* bool joint = 6; */
         if (message.joint !== false)
             writer.tag(6, WireType.Varint).bool(message.joint);
@@ -2107,22 +2107,22 @@ class Trip$Type extends MessageType<Trip> {
  */
 export const Trip = new Trip$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class StockRef$Type extends MessageType<StockRef> {
+class StockKey$Type extends MessageType<StockKey> {
     constructor() {
-        super("prosper.v1.StockRef", [
+        super("prosper.v1.StockKey", [
             { no: 1, name: "exchange", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
             { no: 2, name: "ticker", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<StockRef>): StockRef {
+    create(value?: PartialMessage<StockKey>): StockKey {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.exchange = "";
         message.ticker = "";
         if (value !== undefined)
-            reflectionMergePartial<StockRef>(this, message, value);
+            reflectionMergePartial<StockKey>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StockRef): StockRef {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StockKey): StockKey {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -2144,7 +2144,7 @@ class StockRef$Type extends MessageType<StockRef> {
         }
         return message;
     }
-    internalBinaryWrite(message: StockRef, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: StockKey, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string exchange = 1; */
         if (message.exchange !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.exchange);
@@ -2158,9 +2158,9 @@ class StockRef$Type extends MessageType<StockRef> {
     }
 }
 /**
- * @generated MessageType for protobuf message prosper.v1.StockRef
+ * @generated MessageType for protobuf message prosper.v1.StockKey
  */
-export const StockRef = new StockRef$Type();
+export const StockKey = new StockKey$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class Stock$Type extends MessageType<Stock> {
     constructor() {
@@ -2514,7 +2514,7 @@ class EntryLine$Type extends MessageType<EntryLine> {
             { no: 2, name: "transaction_id", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
             { no: 3, name: "ledger_account_id", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
             { no: 4, name: "currency_code", kind: "scalar", opt: true, T: 9 /*ScalarType.STRING*/ },
-            { no: 5, name: "stock", kind: "message", T: () => StockRef },
+            { no: 5, name: "stock", kind: "message", T: () => StockKey },
             { no: 6, name: "amount_nanos", kind: "scalar", T: 3 /*ScalarType.INT64*/, L: 0 /*LongType.BIGINT*/ }
         ]);
     }
@@ -2545,8 +2545,8 @@ class EntryLine$Type extends MessageType<EntryLine> {
                 case /* optional string currency_code */ 4:
                     message.currencyCode = reader.string();
                     break;
-                case /* optional prosper.v1.StockRef stock */ 5:
-                    message.stock = StockRef.internalBinaryRead(reader, reader.uint32(), options, message.stock);
+                case /* optional prosper.v1.StockKey stock */ 5:
+                    message.stock = StockKey.internalBinaryRead(reader, reader.uint32(), options, message.stock);
                     break;
                 case /* int64 amount_nanos */ 6:
                     message.amountNanos = reader.int64().toBigInt();
@@ -2575,9 +2575,9 @@ class EntryLine$Type extends MessageType<EntryLine> {
         /* optional string currency_code = 4; */
         if (message.currencyCode !== undefined)
             writer.tag(4, WireType.LengthDelimited).string(message.currencyCode);
-        /* optional prosper.v1.StockRef stock = 5; */
+        /* optional prosper.v1.StockKey stock = 5; */
         if (message.stock)
-            StockRef.internalBinaryWrite(message.stock, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+            StockKey.internalBinaryWrite(message.stock, writer.tag(5, WireType.LengthDelimited).fork(), options).join();
         /* int64 amount_nanos = 6; */
         if (message.amountNanos !== 0n)
             writer.tag(6, WireType.Varint).int64(message.amountNanos);
@@ -3330,7 +3330,7 @@ class AccountUnit$Type extends MessageType<AccountUnit> {
     constructor() {
         super("prosper.v1.AccountUnit", [
             { no: 1, name: "currency_code", kind: "scalar", oneof: "unit", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "stock", kind: "message", oneof: "unit", T: () => StockRef }
+            { no: 2, name: "stock", kind: "message", oneof: "unit", T: () => StockKey }
         ]);
     }
     create(value?: PartialMessage<AccountUnit>): AccountUnit {
@@ -3351,10 +3351,10 @@ class AccountUnit$Type extends MessageType<AccountUnit> {
                         currencyCode: reader.string()
                     };
                     break;
-                case /* prosper.v1.StockRef stock */ 2:
+                case /* prosper.v1.StockKey stock */ 2:
                     message.unit = {
                         oneofKind: "stock",
-                        stock: StockRef.internalBinaryRead(reader, reader.uint32(), options, (message.unit as any).stock)
+                        stock: StockKey.internalBinaryRead(reader, reader.uint32(), options, (message.unit as any).stock)
                     };
                     break;
                 default:
@@ -3372,9 +3372,9 @@ class AccountUnit$Type extends MessageType<AccountUnit> {
         /* string currency_code = 1; */
         if (message.unit.oneofKind === "currencyCode")
             writer.tag(1, WireType.LengthDelimited).string(message.unit.currencyCode);
-        /* prosper.v1.StockRef stock = 2; */
+        /* prosper.v1.StockKey stock = 2; */
         if (message.unit.oneofKind === "stock")
-            StockRef.internalBinaryWrite(message.unit.stock, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+            StockKey.internalBinaryWrite(message.unit.stock, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

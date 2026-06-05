@@ -35,12 +35,16 @@ type Service struct {
 	prosperv1.UnimplementedOpenBankingServiceServer
 	db   *userdb.DB
 	prov map[prosperv1.Provider]Provider
+	// refreshInterval is the minimum age of a bank's last fetch before
+	// the scheduler fetches it again. Zero disables the scheduler.
+	refreshInterval time.Duration
 }
 
-func NewService(db *userdb.DB) *Service {
+func NewService(db *userdb.DB, refreshInterval time.Duration) *Service {
 	return &Service{
-		db:   db,
-		prov: map[prosperv1.Provider]Provider{},
+		db:              db,
+		prov:            map[prosperv1.Provider]Provider{},
+		refreshInterval: refreshInterval,
 	}
 }
 
@@ -50,19 +54,32 @@ func (s *Service) RegisterProvider(p Provider) {
 	s.prov[p.Kind()] = p
 }
 
-const selectExternalAccountMappingsForUser = `SELECT m.userId,
+func (s *Service) loadMappingsForUser(ctx context.Context, userID int32) ([]model.OpenBankingMapping, error) {
+	var rows []model.OpenBankingMapping
+	err := s.db.SelectForUser(ctx, &rows, userID, `SELECT m.userId,
                                                       m.internalAccountId,
                                                       m.externalAccountId,
                                                       a.bankId
                                                  FROM ExternalAccountMapping m
                                                  JOIN BankAccount a
                                                    ON a.id = m.internalAccountId
-                                                WHERE m.userId = :userId`
-
-func (s *Service) loadMappingsForUser(ctx context.Context, userID int32) ([]model.OpenBankingMapping, error) {
-	var rows []model.OpenBankingMapping
-	err := s.db.SelectForUser(ctx, &rows, userID, selectExternalAccountMappingsForUser)
+                                                WHERE m.userId = :userId`)
 	return rows, err
+}
+
+func (s *Service) loadMappingForAccount(ctx context.Context, userID, internalAccountID int32) (model.OpenBankingMapping, error) {
+	var m model.OpenBankingMapping
+	err := s.db.GetForUser(ctx, &m, userID, `SELECT m.userId,
+                                                m.internalAccountId,
+                                                m.externalAccountId,
+                                                a.bankId
+                                           FROM ExternalAccountMapping m
+                                           JOIN BankAccount a
+                                             ON a.id = m.internalAccountId
+                                          WHERE m.userId = :userId
+                                            AND m.internalAccountId = :internalAccountId`,
+		map[string]any{"internalAccountId": internalAccountID})
+	return m, err
 }
 
 // providerForBank returns the registered Provider for (userID,
@@ -89,6 +106,7 @@ func (s *Service) providerForBank(ctx context.Context, userID, bankID int32) (Pr
 	return nil, errNoProvider
 }
 
+// GetOpenBankingTransactions serves stored transactions from the DB.
 func (s *Service) GetOpenBankingTransactions(ctx context.Context, _ *prosperv1.GetOpenBankingTransactionsRequest) (*prosperv1.GetOpenBankingTransactionsResponse, error) {
 	userID := auth.MustUserIDFromContext(ctx)
 	resp := &prosperv1.GetOpenBankingTransactionsResponse{}
@@ -96,24 +114,101 @@ func (s *Service) GetOpenBankingTransactions(ctx context.Context, _ *prosperv1.G
 	if err != nil {
 		return resp, err
 	}
-	since := time.Now().AddDate(0, -transactionsLookbackMonths, 0)
+	fetches, err := s.lastSuccessfulFetchByAccount(ctx, userID)
+	if err != nil {
+		return resp, err
+	}
+	byAccount := map[int32]*prosperv1.AccountTransactions{}
 	for _, m := range mappings {
-		p, err := s.providerForBank(ctx, userID, m.BankID)
-		if err != nil {
-			log.Printf("openbanking: failed to find provider for bank %d: %v", m.BankID, err)
+		acc := &prosperv1.AccountTransactions{InternalAccountId: m.InternalAccountID}
+		if f, ok := fetches[m.InternalAccountID]; ok {
+			acc.LastFetchedAt = timestamppb.New(f.StartedAt)
+		}
+		byAccount[m.InternalAccountID] = acc
+		resp.Accounts = append(resp.Accounts, acc)
+	}
+	since := time.Now().AddDate(0, -transactionsLookbackMonths, 0)
+	for internalAccountID, f := range fetches {
+		acc, ok := byAccount[internalAccountID]
+		if !ok {
 			continue
 		}
-		txs, err := p.FetchTransactions(ctx, userID, m.BankID, m.ExternalAccountID, since)
+		rows, err := s.transactionsForFetch(ctx, userID, f.ID, since)
 		if err != nil {
-			log.Printf("openbanking: fetch bank=%d account=%d: %v", m.BankID, m.InternalAccountID, err)
-			continue
+			return resp, err
 		}
-		resp.Accounts = append(resp.Accounts, &prosperv1.AccountTransactions{
-			InternalAccountId: m.InternalAccountID,
-			Transactions:      txs,
-		})
+		for _, r := range rows {
+			acc.Transactions = append(acc.Transactions, protoOpenBankingTransaction(r))
+		}
 	}
 	return resp, nil
+}
+
+// transactionsForFetch returns the transactions a fetch returned, newest
+// first, limited to those at or after since.
+func (s *Service) transactionsForFetch(ctx context.Context, userID, fetchID int32, since time.Time) ([]model.OpenBankingTransaction, error) {
+	var rows []model.OpenBankingTransaction
+	err := s.db.SelectForUser(ctx, &rows, userID,
+		`SELECT t.*
+		   FROM OpenBankingTransaction t
+		   JOIN OpenBankingFetchTransaction ft
+		     ON ft.openBankingTransactionId = t.id
+		    AND ft.userId = t.userId
+		  WHERE t.userId = :userId
+		    AND t.timestamp >= :since
+		    AND ft.fetchId = :fetchId
+		  ORDER BY t.timestamp DESC`,
+		map[string]any{"since": since, "fetchId": fetchID})
+	return rows, err
+}
+
+// FetchNow fetches fresh transactions for the requested account immediately,
+// bypassing the scheduler's refresh interval.
+func (s *Service) FetchNow(ctx context.Context, req *prosperv1.FetchNowRequest) (*prosperv1.FetchNowResponse, error) {
+	userID := auth.MustUserIDFromContext(ctx)
+	if req.InternalAccountId == 0 {
+		return nil, errors.New("internal_account_id is required")
+	}
+	m, err := s.loadMappingForAccount(ctx, userID, req.InternalAccountId)
+	if err != nil {
+		return nil, err
+	}
+	result := &prosperv1.AccountTransactions{InternalAccountId: m.InternalAccountID}
+	resp := &prosperv1.FetchNowResponse{Result: result}
+	p, err := s.providerForBank(ctx, userID, m.BankID)
+	if err != nil {
+		result.Error = err.Error()
+		return resp, nil
+	}
+	fetched, err := s.fetchAccount(ctx, userID, p, m, model.FetchTriggerManual)
+	if err != nil {
+		result.Error = err.Error()
+		return resp, nil
+	}
+	result.LastFetchedAt = timestamppb.New(time.Now().UTC())
+	for _, ft := range fetched {
+		result.Transactions = append(result.Transactions, protoOpenBankingTransaction(ft))
+	}
+	return resp, nil
+}
+
+func (s *Service) lastSuccessfulFetchByAccount(ctx context.Context, userID int32) (map[int32]model.OpenBankingFetch, error) {
+	var rows []model.OpenBankingFetch
+	if err := s.db.SelectForUser(ctx, &rows, userID,
+		`SELECT f.* FROM OpenBankingFetch f
+		JOIN (
+			SELECT MAX(id) AS maxId
+			FROM OpenBankingFetch
+			WHERE userId = :userId AND status = 'SUCCESS'
+			GROUP BY internalAccountId
+		) latest ON f.id = latest.maxId`); err != nil {
+		return nil, err
+	}
+	byAccount := make(map[int32]model.OpenBankingFetch)
+	for _, r := range rows {
+		byAccount[r.InternalAccountID] = r
+	}
+	return byAccount, nil
 }
 
 func (s *Service) GetBalances(ctx context.Context, _ *prosperv1.GetBalancesRequest) (*prosperv1.GetBalancesResponse, error) {

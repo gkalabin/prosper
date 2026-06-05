@@ -28,6 +28,7 @@ import {
 import {combineTransfers} from '@/lib/txsuggestions/TransfersDetection';
 import {cn} from '@/lib/utils';
 import {TransactionPrototype as PbTransactionPrototype} from '@/lib/grpc/gen/prosper/v1/ledger';
+import {FetchOpenBankingTransactions} from '@/components/txform/FetchOpenBankingTransactions';
 import assert from 'assert';
 import {format} from 'date-fns';
 import {useEffect, useState} from 'react';
@@ -82,7 +83,8 @@ export const NewTransactionSuggestions = (props: {
   onItemClick: (t: TransactionPrototype) => void;
   disabled: boolean;
 }) => {
-  const {transactions, isError, isLoading} = useOpenBankingTransactions();
+  const {transactions, lastFetchedAt, isError, isLoading} =
+    useOpenBankingTransactions();
   if (isError) {
     return (
       <div className="text-red-900">
@@ -100,12 +102,14 @@ export const NewTransactionSuggestions = (props: {
     <NonEmptyNewTransactionSuggestions
       {...props}
       openBankingTransactions={transactions}
+      lastFetchedAt={lastFetchedAt}
     />
   );
 };
 
 const NonEmptyNewTransactionSuggestions = (props: {
   openBankingTransactions: WithdrawalOrDepositPrototype[];
+  lastFetchedAt: Record<number, number>;
   activePrototype: TransactionPrototype | null;
   onItemClick: (t: TransactionPrototype) => void;
   disabled: boolean;
@@ -173,13 +177,13 @@ const NonEmptyNewTransactionSuggestions = (props: {
             </div>
           ))}
         </div>
-        <div className="px-2 pb-1 text-xs text-slate-600"></div>
       </div>
       <SuggestionsList
         items={activeAccountProtos}
         activePrototype={props.activePrototype}
         onItemClick={props.onItemClick}
         bankAccount={activeAccount}
+        lastFetchedAt={props.lastFetchedAt[activeAccount.id] ?? null}
         disabled={props.disabled}
       />
     </div>
@@ -189,6 +193,7 @@ const NonEmptyNewTransactionSuggestions = (props: {
 function SuggestionsList(props: {
   items: TransactionPrototype[];
   bankAccount: BankAccount;
+  lastFetchedAt: number | null;
   activePrototype: TransactionPrototype | null;
   onItemClick: (t: TransactionPrototype) => void;
   disabled: boolean;
@@ -253,6 +258,13 @@ function SuggestionsList(props: {
           less
         </Button>{' '}
         entries.
+        <div className="mt-2 text-xs text-gray-500">
+          <FetchOpenBankingTransactions
+            internalAccountId={props.bankAccount.id}
+            lastFetchedAt={props.lastFetchedAt}
+            disabled={props.disabled}
+          />
+        </div>
       </div>
     </div>
   );

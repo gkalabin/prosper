@@ -901,7 +901,7 @@ type BankAccount struct {
 	BankId int32                  `protobuf:"varint,3,opt,name=bank_id,json=bankId,proto3" json:"bank_id,omitempty"`
 	// Either currency_code or stock is set, never both.
 	CurrencyCode        *string   `protobuf:"bytes,4,opt,name=currency_code,json=currencyCode,proto3,oneof" json:"currency_code,omitempty"`
-	Stock               *StockRef `protobuf:"bytes,5,opt,name=stock,proto3,oneof" json:"stock,omitempty"`
+	Stock               *StockKey `protobuf:"bytes,5,opt,name=stock,proto3,oneof" json:"stock,omitempty"`
 	Joint               bool      `protobuf:"varint,6,opt,name=joint,proto3" json:"joint,omitempty"`
 	Archived            bool      `protobuf:"varint,7,opt,name=archived,proto3" json:"archived,omitempty"`
 	DisplayOrder        int32     `protobuf:"varint,8,opt,name=display_order,json=displayOrder,proto3" json:"display_order,omitempty"`
@@ -968,7 +968,7 @@ func (x *BankAccount) GetCurrencyCode() string {
 	return ""
 }
 
-func (x *BankAccount) GetStock() *StockRef {
+func (x *BankAccount) GetStock() *StockKey {
 	if x != nil {
 		return x.Stock
 	}
@@ -1215,8 +1215,8 @@ func (x *Trip) GetEnd() *timestamppb.Timestamp {
 	return nil
 }
 
-// StockRef identifies a stock by its (exchange, ticker) natural key.
-type StockRef struct {
+// StockKey identifies a stock by its (exchange, ticker) natural key.
+type StockKey struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Exchange      string                 `protobuf:"bytes,1,opt,name=exchange,proto3" json:"exchange,omitempty"`
 	Ticker        string                 `protobuf:"bytes,2,opt,name=ticker,proto3" json:"ticker,omitempty"`
@@ -1224,20 +1224,20 @@ type StockRef struct {
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *StockRef) Reset() {
-	*x = StockRef{}
+func (x *StockKey) Reset() {
+	*x = StockKey{}
 	mi := &file_prosper_v1_ledger_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *StockRef) String() string {
+func (x *StockKey) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*StockRef) ProtoMessage() {}
+func (*StockKey) ProtoMessage() {}
 
-func (x *StockRef) ProtoReflect() protoreflect.Message {
+func (x *StockKey) ProtoReflect() protoreflect.Message {
 	mi := &file_prosper_v1_ledger_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1249,19 +1249,19 @@ func (x *StockRef) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use StockRef.ProtoReflect.Descriptor instead.
-func (*StockRef) Descriptor() ([]byte, []int) {
+// Deprecated: Use StockKey.ProtoReflect.Descriptor instead.
+func (*StockKey) Descriptor() ([]byte, []int) {
 	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{17}
 }
 
-func (x *StockRef) GetExchange() string {
+func (x *StockKey) GetExchange() string {
 	if x != nil {
 		return x.Exchange
 	}
 	return ""
 }
 
-func (x *StockRef) GetTicker() string {
+func (x *StockKey) GetTicker() string {
 	if x != nil {
 		return x.Ticker
 	}
@@ -1600,7 +1600,7 @@ type EntryLine struct {
 	LedgerAccountId int32                  `protobuf:"varint,3,opt,name=ledger_account_id,json=ledgerAccountId,proto3" json:"ledger_account_id,omitempty"`
 	// Exactly one of currency_code / stock is set.
 	CurrencyCode  *string   `protobuf:"bytes,4,opt,name=currency_code,json=currencyCode,proto3,oneof" json:"currency_code,omitempty"`
-	Stock         *StockRef `protobuf:"bytes,5,opt,name=stock,proto3,oneof" json:"stock,omitempty"`
+	Stock         *StockKey `protobuf:"bytes,5,opt,name=stock,proto3,oneof" json:"stock,omitempty"`
 	AmountNanos   int64     `protobuf:"varint,6,opt,name=amount_nanos,json=amountNanos,proto3" json:"amount_nanos,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1664,7 +1664,7 @@ func (x *EntryLine) GetCurrencyCode() string {
 	return ""
 }
 
-func (x *EntryLine) GetStock() *StockRef {
+func (x *EntryLine) GetStock() *StockKey {
 	if x != nil {
 		return x.Stock
 	}
@@ -2441,7 +2441,7 @@ func (x *AccountUnit) GetCurrencyCode() string {
 	return ""
 }
 
-func (x *AccountUnit) GetStock() *StockRef {
+func (x *AccountUnit) GetStock() *StockKey {
 	if x != nil {
 		if x, ok := x.Unit.(*AccountUnit_Stock); ok {
 			return x.Stock
@@ -2459,7 +2459,7 @@ type AccountUnit_CurrencyCode struct {
 }
 
 type AccountUnit_Stock struct {
-	Stock *StockRef `protobuf:"bytes,2,opt,name=stock,proto3,oneof"`
+	Stock *StockKey `protobuf:"bytes,2,opt,name=stock,proto3,oneof"`
 }
 
 func (*AccountUnit_CurrencyCode) isAccountUnit_Unit() {}
@@ -3500,7 +3500,7 @@ const file_prosper_v1_ledger_proto_rawDesc = "" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x17\n" +
 	"\abank_id\x18\x03 \x01(\x05R\x06bankId\x12(\n" +
 	"\rcurrency_code\x18\x04 \x01(\tH\x00R\fcurrencyCode\x88\x01\x01\x12/\n" +
-	"\x05stock\x18\x05 \x01(\v2\x14.prosper.v1.StockRefH\x01R\x05stock\x88\x01\x01\x12\x14\n" +
+	"\x05stock\x18\x05 \x01(\v2\x14.prosper.v1.StockKeyH\x01R\x05stock\x88\x01\x01\x12\x14\n" +
 	"\x05joint\x18\x06 \x01(\bR\x05joint\x12\x1a\n" +
 	"\barchived\x18\a \x01(\bR\barchived\x12#\n" +
 	"\rdisplay_order\x18\b \x01(\x05R\fdisplayOrder\x122\n" +
@@ -3530,7 +3530,7 @@ const file_prosper_v1_ledger_proto_rawDesc = "" +
 	"\f_destinationB\b\n" +
 	"\x06_startB\x06\n" +
 	"\x04_end\">\n" +
-	"\bStockRef\x12\x1a\n" +
+	"\bStockKey\x12\x1a\n" +
 	"\bexchange\x18\x01 \x01(\tR\bexchange\x12\x16\n" +
 	"\x06ticker\x18\x02 \x01(\tR\x06ticker\"t\n" +
 	"\x05Stock\x12\x1a\n" +
@@ -3565,7 +3565,7 @@ const file_prosper_v1_ledger_proto_rawDesc = "" +
 	"\x0etransaction_id\x18\x02 \x01(\x05R\rtransactionId\x12*\n" +
 	"\x11ledger_account_id\x18\x03 \x01(\x05R\x0fledgerAccountId\x12(\n" +
 	"\rcurrency_code\x18\x04 \x01(\tH\x00R\fcurrencyCode\x88\x01\x01\x12/\n" +
-	"\x05stock\x18\x05 \x01(\v2\x14.prosper.v1.StockRefH\x01R\x05stock\x88\x01\x01\x12!\n" +
+	"\x05stock\x18\x05 \x01(\v2\x14.prosper.v1.StockKeyH\x01R\x05stock\x88\x01\x01\x12!\n" +
 	"\famount_nanos\x18\x06 \x01(\x03R\vamountNanosB\x10\n" +
 	"\x0e_currency_codeB\b\n" +
 	"\x06_stock\"\xd2\x01\n" +
@@ -3636,7 +3636,7 @@ const file_prosper_v1_ledger_proto_rawDesc = "" +
 	"\abank_id\x18\x01 \x01(\x05R\x06bankId\"j\n" +
 	"\vAccountUnit\x12%\n" +
 	"\rcurrency_code\x18\x01 \x01(\tH\x00R\fcurrencyCode\x12,\n" +
-	"\x05stock\x18\x02 \x01(\v2\x14.prosper.v1.StockRefH\x00R\x05stockB\x06\n" +
+	"\x05stock\x18\x02 \x01(\v2\x14.prosper.v1.StockKeyH\x00R\x05stockB\x06\n" +
 	"\x04unit\"\xd1\x02\n" +
 	"\x18UpsertBankAccountRequest\x12\"\n" +
 	"\n" +
@@ -3823,7 +3823,7 @@ var file_prosper_v1_ledger_proto_goTypes = []any{
 	(*Category)(nil),                        // 18: prosper.v1.Category
 	(*Tag)(nil),                             // 19: prosper.v1.Tag
 	(*Trip)(nil),                            // 20: prosper.v1.Trip
-	(*StockRef)(nil),                        // 21: prosper.v1.StockRef
+	(*StockKey)(nil),                        // 21: prosper.v1.StockKey
 	(*Stock)(nil),                           // 22: prosper.v1.Stock
 	(*DisplaySettings)(nil),                 // 23: prosper.v1.DisplaySettings
 	(*GetCoreDataRequest)(nil),              // 24: prosper.v1.GetCoreDataRequest
@@ -3860,7 +3860,7 @@ var file_prosper_v1_ledger_proto_goTypes = []any{
 var file_prosper_v1_ledger_proto_depIdxs = []int32{
 	53, // 0: prosper.v1.ValidateSessionResponse.extended_expires_at:type_name -> google.protobuf.Timestamp
 	53, // 1: prosper.v1.CreateSessionResponse.expires_at:type_name -> google.protobuf.Timestamp
-	21, // 2: prosper.v1.BankAccount.stock:type_name -> prosper.v1.StockRef
+	21, // 2: prosper.v1.BankAccount.stock:type_name -> prosper.v1.StockKey
 	53, // 3: prosper.v1.Trip.start:type_name -> google.protobuf.Timestamp
 	53, // 4: prosper.v1.Trip.end:type_name -> google.protobuf.Timestamp
 	16, // 5: prosper.v1.GetCoreDataResponse.banks:type_name -> prosper.v1.Bank
@@ -3871,7 +3871,7 @@ var file_prosper_v1_ledger_proto_depIdxs = []int32{
 	22, // 10: prosper.v1.GetCoreDataResponse.stocks:type_name -> prosper.v1.Stock
 	23, // 11: prosper.v1.GetCoreDataResponse.display_settings:type_name -> prosper.v1.DisplaySettings
 	1,  // 12: prosper.v1.LedgerAccount.type:type_name -> prosper.v1.LedgerAccountType
-	21, // 13: prosper.v1.EntryLine.stock:type_name -> prosper.v1.StockRef
+	21, // 13: prosper.v1.EntryLine.stock:type_name -> prosper.v1.StockKey
 	2,  // 14: prosper.v1.TransactionLink.link_type:type_name -> prosper.v1.TransactionLinkType
 	53, // 15: prosper.v1.Transaction.timestamp:type_name -> google.protobuf.Timestamp
 	0,  // 16: prosper.v1.Transaction.type:type_name -> prosper.v1.TransactionType
@@ -3883,7 +3883,7 @@ var file_prosper_v1_ledger_proto_depIdxs = []int32{
 	26, // 22: prosper.v1.GetTransactionsResponse.ledger_accounts:type_name -> prosper.v1.LedgerAccount
 	36, // 23: prosper.v1.ListAvailableCurrenciesResponse.currencies:type_name -> prosper.v1.CurrencyInfo
 	16, // 24: prosper.v1.UpsertBankRequest.bank:type_name -> prosper.v1.Bank
-	21, // 25: prosper.v1.AccountUnit.stock:type_name -> prosper.v1.StockRef
+	21, // 25: prosper.v1.AccountUnit.stock:type_name -> prosper.v1.StockKey
 	39, // 26: prosper.v1.UpsertBankAccountRequest.unit:type_name -> prosper.v1.AccountUnit
 	18, // 27: prosper.v1.UpsertCategoryRequest.category:type_name -> prosper.v1.Category
 	23, // 28: prosper.v1.UpdateDisplaySettingsRequest.settings:type_name -> prosper.v1.DisplaySettings

@@ -1,5 +1,7 @@
 import {OpenBankingBalances} from '@/app/api/open-banking/balances/route';
-import {OpenBankingTransactions} from '@/app/api/open-banking/transactions/route';
+import {GetOpenBankingTransactionsResponse} from '@/lib/grpc/gen/prosper/v1/openbanking';
+import {timestampToEpoch} from '@/lib/grpc/timestamp';
+import {fromOpenBankingTransaction} from '@/lib/txsuggestions/TransactionPrototype';
 import useSWR from 'swr';
 
 export const useOpenBankingExpirations = () => {
@@ -33,8 +35,11 @@ export const useOpenBankingBalances = () => {
 };
 
 export const useOpenBankingTransactions = () => {
-  const fetcher = (url: string) => fetch(url).then(r => r.json());
-  const {data, error, isLoading} = useSWR<OpenBankingTransactions>(
+  const fetcher = (url: string) =>
+    fetch(url)
+      .then(r => r.json())
+      .then(json => GetOpenBankingTransactionsResponse.fromJson(json));
+  const {data, error, isLoading} = useSWR<GetOpenBankingTransactionsResponse>(
     '/api/open-banking/transactions',
     fetcher,
     {
@@ -42,8 +47,24 @@ export const useOpenBankingTransactions = () => {
       revalidateOnReconnect: false,
     }
   );
+  const transactions = data?.accounts.flatMap(acc =>
+    acc.transactions.map(t =>
+      fromOpenBankingTransaction(t, acc.internalAccountId)
+    )
+  );
+  // Epoch millis of each account's most recent successful fetch, keyed by
+  // internal account id. Accounts that have never been fetched are absent.
+  const lastFetchedAt: Record<number, number> = {};
+  for (const acc of data?.accounts ?? []) {
+    if (acc.lastFetchedAt) {
+      lastFetchedAt[acc.internalAccountId] = timestampToEpoch(
+        acc.lastFetchedAt
+      );
+    }
+  }
   return {
-    transactions: data?.transactions,
+    transactions,
+    lastFetchedAt,
     isLoading,
     isError: !!error,
   };

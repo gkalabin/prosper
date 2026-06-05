@@ -2,13 +2,13 @@ package truelayer
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/url"
 	"time"
 
-	"google.golang.org/protobuf/types/known/timestamppb"
-
-	prosperv1 "prosper/gen/prosper/v1"
+	"prosper/model"
 	"prosper/moneyutil"
 )
 
@@ -29,12 +29,12 @@ type transactionItem struct {
 }
 
 type transactionsBody struct {
-	Results []transactionItem `json:"results"`
+	Results []json.RawMessage `json:"results"`
 }
 
 // FetchTransactions returns settled and pending transactions for the
 // external account.
-func (t *Provider) FetchTransactions(ctx context.Context, userID, bankID int32, externalAccountID string, since time.Time) ([]*prosperv1.OpenBankingTransaction, error) {
+func (t *Provider) FetchTransactions(ctx context.Context, userID, bankID int32, externalAccountID string, since time.Time) ([]model.OpenBankingTransaction, error) {
 	access, err := t.accessToken(ctx, userID, bankID)
 	if err != nil {
 		return nil, err
@@ -44,20 +44,25 @@ func (t *Provider) FetchTransactions(ctx context.Context, userID, bankID int32, 
 		fmt.Sprintf(settledTransactionsURL, escaped, since.Format(dateOnlyFormat)),
 		fmt.Sprintf(pendingTransactionsURL, escaped),
 	}
-	var out []*prosperv1.OpenBankingTransaction
+	var out []model.OpenBankingTransaction
 	for _, u := range urls {
 		var r transactionsBody
 		if err := t.getJSON(ctx, u, access, &r); err != nil {
 			return nil, err
 		}
-		for _, item := range r.Results {
-			out = append(out, convertTransaction(item))
+		for _, raw := range r.Results {
+			var item transactionItem
+			if err := json.Unmarshal(raw, &item); err != nil {
+				log.Printf("truelayer: skip unparsable transaction on account %s: %v", externalAccountID, err)
+				continue
+			}
+			out = append(out, convertTransaction(item, raw))
 		}
 	}
 	return out, nil
 }
 
-func convertTransaction(item transactionItem) *prosperv1.OpenBankingTransaction {
+func convertTransaction(item transactionItem, raw json.RawMessage) model.OpenBankingTransaction {
 	// provider_transaction_id is stable across the pending-to-settled transition
 	id := item.ProviderTransactionID
 	if id == "" {
@@ -72,10 +77,5 @@ func convertTransaction(item transactionItem) *prosperv1.OpenBankingTransaction 
 		tsStr = item.Timestamp
 	}
 	ts, _ := time.Parse(time.RFC3339, tsStr)
-	return &prosperv1.OpenBankingTransaction{
-		ExternalTransactionId: id,
-		Timestamp:             timestamppb.New(ts),
-		Description:           item.Description,
-		SignedAmountNanos:     moneyutil.FloatUnitsToNanos(item.Amount),
-	}
+	return model.NewOpenBankingTransaction(id, ts, item.Description, moneyutil.FloatUnitsToNanos(item.Amount), raw)
 }

@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	OpenBankingService_GetOpenBankingTransactions_FullMethodName   = "/prosper.v1.OpenBankingService/GetOpenBankingTransactions"
+	OpenBankingService_FetchNow_FullMethodName                     = "/prosper.v1.OpenBankingService/FetchNow"
 	OpenBankingService_GetBalances_FullMethodName                  = "/prosper.v1.OpenBankingService/GetBalances"
 	OpenBankingService_GetConnectionStatus_FullMethodName          = "/prosper.v1.OpenBankingService/GetConnectionStatus"
 	OpenBankingService_StartTrueLayerConnection_FullMethodName     = "/prosper.v1.OpenBankingService/StartTrueLayerConnection"
@@ -46,6 +47,9 @@ const (
 // accounts and external provider accounts.
 type OpenBankingServiceClient interface {
 	GetOpenBankingTransactions(ctx context.Context, in *GetOpenBankingTransactionsRequest, opts ...grpc.CallOption) (*GetOpenBankingTransactionsResponse, error)
+	// FetchNow fetches fresh transactions for a single account right away,
+	// bypassing the scheduler's refresh interval.
+	FetchNow(ctx context.Context, in *FetchNowRequest, opts ...grpc.CallOption) (*FetchNowResponse, error)
 	GetBalances(ctx context.Context, in *GetBalancesRequest, opts ...grpc.CallOption) (*GetBalancesResponse, error)
 	GetConnectionStatus(ctx context.Context, in *GetConnectionStatusRequest, opts ...grpc.CallOption) (*GetConnectionStatusResponse, error)
 	// StartTrueLayerConnection returns the TrueLayer authorization URL
@@ -98,6 +102,16 @@ func (c *openBankingServiceClient) GetOpenBankingTransactions(ctx context.Contex
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetOpenBankingTransactionsResponse)
 	err := c.cc.Invoke(ctx, OpenBankingService_GetOpenBankingTransactions_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *openBankingServiceClient) FetchNow(ctx context.Context, in *FetchNowRequest, opts ...grpc.CallOption) (*FetchNowResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(FetchNowResponse)
+	err := c.cc.Invoke(ctx, OpenBankingService_FetchNow_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -254,6 +268,9 @@ func (c *openBankingServiceClient) ListGoCardlessCountries(ctx context.Context, 
 // accounts and external provider accounts.
 type OpenBankingServiceServer interface {
 	GetOpenBankingTransactions(context.Context, *GetOpenBankingTransactionsRequest) (*GetOpenBankingTransactionsResponse, error)
+	// FetchNow fetches fresh transactions for a single account right away,
+	// bypassing the scheduler's refresh interval.
+	FetchNow(context.Context, *FetchNowRequest) (*FetchNowResponse, error)
 	GetBalances(context.Context, *GetBalancesRequest) (*GetBalancesResponse, error)
 	GetConnectionStatus(context.Context, *GetConnectionStatusRequest) (*GetConnectionStatusResponse, error)
 	// StartTrueLayerConnection returns the TrueLayer authorization URL
@@ -304,6 +321,9 @@ type UnimplementedOpenBankingServiceServer struct{}
 
 func (UnimplementedOpenBankingServiceServer) GetOpenBankingTransactions(context.Context, *GetOpenBankingTransactionsRequest) (*GetOpenBankingTransactionsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetOpenBankingTransactions not implemented")
+}
+func (UnimplementedOpenBankingServiceServer) FetchNow(context.Context, *FetchNowRequest) (*FetchNowResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method FetchNow not implemented")
 }
 func (UnimplementedOpenBankingServiceServer) GetBalances(context.Context, *GetBalancesRequest) (*GetBalancesResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetBalances not implemented")
@@ -382,6 +402,24 @@ func _OpenBankingService_GetOpenBankingTransactions_Handler(srv interface{}, ctx
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OpenBankingServiceServer).GetOpenBankingTransactions(ctx, req.(*GetOpenBankingTransactionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OpenBankingService_FetchNow_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(FetchNowRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OpenBankingServiceServer).FetchNow(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: OpenBankingService_FetchNow_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OpenBankingServiceServer).FetchNow(ctx, req.(*FetchNowRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -648,6 +686,10 @@ var OpenBankingService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetOpenBankingTransactions",
 			Handler:    _OpenBankingService_GetOpenBankingTransactions_Handler,
+		},
+		{
+			MethodName: "FetchNow",
+			Handler:    _OpenBankingService_FetchNow_Handler,
 		},
 		{
 			MethodName: "GetBalances",

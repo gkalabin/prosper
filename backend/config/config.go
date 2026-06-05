@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	defaultRateRefreshInterval = 6 * time.Hour
-	defaultDBMaxOpenConns      = 5
-	defaultDBMaxIdleConns      = 2
+	defaultRateRefreshInterval        = 6 * time.Hour
+	defaultOpenBankingRefreshInterval = 12 * time.Hour
+	defaultDBMaxOpenConns             = 5
+	defaultDBMaxIdleConns             = 2
 )
 
 type Config struct {
@@ -23,7 +24,8 @@ type Config struct {
 
 	GRPCSocketPath string
 
-	RateRefreshInterval time.Duration
+	RateRefreshInterval        time.Duration
+	OpenBankingRefreshInterval time.Duration
 
 	TrueLayerClientID     string
 	TrueLayerClientSecret string
@@ -37,16 +39,17 @@ type Config struct {
 // Panics on missing required values.
 func MustLoad() *Config {
 	return &Config{
-		DBDSN:                 mustDBDSN(),
-		DBMaxOpenConns:        defaultDBMaxOpenConns,
-		DBMaxIdleConns:        defaultDBMaxIdleConns,
-		GRPCSocketPath:        mustEnv("GRPC_SOCKET_PATH"),
-		RateRefreshInterval:   getDuration("RATE_REFRESH_INTERVAL", defaultRateRefreshInterval),
-		TrueLayerClientID:     os.Getenv("TRUE_LAYER_CLIENT_ID"),
-		TrueLayerClientSecret: os.Getenv("TRUE_LAYER_CLIENT_SECRET"),
-		GoCardlessSecretID:    os.Getenv("GOCARDLESS_SECRET_ID"),
-		GoCardlessSecretKey:   os.Getenv("GOCARDLESS_SECRET_KEY"),
-		PublicAppURL:          os.Getenv("PUBLIC_APP_URL"),
+		DBDSN:                      mustDBDSN(),
+		DBMaxOpenConns:             defaultDBMaxOpenConns,
+		DBMaxIdleConns:             defaultDBMaxIdleConns,
+		GRPCSocketPath:             mustEnv("GRPC_SOCKET_PATH"),
+		RateRefreshInterval:        getDuration("RATE_REFRESH_INTERVAL", defaultRateRefreshInterval),
+		OpenBankingRefreshInterval: getDuration("OPEN_BANKING_REFRESH_INTERVAL", defaultOpenBankingRefreshInterval),
+		TrueLayerClientID:          os.Getenv("TRUE_LAYER_CLIENT_ID"),
+		TrueLayerClientSecret:      os.Getenv("TRUE_LAYER_CLIENT_SECRET"),
+		GoCardlessSecretID:         os.Getenv("GOCARDLESS_SECRET_ID"),
+		GoCardlessSecretKey:        os.Getenv("GOCARDLESS_SECRET_KEY"),
+		PublicAppURL:               os.Getenv("PUBLIC_APP_URL"),
 	}
 }
 

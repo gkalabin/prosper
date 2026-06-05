@@ -92,17 +92,17 @@ export interface StockQuote {
      */
     stockExchange: string;
     /**
-     * @generated from protobuf field: google.protobuf.Timestamp quote_timestamp = 2
+     * @generated from protobuf field: string stock_ticker = 2
+     */
+    stockTicker: string;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp quote_timestamp = 3
      */
     quoteTimestamp?: Timestamp;
     /**
-     * @generated from protobuf field: int64 price_per_share_nanos = 3
+     * @generated from protobuf field: int64 price_per_share_nanos = 4
      */
     pricePerShareNanos: bigint;
-    /**
-     * @generated from protobuf field: string stock_ticker = 4
-     */
-    stockTicker: string;
 }
 /**
  * @generated from protobuf message prosper.v1.ExchangeRate
@@ -413,16 +413,16 @@ class StockQuote$Type extends MessageType<StockQuote> {
     constructor() {
         super("prosper.v1.StockQuote", [
             { no: 1, name: "stock_exchange", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "quote_timestamp", kind: "message", T: () => Timestamp },
-            { no: 3, name: "price_per_share_nanos", kind: "scalar", T: 3 /*ScalarType.INT64*/, L: 0 /*LongType.BIGINT*/ },
-            { no: 4, name: "stock_ticker", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+            { no: 2, name: "stock_ticker", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
+            { no: 3, name: "quote_timestamp", kind: "message", T: () => Timestamp },
+            { no: 4, name: "price_per_share_nanos", kind: "scalar", T: 3 /*ScalarType.INT64*/, L: 0 /*LongType.BIGINT*/ }
         ]);
     }
     create(value?: PartialMessage<StockQuote>): StockQuote {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.stockExchange = "";
-        message.pricePerShareNanos = 0n;
         message.stockTicker = "";
+        message.pricePerShareNanos = 0n;
         if (value !== undefined)
             reflectionMergePartial<StockQuote>(this, message, value);
         return message;
@@ -435,14 +435,14 @@ class StockQuote$Type extends MessageType<StockQuote> {
                 case /* string stock_exchange */ 1:
                     message.stockExchange = reader.string();
                     break;
-                case /* google.protobuf.Timestamp quote_timestamp */ 2:
+                case /* string stock_ticker */ 2:
+                    message.stockTicker = reader.string();
+                    break;
+                case /* google.protobuf.Timestamp quote_timestamp */ 3:
                     message.quoteTimestamp = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.quoteTimestamp);
                     break;
-                case /* int64 price_per_share_nanos */ 3:
+                case /* int64 price_per_share_nanos */ 4:
                     message.pricePerShareNanos = reader.int64().toBigInt();
-                    break;
-                case /* string stock_ticker */ 4:
-                    message.stockTicker = reader.string();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -459,15 +459,15 @@ class StockQuote$Type extends MessageType<StockQuote> {
         /* string stock_exchange = 1; */
         if (message.stockExchange !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.stockExchange);
-        /* google.protobuf.Timestamp quote_timestamp = 2; */
-        if (message.quoteTimestamp)
-            Timestamp.internalBinaryWrite(message.quoteTimestamp, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* int64 price_per_share_nanos = 3; */
-        if (message.pricePerShareNanos !== 0n)
-            writer.tag(3, WireType.Varint).int64(message.pricePerShareNanos);
-        /* string stock_ticker = 4; */
+        /* string stock_ticker = 2; */
         if (message.stockTicker !== "")
-            writer.tag(4, WireType.LengthDelimited).string(message.stockTicker);
+            writer.tag(2, WireType.LengthDelimited).string(message.stockTicker);
+        /* google.protobuf.Timestamp quote_timestamp = 3; */
+        if (message.quoteTimestamp)
+            Timestamp.internalBinaryWrite(message.quoteTimestamp, writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* int64 price_per_share_nanos = 4; */
+        if (message.pricePerShareNanos !== 0n)
+            writer.tag(4, WireType.Varint).int64(message.pricePerShareNanos);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);

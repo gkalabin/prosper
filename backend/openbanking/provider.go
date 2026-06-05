@@ -7,6 +7,7 @@ import (
 	"time"
 
 	prosperv1 "prosper/gen/prosper/v1"
+	"prosper/model"
 )
 
 // Provider abstracts external open banking integrations.
@@ -17,7 +18,7 @@ type Provider interface {
 
 	// FetchTransactions returns transactions for the given external
 	// account since the supplied timestamp.
-	FetchTransactions(ctx context.Context, userID, bankID int32, externalAccountID string, since time.Time) ([]*prosperv1.OpenBankingTransaction, error)
+	FetchTransactions(ctx context.Context, userID, bankID int32, externalAccountID string, since time.Time) ([]model.OpenBankingTransaction, error)
 
 	// FetchBalance returns the latest balance in the account's native
 	// currency, expressed in nanos.

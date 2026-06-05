@@ -12,6 +12,10 @@ service OpenBankingService {
   rpc GetOpenBankingTransactions(GetOpenBankingTransactionsRequest)
       returns (GetOpenBankingTransactionsResponse);
 
+  // FetchNow fetches fresh transactions for a single account right away,
+  // bypassing the scheduler's refresh interval.
+  rpc FetchNow(FetchNowRequest) returns (FetchNowResponse);
+
   rpc GetBalances(GetBalancesRequest)
       returns (GetBalancesResponse);
 
@@ -83,9 +87,24 @@ message GetOpenBankingTransactionsResponse {
   repeated AccountTransactions accounts = 1;
 }
 
+message FetchNowRequest {
+  int32 internal_account_id = 1;
+  string session_id = 2;
+}
+
+message FetchNowResponse {
+  AccountTransactions result = 1;
+}
+
+// AccountTransactions carries one account's transactions alongside fetch
+// metadata.
 message AccountTransactions {
   int32 internal_account_id = 1;
   repeated OpenBankingTransaction transactions = 2;
+  // Time of the account's most recent successful fetch, unset when none.
+  google.protobuf.Timestamp last_fetched_at = 3;
+  // Set when a fetch attempt for this account failed; empty otherwise.
+  string error = 4;
 }
 
 message OpenBankingTransaction {

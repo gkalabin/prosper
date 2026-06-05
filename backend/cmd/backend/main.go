@@ -73,14 +73,12 @@ func main() {
 		grpc.UnaryInterceptor(auth.UnaryServerInterceptor(authSrv)),
 	)
 	prosperv1.RegisterAuthServiceServer(grpcSrv, authSrv)
-	authSrv.StartExpiredSessionSweeper(ctx, &bg)
 
 	ratesSrv := rates.NewService(conn, cfg)
 	prosperv1.RegisterRatesServiceServer(grpcSrv, ratesSrv)
-	ratesSrv.StartScheduler(ctx, &bg)
 	stockResolver := rates.NewStockResolver(conn, rates.NewYahooProvider())
 
-	obSrv := openbanking.NewService(udb)
+	obSrv := openbanking.NewService(udb, cfg.OpenBankingRefreshInterval)
 	if cfg.TrueLayerClientID != "" && cfg.TrueLayerClientSecret != "" {
 		obSrv.RegisterProvider(truelayer.New(udb, cfg.TrueLayerClientID, cfg.TrueLayerClientSecret, cfg.PublicAppURL))
 		log.Println("openbanking: truelayer provider registered")
@@ -99,6 +97,11 @@ func main() {
 
 	ledgerSrv := ledger.NewService(udb, ratesSrv, stockResolver)
 	prosperv1.RegisterLedgerServiceServer(grpcSrv, ledgerSrv)
+
+	// Start background services.
+	authSrv.StartExpiredSessionSweeper(ctx, &bg)
+	ratesSrv.StartScheduler(ctx, &bg)
+	obSrv.StartScheduler(ctx, &bg)
 
 	go func() {
 		<-ctx.Done()
