@@ -1,6 +1,5 @@
 'use server';
 import {getAuthContextOrRedirect} from '@/lib/auth/user';
-import {updateCoreDataCache} from '@/lib/db/cache';
 import {
   CategoryFormSchema,
   categoryFormValidationSchema,
@@ -43,7 +42,6 @@ export async function upsertCategory(
       auth
     )
   );
-  await updateCoreDataCache(auth.userId);
   return {
     status: 'SUCCESS',
     data: {

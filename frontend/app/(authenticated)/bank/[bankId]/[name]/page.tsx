@@ -1,7 +1,7 @@
 import {BankPage} from '@/app/(authenticated)/bank/[bankId]/[name]/bank-page';
 import {getAuthContextOrRedirect} from '@/lib/auth/user';
 import {fetchAppData} from '@/lib/db';
-import {cachedCoreDataOrFetch} from '@/lib/db/cache';
+import {fetchCoreData} from '@/lib/db/fetch';
 import {Bank as ProtoBank} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {logRequest} from '@/lib/util/log';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
@@ -16,7 +16,7 @@ async function fetchBank(props: Props): Promise<ProtoBank | null> {
   if (!bankId) {
     return null;
   }
-  const core = await cachedCoreDataOrFetch(auth);
+  const core = await fetchCoreData(auth);
   return core.banks.find(b => b.id === bankId) ?? null;
 }
 

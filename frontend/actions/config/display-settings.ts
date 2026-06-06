@@ -1,10 +1,6 @@
 'use server';
 import {getAuthContextOrRedirect} from '@/lib/auth/user';
-import {
-  cachedCoreDataOrFetch,
-  invalidateMarketDataCache,
-  updateCoreDataCache,
-} from '@/lib/db/cache';
+import {fetchCoreData} from '@/lib/db/fetch';
 import {
   DisplaySettingsFormSchema,
   displaySettingsFormValidationSchema,
@@ -48,7 +44,7 @@ export async function updateDisplaySettings(
       },
     };
   }
-  const core = await cachedCoreDataOrFetch(auth);
+  const core = await fetchCoreData(auth);
   const known = new Set<number>(core.categories.map(c => c.id));
   const unknownCategories = excludeCategoryIdsInStats.filter(
     id => !known.has(id)
@@ -67,10 +63,6 @@ export async function updateDisplaySettings(
   await ledgerClient.updateDisplaySettings(
     withAuth({settings: {displayCurrencyCode, excludeCategoryIdsInStats}}, auth)
   );
-  await updateCoreDataCache(auth.userId);
-  // The display currency drives which exchange pairs the market-data
-  // fetcher requests, so the market cache is stale after a change.
-  await invalidateMarketDataCache(auth.userId);
   return {
     status: 'SUCCESS',
     data: {

@@ -1,7 +1,7 @@
 import {OpenBankingMappingConfigPage} from '@/app/(authenticated)/config/open-banking/mapping/client';
 import {getAuthContextOrRedirect} from '@/lib/auth/user';
 import {withAuth} from '@/lib/grpc/auth';
-import {cachedCoreDataOrFetch} from '@/lib/db/cache';
+import {fetchCoreData} from '@/lib/db/fetch';
 import {openBankingClient} from '@/lib/grpc/client';
 import {firstPositiveIntOrNull} from '@/lib/util/searchParams';
 import {Metadata} from 'next';
@@ -21,7 +21,7 @@ export default async function Page({
     return notFound();
   }
   const auth = await getAuthContextOrRedirect();
-  const core = await cachedCoreDataOrFetch(auth);
+  const core = await fetchCoreData(auth);
   const bank = core.banks.find(b => b.id === bankId);
   if (!bank) {
     return notFound();

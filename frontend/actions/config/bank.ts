@@ -1,6 +1,5 @@
 'use server';
 import {getAuthContextOrRedirect} from '@/lib/auth/user';
-import {updateCoreDataCache} from '@/lib/db/cache';
 import {
   BankFormSchema,
   bankFormValidationSchema,
@@ -36,7 +35,6 @@ export async function upsertBank(
   const {response} = await ledgerClient.upsertBank(
     withAuth({bank: {id: bankId ?? 0, name, displayOrder}}, auth)
   );
-  await updateCoreDataCache(auth.userId);
   return {
     status: 'SUCCESS',
     data: {id: response.bankId, name, displayOrder},

@@ -1,5 +1,5 @@
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
-import {CoreData} from '@/lib/db/cache';
+import {CoreData} from '@/lib/db/fetch';
 import {GetTransactionsResponse} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {GetMarketDataForUserResponse} from '@/lib/grpc/gen/prosper/v1/rates';
 

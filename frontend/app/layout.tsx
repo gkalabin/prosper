@@ -19,6 +19,11 @@ export const metadata: Metadata = {
   robots: 'noindex, nofollow',
 };
 
+// Render every route dynamically and never store fetch responses so each
+// request reads the current state from the backend.
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 export default async function RootLayout({
   children,
 }: {

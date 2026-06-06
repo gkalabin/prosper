@@ -1,6 +1,5 @@
 'use server';
 import {getAuthContextOrRedirect} from '@/lib/auth/user';
-import {updateCoreDataCache, updateTransactionDataCache} from '@/lib/db/cache';
 import {
   AccountFormSchema,
   accountFormValidationSchema,
@@ -50,8 +49,6 @@ export async function upsertBankAccount(
       auth
     )
   );
-  await updateCoreDataCache(auth.userId);
-  await updateTransactionDataCache(auth.userId);
   return {
     status: 'SUCCESS',
     data: {

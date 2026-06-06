@@ -9,7 +9,6 @@ import {
 } from '@/components/txform/types';
 import {assertDefined} from '@/lib/assert';
 import {getAuthContextOrRedirect} from '@/lib/auth/user';
-import {updateCoreDataCache, updateTransactionDataCache} from '@/lib/db/cache';
 import {withAuth} from '@/lib/grpc/auth';
 import {ledgerClient} from '@/lib/grpc/client';
 import {
@@ -29,6 +28,7 @@ import {
   transactionPrototypeListSchema,
 } from '@/lib/txsuggestions/TransactionPrototype';
 import {dollarToNanos} from '@/lib/util/util';
+import {revalidatePath} from 'next/cache';
 
 const sharingTypeMap: Record<ExpenseFormSchema['sharingType'], SharingType> = {
   PAID_SELF_NOT_SHARED: SharingType.PAID_SELF_NOT_SHARED,
@@ -60,9 +60,9 @@ export async function upsertTransaction(
     form: buildForm(data),
   };
   await ledgerClient.writeTransactionForm(withAuth(request, auth));
-  // Invalidate caches because new tags, trips, or transactions may have been created.
-  await updateCoreDataCache(auth.userId);
-  await updateTransactionDataCache(auth.userId);
+  // Refresh every route so the new or updated transaction, along with any
+  // tags or trips it created, shows up wherever it is displayed.
+  revalidatePath('/', 'layout');
   return {status: 'SUCCESS'};
 }
 

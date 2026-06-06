@@ -1,7 +1,7 @@
 import {AccountPage} from '@/app/(authenticated)/account/[accountId]/[name]/account-page';
 import {getAuthContextOrRedirect} from '@/lib/auth/user';
 import {fetchAppData} from '@/lib/db';
-import {cachedCoreDataOrFetch} from '@/lib/db/cache';
+import {fetchCoreData} from '@/lib/db/fetch';
 import {BankAccount as ProtoBankAccount} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {logRequest} from '@/lib/util/log';
 import {positiveIntOrNull} from '@/lib/util/searchParams';
@@ -16,7 +16,7 @@ async function fetchAccount(props: Props): Promise<ProtoBankAccount | null> {
   if (!accountId) {
     return null;
   }
-  const core = await cachedCoreDataOrFetch(auth);
+  const core = await fetchCoreData(auth);
   return core.bankAccounts.find(a => a.id === accountId) ?? null;
 }
 

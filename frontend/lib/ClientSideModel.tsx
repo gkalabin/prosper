@@ -1,6 +1,6 @@
 import {Amount} from '@/lib/Amount';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
-import {CoreData} from '@/lib/db/cache';
+import {CoreData} from '@/lib/db/fetch';
 import {
   GetTransactionsResponse,
   Bank as PbBank,

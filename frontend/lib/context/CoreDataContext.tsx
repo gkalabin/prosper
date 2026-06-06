@@ -1,7 +1,7 @@
 'use client';
 import {CoreDataModel, coreModelFromDB} from '@/lib/ClientSideModel';
 import {DisplaySettingsContextProvider} from '@/lib/context/DisplaySettingsContext';
-import {CoreData} from '@/lib/db/cache';
+import {CoreData} from '@/lib/db/fetch';
 import {createContext, useContext} from 'react';
 
 const CoreDataContext = createContext<CoreDataModel>(

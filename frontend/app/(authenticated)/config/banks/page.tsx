@@ -1,7 +1,7 @@
 import {BanksConfigPage} from '@/app/(authenticated)/config/banks/BanksConfigPage';
 import {getAuthContextOrRedirect} from '@/lib/auth/user';
 import {withAuth} from '@/lib/grpc/auth';
-import {cachedCoreDataOrFetch} from '@/lib/db/cache';
+import {fetchCoreData} from '@/lib/db/fetch';
 import {openBankingClient} from '@/lib/grpc/client';
 import {Provider} from '@/lib/grpc/gen/prosper/v1/openbanking';
 import {Metadata} from 'next';
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default async function Page() {
   const auth = await getAuthContextOrRedirect();
   const [core, {response: status}] = await Promise.all([
-    cachedCoreDataOrFetch(auth),
+    fetchCoreData(auth),
     openBankingClient.getConnectionStatus(withAuth({}, auth)),
   ]);
   const trueLayerBanks = status.expirations
