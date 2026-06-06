@@ -70,7 +70,7 @@ func (s *Service) runScheduled(ctx context.Context) {
 func (s *Service) allConnectedAccounts(ctx context.Context) ([]model.OpenBankingMapping, error) {
 	var accounts []model.OpenBankingMapping
 	err := s.db.Raw().SelectContext(ctx, &accounts,
-		`SELECT m.userId, a.bankId, m.internalAccountId, m.externalAccountId
+		`SELECT m.*
 		   FROM ExternalAccountMapping m
 		   JOIN BankAccount a ON a.id = m.internalAccountId
 		  WHERE a.archived = FALSE`)

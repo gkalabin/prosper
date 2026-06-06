@@ -89,8 +89,8 @@ type OpenBankingTransactionFetchLink struct {
 	TransactionID int32 `db:"openBankingTransactionId"`
 }
 
-// OpenBankingMapping joins ExternalAccountMapping with BankAccount so
-// providers can be selected per (internal account, bank).
+// OpenBankingMapping is a row of ExternalAccountMapping linking an internal
+// account to its external account at a bank's provider.
 type OpenBankingMapping struct {
 	UserID            int32     `db:"userId"`
 	InternalAccountID int32     `db:"internalAccountId"`

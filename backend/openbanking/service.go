@@ -2,6 +2,7 @@ package openbanking
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"log"
 	"time"
@@ -56,30 +57,22 @@ func (s *Service) RegisterProvider(p Provider) {
 
 func (s *Service) loadMappingsForUser(ctx context.Context, userID int32) ([]model.OpenBankingMapping, error) {
 	var rows []model.OpenBankingMapping
-	err := s.db.SelectForUser(ctx, &rows, userID, `SELECT m.userId,
-                                                      m.internalAccountId,
-                                                      m.externalAccountId,
-                                                      a.bankId
-                                                 FROM ExternalAccountMapping m
-                                                 JOIN BankAccount a
-                                                   ON a.id = m.internalAccountId
-                                                WHERE m.userId = :userId`)
+	err := s.db.SelectForUser(ctx, &rows, userID,
+		`SELECT * FROM ExternalAccountMapping WHERE userId = :userId`)
 	return rows, err
 }
 
 func (s *Service) loadMappingForAccount(ctx context.Context, userID, internalAccountID int32) (model.OpenBankingMapping, error) {
-	var m model.OpenBankingMapping
-	err := s.db.GetForUser(ctx, &m, userID, `SELECT m.userId,
-                                                m.internalAccountId,
-                                                m.externalAccountId,
-                                                a.bankId
-                                           FROM ExternalAccountMapping m
-                                           JOIN BankAccount a
-                                             ON a.id = m.internalAccountId
-                                          WHERE m.userId = :userId
-                                            AND m.internalAccountId = :internalAccountId`,
-		map[string]any{"internalAccountId": internalAccountID})
-	return m, err
+	mappings, err := s.loadMappingsForUser(ctx, userID)
+	if err != nil {
+		return model.OpenBankingMapping{}, err
+	}
+	for _, m := range mappings {
+		if m.InternalAccountID == internalAccountID {
+			return m, nil
+		}
+	}
+	return model.OpenBankingMapping{}, sql.ErrNoRows
 }
 
 // providerForBank returns the registered Provider for (userID,
@@ -278,12 +271,7 @@ func (s *Service) Disconnect(ctx context.Context, req *prosperv1.DisconnectReque
 	if _, err := s.db.ExecForUser(ctx, userID,
 		`DELETE FROM ExternalAccountMapping
 		  WHERE userId = :userId
-		    AND internalAccountId IN (
-		      SELECT id
-		        FROM BankAccount
-		       WHERE userId = :userId
-		         AND bankId = :bankId
-		    )`,
+		    AND bankId = :bankId`,
 		map[string]any{"bankId": req.BankId}); err != nil {
 		return nil, err
 	}
@@ -345,18 +333,13 @@ func (s *Service) SetMappings(ctx context.Context, req *prosperv1.SetMappingsReq
 		return nil, err
 	}
 	defer tx.Rollback()
-	// Delete existing mappings for this bank's internal accounts, then
-	// insert the new set. The unique constraint is (userId,
-	// internalAccountId) so this two-step replacement is safe.
+	// Delete the bank's existing mappings, then insert the new set. The
+	// unique constraint is (userId, internalAccountId) so this two-step
+	// replacement is safe.
 	if _, err := tx.ExecForUser(ctx, userID,
 		`DELETE FROM ExternalAccountMapping
 		  WHERE userId = :userId
-		    AND internalAccountId IN (
-		      SELECT id
-		        FROM BankAccount
-		       WHERE userId = :userId
-		         AND bankId = :bankId
-		    )`,
+		    AND bankId = :bankId`,
 		map[string]any{"bankId": req.BankId}); err != nil {
 		return nil, err
 	}
@@ -366,12 +349,13 @@ func (s *Service) SetMappings(ctx context.Context, req *prosperv1.SetMappingsReq
 			rows[i] = model.OpenBankingMapping{
 				InternalAccountID: m.InternalAccountId,
 				ExternalAccountID: m.ExternalAccountId,
+				BankID:            req.BankId,
 			}
 		}
 		if _, err := tx.NamedExecForUser(ctx, userID,
 			`INSERT INTO ExternalAccountMapping
-			        ( userId,  internalAccountId,  externalAccountId)
-			 VALUES (:userId, :internalAccountId, :externalAccountId)`,
+			        ( userId,  internalAccountId,  externalAccountId,  bankId)
+			 VALUES (:userId, :internalAccountId, :externalAccountId, :bankId)`,
 			rows); err != nil {
 			return nil, err
 		}
