@@ -7,7 +7,7 @@ import {RatesServiceClient} from '@/lib/grpc/gen/prosper/v1/rates.client';
 import {ChannelCredentials} from '@grpc/grpc-js';
 import {GrpcTransport} from '@protobuf-ts/grpc-transport';
 
-const SOCKET_PATH = process.env.GRPC_SOCKET_PATH || '/tmp/prosper.sock';
+const SOCKET_PATH = process.env.PROSPER_GRPC_SOCKET_PATH || '/tmp/prosper.sock';
 
 // @grpc/grpc-js supports unix sockets via the `unix:` scheme.
 const transport = new GrpcTransport({

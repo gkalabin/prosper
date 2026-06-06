@@ -24,7 +24,7 @@ const atCapacityResponse = {
 
 export async function hasCapacityToSignUp(): Promise<boolean> {
   const maxUsers = positiveIntOrNull(
-    process.env.MAX_USERS_ALLOWED_TO_REGISTER ?? null
+    process.env.PROSPER_MAX_USERS_ALLOWED_TO_REGISTER ?? null
   );
   if (!maxUsers) {
     return false;

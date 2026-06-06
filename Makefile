@@ -28,7 +28,7 @@ lint:
 	lefthook run lint --all-files
 
 # On MacOS docker containers run inside a VM, so --net=host doesn't work and
-# we need to map ports manually. Also DB_HOST should be host.docker.internal
+# we need to map ports manually. Also PROSPER_DB_HOST should be host.docker.internal
 # instead of localhost.
 dockerrun-mac:
 	docker run --rm -p 3000:3000 -v $(PWD)/.env:/app/.env gkalabin/prosper

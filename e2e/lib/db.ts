@@ -6,11 +6,13 @@ import mysql, {
 } from 'mysql2/promise';
 
 const config: PoolOptions = {
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT ? Number(process.env.DB_PORT) : undefined,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  host: process.env.PROSPER_DB_HOST,
+  port: process.env.PROSPER_DB_PORT
+    ? Number(process.env.PROSPER_DB_PORT)
+    : undefined,
+  user: process.env.PROSPER_DB_USER,
+  password: process.env.PROSPER_DB_PASSWORD,
+  database: process.env.PROSPER_DB_NAME,
   connectionLimit: 5,
   supportBigNumbers: true,
   // Encode JS Dates as UTC strings to match the Go backend's

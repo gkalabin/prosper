@@ -14,7 +14,7 @@ export default defineConfig({
   globalTeardown: require.resolve('./lib/fixtures/global-teardown'),
 
   use: {
-    baseURL: env.PUBLIC_APP_URL,
+    baseURL: env.PROSPER_PUBLIC_APP_URL,
     trace: 'on',
   },
   projects: [
@@ -27,7 +27,7 @@ export default defineConfig({
     command: env.E2E_DOCKER_IMAGE
       ? `docker run --rm --network host --env-file ${path.resolve(__dirname, 'e2e.env')} ${env.E2E_DOCKER_IMAGE}`
       : 'bash start.sh',
-    url: env.PUBLIC_APP_URL,
+    url: env.PROSPER_PUBLIC_APP_URL,
     reuseExistingServer: !env.CI,
     env,
     timeout: 180_000,

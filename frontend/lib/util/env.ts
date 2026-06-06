@@ -3,5 +3,5 @@ export function isProd(): boolean {
 }
 
 export function isUsingHTTP(): boolean {
-  return process.env.PUBLIC_APP_URL?.startsWith('http://') ?? false;
+  return process.env.PROSPER_PUBLIC_APP_URL?.startsWith('http://') ?? false;
 }

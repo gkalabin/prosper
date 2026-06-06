@@ -59,5 +59,9 @@ USER prosper
 EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+# Internal unix socket for the in-container backend ↔ frontend gRPC channel.
+# The backend, frontend, and entrypoint all read it from the environment, so
+# define it once here; it never leaves the container.
+ENV PROSPER_GRPC_SOCKET_PATH=/tmp/prosper.sock
 
 CMD ["./scripts/start.sh"]

@@ -6,7 +6,7 @@ import {isProd, isUsingHTTP} from '@/lib/util/env';
 export async function register() {
   if (isUsingHTTP() && isProd()) {
     console.warn(
-      'PUBLIC_APP_URL is using HTTP in production — most likely this is a misconfiguration.'
+      'PROSPER_PUBLIC_APP_URL is using HTTP in production — most likely this is a misconfiguration.'
     );
   }
 }

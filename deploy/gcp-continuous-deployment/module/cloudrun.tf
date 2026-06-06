@@ -44,15 +44,15 @@ resource "google_cloud_run_v2_service" "prosper" {
       name  = "prosper"
       image = "docker.io/gkalabin/prosper:latest"
       env {
-        name  = "DB_SOCKET_PATH"
+        name  = "PROSPER_DB_SOCKET_PATH"
         value = "/cloudsql/${local.db_connection_name}"
       }
       env {
-        name  = "DB_USER"
+        name  = "PROSPER_DB_USER"
         value = google_sql_user.prosperdb_user.name
       }
       env {
-        name = "DB_PASSWORD"
+        name = "PROSPER_DB_PASSWORD"
         value_source {
           secret_key_ref {
             secret  = google_secret_manager_secret.prosperdb_password.secret_id
@@ -61,31 +61,31 @@ resource "google_cloud_run_v2_service" "prosper" {
         }
       }
       env {
-        name  = "DB_NAME"
+        name  = "PROSPER_DB_NAME"
         value = local.db_name
       }
       env {
-        name  = "PUBLIC_APP_URL"
+        name  = "PROSPER_PUBLIC_APP_URL"
         value = "https://${var.domain_name}"
       }
       env {
-        name  = "MAX_USERS_ALLOWED_TO_REGISTER"
+        name  = "PROSPER_MAX_USERS_ALLOWED_TO_REGISTER"
         value = "2"
       }
       env {
-        name  = "TRUE_LAYER_CLIENT_ID"
+        name  = "PROSPER_TRUE_LAYER_CLIENT_ID"
         value = var.true_layer_client_id
       }
       env {
-        name  = "TRUE_LAYER_CLIENT_SECRET"
+        name  = "PROSPER_TRUE_LAYER_CLIENT_SECRET"
         value = var.true_layer_client_secret
       }
       env {
-        name  = "GOCARDLESS_SECRET_ID"
+        name  = "PROSPER_GOCARDLESS_SECRET_ID"
         value = var.gocardless_secret_id
       }
       env {
-        name  = "GOCARDLESS_SECRET_KEY"
+        name  = "PROSPER_GOCARDLESS_SECRET_KEY"
         value = var.gocardless_secret_key
       }
 
