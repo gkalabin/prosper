@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/form';
 import {Select} from '@/components/ui/html-select';
 import {Input} from '@/components/ui/input';
+import {assertDefined} from '@/lib/assert';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {useDisplayBankAccounts} from '@/lib/model/AppDataModel';
@@ -98,20 +99,26 @@ function RepaymentCategory() {
     <FormField
       control={control}
       name="expense.repayment.categoryId"
-      render={({field}) => (
-        <FormItem className="col-span-6">
-          <FormLabel>Repayment category</FormLabel>
-          <FormControl>
-            <CategorySelect
-              value={field.value}
-              onChange={field.onChange}
-              mostFrequentlyUsedCategoryIds={mostFrequentlyUsedCategoryIds}
-              disabled={formState.isSubmitting}
-            />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
+      render={({field}) => {
+        assertDefined(
+          field.value,
+          'repayment category required for a repaid expense'
+        );
+        return (
+          <FormItem className="col-span-6">
+            <FormLabel>Repayment category</FormLabel>
+            <FormControl>
+              <CategorySelect
+                value={field.value}
+                onChange={field.onChange}
+                mostFrequentlyUsedCategoryIds={mostFrequentlyUsedCategoryIds}
+                disabled={formState.isSubmitting}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        );
+      }}
     />
   );
 }

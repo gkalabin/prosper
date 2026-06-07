@@ -10,7 +10,10 @@ import {Input} from '@/components/ui/input';
 import {format, isValid} from 'date-fns';
 import {useFormContext} from 'react-hook-form';
 
-function toDateTimeLocal(d: Date | string) {
+function toDateTimeLocal(d: Date | string | undefined) {
+  if (d === undefined) {
+    return '';
+  }
   try {
     // 2022-12-19T18:05:59
     return format(d, "yyyy-MM-dd'T'HH:mm");

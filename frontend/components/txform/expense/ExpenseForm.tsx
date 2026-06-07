@@ -19,10 +19,12 @@ import {
   isRecent,
   matchesVendor,
 } from '@/components/txform/shared/useTopCategoryIds';
+import {TransactionFormSchema} from '@/components/txform/types';
+import {assertDefined} from '@/lib/assert';
 import {isExpense, Transaction} from '@/lib/model/transaction/Transaction';
 import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {useMemo} from 'react';
-import {useWatch} from 'react-hook-form';
+import {useFormContext, useWatch} from 'react-hook-form';
 
 export function ExpenseForm({
   proto,
@@ -31,6 +33,8 @@ export function ExpenseForm({
   proto: TransactionPrototype | null;
   transaction: Transaction | null;
 }) {
+  const {getValues} = useFormContext<TransactionFormSchema>();
+  assertDefined(getValues('expense'), 'expense form requires expense values');
   const isCreatingNewTransaction = !transaction;
   return (
     <>

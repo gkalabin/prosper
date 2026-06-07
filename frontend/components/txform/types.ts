@@ -30,3 +30,17 @@ export const transactionFormValidationSchema = z
 export type TransactionFormSchema = z.infer<
   typeof transactionFormValidationSchema
 >;
+
+// Field values as seen from inside a rendered form variant.
+// Redefines individual subforms as nonnullable as exactly one
+// form variant is populated and it is non null.
+// The top level subform validates the required form type is present,
+// so children components benefit from not having to deal with undefined.
+export type SubFormValues = Omit<
+  TransactionFormSchema,
+  'expense' | 'income' | 'transfer'
+> & {
+  expense: NonNullable<TransactionFormSchema['expense']>;
+  income: NonNullable<TransactionFormSchema['income']>;
+  transfer: NonNullable<TransactionFormSchema['transfer']>;
+};

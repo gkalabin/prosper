@@ -1,4 +1,4 @@
-import {TransactionFormSchema} from '@/components/txform/types';
+import {SubFormValues} from '@/components/txform/types';
 import {Button} from '@/components/ui/button';
 import {
   Command,
@@ -37,7 +37,7 @@ import {useFormContext} from 'react-hook-form';
 import {useDebounce} from 'use-debounce';
 
 export function ParentTransaction() {
-  const {control, getValues} = useFormContext<TransactionFormSchema>();
+  const {control, getValues} = useFormContext<SubFormValues>();
   return (
     <FormField
       control={control}

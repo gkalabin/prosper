@@ -7,10 +7,17 @@ import {Timestamp} from '@/components/txform/shared/Timestamp';
 import {Amount} from '@/components/txform/transfer/Amount';
 import {AmountReceived} from '@/components/txform/transfer/AmountReceived';
 import {UpdateReceivedAmountOnAmountChange} from '@/components/txform/transfer/UpdateReceivedAmountOnAmountChange';
+import {TransactionFormSchema} from '@/components/txform/types';
+import {assertDefined} from '@/lib/assert';
 import {isTransfer, Transaction} from '@/lib/model/transaction/Transaction';
-import {useWatch} from 'react-hook-form';
+import {useFormContext, useWatch} from 'react-hook-form';
 
 export function TransferForm({transaction}: {transaction: Transaction | null}) {
+  const {getValues} = useFormContext<TransactionFormSchema>();
+  assertDefined(
+    getValues('transfer'),
+    'transfer form requires transfer values'
+  );
   return (
     <>
       <Timestamp fieldName="transfer.timestamp" />

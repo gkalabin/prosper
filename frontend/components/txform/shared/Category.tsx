@@ -3,7 +3,7 @@ import {
   TransactionFilterFn,
   useTopCategoriesMatchMost,
 } from '@/components/txform/shared/useTopCategoryIds';
-import {TransactionFormSchema} from '@/components/txform/types';
+import {SubFormValues} from '@/components/txform/types';
 import {
   FormControl,
   FormField,
@@ -20,7 +20,7 @@ export function Category({
   fieldName: 'expense.categoryId' | 'income.categoryId' | 'transfer.categoryId';
   filters: TransactionFilterFn[];
 }) {
-  const {control, formState} = useFormContext<TransactionFormSchema>();
+  const {control, formState} = useFormContext<SubFormValues>();
   const mostFrequentlyUsedCategoryIds = useTopCategoriesMatchMost({
     filters,
     want: 5,

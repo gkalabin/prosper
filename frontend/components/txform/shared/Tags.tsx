@@ -1,5 +1,5 @@
 import {TagsSelect} from '@/components/txform/shared/TagsSelect';
-import {TransactionFormSchema} from '@/components/txform/types';
+import {SubFormValues} from '@/components/txform/types';
 import {
   FormControl,
   FormField,
@@ -14,7 +14,7 @@ export function Tags({
 }: {
   fieldName: 'expense.tagNames' | 'income.tagNames' | 'transfer.tagNames';
 }) {
-  const {control, formState} = useFormContext<TransactionFormSchema>();
+  const {control, formState} = useFormContext<SubFormValues>();
   return (
     <FormField
       control={control}

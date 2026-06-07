@@ -1,4 +1,4 @@
-import {TransactionFormSchema} from '@/components/txform/types';
+import {SubFormValues} from '@/components/txform/types';
 import {
   FormControl,
   FormField,
@@ -23,7 +23,7 @@ export function Account({
     | 'transfer.toAccountId';
   label: string;
 }) {
-  const {control} = useFormContext<TransactionFormSchema>();
+  const {control} = useFormContext<SubFormValues>();
   const displayAccounts = useDisplayBankAccounts();
   const {banks, bankAccounts: allAccounts} = useCoreDataContext();
   return (

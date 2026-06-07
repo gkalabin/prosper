@@ -1,4 +1,4 @@
-import {TransactionFormSchema} from '@/components/txform/types';
+import {SubFormValues} from '@/components/txform/types';
 import {centsToDollar, dollarToCents} from '@/lib/util/util';
 import {useEffect} from 'react';
 import {useFormContext, useWatch} from 'react-hook-form';
@@ -12,7 +12,7 @@ export function UpdateOwnShareOnAmountChange({
   amountFieldName: 'expense.amount' | 'income.amount';
   ownShareFieldName: 'expense.ownShareAmount' | 'income.ownShareAmount';
 }) {
-  const {control, setValue} = useFormContext<TransactionFormSchema>();
+  const {control, setValue} = useFormContext<SubFormValues>();
   const amount = useWatch({control, name: amountFieldName, exact: true});
   useEffect(() => {
     // Do not pass down NaN from amount to ownShare.

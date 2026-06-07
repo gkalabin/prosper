@@ -15,12 +15,15 @@ import {
   isRecent,
   matchesPayer,
 } from '@/components/txform/shared/useTopCategoryIds';
-import {TransactionFormSchema} from '@/components/txform/types';
+import {SubFormValues, TransactionFormSchema} from '@/components/txform/types';
+import {assertDefined} from '@/lib/assert';
 import {isIncome, Transaction} from '@/lib/model/transaction/Transaction';
 import {useMemo} from 'react';
 import {useFormContext, useWatch} from 'react-hook-form';
 
 export function IncomeForm({transaction}: {transaction: Transaction | null}) {
+  const {getValues} = useFormContext<TransactionFormSchema>();
+  assertDefined(getValues('income'), 'income form requires income values');
   const isCreatingNewTransaction = !transaction;
   return (
     <>
@@ -63,7 +66,7 @@ function Category() {
 }
 
 function MaybeEmptyCompanion() {
-  const {watch} = useFormContext<TransactionFormSchema>();
+  const {watch} = useFormContext<SubFormValues>();
   const isShared = watch('income.isShared');
   if (!isShared) {
     return null;
@@ -72,7 +75,7 @@ function MaybeEmptyCompanion() {
 }
 
 function UpdateOwnShareOnAmountChange() {
-  const {watch} = useFormContext<TransactionFormSchema>();
+  const {watch} = useFormContext<SubFormValues>();
   return (
     <CommonUpdateOwnShareOnAmountChange
       isShared={watch('income.isShared')}

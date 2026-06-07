@@ -1,5 +1,5 @@
 import {MoneyInput} from '@/components/txform/shared/MoneyInput';
-import {TransactionFormSchema} from '@/components/txform/types';
+import {SubFormValues} from '@/components/txform/types';
 import {
   FormControl,
   FormField,
@@ -13,7 +13,7 @@ import {cn} from '@/lib/utils';
 import {useFormContext} from 'react-hook-form';
 
 export function Amount() {
-  const {control} = useFormContext<TransactionFormSchema>();
+  const {control} = useFormContext<SubFormValues>();
   const sameUnit = useAccountUnitsEqual();
   return (
     <FormField
@@ -33,7 +33,7 @@ export function Amount() {
 }
 
 export function useAccountUnitsEqual() {
-  const {watch} = useFormContext<TransactionFormSchema>();
+  const {watch} = useFormContext<SubFormValues>();
   const {bankAccounts} = useCoreDataContext();
   const fromAccount = mustFindBankAccount(
     bankAccounts,
