@@ -14,13 +14,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
-import {DEFAULT_AUTHENTICATED_PAGE} from '@/lib/auth/const';
 import {waitUntilNavigationComplete} from '@/lib/auth/util';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useRouter} from 'next/navigation';
 import {useForm} from 'react-hook-form';
 
-export function SignInForm() {
+export function SignInForm({nextPage}: {nextPage: string}) {
   const form = useForm<SignInFormSchema>({
     resolver: zodResolver(signInFormSchema),
     defaultValues: {
@@ -33,7 +32,7 @@ export function SignInForm() {
     try {
       const result = await signIn(data);
       if (result.success) {
-        router.push(DEFAULT_AUTHENTICATED_PAGE);
+        router.push(nextPage);
         await waitUntilNavigationComplete();
         return;
       }

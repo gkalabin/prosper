@@ -1,9 +1,10 @@
-import {COOKIE_NAME, SIGN_IN_URL} from '@/lib/auth/const';
+import {COOKIE_NAME, REQUESTED_PATH_HEADER} from '@/lib/auth/const';
+import {signInUrlWithReturnPath} from '@/lib/auth/redirect';
 import {
   SessionValidationResult,
   validateSessionToken,
 } from '@/lib/auth/session';
-import {cookies} from 'next/headers';
+import {cookies, headers} from 'next/headers';
 import {redirect} from 'next/navigation';
 
 // AuthContext carries the data the frontend needs to make authenticated
@@ -17,9 +18,16 @@ export type AuthContext = {
 export async function getAuthContextOrRedirect(): Promise<AuthContext> {
   const {user, session} = await getCurrentSession();
   if (!user || !session) {
-    return redirect(SIGN_IN_URL);
+    return redirectToSignIn();
   }
   return {userId: user.id, sessionId: session.id};
+}
+
+// Sends the user to the sign-in page, preserving the path they were visiting so
+// they can be returned to it after authenticating.
+export async function redirectToSignIn(): Promise<never> {
+  const requestedPath = (await headers()).get(REQUESTED_PATH_HEADER);
+  return redirect(signInUrlWithReturnPath(requestedPath));
 }
 
 export async function getCurrentSession(): Promise<SessionValidationResult> {

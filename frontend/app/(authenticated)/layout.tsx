@@ -1,14 +1,12 @@
 import Header from '@/components/Header';
-import {SIGN_IN_URL} from '@/lib/auth/const';
-import {getCurrentSession} from '@/lib/auth/user';
-import {redirect} from 'next/navigation';
+import {getCurrentSession, redirectToSignIn} from '@/lib/auth/user';
 
 async function getLogin() {
   const {user} = await getCurrentSession();
   if (!user) {
-    // This is not the main auth check, but a fallback in case user is not authenticated.
-    // The real auth check is in middleware.
-    return redirect(SIGN_IN_URL);
+    // Auth is enforced per request by the data-access helpers
+    // (getAuthContextOrRedirect). This guards pages which don't call the helpers.
+    return redirectToSignIn();
   }
   return user.login;
 }

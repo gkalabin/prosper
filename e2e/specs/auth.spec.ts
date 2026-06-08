@@ -68,6 +68,22 @@ test.describe('Authentication', () => {
       // Then
       await expect(page).toHaveURL(/\/auth\/signin/);
     });
+
+    test('returns user to the originally requested page after login', async ({
+      page,
+      seed,
+    }) => {
+      // Given: an unauthenticated user opens a deep protected page
+      const user = await seed.createUser();
+      await page.goto('/config/banks');
+      await expect(page).toHaveURL(/\/auth\/signin/);
+      // When: they sign in
+      await page.getByLabel('Login').fill(user.login);
+      await page.getByLabel('Password').fill(user.rawPassword);
+      await page.getByRole('button', {name: /sign in|login/i}).click();
+      // Then: they land back on the originally requested page
+      await expect(page).toHaveURL('/config/banks');
+    });
   });
 
   test.describe('Logout', () => {

@@ -1,4 +1,9 @@
-import {COOKIE_NAME, COOKIE_TTL_DAYS, SIGN_OUT_URL} from '@/lib/auth/const';
+import {
+  COOKIE_NAME,
+  COOKIE_TTL_DAYS,
+  REQUESTED_PATH_HEADER,
+  SIGN_OUT_URL,
+} from '@/lib/auth/const';
 import {isProd} from '@/lib/util/env';
 import type {NextRequest} from 'next/server';
 import {NextResponse} from 'next/server';
@@ -13,7 +18,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   // Only extend cookie expiration on GET requests since we can be sure
   // a new session wasn't set when handling the request.
   if (request.method === 'GET') {
-    const response = NextResponse.next();
+    const response = forwardWithRequestedPath(request);
     extendAuthCookie(request, response);
     return response;
   }
@@ -21,7 +26,18 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   if (!sameOrigin) {
     return FORBIDDEN;
   }
-  return NextResponse.next();
+  return forwardWithRequestedPath(request);
+}
+
+// Forwards the request, tagging it with the path being visited so server
+// components can return the user here after an authentication redirect.
+function forwardWithRequestedPath(request: NextRequest): NextResponse {
+  const headers = new Headers(request.headers);
+  headers.set(
+    REQUESTED_PATH_HEADER,
+    request.nextUrl.pathname + request.nextUrl.search
+  );
+  return NextResponse.next({request: {headers}});
 }
 
 function extendAuthCookie(request: NextRequest, response: NextResponse): void {

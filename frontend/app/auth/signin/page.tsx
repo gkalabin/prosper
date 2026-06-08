@@ -1,7 +1,9 @@
 import {hasCapacityToSignUp} from '@/actions/auth/signup';
 import {SignInForm} from '@/app/auth/signin/SignInForm';
-import {DEFAULT_AUTHENTICATED_PAGE} from '@/lib/auth/const';
+import {RETURN_PATH_PARAM} from '@/lib/auth/const';
+import {returnPathOrDefault} from '@/lib/auth/redirect';
 import {getCurrentSession} from '@/lib/auth/user';
+import {firstValueOrNull} from '@/lib/util/searchParams';
 import {Metadata} from 'next';
 import {redirect} from 'next/navigation';
 
@@ -9,10 +11,19 @@ export const metadata: Metadata = {
   title: 'Login - Prosper',
 };
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{[key: string]: string | string[] | undefined}>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const unsafeReturnPath = firstValueOrNull(
+    resolvedSearchParams[RETURN_PATH_PARAM]
+  );
+  const safeReturnPath = returnPathOrDefault(unsafeReturnPath);
   const {user} = await getCurrentSession();
   if (user) {
-    return redirect(DEFAULT_AUTHENTICATED_PAGE);
+    return redirect(safeReturnPath);
   }
   const hasCapacity = await hasCapacityToSignUp();
   return (
@@ -27,7 +38,7 @@ export default async function LoginPage() {
           </h2>
         </section>
 
-        <SignInForm />
+        <SignInForm nextPage={safeReturnPath} />
 
         {hasCapacity && (
           <p className="mt-10 text-center text-sm text-gray-500">
