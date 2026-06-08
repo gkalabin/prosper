@@ -43,7 +43,7 @@ function filterExcludedTransactions(
 
 export function useStatsPageProps(
   excludeCategories: number[],
-  duration: Interval<Date>
+  duration: Interval
 ): {input: ExchangedIntervalTransactions; failed: Transaction[]} {
   const {categories} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
@@ -65,7 +65,7 @@ export function useStatsPageProps(
 
 export function useExchangedIntervalTransactions(
   transactions: Transaction[],
-  duration: Interval<Date>
+  duration: Interval
 ): {input: ExchangedIntervalTransactions; failed: Transaction[]} {
   const {input, failed} = useExchangedTransactions(transactions);
   return {

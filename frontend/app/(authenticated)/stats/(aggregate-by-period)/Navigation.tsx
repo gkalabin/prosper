@@ -10,12 +10,12 @@ export function Navigation({
   selected,
   setSelected,
 }: {
-  timeline: Interval<Date>;
+  timeline: Interval;
   granularity: Granularity;
-  selected: Interval<Date>;
-  setSelected: (i: Interval<Date>) => void;
+  selected: Interval;
+  setSelected: (i: Interval) => void;
 }) {
-  const slices: Array<Interval<Date>> = sliceInterval({
+  const slices: Array<Interval> = sliceInterval({
     interval: timeline,
     granularity,
   });

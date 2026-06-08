@@ -19,7 +19,7 @@ import {
 } from 'date-fns';
 import {Fragment} from 'react';
 
-export function getLast6Months(): Interval<Date> {
+export function getLast6Months(): Interval {
   const now = new Date();
   // Minus 5 below because including the current month leads to 6 (maybe incomplete) months
   // For example, if today is 2026-09-08, the months would be 2026-09 (today), 2026-08, 2026-07, 2026-06, 2026-05, 2026-04 (minus 5)
@@ -29,7 +29,7 @@ export function getLast6Months(): Interval<Date> {
   };
 }
 
-export function getLast12Months(): Interval<Date> {
+export function getLast12Months(): Interval {
   const now = new Date();
   return {
     start: startOfMonth(subMonths(now, 11)),

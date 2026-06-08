@@ -8,7 +8,7 @@ import {type Interval} from 'date-fns';
 
 type TimelineAmountsChartProps = {
   title: string;
-  timeline: Interval<Date>;
+  timeline: Interval;
   currency: Currency;
   granularity: Granularity;
   data: Array<{

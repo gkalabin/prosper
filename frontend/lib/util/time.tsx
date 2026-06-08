@@ -25,7 +25,7 @@ export function utcStartOfDay(d: Date | number): number {
 }
 
 function dateFunctionsForGranularity(granularity: Granularity): {
-  slice: (i: Interval<Date>) => Date[];
+  slice: (i: Interval) => Date[];
   start: (d: Date) => Date;
   end: (d: Date) => Date;
 } {
@@ -58,9 +58,9 @@ export function sliceInterval({
   interval,
   granularity,
 }: {
-  interval: Interval<Date>;
+  interval: Interval;
   granularity: Granularity;
-}): Array<Interval<Date>> {
+}): Array<Interval> {
   const {slice, start, end} = dateFunctionsForGranularity(granularity);
   const points: Date[] = slice(interval);
   return points.map(p => ({
@@ -88,9 +88,6 @@ export function formatInterval(i: Interval): string {
   return `${format(i.start, 'd MMM yyyy')}-${format(i.end, 'd MMM yyyy')}`;
 }
 
-export function intervalsEqual(
-  i1: Interval<Date>,
-  i2: Interval<Date>
-): boolean {
+export function intervalsEqual(i1: Interval, i2: Interval): boolean {
   return isSameDay(i1.start, i2.start) && isSameDay(i1.end, i2.end);
 }
