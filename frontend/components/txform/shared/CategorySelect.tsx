@@ -41,7 +41,7 @@ export function CategorySelect({
   const tree = useMemo(() => makeCategoryTree(categories), [categories]);
   const groups = useOptions({mostFrequentlyUsedCategoryIds, tree});
   return (
-    <Popover modal={true} open={optionsOpen} onOpenChange={setOptionsOpen}>
+    <Popover open={optionsOpen} onOpenChange={setOptionsOpen}>
       <PopoverTrigger asChild>
         <Button
           // Props here brings attributes passed down to the form input. Specifically, aria attributes and the id.

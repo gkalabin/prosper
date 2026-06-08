@@ -80,7 +80,6 @@ function ParentTransactionSelect({
 
   return (
     <Popover
-      modal={true}
       open={optionsOpen}
       onOpenChange={open => {
         setOptionsOpen(open);

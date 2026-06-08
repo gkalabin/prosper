@@ -46,7 +46,7 @@ export function TagsSelect({
   const addTag = (tag: string) => onChange([...value, tag.trim()]);
   const removeTag = (tag: string) => onChange(value.filter(t => t !== tag));
   return (
-    <Popover modal={true} open={optionsOpen} onOpenChange={setOptionsOpen}>
+    <Popover open={optionsOpen} onOpenChange={setOptionsOpen}>
       <PopoverTrigger asChild>
         <Button
           // Props here brings attributes passed down to the form input. Specifically, aria attributes and the id.
