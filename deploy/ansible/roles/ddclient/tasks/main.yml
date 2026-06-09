@@ -1,0 +1,30 @@
+---
+- name: Install ddclient
+  apt:
+    name: ddclient
+    state: present
+    update_cache: true
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+- name: Deploy ddclient config
+  template:
+    src: ddclient.conf.j2
+    dest: /etc/ddclient.conf
+    mode: '0600'
+  notify: restart ddclient
+
+- name: Disable ddclient daemon mode (systemd handles it)
+  copy:
+    content: |
+      run_daemon="false"
+      run_dhclient="false"
+      run_ipup="false"
+    dest: /etc/default/ddclient
+    mode: '0644'
+
+- name: Enable and start ddclient
+  service:
+    name: ddclient
+    state: started
+    enabled: true

@@ -1,0 +1,9 @@
+[Unit]
+Description=Daily Prosper DB backup
+
+[Timer]
+OnCalendar={{ backup_oncalendar }}
+Persistent=true
+
+[Install]
+WantedBy=timers.target

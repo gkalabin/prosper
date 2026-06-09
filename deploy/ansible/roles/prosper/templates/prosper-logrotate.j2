@@ -1,0 +1,12 @@
+{{ log_dir }}/*.log {
+  weekly
+  rotate 4
+  compress
+  dateext
+  missingok
+  notifempty
+  create
+  postrotate
+    systemctl restart prosper > /dev/null 2>&1 || true
+  endscript
+}

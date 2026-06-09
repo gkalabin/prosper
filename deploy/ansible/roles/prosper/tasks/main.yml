@@ -1,0 +1,60 @@
+---
+- name: Create repo directory
+  file:
+    path: '{{ repo_dir }}'
+    state: directory
+    owner: '{{ service_user }}'
+    group: '{{ service_user }}'
+    mode: '0755'
+
+- name: Clone Prosper repository
+  git:
+    repo: https://github.com/gkalabin/prosper.git
+    dest: '{{ repo_dir }}'
+    version: '{{ prosper_version }}'
+    # prosper_version may be a branch that gets force-pushed, so the remote tip
+    # is not always a fast-forward. Hard-reset the checkout to it instead of
+    # leaving the host on the previously fetched commit.
+    force: true
+  become_user: '{{ service_user }}'
+
+- name: Create log directory
+  file:
+    path: '{{ log_dir }}'
+    state: directory
+    owner: '{{ service_user }}'
+    group: '{{ service_user }}'
+    mode: '0755'
+
+- name: Render .env from vault variables
+  template:
+    src: env.j2
+    dest: '{{ repo_dir }}/.env'
+    owner: '{{ service_user }}'
+    group: '{{ service_user }}'
+    mode: '0600'
+  notify: restart prosper
+
+- name: Deploy systemd service
+  template:
+    src: prosper.service.j2
+    dest: /etc/systemd/system/prosper.service
+    mode: '0644'
+  notify:
+    - reload systemd
+    - restart prosper
+
+- name: Deploy logrotate config
+  template:
+    src: prosper-logrotate.j2
+    dest: /etc/logrotate.d/prosper
+    mode: '0644'
+
+# Enable but do not start here: this role runs before db_restore, so the
+# database may still be empty. The service is started after the restore has
+# seeded it, so the app does not initialize its own schema on an empty database.
+- name: Enable Prosper service
+  systemd:
+    name: prosper
+    enabled: true
+    daemon_reload: true

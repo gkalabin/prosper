@@ -1,0 +1,32 @@
+---
+# Install the provided private key as the service user's default SSH identity
+# and accept new host keys non-interactively so unattended SSH (e.g. git over
+# SSH) does not block on a prompt. The playbook applies this role only when
+# git_deploy_key is set.
+- name: Ensure the service user's .ssh directory exists
+  file:
+    path: '{{ ssh_identity_dir }}'
+    state: directory
+    owner: '{{ service_user }}'
+    group: '{{ service_user }}'
+    mode: '0700'
+
+- name: Write the private key
+  copy:
+    content: '{{ git_deploy_key }}'
+    dest: '{{ ssh_identity_dir }}/id_rsa'
+    owner: '{{ service_user }}'
+    group: '{{ service_user }}'
+    mode: '0600'
+
+- name: Point SSH at the key as the default identity
+  copy:
+    dest: '{{ ssh_identity_dir }}/config'
+    owner: '{{ service_user }}'
+    group: '{{ service_user }}'
+    mode: '0600'
+    content: |
+      Host *
+        IdentityFile {{ ssh_identity_dir }}/id_rsa
+        IdentitiesOnly yes
+        StrictHostKeyChecking accept-new

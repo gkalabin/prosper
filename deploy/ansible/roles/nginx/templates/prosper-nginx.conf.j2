@@ -1,0 +1,19 @@
+# Plain-HTTP only on purpose: certbot's nginx installer adds the TLS listener
+# and the HTTPS redirect to this file once the certificate is issued.
+server {
+  listen 80 default_server;
+  server_name {{ domain }};
+
+  gzip on;
+  gzip_proxied any;
+  server_name_in_redirect off;
+
+  proxy_set_header Upgrade $http_upgrade;
+  proxy_set_header Connection "upgrade";
+  # Preserves the client-facing host so the upstream sees the original origin.
+  proxy_set_header X-Forwarded-Host $host;
+
+  location / {
+    proxy_pass http://127.0.0.1:3000;
+  }
+}

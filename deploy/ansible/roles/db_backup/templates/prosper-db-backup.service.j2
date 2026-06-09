@@ -1,0 +1,11 @@
+[Unit]
+Description=Prosper DB backup
+After=mariadb.service
+
+[Service]
+Type=oneshot
+User={{ service_user }}
+WorkingDirectory={{ repo_dir }}
+ExecStart={{ repo_dir }}/scripts/db/backup.sh {{ backup_dir }}
+StandardOutput=append:{{ backup_log }}
+StandardError=append:{{ backup_log }}

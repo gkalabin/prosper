@@ -1,0 +1,28 @@
+---
+- name: Install snapd
+  apt:
+    name: snapd
+    state: present
+
+- name: Install certbot snap
+  community.general.snap:
+    name: certbot
+    classic: true
+
+# The nginx role renders the proxy config plain-HTTP; certbot's nginx installer
+# layers the TLS server directives on top. Detect when that layering is missing
+# (first run, or the template was re-rendered) instead of guarding on the
+# certificate file: the certificate can exist while the config lacks HTTPS.
+- name: Check whether the proxy config serves HTTPS
+  command: grep -q 'listen 443' /etc/nginx/conf.d/prosper.conf
+  register: https_configured
+  failed_when: false
+  changed_when: false
+
+# --reinstall keeps the existing certificate (no ACME round-trip) and still
+# runs the installer, so re-applying the Nginx TLS config is rate-limit safe.
+- name: Obtain SSL certificate and enable HTTPS in Nginx
+  command: >
+    /snap/bin/certbot --nginx --reinstall --redirect -d {{ domain }}
+    --agree-tos -m {{ certbot_email }} --non-interactive
+  when: https_configured.rc != 0

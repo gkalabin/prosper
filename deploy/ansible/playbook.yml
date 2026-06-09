@@ -1,0 +1,33 @@
+---
+- name: Deploy Prosper
+  hosts: all
+  become: true
+
+  roles:
+    - role: swap # creates a swapfile when swap_size is set (small VMs run out of memory otherwise)
+      when: swap_size | default('') | length > 0
+    - docker
+    - mariadb
+    - nginx
+    - ssh_hardening
+    - fail2ban
+    - role: ddclient # dynamic-IP hosts only; runs before certbot so the A record is current on first cert issue
+      when: ddclient_password | default('') | length > 0
+    - certbot
+    - role: ssh_identity # service user's SSH key, used for the backup/restore repos
+      when: git_deploy_key | length > 0
+    # prosper clones the app repo that db_restore's restore.sh lives in, so it
+    # runs first. It only enables the service; the post-restore task below starts
+    # the app, after db_restore has seeded the database.
+    - prosper
+    - db_restore
+    - db_backup
+
+  post_tasks:
+    # Start only after db_restore has seeded the database, so the app does not
+    # initialize its own schema on an empty one. Runs every play, so a stopped
+    # service is brought back up even when no config changed.
+    - name: Ensure Prosper service is running
+      systemd:
+        name: prosper
+        state: started

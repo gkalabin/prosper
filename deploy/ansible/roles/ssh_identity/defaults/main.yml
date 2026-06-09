@@ -1,0 +1,5 @@
+---
+# Private SSH deploy key the service user uses to authenticate to the private
+# backup/restore repos. Empty when those repos need no auth (e.g. public HTTPS).
+git_deploy_key: ''
+ssh_identity_dir: '/home/{{ service_user }}/.ssh'

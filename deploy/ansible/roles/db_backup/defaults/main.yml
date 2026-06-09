@@ -1,0 +1,8 @@
+---
+backup_repo: '' # Push target for nightly dumps. Empty disables the timer.
+backup_dir: '/var/lib/prosper-backups'
+backup_log: '/var/log/prosper/database_backup.log'
+backup_oncalendar: 'daily' # systemd OnCalendar spec
+# Author identity on the backup commits.
+backup_git_name: 'Prosper backup'
+backup_git_email: 'backup@{{ domain }}'

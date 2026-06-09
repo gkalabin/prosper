@@ -1,0 +1,10 @@
+# Override of the stock nginx-bad-request filter: still detect any 400
+# (failregex), but ignore the ones that originated from the app's own pages
+# (same-origin Referer). The Prosper frontend's requests (XHR, prefetch, form
+# posts) always carry a https://{{ domain }}/ Referer, so its validation 400s
+# never count. Malformed / scanner requests have no same-origin Referer and are
+# still banned. Pinned to the Referer field so the domain can't be smuggled in
+# via the request line or user-agent.
+[Definition]
+failregex   = ^<HOST> - \S+ \[\] "[^"]*" 400
+ignoreregex = ^<HOST> - \S+ \[\] "[^"]*" 400 \S+ "https?://{{ domain | regex_escape }}/

@@ -1,0 +1,29 @@
+---
+- name: Check for existing swapfile
+  stat:
+    path: /swapfile
+  register: swapfile
+
+- name: Allocate swap file
+  command: 'fallocate -l {{ swap_size }} /swapfile'
+  args:
+    creates: /swapfile
+
+- name: Set swap permissions
+  file:
+    path: /swapfile
+    mode: '0600'
+
+- name: Format swap
+  command: mkswap /swapfile
+  when: not swapfile.stat.exists
+
+- name: Enable swap
+  command: swapon /swapfile
+  when: not swapfile.stat.exists
+
+- name: Persist swap in fstab
+  lineinfile:
+    path: /etc/fstab
+    line: '/swapfile none swap sw 0 0'
+    state: present

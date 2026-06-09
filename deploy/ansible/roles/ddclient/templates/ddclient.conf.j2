@@ -1,0 +1,8 @@
+syslog=yes
+protocol=cloudflare
+use=web, web=ipify-ipv4
+ssl=yes
+login={{ ddclient_login }}
+password='{{ ddclient_password }}'
+zone={{ ddclient_zone }}
+{{ ddclient_hostname }}

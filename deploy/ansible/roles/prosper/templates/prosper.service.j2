@@ -1,0 +1,16 @@
+[Unit]
+Description=Prosper Expense Tracker
+After=mariadb.service docker.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User={{ service_user }}
+ExecStart=/bin/bash -x {{ repo_dir }}/scripts/bash_ci.sh
+StandardOutput=append:{{ log_dir }}/ci.log
+StandardError=append:{{ log_dir }}/ci.log
+
+[Install]
+WantedBy=multi-user.target
