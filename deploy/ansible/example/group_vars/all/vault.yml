@@ -1,0 +1,90 @@
+#
+# Copy this whole directory into a private, gitignored env subdir:
+#   cp -r deploy/ansible/example deploy/ansible/private/<env>
+# fill in the values below, then encrypt the vault in place:
+#   ansible-vault encrypt deploy/ansible/private/<env>/group_vars/all/vault.yml
+#
+# This is the only config file you edit per environment. These variables are
+# rendered into /opt/prosper/.env on the server — no separate env file.
+
+# === Domain & TLS =========================================================
+
+# Fully-qualified domain the app serves on. DNS for this name must point at the
+# host BEFORE you run the playbook (cert issuance fails otherwise).
+domain: 'prspr.example.com'
+
+# Email for SSL cert expiry warnings. A real inbox you check.
+certbot_email: 'you@example.com'
+
+# === SSH hardening ========================================================
+
+# Non-default SSH port to cut botnet noise. Set ansible_port in inventory.yml
+# to match, or re-runs lock you out.
+ssh_port: 2223
+
+# Space-separated usernames allowed to SSH in. Anyone else is refused even with
+# a valid key. Usually just your ansible_user.
+ssh_allowed_users: 'your_user'
+
+# === App config (rendered verbatim into /opt/prosper/.env) ================
+
+# Public origin the browser sees. Must match `domain` with https://.
+public_app_url: 'https://prspr.example.com'
+
+# db_host: localhost keeps DB traffic on the unix socket (fastest, no
+# bind-address change).
+db_host: 'localhost'
+db_port: 3306
+db_name: 'prosperdb'
+db_user: 'prosper'
+db_password: '' # generate with: openssl rand -base64 32
+
+# Cap on self-registration. Set 0 to disable signup once your users are
+# onboarded.
+max_users_allowed_to_register: 2
+
+# Optional open-banking integrations — leave blank to disable each.
+# TrueLayer: https://console.truelayer.com/
+true_layer_client_id: ''
+true_layer_client_secret: ''
+# GoCardless Bank Account Data (formerly Nordigen): https://bankaccountdata.gocardless.com/
+gocardless_secret_id: ''
+gocardless_secret_key: ''
+# === Swap (low-RAM hosts) =================================================
+# Size of the swapfile to create, e.g. '4G'. npm builds OOM on small VMs.
+# Leave unset on hosts with enough RAM (a Pi 4 with 4G+ is fine).
+# swap_size: '4G'
+
+# === Dynamic DNS (Cloudflare) =============================================
+# Only for dynamic-IP hosts (home internet). Leave the block out on a static
+# IP. ddclient keeps the A record pointed at the current WAN IP.
+# Cloudflare account email and a Global API Key (My Profile → API Tokens).
+# ddclient_login: 'you@example.com'
+# ddclient_password: ''
+# Zone (root domain) and the record (subdomain) to keep current.
+# ddclient_zone: 'example.com'
+# ddclient_hostname: 'prspr.example.com'
+
+# === Database backup & restore (optional) =================================
+# backup_repo: git-pushable repo where nightly dumps are committed. Enables a
+# daily systemd timer. Leave unset to never write backups (e.g. on staging).
+# backup_repo: 'git@github.com:you/prosper-backups.git'
+#
+# restore_repo: read-only repo to seed the DB from when it is empty. On fresh
+# prod set it to backup_repo; on staging point it at prod's backup_repo to clone
+# real data without ever pushing back. Leave unset to skip restore.
+# restore_repo: 'git@github.com:you/prosper-backups.git'
+#
+# git_deploy_key: private SSH key the service user uses for the repos above.
+# Generate one (ssh-keygen -t rsa -b 4096 -f prosper-backups -N '').
+# Needed whenever the repos are private.
+#
+# git_deploy_key: |
+#   -----BEGIN OPENSSH PRIVATE KEY----- # gitleaks:allow
+#   ...
+#   -----END OPENSSH PRIVATE KEY-----
+
+# === Deployment (optional) ================================================
+# prosper_version: git ref (branch, tag, or commit) of the Prosper repo to
+# deploy. Defaults to main; point it at a branch to test changes on a host.
+# prosper_version: 'main'

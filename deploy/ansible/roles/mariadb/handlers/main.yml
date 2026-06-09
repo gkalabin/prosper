@@ -1,0 +1,9 @@
+# Handlers run once at the end of a play when notified by a task that changed
+# state — e.g. the MariaDB config template was rewritten. Putting the restart
+# here means many tasks can notify it but the service only restarts once,
+# after all config is in place.
+---
+- name: restart mariadb
+  service:
+    name: mariadb
+    state: restarted

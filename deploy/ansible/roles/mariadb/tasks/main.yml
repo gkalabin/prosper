@@ -1,0 +1,38 @@
+---
+- name: Install MariaDB
+  apt:
+    name: [mariadb-server, python3-pymysql]
+    state: present
+    update_cache: true
+
+- name: Deploy MariaDB tuning config
+  template:
+    src: prosper-mysql.cnf.j2
+    dest: /etc/mysql/conf.d/prosper.cnf
+    mode: '0644'
+  notify: restart mariadb
+
+- name: Enable and start MariaDB
+  service:
+    name: mariadb
+    state: started
+    enabled: true
+
+- name: Create Prosper database
+  ansible.mysql.mysql_db:
+    name: '{{ db_name }}'
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+
+# Grant access to both localhost host variations.
+- name: Create Prosper database user
+  ansible.mysql.mysql_user:
+    name: '{{ db_user }}'
+    password: '{{ db_password }}'
+    priv: '{{ db_name }}.*:ALL'
+    host: '{{ item }}'
+    state: present
+    login_unix_socket: /var/run/mysqld/mysqld.sock
+  loop:
+    - localhost
+    - 127.0.0.1

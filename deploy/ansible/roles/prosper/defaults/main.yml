@@ -1,0 +1,14 @@
+---
+service_user: 'prosper'
+
+# Git ref (branch, tag, or commit) of the Prosper repo to deploy. Override to
+# roll out a feature branch.
+prosper_version: 'main'
+
+# Directory where the Prosper repo is cloned (needed for bash_ci.sh).
+repo_dir: '/opt/prosper'
+log_dir: '/var/log/prosper'
+
+# Unix socket for the in-container backend ↔ frontend gRPC channel. Internal
+# wiring, not user-facing config, so it lives here rather than in vault.
+grpc_socket_path: '/tmp/prosper.sock'

@@ -1,0 +1,30 @@
+---
+# Seed the database from a read-only checkout when it is empty, so a fresh prod
+# or staging host comes up with real data. The clone is never pushed to, so
+# staging can pull from prod's backup repo without risking its contents.
+- name: Restore database from backup when empty
+  when: restore_repo | length > 0
+  block:
+    - name: Create restore checkout directory
+      file:
+        path: '{{ restore_dir }}'
+        state: directory
+        owner: '{{ service_user }}'
+        group: '{{ service_user }}'
+        mode: '0755'
+
+    - name: Clone restore source repo
+      git:
+        repo: '{{ restore_repo }}'
+        dest: '{{ restore_dir }}'
+        version: main
+      become_user: '{{ service_user }}'
+
+    - name: Load latest dump if the database is empty
+      command: '{{ repo_dir }}/scripts/db/restore.sh --if-empty {{ restore_dir }}'
+      become_user: '{{ service_user }}'
+      register: db_restore
+      # restore.sh exits 0 when it restored, 2 when the database was already
+      # populated and it made no change.
+      changed_when: db_restore.rc == 0
+      failed_when: db_restore.rc not in [0, 2]

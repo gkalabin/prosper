@@ -1,0 +1,31 @@
+---
+# Install the deploy key as the service user's default identity and accept new
+# host keys non-interactively so unattended git over SSH does not block on a
+# prompt. The playbook applies this role only when git_deploy_key is set.
+- name: Ensure the service user's .ssh directory exists
+  file:
+    path: '{{ git_ssh_dir }}'
+    state: directory
+    owner: '{{ service_user }}'
+    group: '{{ service_user }}'
+    mode: '0700'
+
+- name: Write the deploy key
+  copy:
+    content: '{{ git_deploy_key }}'
+    dest: '{{ git_ssh_dir }}/id_rsa'
+    owner: '{{ service_user }}'
+    group: '{{ service_user }}'
+    mode: '0600'
+
+- name: Point SSH at the deploy key for git
+  copy:
+    dest: '{{ git_ssh_dir }}/config'
+    owner: '{{ service_user }}'
+    group: '{{ service_user }}'
+    mode: '0600'
+    content: |
+      Host *
+        IdentityFile {{ git_ssh_dir }}/id_rsa
+        IdentitiesOnly yes
+        StrictHostKeyChecking accept-new

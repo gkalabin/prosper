@@ -1,0 +1,17 @@
+---
+- name: Install snapd
+  apt:
+    name: snapd
+    state: present
+
+- name: Install certbot snap
+  community.general.snap:
+    name: certbot
+    classic: true
+
+- name: Obtain SSL certificate
+  command: >
+    /snap/bin/certbot --nginx -d {{ domain }} --agree-tos -m {{ certbot_email }}
+    --non-interactive
+  args:
+    creates: /etc/letsencrypt/live/{{ domain }}/fullchain.pem

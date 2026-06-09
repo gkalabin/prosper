@@ -1,0 +1,5 @@
+---
+backup_repo: '' # Push target for nightly dumps. Empty disables the timer.
+backup_dir: '/var/lib/prosper-backups'
+backup_log: '/var/log/prosper/database_backup.log'
+backup_oncalendar: 'daily' # systemd OnCalendar spec

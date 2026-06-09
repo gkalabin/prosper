@@ -1,0 +1,49 @@
+---
+# Nightly dump timer. Pushes to backup_repo, so leave it unset on hosts that
+# must never write to the shared repo (e.g. staging).
+- name: Install nightly backup timer
+  when: backup_repo | length > 0
+  block:
+    - name: Create backup checkout directory
+      file:
+        path: '{{ backup_dir }}'
+        state: directory
+        owner: '{{ service_user }}'
+        group: '{{ service_user }}'
+        mode: '0755'
+
+    - name: Clone backup repo as service user
+      git:
+        repo: '{{ backup_repo }}'
+        dest: '{{ backup_dir }}'
+        version: main
+      become_user: '{{ service_user }}'
+
+    - name: Ensure backup log exists
+      file:
+        path: '{{ backup_log }}'
+        state: touch
+        owner: '{{ service_user }}'
+        group: '{{ service_user }}'
+        mode: '0644'
+
+    - name: Install systemd service for backup run
+      template:
+        src: prosper-db-backup.service.j2
+        dest: /etc/systemd/system/prosper-db-backup.service
+        mode: '0644'
+      notify: reload systemd
+
+    - name: Install systemd timer for daily backup
+      template:
+        src: prosper-db-backup.timer.j2
+        dest: /etc/systemd/system/prosper-db-backup.timer
+        mode: '0644'
+      notify: reload systemd
+
+    - name: Enable and start backup timer
+      systemd:
+        name: prosper-db-backup.timer
+        state: started
+        enabled: true
+        daemon_reload: true

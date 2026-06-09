@@ -1,0 +1,3 @@
+---
+restore_repo: '' # Read-only seed source. Empty disables restore-on-provision.
+restore_dir: '/var/lib/prosper-restore'

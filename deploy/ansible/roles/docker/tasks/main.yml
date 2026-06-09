@@ -1,0 +1,55 @@
+---
+- name: Install Docker prerequisites
+  apt:
+    name: [ca-certificates, curl, gnupg, python3-debian]
+    state: present
+    update_cache: true
+
+- name: Add Docker GPG key
+  get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: '0644'
+
+- name: Remove legacy one-line Docker apt source
+  file:
+    path: /etc/apt/sources.list.d/docker.list
+    state: absent
+
+- name: Add Docker apt repository
+  deb822_repository:
+    name: docker
+    types: deb
+    uris: https://download.docker.com/linux/debian
+    suites: "{{ ansible_facts['distribution_release'] }}"
+    components: stable
+    architectures: >-
+      {{ ansible_facts['architecture'] | replace('x86_64', 'amd64') |
+      replace('aarch64', 'arm64') }}
+    signed_by: /etc/apt/keyrings/docker.asc
+
+- name: Install Docker CE
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+
+- name: Enable and start Docker
+  service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Create the service user
+  user:
+    name: '{{ service_user }}'
+    system: true
+    create_home: true
+    shell: /bin/bash
+    groups: docker
+    append: true

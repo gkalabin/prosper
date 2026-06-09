@@ -1,0 +1,20 @@
+Include /etc/ssh/sshd_config.d/*.conf
+Port {{ ssh_port }}
+SyslogFacility AUTH
+LogLevel INFO
+KbdInteractiveAuthentication no
+PermitRootLogin no
+StrictModes yes
+PubkeyAuthentication yes
+PasswordAuthentication no
+PermitEmptyPasswords no
+ChallengeResponseAuthentication no
+UsePAM yes
+AllowAgentForwarding no
+AllowTcpForwarding no
+X11Forwarding no
+PrintMotd no
+PrintLastLog yes
+AllowUsers {{ ssh_allowed_users }}
+AcceptEnv LANG LC_*
+Subsystem sftp /usr/lib/openssh/sftp-server

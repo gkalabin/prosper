@@ -1,0 +1,25 @@
+---
+- name: Install Nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: true
+
+- name: Deploy Prosper proxy config
+  template:
+    src: prosper-nginx.conf.j2
+    dest: /etc/nginx/conf.d/prosper.conf
+    mode: '0644'
+  notify: reload nginx
+
+- name: Remove default site
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: reload nginx
+
+- name: Enable and start Nginx
+  service:
+    name: nginx
+    state: started
+    enabled: true

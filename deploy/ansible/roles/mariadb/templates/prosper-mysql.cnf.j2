@@ -1,0 +1,9 @@
+# Tuned for low-memory hosts (1GB-class Raspberry Pi). Applied uniformly across
+# envs so staging exercises the same memory ceiling as prod — a query that
+# fits in staging but not prod is a worse surprise than a slightly small pool
+# on a beefy VM.
+[mysqld]
+performance_schema = 0
+skip-name-resolve = 1
+key_buffer_size = 0
+innodb_buffer_pool_size = 32M
