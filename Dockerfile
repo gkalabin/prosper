@@ -11,6 +11,8 @@ RUN cd backend && CGO_ENABLED=0 go build -o /out/backend ./cmd/backend
 
 # ── Node base ──
 FROM node:24.16.0-alpine3.23 AS node-base
+# Patch OS packages to pick up security fixes published after the base image.
+RUN apk upgrade --no-cache
 
 # ── Frontend dependencies ──
 FROM node-base AS frontend-deps
