@@ -30,13 +30,15 @@ type transactionItem struct {
 
 type transactionsResponse struct {
 	Transactions struct {
-		Booked  []json.RawMessage `json:"booked"`
-		Pending []json.RawMessage `json:"pending"`
+		Booked []json.RawMessage `json:"booked"`
 	} `json:"transactions"`
 }
 
-// FetchTransactions returns GoCardless's transactions
-// for the external account.
+// FetchTransactions returns the account's booked transactions since the
+// given date. Pending entries are deliberately skipped: some banks (e.g.
+// Amex) give a pending entry an id unrelated to the one it receives once
+// booked, so ingesting it would surface a suggestion that reappears as
+// unrecorded the moment it settles.
 func (n *Provider) FetchTransactions(ctx context.Context, userID, bankID int32, externalAccountID string, since time.Time) ([]model.OpenBankingTransaction, error) {
 	access, err := n.accessToken(ctx, userID, bankID)
 	if err != nil {
@@ -48,35 +50,37 @@ func (n *Provider) FetchTransactions(ctx context.Context, userID, bankID int32, 
 		access, &r); err != nil {
 		return nil, err
 	}
-	out := make([]model.OpenBankingTransaction, 0, len(r.Transactions.Booked)+len(r.Transactions.Pending))
-	out = appendItems(out, r.Transactions.Booked, "booked", externalAccountID)
-	out = appendItems(out, r.Transactions.Pending, "pending", externalAccountID)
+	out := make([]model.OpenBankingTransaction, 0, len(r.Transactions.Booked))
+	for _, raw := range r.Transactions.Booked {
+		t, ok := parseTransaction(raw, externalAccountID)
+		if !ok {
+			continue
+		}
+		out = append(out, t)
+	}
 	return out, nil
 }
 
-// appendItems converts and appends each item, logging and skipping any
-// item with unparsable JSON, timestamp or amount.
-func appendItems(out []model.OpenBankingTransaction, items []json.RawMessage, kind, accountID string) []model.OpenBankingTransaction {
-	for _, raw := range items {
-		var item transactionItem
-		if err := json.Unmarshal(raw, &item); err != nil {
-			log.Printf("gocardless: skip unparsable %s transaction on account %s: %v", kind, accountID, err)
-			continue
-		}
-		ts, err := itemTimestamp(item)
-		if err != nil {
-			log.Printf("gocardless: %s transaction %s on account %s: %v", kind, item.TransactionID, accountID, err)
-			continue
-		}
-		amount, err := moneyutil.ParseDecimalToNanos(item.Amount.Amount)
-		if err != nil {
-			log.Printf("gocardless: %s transaction %s on account %s: parse amount %q: %v",
-				kind, item.TransactionID, accountID, item.Amount.Amount, err)
-			continue
-		}
-		out = append(out, model.NewOpenBankingTransaction(externalTransactionID(item), ts, description(item), amount, raw))
+// parseTransaction converts a booked transaction, logging and returning
+// false for any item with unparsable JSON, timestamp or amount.
+func parseTransaction(raw json.RawMessage, accountID string) (model.OpenBankingTransaction, bool) {
+	var item transactionItem
+	if err := json.Unmarshal(raw, &item); err != nil {
+		log.Printf("gocardless: skip unparsable transaction on account %s: %v", accountID, err)
+		return model.OpenBankingTransaction{}, false
 	}
-	return out
+	ts, err := itemTimestamp(item)
+	if err != nil {
+		log.Printf("gocardless: transaction %s on account %s: %v", item.TransactionID, accountID, err)
+		return model.OpenBankingTransaction{}, false
+	}
+	amount, err := moneyutil.ParseDecimalToNanos(item.Amount.Amount)
+	if err != nil {
+		log.Printf("gocardless: transaction %s on account %s: parse amount %q: %v",
+			item.TransactionID, accountID, item.Amount.Amount, err)
+		return model.OpenBankingTransaction{}, false
+	}
+	return model.NewOpenBankingTransaction(externalTransactionID(item), ts, description(item), amount, raw), true
 }
 
 func externalTransactionID(item transactionItem) string {
