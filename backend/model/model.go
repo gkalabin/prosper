@@ -61,7 +61,7 @@ type BankAccount struct {
 	Joint               bool      `db:"joint"`
 	Archived            bool      `db:"archived"`
 	DisplayOrder        int32     `db:"displayOrder"`
-	InitialBalanceCents int32     `db:"initialBalanceCents"`
+	InitialBalanceNanos int64     `db:"initialBalanceNanos"`
 	CreatedAt           time.Time `db:"createdAt"`
 	UpdatedAt           time.Time `db:"updatedAt"`
 }
@@ -171,7 +171,7 @@ type StockQuote struct {
 	StockExchange  string    `db:"stockExchange"`
 	StockTicker    string    `db:"stockTicker"`
 	QuoteTimestamp time.Time `db:"quoteTimestamp"`
-	Value          *int64    `db:"value"`
+	ValueNanos     *int64    `db:"valueNanos"`
 	FetchStatus    string    `db:"fetchStatus"`
 	FetchedAt      time.Time `db:"fetchedAt"`
 	CreatedAt      time.Time `db:"createdAt"`

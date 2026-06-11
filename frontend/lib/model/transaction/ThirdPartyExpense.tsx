@@ -6,7 +6,6 @@ import {
 } from '@/lib/grpc/gen/prosper/v1/ledger';
 import {timestampToEpoch} from '@/lib/grpc/timestamp';
 import {TransactionCompanion} from '@/lib/model/transaction/TransactionCompanion';
-import {nanosToCents} from '@/lib/util/util';
 
 export type ThirdPartyExpense = {
   kind: 'ThirdPartyExpense';
@@ -14,9 +13,9 @@ export type ThirdPartyExpense = {
   timestampEpoch: number;
   payer: string;
   vendor: string;
-  amountCents: number;
+  amountNanos: bigint;
   currencyCode: string;
-  ownShareCents: number;
+  ownShareNanos: bigint;
   companions: TransactionCompanion[];
   note: string;
   categoryId: number;
@@ -46,19 +45,18 @@ export function thirdPartyExpenseFromDB(
   if (!receivableLine) {
     throw new Error(`ThirdPartyExpense ${tx.id}: no receivable line`);
   }
-  const ownShareCents = nanosToCents(expenseLine.amountNanos);
+  const ownShareNanos = expenseLine.amountNanos;
   const currencyCode = expenseLine.currencyCode;
   if (!currencyCode) {
     throw new Error(`ThirdPartyExpense ${tx.id}: missing currencyCode`);
   }
   // Sum how much others paid as third party expense is paid by others (usually single party).
   const totalNanos = tx.splits
-    // BigInt() wrapper is needed because Next.js cache serializes bigint as number.
-    .map(s => BigInt(s.companionPaidNanos))
+    .map(s => s.companionPaidNanos)
     .reduce((i, j) => i + j, BigInt(0));
   const companions: TransactionCompanion[] = tx.splits.map(s => ({
     name: s.companionName,
-    amountCents: nanosToCents(s.companionShareNanos),
+    amountNanos: s.companionShareNanos,
   }));
   if (!tx.payer) {
     throw new Error(`ThirdPartyExpense ${tx.id}: missing payer`);
@@ -75,9 +73,9 @@ export function thirdPartyExpenseFromDB(
     timestampEpoch: timestampToEpoch(tx.timestamp),
     payer: tx.payer,
     vendor: tx.vendor,
-    amountCents: nanosToCents(totalNanos),
+    amountNanos: totalNanos,
     currencyCode,
-    ownShareCents,
+    ownShareNanos,
     companions,
     note: tx.note,
     categoryId: tx.categoryId,

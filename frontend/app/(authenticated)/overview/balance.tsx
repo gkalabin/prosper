@@ -34,7 +34,7 @@ export function AccountBalance({account}: {account: BankAccount}) {
   }
   const unit = accountUnit(account, stocks);
   const remoteBalance = new AmountWithUnit({
-    amountCents: obBalance.balanceCents,
+    amountNanos: obBalance.balanceNanos,
     unit,
   });
   return <RemoteBalance account={account} remoteBalance={remoteBalance} />;

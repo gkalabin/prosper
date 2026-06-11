@@ -905,7 +905,7 @@ type BankAccount struct {
 	Joint               bool      `protobuf:"varint,6,opt,name=joint,proto3" json:"joint,omitempty"`
 	Archived            bool      `protobuf:"varint,7,opt,name=archived,proto3" json:"archived,omitempty"`
 	DisplayOrder        int32     `protobuf:"varint,8,opt,name=display_order,json=displayOrder,proto3" json:"display_order,omitempty"`
-	InitialBalanceCents int32     `protobuf:"varint,9,opt,name=initial_balance_cents,json=initialBalanceCents,proto3" json:"initial_balance_cents,omitempty"`
+	InitialBalanceNanos int64     `protobuf:"varint,9,opt,name=initial_balance_nanos,json=initialBalanceNanos,proto3" json:"initial_balance_nanos,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -996,9 +996,9 @@ func (x *BankAccount) GetDisplayOrder() int32 {
 	return 0
 }
 
-func (x *BankAccount) GetInitialBalanceCents() int32 {
+func (x *BankAccount) GetInitialBalanceNanos() int64 {
 	if x != nil {
-		return x.InitialBalanceCents
+		return x.InitialBalanceNanos
 	}
 	return 0
 }
@@ -2475,7 +2475,7 @@ type UpsertBankAccountRequest struct {
 	Joint               bool         `protobuf:"varint,4,opt,name=joint,proto3" json:"joint,omitempty"`
 	Archived            bool         `protobuf:"varint,5,opt,name=archived,proto3" json:"archived,omitempty"`
 	DisplayOrder        int32        `protobuf:"varint,6,opt,name=display_order,json=displayOrder,proto3" json:"display_order,omitempty"`
-	InitialBalanceCents int32        `protobuf:"varint,7,opt,name=initial_balance_cents,json=initialBalanceCents,proto3" json:"initial_balance_cents,omitempty"`
+	InitialBalanceNanos int64        `protobuf:"varint,7,opt,name=initial_balance_nanos,json=initialBalanceNanos,proto3" json:"initial_balance_nanos,omitempty"`
 	Unit                *AccountUnit `protobuf:"bytes,8,opt,name=unit,proto3" json:"unit,omitempty"`
 	SessionId           string       `protobuf:"bytes,9,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	unknownFields       protoimpl.UnknownFields
@@ -2554,9 +2554,9 @@ func (x *UpsertBankAccountRequest) GetDisplayOrder() int32 {
 	return 0
 }
 
-func (x *UpsertBankAccountRequest) GetInitialBalanceCents() int32 {
+func (x *UpsertBankAccountRequest) GetInitialBalanceNanos() int64 {
 	if x != nil {
-		return x.InitialBalanceCents
+		return x.InitialBalanceNanos
 	}
 	return 0
 }
@@ -3504,7 +3504,7 @@ const file_prosper_v1_ledger_proto_rawDesc = "" +
 	"\x05joint\x18\x06 \x01(\bR\x05joint\x12\x1a\n" +
 	"\barchived\x18\a \x01(\bR\barchived\x12#\n" +
 	"\rdisplay_order\x18\b \x01(\x05R\fdisplayOrder\x122\n" +
-	"\x15initial_balance_cents\x18\t \x01(\x05R\x13initialBalanceCentsB\x10\n" +
+	"\x15initial_balance_nanos\x18\t \x01(\x03R\x13initialBalanceNanosB\x10\n" +
 	"\x0e_currency_codeB\b\n" +
 	"\x06_stock\"\x9d\x01\n" +
 	"\bCategory\x12\x0e\n" +
@@ -3646,7 +3646,7 @@ const file_prosper_v1_ledger_proto_rawDesc = "" +
 	"\x05joint\x18\x04 \x01(\bR\x05joint\x12\x1a\n" +
 	"\barchived\x18\x05 \x01(\bR\barchived\x12#\n" +
 	"\rdisplay_order\x18\x06 \x01(\x05R\fdisplayOrder\x122\n" +
-	"\x15initial_balance_cents\x18\a \x01(\x05R\x13initialBalanceCents\x12+\n" +
+	"\x15initial_balance_nanos\x18\a \x01(\x03R\x13initialBalanceNanos\x12+\n" +
 	"\x04unit\x18\b \x01(\v2\x17.prosper.v1.AccountUnitR\x04unit\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\t \x01(\tR\tsessionIdB\r\n" +

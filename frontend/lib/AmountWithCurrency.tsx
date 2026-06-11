@@ -4,8 +4,8 @@ import {Currency, formatCurrency} from '@/lib/model/Currency';
 export class AmountWithCurrency extends Amount {
   private readonly currency: Currency;
 
-  public constructor(init: {amountCents: number; currency: Currency}) {
-    super({amountCents: init.amountCents});
+  public constructor(init: {amountNanos: bigint; currency: Currency}) {
+    super({amountNanos: init.amountNanos});
     this.currency = init.currency;
   }
 
@@ -18,7 +18,7 @@ export class AmountWithCurrency extends Amount {
 
   public static zero(currency: Currency): AmountWithCurrency {
     return new AmountWithCurrency({
-      amountCents: 0,
+      amountNanos: 0n,
       currency,
     });
   }
@@ -30,7 +30,7 @@ export class AmountWithCurrency extends Amount {
   public abs(): AmountWithCurrency {
     if (this.isNegative()) {
       return new AmountWithCurrency({
-        amountCents: super.abs().cents(),
+        amountNanos: super.abs().nanos(),
         currency: this.currency,
       });
     }
@@ -39,7 +39,7 @@ export class AmountWithCurrency extends Amount {
 
   public negate() {
     return new AmountWithCurrency({
-      amountCents: super.negate().cents(),
+      amountNanos: super.negate().nanos(),
       currency: this.currency,
     });
   }
@@ -47,7 +47,7 @@ export class AmountWithCurrency extends Amount {
   public round() {
     if (!this.isRound()) {
       return new AmountWithCurrency({
-        amountCents: super.round().cents(),
+        amountNanos: super.round().nanos(),
         currency: this.currency,
       });
     }
@@ -60,7 +60,7 @@ export class AmountWithCurrency extends Amount {
     }
     this.assertSameCurrency(other);
     return new AmountWithCurrency({
-      amountCents: super.add(other).cents(),
+      amountNanos: super.add(other).nanos(),
       currency: this.currency,
     });
   }
@@ -71,7 +71,7 @@ export class AmountWithCurrency extends Amount {
     }
     this.assertSameCurrency(other);
     return new AmountWithCurrency({
-      amountCents: super.subtract(other).cents(),
+      amountNanos: super.subtract(other).nanos(),
       currency: this.currency,
     });
   }

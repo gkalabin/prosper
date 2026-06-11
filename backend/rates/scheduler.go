@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"prosper/model"
-	"prosper/moneyutil"
 )
 
 // initialFetchWindowDays is the size of the initial backfill window when
@@ -232,19 +231,19 @@ func (s *Service) refreshStock(ctx context.Context, st *model.Stock) error {
 	}
 	rows := make([]model.StockQuote, len(quotes))
 	for i, q := range quotes {
-		valueCents := q.ClosePriceNanos / moneyutil.NanosPerCent
+		valueNanos := q.ClosePriceNanos
 		rows[i] = model.StockQuote{
 			StockExchange:  st.Exchange,
 			StockTicker:    st.Ticker,
 			QuoteTimestamp: q.QuoteDate,
-			Value:          &valueCents,
+			ValueNanos:     &valueNanos,
 		}
 	}
 	_, err = s.db.NamedExecContext(ctx,
 		`INSERT INTO StockQuote
-		        ( stockExchange,  stockTicker,  quoteTimestamp,  value)
-		 VALUES (:stockExchange, :stockTicker, :quoteTimestamp, :value)
-		 ON DUPLICATE KEY UPDATE value = VALUES(value)`,
+		        ( stockExchange,  stockTicker,  quoteTimestamp,  valueNanos)
+		 VALUES (:stockExchange, :stockTicker, :quoteTimestamp, :valueNanos)
+		 ON DUPLICATE KEY UPDATE valueNanos = VALUES(valueNanos)`,
 		rows)
 	return err
 }

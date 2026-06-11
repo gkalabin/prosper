@@ -19,7 +19,7 @@ describe('search: parenthesis', () => {
   test('single OR', () => {
     expectSearch({
       q: {query: 'tesco AND (hsbc OR costa)', ...params},
-      results: [{vendor: 'Tesco', amountCents: 400}],
+      results: [{vendor: 'Tesco', amountNanos: 4000000000n}],
     });
   });
 });

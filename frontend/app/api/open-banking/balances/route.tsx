@@ -3,12 +3,13 @@ import {withAuth} from '@/lib/grpc/auth';
 import {openBankingClient} from '@/lib/grpc/client';
 import {timestampToEpoch} from '@/lib/grpc/timestamp';
 import {logApi} from '@/lib/util/log';
-import {nanosToCents} from '@/lib/util/util';
 import {NextResponse} from 'next/server';
 
 export interface AccountBalance {
   internalAccountId: number;
-  balanceCents: number;
+  // Nanos as a plain number because this shape crosses a JSON boundary
+  // where bigint cannot be serialized.
+  balanceNanos: number;
 }
 
 export interface ConnectionExpiration {
@@ -31,7 +32,7 @@ export async function GET(): Promise<Response> {
   const result: OpenBankingBalances = {
     balances: balances.accounts.map(a => ({
       internalAccountId: a.internalAccountId,
-      balanceCents: nanosToCents(a.balanceNanos),
+      balanceNanos: Number(a.balanceNanos),
     })),
     expirations: status.expirations.map(e => ({
       bankId: e.bankId,

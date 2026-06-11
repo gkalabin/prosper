@@ -1,34 +1,32 @@
 import {
   appendNewItems,
   capitalize as capitalise,
-  centsToDollar,
-  centsToNanos,
-  dollarToCents,
   dollarToNanos,
-  nanosToCents,
+  nanosToDollar,
   notEmpty,
-  parseAmountAsCents,
+  parseAmountAsNanos,
   removeQuotes,
+  roundToCent,
 } from '@/lib/util/util';
 import {expect, test} from '@jest/globals';
 
-describe('parseAmountAsCents', () => {
+describe('parseAmountAsNanos', () => {
   test.each(['', ' ', ' 1', '1.', '.1', '1.123', 'x'])(
-    "parsing '%s' returns NaN",
-    a => expect(parseAmountAsCents(a)).toBeNaN()
+    "parsing '%s' returns null",
+    a => expect(parseAmountAsNanos(a)).toBeNull()
   );
-  test.each<{a: string; expected: number}>`
+  test.each<{a: string; expected: bigint}>`
     a         | expected
-    ${'1'}    | ${100}
-    ${'1.00'} | ${100}
-    ${'1.03'} | ${103}
-    ${'1.23'} | ${123}
-    ${'1.20'} | ${120}
-    ${'0.23'} | ${23}
-    ${'1,5'}  | ${150}
-    ${'-1'}   | ${-100}
+    ${'1'}    | ${1_000_000_000n}
+    ${'1.00'} | ${1_000_000_000n}
+    ${'1.03'} | ${1_030_000_000n}
+    ${'1.23'} | ${1_230_000_000n}
+    ${'1.20'} | ${1_200_000_000n}
+    ${'0.23'} | ${230_000_000n}
+    ${'1,5'}  | ${1_500_000_000n}
+    ${'-1'}   | ${-1_000_000_000n}
   `('returns $expected when $a as parsed as amount', ({a, expected}) => {
-    expect(parseAmountAsCents(a)).toEqual(expected);
+    expect(parseAmountAsNanos(a)).toEqual(expected);
   });
 });
 
@@ -75,60 +73,29 @@ describe('notEmpty', () => {
   );
 });
 
-describe('centsToDollar', () => {
-  test.each<{cents: number; expected: number}>`
-    cents   | expected
-    ${0}    | ${0}
-    ${100}  | ${1}
-    ${150}  | ${1.5}
-    ${99}   | ${0.99}
-    ${-100} | ${-1}
-    ${3.99} | ${0.04}
-  `('converts $cents cents to $expected dollars', ({cents, expected}) =>
-    expect(centsToDollar(cents)).toEqual(expected)
-  );
-});
-
-describe('dollarToCents', () => {
-  test.each<{dollar: number; expected: number}>`
-    dollar    | expected
-    ${0}      | ${0}
-    ${1}      | ${100}
-    ${1.5}    | ${150}
-    ${0.99}   | ${99}
-    ${-1}     | ${-100}
-    ${1.23}   | ${123}
-    ${1.2345} | ${123}
-  `('converts $dollar dollars to $expected cents', ({dollar, expected}) =>
-    expect(dollarToCents(dollar)).toEqual(expected)
-  );
-});
-
-describe('nanosToCents', () => {
+describe('nanosToDollar', () => {
   test.each<{nanos: bigint; expected: number}>`
     nanos              | expected
     ${0n}              | ${0}
-    ${10_000_000n}     | ${1}
-    ${1_000_000_000n}  | ${100}
-    ${-10_000_000n}    | ${-1}
-    ${-1_000_000_000n} | ${-100}
-    ${15_000_000n}     | ${1}
-    ${19_999_999n}     | ${1}
-  `('converts $nanos nanos to $expected cents', ({nanos, expected}) =>
-    expect(nanosToCents(nanos)).toEqual(expected)
+    ${1_000_000_000n}  | ${1}
+    ${1_500_000_000n}  | ${1.5}
+    ${990_000_000n}    | ${0.99}
+    ${-1_000_000_000n} | ${-1}
+  `('converts $nanos nanos to $expected dollars', ({nanos, expected}) =>
+    expect(nanosToDollar(nanos)).toEqual(expected)
   );
 });
 
-describe('centsToNanos', () => {
-  test.each<{cents: number; expected: bigint}>`
-    cents   | expected
-    ${0}    | ${0n}
-    ${1}    | ${10_000_000n}
-    ${100}  | ${1_000_000_000n}
-    ${-1}   | ${-10_000_000n}
-    ${1234} | ${12_340_000_000n}
-  `('converts $cents cents to $expected nanos', ({cents, expected}) =>
-    expect(centsToNanos(cents)).toEqual(expected)
+describe('roundToCent', () => {
+  test.each<{dollar: number; expected: number}>`
+    dollar    | expected
+    ${0}      | ${0}
+    ${1.5}    | ${1.5}
+    ${0.555}  | ${0.56}
+    ${-0.555} | ${-0.56}
+    ${1.2345} | ${1.23}
+  `('rounds $dollar to $expected', ({dollar, expected}) =>
+    expect(roundToCent(dollar)).toEqual(expected)
   );
 });
 

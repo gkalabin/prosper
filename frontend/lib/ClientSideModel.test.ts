@@ -30,13 +30,13 @@ describe('ExchangeRates day bucketing', () => {
     const rub = mustFindByCode('RUB');
     const gbp = mustFindByCode('GBP');
     const a = new AmountWithCurrency({
-      amountCents: 10_000_00,
+      amountNanos: 10_000_000_000_000n,
       currency: rub,
     });
 
     const jun5 = rates.exchange(a, gbp, Date.parse('2025-06-05T12:00:00Z'));
-    expect(jun5!.cents()).toBe(9531);
+    expect(jun5!.nanos()).toBe(95_310_000_000n);
     const jun6 = rates.exchange(a, gbp, Date.parse('2025-06-06T12:00:00Z'));
-    expect(jun6!.cents()).toBe(9380);
+    expect(jun6!.nanos()).toBe(93_800_000_000n);
   });
 });

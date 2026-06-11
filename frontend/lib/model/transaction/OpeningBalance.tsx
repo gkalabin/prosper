@@ -12,13 +12,12 @@ import {
   mustFindBankAccount,
 } from '@/lib/model/BankAccount';
 import {Stock} from '@/lib/model/Stock';
-import {nanosToCents} from '@/lib/util/util';
 
 export type OpeningBalance = {
   kind: 'OpeningBalance';
   id: number;
   timestampEpoch: number;
-  amountCents: number;
+  amountNanos: bigint;
   accountId: number;
 };
 
@@ -27,12 +26,11 @@ export function openingBalanceFromDB(
   accounts: Map<number, LedgerAccount>
 ): OpeningBalance {
   const {line, account} = findAssetLineAndAccount(tx, accounts);
-  const amountCents = nanosToCents(line.amountNanos);
   return {
     kind: 'OpeningBalance',
     id: tx.id,
     timestampEpoch: timestampToEpoch(tx.timestamp),
-    amountCents,
+    amountNanos: line.amountNanos,
     accountId: account.bankAccountId!,
   };
 }
@@ -76,7 +74,7 @@ export function openingBalanceAmount(
   const account = mustFindBankAccount(bankAccounts, t.accountId);
   const unit = accountUnit(account, stocks);
   return new AmountWithUnit({
-    amountCents: t.amountCents,
+    amountNanos: t.amountNanos,
     unit,
   });
 }

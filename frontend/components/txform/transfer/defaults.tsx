@@ -16,7 +16,7 @@ import {
 } from '@/lib/model/transaction/Transaction';
 import {Transfer} from '@/lib/model/transaction/Transfer';
 import {TransferPrototype} from '@/lib/txsuggestions/TransactionPrototype';
-import {centsToDollar} from '@/lib/util/util';
+import {nanosToDollar} from '@/lib/util/util';
 
 export function expenseToTransfer({
   prev,
@@ -98,8 +98,8 @@ export function transferFromPrototype({
     })[0] ?? categories[0].id;
   const values: TransferFormSchema = {
     timestamp: new Date(withdrawal.timestampEpoch),
-    amountSent: centsToDollar(withdrawal.absoluteAmountCents),
-    amountReceived: centsToDollar(deposit.absoluteAmountCents),
+    amountSent: nanosToDollar(withdrawal.absoluteAmountNanos),
+    amountReceived: nanosToDollar(deposit.absoluteAmountNanos),
     description: withdrawal.description,
     categoryId,
     fromAccountId: withdrawal.internalAccountId,
@@ -119,8 +119,8 @@ export function transferFromTransaction({
   const tags = transactionTags(t, allTags);
   const values: TransferFormSchema = {
     timestamp: new Date(t.timestampEpoch),
-    amountSent: centsToDollar(t.sentAmountCents),
-    amountReceived: centsToDollar(t.receivedAmountCents),
+    amountSent: nanosToDollar(t.sentAmountNanos),
+    amountReceived: nanosToDollar(t.receivedAmountNanos),
     description: t.note,
     categoryId: t.categoryId,
     fromAccountId: t.fromAccountId,

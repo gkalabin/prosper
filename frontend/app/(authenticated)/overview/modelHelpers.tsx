@@ -31,7 +31,7 @@ export function accountBalance(
   allTransactions: Transaction[],
   stocks: Stock[]
 ): AmountWithUnit {
-  let balance = 0;
+  let balanceNanos = 0n;
   allTransactions.forEach(t => {
     if (!transactionBelongsToAccount(t, account)) {
       return;
@@ -39,22 +39,22 @@ export function accountBalance(
     switch (t.kind) {
       case 'OpeningBalance':
       case 'Income':
-        balance = balance + t.amountCents;
+        balanceNanos = balanceNanos + t.amountNanos;
         return;
       case 'PersonalExpense':
-        balance = balance - t.amountCents;
+        balanceNanos = balanceNanos - t.amountNanos;
         return;
       case 'Transfer':
         if (t.fromAccountId == account.id) {
-          balance = balance - t.sentAmountCents;
+          balanceNanos = balanceNanos - t.sentAmountNanos;
         } else if (t.toAccountId == account.id) {
-          balance = balance + t.receivedAmountCents;
+          balanceNanos = balanceNanos + t.receivedAmountNanos;
         }
         return;
     }
   });
   return new AmountWithUnit({
-    amountCents: balance,
+    amountNanos: balanceNanos,
     unit: accountUnit(account, stocks),
   });
 }
@@ -75,7 +75,7 @@ export function accountsSum(
     if (isCurrency(unit)) {
       const delta = exchange.exchangeCurrency(
         new AmountWithCurrency({
-          amountCents: b.cents(),
+          amountNanos: b.nanos(),
           currency: unit,
         }),
         targetCurrency,

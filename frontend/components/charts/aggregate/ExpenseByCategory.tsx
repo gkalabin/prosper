@@ -19,7 +19,7 @@ export function ExpenseByCategory({input}: {input: ExchangedTransactions}) {
       name: getNameWithAncestors(k, tree),
       amount: v,
     }))
-    .sort((a, b) => a.amount.cents() - b.amount.cents());
+    .sort((a, b) => a.amount.dollar() - b.amount.dollar());
   return (
     <Charts.HorizontalBar
       title="Expenses by category"

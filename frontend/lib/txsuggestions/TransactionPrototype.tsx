@@ -1,6 +1,5 @@
 import {OpenBankingTransaction} from '@/lib/grpc/gen/prosper/v1/openbanking';
 import {timestampToEpoch} from '@/lib/grpc/timestamp';
-import {nanosToCents} from '@/lib/util/util';
 import {z} from 'zod';
 
 const withdrawalOrDepositFieldsSchema = z.object({
@@ -8,7 +7,9 @@ const withdrawalOrDepositFieldsSchema = z.object({
   timestampEpoch: z.number().positive(),
   description: z.string(),
   originalDescription: z.string(),
-  absoluteAmountCents: z.number().positive(),
+  // Nanos as a plain number because prototypes cross a JSON boundary
+  // where bigint cannot be serialized.
+  absoluteAmountNanos: z.number().positive(),
   internalAccountId: z.number().positive(),
 });
 
@@ -56,14 +57,14 @@ export function fromOpenBankingTransaction(
   t: OpenBankingTransaction,
   internalAccountId: number
 ): WithdrawalOrDepositPrototype {
-  const amountCents = nanosToCents(t.signedAmountNanos);
+  const amountNanos = Number(t.signedAmountNanos);
   return {
-    type: amountCents > 0 ? ('deposit' as const) : ('withdrawal' as const),
+    type: amountNanos > 0 ? ('deposit' as const) : ('withdrawal' as const),
     timestampEpoch: timestampToEpoch(t.timestamp),
     description: t.description,
     originalDescription: t.description,
     externalTransactionId: t.externalTransactionId,
-    absoluteAmountCents: Math.abs(amountCents),
+    absoluteAmountNanos: Math.abs(amountNanos),
     internalAccountId,
   };
 }

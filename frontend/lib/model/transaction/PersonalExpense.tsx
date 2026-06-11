@@ -5,14 +5,13 @@ import {
 } from '@/lib/grpc/gen/prosper/v1/ledger';
 import {timestampToEpoch} from '@/lib/grpc/timestamp';
 import {TransactionCompanion} from '@/lib/model/transaction/TransactionCompanion';
-import {nanosToCents} from '@/lib/util/util';
 
 export type PersonalExpense = {
   kind: 'PersonalExpense';
   id: number;
   timestampEpoch: number;
   vendor: string;
-  amountCents: number;
+  amountNanos: bigint;
   companions: TransactionCompanion[];
   note: string;
   accountId: number;
@@ -46,17 +45,17 @@ export function personalExpenseFromDB(
     throw new Error(`Expense ${tx.id}: cannot find bankAccount`);
   }
 
-  const totalCents = nanosToCents(-assetLine.amountNanos);
+  const totalNanos = -assetLine.amountNanos;
   const companions: TransactionCompanion[] = tx.splits.map(s => ({
     name: s.companionName,
-    amountCents: nanosToCents(s.companionShareNanos),
+    amountNanos: s.companionShareNanos,
   }));
   return {
     kind: 'PersonalExpense',
     id: tx.id,
     timestampEpoch: timestampToEpoch(tx.timestamp),
     vendor: tx.vendor,
-    amountCents: totalCents,
+    amountNanos: totalNanos,
     companions,
     note: tx.note,
     accountId: assetAccount.bankAccountId,

@@ -43,7 +43,7 @@ function getAccountBalanceInDisplayCurrency({
   }
   if (unit.kind === 'currency') {
     const amount = new AmountWithCurrency({
-      amountCents: balance.getAmount().cents(),
+      amountNanos: balance.nanos(),
       currency: unit,
     });
     const inDisplayCurrency = exchange.exchangeCurrency(
@@ -173,7 +173,7 @@ function OpenBankingBalanceDelta({account}: {account: BankAccount}) {
   }
   const unit = accountUnit(account, stocks);
   const remoteBalance = new AmountWithUnit({
-    amountCents: obBalance.balanceCents,
+    amountNanos: obBalance.balanceNanos,
     unit,
   });
   const balance = accountBalance(account, transactions, stocks);

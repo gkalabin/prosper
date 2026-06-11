@@ -23,6 +23,7 @@ import {Bank, BankAccount} from '@/lib/model/BankAccount';
 import {mustFindByCode} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';
 import {setFormErrors} from '@/lib/util/forms';
+import {nanosToDollar} from '@/lib/util/util';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useForm} from 'react-hook-form';
 
@@ -239,7 +240,7 @@ function useInitialFormValues(
     unit,
     isJoint: bankAccount.joint,
     isArchived: bankAccount.archived,
-    initialBalance: bankAccount.initialBalanceCents / 100,
+    initialBalance: nanosToDollar(bankAccount.initialBalanceNanos),
     displayOrder: bankAccount.displayOrder,
     bankId: bank.id,
   };

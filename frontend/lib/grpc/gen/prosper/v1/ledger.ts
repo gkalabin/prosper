@@ -212,9 +212,9 @@ export interface BankAccount {
      */
     displayOrder: number;
     /**
-     * @generated from protobuf field: int32 initial_balance_cents = 9
+     * @generated from protobuf field: int64 initial_balance_nanos = 9
      */
-    initialBalanceCents: number;
+    initialBalanceNanos: bigint;
 }
 /**
  * @generated from protobuf message prosper.v1.Category
@@ -698,9 +698,9 @@ export interface UpsertBankAccountRequest {
      */
     displayOrder: number;
     /**
-     * @generated from protobuf field: int32 initial_balance_cents = 7
+     * @generated from protobuf field: int64 initial_balance_nanos = 7
      */
-    initialBalanceCents: number;
+    initialBalanceNanos: bigint;
     /**
      * @generated from protobuf field: prosper.v1.AccountUnit unit = 8
      */
@@ -1794,7 +1794,7 @@ class BankAccount$Type extends MessageType<BankAccount> {
             { no: 6, name: "joint", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 7, name: "archived", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 8, name: "display_order", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 9, name: "initial_balance_cents", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+            { no: 9, name: "initial_balance_nanos", kind: "scalar", T: 3 /*ScalarType.INT64*/, L: 0 /*LongType.BIGINT*/ }
         ]);
     }
     create(value?: PartialMessage<BankAccount>): BankAccount {
@@ -1805,7 +1805,7 @@ class BankAccount$Type extends MessageType<BankAccount> {
         message.joint = false;
         message.archived = false;
         message.displayOrder = 0;
-        message.initialBalanceCents = 0;
+        message.initialBalanceNanos = 0n;
         if (value !== undefined)
             reflectionMergePartial<BankAccount>(this, message, value);
         return message;
@@ -1839,8 +1839,8 @@ class BankAccount$Type extends MessageType<BankAccount> {
                 case /* int32 display_order */ 8:
                     message.displayOrder = reader.int32();
                     break;
-                case /* int32 initial_balance_cents */ 9:
-                    message.initialBalanceCents = reader.int32();
+                case /* int64 initial_balance_nanos */ 9:
+                    message.initialBalanceNanos = reader.int64().toBigInt();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -1878,9 +1878,9 @@ class BankAccount$Type extends MessageType<BankAccount> {
         /* int32 display_order = 8; */
         if (message.displayOrder !== 0)
             writer.tag(8, WireType.Varint).int32(message.displayOrder);
-        /* int32 initial_balance_cents = 9; */
-        if (message.initialBalanceCents !== 0)
-            writer.tag(9, WireType.Varint).int32(message.initialBalanceCents);
+        /* int64 initial_balance_nanos = 9; */
+        if (message.initialBalanceNanos !== 0n)
+            writer.tag(9, WireType.Varint).int64(message.initialBalanceNanos);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -3395,7 +3395,7 @@ class UpsertBankAccountRequest$Type extends MessageType<UpsertBankAccountRequest
             { no: 4, name: "joint", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 5, name: "archived", kind: "scalar", T: 8 /*ScalarType.BOOL*/ },
             { no: 6, name: "display_order", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
-            { no: 7, name: "initial_balance_cents", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 7, name: "initial_balance_nanos", kind: "scalar", T: 3 /*ScalarType.INT64*/, L: 0 /*LongType.BIGINT*/ },
             { no: 8, name: "unit", kind: "message", T: () => AccountUnit },
             { no: 9, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
@@ -3407,7 +3407,7 @@ class UpsertBankAccountRequest$Type extends MessageType<UpsertBankAccountRequest
         message.joint = false;
         message.archived = false;
         message.displayOrder = 0;
-        message.initialBalanceCents = 0;
+        message.initialBalanceNanos = 0n;
         message.sessionId = "";
         if (value !== undefined)
             reflectionMergePartial<UpsertBankAccountRequest>(this, message, value);
@@ -3436,8 +3436,8 @@ class UpsertBankAccountRequest$Type extends MessageType<UpsertBankAccountRequest
                 case /* int32 display_order */ 6:
                     message.displayOrder = reader.int32();
                     break;
-                case /* int32 initial_balance_cents */ 7:
-                    message.initialBalanceCents = reader.int32();
+                case /* int64 initial_balance_nanos */ 7:
+                    message.initialBalanceNanos = reader.int64().toBigInt();
                     break;
                 case /* prosper.v1.AccountUnit unit */ 8:
                     message.unit = AccountUnit.internalBinaryRead(reader, reader.uint32(), options, message.unit);
@@ -3475,9 +3475,9 @@ class UpsertBankAccountRequest$Type extends MessageType<UpsertBankAccountRequest
         /* int32 display_order = 6; */
         if (message.displayOrder !== 0)
             writer.tag(6, WireType.Varint).int32(message.displayOrder);
-        /* int32 initial_balance_cents = 7; */
-        if (message.initialBalanceCents !== 0)
-            writer.tag(7, WireType.Varint).int32(message.initialBalanceCents);
+        /* int64 initial_balance_nanos = 7; */
+        if (message.initialBalanceNanos !== 0n)
+            writer.tag(7, WireType.Varint).int64(message.initialBalanceNanos);
         /* prosper.v1.AccountUnit unit = 8; */
         if (message.unit)
             AccountUnit.internalBinaryWrite(message.unit, writer.tag(8, WireType.LengthDelimited).fork(), options).join();

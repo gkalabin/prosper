@@ -29,7 +29,7 @@ export function TimelineAmountsChart({
     timeseries.increment(
       timestamp,
       new AmountWithCurrency({
-        amountCents: amount.cents(),
+        amountNanos: amount.nanos(),
         currency,
       })
     );

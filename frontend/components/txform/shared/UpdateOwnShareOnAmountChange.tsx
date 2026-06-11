@@ -1,5 +1,5 @@
 import {SubFormValues} from '@/components/txform/types';
-import {centsToDollar, dollarToCents} from '@/lib/util/util';
+import {roundToCent} from '@/lib/util/util';
 import {useEffect} from 'react';
 import {useFormContext, useWatch} from 'react-hook-form';
 
@@ -22,8 +22,8 @@ export function UpdateOwnShareOnAmountChange({
     } else {
       setValue(
         ownShareFieldName,
-        // Converting to cents and back to dollars to avoid fractional cents, for example when splitting 1.11.
-        centsToDollar(dollarToCents(safeAmount) / 2)
+        // Round to a whole cent to avoid fractional cents, for example when splitting 1.11.
+        roundToCent(safeAmount / 2)
       );
     }
   }, [ownShareFieldName, setValue, isShared, amount]);

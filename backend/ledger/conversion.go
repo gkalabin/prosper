@@ -31,7 +31,7 @@ func bankAccountToProto(a *model.BankAccount) *prosperv1.BankAccount {
 		Joint:               a.Joint,
 		Archived:            a.Archived,
 		DisplayOrder:        a.DisplayOrder,
-		InitialBalanceCents: a.InitialBalanceCents,
+		InitialBalanceNanos: a.InitialBalanceNanos,
 	}
 }
 

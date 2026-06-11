@@ -7,7 +7,7 @@ import {
 import {withAuth} from '@/lib/grpc/auth';
 import {ledgerClient} from '@/lib/grpc/client';
 import {AccountUnit, BankAccount} from '@/lib/grpc/gen/prosper/v1/ledger';
-import {dollarToCents} from '@/lib/util/util';
+import {dollarToNanos} from '@/lib/util/util';
 import {type typeToFlattenedError} from 'zod';
 
 export type UpsertBankAccountResult =
@@ -33,7 +33,7 @@ export async function upsertBankAccount(
     };
   }
   const data = validatedData.data;
-  const initialBalanceCents = dollarToCents(data.initialBalance);
+  const initialBalanceNanos = dollarToNanos(data.initialBalance);
   const {response} = await ledgerClient.upsertBankAccount(
     withAuth(
       {
@@ -43,7 +43,7 @@ export async function upsertBankAccount(
         joint: data.isJoint,
         archived: data.isArchived,
         displayOrder: data.displayOrder,
-        initialBalanceCents,
+        initialBalanceNanos,
         unit: unitInputFromForm(data.unit),
       },
       auth
@@ -58,7 +58,7 @@ export async function upsertBankAccount(
       joint: data.isJoint,
       archived: data.isArchived,
       displayOrder: data.displayOrder,
-      initialBalanceCents,
+      initialBalanceNanos,
     },
   };
 }

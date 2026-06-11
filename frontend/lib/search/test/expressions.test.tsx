@@ -20,8 +20,8 @@ describe('search: logical operations', () => {
     expectSearch({
       q: {query: 'costa OR Starbucks', ...params},
       results: [
-        {vendor: 'Costa', amountCents: 300},
-        {vendor: 'Starbucks', amountCents: 325},
+        {vendor: 'Costa', amountNanos: 3000000000n},
+        {vendor: 'Starbucks', amountNanos: 3250000000n},
       ],
     });
   });
@@ -29,7 +29,7 @@ describe('search: logical operations', () => {
   test('single AND', () => {
     expectSearch({
       q: {query: 'tesco AND amex', ...params},
-      results: [{vendor: 'Tesco', amountCents: 410}],
+      results: [{vendor: 'Tesco', amountNanos: 4100000000n}],
     });
   });
 
@@ -37,8 +37,8 @@ describe('search: logical operations', () => {
     expectSearch({
       q: {query: 'costa OR tesco AND amex', ...params},
       results: [
-        {vendor: 'Costa', amountCents: 300},
-        {vendor: 'Tesco', amountCents: 410},
+        {vendor: 'Costa', amountNanos: 3000000000n},
+        {vendor: 'Tesco', amountNanos: 4100000000n},
       ],
     });
   });
@@ -46,7 +46,7 @@ describe('search: logical operations', () => {
   test('expressions in parenthesis take priority', () => {
     expectSearch({
       q: {query: '(costa OR tesco) AND amex', ...params},
-      results: [{vendor: 'Tesco', amountCents: 410}],
+      results: [{vendor: 'Tesco', amountNanos: 4100000000n}],
     });
   });
 
@@ -54,8 +54,8 @@ describe('search: logical operations', () => {
     expectSearch({
       q: {query: 'NOT Tesco', ...params},
       results: [
-        {vendor: 'Costa', amountCents: 300},
-        {vendor: 'Starbucks', amountCents: 325},
+        {vendor: 'Costa', amountNanos: 3000000000n},
+        {vendor: 'Starbucks', amountNanos: 3250000000n},
       ],
     });
   });

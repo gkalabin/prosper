@@ -90,7 +90,7 @@ const TransactionAmount = (props: {transaction: Transaction}) => {
     case 'ThirdPartyExpense':
     case 'Income':
       const a = new AmountWithUnit({
-        amountCents: t.amountCents,
+        amountNanos: t.amountNanos,
         unit: transactionUnit(t, bankAccounts, stocks),
       });
       return (

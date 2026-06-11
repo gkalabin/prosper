@@ -24,7 +24,7 @@ export function combineTransfers(
       .filter(
         (withdrawal): withdrawal is WithdrawalPrototype =>
           withdrawal.type == 'withdrawal' &&
-          deposit.absoluteAmountCents == withdrawal.absoluteAmountCents &&
+          deposit.absoluteAmountNanos == withdrawal.absoluteAmountNanos &&
           deposit.internalAccountId != withdrawal.internalAccountId &&
           closeInTime(deposit, withdrawal)
       )

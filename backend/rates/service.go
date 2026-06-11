@@ -12,7 +12,6 @@ import (
 	"prosper/config"
 	prosperv1 "prosper/gen/prosper/v1"
 	"prosper/model"
-	"prosper/moneyutil"
 )
 
 // Service implements RatesServiceServer. It owns the periodic refresh
@@ -95,8 +94,8 @@ func (s *Service) GetMarketDataForUser(ctx context.Context, _ *prosperv1.GetMark
 	}
 	for i := range quotes {
 		q := &quotes[i]
-		if q.Value == nil {
-			log.Printf("rates: stock quote id=%d stock=%s/%s at %s has null value, skipping",
+		if q.ValueNanos == nil {
+			log.Printf("rates: stock quote id=%d stock=%s/%s at %s has null valueNanos, skipping",
 				q.ID, q.StockExchange, q.StockTicker, q.QuoteTimestamp)
 			continue
 		}
@@ -134,7 +133,7 @@ func (s *Service) allStockQuotes(ctx context.Context) ([]model.StockQuote, error
 	var rows []model.StockQuote
 	err := s.db.SelectContext(ctx, &rows,
 		`SELECT * FROM StockQuote
-		 WHERE value IS NOT NULL
+		 WHERE valueNanos IS NOT NULL
 		 ORDER BY quoteTimestamp ASC`)
 	return rows, err
 }
@@ -153,7 +152,7 @@ func stockQuoteToProto(q *model.StockQuote) *prosperv1.StockQuote {
 		StockExchange:      q.StockExchange,
 		StockTicker:        q.StockTicker,
 		QuoteTimestamp:     timestamppb.New(q.QuoteTimestamp),
-		PricePerShareNanos: *q.Value * moneyutil.NanosPerCent,
+		PricePerShareNanos: *q.ValueNanos,
 	}
 }
 

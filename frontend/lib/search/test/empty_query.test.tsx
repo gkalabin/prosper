@@ -19,9 +19,9 @@ describe('search: empty query', () => {
     expectSearch({
       q: {query: '', ...params},
       results: [
-        {vendor: 'Costa', amountCents: 300},
-        {vendor: 'Starbucks', amountCents: 325},
-        {vendor: 'Electric', amountCents: 400},
+        {vendor: 'Costa', amountNanos: 3000000000n},
+        {vendor: 'Starbucks', amountNanos: 3250000000n},
+        {vendor: 'Electric', amountNanos: 4000000000n},
       ],
     });
   });
@@ -29,9 +29,9 @@ describe('search: empty query', () => {
     expectSearch({
       q: {query: '  ', ...params},
       results: [
-        {vendor: 'Costa', amountCents: 300},
-        {vendor: 'Starbucks', amountCents: 325},
-        {vendor: 'Electric', amountCents: 400},
+        {vendor: 'Costa', amountNanos: 3000000000n},
+        {vendor: 'Starbucks', amountNanos: 3250000000n},
+        {vendor: 'Electric', amountNanos: 4000000000n},
       ],
     });
   });
@@ -44,9 +44,9 @@ describe('fallback search: empty query', () => {
     tx('Electric', 4, 'HSBC > Current', 'Food'),
   ]);
   const allItems = expect.arrayContaining([
-    expect.objectContaining({vendor: 'Costa', amountCents: 300}),
-    expect.objectContaining({vendor: 'Starbucks', amountCents: 325}),
-    expect.objectContaining({vendor: 'Electric', amountCents: 400}),
+    expect.objectContaining({vendor: 'Costa', amountNanos: 3000000000n}),
+    expect.objectContaining({vendor: 'Starbucks', amountNanos: 3250000000n}),
+    expect.objectContaining({vendor: 'Electric', amountNanos: 4000000000n}),
   ]);
   test('empty string matches everything', () => {
     expect(fallbackSearch({query: '', ...params})).toEqual(allItems);

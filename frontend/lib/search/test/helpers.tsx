@@ -4,6 +4,7 @@ import {Tag} from '@/lib/model/Tag';
 import {Trip} from '@/lib/model/Trip';
 import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
 import {Transaction} from '@/lib/model/transaction/Transaction';
+import {dollarToNanos} from '@/lib/util/util';
 import {expect} from '@jest/globals';
 import {SearchParams, search} from '../search';
 
@@ -58,7 +59,7 @@ export function tx(
     kind: 'PersonalExpense',
     id: nextId++,
     vendor,
-    amountCents: Math.round(amount * 100),
+    amountNanos: dollarToNanos(amount),
     timestampEpoch: new Date().getTime(),
     companions: [],
     note: '',
@@ -84,7 +85,7 @@ export function mkAccount(name: string, bank: Bank): BankAccount {
     name,
     id: nextId++,
     bankId: bank.id,
-    initialBalanceCents: 0,
+    initialBalanceNanos: 0n,
     currencyCode: 'GBP',
     stock: null,
     displayOrder: 0,
