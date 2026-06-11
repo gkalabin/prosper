@@ -1,13 +1,19 @@
-import {OpenBankingBalances} from '@/app/api/open-banking/balances/route';
-import {GetOpenBankingTransactionsResponse} from '@/lib/grpc/gen/prosper/v1/openbanking';
+import {
+  GetBalancesResponse,
+  GetConnectionStatusResponse,
+  GetOpenBankingTransactionsResponse,
+} from '@/lib/grpc/gen/prosper/v1/openbanking';
 import {timestampToEpoch} from '@/lib/grpc/timestamp';
 import {fromOpenBankingTransaction} from '@/lib/txsuggestions/TransactionPrototype';
 import useSWR from 'swr';
 
 export const useOpenBankingExpirations = () => {
-  const fetcher = (url: string) => fetch(url).then(r => r.json());
-  const {data, error, isLoading} = useSWR<OpenBankingBalances>(
-    '/api/open-banking/balances',
+  const fetcher = (url: string) =>
+    fetch(url)
+      .then(r => r.json())
+      .then(json => GetConnectionStatusResponse.fromJson(json));
+  const {data, error, isLoading} = useSWR<GetConnectionStatusResponse>(
+    '/api/open-banking/connection-status',
     fetcher
   );
   return {
@@ -18,8 +24,11 @@ export const useOpenBankingExpirations = () => {
 };
 
 export const useOpenBankingBalances = () => {
-  const fetcher = (url: string) => fetch(url).then(r => r.json());
-  const {data, error, isLoading} = useSWR<OpenBankingBalances>(
+  const fetcher = (url: string) =>
+    fetch(url)
+      .then(r => r.json())
+      .then(json => GetBalancesResponse.fromJson(json));
+  const {data, error, isLoading} = useSWR<GetBalancesResponse>(
     '/api/open-banking/balances',
     fetcher,
     {
@@ -28,7 +37,7 @@ export const useOpenBankingBalances = () => {
     }
   );
   return {
-    balances: data?.balances,
+    balances: data?.accounts,
     isLoading,
     isError: !!error,
   };

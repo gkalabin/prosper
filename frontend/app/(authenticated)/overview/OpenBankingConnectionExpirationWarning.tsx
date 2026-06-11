@@ -1,5 +1,6 @@
 'use client';
 import {Button} from '@/components/ui/button';
+import {timestampToEpoch} from '@/lib/grpc/timestamp';
 import {Bank} from '@/lib/model/BankAccount';
 import {useOpenBankingExpirations} from '@/lib/openbanking/context';
 import {differenceInDays} from 'date-fns';
@@ -15,7 +16,10 @@ export function OpenBankingConnectionExpirationWarning({bank}: {bank: Bank}) {
     return <></>;
   }
   const now = new Date();
-  const expiresInDays = differenceInDays(expiration.expirationEpoch, now);
+  const expiresInDays = differenceInDays(
+    timestampToEpoch(expiration.expiresAt),
+    now
+  );
   if (expiresInDays > 7) {
     return <></>;
   }
