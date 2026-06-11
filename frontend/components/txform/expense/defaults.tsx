@@ -17,7 +17,7 @@ import {assert} from '@/lib/assert';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Category} from '@/lib/model/Category';
 import {Tag} from '@/lib/model/Tag';
-import {ownShareAmountCentsIgnoreRefunds} from '@/lib/model/transaction/amounts';
+import {ownShareAmountNanosIgnoreRefunds} from '@/lib/model/transaction/amounts';
 import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
 import {ThirdPartyExpense} from '@/lib/model/transaction/ThirdPartyExpense';
 import {
@@ -31,7 +31,7 @@ import {
 import {TransactionLink} from '@/lib/model/TransactionLink';
 import {Trip} from '@/lib/model/Trip';
 import {WithdrawalPrototype} from '@/lib/txsuggestions/TransactionPrototype';
-import {centsToDollar} from '@/lib/util/util';
+import {nanosToDollar, roundToCent} from '@/lib/util/util';
 import {startOfDay} from 'date-fns';
 
 export function expenseFormEmpty({
@@ -100,9 +100,11 @@ export function expenseFromPrototype({
     })[0] ?? categories[0].id;
   const values: ExpenseFormSchema = {
     timestamp: new Date(proto.timestampEpoch),
-    amount: centsToDollar(proto.absoluteAmountCents),
-    ownShareAmount: centsToDollar(
-      shared ? proto.absoluteAmountCents / 2 : proto.absoluteAmountCents
+    amount: nanosToDollar(proto.absoluteAmountNanos),
+    ownShareAmount: roundToCent(
+      nanosToDollar(
+        shared ? proto.absoluteAmountNanos / 2 : proto.absoluteAmountNanos
+      )
     ),
     vendor: proto.description,
     categoryId,
@@ -134,8 +136,8 @@ export function expenseFromTransaction({
   const trip = transactionTrip(t, allTrips);
   const commonFields = {
     timestamp: new Date(t.timestampEpoch),
-    amount: t.amountCents / 100,
-    ownShareAmount: ownShareAmountCentsIgnoreRefunds(t) / 100,
+    amount: nanosToDollar(t.amountNanos),
+    ownShareAmount: nanosToDollar(ownShareAmountNanosIgnoreRefunds(t)),
     vendor: t.vendor,
     categoryId: t.categoryId,
     tagNames: tags.map(t => t.name),

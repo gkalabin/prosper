@@ -22,7 +22,7 @@ import {
   outgoingBank,
   outgoingBankAccount,
 } from '@/lib/model/transaction/Transfer';
-import {parseAmountAsCents} from '@/lib/util/util';
+import {parseAmountAsNanos} from '@/lib/util/util';
 import {format, isAfter, isBefore, isSameDay, parse} from 'date-fns';
 
 export enum CaseMatch {
@@ -167,14 +167,14 @@ function matchOtherParty(t: Transaction, term: string, c: CaseMatch): boolean {
 }
 
 function matchAmount(t: Transaction, term: string): boolean {
-  const termCents = parseAmountAsCents(term);
-  if (!termCents) {
+  const termNanos = parseAmountAsNanos(term);
+  if (!termNanos) {
     return false;
   }
   if (isTransfer(t)) {
-    return t.sentAmountCents == termCents || t.receivedAmountCents == termCents;
+    return t.sentAmountNanos == termNanos || t.receivedAmountNanos == termNanos;
   }
-  return t.amountCents == termCents;
+  return t.amountNanos == termNanos;
 }
 
 function compareAmount(
@@ -182,39 +182,39 @@ function compareAmount(
   term: string,
   op: ComparisonOperator
 ): boolean {
-  const termCents = parseAmountAsCents(term);
-  if (!termCents) {
+  const termNanos = parseAmountAsNanos(term);
+  if (!termNanos) {
     return false;
   }
   if (isTransfer(t)) {
     switch (op) {
       case ComparisonOperator.LessThan:
         return (
-          t.sentAmountCents < termCents || t.receivedAmountCents < termCents
+          t.sentAmountNanos < termNanos || t.receivedAmountNanos < termNanos
         );
       case ComparisonOperator.LessThanOrEqual:
         return (
-          t.sentAmountCents <= termCents || t.receivedAmountCents <= termCents
+          t.sentAmountNanos <= termNanos || t.receivedAmountNanos <= termNanos
         );
       case ComparisonOperator.GreaterThan:
         return (
-          t.sentAmountCents > termCents || t.receivedAmountCents > termCents
+          t.sentAmountNanos > termNanos || t.receivedAmountNanos > termNanos
         );
       case ComparisonOperator.GreaterThanOrEqual:
         return (
-          t.sentAmountCents >= termCents || t.receivedAmountCents >= termCents
+          t.sentAmountNanos >= termNanos || t.receivedAmountNanos >= termNanos
         );
     }
   }
   switch (op) {
     case ComparisonOperator.LessThan:
-      return t.amountCents < termCents;
+      return t.amountNanos < termNanos;
     case ComparisonOperator.LessThanOrEqual:
-      return t.amountCents <= termCents;
+      return t.amountNanos <= termNanos;
     case ComparisonOperator.GreaterThan:
-      return t.amountCents > termCents;
+      return t.amountNanos > termNanos;
     case ComparisonOperator.GreaterThanOrEqual:
-      return t.amountCents >= termCents;
+      return t.amountNanos >= termNanos;
   }
 }
 

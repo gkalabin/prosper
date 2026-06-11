@@ -32,7 +32,7 @@ export function ExpenseByTopCategoryChart({
       name: mustFindCategory(k, categories).name,
       amount: v,
     }))
-    .sort((a, b) => a.amount.cents() - b.amount.cents());
+    .sort((a, b) => a.amount.dollar() - b.amount.dollar());
   return (
     <Charts.HorizontalBar
       title={title}

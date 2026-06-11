@@ -93,7 +93,7 @@ func (s *Service) UpsertBankAccount(ctx context.Context, req *prosperv1.UpsertBa
 		Joint:               req.Joint,
 		Archived:            req.Archived,
 		DisplayOrder:        req.DisplayOrder,
-		InitialBalanceCents: req.InitialBalanceCents,
+		InitialBalanceNanos: req.InitialBalanceNanos,
 	}
 	if req.AccountId != nil {
 		bankAccount.ID = *req.AccountId
@@ -102,7 +102,7 @@ func (s *Service) UpsertBankAccount(ctx context.Context, req *prosperv1.UpsertBa
 	if err != nil {
 		return nil, err
 	}
-	if err := syncOpeningBalance(ctx, tx, userID, id, unit, req.InitialBalanceCents); err != nil {
+	if err := syncOpeningBalance(ctx, tx, userID, id, unit, bankAccount.InitialBalanceNanos); err != nil {
 		return nil, err
 	}
 
@@ -153,7 +153,7 @@ func updateBankAccountRow(ctx context.Context, tx *userdb.Tx, bankAccount model.
 		        joint               = :joint,
 		        archived            = :archived,
 		        displayOrder        = :displayOrder,
-		        initialBalanceCents = :initialBalanceCents
+		        initialBalanceNanos = :initialBalanceNanos
 		  WHERE id     = :id
 		    AND userId = :userId`,
 		bankAccount); err != nil {
@@ -178,8 +178,8 @@ func updateBankAccountRow(ctx context.Context, tx *userdb.Tx, bankAccount model.
 func insertBankAccountRow(ctx context.Context, tx *userdb.Tx, bankAccount model.BankAccount) (int32, error) {
 	res, err := tx.NamedExecForUser(ctx, bankAccount.UserID,
 		`INSERT INTO BankAccount
-		        ( userId,  name,  bankId,  currencyCode,  stockExchange,  stockTicker,  joint,  archived,  displayOrder,  initialBalanceCents)
-		 VALUES (:userId, :name, :bankId, :currencyCode, :stockExchange, :stockTicker, :joint, :archived, :displayOrder, :initialBalanceCents)`,
+		        ( userId,  name,  bankId,  currencyCode,  stockExchange,  stockTicker,  joint,  archived,  displayOrder,  initialBalanceNanos)
+		 VALUES (:userId, :name, :bankId, :currencyCode, :stockExchange, :stockTicker, :joint, :archived, :displayOrder, :initialBalanceNanos)`,
 		bankAccount)
 	if err != nil {
 		return 0, err

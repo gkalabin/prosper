@@ -37,15 +37,15 @@ describe('search: amount comparisons', () => {
   test('equals match', () => {
     expectSearch({
       q: {query: 'amount=3', ...params},
-      results: [{vendor: 'Costa', amountCents: 300}],
+      results: [{vendor: 'Costa', amountNanos: 3000000000n}],
     });
   });
   test('gt match', () => {
     expectSearch({
       q: {query: 'amount>3', ...params},
       results: [
-        {vendor: 'Starbucks', amountCents: 325},
-        {vendor: 'Electric', amountCents: 400},
+        {vendor: 'Starbucks', amountNanos: 3250000000n},
+        {vendor: 'Electric', amountNanos: 4000000000n},
       ],
     });
   });
@@ -53,15 +53,15 @@ describe('search: amount comparisons', () => {
     expectSearch({
       q: {query: 'amount>=3.25', ...params},
       results: [
-        {vendor: 'Starbucks', amountCents: 325},
-        {vendor: 'Electric', amountCents: 400},
+        {vendor: 'Starbucks', amountNanos: 3250000000n},
+        {vendor: 'Electric', amountNanos: 4000000000n},
       ],
     });
   });
   test('overlapping match', () => {
     expectSearch({
       q: {query: 'amount>=3.25 amount<4', ...params},
-      results: [{vendor: 'Starbucks', amountCents: 325}],
+      results: [{vendor: 'Starbucks', amountNanos: 3250000000n}],
     });
   });
 });
@@ -103,15 +103,15 @@ describe('search: date comparisons', () => {
   test('equals match', () => {
     expectSearch({
       q: {query: 'date=2023-08-12', ...params},
-      results: [{vendor: 'Costa', amountCents: 300}],
+      results: [{vendor: 'Costa', amountNanos: 3000000000n}],
     });
   });
   test('gt match', () => {
     expectSearch({
       q: {query: 'date>2023-08-12', ...params},
       results: [
-        {vendor: 'Starbucks', amountCents: 325},
-        {vendor: 'Electric', amountCents: 400},
+        {vendor: 'Starbucks', amountNanos: 3250000000n},
+        {vendor: 'Electric', amountNanos: 4000000000n},
       ],
     });
   });
@@ -119,15 +119,15 @@ describe('search: date comparisons', () => {
     expectSearch({
       q: {query: 'date>=2023-09-28', ...params},
       results: [
-        {vendor: 'Starbucks', amountCents: 325},
-        {vendor: 'Electric', amountCents: 400},
+        {vendor: 'Starbucks', amountNanos: 3250000000n},
+        {vendor: 'Electric', amountNanos: 4000000000n},
       ],
     });
   });
   test('overlapping match', () => {
     expectSearch({
       q: {query: 'date>2023-08-11 date<2023-09-28', ...params},
-      results: [{vendor: 'Costa', amountCents: 300}],
+      results: [{vendor: 'Costa', amountNanos: 3000000000n}],
     });
   });
 });

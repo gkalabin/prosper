@@ -1,79 +1,78 @@
+const NANOS_PER_UNIT = 1_000_000_000n;
+
 export class Amount {
-  static readonly ZERO = new Amount({amountCents: 0});
+  static readonly ZERO = new Amount({amountNanos: 0n});
 
-  private readonly amountCents: number;
+  private readonly amountNanos: bigint;
 
-  public constructor(init: {amountCents: number}) {
-    if (!Number.isInteger(init.amountCents)) {
-      throw new Error(`Want integer, got ${init.amountCents}`);
-    }
-    this.amountCents = init.amountCents;
+  public constructor(init: {amountNanos: bigint}) {
+    this.amountNanos = init.amountNanos;
   }
 
-  public cents(): number {
-    return this.amountCents;
+  public nanos(): bigint {
+    return this.amountNanos;
   }
 
   public dollar(): number {
-    return this.amountCents / 100;
+    return Number(this.amountNanos) / Number(NANOS_PER_UNIT);
   }
 
   public abs(): Amount {
-    if (this.amountCents >= 0) {
+    if (this.amountNanos >= 0n) {
       return this;
     }
     return new Amount({
-      amountCents: -this.amountCents,
+      amountNanos: -this.amountNanos,
     });
   }
 
   public add(a: Amount): Amount {
     return new Amount({
-      amountCents: this.amountCents + a.amountCents,
+      amountNanos: this.amountNanos + a.amountNanos,
     });
   }
 
   public subtract(a: Amount): Amount {
     return new Amount({
-      amountCents: this.amountCents - a.amountCents,
+      amountNanos: this.amountNanos - a.amountNanos,
     });
   }
 
   public round(): Amount {
     if (!this.isRound()) {
       return new Amount({
-        amountCents: Math.round(this.dollar()) * 100,
+        amountNanos: BigInt(Math.round(this.dollar())) * NANOS_PER_UNIT,
       });
     }
     return this;
   }
 
   public negate(): Amount {
-    return new Amount({amountCents: -this.amountCents});
+    return new Amount({amountNanos: -this.amountNanos});
   }
 
   public equals(a: Amount): boolean {
-    return this.amountCents == a.amountCents;
+    return this.amountNanos == a.amountNanos;
   }
 
   public lessThan(a: Amount): boolean {
-    return this.amountCents < a.amountCents;
+    return this.amountNanos < a.amountNanos;
   }
 
   public isZero(): boolean {
-    return this.amountCents === 0;
+    return this.amountNanos === 0n;
   }
 
   public isPositive(): boolean {
-    return this.amountCents > 0;
+    return this.amountNanos > 0n;
   }
 
   public isNegative(): boolean {
-    return this.amountCents < 0;
+    return this.amountNanos < 0n;
   }
 
   public isRound(): boolean {
-    return this.amountCents % 100 == 0;
+    return this.amountNanos % NANOS_PER_UNIT == 0n;
   }
 
   public format(): string {

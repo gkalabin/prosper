@@ -17,18 +17,18 @@ export function paidTotal(
   stocks: Stock[]
 ): AmountWithUnit {
   return new AmountWithUnit({
-    amountCents: t.amountCents,
+    amountNanos: t.amountNanos,
     unit: transactionUnit(t, bankAccounts, stocks),
   });
 }
 
-export function ownShareAmountCentsIgnoreRefunds(
+export function ownShareAmountNanosIgnoreRefunds(
   t: PersonalExpense | ThirdPartyExpense | Income
-): number {
-  const otherPartiesAmountCents = t.companions
-    .map(c => c.amountCents)
-    .reduce((a, b) => a + b, 0);
-  return t.amountCents - otherPartiesAmountCents;
+): bigint {
+  const otherPartiesAmountNanos = t.companions
+    .map(c => c.amountNanos)
+    .reduce((a, b) => a + b, 0n);
+  return t.amountNanos - otherPartiesAmountNanos;
 }
 
 export function ownShareAmountIgnoreRefunds(
@@ -37,7 +37,7 @@ export function ownShareAmountIgnoreRefunds(
   stocks: Stock[]
 ): AmountWithUnit {
   return new AmountWithUnit({
-    amountCents: ownShareAmountCentsIgnoreRefunds(t),
+    amountNanos: ownShareAmountNanosIgnoreRefunds(t),
     unit: transactionUnit(t, bankAccounts, stocks),
   });
 }
@@ -50,10 +50,10 @@ export function amountAllParties(
   exchange: StockAndCurrencyExchange
 ): AmountWithCurrency | undefined {
   const unit = transactionUnit(t, bankAccounts, stocks);
-  const allParties = new Amount({amountCents: t.amountCents});
+  const allParties = new Amount({amountNanos: t.amountNanos});
   if (isCurrency(unit)) {
     const amount = new AmountWithCurrency({
-      amountCents: allParties.cents(),
+      amountNanos: allParties.nanos(),
       currency: unit,
     });
     return exchange.exchangeCurrency(amount, target, t.timestampEpoch);
@@ -73,12 +73,12 @@ export function amountOwnShare(
 ): AmountWithCurrency | undefined {
   const unit = transactionUnit(t, bankAccounts, stocks);
   const ownShare = new Amount({
-    amountCents: ownShareAmountCentsIgnoreRefunds(t),
+    amountNanos: ownShareAmountNanosIgnoreRefunds(t),
   });
 
   if (isCurrency(unit)) {
     const amount = new AmountWithCurrency({
-      amountCents: ownShare.cents(),
+      amountNanos: ownShare.nanos(),
       currency: unit,
     });
     return exchange.exchangeCurrency(amount, target, t.timestampEpoch);

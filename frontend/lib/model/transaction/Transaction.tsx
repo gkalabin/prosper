@@ -13,8 +13,6 @@ import {Category} from '@/lib/model/Category';
 import {mustFindByCode} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';
 import {Tag, mustFindTag} from '@/lib/model/Tag';
-import {Trip} from '@/lib/model/Trip';
-import {Unit, formatUnit} from '@/lib/model/Unit';
 import {Income, incomeFromDB} from '@/lib/model/transaction/Income';
 import {
   OpeningBalance,
@@ -29,7 +27,9 @@ import {
   thirdPartyExpenseFromDB,
 } from '@/lib/model/transaction/ThirdPartyExpense';
 import {Transfer, transferFromDB} from '@/lib/model/transaction/Transfer';
-import {notEmpty} from '@/lib/util/util';
+import {Trip} from '@/lib/model/Trip';
+import {Unit, formatUnit} from '@/lib/model/Unit';
+import {nanosToDollar, notEmpty} from '@/lib/util/util';
 
 export type Transaction =
   | PersonalExpense
@@ -160,7 +160,7 @@ export function formatAmount(
 ): string {
   const account = transactionBankAccount(t, bankAccounts);
   const unit = accountUnit(account, stocks);
-  return formatUnit(unit, t.amountCents / 100);
+  return formatUnit(unit, nanosToDollar(t.amountNanos));
 }
 
 export function otherPartyNameOrNull(t: Transaction): string | null {

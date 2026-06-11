@@ -150,7 +150,7 @@ function IncomeOrExenseStats({
         </div>
         <div>
           Own share percent:{' '}
-          {Math.round((100 * totalNet.cents()) / totalGross.cents())}%
+          {Math.round((100 * totalNet.dollar()) / totalGross.dollar())}%
         </div>
         <Percentiles
           label="Monthly percentiles (gross)"

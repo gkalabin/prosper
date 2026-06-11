@@ -10,7 +10,6 @@ import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {UnitSchema} from '@/lib/form-types/AccountFormSchema';
 import {allCurrencies, findByCode, mustFindByCode} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';
-import {nanosToCents} from '@/lib/util/util';
 import {cn} from '@/lib/utils';
 import {CheckIcon, ChevronUpDownIcon} from '@heroicons/react/24/outline';
 import {useEffect, useState} from 'react';
@@ -25,7 +24,7 @@ function labelFor(unit: UnitSchema) {
       return `${unit.name} (${unit.ticker}, ${unit.currencyCode})`;
     }
     const price = new AmountWithCurrency({
-      amountCents: nanosToCents(BigInt(unit.pricePerShareNanos)),
+      amountNanos: BigInt(unit.pricePerShareNanos),
       currency: mustFindByCode(unit.currencyCode),
     });
     return `${unit.name} (${unit.ticker} — ${price.format()})`;

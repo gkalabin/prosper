@@ -16,7 +16,7 @@ describe('search: match individual fields', () => {
     ]);
     expectSearch({
       q: {query: 'tESCO', ...params},
-      results: [{vendor: 'Tesco', amountCents: 1000}],
+      results: [{vendor: 'Tesco', amountNanos: 10000000000n}],
     });
   });
 
@@ -28,7 +28,7 @@ describe('search: match individual fields', () => {
     ]);
     expectSearch({
       q: {query: '3.2', ...params},
-      results: [{vendor: 'Starbucks', amountCents: 320}],
+      results: [{vendor: 'Starbucks', amountNanos: 3200000000n}],
     });
   });
 
@@ -39,7 +39,7 @@ describe('search: match individual fields', () => {
     ]);
     expectSearch({
       q: {query: 'amex', ...params},
-      results: [{vendor: 'Starbucks', amountCents: 320}],
+      results: [{vendor: 'Starbucks', amountNanos: 3200000000n}],
     });
   });
 
@@ -50,7 +50,7 @@ describe('search: match individual fields', () => {
     ]);
     expectSearch({
       q: {query: 'current', ...params},
-      results: [{vendor: 'BP', amountCents: 1000}],
+      results: [{vendor: 'BP', amountNanos: 10000000000n}],
     });
   });
 
@@ -61,7 +61,7 @@ describe('search: match individual fields', () => {
     ]);
     expectSearch({
       q: {query: 'gas', ...params},
-      results: [{vendor: 'BP', amountCents: 1000}],
+      results: [{vendor: 'BP', amountNanos: 10000000000n}],
     });
   });
 
@@ -75,7 +75,7 @@ describe('search: match individual fields', () => {
     const params = modelParams([t1, t2, t3]);
     expectSearch({
       q: {query: '5', ...params},
-      results: [{id: 5, vendor: 'Starbucks', amountCents: 325}],
+      results: [{id: 5, vendor: 'Starbucks', amountNanos: 3250000000n}],
     });
   });
 });

@@ -14,7 +14,7 @@ import {
   TransactionPrototype,
   WithdrawalOrDepositPrototype,
 } from '@/lib/txsuggestions/TransactionPrototype';
-import {centsToDollar} from '@/lib/util/util';
+import {nanosToDollar} from '@/lib/util/util';
 import {useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
@@ -48,10 +48,10 @@ export function useSharingTypeActions() {
       setValue('expense.sharingType', 'PAID_OTHER_REPAID');
       setValue('expense.currency', protoCurrency);
       // The proto is for repayment, we assume the user repaid the half of the full amount paid by the original payer.
-      setValue('expense.amount', centsToDollar(proto.absoluteAmountCents * 2));
+      setValue('expense.amount', nanosToDollar(proto.absoluteAmountNanos * 2));
       setValue(
         'expense.ownShareAmount',
-        centsToDollar(proto.absoluteAmountCents)
+        nanosToDollar(proto.absoluteAmountNanos)
       );
       setValue('expense.repayment.accountId', proto.internalAccountId);
       setValue('expense.repayment.timestamp', new Date(proto.timestampEpoch));

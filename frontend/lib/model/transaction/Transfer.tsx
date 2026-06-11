@@ -12,7 +12,6 @@ import {
   accountUnit,
 } from '@/lib/model/BankAccount';
 import {Stock} from '@/lib/model/Stock';
-import {nanosToCents} from '@/lib/util/util';
 
 export type Transfer = {
   kind: 'Transfer';
@@ -20,8 +19,8 @@ export type Transfer = {
   timestampEpoch: number;
   fromAccountId: number;
   toAccountId: number;
-  sentAmountCents: number;
-  receivedAmountCents: number;
+  sentAmountNanos: bigint;
+  receivedAmountNanos: bigint;
   note: string;
   categoryId: number;
   tagsIds: number[];
@@ -61,8 +60,8 @@ export function transferFromDB(
     timestampEpoch: timestampToEpoch(tx.timestamp),
     fromAccountId: fromAccount.bankAccountId,
     toAccountId: toAccount.bankAccountId,
-    sentAmountCents: nanosToCents(-outLine.amountNanos),
-    receivedAmountCents: nanosToCents(inLine.amountNanos),
+    sentAmountNanos: -outLine.amountNanos,
+    receivedAmountNanos: inLine.amountNanos,
     note: tx.note,
     categoryId: tx.categoryId,
     tagsIds: tx.tagIds,
@@ -121,7 +120,7 @@ export function amountReceived(
   const incomingAccount = incomingBankAccount(t, bankAccounts);
   const unit = accountUnit(incomingAccount, stocks);
   return new AmountWithUnit({
-    amountCents: t.receivedAmountCents,
+    amountNanos: t.receivedAmountNanos,
     unit,
   });
 }
@@ -134,7 +133,7 @@ export function amountSent(
   const outgoingAccount = outgoingBankAccount(t, bankAccounts);
   const unit = accountUnit(outgoingAccount, stocks);
   return new AmountWithUnit({
-    amountCents: t.sentAmountCents,
+    amountNanos: t.sentAmountNanos,
     unit,
   });
 }

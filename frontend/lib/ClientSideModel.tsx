@@ -135,7 +135,7 @@ export class ExchangeRates {
       return undefined;
     }
     return new AmountWithCurrency({
-      amountCents: Math.round((a.cents() * rateNanos) / NANOS_MULTIPLIER),
+      amountNanos: (a.nanos() * BigInt(rateNanos)) / BigInt(NANOS_MULTIPLIER),
       currency: target,
     });
   }
@@ -171,22 +171,17 @@ export class ExchangeRates {
 
 type Timeseries = Map<number, number>;
 
-// Stock quotes arrive over the wire in nanos (1 unit = 10^9 nanos).
-// The rest of the FE works in cents, so divide by 1e7 once at the
-// boundary and store cents in the timeseries.
-const NANOS_PER_CENT = 10_000_000n;
-
 export class StockQuotes {
   private readonly quotesByStock: Map<string, Timeseries>;
 
   public constructor(init: PbStockQuote[]) {
     this.quotesByStock = new Map();
     for (const r of init) {
-      const cents = Number(BigInt(r.pricePerShareNanos) / NANOS_PER_CENT);
+      const priceNanos = Number(r.pricePerShareNanos);
       const day = utcStartOfDay(timestampToEpoch(r.quoteTimestamp));
       const key = stockKey({exchange: r.stockExchange, ticker: r.stockTicker});
       const timeseries = this.quotesByStock.get(key) ?? new Map();
-      timeseries.set(day, cents);
+      timeseries.set(day, priceNanos);
       this.quotesByStock.set(key, timeseries);
     }
     for (const quotes of this.quotesByStock.values()) {
@@ -203,12 +198,13 @@ export class StockQuotes {
     if (a.isZero()) {
       return AmountWithCurrency.zero(currency);
     }
-    const pricePerShareCents = this.findQuote(stock, when);
-    if (!pricePerShareCents) {
+    const pricePerShareNanos = this.findQuote(stock, when);
+    if (!pricePerShareNanos) {
       return undefined;
     }
     return new AmountWithCurrency({
-      amountCents: Math.round(a.dollar() * pricePerShareCents),
+      amountNanos:
+        (a.nanos() * BigInt(pricePerShareNanos)) / BigInt(NANOS_MULTIPLIER),
       currency,
     });
   }

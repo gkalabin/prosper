@@ -9,7 +9,7 @@ import {
   Transaction,
 } from '@/lib/model/transaction/Transaction';
 import {useOpenBankingBalances} from '@/lib/openbanking/context';
-import {dollarToCents} from '@/lib/util/util';
+import {dollarToNanos} from '@/lib/util/util';
 import {cn} from '@/lib/utils';
 import {
   ArrowDownIcon,
@@ -18,29 +18,29 @@ import {
 } from '@heroicons/react/24/outline';
 import {useFormContext} from 'react-hook-form';
 
-function existingAmountCents({
+function existingAmountNanos({
   accountId,
   transaction,
 }: {
   accountId: number;
   transaction: Transaction | null;
-}) {
+}): bigint {
   if (!transaction) {
-    return 0;
+    return 0n;
   }
   if (isPersonalExpense(transaction) && transaction.accountId == accountId) {
-    return transaction.amountCents;
+    return transaction.amountNanos;
   }
   if (isIncome(transaction) && transaction.accountId == accountId) {
-    return -transaction.amountCents;
+    return -transaction.amountNanos;
   }
   if (isTransfer(transaction) && transaction.fromAccountId == accountId) {
-    return transaction.sentAmountCents;
+    return transaction.sentAmountNanos;
   }
   if (isTransfer(transaction) && transaction.toAccountId == accountId) {
-    return -transaction.receivedAmountCents;
+    return -transaction.receivedAmountNanos;
   }
-  return 0;
+  return 0n;
 }
 
 export function NewBalanceNote({
@@ -60,8 +60,7 @@ export function NewBalanceNote({
   const {
     formState: {isSubmitting},
   } = useFormContext();
-  const amountCents = Math.round(amount * 100);
-  if (!Number.isInteger(amountCents)) {
+  if (!Number.isFinite(amount)) {
     return null;
   }
   const account = bankAccounts.find(a => a.id == accountId);
@@ -72,14 +71,14 @@ export function NewBalanceNote({
   const localBalance = accountBalance(account, transactions, stocks);
   const remoteBalance = obBalance
     ? new AmountWithUnit({
-        amountCents: obBalance.balanceCents,
+        amountNanos: obBalance.balanceNanos,
         unit: localBalance.getUnit(),
       })
     : null;
-  const newAmount = dollarToCents(amount);
-  const existingAmount = existingAmountCents({accountId, transaction});
+  const newAmountNanos = dollarToNanos(amount);
+  const existingNanos = existingAmountNanos({accountId, transaction});
   const newLocalBalance = new AmountWithUnit({
-    amountCents: localBalance.cents() + newAmount + existingAmount,
+    amountNanos: localBalance.nanos() + newAmountNanos + existingNanos,
     unit: localBalance.getUnit(),
   });
   return (

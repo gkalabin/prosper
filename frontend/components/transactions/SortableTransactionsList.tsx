@@ -50,7 +50,7 @@ function amount(
   const unit = a.getUnit();
   if (isCurrency(unit)) {
     const amount = new AmountWithCurrency({
-      amountCents: a.cents(),
+      amountNanos: a.nanos(),
       currency: unit,
     });
     return exchange.exchangeCurrency(
@@ -105,9 +105,9 @@ export const SortableTransactionsList = (props: {
         assertDefined(y.a);
         switch (sorting) {
           case SortingMode.AMOUNT_ASC:
-            return x.a.cents() - y.a.cents();
+            return x.a.dollar() - y.a.dollar();
           case SortingMode.AMOUNT_DESC:
-            return y.a.cents() - x.a.cents();
+            return y.a.dollar() - x.a.dollar();
         }
       })
       .map(x => x.t);

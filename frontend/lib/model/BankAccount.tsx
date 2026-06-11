@@ -61,7 +61,7 @@ export type BankAccount = {
   id: number;
   name: string;
   bankId: number;
-  initialBalanceCents: number;
+  initialBalanceNanos: bigint;
   currencyCode: string | null;
   stock: StockKey | null;
   displayOrder: number;
@@ -74,7 +74,7 @@ export function bankAccountModelFromDB(init: PbBankAccount): BankAccount {
     id: init.id,
     name: init.name,
     bankId: init.bankId,
-    initialBalanceCents: init.initialBalanceCents,
+    initialBalanceNanos: init.initialBalanceNanos,
     currencyCode: init.currencyCode ?? null,
     stock: init.stock
       ? {exchange: init.stock.exchange, ticker: init.stock.ticker}

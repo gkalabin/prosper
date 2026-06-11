@@ -353,11 +353,11 @@ export class TestFactory {
   }
 
   async createStockQuote(stock: StockKey, pricePerShare: number) {
-    const valueCents = Math.round(pricePerShare * 100);
+    const valueNanos = BigInt(Math.round(pricePerShare * NANOS_PER_DOLLAR));
     await exec(
-      `INSERT INTO StockQuote (stockExchange, stockTicker, value, quoteTimestamp)
+      `INSERT INTO StockQuote (stockExchange, stockTicker, valueNanos, quoteTimestamp)
        VALUES (?, ?, ?, NOW(3))`,
-      [stock.exchange, stock.ticker, valueCents]
+      [stock.exchange, stock.ticker, valueNanos]
     );
   }
 

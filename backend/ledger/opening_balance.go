@@ -6,7 +6,6 @@ import (
 
 	"prosper/ledger/common"
 	"prosper/model"
-	"prosper/moneyutil"
 	"prosper/userdb"
 )
 
@@ -14,7 +13,7 @@ import (
 // a bank account into sync with the requested initial balance. On
 // insert the account has no OPENING_BALANCE history yet; on update
 // the head of the supersedes chain is replaced.
-func syncOpeningBalance(ctx context.Context, tx *userdb.Tx, userID, bankAccountID int32, unit model.Unit, initialBalanceCents int32) error {
+func syncOpeningBalance(ctx context.Context, tx *userdb.Tx, userID, bankAccountID int32, unit model.Unit, amountNanos int64) error {
 	accts, err := common.LoadLedgerAccounts(ctx, tx, userID)
 	if err != nil {
 		return err
@@ -23,7 +22,6 @@ func syncOpeningBalance(ctx context.Context, tx *userdb.Tx, userID, bankAccountI
 	if err != nil {
 		return err
 	}
-	amountNanos := moneyutil.CentsToNanos(initialBalanceCents)
 	existing, err := loadTransactionsForLedgerAccount(ctx, tx, userID, asset.ID, model.TransactionOpeningBalance)
 	if err != nil {
 		return err

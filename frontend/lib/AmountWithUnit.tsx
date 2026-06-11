@@ -7,8 +7,8 @@ export class AmountWithUnit {
   private readonly amount: Amount;
   private readonly unit: Unit;
 
-  public constructor(init: {amountCents: number; unit: Unit}) {
-    this.amount = new Amount({amountCents: init.amountCents});
+  public constructor(init: {amountNanos: bigint; unit: Unit}) {
+    this.amount = new Amount({amountNanos: init.amountNanos});
     this.unit = init.unit;
   }
 
@@ -25,7 +25,7 @@ export class AmountWithUnit {
 
   public static zero(unit: Unit): AmountWithUnit {
     return new AmountWithUnit({
-      amountCents: 0,
+      amountNanos: 0n,
       unit,
     });
   }
@@ -38,8 +38,8 @@ export class AmountWithUnit {
     return this.amount;
   }
 
-  public cents() {
-    return this.amount.cents();
+  public nanos() {
+    return this.amount.nanos();
   }
 
   public dollar() {
@@ -49,7 +49,7 @@ export class AmountWithUnit {
   public abs() {
     if (this.amount.isNegative()) {
       return new AmountWithUnit({
-        amountCents: this.amount.abs().cents(),
+        amountNanos: this.amount.abs().nanos(),
         unit: this.unit,
       });
     }
@@ -59,7 +59,7 @@ export class AmountWithUnit {
   public round() {
     if (!this.isRound()) {
       return new AmountWithUnit({
-        amountCents: Math.round(this.amount.dollar()) * 100,
+        amountNanos: this.amount.round().nanos(),
         unit: this.unit,
       });
     }
@@ -88,7 +88,7 @@ export class AmountWithUnit {
       return this;
     }
     return new AmountWithUnit({
-      amountCents: this.amount.add(other.amount).cents(),
+      amountNanos: this.amount.add(other.amount).nanos(),
       unit: this.unit,
     });
   }
@@ -99,7 +99,7 @@ export class AmountWithUnit {
       return this;
     }
     return new AmountWithUnit({
-      amountCents: this.amount.subtract(other.amount).cents(),
+      amountNanos: this.amount.subtract(other.amount).nanos(),
       unit: this.unit,
     });
   }

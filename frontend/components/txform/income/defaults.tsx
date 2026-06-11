@@ -11,7 +11,7 @@ import {assert} from '@/lib/assert';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Category} from '@/lib/model/Category';
 import {Tag} from '@/lib/model/Tag';
-import {ownShareAmountCentsIgnoreRefunds} from '@/lib/model/transaction/amounts';
+import {ownShareAmountNanosIgnoreRefunds} from '@/lib/model/transaction/amounts';
 import {Income} from '@/lib/model/transaction/Income';
 import {
   isIncome,
@@ -20,7 +20,7 @@ import {
 } from '@/lib/model/transaction/Transaction';
 import {TransactionLink} from '@/lib/model/TransactionLink';
 import {DepositPrototype} from '@/lib/txsuggestions/TransactionPrototype';
-import {centsToDollar} from '@/lib/util/util';
+import {nanosToDollar, roundToCent} from '@/lib/util/util';
 
 export function expenseToIncome({
   prev,
@@ -105,8 +105,8 @@ export function incomeFromTransaction({
   );
   const values: IncomeFormSchema = {
     timestamp: new Date(t.timestampEpoch),
-    amount: t.amountCents / 100,
-    ownShareAmount: ownShareAmountCentsIgnoreRefunds(t) / 100,
+    amount: nanosToDollar(t.amountNanos),
+    ownShareAmount: nanosToDollar(ownShareAmountNanosIgnoreRefunds(t)),
     payer: t.payer,
     categoryId: t.categoryId,
     accountId: t.accountId,
@@ -145,9 +145,11 @@ export function incomeFromPrototype({
     })[0] ?? categories[0].id;
   const values: IncomeFormSchema = {
     timestamp: new Date(proto.timestampEpoch),
-    amount: centsToDollar(proto.absoluteAmountCents),
-    ownShareAmount: centsToDollar(
-      isShared ? proto.absoluteAmountCents / 2 : proto.absoluteAmountCents
+    amount: nanosToDollar(proto.absoluteAmountNanos),
+    ownShareAmount: roundToCent(
+      nanosToDollar(
+        isShared ? proto.absoluteAmountNanos / 2 : proto.absoluteAmountNanos
+      )
     ),
     payer,
     categoryId,

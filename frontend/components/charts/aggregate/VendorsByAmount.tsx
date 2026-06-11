@@ -15,14 +15,17 @@ export function VendorsByAmount({input}: {input: ExchangedTransactions}) {
   // If there is just N+1 items, taking top N would result in only one item rolled into 'others'.
   // To avoid this, if there is N+1 items, just use all of them.
   const topItemsCount = TOP_N == byVendor.size - 1 ? TOP_N + 1 : TOP_N;
-  const cents = new Map<string, number>(
-    [...byVendor.entries()].map(([vendor, amount]) => [vendor, amount.cents()])
+  const nanosByVendor = new Map<string, number>(
+    [...byVendor.entries()].map(([vendor, amount]) => [
+      vendor,
+      Number(amount.nanos()),
+    ])
   );
-  const {top, otherSum, otherCount} = topN(cents, topItemsCount);
+  const {top, otherSum, otherCount} = topN(nanosByVendor, topItemsCount);
   top.push([`Other ${otherCount} vendors`, otherSum]);
-  const data = top.map(([vendor, amountCents]) => ({
+  const data = top.map(([vendor, amountNanos]) => ({
     name: vendor,
-    amount: new Amount({amountCents}),
+    amount: new Amount({amountNanos: BigInt(Math.round(amountNanos))}),
   }));
   return (
     <Charts.HorizontalBar

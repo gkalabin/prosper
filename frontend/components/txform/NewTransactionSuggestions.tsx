@@ -26,6 +26,7 @@ import {
   WithdrawalOrDepositPrototype,
 } from '@/lib/txsuggestions/TransactionPrototype';
 import {combineTransfers} from '@/lib/txsuggestions/TransfersDetection';
+import {nanosToDollar} from '@/lib/util/util';
 import {cn} from '@/lib/utils';
 import {TransactionPrototype as PbTransactionPrototype} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {FetchOpenBankingTransactions} from '@/components/txform/FetchOpenBankingTransactions';
@@ -367,7 +368,7 @@ function SuggestionItem({
               'text-green-900': singleOpProto.type == 'deposit',
             })}
           >
-            {formatUnit(unit, singleOpProto.absoluteAmountCents / 100)}
+            {formatUnit(unit, nanosToDollar(singleOpProto.absoluteAmountNanos))}
           </div>
         </div>
       </div>

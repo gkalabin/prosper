@@ -103,16 +103,16 @@ export class MoneyTimeseries extends AbstractTimeseries<AmountWithCurrency> {
 
 export function runningAverage(ts: MoneyTimeseries, window: number) {
   const entries = ts.entries();
-  const cents = entries.map(x => x.sum.cents());
-  const averagesCent = numbersRunningAverage(cents, window);
-  assert(entries.length == averagesCent.length);
+  const nanos = entries.map(x => Number(x.sum.nanos()));
+  const averagesNanos = numbersRunningAverage(nanos, window);
+  assert(entries.length == averagesNanos.length);
   const out = new MoneyTimeseries(ts.getCurrency(), ts.getGranularity());
   for (let i = 0; i < entries.length; i++) {
     out.set(
       entries[i].time,
       new AmountWithCurrency({
         // TODO: write tests for Math.round
-        amountCents: Math.round(averagesCent[i]),
+        amountNanos: BigInt(Math.round(averagesNanos[i])),
         currency: ts.getCurrency(),
       })
     );
@@ -122,10 +122,10 @@ export function runningAverage(ts: MoneyTimeseries, window: number) {
 
 export function percentile(ts: MoneyTimeseries, p: number) {
   const entries = ts.entries();
-  const cents = entries.map(x => x.sum.cents());
-  const percentileCent = numbersPercentile(cents, p);
+  const nanos = entries.map(x => Number(x.sum.nanos()));
+  const percentileNanos = numbersPercentile(nanos, p);
   return new AmountWithCurrency({
-    amountCents: percentileCent,
+    amountNanos: BigInt(Math.round(percentileNanos)),
     currency: ts.getCurrency(),
   });
 }

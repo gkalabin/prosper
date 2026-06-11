@@ -30,7 +30,7 @@ export const TransactionTitle = ({t}: {t: Transaction}) => {
     const sent = amountSent(t, bankAccounts, stocks);
     const received = amountReceived(t, bankAccounts, stocks);
     let amountText = sent.format();
-    if (sent.cents() !== received.cents()) {
+    if (sent.nanos() !== received.nanos()) {
       amountText += `${sent.format()} → ${received.format()}`;
     }
     return (
