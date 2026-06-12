@@ -147,17 +147,27 @@ func (s *Service) CountUsers(ctx context.Context, _ *prosperv1.CountUsersRequest
 	return &prosperv1.CountUsersResponse{Count: n}, nil
 }
 
+// dummyPasswordHash is a valid bcrypt hash compared against when the
+// supplied login has no matching user, so Authenticate spends the same
+// time hashing whether or not the user exists. registerBcryptCost is a
+// constant in bcrypt's valid range, so hashing here cannot fail.
+var dummyPasswordHash, _ = bcrypt.GenerateFromPassword([]byte("prosper"), registerBcryptCost)
+
 func (s *Service) Authenticate(ctx context.Context, req *prosperv1.AuthenticateRequest) (*prosperv1.AuthenticateResponse, error) {
 	var u model.User
 	err := s.db.GetContext(ctx, &u,
 		`SELECT * FROM User WHERE login = ?`, req.Login)
-	if errors.Is(err, sql.ErrNoRows) {
-		return &prosperv1.AuthenticateResponse{Ok: false}, nil
-	}
-	if err != nil {
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		return nil, err
 	}
-	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(req.Password)); err != nil {
+	// Always run a bcrypt comparison — against a dummy hash when the login
+	// is unknown — so the response time doesn't reveal which logins exist.
+	userExists := !errors.Is(err, sql.ErrNoRows)
+	hash := dummyPasswordHash
+	if userExists {
+		hash = []byte(u.Password)
+	}
+	if bcrypt.CompareHashAndPassword(hash, []byte(req.Password)) != nil || !userExists {
 		return &prosperv1.AuthenticateResponse{Ok: false}, nil
 	}
 	return &prosperv1.AuthenticateResponse{Ok: true, UserId: u.ID}, nil
