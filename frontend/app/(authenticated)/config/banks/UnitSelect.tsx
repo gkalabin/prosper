@@ -14,7 +14,7 @@ import {nanosToCents} from '@/lib/util/util';
 import {cn} from '@/lib/utils';
 import {CheckIcon, ChevronUpDownIcon} from '@heroicons/react/24/outline';
 import {useEffect, useState} from 'react';
-import {useDebounce} from 'use-debounce';
+import {useDebounce} from '@/lib/useDebounce';
 
 function labelFor(unit: UnitSchema) {
   if (unit.kind === 'currency') {
@@ -118,7 +118,7 @@ function UnitSelectDropdownContent({
   const [loading, setLoading] = useState(false);
   const [loadingError, setLoadingError] = useState<string | null>(null);
   const [items, setItems] = useState(initialItems);
-  const [debouncedQuery] = useDebounce(searchQuery, 1000);
+  const debouncedQuery = useDebounce(searchQuery, 1000);
   const [forceRetry, setForceRetry] = useState(false);
 
   const initialOptionIds = new Set(initialItems.map(unitID));

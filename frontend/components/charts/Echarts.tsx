@@ -6,10 +6,10 @@ import {
   TimeseriesMoneyProps,
   TimeseriesNumbersProps,
 } from '@/components/charts/ChartsLibrary';
+import {Echart} from '@/components/charts/Echart';
 import {Currency, formatCurrency} from '@/lib/model/Currency';
 import {formatInterval, sliceInterval} from '@/lib/util/time';
 import {type EChartsOption} from 'echarts';
-import ReactEcharts from 'echarts-for-react';
 import {type TooltipComponentOption} from 'echarts/components';
 import {CallbackDataParams} from 'echarts/types/dist/shared';
 
@@ -31,7 +31,7 @@ function BarOrLine(
     granularity: props.granularity,
   });
   let values: number[] = [];
-  let yAxis: EChartsOption = {};
+  let yAxis: EChartsOption['yAxis'] = {};
   if (isTimeseriesMoneyProps(props)) {
     values = slices.map(i => props.data.get(i.start).round().dollar());
     yAxis = {
@@ -51,8 +51,7 @@ function BarOrLine(
       data-chart-title={props.title}
       data-chart-values={JSON.stringify(values)}
     >
-      <ReactEcharts
-        notMerge
+      <Echart
         option={{
           grid: {
             containLabel: true,
@@ -107,7 +106,7 @@ function HorizontalBar(
 ) {
   const categories = props.data.map(({name}) => name);
   let values: number[] = [];
-  let xAxis: EChartsOption = {};
+  let xAxis: EChartsOption['xAxis'] = {};
   if (isHorizontalBarMoneyProps(props)) {
     values = props.data.map(({amount}) => amount.round().dollar());
     xAxis = {
@@ -126,8 +125,7 @@ function HorizontalBar(
     throw new Error(`Unknown props type ${exhaustiveCheck}`);
   }
   return (
-    <ReactEcharts
-      notMerge
+    <Echart
       option={{
         title: {
           text: props.title,
@@ -241,8 +239,7 @@ function StackedBar({
 }: StackedBarProps) {
   const slices = sliceInterval({interval, granularity});
   return (
-    <ReactEcharts
-      notMerge
+    <Echart
       option={{
         ...stackedBarChartTooltip(currency),
         grid: {

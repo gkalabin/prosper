@@ -34,7 +34,7 @@ import {
 import {differenceInMonths} from 'date-fns';
 import {useMemo, useState} from 'react';
 import {useFormContext} from 'react-hook-form';
-import {useDebounce} from 'use-debounce';
+import {useDebounce} from '@/lib/useDebounce';
 
 export function ParentTransaction() {
   const {control, getValues} = useFormContext<SubFormValues>();
@@ -161,7 +161,7 @@ function FilteredTransactions({
   onChange: (id: number | null) => void;
   accountId: number;
 }) {
-  const [debouncedQuery] = useDebounce(query, 200);
+  const debouncedQuery = useDebounce(query, 200);
   const {bankAccounts, stocks} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
   const options = useMemo(() => {
