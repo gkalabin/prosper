@@ -4,14 +4,16 @@
 # git-pushable repo that stores the dumps. Connection settings come from the
 # repo's .env, so pointing it at a local checkout backs up the dev DB too.
 #
-# Usage: backup.sh <backup-repo-checkout>
+# Usage: backup.sh <backup-repo-checkout> [note]
+# The optional note is included in the commit message.
 set -euo pipefail
 
-if [[ $# -ne 1 ]]; then
-  echo "Usage: $(basename "$0") <backup-repo-checkout>" >&2
+if [[ $# -lt 1 || $# -gt 2 ]]; then
+  echo "Usage: $(basename "$0") <backup-repo-checkout> [note]" >&2
   exit 1
 fi
 repo=$1
+note=${2:-}
 
 cd "$(dirname "$0")/../.."
 set -a
@@ -30,5 +32,5 @@ mysqldump --host "$PROSPER_DB_HOST" --port "$PROSPER_DB_PORT" --user "$PROSPER_D
 size=$(ls -lh "$dump" | awk '{print $5}')
 
 git -C "$repo" add "$(basename "$dump")"
-git -C "$repo" commit -m "[backup] $(hostname). t: $(date -Iseconds), s: $size"
+git -C "$repo" commit -m "[backup] ${note:+$note. }$(hostname). t: $(date -Iseconds), s: $size"
 git -C "$repo" push

@@ -1,0 +1,8 @@
+#!/bin/bash
+# Run an ad-hoc Prosper DB backup: dump the database and push it to the
+# backup repo, with an optional note in the commit message.
+#
+# Usage: make_prosper_backup [note]
+set -euo pipefail
+
+exec sudo -u {{ service_user }} {{ repo_dir }}/scripts/db/backup.sh {{ backup_dir }} "$@"

@@ -40,6 +40,12 @@
         group: '{{ service_user }}'
         mode: '0644'
 
+    - name: Install make_prosper_backup command
+      template:
+        src: make_prosper_backup.j2
+        dest: /usr/local/bin/make_prosper_backup
+        mode: '0755'
+
     - name: Install systemd service for backup run
       template:
         src: prosper-db-backup.service.j2
