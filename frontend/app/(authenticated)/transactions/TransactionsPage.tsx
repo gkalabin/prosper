@@ -7,7 +7,6 @@ import {
   FiltersFormSchema,
   filtersFormValidationSchema,
 } from '@/components/transactions/filters/FiltersFormSchema';
-import {useFilteredTransactions} from '@/components/transactions/filters/TransactionFilters';
 import {
   SearchForAnythingInput,
   TransactionFiltersForm,
@@ -19,17 +18,26 @@ import {Button} from '@/components/ui/button';
 import {Form} from '@/components/ui/form';
 import {CoreDataContextProvider} from '@/lib/context/CoreDataContext';
 import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
-import {TransactionDataContextProvider} from '@/lib/context/TransactionDataContext';
+import {
+  TransactionDataContextProvider,
+  useTransactionDataContext,
+} from '@/lib/context/TransactionDataContext';
 import {AppData} from '@/lib/model/AppDataModel';
+import {useTransactionSearch} from '@/lib/search/useTransactionSearch';
 import {ChartPieIcon, FunnelIcon} from '@heroicons/react/24/outline';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useState} from 'react';
-import {useForm} from 'react-hook-form';
+import {useForm, useFormContext} from 'react-hook-form';
 
 function NonEmptyPageContent() {
   const [showFiltersForm, setShowFiltersForm] = useState(false);
   const [showStats, setShowStats] = useState(false);
-  const {results: filteredTransactions, error} = useFilteredTransactions();
+  const {transactions} = useTransactionDataContext();
+  const {watch} = useFormContext<FiltersFormSchema>();
+  const {results: filteredTransactions, error} = useTransactionSearch(
+    transactions,
+    watch('query')
+  );
   return (
     <div className="space-y-4">
       <div className="flex justify-end gap-4">
