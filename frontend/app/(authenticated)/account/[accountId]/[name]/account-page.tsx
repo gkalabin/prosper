@@ -67,7 +67,7 @@ function NonEmptyPageContent({accountId}: {accountId: number}) {
               ))}
             </div>
           )}
-          <TransactionsList transactions={results} />
+          <TransactionsList transactions={results} account={account} />
         </div>
       </main>
       <NewTransactionFormDialog

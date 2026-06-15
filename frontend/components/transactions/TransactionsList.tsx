@@ -3,7 +3,7 @@ import {Button} from '@/components/ui/button';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
-import {fullAccountName} from '@/lib/model/BankAccount';
+import {BankAccount, fullAccountName} from '@/lib/model/BankAccount';
 import {
   CategoryTree,
   getNameWithAncestors,
@@ -82,7 +82,10 @@ const TransactionTitle = ({t}: {t: Transaction}) => {
   throw new Error(`Unknown transaction type ${_exhaustiveCheck}`);
 };
 
-const TransactionAmount = (props: {transaction: Transaction}) => {
+const TransactionAmount = (props: {
+  transaction: Transaction;
+  account?: BankAccount;
+}) => {
   const {bankAccounts, stocks} = useCoreDataContext();
   const t = props.transaction;
   switch (t.kind) {
@@ -95,13 +98,18 @@ const TransactionAmount = (props: {transaction: Transaction}) => {
       });
       return (
         <>
-          {isIncome(t) ? '+' : ''}
+          {isIncome(t) ? '+' : '-'}
           {a.format()}
         </>
       );
     case 'Transfer':
-      const sent = amountSent(t, bankAccounts, stocks);
-      return <>{sent.format()}</>;
+      if (props.account && t.toAccountId == props.account.id) {
+        return <>+{amountReceived(t, bankAccounts, stocks).format()}</>;
+      }
+      if (props.account && t.fromAccountId == props.account.id) {
+        return <>-{amountSent(t, bankAccounts, stocks).format()}</>;
+      }
+      return <>{amountSent(t, bankAccounts, stocks).format()}</>;
     case 'OpeningBalance':
       const amount = openingBalanceAmount(t, bankAccounts, stocks);
       return <>{amount.format()}</>;
@@ -115,10 +123,12 @@ export const TransactionsListItem = ({
   transaction: t,
   categoryTree,
   onEdit,
+  account,
 }: {
   transaction: Transaction;
   categoryTree: CategoryTree;
   onEdit: (t: Transaction) => void;
+  account?: BankAccount;
 }) => {
   const [expanded, setExpanded] = useState(false);
   const {tags, banks, trips, bankAccounts, stocks} = useCoreDataContext();
@@ -147,7 +157,7 @@ export const TransactionsListItem = ({
             'text-green-900': isIncome(t),
           })}
         >
-          <TransactionAmount transaction={t} />
+          <TransactionAmount transaction={t} account={account} />
         </div>
         <div className="self-center">
           {!expanded && <ChevronRightIcon className="inline h-4 w-4" />}
@@ -334,6 +344,7 @@ function RefundDetails({transaction: {id}}: {transaction: Transaction}) {
 export const TransactionsList = (props: {
   transactions: Transaction[];
   displayLimit?: number;
+  account?: BankAccount;
 }) => {
   const [displayLimit, setDisplayLimit] = useState(props.displayLimit || 10);
   const [editingTransaction, setEditingTransaction] =
@@ -355,6 +366,7 @@ export const TransactionsList = (props: {
               transaction={t}
               categoryTree={categoryTree}
               onEdit={setEditingTransaction}
+              account={props.account}
             />
           ))}
           <footer className="bg-slate-50 p-2 text-center text-lg font-medium">
