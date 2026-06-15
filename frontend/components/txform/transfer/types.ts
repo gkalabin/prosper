@@ -9,8 +9,10 @@ export const transferFormValidationSchema = z
     // form's onChange with a string value which gets coerced here. The alternative is to parse valid numbers in the onChange,
     // but it is difficult because of edge cases.
     // For example, while the user types 4.06 the value is 4.0 at some point which gets converted to 4.
-    amountSent: z.coerce.number().nonnegative(),
-    amountReceived: z.coerce.number().nonnegative(),
+    amountSent: z.coerce.number().positive('Amount must be greater than zero'),
+    amountReceived: z.coerce
+      .number()
+      .positive('Amount must be greater than zero'),
     fromAccountId: z.number().int().positive(),
     toAccountId: z.number().int().positive(),
     categoryId: z.number().int().positive(),
