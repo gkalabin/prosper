@@ -1,16 +1,20 @@
 [Unit]
 Description=Prosper Expense Tracker
 After=mariadb.service docker.service
-StartLimitIntervalSec=0
+StartLimitIntervalSec=60
+StartLimitBurst=5
 
 [Service]
 Type=simple
-Restart=always
-RestartSec=1
 User={{ service_user }}
-ExecStart=/bin/bash -x {{ repo_dir }}/scripts/bash_ci.sh
-StandardOutput=append:{{ log_dir }}/ci.log
-StandardError=append:{{ log_dir }}/ci.log
+# PROSPER_IMAGE selects the image tag to run; prosper-update.sh rewrites it on each rollout.
+EnvironmentFile={{ image_env_file }}
+ExecStartPre=-/usr/bin/docker rm -f prosper-fe
+ExecStart=/usr/bin/docker run --rm --net host --name prosper-fe --env-file {{ env_file }} ${PROSPER_IMAGE}
+StandardOutput=append:{{ log_dir }}/app.log
+StandardError=append:{{ log_dir }}/app.log
+Restart=always
+RestartSec=2
 
 [Install]
 WantedBy=multi-user.target

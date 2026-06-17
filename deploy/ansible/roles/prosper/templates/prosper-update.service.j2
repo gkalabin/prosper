@@ -1,0 +1,11 @@
+[Unit]
+Description=Prosper image updater
+After=docker.service
+
+[Service]
+Type=oneshot
+Environment=PROSPER_BRANCH={{ prosper_version }}
+Environment=PROSPER_IMAGE_REPO={{ image_repo }}
+Environment=PROSPER_GIT_REMOTE={{ git_repo_url }}
+Environment=PROSPER_IMAGE_ENV={{ image_env_file }}
+ExecStart={{ bin_dir }}/prosper-update.sh

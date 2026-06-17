@@ -8,7 +8,7 @@ required roles give you everything Prosper needs to serve over HTTPS:
 - MariaDB
 - Nginx
 - a Let's Encrypt certificate
-- the app itself, which then auto-updates via `bash_ci.sh`
+- the app itself, which then auto-updates via a systemd timer
 
 Add these to any box and Prosper runs, co-hosted with whatever else lives there.
 
@@ -103,8 +103,9 @@ Edit the vault, then re-run the step 5 command:
     ansible-vault edit private/$ENVIRONMENT/group_vars/all/vault.yml \
         --vault-password-file private/$ENVIRONMENT/vault-password.txt
 
-App **code** updates ride the `bash_ci.sh` loop on the server — no playbook
-re-run needed.
+App **code** updates roll out on the server via `prosper-update.timer`, which
+pulls the newest published image for the tracked branch and restarts the app —
+no playbook re-run needed.
 
 ## Multiple environments
 

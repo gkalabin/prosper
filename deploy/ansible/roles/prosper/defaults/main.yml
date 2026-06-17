@@ -5,9 +5,26 @@ service_user: 'prosper'
 # roll out a feature branch.
 prosper_version: 'main'
 
-# Directory where the Prosper repo is cloned (needed for bash_ci.sh).
-repo_dir: '/opt/prosper'
+# Upstream repository. The updater reads the tracked branch tip here each tick.
+git_repo_url: 'https://github.com/gkalabin/prosper.git'
+
+# Published image the updater pulls and the app runs.
+image_repo: 'gkalabin/prosper'
+
+# Host install directory. Holds the rendered .env and the operational scripts
+# (image updater, db backup/restore) that ansible copies from the repo.
+install_dir: '/opt/prosper'
+bin_dir: '{{ install_dir }}/bin'
+env_file: '{{ install_dir }}/.env'
 log_dir: '/var/log/prosper'
+
+# Repo root on the ansible controller, the source for the copied scripts.
+src_dir: '{{ playbook_dir }}/../..'
+
+# Records which image tag systemd launches. The updater rewrites it on each
+# rollout; the app unit reads PROSPER_IMAGE from it.
+image_dir: '/etc/prosper'
+image_env_file: '/etc/prosper/image.env'
 
 # Unix socket for the in-container backend ↔ frontend gRPC channel. Internal
 # wiring, not user-facing config, so it lives here rather than in vault.

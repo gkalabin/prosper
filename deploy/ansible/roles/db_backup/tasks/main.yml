@@ -40,6 +40,12 @@
         group: '{{ service_user }}'
         mode: '0644'
 
+    - name: Install backup script
+      copy:
+        src: '{{ src_dir }}/scripts/db/backup.sh'
+        dest: '{{ bin_dir }}/backup.sh'
+        mode: '0755'
+
     - name: Install make_prosper_backup command
       template:
         src: make_prosper_backup.j2

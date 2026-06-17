@@ -1,23 +1,36 @@
 #!/bin/bash
 # Dump the Prosper database and push it to the backup repo. Invoked on the
 # server by the db_backup systemd timer; the argument is a checkout of the
-# git-pushable repo that stores the dumps. Connection settings come from the
-# repo's .env, so pointing it at a local checkout backs up the dev DB too.
+# git-pushable repo that stores the dumps.
 #
-# Usage: backup.sh <backup-repo-checkout> [note]
+# Connection settings are read from an env file: --env-file when given,
+# otherwise the repo's own .env, so pointing it at a local checkout backs up the
+# dev DB too.
+#
+# Usage: backup.sh [--env-file <path>] <backup-repo-checkout> [note]
 # The optional note is included in the commit message.
 set -euo pipefail
 
+env_file=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --env-file) env_file=$2; shift 2 ;;
+    *) break ;;
+  esac
+done
+
 if [[ $# -lt 1 || $# -gt 2 ]]; then
-  echo "Usage: $(basename "$0") <backup-repo-checkout> [note]" >&2
+  echo "Usage: $(basename "$0") [--env-file <path>] <backup-repo-checkout> [note]" >&2
   exit 1
 fi
 repo=$1
 note=${2:-}
 
-cd "$(dirname "$0")/../.."
+# Default to the repo's own .env so a developer can run this straight from a
+# checkout without passing --env-file.
+env_file=${env_file:-"$(cd "$(dirname "$0")/../.." && pwd)/.env"}
 set -a
-. ./.env
+. "$env_file"
 set +a
 export MYSQL_PWD=$PROSPER_DB_PASSWORD
 

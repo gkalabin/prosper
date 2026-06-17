@@ -1,22 +1,19 @@
 ---
-- name: Create repo directory
+- name: Create install directory
   file:
-    path: '{{ repo_dir }}'
+    path: '{{ install_dir }}'
     state: directory
     owner: '{{ service_user }}'
     group: '{{ service_user }}'
     mode: '0755'
 
-- name: Clone Prosper repository
-  git:
-    repo: https://github.com/gkalabin/prosper.git
-    dest: '{{ repo_dir }}'
-    version: '{{ prosper_version }}'
-    # prosper_version may be a branch that gets force-pushed, so the remote tip
-    # is not always a fast-forward. Hard-reset the checkout to it instead of
-    # leaving the host on the previously fetched commit.
-    force: true
-  become_user: '{{ service_user }}'
+- name: Create script directory
+  file:
+    path: '{{ bin_dir }}'
+    state: directory
+    owner: '{{ service_user }}'
+    group: '{{ service_user }}'
+    mode: '0755'
 
 - name: Create log directory
   file:
@@ -26,14 +23,55 @@
     group: '{{ service_user }}'
     mode: '0755'
 
+- name: Create image config directory
+  file:
+    path: '{{ image_dir }}'
+    state: directory
+    owner: '{{ service_user }}'
+    group: '{{ service_user }}'
+    mode: '0755'
+
 - name: Render .env from vault variables
   template:
     src: env.j2
-    dest: '{{ repo_dir }}/.env'
+    dest: '{{ env_file }}'
     owner: '{{ service_user }}'
     group: '{{ service_user }}'
     mode: '0600'
   notify: restart prosper
+
+- name: Install image updater script
+  copy:
+    src: '{{ src_dir }}/scripts/prosper-update.sh'
+    dest: '{{ bin_dir }}/prosper-update.sh'
+    mode: '0755'
+
+- name: Check for existing image config
+  stat:
+    path: '{{ image_env_file }}'
+  register: image_env
+
+# Seed the image tag for the first boot so the app has something to launch
+# before the updater's first tick. Skipped once present so a re-run does not
+# roll the running image back to the deploy-time tip; the updater keeps it
+# current after that.
+- name: Resolve tracked ref to an image tag
+  shell: |
+    set -euo pipefail
+    sha=$(git ls-remote {{ git_repo_url | quote }} {{ prosper_version | quote }} | head -n1 | cut -f1)
+    printf '%s' "${sha:-{{ prosper_version }}}"
+  args:
+    executable: /bin/bash
+  register: seed_tag
+  changed_when: false
+  when: not image_env.stat.exists
+
+- name: Seed image config
+  copy:
+    dest: '{{ image_env_file }}'
+    content: "PROSPER_IMAGE={{ image_repo }}:{{ seed_tag.stdout }}\n"
+    mode: '0644'
+  when: not image_env.stat.exists
 
 - name: Deploy systemd service
   template:
@@ -43,6 +81,20 @@
   notify:
     - reload systemd
     - restart prosper
+
+- name: Deploy updater service
+  template:
+    src: prosper-update.service.j2
+    dest: /etc/systemd/system/prosper-update.service
+    mode: '0644'
+  notify: reload systemd
+
+- name: Deploy updater timer
+  template:
+    src: prosper-update.timer.j2
+    dest: /etc/systemd/system/prosper-update.timer
+    mode: '0644'
+  notify: reload systemd
 
 - name: Deploy logrotate config
   template:
@@ -57,4 +109,11 @@
   systemd:
     name: prosper
     enabled: true
+    daemon_reload: true
+
+- name: Enable Prosper updater timer
+  systemd:
+    name: prosper-update.timer
+    enabled: true
+    state: started
     daemon_reload: true

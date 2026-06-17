@@ -5,4 +5,4 @@
 # Usage: make_prosper_backup [note]
 set -euo pipefail
 
-exec sudo -u {{ service_user }} {{ repo_dir }}/scripts/db/backup.sh {{ backup_dir }} "$@"
+exec sudo -u {{ service_user }} {{ bin_dir }}/backup.sh --env-file {{ env_file }} {{ backup_dir }} "$@"

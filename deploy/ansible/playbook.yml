@@ -16,9 +16,10 @@
     - certbot
     - role: ssh_identity # service user's SSH key, used for the backup/restore repos
       when: git_deploy_key | length > 0
-    # prosper clones the app repo that db_restore's restore.sh lives in, so it
-    # runs first. It only enables the service; the post-restore task below starts
-    # the app, after db_restore has seeded the database.
+    # prosper creates the install dir and renders the .env that db_restore's
+    # restore.sh reads, so it runs first. It only enables the service; the
+    # post-restore task below starts the app, after db_restore has seeded the
+    # database.
     - prosper
     - db_restore
     - db_backup

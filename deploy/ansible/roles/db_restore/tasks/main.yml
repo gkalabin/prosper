@@ -20,8 +20,14 @@
         version: main
       become_user: '{{ service_user }}'
 
+    - name: Install restore script
+      copy:
+        src: '{{ src_dir }}/scripts/db/restore.sh'
+        dest: '{{ bin_dir }}/restore.sh'
+        mode: '0755'
+
     - name: Load latest dump if the database is empty
-      command: '{{ repo_dir }}/scripts/db/restore.sh --if-empty {{ restore_dir }}'
+      command: '{{ bin_dir }}/restore.sh --if-empty --env-file {{ env_file }} {{ restore_dir }}'
       become_user: '{{ service_user }}'
       register: db_restore
       # restore.sh exits 0 when it restored, 2 when the database was already

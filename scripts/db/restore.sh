@@ -2,11 +2,13 @@
 # Restore the Prosper database from a backup. Takes a safety dump of the current
 # DB first, then loads latest.sql from the backup repo checkout. With --if-empty
 # the restore is skipped when the database already has users, so it is safe to
-# run on every provision to seed only fresh hosts. Connection settings come from
-# the repo's .env, so this works both on the server and on a laptop against the
-# local dev DB.
+# run on every provision to seed only fresh hosts.
 #
-# Usage: restore.sh [--if-empty] <backup-repo-checkout>
+# Connection settings are read from an env file: --env-file when given,
+# otherwise the repo's own .env, so this works both on the server and on a
+# laptop against the local dev DB.
+#
+# Usage: restore.sh [--if-empty] [--env-file <path>] <backup-repo-checkout>
 #
 # Exit codes: 0 if the database was restored, 2 if --if-empty found it already
 # populated and made no change, non-zero otherwise. Automation keys off these
@@ -14,13 +16,17 @@
 set -euo pipefail
 
 if_empty=false
-if [[ "${1:-}" == "--if-empty" ]]; then
-  if_empty=true
-  shift
-fi
+env_file=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --if-empty) if_empty=true; shift ;;
+    --env-file) env_file=$2; shift 2 ;;
+    *) break ;;
+  esac
+done
 
 if [[ $# -ne 1 ]]; then
-  echo "Usage: $(basename "$0") [--if-empty] <backup-repo-checkout>" >&2
+  echo "Usage: $(basename "$0") [--if-empty] [--env-file <path>] <backup-repo-checkout>" >&2
   exit 1
 fi
 repo=$1
@@ -30,9 +36,11 @@ dump="$repo/latest.sql"
   exit 1
 }
 
-cd "$(dirname "$0")/../.."
+# Default to the repo's own .env so a developer can run this straight from a
+# checkout without passing --env-file.
+env_file=${env_file:-"$(cd "$(dirname "$0")/../.." && pwd)/.env"}
 set -a
-. ./.env
+. "$env_file"
 set +a
 export MYSQL_PWD=$PROSPER_DB_PASSWORD
 
