@@ -12,3 +12,7 @@ export const DEFAULT_TEST_CURRENCY = 'USD';
 // (or stock share) and its nano representation. Used everywhere the
 // fixtures compose amount columns.
 export const NANOS_PER_DOLLAR = 1_000_000_000;
+
+// OPEN_BANKING_PROVIDER is the provider stamped onto seeded open banking
+// fetches. The value is the proto Provider enum name the backend records.
+export const OPEN_BANKING_PROVIDER = 'PROVIDER_GOCARDLESS';

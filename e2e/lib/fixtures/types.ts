@@ -55,3 +55,14 @@ export type TransactionContext = {
   account: {id: number};
   category: {id: number};
 };
+
+// OpenBankingTransactionSeed is one transaction as an open banking provider
+// would report it. `amount` is in whole currency units and signed: a negative
+// value is money leaving the account (a withdrawal), a positive value money
+// arriving (a deposit).
+export type OpenBankingTransactionSeed = {
+  externalId: string;
+  description: string;
+  amount: number;
+  timestamp?: Date | string;
+};

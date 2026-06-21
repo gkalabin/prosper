@@ -9,6 +9,9 @@ interface IDRow extends RowDataPacket {
 // cleanupForUserLogins, in dependency order: rows referencing other
 // rows are deleted first.
 const USER_TABLES_BY_USER_ID = [
+  'OpenBankingFetchTransaction',
+  'OpenBankingFetch',
+  'OpenBankingTransaction',
   'ExternalAccountMapping',
   'BankAccount',
   'LedgerAccount',
