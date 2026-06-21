@@ -9,7 +9,7 @@ test.describe('Create transactions from open banking data', () => {
     seed,
     loginAs,
   }) => {
-    const {user, bank, account, category} = await seed.createUserWithTestData({
+    const {user, bank, account} = await seed.createUserWithTestData({
       bank: {name: 'HSBC'},
       account: {name: 'Current', initialBalance: 1000},
       category: {name: 'Groceries'},
@@ -53,7 +53,7 @@ test.describe('Create transactions from open banking data', () => {
   });
 
   test('income from a deposit suggestion', async ({page, seed, loginAs}) => {
-    const {user, bank, account, category} = await seed.createUserWithTestData({
+    const {user, bank, account} = await seed.createUserWithTestData({
       bank: {name: 'Barclays'},
       account: {name: 'Current', initialBalance: 1000},
       category: {name: 'Salary'},
