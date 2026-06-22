@@ -1,4 +1,5 @@
 import * as bcrypt from 'bcrypt';
+import {createHash} from 'crypto';
 import {RowDataPacket} from 'mysql2/promise';
 // eslint-plugin-import's resolver doesn't follow uuid 14's conditional exports.
 // eslint-disable-next-line import/named
@@ -9,6 +10,7 @@ import {
   Bank,
   BankAccount,
   Category,
+  OpenBankingTransactionSeed,
   Stock,
   StockKey,
   Tag,
@@ -26,6 +28,7 @@ export type {
   Bank,
   BankAccount,
   Category,
+  OpenBankingTransactionSeed,
   Stock,
   Tag,
   TestDataBundle,
@@ -36,6 +39,7 @@ export type {
 import {
   DEFAULT_TEST_CURRENCY,
   NANOS_PER_DOLLAR,
+  OPEN_BANKING_PROVIDER,
   TEST_USER_PASSWORD,
 } from './constants';
 
@@ -780,6 +784,72 @@ export class TestFactory {
        VALUES (?, ?, ?, ?)`,
       [userId, sourceTransactionId, linkedTransactionId, linkType]
     );
+  }
+
+  // openBankingTransactions makes the given transactions appear as open
+  // banking suggestions for an account. It links the bank account to an
+  // external account, records a successful fetch, and stores the
+  // transactions against that fetch.
+  async openBankingTransactions({
+    user,
+    bank,
+    account,
+    transactions,
+  }: {
+    user: {id: number};
+    bank: {id: number};
+    account: {id: number};
+    transactions: OpenBankingTransactionSeed[];
+  }): Promise<void> {
+    const externalAccount = `ext-account-${account.id}`;
+    await exec(
+      `INSERT INTO ExternalAccountMapping (userId, internalAccountId, externalAccountId, bankId)
+       VALUES (?, ?, ?, ?)`,
+      [user.id, account.id, externalAccount, bank.id]
+    );
+    const now = new Date();
+    const fetchId = await insert(
+      `INSERT INTO OpenBankingFetch
+         (userId, internalAccountId, provider, \`trigger\`, status, txCount, startedAt, finishedAt)
+       VALUES (?, ?, ?, 'MANUAL', 'SUCCESS', ?, ?, ?)`,
+      [
+        user.id,
+        account.id,
+        OPEN_BANKING_PROVIDER,
+        transactions.length,
+        now,
+        now,
+      ]
+    );
+    for (const t of transactions) {
+      const time = t.timestamp ? new Date(t.timestamp) : now;
+      const signedAmountNanos = BigInt(Math.round(t.amount * NANOS_PER_DOLLAR));
+      const raw = JSON.stringify({
+        externalId: t.externalId,
+        description: t.description,
+        amount: t.amount,
+      });
+      const rawHash = createHash('sha256').update(raw).digest('hex');
+      const txId = await insert(
+        `INSERT INTO OpenBankingTransaction
+           (userId, externalTransactionId, timestamp, description, signedAmountNanos, raw, rawHash)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          user.id,
+          t.externalId,
+          time,
+          t.description,
+          signedAmountNanos.toString(),
+          raw,
+          rawHash,
+        ]
+      );
+      await exec(
+        `INSERT INTO OpenBankingFetchTransaction (userId, fetchId, openBankingTransactionId)
+         VALUES (?, ?, ?)`,
+        [user.id, fetchId, txId]
+      );
+    }
   }
 }
 
