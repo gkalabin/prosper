@@ -22,6 +22,34 @@ func TestFloatUnitsToNanos(t *testing.T) {
 	}
 }
 
+func TestRoundNanosToCent(t *testing.T) {
+	cases := []struct {
+		name string
+		in   int64
+		want int64
+	}{
+		// Zero stays zero.
+		{"zero", 0, 0},
+		// $1.12 already lands on a whole cent.
+		{"exact", 1_120_000_000, 1_120_000_000},
+		// $1.124999999 rounds down to $1.12.
+		{"rounds down", 1_124_999_999, 1_120_000_000},
+		// $1.125 rounds up to $1.13.
+		{"rounds up", 1_125_000_000, 1_130_000_000},
+		// -$1.12 already lands on a whole cent.
+		{"negative exact", -1_120_000_000, -1_120_000_000},
+		// -$1.124999999 rounds toward zero to -$1.12.
+		{"negative rounds down", -1_124_999_999, -1_120_000_000},
+		// -$1.125 rounds away from zero to -$1.13.
+		{"negative rounds up", -1_125_000_000, -1_130_000_000},
+	}
+	for _, c := range cases {
+		if got := RoundNanosToCent(c.in); got != c.want {
+			t.Errorf("RoundNanosToCent(%d) = %d, want %d", c.in, got, c.want)
+		}
+	}
+}
+
 func TestParseDecimalToNanos(t *testing.T) {
 	cases := []struct {
 		in      string

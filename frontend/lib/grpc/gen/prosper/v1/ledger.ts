@@ -475,23 +475,6 @@ export interface TransactionLink {
     linkType: TransactionLinkType;
 }
 /**
- * @generated from protobuf message prosper.v1.TransactionPrototype
- */
-export interface TransactionPrototype {
-    /**
-     * @generated from protobuf field: string external_id = 1
-     */
-    externalId: string;
-    /**
-     * @generated from protobuf field: string external_description = 2
-     */
-    externalDescription: string;
-    /**
-     * @generated from protobuf field: int32 internal_transaction_id = 3
-     */
-    internalTransactionId: number;
-}
-/**
  * @generated from protobuf message prosper.v1.Transaction
  */
 export interface Transaction {
@@ -575,10 +558,6 @@ export interface GetTransactionsResponse {
      * @generated from protobuf field: repeated prosper.v1.TransactionLink links = 2
      */
     links: TransactionLink[];
-    /**
-     * @generated from protobuf field: repeated prosper.v1.TransactionPrototype prototypes = 3
-     */
-    prototypes: TransactionPrototype[];
     /**
      * @generated from protobuf field: repeated prosper.v1.LedgerAccount ledger_accounts = 4
      */
@@ -777,11 +756,11 @@ export interface WriteTransactionFormRequest {
      */
     tagNames: string[];
     /**
-     * External transaction prototypes consumed by this submission.
+     * Events this submission records.
      *
-     * @generated from protobuf field: repeated prosper.v1.TransactionPrototypeInput used_protos = 3
+     * @generated from protobuf field: repeated prosper.v1.OriginKey origins = 3
      */
-    usedProtos: TransactionPrototypeInput[];
+    origins: OriginKey[];
     /**
      * @generated from protobuf oneof: form
      */
@@ -810,19 +789,6 @@ export interface WriteTransactionFormRequest {
      * @generated from protobuf field: string session_id = 7
      */
     sessionId: string;
-}
-/**
- * @generated from protobuf message prosper.v1.TransactionPrototypeInput
- */
-export interface TransactionPrototypeInput {
-    /**
-     * @generated from protobuf field: string external_id = 1
-     */
-    externalId: string;
-    /**
-     * @generated from protobuf field: string external_description = 2
-     */
-    externalDescription: string;
 }
 /**
  * @generated from protobuf message prosper.v1.ExpenseFormInput
@@ -1000,6 +966,253 @@ export interface WriteTransactionFormResponse {
     transactionId: number;
 }
 /**
+ * @generated from protobuf message prosper.v1.SuggestRequest
+ */
+export interface SuggestRequest {
+    /**
+     * @generated from protobuf field: string session_id = 1
+     */
+    sessionId: string;
+}
+/**
+ * @generated from protobuf message prosper.v1.SuggestResponse
+ */
+export interface SuggestResponse {
+    /**
+     * @generated from protobuf field: repeated prosper.v1.TransactionDraft drafts = 1
+     */
+    drafts: TransactionDraft[];
+}
+/**
+ * OriginKey ties a recorded transaction back to the external event it came from.
+ *
+ * @generated from protobuf message prosper.v1.OriginKey
+ */
+export interface OriginKey {
+    /**
+     * @generated from protobuf field: prosper.v1.OriginKind kind = 1
+     */
+    kind: OriginKind;
+    /**
+     * Event id in the source system (e.g. the bank's transaction id).
+     *
+     * @generated from protobuf field: string key = 2
+     */
+    key: string;
+}
+/**
+ * One message per field value type: a single candidate value and
+ * the confidence that the user will record it.
+ *
+ * @generated from protobuf message prosper.v1.StringCandidate
+ */
+export interface StringCandidate {
+    /**
+     * 0..100
+     *
+     * @generated from protobuf field: int32 confidence = 1
+     */
+    confidence: number;
+    /**
+     * @generated from protobuf field: string value = 2
+     */
+    value: string;
+}
+/**
+ * @generated from protobuf message prosper.v1.MoneyCandidate
+ */
+export interface MoneyCandidate {
+    /**
+     * @generated from protobuf field: int32 confidence = 1
+     */
+    confidence: number;
+    /**
+     * @generated from protobuf field: int64 value_nanos = 2
+     */
+    valueNanos: bigint;
+}
+/**
+ * @generated from protobuf message prosper.v1.IdCandidate
+ */
+export interface IdCandidate {
+    /**
+     * @generated from protobuf field: int32 confidence = 1
+     */
+    confidence: number;
+    /**
+     * @generated from protobuf field: int32 value = 2
+     */
+    value: number;
+}
+/**
+ * @generated from protobuf message prosper.v1.TimestampCandidate
+ */
+export interface TimestampCandidate {
+    /**
+     * @generated from protobuf field: int32 confidence = 1
+     */
+    confidence: number;
+    /**
+     * @generated from protobuf field: google.protobuf.Timestamp value = 2
+     */
+    value?: Timestamp;
+}
+/**
+ * TagNames is a tags field value: the full set of tag names proposed together.
+ *
+ * @generated from protobuf message prosper.v1.TagNames
+ */
+export interface TagNames {
+    /**
+     * @generated from protobuf field: repeated string names = 1
+     */
+    names: string[];
+}
+/**
+ * @generated from protobuf message prosper.v1.TagsCandidate
+ */
+export interface TagsCandidate {
+    /**
+     * @generated from protobuf field: int32 confidence = 1
+     */
+    confidence: number;
+    /**
+     * @generated from protobuf field: prosper.v1.TagNames value = 2
+     */
+    value?: TagNames;
+}
+/**
+ * @generated from protobuf message prosper.v1.FormTypeCandidate
+ */
+export interface FormTypeCandidate {
+    /**
+     * @generated from protobuf field: int32 confidence = 1
+     */
+    confidence: number;
+    /**
+     * @generated from protobuf field: prosper.v1.FormType value = 2
+     */
+    value: FormType;
+}
+/**
+ * @generated from protobuf message prosper.v1.SharingTypeCandidate
+ */
+export interface SharingTypeCandidate {
+    /**
+     * @generated from protobuf field: int32 confidence = 1
+     */
+    confidence: number;
+    /**
+     * @generated from protobuf field: prosper.v1.SharingType value = 2
+     */
+    value: SharingType;
+}
+/**
+ * TransactionDraft is a proposed transaction. Every editable form field
+ * is the list of candidate values proposed for it; an empty list means
+ * the field is unset.
+ *
+ * @generated from protobuf message prosper.v1.TransactionDraft
+ */
+export interface TransactionDraft {
+    /**
+     * Events this draft describes.
+     *
+     * @generated from protobuf field: repeated prosper.v1.OriginKey origins = 1
+     */
+    origins: OriginKey[];
+    /**
+     * Transactions already recorded from this event.
+     *
+     * @generated from protobuf field: repeated int32 recorded_transaction_ids = 2
+     */
+    recordedTransactionIds: number[];
+    /**
+     * @generated from protobuf field: repeated prosper.v1.FormTypeCandidate form_type = 3
+     */
+    formType: FormTypeCandidate[];
+    /**
+     * @generated from protobuf field: repeated prosper.v1.TimestampCandidate timestamp = 4
+     */
+    timestamp: TimestampCandidate[];
+    /**
+     * @generated from protobuf field: repeated prosper.v1.MoneyCandidate amount = 5
+     */
+    amount: MoneyCandidate[];
+    /**
+     * @generated from protobuf field: repeated prosper.v1.MoneyCandidate own_share_amount = 6
+     */
+    ownShareAmount: MoneyCandidate[];
+    /**
+     * Amount credited to the receiving account of a transfer.
+     *
+     * @generated from protobuf field: repeated prosper.v1.MoneyCandidate amount_received = 7
+     */
+    amountReceived: MoneyCandidate[];
+    /**
+     * Account the money is deducted from: the paying account of an
+     * expense, the sending account of a transfer.
+     *
+     * @generated from protobuf field: repeated prosper.v1.IdCandidate account_from_id = 8
+     */
+    accountFromId: IdCandidate[];
+    /**
+     * Account the money is deposited to: the receiving account of an
+     * income or a transfer.
+     *
+     * @generated from protobuf field: repeated prosper.v1.IdCandidate account_to_id = 9
+     */
+    accountToId: IdCandidate[];
+    /**
+     * @generated from protobuf field: repeated prosper.v1.IdCandidate category_id = 10
+     */
+    categoryId: IdCandidate[];
+    /**
+     * @generated from protobuf field: repeated prosper.v1.StringCandidate vendor = 11
+     */
+    vendor: StringCandidate[];
+    /**
+     * @generated from protobuf field: repeated prosper.v1.StringCandidate payer = 12
+     */
+    payer: StringCandidate[];
+    /**
+     * @generated from protobuf field: repeated prosper.v1.StringCandidate description = 13
+     */
+    description: StringCandidate[];
+    /**
+     * @generated from protobuf field: repeated prosper.v1.StringCandidate companion = 14
+     */
+    companion: StringCandidate[];
+    /**
+     * Currency of an expense paid by a third party.
+     *
+     * @generated from protobuf field: repeated prosper.v1.StringCandidate currency = 15
+     */
+    currency: StringCandidate[];
+    /**
+     * @generated from protobuf field: repeated prosper.v1.SharingTypeCandidate sharing_type = 16
+     */
+    sharingType: SharingTypeCandidate[];
+    /**
+     * @generated from protobuf field: repeated prosper.v1.TagsCandidate tags = 17
+     */
+    tags: TagsCandidate[];
+    /**
+     * @generated from protobuf field: repeated prosper.v1.StringCandidate trip_name = 18
+     */
+    tripName: StringCandidate[];
+    /**
+     * @generated from protobuf field: repeated prosper.v1.IdCandidate repayment_category_id = 19
+     */
+    repaymentCategoryId: IdCandidate[];
+    /**
+     * Refunded transaction for an income recorded as a refund.
+     *
+     * @generated from protobuf field: repeated prosper.v1.IdCandidate parent_transaction_id = 20
+     */
+    parentTransactionId: IdCandidate[];
+}
+/**
  * @generated from protobuf enum prosper.v1.TransactionType
  */
 export enum TransactionType {
@@ -1102,6 +1315,42 @@ export enum SharingType {
      * @generated from protobuf enum value: SHARING_TYPE_PAID_OTHER_REPAID = 4;
      */
     PAID_OTHER_REPAID = 4
+}
+/**
+ * @generated from protobuf enum prosper.v1.OriginKind
+ */
+export enum OriginKind {
+    /**
+     * @generated from protobuf enum value: ORIGIN_KIND_UNSPECIFIED = 0;
+     */
+    UNSPECIFIED = 0,
+    /**
+     * @generated from protobuf enum value: ORIGIN_KIND_OPEN_BANKING = 1;
+     */
+    OPEN_BANKING = 1
+}
+/**
+ * FormType is the transaction form variant a draft opens with.
+ *
+ * @generated from protobuf enum prosper.v1.FormType
+ */
+export enum FormType {
+    /**
+     * @generated from protobuf enum value: FORM_TYPE_UNSPECIFIED = 0;
+     */
+    UNSPECIFIED = 0,
+    /**
+     * @generated from protobuf enum value: FORM_TYPE_EXPENSE = 1;
+     */
+    EXPENSE = 1,
+    /**
+     * @generated from protobuf enum value: FORM_TYPE_INCOME = 2;
+     */
+    INCOME = 2,
+    /**
+     * @generated from protobuf enum value: FORM_TYPE_TRANSFER = 3;
+     */
+    TRANSFER = 3
 }
 // @generated message type with reflection information, may provide speed optimized methods
 class ValidateSessionRequest$Type extends MessageType<ValidateSessionRequest> {
@@ -2742,69 +2991,6 @@ class TransactionLink$Type extends MessageType<TransactionLink> {
  */
 export const TransactionLink = new TransactionLink$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class TransactionPrototype$Type extends MessageType<TransactionPrototype> {
-    constructor() {
-        super("prosper.v1.TransactionPrototype", [
-            { no: 1, name: "external_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "external_description", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "internal_transaction_id", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
-        ]);
-    }
-    create(value?: PartialMessage<TransactionPrototype>): TransactionPrototype {
-        const message = globalThis.Object.create((this.messagePrototype!));
-        message.externalId = "";
-        message.externalDescription = "";
-        message.internalTransactionId = 0;
-        if (value !== undefined)
-            reflectionMergePartial<TransactionPrototype>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TransactionPrototype): TransactionPrototype {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string external_id */ 1:
-                    message.externalId = reader.string();
-                    break;
-                case /* string external_description */ 2:
-                    message.externalDescription = reader.string();
-                    break;
-                case /* int32 internal_transaction_id */ 3:
-                    message.internalTransactionId = reader.int32();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: TransactionPrototype, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string external_id = 1; */
-        if (message.externalId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.externalId);
-        /* string external_description = 2; */
-        if (message.externalDescription !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.externalDescription);
-        /* int32 internal_transaction_id = 3; */
-        if (message.internalTransactionId !== 0)
-            writer.tag(3, WireType.Varint).int32(message.internalTransactionId);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message prosper.v1.TransactionPrototype
- */
-export const TransactionPrototype = new TransactionPrototype$Type();
-// @generated message type with reflection information, may provide speed optimized methods
 class Transaction$Type extends MessageType<Transaction> {
     constructor() {
         super("prosper.v1.Transaction", [
@@ -3010,7 +3196,6 @@ class GetTransactionsResponse$Type extends MessageType<GetTransactionsResponse> 
         super("prosper.v1.GetTransactionsResponse", [
             { no: 1, name: "transactions", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => Transaction },
             { no: 2, name: "links", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => TransactionLink },
-            { no: 3, name: "prototypes", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => TransactionPrototype },
             { no: 4, name: "ledger_accounts", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => LedgerAccount }
         ]);
     }
@@ -3018,7 +3203,6 @@ class GetTransactionsResponse$Type extends MessageType<GetTransactionsResponse> 
         const message = globalThis.Object.create((this.messagePrototype!));
         message.transactions = [];
         message.links = [];
-        message.prototypes = [];
         message.ledgerAccounts = [];
         if (value !== undefined)
             reflectionMergePartial<GetTransactionsResponse>(this, message, value);
@@ -3034,9 +3218,6 @@ class GetTransactionsResponse$Type extends MessageType<GetTransactionsResponse> 
                     break;
                 case /* repeated prosper.v1.TransactionLink links */ 2:
                     message.links.push(TransactionLink.internalBinaryRead(reader, reader.uint32(), options));
-                    break;
-                case /* repeated prosper.v1.TransactionPrototype prototypes */ 3:
-                    message.prototypes.push(TransactionPrototype.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 case /* repeated prosper.v1.LedgerAccount ledger_accounts */ 4:
                     message.ledgerAccounts.push(LedgerAccount.internalBinaryRead(reader, reader.uint32(), options));
@@ -3059,9 +3240,6 @@ class GetTransactionsResponse$Type extends MessageType<GetTransactionsResponse> 
         /* repeated prosper.v1.TransactionLink links = 2; */
         for (let i = 0; i < message.links.length; i++)
             TransactionLink.internalBinaryWrite(message.links[i], writer.tag(2, WireType.LengthDelimited).fork(), options).join();
-        /* repeated prosper.v1.TransactionPrototype prototypes = 3; */
-        for (let i = 0; i < message.prototypes.length; i++)
-            TransactionPrototype.internalBinaryWrite(message.prototypes[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
         /* repeated prosper.v1.LedgerAccount ledger_accounts = 4; */
         for (let i = 0; i < message.ledgerAccounts.length; i++)
             LedgerAccount.internalBinaryWrite(message.ledgerAccounts[i], writer.tag(4, WireType.LengthDelimited).fork(), options).join();
@@ -3740,7 +3918,7 @@ class WriteTransactionFormRequest$Type extends MessageType<WriteTransactionFormR
         super("prosper.v1.WriteTransactionFormRequest", [
             { no: 1, name: "transaction_id_to_supersede", kind: "scalar", opt: true, T: 5 /*ScalarType.INT32*/ },
             { no: 2, name: "tag_names", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ },
-            { no: 3, name: "used_protos", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => TransactionPrototypeInput },
+            { no: 3, name: "origins", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => OriginKey },
             { no: 4, name: "expense", kind: "message", oneof: "form", T: () => ExpenseFormInput },
             { no: 5, name: "income", kind: "message", oneof: "form", T: () => IncomeFormInput },
             { no: 6, name: "transfer", kind: "message", oneof: "form", T: () => TransferFormInput },
@@ -3750,7 +3928,7 @@ class WriteTransactionFormRequest$Type extends MessageType<WriteTransactionFormR
     create(value?: PartialMessage<WriteTransactionFormRequest>): WriteTransactionFormRequest {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.tagNames = [];
-        message.usedProtos = [];
+        message.origins = [];
         message.form = { oneofKind: undefined };
         message.sessionId = "";
         if (value !== undefined)
@@ -3768,8 +3946,8 @@ class WriteTransactionFormRequest$Type extends MessageType<WriteTransactionFormR
                 case /* repeated string tag_names */ 2:
                     message.tagNames.push(reader.string());
                     break;
-                case /* repeated prosper.v1.TransactionPrototypeInput used_protos */ 3:
-                    message.usedProtos.push(TransactionPrototypeInput.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated prosper.v1.OriginKey origins */ 3:
+                    message.origins.push(OriginKey.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 case /* prosper.v1.ExpenseFormInput expense */ 4:
                     message.form = {
@@ -3810,9 +3988,9 @@ class WriteTransactionFormRequest$Type extends MessageType<WriteTransactionFormR
         /* repeated string tag_names = 2; */
         for (let i = 0; i < message.tagNames.length; i++)
             writer.tag(2, WireType.LengthDelimited).string(message.tagNames[i]);
-        /* repeated prosper.v1.TransactionPrototypeInput used_protos = 3; */
-        for (let i = 0; i < message.usedProtos.length; i++)
-            TransactionPrototypeInput.internalBinaryWrite(message.usedProtos[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* repeated prosper.v1.OriginKey origins = 3; */
+        for (let i = 0; i < message.origins.length; i++)
+            OriginKey.internalBinaryWrite(message.origins[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
         /* prosper.v1.ExpenseFormInput expense = 4; */
         if (message.form.oneofKind === "expense")
             ExpenseFormInput.internalBinaryWrite(message.form.expense, writer.tag(4, WireType.LengthDelimited).fork(), options).join();
@@ -3835,61 +4013,6 @@ class WriteTransactionFormRequest$Type extends MessageType<WriteTransactionFormR
  * @generated MessageType for protobuf message prosper.v1.WriteTransactionFormRequest
  */
 export const WriteTransactionFormRequest = new WriteTransactionFormRequest$Type();
-// @generated message type with reflection information, may provide speed optimized methods
-class TransactionPrototypeInput$Type extends MessageType<TransactionPrototypeInput> {
-    constructor() {
-        super("prosper.v1.TransactionPrototypeInput", [
-            { no: 1, name: "external_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ },
-            { no: 2, name: "external_description", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
-        ]);
-    }
-    create(value?: PartialMessage<TransactionPrototypeInput>): TransactionPrototypeInput {
-        const message = globalThis.Object.create((this.messagePrototype!));
-        message.externalId = "";
-        message.externalDescription = "";
-        if (value !== undefined)
-            reflectionMergePartial<TransactionPrototypeInput>(this, message, value);
-        return message;
-    }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TransactionPrototypeInput): TransactionPrototypeInput {
-        let message = target ?? this.create(), end = reader.pos + length;
-        while (reader.pos < end) {
-            let [fieldNo, wireType] = reader.tag();
-            switch (fieldNo) {
-                case /* string external_id */ 1:
-                    message.externalId = reader.string();
-                    break;
-                case /* string external_description */ 2:
-                    message.externalDescription = reader.string();
-                    break;
-                default:
-                    let u = options.readUnknownField;
-                    if (u === "throw")
-                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
-                    let d = reader.skip(wireType);
-                    if (u !== false)
-                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
-            }
-        }
-        return message;
-    }
-    internalBinaryWrite(message: TransactionPrototypeInput, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* string external_id = 1; */
-        if (message.externalId !== "")
-            writer.tag(1, WireType.LengthDelimited).string(message.externalId);
-        /* string external_description = 2; */
-        if (message.externalDescription !== "")
-            writer.tag(2, WireType.LengthDelimited).string(message.externalDescription);
-        let u = options.writeUnknownFields;
-        if (u !== false)
-            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
-        return writer;
-    }
-}
-/**
- * @generated MessageType for protobuf message prosper.v1.TransactionPrototypeInput
- */
-export const TransactionPrototypeInput = new TransactionPrototypeInput$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class ExpenseFormInput$Type extends MessageType<ExpenseFormInput> {
     constructor() {
@@ -4344,6 +4467,792 @@ class WriteTransactionFormResponse$Type extends MessageType<WriteTransactionForm
  * @generated MessageType for protobuf message prosper.v1.WriteTransactionFormResponse
  */
 export const WriteTransactionFormResponse = new WriteTransactionFormResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SuggestRequest$Type extends MessageType<SuggestRequest> {
+    constructor() {
+        super("prosper.v1.SuggestRequest", [
+            { no: 1, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<SuggestRequest>): SuggestRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.sessionId = "";
+        if (value !== undefined)
+            reflectionMergePartial<SuggestRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SuggestRequest): SuggestRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* string session_id */ 1:
+                    message.sessionId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SuggestRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* string session_id = 1; */
+        if (message.sessionId !== "")
+            writer.tag(1, WireType.LengthDelimited).string(message.sessionId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.SuggestRequest
+ */
+export const SuggestRequest = new SuggestRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SuggestResponse$Type extends MessageType<SuggestResponse> {
+    constructor() {
+        super("prosper.v1.SuggestResponse", [
+            { no: 1, name: "drafts", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => TransactionDraft }
+        ]);
+    }
+    create(value?: PartialMessage<SuggestResponse>): SuggestResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.drafts = [];
+        if (value !== undefined)
+            reflectionMergePartial<SuggestResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SuggestResponse): SuggestResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated prosper.v1.TransactionDraft drafts */ 1:
+                    message.drafts.push(TransactionDraft.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SuggestResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated prosper.v1.TransactionDraft drafts = 1; */
+        for (let i = 0; i < message.drafts.length; i++)
+            TransactionDraft.internalBinaryWrite(message.drafts[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.SuggestResponse
+ */
+export const SuggestResponse = new SuggestResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class OriginKey$Type extends MessageType<OriginKey> {
+    constructor() {
+        super("prosper.v1.OriginKey", [
+            { no: 1, name: "kind", kind: "enum", T: () => ["prosper.v1.OriginKind", OriginKind, "ORIGIN_KIND_"] },
+            { no: 2, name: "key", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<OriginKey>): OriginKey {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.kind = 0;
+        message.key = "";
+        if (value !== undefined)
+            reflectionMergePartial<OriginKey>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: OriginKey): OriginKey {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* prosper.v1.OriginKind kind */ 1:
+                    message.kind = reader.int32();
+                    break;
+                case /* string key */ 2:
+                    message.key = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: OriginKey, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* prosper.v1.OriginKind kind = 1; */
+        if (message.kind !== 0)
+            writer.tag(1, WireType.Varint).int32(message.kind);
+        /* string key = 2; */
+        if (message.key !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.key);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.OriginKey
+ */
+export const OriginKey = new OriginKey$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class StringCandidate$Type extends MessageType<StringCandidate> {
+    constructor() {
+        super("prosper.v1.StringCandidate", [
+            { no: 1, name: "confidence", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "value", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<StringCandidate>): StringCandidate {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.confidence = 0;
+        message.value = "";
+        if (value !== undefined)
+            reflectionMergePartial<StringCandidate>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: StringCandidate): StringCandidate {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 confidence */ 1:
+                    message.confidence = reader.int32();
+                    break;
+                case /* string value */ 2:
+                    message.value = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: StringCandidate, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 confidence = 1; */
+        if (message.confidence !== 0)
+            writer.tag(1, WireType.Varint).int32(message.confidence);
+        /* string value = 2; */
+        if (message.value !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.value);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.StringCandidate
+ */
+export const StringCandidate = new StringCandidate$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class MoneyCandidate$Type extends MessageType<MoneyCandidate> {
+    constructor() {
+        super("prosper.v1.MoneyCandidate", [
+            { no: 1, name: "confidence", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "value_nanos", kind: "scalar", T: 3 /*ScalarType.INT64*/, L: 0 /*LongType.BIGINT*/ }
+        ]);
+    }
+    create(value?: PartialMessage<MoneyCandidate>): MoneyCandidate {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.confidence = 0;
+        message.valueNanos = 0n;
+        if (value !== undefined)
+            reflectionMergePartial<MoneyCandidate>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: MoneyCandidate): MoneyCandidate {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 confidence */ 1:
+                    message.confidence = reader.int32();
+                    break;
+                case /* int64 value_nanos */ 2:
+                    message.valueNanos = reader.int64().toBigInt();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: MoneyCandidate, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 confidence = 1; */
+        if (message.confidence !== 0)
+            writer.tag(1, WireType.Varint).int32(message.confidence);
+        /* int64 value_nanos = 2; */
+        if (message.valueNanos !== 0n)
+            writer.tag(2, WireType.Varint).int64(message.valueNanos);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.MoneyCandidate
+ */
+export const MoneyCandidate = new MoneyCandidate$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class IdCandidate$Type extends MessageType<IdCandidate> {
+    constructor() {
+        super("prosper.v1.IdCandidate", [
+            { no: 1, name: "confidence", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "value", kind: "scalar", T: 5 /*ScalarType.INT32*/ }
+        ]);
+    }
+    create(value?: PartialMessage<IdCandidate>): IdCandidate {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.confidence = 0;
+        message.value = 0;
+        if (value !== undefined)
+            reflectionMergePartial<IdCandidate>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: IdCandidate): IdCandidate {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 confidence */ 1:
+                    message.confidence = reader.int32();
+                    break;
+                case /* int32 value */ 2:
+                    message.value = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: IdCandidate, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 confidence = 1; */
+        if (message.confidence !== 0)
+            writer.tag(1, WireType.Varint).int32(message.confidence);
+        /* int32 value = 2; */
+        if (message.value !== 0)
+            writer.tag(2, WireType.Varint).int32(message.value);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.IdCandidate
+ */
+export const IdCandidate = new IdCandidate$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class TimestampCandidate$Type extends MessageType<TimestampCandidate> {
+    constructor() {
+        super("prosper.v1.TimestampCandidate", [
+            { no: 1, name: "confidence", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "value", kind: "message", T: () => Timestamp }
+        ]);
+    }
+    create(value?: PartialMessage<TimestampCandidate>): TimestampCandidate {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.confidence = 0;
+        if (value !== undefined)
+            reflectionMergePartial<TimestampCandidate>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TimestampCandidate): TimestampCandidate {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 confidence */ 1:
+                    message.confidence = reader.int32();
+                    break;
+                case /* google.protobuf.Timestamp value */ 2:
+                    message.value = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.value);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: TimestampCandidate, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 confidence = 1; */
+        if (message.confidence !== 0)
+            writer.tag(1, WireType.Varint).int32(message.confidence);
+        /* google.protobuf.Timestamp value = 2; */
+        if (message.value)
+            Timestamp.internalBinaryWrite(message.value, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.TimestampCandidate
+ */
+export const TimestampCandidate = new TimestampCandidate$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class TagNames$Type extends MessageType<TagNames> {
+    constructor() {
+        super("prosper.v1.TagNames", [
+            { no: 1, name: "names", kind: "scalar", repeat: 2 /*RepeatType.UNPACKED*/, T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<TagNames>): TagNames {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.names = [];
+        if (value !== undefined)
+            reflectionMergePartial<TagNames>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TagNames): TagNames {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated string names */ 1:
+                    message.names.push(reader.string());
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: TagNames, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated string names = 1; */
+        for (let i = 0; i < message.names.length; i++)
+            writer.tag(1, WireType.LengthDelimited).string(message.names[i]);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.TagNames
+ */
+export const TagNames = new TagNames$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class TagsCandidate$Type extends MessageType<TagsCandidate> {
+    constructor() {
+        super("prosper.v1.TagsCandidate", [
+            { no: 1, name: "confidence", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "value", kind: "message", T: () => TagNames }
+        ]);
+    }
+    create(value?: PartialMessage<TagsCandidate>): TagsCandidate {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.confidence = 0;
+        if (value !== undefined)
+            reflectionMergePartial<TagsCandidate>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TagsCandidate): TagsCandidate {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 confidence */ 1:
+                    message.confidence = reader.int32();
+                    break;
+                case /* prosper.v1.TagNames value */ 2:
+                    message.value = TagNames.internalBinaryRead(reader, reader.uint32(), options, message.value);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: TagsCandidate, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 confidence = 1; */
+        if (message.confidence !== 0)
+            writer.tag(1, WireType.Varint).int32(message.confidence);
+        /* prosper.v1.TagNames value = 2; */
+        if (message.value)
+            TagNames.internalBinaryWrite(message.value, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.TagsCandidate
+ */
+export const TagsCandidate = new TagsCandidate$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class FormTypeCandidate$Type extends MessageType<FormTypeCandidate> {
+    constructor() {
+        super("prosper.v1.FormTypeCandidate", [
+            { no: 1, name: "confidence", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "value", kind: "enum", T: () => ["prosper.v1.FormType", FormType, "FORM_TYPE_"] }
+        ]);
+    }
+    create(value?: PartialMessage<FormTypeCandidate>): FormTypeCandidate {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.confidence = 0;
+        message.value = 0;
+        if (value !== undefined)
+            reflectionMergePartial<FormTypeCandidate>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: FormTypeCandidate): FormTypeCandidate {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 confidence */ 1:
+                    message.confidence = reader.int32();
+                    break;
+                case /* prosper.v1.FormType value */ 2:
+                    message.value = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: FormTypeCandidate, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 confidence = 1; */
+        if (message.confidence !== 0)
+            writer.tag(1, WireType.Varint).int32(message.confidence);
+        /* prosper.v1.FormType value = 2; */
+        if (message.value !== 0)
+            writer.tag(2, WireType.Varint).int32(message.value);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.FormTypeCandidate
+ */
+export const FormTypeCandidate = new FormTypeCandidate$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class SharingTypeCandidate$Type extends MessageType<SharingTypeCandidate> {
+    constructor() {
+        super("prosper.v1.SharingTypeCandidate", [
+            { no: 1, name: "confidence", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "value", kind: "enum", T: () => ["prosper.v1.SharingType", SharingType, "SHARING_TYPE_"] }
+        ]);
+    }
+    create(value?: PartialMessage<SharingTypeCandidate>): SharingTypeCandidate {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.confidence = 0;
+        message.value = 0;
+        if (value !== undefined)
+            reflectionMergePartial<SharingTypeCandidate>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: SharingTypeCandidate): SharingTypeCandidate {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 confidence */ 1:
+                    message.confidence = reader.int32();
+                    break;
+                case /* prosper.v1.SharingType value */ 2:
+                    message.value = reader.int32();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: SharingTypeCandidate, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 confidence = 1; */
+        if (message.confidence !== 0)
+            writer.tag(1, WireType.Varint).int32(message.confidence);
+        /* prosper.v1.SharingType value = 2; */
+        if (message.value !== 0)
+            writer.tag(2, WireType.Varint).int32(message.value);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.SharingTypeCandidate
+ */
+export const SharingTypeCandidate = new SharingTypeCandidate$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class TransactionDraft$Type extends MessageType<TransactionDraft> {
+    constructor() {
+        super("prosper.v1.TransactionDraft", [
+            { no: 1, name: "origins", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => OriginKey },
+            { no: 2, name: "recorded_transaction_ids", kind: "scalar", repeat: 1 /*RepeatType.PACKED*/, T: 5 /*ScalarType.INT32*/ },
+            { no: 3, name: "form_type", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => FormTypeCandidate },
+            { no: 4, name: "timestamp", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => TimestampCandidate },
+            { no: 5, name: "amount", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => MoneyCandidate },
+            { no: 6, name: "own_share_amount", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => MoneyCandidate },
+            { no: 7, name: "amount_received", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => MoneyCandidate },
+            { no: 8, name: "account_from_id", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => IdCandidate },
+            { no: 9, name: "account_to_id", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => IdCandidate },
+            { no: 10, name: "category_id", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => IdCandidate },
+            { no: 11, name: "vendor", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => StringCandidate },
+            { no: 12, name: "payer", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => StringCandidate },
+            { no: 13, name: "description", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => StringCandidate },
+            { no: 14, name: "companion", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => StringCandidate },
+            { no: 15, name: "currency", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => StringCandidate },
+            { no: 16, name: "sharing_type", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => SharingTypeCandidate },
+            { no: 17, name: "tags", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => TagsCandidate },
+            { no: 18, name: "trip_name", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => StringCandidate },
+            { no: 19, name: "repayment_category_id", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => IdCandidate },
+            { no: 20, name: "parent_transaction_id", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => IdCandidate }
+        ]);
+    }
+    create(value?: PartialMessage<TransactionDraft>): TransactionDraft {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.origins = [];
+        message.recordedTransactionIds = [];
+        message.formType = [];
+        message.timestamp = [];
+        message.amount = [];
+        message.ownShareAmount = [];
+        message.amountReceived = [];
+        message.accountFromId = [];
+        message.accountToId = [];
+        message.categoryId = [];
+        message.vendor = [];
+        message.payer = [];
+        message.description = [];
+        message.companion = [];
+        message.currency = [];
+        message.sharingType = [];
+        message.tags = [];
+        message.tripName = [];
+        message.repaymentCategoryId = [];
+        message.parentTransactionId = [];
+        if (value !== undefined)
+            reflectionMergePartial<TransactionDraft>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: TransactionDraft): TransactionDraft {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated prosper.v1.OriginKey origins */ 1:
+                    message.origins.push(OriginKey.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated int32 recorded_transaction_ids */ 2:
+                    if (wireType === WireType.LengthDelimited)
+                        for (let e = reader.int32() + reader.pos; reader.pos < e;)
+                            message.recordedTransactionIds.push(reader.int32());
+                    else
+                        message.recordedTransactionIds.push(reader.int32());
+                    break;
+                case /* repeated prosper.v1.FormTypeCandidate form_type */ 3:
+                    message.formType.push(FormTypeCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated prosper.v1.TimestampCandidate timestamp */ 4:
+                    message.timestamp.push(TimestampCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated prosper.v1.MoneyCandidate amount */ 5:
+                    message.amount.push(MoneyCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated prosper.v1.MoneyCandidate own_share_amount */ 6:
+                    message.ownShareAmount.push(MoneyCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated prosper.v1.MoneyCandidate amount_received */ 7:
+                    message.amountReceived.push(MoneyCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated prosper.v1.IdCandidate account_from_id */ 8:
+                    message.accountFromId.push(IdCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated prosper.v1.IdCandidate account_to_id */ 9:
+                    message.accountToId.push(IdCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated prosper.v1.IdCandidate category_id */ 10:
+                    message.categoryId.push(IdCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated prosper.v1.StringCandidate vendor */ 11:
+                    message.vendor.push(StringCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated prosper.v1.StringCandidate payer */ 12:
+                    message.payer.push(StringCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated prosper.v1.StringCandidate description */ 13:
+                    message.description.push(StringCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated prosper.v1.StringCandidate companion */ 14:
+                    message.companion.push(StringCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated prosper.v1.StringCandidate currency */ 15:
+                    message.currency.push(StringCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated prosper.v1.SharingTypeCandidate sharing_type */ 16:
+                    message.sharingType.push(SharingTypeCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated prosper.v1.TagsCandidate tags */ 17:
+                    message.tags.push(TagsCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated prosper.v1.StringCandidate trip_name */ 18:
+                    message.tripName.push(StringCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated prosper.v1.IdCandidate repayment_category_id */ 19:
+                    message.repaymentCategoryId.push(IdCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* repeated prosper.v1.IdCandidate parent_transaction_id */ 20:
+                    message.parentTransactionId.push(IdCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: TransactionDraft, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated prosper.v1.OriginKey origins = 1; */
+        for (let i = 0; i < message.origins.length; i++)
+            OriginKey.internalBinaryWrite(message.origins[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* repeated int32 recorded_transaction_ids = 2; */
+        if (message.recordedTransactionIds.length) {
+            writer.tag(2, WireType.LengthDelimited).fork();
+            for (let i = 0; i < message.recordedTransactionIds.length; i++)
+                writer.int32(message.recordedTransactionIds[i]);
+            writer.join();
+        }
+        /* repeated prosper.v1.FormTypeCandidate form_type = 3; */
+        for (let i = 0; i < message.formType.length; i++)
+            FormTypeCandidate.internalBinaryWrite(message.formType[i], writer.tag(3, WireType.LengthDelimited).fork(), options).join();
+        /* repeated prosper.v1.TimestampCandidate timestamp = 4; */
+        for (let i = 0; i < message.timestamp.length; i++)
+            TimestampCandidate.internalBinaryWrite(message.timestamp[i], writer.tag(4, WireType.LengthDelimited).fork(), options).join();
+        /* repeated prosper.v1.MoneyCandidate amount = 5; */
+        for (let i = 0; i < message.amount.length; i++)
+            MoneyCandidate.internalBinaryWrite(message.amount[i], writer.tag(5, WireType.LengthDelimited).fork(), options).join();
+        /* repeated prosper.v1.MoneyCandidate own_share_amount = 6; */
+        for (let i = 0; i < message.ownShareAmount.length; i++)
+            MoneyCandidate.internalBinaryWrite(message.ownShareAmount[i], writer.tag(6, WireType.LengthDelimited).fork(), options).join();
+        /* repeated prosper.v1.MoneyCandidate amount_received = 7; */
+        for (let i = 0; i < message.amountReceived.length; i++)
+            MoneyCandidate.internalBinaryWrite(message.amountReceived[i], writer.tag(7, WireType.LengthDelimited).fork(), options).join();
+        /* repeated prosper.v1.IdCandidate account_from_id = 8; */
+        for (let i = 0; i < message.accountFromId.length; i++)
+            IdCandidate.internalBinaryWrite(message.accountFromId[i], writer.tag(8, WireType.LengthDelimited).fork(), options).join();
+        /* repeated prosper.v1.IdCandidate account_to_id = 9; */
+        for (let i = 0; i < message.accountToId.length; i++)
+            IdCandidate.internalBinaryWrite(message.accountToId[i], writer.tag(9, WireType.LengthDelimited).fork(), options).join();
+        /* repeated prosper.v1.IdCandidate category_id = 10; */
+        for (let i = 0; i < message.categoryId.length; i++)
+            IdCandidate.internalBinaryWrite(message.categoryId[i], writer.tag(10, WireType.LengthDelimited).fork(), options).join();
+        /* repeated prosper.v1.StringCandidate vendor = 11; */
+        for (let i = 0; i < message.vendor.length; i++)
+            StringCandidate.internalBinaryWrite(message.vendor[i], writer.tag(11, WireType.LengthDelimited).fork(), options).join();
+        /* repeated prosper.v1.StringCandidate payer = 12; */
+        for (let i = 0; i < message.payer.length; i++)
+            StringCandidate.internalBinaryWrite(message.payer[i], writer.tag(12, WireType.LengthDelimited).fork(), options).join();
+        /* repeated prosper.v1.StringCandidate description = 13; */
+        for (let i = 0; i < message.description.length; i++)
+            StringCandidate.internalBinaryWrite(message.description[i], writer.tag(13, WireType.LengthDelimited).fork(), options).join();
+        /* repeated prosper.v1.StringCandidate companion = 14; */
+        for (let i = 0; i < message.companion.length; i++)
+            StringCandidate.internalBinaryWrite(message.companion[i], writer.tag(14, WireType.LengthDelimited).fork(), options).join();
+        /* repeated prosper.v1.StringCandidate currency = 15; */
+        for (let i = 0; i < message.currency.length; i++)
+            StringCandidate.internalBinaryWrite(message.currency[i], writer.tag(15, WireType.LengthDelimited).fork(), options).join();
+        /* repeated prosper.v1.SharingTypeCandidate sharing_type = 16; */
+        for (let i = 0; i < message.sharingType.length; i++)
+            SharingTypeCandidate.internalBinaryWrite(message.sharingType[i], writer.tag(16, WireType.LengthDelimited).fork(), options).join();
+        /* repeated prosper.v1.TagsCandidate tags = 17; */
+        for (let i = 0; i < message.tags.length; i++)
+            TagsCandidate.internalBinaryWrite(message.tags[i], writer.tag(17, WireType.LengthDelimited).fork(), options).join();
+        /* repeated prosper.v1.StringCandidate trip_name = 18; */
+        for (let i = 0; i < message.tripName.length; i++)
+            StringCandidate.internalBinaryWrite(message.tripName[i], writer.tag(18, WireType.LengthDelimited).fork(), options).join();
+        /* repeated prosper.v1.IdCandidate repayment_category_id = 19; */
+        for (let i = 0; i < message.repaymentCategoryId.length; i++)
+            IdCandidate.internalBinaryWrite(message.repaymentCategoryId[i], writer.tag(19, WireType.LengthDelimited).fork(), options).join();
+        /* repeated prosper.v1.IdCandidate parent_transaction_id = 20; */
+        for (let i = 0; i < message.parentTransactionId.length; i++)
+            IdCandidate.internalBinaryWrite(message.parentTransactionId[i], writer.tag(20, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.TransactionDraft
+ */
+export const TransactionDraft = new TransactionDraft$Type();
 /**
  * @generated ServiceType for protobuf service prosper.v1.LedgerService
  */
@@ -4355,7 +5264,8 @@ export const LedgerService = new ServiceType("prosper.v1.LedgerService", [
     { name: "UpsertBankAccount", options: {}, I: UpsertBankAccountRequest, O: UpsertBankAccountResponse },
     { name: "UpsertBank", options: {}, I: UpsertBankRequest, O: UpsertBankResponse },
     { name: "UpsertCategory", options: {}, I: UpsertCategoryRequest, O: UpsertCategoryResponse },
-    { name: "UpdateDisplaySettings", options: {}, I: UpdateDisplaySettingsRequest, O: UpdateDisplaySettingsResponse }
+    { name: "UpdateDisplaySettings", options: {}, I: UpdateDisplaySettingsRequest, O: UpdateDisplaySettingsResponse },
+    { name: "Suggest", options: {}, I: SuggestRequest, O: SuggestResponse }
 ]);
 /**
  * @generated ServiceType for protobuf service prosper.v1.AuthService

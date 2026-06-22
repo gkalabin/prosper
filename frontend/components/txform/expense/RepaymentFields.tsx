@@ -1,5 +1,4 @@
 import {useSharingType} from '@/components/txform/expense/useSharingType';
-import {mostFrequentRepaymentCategories} from '@/components/txform/prefill';
 import {CategorySelect} from '@/components/txform/shared/CategorySelect';
 import {Timestamp} from '@/components/txform/shared/Timestamp';
 import {TransactionFormSchema} from '@/components/txform/types';
@@ -14,14 +13,14 @@ import {Select} from '@/components/ui/html-select';
 import {Input} from '@/components/ui/input';
 import {assertDefined} from '@/lib/assert';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
-import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
+import {SharingType} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {useDisplayBankAccounts} from '@/lib/model/AppDataModel';
 import {groupAccountsByBank} from '@/lib/model/BankAccount';
 import {useFormContext, useWatch} from 'react-hook-form';
 
 export function RepaymentFields() {
   const {sharingType} = useSharingType();
-  if (sharingType != 'PAID_OTHER_REPAID') {
+  if (sharingType != SharingType.PAID_OTHER_REPAID) {
     return null;
   }
   return (
@@ -92,9 +91,6 @@ function RepaymentAccountFrom() {
 
 function RepaymentCategory() {
   const {control, formState} = useFormContext<TransactionFormSchema>();
-  const {transactionLinks} = useTransactionDataContext();
-  const mostFrequentlyUsedCategoryIds =
-    mostFrequentRepaymentCategories(transactionLinks);
   return (
     <FormField
       control={control}
@@ -111,7 +107,6 @@ function RepaymentCategory() {
               <CategorySelect
                 value={field.value}
                 onChange={field.onChange}
-                mostFrequentlyUsedCategoryIds={mostFrequentlyUsedCategoryIds}
                 disabled={formState.isSubmitting}
               />
             </FormControl>

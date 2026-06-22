@@ -27,6 +27,7 @@ const (
 	LedgerService_UpsertBank_FullMethodName              = "/prosper.v1.LedgerService/UpsertBank"
 	LedgerService_UpsertCategory_FullMethodName          = "/prosper.v1.LedgerService/UpsertCategory"
 	LedgerService_UpdateDisplaySettings_FullMethodName   = "/prosper.v1.LedgerService/UpdateDisplaySettings"
+	LedgerService_Suggest_FullMethodName                 = "/prosper.v1.LedgerService/Suggest"
 )
 
 // LedgerServiceClient is the client API for LedgerService service.
@@ -46,6 +47,9 @@ type LedgerServiceClient interface {
 	UpsertBank(ctx context.Context, in *UpsertBankRequest, opts ...grpc.CallOption) (*UpsertBankResponse, error)
 	UpsertCategory(ctx context.Context, in *UpsertCategoryRequest, opts ...grpc.CallOption) (*UpsertCategoryResponse, error)
 	UpdateDisplaySettings(ctx context.Context, in *UpdateDisplaySettingsRequest, opts ...grpc.CallOption) (*UpdateDisplaySettingsResponse, error)
+	// Suggest proposes transaction drafts for events the suggestion
+	// pipeline knows about (e.g. fetched bank transactions).
+	Suggest(ctx context.Context, in *SuggestRequest, opts ...grpc.CallOption) (*SuggestResponse, error)
 }
 
 type ledgerServiceClient struct {
@@ -136,6 +140,16 @@ func (c *ledgerServiceClient) UpdateDisplaySettings(ctx context.Context, in *Upd
 	return out, nil
 }
 
+func (c *ledgerServiceClient) Suggest(ctx context.Context, in *SuggestRequest, opts ...grpc.CallOption) (*SuggestResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SuggestResponse)
+	err := c.cc.Invoke(ctx, LedgerService_Suggest_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LedgerServiceServer is the server API for LedgerService service.
 // All implementations must embed UnimplementedLedgerServiceServer
 // for forward compatibility.
@@ -153,6 +167,9 @@ type LedgerServiceServer interface {
 	UpsertBank(context.Context, *UpsertBankRequest) (*UpsertBankResponse, error)
 	UpsertCategory(context.Context, *UpsertCategoryRequest) (*UpsertCategoryResponse, error)
 	UpdateDisplaySettings(context.Context, *UpdateDisplaySettingsRequest) (*UpdateDisplaySettingsResponse, error)
+	// Suggest proposes transaction drafts for events the suggestion
+	// pipeline knows about (e.g. fetched bank transactions).
+	Suggest(context.Context, *SuggestRequest) (*SuggestResponse, error)
 	mustEmbedUnimplementedLedgerServiceServer()
 }
 
@@ -186,6 +203,9 @@ func (UnimplementedLedgerServiceServer) UpsertCategory(context.Context, *UpsertC
 }
 func (UnimplementedLedgerServiceServer) UpdateDisplaySettings(context.Context, *UpdateDisplaySettingsRequest) (*UpdateDisplaySettingsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method UpdateDisplaySettings not implemented")
+}
+func (UnimplementedLedgerServiceServer) Suggest(context.Context, *SuggestRequest) (*SuggestResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Suggest not implemented")
 }
 func (UnimplementedLedgerServiceServer) mustEmbedUnimplementedLedgerServiceServer() {}
 func (UnimplementedLedgerServiceServer) testEmbeddedByValue()                       {}
@@ -352,6 +372,24 @@ func _LedgerService_UpdateDisplaySettings_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LedgerService_Suggest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SuggestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LedgerServiceServer).Suggest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LedgerService_Suggest_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LedgerServiceServer).Suggest(ctx, req.(*SuggestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LedgerService_ServiceDesc is the grpc.ServiceDesc for LedgerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -390,6 +428,10 @@ var LedgerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateDisplaySettings",
 			Handler:    _LedgerService_UpdateDisplaySettings_Handler,
+		},
+		{
+			MethodName: "Suggest",
+			Handler:    _LedgerService_Suggest_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

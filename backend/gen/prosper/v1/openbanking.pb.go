@@ -74,27 +74,27 @@ func (Provider) EnumDescriptor() ([]byte, []int) {
 	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{0}
 }
 
-type GetOpenBankingTransactionsRequest struct {
+type GetFetchStatusRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetOpenBankingTransactionsRequest) Reset() {
-	*x = GetOpenBankingTransactionsRequest{}
+func (x *GetFetchStatusRequest) Reset() {
+	*x = GetFetchStatusRequest{}
 	mi := &file_prosper_v1_openbanking_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetOpenBankingTransactionsRequest) String() string {
+func (x *GetFetchStatusRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetOpenBankingTransactionsRequest) ProtoMessage() {}
+func (*GetFetchStatusRequest) ProtoMessage() {}
 
-func (x *GetOpenBankingTransactionsRequest) ProtoReflect() protoreflect.Message {
+func (x *GetFetchStatusRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_prosper_v1_openbanking_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -106,39 +106,39 @@ func (x *GetOpenBankingTransactionsRequest) ProtoReflect() protoreflect.Message 
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetOpenBankingTransactionsRequest.ProtoReflect.Descriptor instead.
-func (*GetOpenBankingTransactionsRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetFetchStatusRequest.ProtoReflect.Descriptor instead.
+func (*GetFetchStatusRequest) Descriptor() ([]byte, []int) {
 	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *GetOpenBankingTransactionsRequest) GetSessionId() string {
+func (x *GetFetchStatusRequest) GetSessionId() string {
 	if x != nil {
 		return x.SessionId
 	}
 	return ""
 }
 
-type GetOpenBankingTransactionsResponse struct {
+type GetFetchStatusResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Accounts      []*AccountTransactions `protobuf:"bytes,1,rep,name=accounts,proto3" json:"accounts,omitempty"`
+	Statuses      []*AccountFetchStatus  `protobuf:"bytes,1,rep,name=statuses,proto3" json:"statuses,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetOpenBankingTransactionsResponse) Reset() {
-	*x = GetOpenBankingTransactionsResponse{}
+func (x *GetFetchStatusResponse) Reset() {
+	*x = GetFetchStatusResponse{}
 	mi := &file_prosper_v1_openbanking_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetOpenBankingTransactionsResponse) String() string {
+func (x *GetFetchStatusResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetOpenBankingTransactionsResponse) ProtoMessage() {}
+func (*GetFetchStatusResponse) ProtoMessage() {}
 
-func (x *GetOpenBankingTransactionsResponse) ProtoReflect() protoreflect.Message {
+func (x *GetFetchStatusResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_prosper_v1_openbanking_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -150,14 +150,67 @@ func (x *GetOpenBankingTransactionsResponse) ProtoReflect() protoreflect.Message
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetOpenBankingTransactionsResponse.ProtoReflect.Descriptor instead.
-func (*GetOpenBankingTransactionsResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use GetFetchStatusResponse.ProtoReflect.Descriptor instead.
+func (*GetFetchStatusResponse) Descriptor() ([]byte, []int) {
 	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GetOpenBankingTransactionsResponse) GetAccounts() []*AccountTransactions {
+func (x *GetFetchStatusResponse) GetStatuses() []*AccountFetchStatus {
 	if x != nil {
-		return x.Accounts
+		return x.Statuses
+	}
+	return nil
+}
+
+type AccountFetchStatus struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	InternalAccountId int32                  `protobuf:"varint,1,opt,name=internal_account_id,json=internalAccountId,proto3" json:"internal_account_id,omitempty"`
+	// Time of the account's most recent successful fetch, unset when none.
+	LastFetchedAt *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=last_fetched_at,json=lastFetchedAt,proto3" json:"last_fetched_at,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AccountFetchStatus) Reset() {
+	*x = AccountFetchStatus{}
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AccountFetchStatus) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AccountFetchStatus) ProtoMessage() {}
+
+func (x *AccountFetchStatus) ProtoReflect() protoreflect.Message {
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AccountFetchStatus.ProtoReflect.Descriptor instead.
+func (*AccountFetchStatus) Descriptor() ([]byte, []int) {
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *AccountFetchStatus) GetInternalAccountId() int32 {
+	if x != nil {
+		return x.InternalAccountId
+	}
+	return 0
+}
+
+func (x *AccountFetchStatus) GetLastFetchedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.LastFetchedAt
 	}
 	return nil
 }
@@ -172,7 +225,7 @@ type FetchNowRequest struct {
 
 func (x *FetchNowRequest) Reset() {
 	*x = FetchNowRequest{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[2]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -184,7 +237,7 @@ func (x *FetchNowRequest) String() string {
 func (*FetchNowRequest) ProtoMessage() {}
 
 func (x *FetchNowRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[2]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -197,7 +250,7 @@ func (x *FetchNowRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FetchNowRequest.ProtoReflect.Descriptor instead.
 func (*FetchNowRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{2}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *FetchNowRequest) GetInternalAccountId() int32 {
@@ -223,7 +276,7 @@ type FetchNowResponse struct {
 
 func (x *FetchNowResponse) Reset() {
 	*x = FetchNowResponse{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[3]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -235,7 +288,7 @@ func (x *FetchNowResponse) String() string {
 func (*FetchNowResponse) ProtoMessage() {}
 
 func (x *FetchNowResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[3]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -248,7 +301,7 @@ func (x *FetchNowResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FetchNowResponse.ProtoReflect.Descriptor instead.
 func (*FetchNowResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{3}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *FetchNowResponse) GetResult() *AccountTransactions {
@@ -274,7 +327,7 @@ type AccountTransactions struct {
 
 func (x *AccountTransactions) Reset() {
 	*x = AccountTransactions{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[4]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -286,7 +339,7 @@ func (x *AccountTransactions) String() string {
 func (*AccountTransactions) ProtoMessage() {}
 
 func (x *AccountTransactions) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[4]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -299,7 +352,7 @@ func (x *AccountTransactions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AccountTransactions.ProtoReflect.Descriptor instead.
 func (*AccountTransactions) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{4}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *AccountTransactions) GetInternalAccountId() int32 {
@@ -343,7 +396,7 @@ type OpenBankingTransaction struct {
 
 func (x *OpenBankingTransaction) Reset() {
 	*x = OpenBankingTransaction{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[5]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -355,7 +408,7 @@ func (x *OpenBankingTransaction) String() string {
 func (*OpenBankingTransaction) ProtoMessage() {}
 
 func (x *OpenBankingTransaction) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[5]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -368,7 +421,7 @@ func (x *OpenBankingTransaction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OpenBankingTransaction.ProtoReflect.Descriptor instead.
 func (*OpenBankingTransaction) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{5}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *OpenBankingTransaction) GetExternalTransactionId() string {
@@ -408,7 +461,7 @@ type GetBalancesRequest struct {
 
 func (x *GetBalancesRequest) Reset() {
 	*x = GetBalancesRequest{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[6]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -420,7 +473,7 @@ func (x *GetBalancesRequest) String() string {
 func (*GetBalancesRequest) ProtoMessage() {}
 
 func (x *GetBalancesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[6]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -433,7 +486,7 @@ func (x *GetBalancesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBalancesRequest.ProtoReflect.Descriptor instead.
 func (*GetBalancesRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{6}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetBalancesRequest) GetSessionId() string {
@@ -452,7 +505,7 @@ type GetBalancesResponse struct {
 
 func (x *GetBalancesResponse) Reset() {
 	*x = GetBalancesResponse{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[7]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -464,7 +517,7 @@ func (x *GetBalancesResponse) String() string {
 func (*GetBalancesResponse) ProtoMessage() {}
 
 func (x *GetBalancesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[7]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -477,7 +530,7 @@ func (x *GetBalancesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetBalancesResponse.ProtoReflect.Descriptor instead.
 func (*GetBalancesResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{7}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *GetBalancesResponse) GetAccounts() []*AccountBalanceResult {
@@ -497,7 +550,7 @@ type AccountBalanceResult struct {
 
 func (x *AccountBalanceResult) Reset() {
 	*x = AccountBalanceResult{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[8]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -509,7 +562,7 @@ func (x *AccountBalanceResult) String() string {
 func (*AccountBalanceResult) ProtoMessage() {}
 
 func (x *AccountBalanceResult) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[8]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -522,7 +575,7 @@ func (x *AccountBalanceResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AccountBalanceResult.ProtoReflect.Descriptor instead.
 func (*AccountBalanceResult) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{8}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *AccountBalanceResult) GetInternalAccountId() int32 {
@@ -548,7 +601,7 @@ type GetConnectionStatusRequest struct {
 
 func (x *GetConnectionStatusRequest) Reset() {
 	*x = GetConnectionStatusRequest{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[9]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -560,7 +613,7 @@ func (x *GetConnectionStatusRequest) String() string {
 func (*GetConnectionStatusRequest) ProtoMessage() {}
 
 func (x *GetConnectionStatusRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[9]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -573,7 +626,7 @@ func (x *GetConnectionStatusRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetConnectionStatusRequest.ProtoReflect.Descriptor instead.
 func (*GetConnectionStatusRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{9}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *GetConnectionStatusRequest) GetSessionId() string {
@@ -592,7 +645,7 @@ type GetConnectionStatusResponse struct {
 
 func (x *GetConnectionStatusResponse) Reset() {
 	*x = GetConnectionStatusResponse{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[10]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -604,7 +657,7 @@ func (x *GetConnectionStatusResponse) String() string {
 func (*GetConnectionStatusResponse) ProtoMessage() {}
 
 func (x *GetConnectionStatusResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[10]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -617,7 +670,7 @@ func (x *GetConnectionStatusResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetConnectionStatusResponse.ProtoReflect.Descriptor instead.
 func (*GetConnectionStatusResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{10}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *GetConnectionStatusResponse) GetExpirations() []*ConnectionExpiration {
@@ -638,7 +691,7 @@ type ConnectionExpiration struct {
 
 func (x *ConnectionExpiration) Reset() {
 	*x = ConnectionExpiration{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[11]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -650,7 +703,7 @@ func (x *ConnectionExpiration) String() string {
 func (*ConnectionExpiration) ProtoMessage() {}
 
 func (x *ConnectionExpiration) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[11]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -663,7 +716,7 @@ func (x *ConnectionExpiration) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectionExpiration.ProtoReflect.Descriptor instead.
 func (*ConnectionExpiration) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{11}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *ConnectionExpiration) GetBankId() int32 {
@@ -697,7 +750,7 @@ type StartTrueLayerConnectionRequest struct {
 
 func (x *StartTrueLayerConnectionRequest) Reset() {
 	*x = StartTrueLayerConnectionRequest{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[12]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -709,7 +762,7 @@ func (x *StartTrueLayerConnectionRequest) String() string {
 func (*StartTrueLayerConnectionRequest) ProtoMessage() {}
 
 func (x *StartTrueLayerConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[12]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -722,7 +775,7 @@ func (x *StartTrueLayerConnectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartTrueLayerConnectionRequest.ProtoReflect.Descriptor instead.
 func (*StartTrueLayerConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{12}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *StartTrueLayerConnectionRequest) GetBankId() int32 {
@@ -749,7 +802,7 @@ type StartTrueLayerConnectionResponse struct {
 
 func (x *StartTrueLayerConnectionResponse) Reset() {
 	*x = StartTrueLayerConnectionResponse{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[13]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -761,7 +814,7 @@ func (x *StartTrueLayerConnectionResponse) String() string {
 func (*StartTrueLayerConnectionResponse) ProtoMessage() {}
 
 func (x *StartTrueLayerConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[13]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -774,7 +827,7 @@ func (x *StartTrueLayerConnectionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartTrueLayerConnectionResponse.ProtoReflect.Descriptor instead.
 func (*StartTrueLayerConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{13}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *StartTrueLayerConnectionResponse) GetAuthUrl() string {
@@ -797,7 +850,7 @@ type CompleteTrueLayerConnectionRequest struct {
 
 func (x *CompleteTrueLayerConnectionRequest) Reset() {
 	*x = CompleteTrueLayerConnectionRequest{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[14]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -809,7 +862,7 @@ func (x *CompleteTrueLayerConnectionRequest) String() string {
 func (*CompleteTrueLayerConnectionRequest) ProtoMessage() {}
 
 func (x *CompleteTrueLayerConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[14]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -822,7 +875,7 @@ func (x *CompleteTrueLayerConnectionRequest) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use CompleteTrueLayerConnectionRequest.ProtoReflect.Descriptor instead.
 func (*CompleteTrueLayerConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{14}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *CompleteTrueLayerConnectionRequest) GetBankId() int32 {
@@ -856,7 +909,7 @@ type CompleteTrueLayerConnectionResponse struct {
 
 func (x *CompleteTrueLayerConnectionResponse) Reset() {
 	*x = CompleteTrueLayerConnectionResponse{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[15]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -868,7 +921,7 @@ func (x *CompleteTrueLayerConnectionResponse) String() string {
 func (*CompleteTrueLayerConnectionResponse) ProtoMessage() {}
 
 func (x *CompleteTrueLayerConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[15]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -881,7 +934,7 @@ func (x *CompleteTrueLayerConnectionResponse) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use CompleteTrueLayerConnectionResponse.ProtoReflect.Descriptor instead.
 func (*CompleteTrueLayerConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{15}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CompleteTrueLayerConnectionResponse) GetWasReconnect() bool {
@@ -902,7 +955,7 @@ type StartGoCardlessConnectionRequest struct {
 
 func (x *StartGoCardlessConnectionRequest) Reset() {
 	*x = StartGoCardlessConnectionRequest{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[16]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -914,7 +967,7 @@ func (x *StartGoCardlessConnectionRequest) String() string {
 func (*StartGoCardlessConnectionRequest) ProtoMessage() {}
 
 func (x *StartGoCardlessConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[16]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -927,7 +980,7 @@ func (x *StartGoCardlessConnectionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartGoCardlessConnectionRequest.ProtoReflect.Descriptor instead.
 func (*StartGoCardlessConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{16}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *StartGoCardlessConnectionRequest) GetBankId() int32 {
@@ -961,7 +1014,7 @@ type StartGoCardlessConnectionResponse struct {
 
 func (x *StartGoCardlessConnectionResponse) Reset() {
 	*x = StartGoCardlessConnectionResponse{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[17]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -973,7 +1026,7 @@ func (x *StartGoCardlessConnectionResponse) String() string {
 func (*StartGoCardlessConnectionResponse) ProtoMessage() {}
 
 func (x *StartGoCardlessConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[17]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -986,7 +1039,7 @@ func (x *StartGoCardlessConnectionResponse) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use StartGoCardlessConnectionResponse.ProtoReflect.Descriptor instead.
 func (*StartGoCardlessConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{17}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *StartGoCardlessConnectionResponse) GetAuthUrl() string {
@@ -1007,7 +1060,7 @@ type CompleteGoCardlessConnectionRequest struct {
 
 func (x *CompleteGoCardlessConnectionRequest) Reset() {
 	*x = CompleteGoCardlessConnectionRequest{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[18]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1019,7 +1072,7 @@ func (x *CompleteGoCardlessConnectionRequest) String() string {
 func (*CompleteGoCardlessConnectionRequest) ProtoMessage() {}
 
 func (x *CompleteGoCardlessConnectionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[18]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1032,7 +1085,7 @@ func (x *CompleteGoCardlessConnectionRequest) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use CompleteGoCardlessConnectionRequest.ProtoReflect.Descriptor instead.
 func (*CompleteGoCardlessConnectionRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{18}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *CompleteGoCardlessConnectionRequest) GetReference() string {
@@ -1060,7 +1113,7 @@ type CompleteGoCardlessConnectionResponse struct {
 
 func (x *CompleteGoCardlessConnectionResponse) Reset() {
 	*x = CompleteGoCardlessConnectionResponse{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[19]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1072,7 +1125,7 @@ func (x *CompleteGoCardlessConnectionResponse) String() string {
 func (*CompleteGoCardlessConnectionResponse) ProtoMessage() {}
 
 func (x *CompleteGoCardlessConnectionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[19]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1085,7 +1138,7 @@ func (x *CompleteGoCardlessConnectionResponse) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use CompleteGoCardlessConnectionResponse.ProtoReflect.Descriptor instead.
 func (*CompleteGoCardlessConnectionResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{19}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *CompleteGoCardlessConnectionResponse) GetBankId() int32 {
@@ -1113,7 +1166,7 @@ type SetStarlingTokenRequest struct {
 
 func (x *SetStarlingTokenRequest) Reset() {
 	*x = SetStarlingTokenRequest{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[20]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1125,7 +1178,7 @@ func (x *SetStarlingTokenRequest) String() string {
 func (*SetStarlingTokenRequest) ProtoMessage() {}
 
 func (x *SetStarlingTokenRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[20]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1138,7 +1191,7 @@ func (x *SetStarlingTokenRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetStarlingTokenRequest.ProtoReflect.Descriptor instead.
 func (*SetStarlingTokenRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{20}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *SetStarlingTokenRequest) GetBankId() int32 {
@@ -1172,7 +1225,7 @@ type SetStarlingTokenResponse struct {
 
 func (x *SetStarlingTokenResponse) Reset() {
 	*x = SetStarlingTokenResponse{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[21]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1184,7 +1237,7 @@ func (x *SetStarlingTokenResponse) String() string {
 func (*SetStarlingTokenResponse) ProtoMessage() {}
 
 func (x *SetStarlingTokenResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[21]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1197,7 +1250,7 @@ func (x *SetStarlingTokenResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetStarlingTokenResponse.ProtoReflect.Descriptor instead.
 func (*SetStarlingTokenResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{21}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *SetStarlingTokenResponse) GetWasReconnect() bool {
@@ -1217,7 +1270,7 @@ type DisconnectRequest struct {
 
 func (x *DisconnectRequest) Reset() {
 	*x = DisconnectRequest{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[22]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1229,7 +1282,7 @@ func (x *DisconnectRequest) String() string {
 func (*DisconnectRequest) ProtoMessage() {}
 
 func (x *DisconnectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[22]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1242,7 +1295,7 @@ func (x *DisconnectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisconnectRequest.ProtoReflect.Descriptor instead.
 func (*DisconnectRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{22}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *DisconnectRequest) GetBankId() int32 {
@@ -1267,7 +1320,7 @@ type DisconnectResponse struct {
 
 func (x *DisconnectResponse) Reset() {
 	*x = DisconnectResponse{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[23]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1279,7 +1332,7 @@ func (x *DisconnectResponse) String() string {
 func (*DisconnectResponse) ProtoMessage() {}
 
 func (x *DisconnectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[23]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1292,7 +1345,7 @@ func (x *DisconnectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DisconnectResponse.ProtoReflect.Descriptor instead.
 func (*DisconnectResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{23}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{24}
 }
 
 type ReconnectInfoRequest struct {
@@ -1305,7 +1358,7 @@ type ReconnectInfoRequest struct {
 
 func (x *ReconnectInfoRequest) Reset() {
 	*x = ReconnectInfoRequest{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[24]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1317,7 +1370,7 @@ func (x *ReconnectInfoRequest) String() string {
 func (*ReconnectInfoRequest) ProtoMessage() {}
 
 func (x *ReconnectInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[24]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1330,7 +1383,7 @@ func (x *ReconnectInfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReconnectInfoRequest.ProtoReflect.Descriptor instead.
 func (*ReconnectInfoRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{24}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ReconnectInfoRequest) GetBankId() int32 {
@@ -1356,7 +1409,7 @@ type ReconnectInfoResponse struct {
 
 func (x *ReconnectInfoResponse) Reset() {
 	*x = ReconnectInfoResponse{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[25]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1368,7 +1421,7 @@ func (x *ReconnectInfoResponse) String() string {
 func (*ReconnectInfoResponse) ProtoMessage() {}
 
 func (x *ReconnectInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[25]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1381,7 +1434,7 @@ func (x *ReconnectInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReconnectInfoResponse.ProtoReflect.Descriptor instead.
 func (*ReconnectInfoResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{25}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ReconnectInfoResponse) GetRedirectUrl() string {
@@ -1401,7 +1454,7 @@ type ListExternalAccountsRequest struct {
 
 func (x *ListExternalAccountsRequest) Reset() {
 	*x = ListExternalAccountsRequest{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[26]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1413,7 +1466,7 @@ func (x *ListExternalAccountsRequest) String() string {
 func (*ListExternalAccountsRequest) ProtoMessage() {}
 
 func (x *ListExternalAccountsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[26]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1426,7 +1479,7 @@ func (x *ListExternalAccountsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListExternalAccountsRequest.ProtoReflect.Descriptor instead.
 func (*ListExternalAccountsRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{26}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ListExternalAccountsRequest) GetBankId() int32 {
@@ -1452,7 +1505,7 @@ type ListExternalAccountsResponse struct {
 
 func (x *ListExternalAccountsResponse) Reset() {
 	*x = ListExternalAccountsResponse{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[27]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1464,7 +1517,7 @@ func (x *ListExternalAccountsResponse) String() string {
 func (*ListExternalAccountsResponse) ProtoMessage() {}
 
 func (x *ListExternalAccountsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[27]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1477,7 +1530,7 @@ func (x *ListExternalAccountsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListExternalAccountsResponse.ProtoReflect.Descriptor instead.
 func (*ListExternalAccountsResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{27}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ListExternalAccountsResponse) GetAccounts() []*ExternalAccount {
@@ -1497,7 +1550,7 @@ type ExternalAccount struct {
 
 func (x *ExternalAccount) Reset() {
 	*x = ExternalAccount{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[28]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1509,7 +1562,7 @@ func (x *ExternalAccount) String() string {
 func (*ExternalAccount) ProtoMessage() {}
 
 func (x *ExternalAccount) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[28]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1522,7 +1575,7 @@ func (x *ExternalAccount) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExternalAccount.ProtoReflect.Descriptor instead.
 func (*ExternalAccount) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{28}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *ExternalAccount) GetExternalId() string {
@@ -1549,7 +1602,7 @@ type ListMappingsRequest struct {
 
 func (x *ListMappingsRequest) Reset() {
 	*x = ListMappingsRequest{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[29]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1561,7 +1614,7 @@ func (x *ListMappingsRequest) String() string {
 func (*ListMappingsRequest) ProtoMessage() {}
 
 func (x *ListMappingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[29]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1574,7 +1627,7 @@ func (x *ListMappingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMappingsRequest.ProtoReflect.Descriptor instead.
 func (*ListMappingsRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{29}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ListMappingsRequest) GetBankId() int32 {
@@ -1600,7 +1653,7 @@ type ListMappingsResponse struct {
 
 func (x *ListMappingsResponse) Reset() {
 	*x = ListMappingsResponse{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[30]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1612,7 +1665,7 @@ func (x *ListMappingsResponse) String() string {
 func (*ListMappingsResponse) ProtoMessage() {}
 
 func (x *ListMappingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[30]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1625,7 +1678,7 @@ func (x *ListMappingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListMappingsResponse.ProtoReflect.Descriptor instead.
 func (*ListMappingsResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{30}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ListMappingsResponse) GetMappings() []*AccountMapping {
@@ -1645,7 +1698,7 @@ type AccountMapping struct {
 
 func (x *AccountMapping) Reset() {
 	*x = AccountMapping{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[31]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1657,7 +1710,7 @@ func (x *AccountMapping) String() string {
 func (*AccountMapping) ProtoMessage() {}
 
 func (x *AccountMapping) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[31]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1670,7 +1723,7 @@ func (x *AccountMapping) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AccountMapping.ProtoReflect.Descriptor instead.
 func (*AccountMapping) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{31}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *AccountMapping) GetInternalAccountId() int32 {
@@ -1698,7 +1751,7 @@ type SetMappingsRequest struct {
 
 func (x *SetMappingsRequest) Reset() {
 	*x = SetMappingsRequest{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[32]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1710,7 +1763,7 @@ func (x *SetMappingsRequest) String() string {
 func (*SetMappingsRequest) ProtoMessage() {}
 
 func (x *SetMappingsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[32]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1723,7 +1776,7 @@ func (x *SetMappingsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetMappingsRequest.ProtoReflect.Descriptor instead.
 func (*SetMappingsRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{32}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *SetMappingsRequest) GetBankId() int32 {
@@ -1755,7 +1808,7 @@ type SetMappingsResponse struct {
 
 func (x *SetMappingsResponse) Reset() {
 	*x = SetMappingsResponse{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[33]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1767,7 +1820,7 @@ func (x *SetMappingsResponse) String() string {
 func (*SetMappingsResponse) ProtoMessage() {}
 
 func (x *SetMappingsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[33]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1780,7 +1833,7 @@ func (x *SetMappingsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SetMappingsResponse.ProtoReflect.Descriptor instead.
 func (*SetMappingsResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{33}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{34}
 }
 
 type ListGoCardlessInstitutionsRequest struct {
@@ -1794,7 +1847,7 @@ type ListGoCardlessInstitutionsRequest struct {
 
 func (x *ListGoCardlessInstitutionsRequest) Reset() {
 	*x = ListGoCardlessInstitutionsRequest{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[34]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1806,7 +1859,7 @@ func (x *ListGoCardlessInstitutionsRequest) String() string {
 func (*ListGoCardlessInstitutionsRequest) ProtoMessage() {}
 
 func (x *ListGoCardlessInstitutionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[34]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1819,7 +1872,7 @@ func (x *ListGoCardlessInstitutionsRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListGoCardlessInstitutionsRequest.ProtoReflect.Descriptor instead.
 func (*ListGoCardlessInstitutionsRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{34}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *ListGoCardlessInstitutionsRequest) GetCountryCode() string {
@@ -1845,7 +1898,7 @@ type ListGoCardlessInstitutionsResponse struct {
 
 func (x *ListGoCardlessInstitutionsResponse) Reset() {
 	*x = ListGoCardlessInstitutionsResponse{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[35]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1857,7 +1910,7 @@ func (x *ListGoCardlessInstitutionsResponse) String() string {
 func (*ListGoCardlessInstitutionsResponse) ProtoMessage() {}
 
 func (x *ListGoCardlessInstitutionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[35]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1870,7 +1923,7 @@ func (x *ListGoCardlessInstitutionsResponse) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use ListGoCardlessInstitutionsResponse.ProtoReflect.Descriptor instead.
 func (*ListGoCardlessInstitutionsResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{35}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *ListGoCardlessInstitutionsResponse) GetInstitutions() []*GoCardlessInstitution {
@@ -1891,7 +1944,7 @@ type GoCardlessInstitution struct {
 
 func (x *GoCardlessInstitution) Reset() {
 	*x = GoCardlessInstitution{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[36]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1903,7 +1956,7 @@ func (x *GoCardlessInstitution) String() string {
 func (*GoCardlessInstitution) ProtoMessage() {}
 
 func (x *GoCardlessInstitution) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[36]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1916,7 +1969,7 @@ func (x *GoCardlessInstitution) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GoCardlessInstitution.ProtoReflect.Descriptor instead.
 func (*GoCardlessInstitution) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{36}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *GoCardlessInstitution) GetId() string {
@@ -1949,7 +2002,7 @@ type ListGoCardlessCountriesRequest struct {
 
 func (x *ListGoCardlessCountriesRequest) Reset() {
 	*x = ListGoCardlessCountriesRequest{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[37]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1961,7 +2014,7 @@ func (x *ListGoCardlessCountriesRequest) String() string {
 func (*ListGoCardlessCountriesRequest) ProtoMessage() {}
 
 func (x *ListGoCardlessCountriesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[37]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1974,7 +2027,7 @@ func (x *ListGoCardlessCountriesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGoCardlessCountriesRequest.ProtoReflect.Descriptor instead.
 func (*ListGoCardlessCountriesRequest) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{37}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *ListGoCardlessCountriesRequest) GetSessionId() string {
@@ -1993,7 +2046,7 @@ type ListGoCardlessCountriesResponse struct {
 
 func (x *ListGoCardlessCountriesResponse) Reset() {
 	*x = ListGoCardlessCountriesResponse{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[38]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2005,7 +2058,7 @@ func (x *ListGoCardlessCountriesResponse) String() string {
 func (*ListGoCardlessCountriesResponse) ProtoMessage() {}
 
 func (x *ListGoCardlessCountriesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[38]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2018,7 +2071,7 @@ func (x *ListGoCardlessCountriesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListGoCardlessCountriesResponse.ProtoReflect.Descriptor instead.
 func (*ListGoCardlessCountriesResponse) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{38}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *ListGoCardlessCountriesResponse) GetCountries() []*GoCardlessCountry {
@@ -2038,7 +2091,7 @@ type GoCardlessCountry struct {
 
 func (x *GoCardlessCountry) Reset() {
 	*x = GoCardlessCountry{}
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[39]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2050,7 +2103,7 @@ func (x *GoCardlessCountry) String() string {
 func (*GoCardlessCountry) ProtoMessage() {}
 
 func (x *GoCardlessCountry) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_openbanking_proto_msgTypes[39]
+	mi := &file_prosper_v1_openbanking_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2063,7 +2116,7 @@ func (x *GoCardlessCountry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GoCardlessCountry.ProtoReflect.Descriptor instead.
 func (*GoCardlessCountry) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{39}
+	return file_prosper_v1_openbanking_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *GoCardlessCountry) GetCode() string {
@@ -2085,12 +2138,15 @@ var File_prosper_v1_openbanking_proto protoreflect.FileDescriptor
 const file_prosper_v1_openbanking_proto_rawDesc = "" +
 	"\n" +
 	"\x1cprosper/v1/openbanking.proto\x12\n" +
-	"prosper.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"B\n" +
-	"!GetOpenBankingTransactionsRequest\x12\x1d\n" +
+	"prosper.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"6\n" +
+	"\x15GetFetchStatusRequest\x12\x1d\n" +
 	"\n" +
-	"session_id\x18\x01 \x01(\tR\tsessionId\"a\n" +
-	"\"GetOpenBankingTransactionsResponse\x12;\n" +
-	"\baccounts\x18\x01 \x03(\v2\x1f.prosper.v1.AccountTransactionsR\baccounts\"`\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\"T\n" +
+	"\x16GetFetchStatusResponse\x12:\n" +
+	"\bstatuses\x18\x01 \x03(\v2\x1e.prosper.v1.AccountFetchStatusR\bstatuses\"\x88\x01\n" +
+	"\x12AccountFetchStatus\x12.\n" +
+	"\x13internal_account_id\x18\x01 \x01(\x05R\x11internalAccountId\x12B\n" +
+	"\x0flast_fetched_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\rlastFetchedAt\"`\n" +
 	"\x0fFetchNowRequest\x12.\n" +
 	"\x13internal_account_id\x18\x01 \x01(\x05R\x11internalAccountId\x12\x1d\n" +
 	"\n" +
@@ -2217,9 +2273,9 @@ const file_prosper_v1_openbanking_proto_rawDesc = "" +
 	"\x14PROVIDER_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12PROVIDER_TRUELAYER\x10\x01\x12\x17\n" +
 	"\x13PROVIDER_GOCARDLESS\x10\x02\x12\x15\n" +
-	"\x11PROVIDER_STARLING\x10\x032\x86\r\n" +
-	"\x12OpenBankingService\x12{\n" +
-	"\x1aGetOpenBankingTransactions\x12-.prosper.v1.GetOpenBankingTransactionsRequest\x1a..prosper.v1.GetOpenBankingTransactionsResponse\x12E\n" +
+	"\x11PROVIDER_STARLING\x10\x032\xe2\f\n" +
+	"\x12OpenBankingService\x12W\n" +
+	"\x0eGetFetchStatus\x12!.prosper.v1.GetFetchStatusRequest\x1a\".prosper.v1.GetFetchStatusResponse\x12E\n" +
 	"\bFetchNow\x12\x1b.prosper.v1.FetchNowRequest\x1a\x1c.prosper.v1.FetchNowResponse\x12N\n" +
 	"\vGetBalances\x12\x1e.prosper.v1.GetBalancesRequest\x1a\x1f.prosper.v1.GetBalancesResponse\x12f\n" +
 	"\x13GetConnectionStatus\x12&.prosper.v1.GetConnectionStatusRequest\x1a'.prosper.v1.GetConnectionStatusResponse\x12u\n" +
@@ -2250,103 +2306,105 @@ func file_prosper_v1_openbanking_proto_rawDescGZIP() []byte {
 }
 
 var file_prosper_v1_openbanking_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_prosper_v1_openbanking_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
+var file_prosper_v1_openbanking_proto_msgTypes = make([]protoimpl.MessageInfo, 41)
 var file_prosper_v1_openbanking_proto_goTypes = []any{
-	(Provider)(0), // 0: prosper.v1.Provider
-	(*GetOpenBankingTransactionsRequest)(nil),    // 1: prosper.v1.GetOpenBankingTransactionsRequest
-	(*GetOpenBankingTransactionsResponse)(nil),   // 2: prosper.v1.GetOpenBankingTransactionsResponse
-	(*FetchNowRequest)(nil),                      // 3: prosper.v1.FetchNowRequest
-	(*FetchNowResponse)(nil),                     // 4: prosper.v1.FetchNowResponse
-	(*AccountTransactions)(nil),                  // 5: prosper.v1.AccountTransactions
-	(*OpenBankingTransaction)(nil),               // 6: prosper.v1.OpenBankingTransaction
-	(*GetBalancesRequest)(nil),                   // 7: prosper.v1.GetBalancesRequest
-	(*GetBalancesResponse)(nil),                  // 8: prosper.v1.GetBalancesResponse
-	(*AccountBalanceResult)(nil),                 // 9: prosper.v1.AccountBalanceResult
-	(*GetConnectionStatusRequest)(nil),           // 10: prosper.v1.GetConnectionStatusRequest
-	(*GetConnectionStatusResponse)(nil),          // 11: prosper.v1.GetConnectionStatusResponse
-	(*ConnectionExpiration)(nil),                 // 12: prosper.v1.ConnectionExpiration
-	(*StartTrueLayerConnectionRequest)(nil),      // 13: prosper.v1.StartTrueLayerConnectionRequest
-	(*StartTrueLayerConnectionResponse)(nil),     // 14: prosper.v1.StartTrueLayerConnectionResponse
-	(*CompleteTrueLayerConnectionRequest)(nil),   // 15: prosper.v1.CompleteTrueLayerConnectionRequest
-	(*CompleteTrueLayerConnectionResponse)(nil),  // 16: prosper.v1.CompleteTrueLayerConnectionResponse
-	(*StartGoCardlessConnectionRequest)(nil),     // 17: prosper.v1.StartGoCardlessConnectionRequest
-	(*StartGoCardlessConnectionResponse)(nil),    // 18: prosper.v1.StartGoCardlessConnectionResponse
-	(*CompleteGoCardlessConnectionRequest)(nil),  // 19: prosper.v1.CompleteGoCardlessConnectionRequest
-	(*CompleteGoCardlessConnectionResponse)(nil), // 20: prosper.v1.CompleteGoCardlessConnectionResponse
-	(*SetStarlingTokenRequest)(nil),              // 21: prosper.v1.SetStarlingTokenRequest
-	(*SetStarlingTokenResponse)(nil),             // 22: prosper.v1.SetStarlingTokenResponse
-	(*DisconnectRequest)(nil),                    // 23: prosper.v1.DisconnectRequest
-	(*DisconnectResponse)(nil),                   // 24: prosper.v1.DisconnectResponse
-	(*ReconnectInfoRequest)(nil),                 // 25: prosper.v1.ReconnectInfoRequest
-	(*ReconnectInfoResponse)(nil),                // 26: prosper.v1.ReconnectInfoResponse
-	(*ListExternalAccountsRequest)(nil),          // 27: prosper.v1.ListExternalAccountsRequest
-	(*ListExternalAccountsResponse)(nil),         // 28: prosper.v1.ListExternalAccountsResponse
-	(*ExternalAccount)(nil),                      // 29: prosper.v1.ExternalAccount
-	(*ListMappingsRequest)(nil),                  // 30: prosper.v1.ListMappingsRequest
-	(*ListMappingsResponse)(nil),                 // 31: prosper.v1.ListMappingsResponse
-	(*AccountMapping)(nil),                       // 32: prosper.v1.AccountMapping
-	(*SetMappingsRequest)(nil),                   // 33: prosper.v1.SetMappingsRequest
-	(*SetMappingsResponse)(nil),                  // 34: prosper.v1.SetMappingsResponse
-	(*ListGoCardlessInstitutionsRequest)(nil),    // 35: prosper.v1.ListGoCardlessInstitutionsRequest
-	(*ListGoCardlessInstitutionsResponse)(nil),   // 36: prosper.v1.ListGoCardlessInstitutionsResponse
-	(*GoCardlessInstitution)(nil),                // 37: prosper.v1.GoCardlessInstitution
-	(*ListGoCardlessCountriesRequest)(nil),       // 38: prosper.v1.ListGoCardlessCountriesRequest
-	(*ListGoCardlessCountriesResponse)(nil),      // 39: prosper.v1.ListGoCardlessCountriesResponse
-	(*GoCardlessCountry)(nil),                    // 40: prosper.v1.GoCardlessCountry
-	(*timestamppb.Timestamp)(nil),                // 41: google.protobuf.Timestamp
+	(Provider)(0),                                // 0: prosper.v1.Provider
+	(*GetFetchStatusRequest)(nil),                // 1: prosper.v1.GetFetchStatusRequest
+	(*GetFetchStatusResponse)(nil),               // 2: prosper.v1.GetFetchStatusResponse
+	(*AccountFetchStatus)(nil),                   // 3: prosper.v1.AccountFetchStatus
+	(*FetchNowRequest)(nil),                      // 4: prosper.v1.FetchNowRequest
+	(*FetchNowResponse)(nil),                     // 5: prosper.v1.FetchNowResponse
+	(*AccountTransactions)(nil),                  // 6: prosper.v1.AccountTransactions
+	(*OpenBankingTransaction)(nil),               // 7: prosper.v1.OpenBankingTransaction
+	(*GetBalancesRequest)(nil),                   // 8: prosper.v1.GetBalancesRequest
+	(*GetBalancesResponse)(nil),                  // 9: prosper.v1.GetBalancesResponse
+	(*AccountBalanceResult)(nil),                 // 10: prosper.v1.AccountBalanceResult
+	(*GetConnectionStatusRequest)(nil),           // 11: prosper.v1.GetConnectionStatusRequest
+	(*GetConnectionStatusResponse)(nil),          // 12: prosper.v1.GetConnectionStatusResponse
+	(*ConnectionExpiration)(nil),                 // 13: prosper.v1.ConnectionExpiration
+	(*StartTrueLayerConnectionRequest)(nil),      // 14: prosper.v1.StartTrueLayerConnectionRequest
+	(*StartTrueLayerConnectionResponse)(nil),     // 15: prosper.v1.StartTrueLayerConnectionResponse
+	(*CompleteTrueLayerConnectionRequest)(nil),   // 16: prosper.v1.CompleteTrueLayerConnectionRequest
+	(*CompleteTrueLayerConnectionResponse)(nil),  // 17: prosper.v1.CompleteTrueLayerConnectionResponse
+	(*StartGoCardlessConnectionRequest)(nil),     // 18: prosper.v1.StartGoCardlessConnectionRequest
+	(*StartGoCardlessConnectionResponse)(nil),    // 19: prosper.v1.StartGoCardlessConnectionResponse
+	(*CompleteGoCardlessConnectionRequest)(nil),  // 20: prosper.v1.CompleteGoCardlessConnectionRequest
+	(*CompleteGoCardlessConnectionResponse)(nil), // 21: prosper.v1.CompleteGoCardlessConnectionResponse
+	(*SetStarlingTokenRequest)(nil),              // 22: prosper.v1.SetStarlingTokenRequest
+	(*SetStarlingTokenResponse)(nil),             // 23: prosper.v1.SetStarlingTokenResponse
+	(*DisconnectRequest)(nil),                    // 24: prosper.v1.DisconnectRequest
+	(*DisconnectResponse)(nil),                   // 25: prosper.v1.DisconnectResponse
+	(*ReconnectInfoRequest)(nil),                 // 26: prosper.v1.ReconnectInfoRequest
+	(*ReconnectInfoResponse)(nil),                // 27: prosper.v1.ReconnectInfoResponse
+	(*ListExternalAccountsRequest)(nil),          // 28: prosper.v1.ListExternalAccountsRequest
+	(*ListExternalAccountsResponse)(nil),         // 29: prosper.v1.ListExternalAccountsResponse
+	(*ExternalAccount)(nil),                      // 30: prosper.v1.ExternalAccount
+	(*ListMappingsRequest)(nil),                  // 31: prosper.v1.ListMappingsRequest
+	(*ListMappingsResponse)(nil),                 // 32: prosper.v1.ListMappingsResponse
+	(*AccountMapping)(nil),                       // 33: prosper.v1.AccountMapping
+	(*SetMappingsRequest)(nil),                   // 34: prosper.v1.SetMappingsRequest
+	(*SetMappingsResponse)(nil),                  // 35: prosper.v1.SetMappingsResponse
+	(*ListGoCardlessInstitutionsRequest)(nil),    // 36: prosper.v1.ListGoCardlessInstitutionsRequest
+	(*ListGoCardlessInstitutionsResponse)(nil),   // 37: prosper.v1.ListGoCardlessInstitutionsResponse
+	(*GoCardlessInstitution)(nil),                // 38: prosper.v1.GoCardlessInstitution
+	(*ListGoCardlessCountriesRequest)(nil),       // 39: prosper.v1.ListGoCardlessCountriesRequest
+	(*ListGoCardlessCountriesResponse)(nil),      // 40: prosper.v1.ListGoCardlessCountriesResponse
+	(*GoCardlessCountry)(nil),                    // 41: prosper.v1.GoCardlessCountry
+	(*timestamppb.Timestamp)(nil),                // 42: google.protobuf.Timestamp
 }
 var file_prosper_v1_openbanking_proto_depIdxs = []int32{
-	5,  // 0: prosper.v1.GetOpenBankingTransactionsResponse.accounts:type_name -> prosper.v1.AccountTransactions
-	5,  // 1: prosper.v1.FetchNowResponse.result:type_name -> prosper.v1.AccountTransactions
-	6,  // 2: prosper.v1.AccountTransactions.transactions:type_name -> prosper.v1.OpenBankingTransaction
-	41, // 3: prosper.v1.AccountTransactions.last_fetched_at:type_name -> google.protobuf.Timestamp
-	41, // 4: prosper.v1.OpenBankingTransaction.timestamp:type_name -> google.protobuf.Timestamp
-	9,  // 5: prosper.v1.GetBalancesResponse.accounts:type_name -> prosper.v1.AccountBalanceResult
-	12, // 6: prosper.v1.GetConnectionStatusResponse.expirations:type_name -> prosper.v1.ConnectionExpiration
-	41, // 7: prosper.v1.ConnectionExpiration.expires_at:type_name -> google.protobuf.Timestamp
-	0,  // 8: prosper.v1.ConnectionExpiration.provider:type_name -> prosper.v1.Provider
-	29, // 9: prosper.v1.ListExternalAccountsResponse.accounts:type_name -> prosper.v1.ExternalAccount
-	32, // 10: prosper.v1.ListMappingsResponse.mappings:type_name -> prosper.v1.AccountMapping
-	32, // 11: prosper.v1.SetMappingsRequest.mappings:type_name -> prosper.v1.AccountMapping
-	37, // 12: prosper.v1.ListGoCardlessInstitutionsResponse.institutions:type_name -> prosper.v1.GoCardlessInstitution
-	40, // 13: prosper.v1.ListGoCardlessCountriesResponse.countries:type_name -> prosper.v1.GoCardlessCountry
-	1,  // 14: prosper.v1.OpenBankingService.GetOpenBankingTransactions:input_type -> prosper.v1.GetOpenBankingTransactionsRequest
-	3,  // 15: prosper.v1.OpenBankingService.FetchNow:input_type -> prosper.v1.FetchNowRequest
-	7,  // 16: prosper.v1.OpenBankingService.GetBalances:input_type -> prosper.v1.GetBalancesRequest
-	10, // 17: prosper.v1.OpenBankingService.GetConnectionStatus:input_type -> prosper.v1.GetConnectionStatusRequest
-	13, // 18: prosper.v1.OpenBankingService.StartTrueLayerConnection:input_type -> prosper.v1.StartTrueLayerConnectionRequest
-	15, // 19: prosper.v1.OpenBankingService.CompleteTrueLayerConnection:input_type -> prosper.v1.CompleteTrueLayerConnectionRequest
-	17, // 20: prosper.v1.OpenBankingService.StartGoCardlessConnection:input_type -> prosper.v1.StartGoCardlessConnectionRequest
-	19, // 21: prosper.v1.OpenBankingService.CompleteGoCardlessConnection:input_type -> prosper.v1.CompleteGoCardlessConnectionRequest
-	21, // 22: prosper.v1.OpenBankingService.SetStarlingToken:input_type -> prosper.v1.SetStarlingTokenRequest
-	23, // 23: prosper.v1.OpenBankingService.Disconnect:input_type -> prosper.v1.DisconnectRequest
-	25, // 24: prosper.v1.OpenBankingService.ReconnectInfo:input_type -> prosper.v1.ReconnectInfoRequest
-	27, // 25: prosper.v1.OpenBankingService.ListExternalAccounts:input_type -> prosper.v1.ListExternalAccountsRequest
-	30, // 26: prosper.v1.OpenBankingService.ListMappings:input_type -> prosper.v1.ListMappingsRequest
-	33, // 27: prosper.v1.OpenBankingService.SetMappings:input_type -> prosper.v1.SetMappingsRequest
-	35, // 28: prosper.v1.OpenBankingService.ListGoCardlessInstitutions:input_type -> prosper.v1.ListGoCardlessInstitutionsRequest
-	38, // 29: prosper.v1.OpenBankingService.ListGoCardlessCountries:input_type -> prosper.v1.ListGoCardlessCountriesRequest
-	2,  // 30: prosper.v1.OpenBankingService.GetOpenBankingTransactions:output_type -> prosper.v1.GetOpenBankingTransactionsResponse
-	4,  // 31: prosper.v1.OpenBankingService.FetchNow:output_type -> prosper.v1.FetchNowResponse
-	8,  // 32: prosper.v1.OpenBankingService.GetBalances:output_type -> prosper.v1.GetBalancesResponse
-	11, // 33: prosper.v1.OpenBankingService.GetConnectionStatus:output_type -> prosper.v1.GetConnectionStatusResponse
-	14, // 34: prosper.v1.OpenBankingService.StartTrueLayerConnection:output_type -> prosper.v1.StartTrueLayerConnectionResponse
-	16, // 35: prosper.v1.OpenBankingService.CompleteTrueLayerConnection:output_type -> prosper.v1.CompleteTrueLayerConnectionResponse
-	18, // 36: prosper.v1.OpenBankingService.StartGoCardlessConnection:output_type -> prosper.v1.StartGoCardlessConnectionResponse
-	20, // 37: prosper.v1.OpenBankingService.CompleteGoCardlessConnection:output_type -> prosper.v1.CompleteGoCardlessConnectionResponse
-	22, // 38: prosper.v1.OpenBankingService.SetStarlingToken:output_type -> prosper.v1.SetStarlingTokenResponse
-	24, // 39: prosper.v1.OpenBankingService.Disconnect:output_type -> prosper.v1.DisconnectResponse
-	26, // 40: prosper.v1.OpenBankingService.ReconnectInfo:output_type -> prosper.v1.ReconnectInfoResponse
-	28, // 41: prosper.v1.OpenBankingService.ListExternalAccounts:output_type -> prosper.v1.ListExternalAccountsResponse
-	31, // 42: prosper.v1.OpenBankingService.ListMappings:output_type -> prosper.v1.ListMappingsResponse
-	34, // 43: prosper.v1.OpenBankingService.SetMappings:output_type -> prosper.v1.SetMappingsResponse
-	36, // 44: prosper.v1.OpenBankingService.ListGoCardlessInstitutions:output_type -> prosper.v1.ListGoCardlessInstitutionsResponse
-	39, // 45: prosper.v1.OpenBankingService.ListGoCardlessCountries:output_type -> prosper.v1.ListGoCardlessCountriesResponse
-	30, // [30:46] is the sub-list for method output_type
-	14, // [14:30] is the sub-list for method input_type
-	14, // [14:14] is the sub-list for extension type_name
-	14, // [14:14] is the sub-list for extension extendee
-	0,  // [0:14] is the sub-list for field type_name
+	3,  // 0: prosper.v1.GetFetchStatusResponse.statuses:type_name -> prosper.v1.AccountFetchStatus
+	42, // 1: prosper.v1.AccountFetchStatus.last_fetched_at:type_name -> google.protobuf.Timestamp
+	6,  // 2: prosper.v1.FetchNowResponse.result:type_name -> prosper.v1.AccountTransactions
+	7,  // 3: prosper.v1.AccountTransactions.transactions:type_name -> prosper.v1.OpenBankingTransaction
+	42, // 4: prosper.v1.AccountTransactions.last_fetched_at:type_name -> google.protobuf.Timestamp
+	42, // 5: prosper.v1.OpenBankingTransaction.timestamp:type_name -> google.protobuf.Timestamp
+	10, // 6: prosper.v1.GetBalancesResponse.accounts:type_name -> prosper.v1.AccountBalanceResult
+	13, // 7: prosper.v1.GetConnectionStatusResponse.expirations:type_name -> prosper.v1.ConnectionExpiration
+	42, // 8: prosper.v1.ConnectionExpiration.expires_at:type_name -> google.protobuf.Timestamp
+	0,  // 9: prosper.v1.ConnectionExpiration.provider:type_name -> prosper.v1.Provider
+	30, // 10: prosper.v1.ListExternalAccountsResponse.accounts:type_name -> prosper.v1.ExternalAccount
+	33, // 11: prosper.v1.ListMappingsResponse.mappings:type_name -> prosper.v1.AccountMapping
+	33, // 12: prosper.v1.SetMappingsRequest.mappings:type_name -> prosper.v1.AccountMapping
+	38, // 13: prosper.v1.ListGoCardlessInstitutionsResponse.institutions:type_name -> prosper.v1.GoCardlessInstitution
+	41, // 14: prosper.v1.ListGoCardlessCountriesResponse.countries:type_name -> prosper.v1.GoCardlessCountry
+	1,  // 15: prosper.v1.OpenBankingService.GetFetchStatus:input_type -> prosper.v1.GetFetchStatusRequest
+	4,  // 16: prosper.v1.OpenBankingService.FetchNow:input_type -> prosper.v1.FetchNowRequest
+	8,  // 17: prosper.v1.OpenBankingService.GetBalances:input_type -> prosper.v1.GetBalancesRequest
+	11, // 18: prosper.v1.OpenBankingService.GetConnectionStatus:input_type -> prosper.v1.GetConnectionStatusRequest
+	14, // 19: prosper.v1.OpenBankingService.StartTrueLayerConnection:input_type -> prosper.v1.StartTrueLayerConnectionRequest
+	16, // 20: prosper.v1.OpenBankingService.CompleteTrueLayerConnection:input_type -> prosper.v1.CompleteTrueLayerConnectionRequest
+	18, // 21: prosper.v1.OpenBankingService.StartGoCardlessConnection:input_type -> prosper.v1.StartGoCardlessConnectionRequest
+	20, // 22: prosper.v1.OpenBankingService.CompleteGoCardlessConnection:input_type -> prosper.v1.CompleteGoCardlessConnectionRequest
+	22, // 23: prosper.v1.OpenBankingService.SetStarlingToken:input_type -> prosper.v1.SetStarlingTokenRequest
+	24, // 24: prosper.v1.OpenBankingService.Disconnect:input_type -> prosper.v1.DisconnectRequest
+	26, // 25: prosper.v1.OpenBankingService.ReconnectInfo:input_type -> prosper.v1.ReconnectInfoRequest
+	28, // 26: prosper.v1.OpenBankingService.ListExternalAccounts:input_type -> prosper.v1.ListExternalAccountsRequest
+	31, // 27: prosper.v1.OpenBankingService.ListMappings:input_type -> prosper.v1.ListMappingsRequest
+	34, // 28: prosper.v1.OpenBankingService.SetMappings:input_type -> prosper.v1.SetMappingsRequest
+	36, // 29: prosper.v1.OpenBankingService.ListGoCardlessInstitutions:input_type -> prosper.v1.ListGoCardlessInstitutionsRequest
+	39, // 30: prosper.v1.OpenBankingService.ListGoCardlessCountries:input_type -> prosper.v1.ListGoCardlessCountriesRequest
+	2,  // 31: prosper.v1.OpenBankingService.GetFetchStatus:output_type -> prosper.v1.GetFetchStatusResponse
+	5,  // 32: prosper.v1.OpenBankingService.FetchNow:output_type -> prosper.v1.FetchNowResponse
+	9,  // 33: prosper.v1.OpenBankingService.GetBalances:output_type -> prosper.v1.GetBalancesResponse
+	12, // 34: prosper.v1.OpenBankingService.GetConnectionStatus:output_type -> prosper.v1.GetConnectionStatusResponse
+	15, // 35: prosper.v1.OpenBankingService.StartTrueLayerConnection:output_type -> prosper.v1.StartTrueLayerConnectionResponse
+	17, // 36: prosper.v1.OpenBankingService.CompleteTrueLayerConnection:output_type -> prosper.v1.CompleteTrueLayerConnectionResponse
+	19, // 37: prosper.v1.OpenBankingService.StartGoCardlessConnection:output_type -> prosper.v1.StartGoCardlessConnectionResponse
+	21, // 38: prosper.v1.OpenBankingService.CompleteGoCardlessConnection:output_type -> prosper.v1.CompleteGoCardlessConnectionResponse
+	23, // 39: prosper.v1.OpenBankingService.SetStarlingToken:output_type -> prosper.v1.SetStarlingTokenResponse
+	25, // 40: prosper.v1.OpenBankingService.Disconnect:output_type -> prosper.v1.DisconnectResponse
+	27, // 41: prosper.v1.OpenBankingService.ReconnectInfo:output_type -> prosper.v1.ReconnectInfoResponse
+	29, // 42: prosper.v1.OpenBankingService.ListExternalAccounts:output_type -> prosper.v1.ListExternalAccountsResponse
+	32, // 43: prosper.v1.OpenBankingService.ListMappings:output_type -> prosper.v1.ListMappingsResponse
+	35, // 44: prosper.v1.OpenBankingService.SetMappings:output_type -> prosper.v1.SetMappingsResponse
+	37, // 45: prosper.v1.OpenBankingService.ListGoCardlessInstitutions:output_type -> prosper.v1.ListGoCardlessInstitutionsResponse
+	40, // 46: prosper.v1.OpenBankingService.ListGoCardlessCountries:output_type -> prosper.v1.ListGoCardlessCountriesResponse
+	31, // [31:47] is the sub-list for method output_type
+	15, // [15:31] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_prosper_v1_openbanking_proto_init() }
@@ -2360,7 +2418,7 @@ func file_prosper_v1_openbanking_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_prosper_v1_openbanking_proto_rawDesc), len(file_prosper_v1_openbanking_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   40,
+			NumMessages:   41,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

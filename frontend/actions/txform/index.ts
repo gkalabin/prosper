@@ -14,32 +14,21 @@ import {ledgerClient} from '@/lib/grpc/client';
 import {
   ExpenseFormInput,
   IncomeFormInput,
+  OriginKey,
+  OriginKind,
   RepaymentInput,
   SharingType,
-  TransactionPrototypeInput,
   TransferFormInput,
   WriteTransactionFormRequest,
 } from '@/lib/grpc/gen/prosper/v1/ledger';
 import {dateToTimestamp} from '@/lib/grpc/timestamp';
-import {
-  TransactionPrototype,
-  TransactionPrototypeList,
-  WithdrawalOrDepositPrototype,
-  transactionPrototypeListSchema,
-} from '@/lib/txsuggestions/TransactionPrototype';
 import {dollarToNanos} from '@/lib/util/util';
 import {revalidatePath} from 'next/cache';
-
-const sharingTypeMap: Record<ExpenseFormSchema['sharingType'], SharingType> = {
-  PAID_SELF_NOT_SHARED: SharingType.PAID_SELF_NOT_SHARED,
-  PAID_SELF_SHARED: SharingType.PAID_SELF_SHARED,
-  PAID_OTHER_OWED: SharingType.PAID_OTHER_OWED,
-  PAID_OTHER_REPAID: SharingType.PAID_OTHER_REPAID,
-};
+import {z} from 'zod';
 
 export async function upsertTransaction(
   transactionId: number | null,
-  unsafeProtos: TransactionPrototypeList,
+  unsafeOrigins: OriginKey[],
   unsafeData: TransactionFormSchema
 ): Promise<UpsertTransactionAPIResponse> {
   const auth = await getAuthContextOrRedirect();
@@ -51,12 +40,12 @@ export async function upsertTransaction(
     };
   }
   const data = validatedData.data;
-  const usedProtos = parseProtos(unsafeProtos);
+  const origins = parseOrigins(unsafeOrigins);
   const tagNames = pickTagNames(data);
   const request: Omit<WriteTransactionFormRequest, 'sessionId'> = {
     transactionIdToSupersede: transactionId ?? undefined,
     tagNames,
-    usedProtos,
+    origins,
     form: buildForm(data),
   };
   await ledgerClient.writeTransactionForm(withAuth(request, auth));
@@ -66,24 +55,20 @@ export async function upsertTransaction(
   return {status: 'SUCCESS'};
 }
 
-function parseProtos(
-  unsafeProtos: TransactionPrototype[]
-): TransactionPrototypeInput[] {
-  const validatedProtos =
-    transactionPrototypeListSchema.safeParse(unsafeProtos);
-  if (!validatedProtos.success) {
-    console.warn('Invalid transaction prototypes', validatedProtos.error);
+const originListSchema = z.array(
+  z.object({
+    kind: z.nativeEnum(OriginKind),
+    key: z.string().min(1),
+  })
+);
+
+function parseOrigins(unsafeOrigins: OriginKey[]): OriginKey[] {
+  const validated = originListSchema.safeParse(unsafeOrigins);
+  if (!validated.success) {
+    console.warn('Invalid origins', validated.error);
     return [];
   }
-  // Transfer protos have a withdrawal+deposit pair, both of which need
-  // to be recorded so the next page load doesn't re-suggest either leg.
-  const flat: WithdrawalOrDepositPrototype[] = validatedProtos.data.flatMap(
-    p => (p.type === 'transfer' ? [p.deposit, p.withdrawal] : [p])
-  );
-  return flat.map(p => ({
-    externalId: p.externalTransactionId,
-    externalDescription: p.originalDescription,
-  }));
+  return validated.data;
 }
 
 function pickTagNames(form: TransactionFormSchema): string[] {
@@ -116,7 +101,7 @@ function buildForm(
 
 function expenseInput(e: ExpenseFormSchema): ExpenseFormInput {
   let repayment: RepaymentInput | undefined;
-  if (e.sharingType === 'PAID_OTHER_REPAID') {
+  if (e.sharingType === SharingType.PAID_OTHER_REPAID) {
     assertDefined(e.repayment);
     repayment = {
       accountId: e.repayment.accountId,
@@ -136,7 +121,7 @@ function expenseInput(e: ExpenseFormSchema): ExpenseFormInput {
     amountNanos: dollarToNanos(e.amount),
     ownShareNanos: dollarToNanos(e.ownShareAmount),
     tripName: e.tripName ?? undefined,
-    sharingType: sharingTypeMap[e.sharingType],
+    sharingType: e.sharingType,
     repayment,
   };
 }

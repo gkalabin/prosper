@@ -99,18 +99,42 @@ func (s *Service) providerForBank(ctx context.Context, userID, bankID int32) (Pr
 	return nil, errNoProvider
 }
 
-// GetOpenBankingTransactions serves stored transactions from the DB.
-func (s *Service) GetOpenBankingTransactions(ctx context.Context, _ *prosperv1.GetOpenBankingTransactionsRequest) (*prosperv1.GetOpenBankingTransactionsResponse, error) {
+// GetFetchStatus reports, per mapped account, when its transactions
+// were last successfully fetched. The transactions themselves reach the
+// UI as suggestion drafts, so this carries only the fetch metadata.
+func (s *Service) GetFetchStatus(ctx context.Context, _ *prosperv1.GetFetchStatusRequest) (*prosperv1.GetFetchStatusResponse, error) {
 	userID := auth.MustUserIDFromContext(ctx)
-	resp := &prosperv1.GetOpenBankingTransactionsResponse{}
 	mappings, err := s.loadMappingsForUser(ctx, userID)
 	if err != nil {
-		return resp, err
+		return nil, err
 	}
 	fetches, err := s.lastSuccessfulFetchByAccount(ctx, userID)
 	if err != nil {
-		return resp, err
+		return nil, err
 	}
+	resp := &prosperv1.GetFetchStatusResponse{}
+	for _, m := range mappings {
+		status := &prosperv1.AccountFetchStatus{InternalAccountId: m.InternalAccountID}
+		if f, ok := fetches[m.InternalAccountID]; ok {
+			status.LastFetchedAt = timestamppb.New(f.StartedAt)
+		}
+		resp.Statuses = append(resp.Statuses, status)
+	}
+	return resp, nil
+}
+
+// StoredTransactions returns each mapped account's stored transactions
+// from the most recent successful fetch from the DB.
+func (s *Service) StoredTransactions(ctx context.Context, userID int32) ([]*prosperv1.AccountTransactions, error) {
+	mappings, err := s.loadMappingsForUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	fetches, err := s.lastSuccessfulFetchByAccount(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	var accounts []*prosperv1.AccountTransactions
 	byAccount := map[int32]*prosperv1.AccountTransactions{}
 	for _, m := range mappings {
 		acc := &prosperv1.AccountTransactions{InternalAccountId: m.InternalAccountID}
@@ -118,7 +142,7 @@ func (s *Service) GetOpenBankingTransactions(ctx context.Context, _ *prosperv1.G
 			acc.LastFetchedAt = timestamppb.New(f.StartedAt)
 		}
 		byAccount[m.InternalAccountID] = acc
-		resp.Accounts = append(resp.Accounts, acc)
+		accounts = append(accounts, acc)
 	}
 	since := time.Now().AddDate(0, -transactionsLookbackMonths, 0)
 	for internalAccountID, f := range fetches {
@@ -128,13 +152,13 @@ func (s *Service) GetOpenBankingTransactions(ctx context.Context, _ *prosperv1.G
 		}
 		rows, err := s.transactionsForFetch(ctx, userID, f.ID, since)
 		if err != nil {
-			return resp, err
+			return nil, err
 		}
 		for _, r := range rows {
 			acc.Transactions = append(acc.Transactions, protoOpenBankingTransaction(r))
 		}
 	}
-	return resp, nil
+	return accounts, nil
 }
 
 // transactionsForFetch returns the transactions a fetch returned, newest

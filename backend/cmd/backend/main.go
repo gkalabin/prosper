@@ -21,6 +21,7 @@ import (
 	"prosper/openbanking/starling"
 	"prosper/openbanking/truelayer"
 	"prosper/rates"
+	"prosper/suggest"
 	"prosper/userdb"
 )
 
@@ -95,7 +96,8 @@ func main() {
 	log.Println("openbanking: starling provider registered")
 	prosperv1.RegisterOpenBankingServiceServer(grpcSrv, obSrv)
 
-	ledgerSrv := ledger.NewService(udb, ratesSrv, stockResolver)
+	suggestPipeline := suggest.NewPipeline(udb, obSrv)
+	ledgerSrv := ledger.NewService(udb, ratesSrv, stockResolver, suggestPipeline)
 	prosperv1.RegisterLedgerServiceServer(grpcSrv, ledgerSrv)
 
 	// Start background services.

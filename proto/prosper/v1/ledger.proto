@@ -30,6 +30,10 @@ service LedgerService {
 
   rpc UpdateDisplaySettings(UpdateDisplaySettingsRequest)
       returns (UpdateDisplaySettingsResponse);
+
+  // Suggest proposes transaction drafts for events the suggestion
+  // pipeline knows about (e.g. fetched bank transactions).
+  rpc Suggest(SuggestRequest) returns (SuggestResponse);
 }
 
 // AuthService is the single source of truth for user accounts and
@@ -234,12 +238,6 @@ message TransactionLink {
   TransactionLinkType link_type = 4;
 }
 
-message TransactionPrototype {
-  string external_id = 1;
-  string external_description = 2;
-  int32 internal_transaction_id = 3;
-}
-
 message Transaction {
   int32 id = 1;
   // Per-user incrementing ID, stable across edits.
@@ -263,7 +261,6 @@ message GetTransactionsRequest { string session_id = 1; }
 message GetTransactionsResponse {
   repeated Transaction transactions = 1;
   repeated TransactionLink links = 2;
-  repeated TransactionPrototype prototypes = 3;
   repeated LedgerAccount ledger_accounts = 4;
 }
 
@@ -332,19 +329,14 @@ message WriteTransactionFormRequest {
   optional int32 transaction_id_to_supersede = 1;
   // Tag names to attach. Names not yet present are created.
   repeated string tag_names = 2;
-  // External transaction prototypes consumed by this submission.
-  repeated TransactionPrototypeInput used_protos = 3;
+  // Events this submission records.
+  repeated OriginKey origins = 3;
   oneof form {
     ExpenseFormInput expense = 4;
     IncomeFormInput income = 5;
     TransferFormInput transfer = 6;
   }
   string session_id = 7;
-}
-
-message TransactionPrototypeInput {
-  string external_id = 1;
-  string external_description = 2;
 }
 
 message ExpenseFormInput {
@@ -400,3 +392,102 @@ message TransferFormInput {
 }
 
 message WriteTransactionFormResponse { int32 transaction_id = 1; }
+
+message SuggestRequest { string session_id = 1; }
+message SuggestResponse { repeated TransactionDraft drafts = 1; }
+
+enum OriginKind {
+  ORIGIN_KIND_UNSPECIFIED = 0;
+  ORIGIN_KIND_OPEN_BANKING = 1;
+}
+
+// OriginKey ties a recorded transaction back to the external event it came from.
+message OriginKey {
+  OriginKind kind = 1;
+  // Event id in the source system (e.g. the bank's transaction id).
+  string key = 2;
+}
+
+// One message per field value type: a single candidate value and
+// the confidence that the user will record it.
+message StringCandidate {
+  // 0..100
+  int32 confidence = 1;
+  string value = 2;
+}
+
+message MoneyCandidate {
+  int32 confidence = 1;
+  int64 value_nanos = 2;
+}
+
+message IdCandidate {
+  int32 confidence = 1;
+  int32 value = 2;
+}
+
+message TimestampCandidate {
+  int32 confidence = 1;
+  google.protobuf.Timestamp value = 2;
+}
+
+// TagNames is a tags field value: the full set of tag names proposed together.
+message TagNames { repeated string names = 1; }
+
+message TagsCandidate {
+  int32 confidence = 1;
+  TagNames value = 2;
+}
+
+// FormType is the transaction form variant a draft opens with.
+enum FormType {
+  FORM_TYPE_UNSPECIFIED = 0;
+  FORM_TYPE_EXPENSE = 1;
+  FORM_TYPE_INCOME = 2;
+  FORM_TYPE_TRANSFER = 3;
+}
+
+message FormTypeCandidate {
+  int32 confidence = 1;
+  FormType value = 2;
+}
+
+message SharingTypeCandidate {
+  int32 confidence = 1;
+  SharingType value = 2;
+}
+
+// TransactionDraft is a proposed transaction. Every editable form field
+// is the list of candidate values proposed for it; an empty list means
+// the field is unset.
+message TransactionDraft {
+  // Events this draft describes.
+  repeated OriginKey origins = 1;
+  // Transactions already recorded from this event.
+  repeated int32 recorded_transaction_ids = 2;
+  repeated FormTypeCandidate form_type = 3;
+  repeated TimestampCandidate timestamp = 4;
+  repeated MoneyCandidate amount = 5;
+  repeated MoneyCandidate own_share_amount = 6;
+  // Amount credited to the receiving account of a transfer.
+  repeated MoneyCandidate amount_received = 7;
+  // Account the money is deducted from: the paying account of an
+  // expense, the sending account of a transfer.
+  repeated IdCandidate account_from_id = 8;
+  // Account the money is deposited to: the receiving account of an
+  // income or a transfer.
+  repeated IdCandidate account_to_id = 9;
+  repeated IdCandidate category_id = 10;
+  repeated StringCandidate vendor = 11;
+  repeated StringCandidate payer = 12;
+  repeated StringCandidate description = 13;
+  repeated StringCandidate companion = 14;
+  // Currency of an expense paid by a third party.
+  repeated StringCandidate currency = 15;
+  repeated SharingTypeCandidate sharing_type = 16;
+  repeated TagsCandidate tags = 17;
+  repeated StringCandidate trip_name = 18;
+  repeated IdCandidate repayment_category_id = 19;
+  // Refunded transaction for an income recorded as a refund.
+  repeated IdCandidate parent_transaction_id = 20;
+}

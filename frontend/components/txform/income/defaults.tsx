@@ -1,85 +1,67 @@
 import {ExpenseFormSchema} from '@/components/txform/expense/types';
 import {IncomeFormSchema} from '@/components/txform/income/types';
-import {mostFrequentCompanion} from '@/components/txform/prefill';
-import {
-  isRecent,
-  matchesPayer,
-  topCategoriesMatchMost,
-} from '@/components/txform/shared/useTopCategoryIds';
 import {TransferFormSchema} from '@/components/txform/transfer/types';
 import {assert} from '@/lib/assert';
-import {BankAccount} from '@/lib/model/BankAccount';
+import {BankAccount, firstVisibleAccountId} from '@/lib/model/BankAccount';
 import {Category} from '@/lib/model/Category';
 import {Tag} from '@/lib/model/Tag';
 import {ownShareAmountNanosIgnoreRefunds} from '@/lib/model/transaction/amounts';
 import {Income} from '@/lib/model/transaction/Income';
-import {
-  isIncome,
-  Transaction,
-  transactionTags,
-} from '@/lib/model/transaction/Transaction';
+import {transactionTags} from '@/lib/model/transaction/Transaction';
 import {TransactionLink} from '@/lib/model/TransactionLink';
-import {DepositPrototype} from '@/lib/txsuggestions/TransactionPrototype';
-import {nanosToDollar, roundToCent} from '@/lib/util/util';
+import {
+  SharingType as PbSharingType,
+  TransactionDraft,
+} from '@/lib/grpc/gen/prosper/v1/ledger';
+import {
+  winnerId,
+  winnerMoneyDollar,
+  winnerSharingType,
+  winnerString,
+} from '@/lib/txsuggestions/candidate';
+import {
+  draftAmountDollar,
+  draftDescription,
+  draftTagNames,
+  draftTimestamp,
+} from '@/lib/txsuggestions/draft';
+import {nanosToDollar} from '@/lib/util/util';
 
 export function expenseToIncome({
   prev,
   bankAccounts,
-  transactions,
 }: {
   prev: ExpenseFormSchema;
   bankAccounts: BankAccount[];
-  transactions: Transaction[];
 }): IncomeFormSchema {
   assert(bankAccounts.length > 0);
-  // Prefer the most frequent category based on the new payer value.
-  // When switching the form type the user is expecting to see changes in the form and the
-  // most frequent value is more likely to be useful compared to the previous mode's category.
-  const categoryId =
-    topCategoriesMatchMost({
-      transactions,
-      filters: [isIncome, matchesPayer(prev.vendor), isRecent],
-      want: 1,
-    })[0] ?? prev.categoryId;
   const values: IncomeFormSchema = {
     timestamp: prev.timestamp,
     amount: prev.amount,
     ownShareAmount: prev.ownShareAmount,
     payer: prev.vendor,
-    categoryId,
+    categoryId: prev.categoryId,
     accountId: prev.accountId ?? bankAccounts[0].id,
     tagNames: [],
     companion: prev.companion,
     description: prev.description,
     parentTransactionId: null,
-    isShared: prev.sharingType != 'PAID_SELF_NOT_SHARED',
+    isShared: prev.sharingType != PbSharingType.PAID_SELF_NOT_SHARED,
   };
   return values;
 }
 
 export function transferToIncome({
   prev,
-  transactions,
 }: {
   prev: TransferFormSchema;
-  transactions: Transaction[];
 }): IncomeFormSchema {
-  const payer = prev.description ?? '';
-  // Prefer the most frequent category based on the new payer value.
-  // When switching the form type the user is expecting to see changes in the form and the
-  // most frequent value is more likely to be useful compared to the previous mode's category.
-  const categoryId =
-    topCategoriesMatchMost({
-      transactions,
-      filters: [isIncome, matchesPayer(payer), isRecent],
-      want: 1,
-    })[0] ?? prev.categoryId;
   const values: IncomeFormSchema = {
     timestamp: prev.timestamp,
     amount: prev.amountSent,
     ownShareAmount: prev.amountSent,
-    payer,
-    categoryId,
+    payer: prev.description ?? '',
+    categoryId: prev.categoryId,
     accountId: prev.fromAccountId,
     tagNames: [],
     companion: null,
@@ -119,46 +101,34 @@ export function incomeFromTransaction({
   return values;
 }
 
-export function incomeFromPrototype({
-  proto,
-  transactions,
+// incomeFromDraft maps a resolved draft's fields into the income form
+// values; unset fields keep the form's plain defaults.
+export function incomeFromDraft({
+  draft,
   categories,
   bankAccounts,
 }: {
-  proto: DepositPrototype;
-  transactions: Transaction[];
+  draft: TransactionDraft;
   categories: Category[];
   bankAccounts: BankAccount[];
 }): IncomeFormSchema {
-  const account = bankAccounts.find(a => a.id == proto.internalAccountId);
-  const isShared = account?.joint ?? false;
-  const companion = isShared ? mostFrequentCompanion(transactions) : null;
-  const payer = proto.description;
-  // If there are no income transactions at all, the most frequent value will not be defined,
-  // so fall back to the first category in that case.
   assert(categories.length > 0);
-  const categoryId =
-    topCategoriesMatchMost({
-      transactions,
-      filters: [isIncome, matchesPayer(payer), isRecent],
-      want: 1,
-    })[0] ?? categories[0].id;
+  assert(bankAccounts.length > 0);
+  const amount = draftAmountDollar(draft);
+  const isShared =
+    winnerSharingType(draft.sharingType) === PbSharingType.PAID_SELF_SHARED;
   const values: IncomeFormSchema = {
-    timestamp: new Date(proto.timestampEpoch),
-    amount: nanosToDollar(proto.absoluteAmountNanos),
-    ownShareAmount: roundToCent(
-      nanosToDollar(
-        isShared ? proto.absoluteAmountNanos / 2 : proto.absoluteAmountNanos
-      )
-    ),
-    payer,
-    categoryId,
-    accountId: proto.internalAccountId,
+    timestamp: draftTimestamp(draft),
+    amount,
+    ownShareAmount: winnerMoneyDollar(draft.ownShareAmount, amount),
+    payer: winnerString(draft.payer, ''),
+    categoryId: winnerId(draft.categoryId, categories[0].id),
+    accountId: winnerId(draft.accountToId, firstVisibleAccountId(bankAccounts)),
     isShared,
-    tagNames: [],
-    description: null,
-    companion,
-    parentTransactionId: null,
+    tagNames: draftTagNames(draft),
+    description: draftDescription(draft),
+    companion: isShared ? winnerString(draft.companion, null) : null,
+    parentTransactionId: winnerId(draft.parentTransactionId, null),
   };
   return values;
 }

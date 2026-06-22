@@ -19,6 +19,17 @@ const NanosPerCent int64 = NanosPerUnit / 100
 // CentsToNanos converts an integer-cents amount into nanos.
 func CentsToNanos(cents int32) int64 { return int64(cents) * NanosPerCent }
 
+// RoundNanosToCent rounds a nanos amount to the nearest whole cent and
+// returns it in nanos, so a value derived by arithmetic (e.g. a halved
+// shared amount) stays a sum the user can actually pay.
+func RoundNanosToCent(nanos int64) int64 {
+	sign := int64(1)
+	if nanos < 0 {
+		sign, nanos = -1, -nanos
+	}
+	return sign * ((nanos + NanosPerCent/2) / NanosPerCent * NanosPerCent)
+}
+
 // FloatUnitsToNanos converts a whole-unit float (e.g. dollars, EURUSD rate)
 // into nanos. Used by data sources that hand back JSON numbers.
 func FloatUnitsToNanos(units float64) int64 {

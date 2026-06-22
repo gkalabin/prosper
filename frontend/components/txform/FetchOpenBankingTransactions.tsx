@@ -1,30 +1,12 @@
 import {Button} from '@/components/ui/button';
-import {
-  AccountTransactions,
-  FetchNowResponse,
-  GetOpenBankingTransactionsResponse,
-} from '@/lib/grpc/gen/prosper/v1/openbanking';
+import {FetchNowResponse} from '@/lib/grpc/gen/prosper/v1/openbanking';
 import {formatDistanceToNow} from 'date-fns';
 import {useState} from 'react';
 import {mutate} from 'swr';
 
-// mergeFetchedTransactions folds a successful fetch result into the cached
-// transactions, replacing the account's stored set.
-function mergeFetchedTransactions(
-  current: GetOpenBankingTransactionsResponse | undefined,
-  result: AccountTransactions
-): GetOpenBankingTransactionsResponse {
-  const byAccount = new Map<number, AccountTransactions>();
-  for (const acc of current?.accounts ?? []) {
-    byAccount.set(acc.internalAccountId, acc);
-  }
-  byAccount.set(result.internalAccountId, result);
-  return {accounts: [...byAccount.values()]};
-}
-
 // FetchOpenBankingTransactions shows how stale the account's stored open
-// banking data is and triggers an immediate fetch of that account, updating the
-// suggestion list from the fetched transactions when done.
+// banking data is and triggers an immediate fetch of that account,
+// refreshing the suggestion list from the fetched transactions when done.
 export function FetchOpenBankingTransactions({
   internalAccountId,
   lastFetchedAt,
@@ -52,11 +34,12 @@ export function FetchOpenBankingTransactions({
       if (!result || result.error) {
         throw new Error(result?.error || 'Fetch returned no transactions');
       }
-      await mutate<GetOpenBankingTransactionsResponse>(
-        '/api/open-banking/transactions',
-        current => mergeFetchedTransactions(current, result),
-        {revalidate: false}
-      );
+      // The fetch stored new bank transactions: refresh the suggestion
+      // drafts built from them and the account's last-fetched time.
+      await Promise.all([
+        mutate('/api/suggest'),
+        mutate('/api/open-banking/fetch-status'),
+      ]);
     } catch (e) {
       setError(`Failed to fetch transactions: ${e}`);
     } finally {

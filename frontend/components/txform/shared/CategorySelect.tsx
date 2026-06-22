@@ -22,16 +22,12 @@ import {CheckIcon, ChevronUpDownIcon} from '@heroicons/react/24/outline';
 import * as React from 'react';
 import {useMemo, useState} from 'react';
 
-const MAX_MOST_FREQUENT = 5;
-
 export function CategorySelect({
-  mostFrequentlyUsedCategoryIds,
   value,
   onChange,
   disabled,
   ...props
 }: {
-  mostFrequentlyUsedCategoryIds: Array<number>;
   value: number;
   onChange: (id: number) => void;
   disabled: boolean;
@@ -39,7 +35,7 @@ export function CategorySelect({
   const [optionsOpen, setOptionsOpen] = useState(false);
   const {categories} = useCoreDataContext();
   const tree = useMemo(() => makeCategoryTree(categories), [categories]);
-  const groups = useOptions({mostFrequentlyUsedCategoryIds, tree});
+  const groups = useOptions({tree});
   return (
     <Popover open={optionsOpen} onOpenChange={setOptionsOpen}>
       <PopoverTrigger asChild>
@@ -101,22 +97,9 @@ type CategoryOptions = Array<{
   options: Array<{id: number; fullName: string}>;
 }>;
 
-function useOptions({
-  mostFrequentlyUsedCategoryIds,
-  tree,
-}: {
-  mostFrequentlyUsedCategoryIds: Array<number>;
-  tree: CategoryTree;
-}): CategoryOptions {
+function useOptions({tree}: {tree: CategoryTree}): CategoryOptions {
   const {categories} = useCoreDataContext();
   const groups = useMemo(() => {
-    const mostFrequentIds = mostFrequentlyUsedCategoryIds.slice(
-      0,
-      MAX_MOST_FREQUENT
-    );
-    const mostFrequent = mostFrequentIds.map(id =>
-      mustFindCategory(id, categories)
-    );
     const categoriesWithoutChildren = categories.filter(
       c => immediateChildren(c, tree).length === 0
     );
@@ -126,10 +109,6 @@ function useOptions({
     });
     return [
       {
-        label: 'Most Frequently Used',
-        options: mostFrequent.map(toOption),
-      },
-      {
         label: 'Children Categories',
         options: categoriesWithoutChildren.map(toOption),
       },
@@ -138,7 +117,7 @@ function useOptions({
         options: categories.map(toOption),
       },
     ];
-  }, [mostFrequentlyUsedCategoryIds, categories, tree]);
+  }, [categories, tree]);
   return groups;
 }
 

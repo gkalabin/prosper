@@ -1,20 +1,20 @@
 import {
   expenseFormEmpty,
-  expenseFromPrototype,
+  expenseFromDraft,
   expenseFromTransaction,
   incomeToExpense,
   transferToExpense,
 } from '@/components/txform/expense/defaults';
 import {
   expenseToIncome,
-  incomeFromPrototype,
+  incomeFromDraft,
   incomeFromTransaction,
   transferToIncome,
 } from '@/components/txform/income/defaults';
 import {
   expenseToTransfer,
   incomeToTransfer,
-  transferFromPrototype,
+  transferFromDraft,
   transferFromTransaction,
 } from '@/components/txform/transfer/defaults';
 import {FormType, TransactionFormSchema} from '@/components/txform/types';
@@ -32,23 +32,23 @@ import {
 } from '@/lib/model/transaction/Transaction';
 import {TransactionLink} from '@/lib/model/TransactionLink';
 import {Trip} from '@/lib/model/Trip';
-import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
+import {
+  FormType as PbFormType,
+  TransactionDraft,
+} from '@/lib/grpc/gen/prosper/v1/ledger';
+import {draftFormType} from '@/lib/txsuggestions/draft';
 
 // Excluding OpeningBalance from Transaction type as these cannot be edited in the regular form and instead should be edited on the bank account page.
 export function useFormDefaults(
   tx: Exclude<Transaction, OpeningBalance> | null
 ): TransactionFormSchema {
   const {categories, bankAccounts, tags, trips} = useCoreDataContext();
-  const {transactions, transactionLinks} = useTransactionDataContext();
+  const {transactionLinks} = useTransactionDataContext();
   // Initial values when creating new transaction from scratch.
   if (!tx) {
     return {
       formType: 'EXPENSE',
-      expense: expenseFormEmpty({
-        transactions,
-        categories,
-        bankAccounts,
-      }),
+      expense: expenseFormEmpty({categories, bankAccounts}),
     };
   }
   return valuesForTransaction(tx, transactionLinks, tags, trips);
@@ -90,55 +90,42 @@ function valuesForTransaction(
   };
 }
 
-export function valuesForPrototype({
-  proto,
-  transactions,
+// valuesForDraft maps a resolved transaction draft into form values:
+// each set field prefills its input, unset fields keep the form's
+// plain defaults.
+export function valuesForDraft({
+  draft,
   categories,
   bankAccounts,
 }: {
-  proto: TransactionPrototype;
-  transactions: Transaction[];
+  draft: TransactionDraft;
   categories: Category[];
   bankAccounts: BankAccount[];
 }): TransactionFormSchema {
-  const tt = proto.type;
-  switch (tt) {
-    case 'withdrawal':
-      return {
-        formType: 'EXPENSE',
-        expense: expenseFromPrototype({
-          proto,
-          bankAccounts,
-          transactions,
-          categories,
-        }),
-      };
-    case 'deposit':
+  const formType = draftFormType(draft);
+  switch (formType) {
+    case PbFormType.INCOME:
       return {
         formType: 'INCOME',
-        income: incomeFromPrototype({
-          proto,
-          bankAccounts,
-          transactions,
-          categories,
-        }),
+        income: incomeFromDraft({draft, categories, bankAccounts}),
       };
-    case 'transfer':
+    case PbFormType.TRANSFER:
       return {
         formType: 'TRANSFER',
-        transfer: transferFromPrototype({proto, transactions, categories}),
+        transfer: transferFromDraft({draft, categories, bankAccounts}),
       };
     default:
-      const _exhaustiveCheck: never = tt;
-      throw new Error(`Unsupported prototype type: ${_exhaustiveCheck}`);
+      return {
+        formType: 'EXPENSE',
+        expense: expenseFromDraft({draft, categories, bankAccounts}),
+      };
   }
 }
 
 export function valuesForNewType(
   prevForm: TransactionFormSchema,
   next: FormType | null,
-  bankAccounts: BankAccount[],
-  transactions: Transaction[]
+  bankAccounts: BankAccount[]
 ): TransactionFormSchema {
   const prev = prevForm.formType;
   if (prev == next) {
@@ -151,7 +138,6 @@ export function valuesForNewType(
       income: expenseToIncome({
         prev: prevForm.expense,
         bankAccounts,
-        transactions,
       }),
     };
   }
@@ -162,7 +148,6 @@ export function valuesForNewType(
       transfer: expenseToTransfer({
         prev: prevForm.expense,
         bankAccounts,
-        transactions,
       }),
     };
   }
@@ -172,7 +157,6 @@ export function valuesForNewType(
       formType: next,
       expense: incomeToExpense({
         prev: prevForm.income,
-        transactions,
       }),
     };
   }
@@ -182,7 +166,6 @@ export function valuesForNewType(
       formType: next,
       transfer: incomeToTransfer({
         prev: prevForm.income,
-        transactions,
       }),
     };
   }
@@ -192,7 +175,6 @@ export function valuesForNewType(
       formType: next,
       expense: transferToExpense({
         prev: prevForm.transfer,
-        transactions,
       }),
     };
   }
@@ -202,7 +184,6 @@ export function valuesForNewType(
       formType: next,
       income: transferToIncome({
         prev: prevForm.transfer,
-        transactions,
       }),
     };
   }

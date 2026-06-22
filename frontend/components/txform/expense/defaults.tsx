@@ -3,68 +3,55 @@ import {
   RepaymentTransactionFormSchema,
 } from '@/components/txform/expense/types';
 import {IncomeFormSchema} from '@/components/txform/income/types';
-import {
-  mostFrequentBankAccount,
-  mostFrequentCompanion,
-} from '@/components/txform/prefill';
-import {
-  isRecent,
-  matchesVendor,
-  topCategoriesMatchMost,
-} from '@/components/txform/shared/useTopCategoryIds';
 import {TransferFormSchema} from '@/components/txform/transfer/types';
 import {assert} from '@/lib/assert';
-import {BankAccount} from '@/lib/model/BankAccount';
+import {BankAccount, firstVisibleAccountId} from '@/lib/model/BankAccount';
 import {Category} from '@/lib/model/Category';
 import {Tag} from '@/lib/model/Tag';
 import {ownShareAmountNanosIgnoreRefunds} from '@/lib/model/transaction/amounts';
 import {PersonalExpense} from '@/lib/model/transaction/PersonalExpense';
 import {ThirdPartyExpense} from '@/lib/model/transaction/ThirdPartyExpense';
 import {
-  Transaction,
-  isExpense,
-  isPersonalExpense,
   isThirdPartyExpense,
   transactionTags,
   transactionTrip,
 } from '@/lib/model/transaction/Transaction';
 import {TransactionLink} from '@/lib/model/TransactionLink';
 import {Trip} from '@/lib/model/Trip';
-import {WithdrawalPrototype} from '@/lib/txsuggestions/TransactionPrototype';
-import {nanosToDollar, roundToCent} from '@/lib/util/util';
+import {SharingType, TransactionDraft} from '@/lib/grpc/gen/prosper/v1/ledger';
+import {
+  winnerId,
+  winnerMoneyDollar,
+  winnerSharingType,
+  winnerString,
+} from '@/lib/txsuggestions/candidate';
+import {
+  draftAmountDollar,
+  draftDescription,
+  draftTagNames,
+  draftTimestamp,
+} from '@/lib/txsuggestions/draft';
+import {nanosToDollar} from '@/lib/util/util';
 import {startOfDay} from 'date-fns';
 
 export function expenseFormEmpty({
-  transactions,
   categories,
   bankAccounts,
 }: {
-  transactions: Transaction[];
   categories: Category[];
   bankAccounts: BankAccount[];
 }): ExpenseFormSchema {
-  // If there are no expenses at all, the most frequent value will not be defined,
-  // so fall back to the first category in that case.
   assert(categories.length > 0);
-  const categoryId =
-    topCategoriesMatchMost({
-      transactions,
-      filters: [isExpense, isRecent],
-      want: 1,
-    })[0] ?? categories[0].id;
+  assert(bankAccounts.length > 0);
   const values: ExpenseFormSchema = {
     timestamp: startOfDay(new Date()),
     amount: 0,
     ownShareAmount: 0,
     vendor: '',
-    categoryId,
-    accountId: mostFrequentBankAccount({
-      transactions,
-      bankAccounts,
-      transactionToAccountId: t => (isPersonalExpense(t) ? t.accountId : null),
-    }),
+    categoryId: categories[0].id,
+    accountId: firstVisibleAccountId(bankAccounts),
     tagNames: [],
-    sharingType: 'PAID_SELF_NOT_SHARED',
+    sharingType: SharingType.PAID_SELF_NOT_SHARED,
     description: null,
     tripName: null,
     companion: null,
@@ -75,48 +62,57 @@ export function expenseFormEmpty({
   return values;
 }
 
-export function expenseFromPrototype({
-  proto,
-  transactions,
+// expenseFromDraft maps a resolved draft's fields into the expense
+// form values; unset fields keep the form's plain defaults.
+export function expenseFromDraft({
+  draft,
   categories,
   bankAccounts,
 }: {
-  proto: WithdrawalPrototype;
-  transactions: Transaction[];
+  draft: TransactionDraft;
   categories: Category[];
   bankAccounts: BankAccount[];
 }): ExpenseFormSchema {
-  const account = bankAccounts.find(a => a.id == proto.internalAccountId);
-  const shared = account?.joint ?? false;
-  const companion = shared ? mostFrequentCompanion(transactions) : null;
-  // If there are no expenses at all, the most frequent value will not be defined,
-  // so fall back to the first category in that case.
   assert(categories.length > 0);
-  const categoryId =
-    topCategoriesMatchMost({
-      transactions,
-      filters: [isExpense, matchesVendor(proto.description), isRecent],
-      want: 1,
-    })[0] ?? categories[0].id;
+  assert(bankAccounts.length > 0);
+  const timestamp = draftTimestamp(draft);
+  const amount = draftAmountDollar(draft);
+  const proposedSharingType = winnerSharingType(draft.sharingType);
+  const sharingType = proposedSharingType
+    ? proposedSharingType
+    : SharingType.PAID_SELF_NOT_SHARED;
+  const shared = sharingType === SharingType.PAID_SELF_SHARED;
+  const paidOther =
+    sharingType === SharingType.PAID_OTHER_OWED ||
+    sharingType === SharingType.PAID_OTHER_REPAID;
+  const accountId = winnerId(
+    draft.accountFromId,
+    firstVisibleAccountId(bankAccounts)
+  );
+  const categoryId = winnerId(draft.categoryId, categories[0].id);
+  let repayment: RepaymentTransactionFormSchema | null = null;
+  if (sharingType === SharingType.PAID_OTHER_REPAID) {
+    repayment = {
+      timestamp,
+      accountId,
+      categoryId: winnerId(draft.repaymentCategoryId, categoryId),
+    };
+  }
   const values: ExpenseFormSchema = {
-    timestamp: new Date(proto.timestampEpoch),
-    amount: nanosToDollar(proto.absoluteAmountNanos),
-    ownShareAmount: roundToCent(
-      nanosToDollar(
-        shared ? proto.absoluteAmountNanos / 2 : proto.absoluteAmountNanos
-      )
-    ),
-    vendor: proto.description,
+    timestamp,
+    amount,
+    ownShareAmount: winnerMoneyDollar(draft.ownShareAmount, amount),
+    vendor: winnerString(draft.vendor, ''),
     categoryId,
-    accountId: proto.internalAccountId,
-    sharingType: shared ? 'PAID_SELF_SHARED' : 'PAID_SELF_NOT_SHARED',
-    companion,
-    tagNames: [],
-    description: null,
-    tripName: null,
-    payer: null,
-    currency: null,
-    repayment: null,
+    accountId: paidOther ? null : accountId,
+    tagNames: draftTagNames(draft),
+    sharingType,
+    description: draftDescription(draft),
+    tripName: winnerString(draft.tripName, null),
+    companion: shared ? winnerString(draft.companion, null) : null,
+    payer: paidOther ? winnerString(draft.payer, null) : null,
+    currency: paidOther ? winnerString(draft.currency, null) : null,
+    repayment,
   };
   return values;
 }
@@ -149,7 +145,9 @@ export function expenseFromTransaction({
     const repayment = findRepayment({expense: t, allLinks});
     return {
       ...commonFields,
-      sharingType: repayment ? 'PAID_OTHER_REPAID' : 'PAID_OTHER_OWED',
+      sharingType: repayment
+        ? SharingType.PAID_OTHER_REPAID
+        : SharingType.PAID_OTHER_OWED,
       payer: t.payer,
       currency: t.currencyCode,
       repayment,
@@ -162,7 +160,9 @@ export function expenseFromTransaction({
     ...commonFields,
     accountId: t.accountId,
     sharingType:
-      t.companions.length > 0 ? 'PAID_SELF_SHARED' : 'PAID_SELF_NOT_SHARED',
+      t.companions.length > 0
+        ? SharingType.PAID_SELF_SHARED
+        : SharingType.PAID_SELF_NOT_SHARED,
     payer: null,
     currency: null,
     repayment: null,
@@ -191,29 +191,20 @@ function findRepayment({
 
 export function incomeToExpense({
   prev,
-  transactions,
 }: {
   prev: IncomeFormSchema;
-  transactions: Transaction[];
 }): ExpenseFormSchema {
-  // Prefer the most frequent category based on the new vendor value.
-  // When switching the form type the user is expecting to see changes in the form and the
-  // most frequent value is more likely to be useful compared to the previous mode's category.
-  const categoryId =
-    topCategoriesMatchMost({
-      transactions,
-      filters: [isExpense, matchesVendor(prev.payer), isRecent],
-      want: 1,
-    })[0] ?? prev.categoryId;
   const values: ExpenseFormSchema = {
     timestamp: prev.timestamp,
     amount: prev.amount,
     ownShareAmount: prev.ownShareAmount,
     vendor: prev.payer,
-    categoryId,
+    categoryId: prev.categoryId,
     accountId: prev.accountId,
     tagNames: prev.tagNames,
-    sharingType: prev.companion ? 'PAID_SELF_SHARED' : 'PAID_SELF_NOT_SHARED',
+    sharingType: prev.companion
+      ? SharingType.PAID_SELF_SHARED
+      : SharingType.PAID_SELF_NOT_SHARED,
     description: null,
     tripName: null,
     companion: prev.companion,
@@ -226,30 +217,18 @@ export function incomeToExpense({
 
 export function transferToExpense({
   prev,
-  transactions,
 }: {
   prev: TransferFormSchema;
-  transactions: Transaction[];
 }): ExpenseFormSchema {
-  const vendor = prev.description ?? '';
-  // Prefer the most frequent category based on the new vendor value.
-  // When switching the form type the user is expecting to see changes in the form and the
-  // most frequent value is more likely to be useful compared to the previous mode's category.
-  const categoryId =
-    topCategoriesMatchMost({
-      transactions,
-      filters: [isExpense, matchesVendor(vendor), isRecent],
-      want: 1,
-    })[0] ?? prev.categoryId;
   const values: ExpenseFormSchema = {
     timestamp: prev.timestamp,
     amount: prev.amountSent,
     ownShareAmount: prev.amountSent,
-    vendor,
-    categoryId,
+    vendor: prev.description ?? '',
+    categoryId: prev.categoryId,
     accountId: prev.fromAccountId,
     tagNames: [],
-    sharingType: 'PAID_SELF_NOT_SHARED',
+    sharingType: SharingType.PAID_SELF_NOT_SHARED,
     description: null,
     tripName: null,
     companion: null,

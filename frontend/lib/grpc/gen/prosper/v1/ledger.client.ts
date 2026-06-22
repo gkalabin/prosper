@@ -17,6 +17,8 @@ import type { ValidateSessionRequest } from "./ledger";
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { LedgerService } from "./ledger";
+import type { SuggestResponse } from "./ledger";
+import type { SuggestRequest } from "./ledger";
 import type { UpdateDisplaySettingsResponse } from "./ledger";
 import type { UpdateDisplaySettingsRequest } from "./ledger";
 import type { UpsertCategoryResponse } from "./ledger";
@@ -78,6 +80,13 @@ export interface ILedgerServiceClient {
      * @generated from protobuf rpc: UpdateDisplaySettings
      */
     updateDisplaySettings(input: UpdateDisplaySettingsRequest, options?: RpcOptions): UnaryCall<UpdateDisplaySettingsRequest, UpdateDisplaySettingsResponse>;
+    /**
+     * Suggest proposes transaction drafts for events the suggestion
+     * pipeline knows about (e.g. fetched bank transactions).
+     *
+     * @generated from protobuf rpc: Suggest
+     */
+    suggest(input: SuggestRequest, options?: RpcOptions): UnaryCall<SuggestRequest, SuggestResponse>;
 }
 /**
  * LedgerService serves the core application data that the frontend needs
@@ -149,6 +158,16 @@ export class LedgerServiceClient implements ILedgerServiceClient, ServiceInfo {
     updateDisplaySettings(input: UpdateDisplaySettingsRequest, options?: RpcOptions): UnaryCall<UpdateDisplaySettingsRequest, UpdateDisplaySettingsResponse> {
         const method = this.methods[7], opt = this._transport.mergeOptions(options);
         return stackIntercept<UpdateDisplaySettingsRequest, UpdateDisplaySettingsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * Suggest proposes transaction drafts for events the suggestion
+     * pipeline knows about (e.g. fetched bank transactions).
+     *
+     * @generated from protobuf rpc: Suggest
+     */
+    suggest(input: SuggestRequest, options?: RpcOptions): UnaryCall<SuggestRequest, SuggestResponse> {
+        const method = this.methods[8], opt = this._transport.mergeOptions(options);
+        return stackIntercept<SuggestRequest, SuggestResponse>("unary", this._transport, method, opt, input);
     }
 }
 /**

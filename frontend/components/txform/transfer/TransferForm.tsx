@@ -1,5 +1,5 @@
 import {Account} from '@/components/txform/shared/Account';
-import {Category as CategoryCommon} from '@/components/txform/shared/Category';
+import {Category} from '@/components/txform/shared/Category';
 import {Description} from '@/components/txform/shared/Description';
 import {NewBalanceNote} from '@/components/txform/shared/NewBalanceNote';
 import {Tags} from '@/components/txform/shared/Tags';
@@ -9,7 +9,7 @@ import {AmountReceived} from '@/components/txform/transfer/AmountReceived';
 import {UpdateReceivedAmountOnAmountChange} from '@/components/txform/transfer/UpdateReceivedAmountOnAmountChange';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {assertDefined} from '@/lib/assert';
-import {isTransfer, Transaction} from '@/lib/model/transaction/Transaction';
+import {Transaction} from '@/lib/model/transaction/Transaction';
 import {useFormContext, useWatch} from 'react-hook-form';
 
 export function TransferForm({transaction}: {transaction: Transaction | null}) {
@@ -28,16 +28,10 @@ export function TransferForm({transaction}: {transaction: Transaction | null}) {
       <NewBalancesNote transaction={transaction} />
       <Description fieldName="transfer.description" />
       <Tags fieldName="transfer.tagNames" />
-      <Category />
+      <Category fieldName="transfer.categoryId" />
 
       <UpdateReceivedAmountOnAmountChange />
     </>
-  );
-}
-
-function Category() {
-  return (
-    <CategoryCommon fieldName="transfer.categoryId" filters={[isTransfer]} />
   );
 }
 

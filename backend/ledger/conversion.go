@@ -147,14 +147,6 @@ func splitContextToProto(s *model.SplitContext) *prosperv1.SplitContext {
 	}
 }
 
-func transactionPrototypeToProto(p *model.TransactionPrototype) *prosperv1.TransactionPrototype {
-	return &prosperv1.TransactionPrototype{
-		ExternalId:            p.ExternalID,
-		ExternalDescription:   p.ExternalDescription,
-		InternalTransactionId: p.InternalTransactionID,
-	}
-}
-
 var transactionTypeToProto = map[model.TransactionType]prosperv1.TransactionType{
 	model.TransactionExpense:           prosperv1.TransactionType_TRANSACTION_TYPE_EXPENSE,
 	model.TransactionIncome:            prosperv1.TransactionType_TRANSACTION_TYPE_INCOME,

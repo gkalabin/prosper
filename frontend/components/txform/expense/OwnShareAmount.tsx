@@ -9,6 +9,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {SharingType} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {useFormContext} from 'react-hook-form';
 
 export function OwnShareAmount() {
@@ -41,13 +42,13 @@ function LabelText() {
   const {getValues} = useFormContext<TransactionFormSchema>();
   const payer = getValues('expense.payer') || 'them';
   const {sharingType} = useSharingType();
-  if (sharingType == 'PAID_SELF_SHARED') {
+  if (sharingType == SharingType.PAID_SELF_SHARED) {
     return <>My share</>;
   }
-  if (sharingType == 'PAID_OTHER_OWED') {
+  if (sharingType == SharingType.PAID_OTHER_OWED) {
     return <>I owe {payer}</>;
   }
-  if (sharingType == 'PAID_OTHER_REPAID') {
+  if (sharingType == SharingType.PAID_OTHER_REPAID) {
     return <>I paid {payer}</>;
   }
   throw new Error(`Unknown sharing type: ${sharingType}`);

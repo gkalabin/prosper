@@ -1,8 +1,4 @@
 import {CategorySelect} from '@/components/txform/shared/CategorySelect';
-import {
-  TransactionFilterFn,
-  useTopCategoriesMatchMost,
-} from '@/components/txform/shared/useTopCategoryIds';
 import {SubFormValues} from '@/components/txform/types';
 import {
   FormControl,
@@ -15,16 +11,10 @@ import {useFormContext} from 'react-hook-form';
 
 export function Category({
   fieldName,
-  filters,
 }: {
   fieldName: 'expense.categoryId' | 'income.categoryId' | 'transfer.categoryId';
-  filters: TransactionFilterFn[];
 }) {
   const {control, formState} = useFormContext<SubFormValues>();
-  const mostFrequentlyUsedCategoryIds = useTopCategoriesMatchMost({
-    filters,
-    want: 5,
-  });
   return (
     <FormField
       control={control}
@@ -36,7 +26,6 @@ export function Category({
             <CategorySelect
               value={field.value}
               onChange={field.onChange}
-              mostFrequentlyUsedCategoryIds={mostFrequentlyUsedCategoryIds}
               disabled={formState.isSubmitting}
             />
           </FormControl>

@@ -154,6 +154,13 @@ export function mustFindBankAccount(
   return account;
 }
 
+// firstVisibleAccountId returns the first account the user sees in the
+// UI, falling back to the first account when all are archived.
+export function firstVisibleAccountId(accounts: BankAccount[]): number {
+  assert(accounts.length > 0);
+  return (accounts.find(a => !a.archived) ?? accounts[0]).id;
+}
+
 export function accountUnitsEqual(a: BankAccount, b: BankAccount): boolean {
   if (a.currencyCode && b.currencyCode) {
     return a.currencyCode === b.currencyCode;

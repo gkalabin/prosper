@@ -2,9 +2,10 @@
 import {upsertTransaction} from '@/actions/txform/index';
 import {
   useFormDefaults,
+  valuesForDraft,
   valuesForNewType,
-  valuesForPrototype,
 } from '@/components/txform/defaults';
+import {DraftContextProvider} from '@/components/txform/DraftContext';
 import {expenseFormEmpty} from '@/components/txform/expense/defaults';
 import {ExpenseForm} from '@/components/txform/expense/ExpenseForm';
 import {
@@ -29,14 +30,14 @@ import {
 } from '@/components/ui/dialog';
 import {Form} from '@/components/ui/form';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
-import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
+import {TransactionDraft} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {useDisplayBankAccounts} from '@/lib/model/AppDataModel';
 import {Transaction} from '@/lib/model/transaction/Transaction';
-import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {setFormErrors} from '@/lib/util/forms';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useCallback, useState} from 'react';
 import {useForm} from 'react-hook-form';
+import {mutate} from 'swr';
 
 export function NewTransactionFormDialog({
   transaction,
@@ -77,50 +78,43 @@ export function TransactionForm(props: {
     throw new Error('OpeningBalance cannot be edited in the UI');
   }
   const {categories} = useCoreDataContext();
-  const {transactions} = useTransactionDataContext();
   const bankAccounts = useDisplayBankAccounts();
-  const [proto, setProto] = useState<TransactionPrototype | null>(null);
+  const [draft, setDraft] = useState<TransactionDraft | null>(null);
   const creatingNewTransaction = !props.transaction;
   // Form values update strategy:
-  //  - Existing transaction is either set all the time or not defined. If it's set, there could be no prototype.
-  //  - Prototype might be set only when creating new transaction.
+  //  - Existing transaction is either set all the time or not defined. If it's set, there could be no draft.
+  //  - Draft might be set only when creating new transaction.
   //    When it changes, the form should reset without preserving any of the state because
-  //    cicking on a prototype should result in consistent action of prefilling the form with the prototype data.
+  //    cicking on a suggestion should result in consistent action of prefilling the form with the suggested data.
   //  - When the form type changes, the state should be preserved as much a possible as the form type toggle is
   //    like a button which hides/shows some fields.
   const form = useForm<TransactionFormSchema>({
     resolver: zodResolver(transactionFormValidationSchema),
     // Default values used only when the form renders initially,
-    // when this happens the proto is always null,
-    // so proto is not used for default values calculation.
+    // when this happens the draft is always null,
+    // so it is not used for default values calculation.
     defaultValues: useFormDefaults(props.transaction),
   });
   const formType = form.watch('formType');
   const onFormTypeChange = (newFormType: FormType): void => {
-    form.reset(
-      valuesForNewType(
-        form.getValues(),
-        newFormType,
-        bankAccounts,
-        transactions
-      )
-    );
+    form.reset(valuesForNewType(form.getValues(), newFormType, bankAccounts));
   };
-  const onPrototypeChange = useCallback(
-    (proto: TransactionPrototype): void => {
-      setProto(proto);
-      form.reset(
-        valuesForPrototype({proto, bankAccounts, categories, transactions})
-      );
+  const onDraftChange = useCallback(
+    (draft: TransactionDraft): void => {
+      setDraft(draft);
+      form.reset(valuesForDraft({draft, bankAccounts, categories}));
     },
-    [bankAccounts, categories, form, transactions]
+    [bankAccounts, categories, form]
   );
   const onSubmit = form.handleSubmit(async (data: TransactionFormSchema) => {
     try {
       const transactionId = props.transaction?.id ?? null;
-      const usedProtos = proto ? [proto] : [];
-      const response = await upsertTransaction(transactionId, usedProtos, data);
+      const origins = draft?.origins ?? [];
+      const response = await upsertTransaction(transactionId, origins, data);
       if (response.status === 'SUCCESS') {
+        // The recorded event is now linked to the new transaction;
+        // refresh the suggestions so it renders as recorded.
+        mutate('/api/suggest');
         if (props.transaction) {
           // Close the form after updating the transaction.
           props.onClose();
@@ -128,11 +122,7 @@ export function TransactionForm(props: {
           // Reset the form after successful submission.
           const newFormValues: TransactionFormSchema = {
             formType: 'EXPENSE',
-            expense: expenseFormEmpty({
-              transactions,
-              bankAccounts,
-              categories,
-            }),
+            expense: expenseFormEmpty({bankAccounts, categories}),
           };
           // Keep the account id because the user usually records transactions in a row for the same account.
           newFormValues.expense!.accountId =
@@ -140,7 +130,7 @@ export function TransactionForm(props: {
             data.income?.accountId ||
             data.transfer?.toAccountId ||
             null;
-          setProto(null);
+          setDraft(null);
           form.reset(newFormValues);
         }
         return;
@@ -160,8 +150,8 @@ export function TransactionForm(props: {
       {creatingNewTransaction && (
         <div className="mb-2">
           <NewTransactionSuggestions
-            activePrototype={proto}
-            onItemClick={onPrototypeChange}
+            activeDraft={draft}
+            onItemClick={onDraftChange}
             disabled={form.formState.isSubmitting}
           />
         </div>
@@ -176,63 +166,65 @@ export function TransactionForm(props: {
               The alternative is to keep track of isSubmitting state at the higher level,
               but it invalidates the purpose of incapsulating the form common logic.
     */}
-      <Form {...form}>
-        <form onSubmit={onSubmit}>
-          <div className="flex justify-center py-4">
-            <FormTypeSelect
-              value={formType}
-              setValue={onFormTypeChange}
-              disabled={form.formState.isSubmitting}
-            />
-          </div>
-          <div
-            className="grid grid-cols-6 gap-x-6 gap-y-3"
-            id={TRANSACTION_FORM_TABPANEL_ID}
-            role="tabpanel"
-            aria-labelledby={`tab-${formType.toLowerCase()}`}
-          >
-            {formType == 'EXPENSE' && (
-              <ExpenseForm transaction={props.transaction} proto={proto} />
-            )}
-            {formType == 'TRANSFER' && (
-              <TransferForm transaction={props.transaction} />
-            )}
-            {formType == 'INCOME' && (
-              <IncomeForm transaction={props.transaction} />
-            )}
-          </div>
-
-          <div className="mt-4 flex justify-between gap-2 border-t py-4">
-            <div className="text-destructive text-sm font-medium">
-              {form.formState.errors.root?.message}
-            </div>
-            <div className="flex-none space-x-4">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={props.onClose}
+      <DraftContextProvider draft={draft}>
+        <Form {...form}>
+          <form onSubmit={onSubmit}>
+            <div className="flex justify-center py-4">
+              <FormTypeSelect
+                value={formType}
+                setValue={onFormTypeChange}
                 disabled={form.formState.isSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {creatingNewTransaction &&
-                  form.formState.isSubmitting &&
-                  'Adding…'}
-                {creatingNewTransaction &&
-                  !form.formState.isSubmitting &&
-                  'Add'}
-                {!creatingNewTransaction &&
-                  form.formState.isSubmitting &&
-                  'Updating…'}
-                {!creatingNewTransaction &&
-                  !form.formState.isSubmitting &&
-                  'Update'}
-              </Button>
+              />
             </div>
-          </div>
-        </form>
-      </Form>
+            <div
+              className="grid grid-cols-6 gap-x-6 gap-y-3"
+              id={TRANSACTION_FORM_TABPANEL_ID}
+              role="tabpanel"
+              aria-labelledby={`tab-${formType.toLowerCase()}`}
+            >
+              {formType == 'EXPENSE' && (
+                <ExpenseForm transaction={props.transaction} />
+              )}
+              {formType == 'TRANSFER' && (
+                <TransferForm transaction={props.transaction} />
+              )}
+              {formType == 'INCOME' && (
+                <IncomeForm transaction={props.transaction} />
+              )}
+            </div>
+
+            <div className="mt-4 flex justify-between gap-2 border-t py-4">
+              <div className="text-destructive text-sm font-medium">
+                {form.formState.errors.root?.message}
+              </div>
+              <div className="flex-none space-x-4">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={props.onClose}
+                  disabled={form.formState.isSubmitting}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={form.formState.isSubmitting}>
+                  {creatingNewTransaction &&
+                    form.formState.isSubmitting &&
+                    'Adding…'}
+                  {creatingNewTransaction &&
+                    !form.formState.isSubmitting &&
+                    'Add'}
+                  {!creatingNewTransaction &&
+                    form.formState.isSubmitting &&
+                    'Updating…'}
+                  {!creatingNewTransaction &&
+                    !form.formState.isSubmitting &&
+                    'Update'}
+                </Button>
+              </div>
+            </div>
+          </form>
+        </Form>
+      </DraftContextProvider>
     </>
   );
 }

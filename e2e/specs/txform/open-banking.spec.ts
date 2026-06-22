@@ -106,24 +106,35 @@ test.describe('Create transactions from open banking data', () => {
     seed,
     loginAs,
   }) => {
-    const {user, bank, account, category} = await seed.createUserWithTestData({
+    const {user, bank, account} = await seed.createUserWithTestData({
       bank: {name: 'HSBC'},
       account: {name: 'Current', initialBalance: 1000},
       category: {name: 'Coffee'},
     });
-    // A 'Zettle *Starbu' open banking transaction was previously recorded as a Starbucks expense.
-    const prior = await seed.expense('Starbucks', 80, {
+    // An earlier fetch surfaces the provider's raw description; the user
+    // renames to 'Starbucks' when recording, teaching the server the
+    // vendor behind that string.
+    await seed.openBankingTransactions({
       user,
+      bank,
       account,
-      category,
-      timestamp: '2025-01-02T09:00',
+      transactions: [
+        {
+          externalId: 'ob-zettle-old',
+          description: 'Zettle *Starbu',
+          amount: -80,
+        },
+      ],
     });
-    await seed.recordTransactionPrototype({
-      userId: user.id,
-      externalId: 'ob-zettle-old',
-      externalDescription: 'Zettle *Starbu',
-      internalTransactionId: prior.id,
-    });
+    await loginAs(user);
+    const addTxPage = new NewTransactionPage(page);
+    await addTxPage.goto();
+    await addTxPage.suggestions.click('Zettle *Starbu');
+    await addTxPage.form.vendorInput.fill('Starbucks');
+    await addTxPage.form.submit();
+    // A later fetch replaces the earlier one, so only its transaction is
+    // suggested. Having recorded the same raw description as 'Starbucks'
+    // before, the user gets the suggestion pre-filled with that vendor.
     await seed.openBankingTransactions({
       user,
       bank,
@@ -136,12 +147,10 @@ test.describe('Create transactions from open banking data', () => {
         },
       ],
     });
-    await loginAs(user);
-    const addTxPage = new NewTransactionPage(page);
     await addTxPage.goto();
-    // The prior recording rewrites the suggestion to the used vendor.
     await addTxPage.suggestions.click('Starbucks');
     await addTxPage.form.submit();
+
     const listPage = new TransactionListPage(page);
     await listPage.goto();
     // Both Starbucks expenses share a vendor, so the new one is found by its distinct amount.

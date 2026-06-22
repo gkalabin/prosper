@@ -59,7 +59,7 @@ export async function cleanupForUserLogins(logins: string[]): Promise<void> {
 }
 
 // deleteTransactionsForUsers tears down everything that hangs off a
-// Transaction row (lines, splits, links, prototypes, tag joins) before
+// Transaction row (lines, splits, links, origins, tag joins) before
 // dropping the transactions themselves.
 async function deleteTransactionsForUsers(
   userIds: number[],
@@ -89,7 +89,7 @@ async function deleteTransactionsForUsers(
   );
   await exec(`DELETE FROM EntryLine WHERE transactionId IN (${txIn})`, txIds);
   await exec(
-    `DELETE FROM TransactionPrototype WHERE internalTransactionId IN (${txIn})`,
+    `DELETE FROM TransactionOrigin WHERE internalTransactionId IN (${txIn})`,
     txIds
   );
   await exec(`DELETE FROM Transaction WHERE id IN (${txIn})`, txIds);

@@ -7,7 +7,6 @@ import {
   BankAccount as PbBankAccount,
   Stock as PbStock,
   Transaction as PbTransaction,
-  TransactionPrototype,
 } from '@/lib/grpc/gen/prosper/v1/ledger';
 import {
   GetMarketDataForUserResponse,
@@ -241,7 +240,6 @@ export type CoreDataModel = {
 
 export type TransactionDataModel = {
   transactions: Transaction[];
-  transactionPrototypes: TransactionPrototype[];
   transactionLinks: TransactionLink[];
 };
 
@@ -258,7 +256,6 @@ export type AllClientDataModel = {
   trips: Trip[];
   tags: Tag[];
   exchange: StockAndCurrencyExchange;
-  transactionPrototypes: TransactionDataModel['transactionPrototypes'];
   transactionLinks: TransactionLink[];
 };
 
@@ -334,7 +331,6 @@ export function transactionModelFromDB(
   );
   return {
     transactions,
-    transactionPrototypes: dbData.prototypes,
     transactionLinks,
   };
 }
@@ -382,7 +378,6 @@ export const modelFromDatabaseData = (dbData: AppData): AllClientDataModel => {
     tags,
     transactions,
     exchange,
-    transactionPrototypes: dbData.prototypes,
     transactionLinks,
   };
 };

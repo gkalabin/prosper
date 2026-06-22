@@ -786,31 +786,11 @@ export class TestFactory {
     );
   }
 
-  // recordTransactionPrototype links an open banking transaction, identified
-  // by its external id and the description the provider reported, to the
-  // internal transaction a user created from it.
-  async recordTransactionPrototype({
-    userId,
-    externalId,
-    externalDescription,
-    internalTransactionId,
-  }: {
-    userId: number;
-    externalId: string;
-    externalDescription: string;
-    internalTransactionId: number;
-  }): Promise<void> {
-    await exec(
-      `INSERT INTO TransactionPrototype (userId, externalId, externalDescription, internalTransactionId)
-       VALUES (?, ?, ?, ?)`,
-      [userId, externalId, externalDescription, internalTransactionId]
-    );
-  }
-
   // openBankingTransactions makes the given transactions appear as open
   // banking suggestions for an account. It links the bank account to an
   // external account, records a successful fetch, and stores the
-  // transactions against that fetch.
+  // transactions against that fetch. Calling it repeatedly for the same
+  // account appends further fetches against the one external account link.
   async openBankingTransactions({
     user,
     bank,
@@ -822,12 +802,7 @@ export class TestFactory {
     account: {id: number};
     transactions: OpenBankingTransactionSeed[];
   }): Promise<void> {
-    const externalAccount = `ext-account-${account.id}`;
-    await exec(
-      `INSERT INTO ExternalAccountMapping (userId, internalAccountId, externalAccountId, bankId)
-       VALUES (?, ?, ?, ?)`,
-      [user.id, account.id, externalAccount, bank.id]
-    );
+    await this.linkExternalAccount(user, bank, account);
     const now = new Date();
     const fetchId = await insert(
       `INSERT INTO OpenBankingFetch
@@ -843,28 +818,7 @@ export class TestFactory {
       ]
     );
     for (const t of transactions) {
-      const time = t.timestamp ? new Date(t.timestamp) : now;
-      const signedAmountNanos = BigInt(Math.round(t.amount * NANOS_PER_DOLLAR));
-      const raw = JSON.stringify({
-        externalId: t.externalId,
-        description: t.description,
-        amount: t.amount,
-      });
-      const rawHash = createHash('sha256').update(raw).digest('hex');
-      const txId = await insert(
-        `INSERT INTO OpenBankingTransaction
-           (userId, externalTransactionId, timestamp, description, signedAmountNanos, raw, rawHash)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-          user.id,
-          t.externalId,
-          time,
-          t.description,
-          signedAmountNanos.toString(),
-          raw,
-          rawHash,
-        ]
-      );
+      const txId = await insertOpenBankingTransaction(user.id, t);
       await exec(
         `INSERT INTO OpenBankingFetchTransaction (userId, fetchId, openBankingTransactionId)
          VALUES (?, ?, ?)`,
@@ -872,6 +826,57 @@ export class TestFactory {
       );
     }
   }
+
+  // linkExternalAccount maps an internal bank account to a provider account
+  // once, so repeated fetches against the same account reuse the mapping.
+  private async linkExternalAccount(
+    user: {id: number},
+    bank: {id: number},
+    account: {id: number}
+  ): Promise<void> {
+    const existing = await query<RowDataPacket[]>(
+      `SELECT internalAccountId FROM ExternalAccountMapping WHERE internalAccountId = ?`,
+      [account.id]
+    );
+    if (existing.length) {
+      return;
+    }
+    await exec(
+      `INSERT INTO ExternalAccountMapping (userId, internalAccountId, externalAccountId, bankId)
+       VALUES (?, ?, ?, ?)`,
+      [user.id, account.id, `ext-account-${account.id}`, bank.id]
+    );
+  }
+}
+
+// insertOpenBankingTransaction stores one bank transaction as an open
+// banking provider would report it and returns its id.
+async function insertOpenBankingTransaction(
+  userId: number,
+  t: OpenBankingTransactionSeed
+): Promise<number> {
+  const time = t.timestamp ? new Date(t.timestamp) : new Date();
+  const signedAmountNanos = BigInt(Math.round(t.amount * NANOS_PER_DOLLAR));
+  const raw = JSON.stringify({
+    externalId: t.externalId,
+    description: t.description,
+    amount: t.amount,
+  });
+  const rawHash = createHash('sha256').update(raw).digest('hex');
+  return insert(
+    `INSERT INTO OpenBankingTransaction
+       (userId, externalTransactionId, timestamp, description, signedAmountNanos, raw, rawHash)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [
+      userId,
+      t.externalId,
+      time,
+      t.description,
+      signedAmountNanos.toString(),
+      raw,
+      rawHash,
+    ]
+  );
 }
 
 async function insertLine(

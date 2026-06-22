@@ -4,27 +4,20 @@ import {OwnShareAmount} from '@/components/txform/income/OwnShareAmount';
 import {Payer} from '@/components/txform/income/Payer';
 import {SplitTransactionToggle} from '@/components/txform/income/SplitTransactionToggle';
 import {Account} from '@/components/txform/shared/Account';
-import {Category as CategoryCommon} from '@/components/txform/shared/Category';
+import {Category} from '@/components/txform/shared/Category';
 import {Companion} from '@/components/txform/shared/Companion';
 import {NewBalanceNote} from '@/components/txform/shared/NewBalanceNote';
 import {Tags} from '@/components/txform/shared/Tags';
 import {Timestamp} from '@/components/txform/shared/Timestamp';
-import {UpdateCategoryOnChange} from '@/components/txform/shared/UpdateCategoryOnChange';
 import {UpdateOwnShareOnAmountChange as CommonUpdateOwnShareOnAmountChange} from '@/components/txform/shared/UpdateOwnShareOnAmountChange';
-import {
-  isRecent,
-  matchesPayer,
-} from '@/components/txform/shared/useTopCategoryIds';
 import {SubFormValues, TransactionFormSchema} from '@/components/txform/types';
 import {assertDefined} from '@/lib/assert';
-import {isIncome, Transaction} from '@/lib/model/transaction/Transaction';
-import {useMemo} from 'react';
+import {Transaction} from '@/lib/model/transaction/Transaction';
 import {useFormContext, useWatch} from 'react-hook-form';
 
 export function IncomeForm({transaction}: {transaction: Transaction | null}) {
   const {getValues} = useFormContext<TransactionFormSchema>();
   assertDefined(getValues('income'), 'income form requires income values');
-  const isCreatingNewTransaction = !transaction;
   return (
     <>
       <Timestamp fieldName="income.timestamp" />
@@ -36,33 +29,11 @@ export function IncomeForm({transaction}: {transaction: Transaction | null}) {
       <NewBalanceNoteWrapper transaction={transaction} />
       <Payer />
       <Tags fieldName="income.tagNames" />
-      <Category />
+      <Category fieldName="income.categoryId" />
       <ExtraFields />
-
-      {/* When editing transactions, do not update category automatically.
-      The user might not notice the automatic updates and then unintentionally
-      change the category when they only mean to change the payer. */}
-      {isCreatingNewTransaction && <UpdateCategoryOnPayerChange />}
       <UpdateOwnShareOnAmountChange />
     </>
   );
-}
-
-function UpdateCategoryOnPayerChange() {
-  const payer = useWatch({name: 'income.payer', exact: true});
-  const filters = useMemo(() => [isIncome, matchesPayer(payer)], [payer]);
-  return (
-    <UpdateCategoryOnChange fieldName="income.categoryId" filters={filters} />
-  );
-}
-
-function Category() {
-  const payer = useWatch({name: 'income.payer', exact: true});
-  const filters = useMemo(
-    () => [isIncome, matchesPayer(payer), isRecent],
-    [payer]
-  );
-  return <CategoryCommon fieldName="income.categoryId" filters={filters} />;
 }
 
 function MaybeEmptyCompanion() {

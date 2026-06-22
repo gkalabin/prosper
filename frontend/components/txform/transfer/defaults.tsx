@@ -1,47 +1,35 @@
 import {ExpenseFormSchema} from '@/components/txform/expense/types';
 import {IncomeFormSchema} from '@/components/txform/income/types';
-import {
-  isRecent,
-  topCategoriesMatchMost,
-} from '@/components/txform/shared/useTopCategoryIds';
 import {TransferFormSchema} from '@/components/txform/transfer/types';
 import {assert} from '@/lib/assert';
-import {BankAccount} from '@/lib/model/BankAccount';
+import {BankAccount, firstVisibleAccountId} from '@/lib/model/BankAccount';
 import {Category} from '@/lib/model/Category';
 import {Tag} from '@/lib/model/Tag';
-import {
-  isTransfer,
-  Transaction,
-  transactionTags,
-} from '@/lib/model/transaction/Transaction';
+import {transactionTags} from '@/lib/model/transaction/Transaction';
 import {Transfer} from '@/lib/model/transaction/Transfer';
-import {TransferPrototype} from '@/lib/txsuggestions/TransactionPrototype';
+import {TransactionDraft} from '@/lib/grpc/gen/prosper/v1/ledger';
+import {winnerId, winnerMoneyDollar} from '@/lib/txsuggestions/candidate';
+import {
+  draftAmountDollar,
+  draftDescription,
+  draftTagNames,
+  draftTimestamp,
+} from '@/lib/txsuggestions/draft';
 import {nanosToDollar} from '@/lib/util/util';
 
 export function expenseToTransfer({
   prev,
   bankAccounts,
-  transactions,
 }: {
   prev: ExpenseFormSchema;
   bankAccounts: BankAccount[];
-  transactions: Transaction[];
 }): TransferFormSchema {
   assert(bankAccounts.length > 0);
-  // Prefer the most frequent category to the value from the previous form type.
-  // When switching the form type the user is expecting to see changes in the form and the
-  // most frequent value is more likely to be useful compared to the previous mode's category.
-  const categoryId =
-    topCategoriesMatchMost({
-      transactions,
-      filters: [isTransfer, isRecent],
-      want: 1,
-    })[0] ?? prev.categoryId;
   return {
     timestamp: prev.timestamp,
     amountSent: prev.amount,
     amountReceived: prev.amount,
-    categoryId,
+    categoryId: prev.categoryId,
     fromAccountId: prev.accountId ?? bankAccounts[0].id,
     toAccountId: prev.accountId ?? bankAccounts[0].id,
     description: prev.vendor,
@@ -51,25 +39,14 @@ export function expenseToTransfer({
 
 export function incomeToTransfer({
   prev,
-  transactions,
 }: {
   prev: IncomeFormSchema;
-  transactions: Transaction[];
 }): TransferFormSchema {
-  // Prefer the most frequent category to the value from the previous form type.
-  // When switching the form type the user is expecting to see changes in the form and the
-  // most frequent value is more likely to be useful compared to the previous mode's category.
-  const categoryId =
-    topCategoriesMatchMost({
-      transactions,
-      filters: [isTransfer, isRecent],
-      want: 1,
-    })[0] ?? prev.categoryId;
   return {
     timestamp: prev.timestamp,
     amountSent: prev.amount,
     amountReceived: prev.amount,
-    categoryId,
+    categoryId: prev.categoryId,
     fromAccountId: prev.accountId,
     toAccountId: prev.accountId,
     description: prev.payer,
@@ -77,34 +54,35 @@ export function incomeToTransfer({
   };
 }
 
-export function transferFromPrototype({
-  proto,
-  transactions,
+// transferFromDraft maps a resolved draft's fields into the transfer
+// form values; unset fields keep the form's plain defaults.
+export function transferFromDraft({
+  draft,
   categories,
+  bankAccounts,
 }: {
-  proto: TransferPrototype;
-  transactions: Transaction[];
+  draft: TransactionDraft;
   categories: Category[];
+  bankAccounts: BankAccount[];
 }): TransferFormSchema {
-  const {withdrawal, deposit} = proto;
-  // If there are no transfers at all, the most frequent value will not be defined,
-  // so fall back to the first category in that case.
   assert(categories.length > 0);
-  const categoryId =
-    topCategoriesMatchMost({
-      transactions,
-      filters: [isTransfer, isRecent],
-      want: 1,
-    })[0] ?? categories[0].id;
+  assert(bankAccounts.length > 0);
+  const amountSent = draftAmountDollar(draft);
   const values: TransferFormSchema = {
-    timestamp: new Date(withdrawal.timestampEpoch),
-    amountSent: nanosToDollar(withdrawal.absoluteAmountNanos),
-    amountReceived: nanosToDollar(deposit.absoluteAmountNanos),
-    description: withdrawal.description,
-    categoryId,
-    fromAccountId: withdrawal.internalAccountId,
-    toAccountId: deposit.internalAccountId,
-    tagNames: [],
+    timestamp: draftTimestamp(draft),
+    amountSent,
+    amountReceived: winnerMoneyDollar(draft.amountReceived, amountSent),
+    description: draftDescription(draft),
+    categoryId: winnerId(draft.categoryId, categories[0].id),
+    fromAccountId: winnerId(
+      draft.accountFromId,
+      firstVisibleAccountId(bankAccounts)
+    ),
+    toAccountId: winnerId(
+      draft.accountToId,
+      firstVisibleAccountId(bankAccounts)
+    ),
+    tagNames: draftTagNames(draft),
   };
   return values;
 }

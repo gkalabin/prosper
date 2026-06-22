@@ -10,6 +10,7 @@ import (
 	prosperv1 "prosper/gen/prosper/v1"
 	"prosper/ledger/txform"
 	"prosper/model"
+	"prosper/suggest"
 	"prosper/userdb"
 )
 
@@ -31,23 +32,37 @@ type Service struct {
 	db            *userdb.DB
 	rateTrigger   RateTrigger
 	stockResolver StockResolver
+	suggester     *suggest.Pipeline
 }
 
-// NewService constructs a Service. Both rt and sr are required:
-// rate triggering and stock resolution are core to the ledger's
-// behaviour, not optional dependencies.
-func NewService(db *userdb.DB, rt RateTrigger, sr StockResolver) *Service {
+// NewService constructs a Service. All dependencies are required.
+func NewService(db *userdb.DB, rt RateTrigger, sr StockResolver, sp *suggest.Pipeline) *Service {
 	if rt == nil {
 		panic("ledger: RateTrigger is required")
 	}
 	if sr == nil {
 		panic("ledger: StockResolver is required")
 	}
+	if sp == nil {
+		panic("ledger: suggestion Pipeline is required")
+	}
 	return &Service{
 		db:            db,
 		rateTrigger:   rt,
 		stockResolver: sr,
+		suggester:     sp,
 	}
+}
+
+// Suggest proposes transaction drafts for the events the suggestion
+// pipeline knows about.
+func (s *Service) Suggest(ctx context.Context, _ *prosperv1.SuggestRequest) (*prosperv1.SuggestResponse, error) {
+	userID := auth.MustUserIDFromContext(ctx)
+	drafts, err := s.suggester.Suggest(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return &prosperv1.SuggestResponse{Drafts: drafts}, nil
 }
 
 func (s *Service) GetCoreData(ctx context.Context, _ *prosperv1.GetCoreDataRequest) (*prosperv1.GetCoreDataResponse, error) {
@@ -159,9 +174,6 @@ func (s *Service) GetTransactions(ctx context.Context, _ *prosperv1.GetTransacti
 	if err := s.attachLinks(ctx, userID, resp); err != nil {
 		return nil, err
 	}
-	if err := s.attachPrototypes(ctx, userID, resp); err != nil {
-		return nil, err
-	}
 
 	return resp, nil
 }
@@ -244,18 +256,6 @@ func (s *Service) attachLinks(ctx context.Context, userID int32, resp *prosperv1
 			continue
 		}
 		resp.Links = append(resp.Links, pl)
-	}
-	return nil
-}
-
-func (s *Service) attachPrototypes(ctx context.Context, userID int32, resp *prosperv1.GetTransactionsResponse) error {
-	var prototypes []model.TransactionPrototype
-	if err := s.db.SelectForUser(ctx, &prototypes, userID,
-		`SELECT * FROM TransactionPrototype WHERE userId = :userId`); err != nil {
-		return err
-	}
-	for i := range prototypes {
-		resp.Prototypes = append(resp.Prototypes, transactionPrototypeToProto(&prototypes[i]))
 	}
 	return nil
 }

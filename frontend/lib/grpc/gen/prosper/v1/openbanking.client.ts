@@ -35,8 +35,8 @@ import type { GetBalancesRequest } from "./openbanking";
 import type { FetchNowResponse } from "./openbanking";
 import type { FetchNowRequest } from "./openbanking";
 import { stackIntercept } from "@protobuf-ts/runtime-rpc";
-import type { GetOpenBankingTransactionsResponse } from "./openbanking";
-import type { GetOpenBankingTransactionsRequest } from "./openbanking";
+import type { GetFetchStatusResponse } from "./openbanking";
+import type { GetFetchStatusRequest } from "./openbanking";
 import type { UnaryCall } from "@protobuf-ts/runtime-rpc";
 import type { RpcOptions } from "@protobuf-ts/runtime-rpc";
 /**
@@ -49,9 +49,13 @@ import type { RpcOptions } from "@protobuf-ts/runtime-rpc";
  */
 export interface IOpenBankingServiceClient {
     /**
-     * @generated from protobuf rpc: GetOpenBankingTransactions
+     * GetFetchStatus returns, per mapped account, when its transactions
+     * were last successfully fetched. The fetched transactions themselves
+     * reach the UI as suggestion drafts via LedgerService.Suggest.
+     *
+     * @generated from protobuf rpc: GetFetchStatus
      */
-    getOpenBankingTransactions(input: GetOpenBankingTransactionsRequest, options?: RpcOptions): UnaryCall<GetOpenBankingTransactionsRequest, GetOpenBankingTransactionsResponse>;
+    getFetchStatus(input: GetFetchStatusRequest, options?: RpcOptions): UnaryCall<GetFetchStatusRequest, GetFetchStatusResponse>;
     /**
      * FetchNow fetches fresh transactions for a single account right away,
      * bypassing the scheduler's refresh interval.
@@ -165,11 +169,15 @@ export class OpenBankingServiceClient implements IOpenBankingServiceClient, Serv
     constructor(private readonly _transport: RpcTransport) {
     }
     /**
-     * @generated from protobuf rpc: GetOpenBankingTransactions
+     * GetFetchStatus returns, per mapped account, when its transactions
+     * were last successfully fetched. The fetched transactions themselves
+     * reach the UI as suggestion drafts via LedgerService.Suggest.
+     *
+     * @generated from protobuf rpc: GetFetchStatus
      */
-    getOpenBankingTransactions(input: GetOpenBankingTransactionsRequest, options?: RpcOptions): UnaryCall<GetOpenBankingTransactionsRequest, GetOpenBankingTransactionsResponse> {
+    getFetchStatus(input: GetFetchStatusRequest, options?: RpcOptions): UnaryCall<GetFetchStatusRequest, GetFetchStatusResponse> {
         const method = this.methods[0], opt = this._transport.mergeOptions(options);
-        return stackIntercept<GetOpenBankingTransactionsRequest, GetOpenBankingTransactionsResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<GetFetchStatusRequest, GetFetchStatusResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * FetchNow fetches fresh transactions for a single account right away,

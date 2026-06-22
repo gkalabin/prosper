@@ -4,6 +4,7 @@ package txform
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	prosperv1 "prosper/gen/prosper/v1"
 	"prosper/ledger/common"
@@ -47,7 +48,7 @@ func Write(ctx context.Context, db *userdb.DB, userID int32, req *prosperv1.Writ
 	if err := writeTags(ctx, tx, userID, newID, req.TagNames); err != nil {
 		return 0, err
 	}
-	if err := writeUsedProtos(ctx, tx, userID, newID, req.UsedProtos); err != nil {
+	if err := linkOrigins(ctx, tx, userID, newID, req.Origins); err != nil {
 		return 0, err
 	}
 
@@ -57,24 +58,28 @@ func Write(ctx context.Context, db *userdb.DB, userID int32, req *prosperv1.Writ
 	return int32(newID), nil
 }
 
-// writeUsedProtos records each external prototype consumed by a
-// transaction submission against the new transaction id.
-func writeUsedProtos(ctx context.Context, tx *userdb.Tx, userID int32, transactionID int64, protos []*prosperv1.TransactionPrototypeInput) error {
-	if len(protos) == 0 {
+// linkOrigins records, for the new transaction, the external events it
+// was recorded from. Example of such an event is an open banking transaction.
+func linkOrigins(ctx context.Context, tx *userdb.Tx, userID int32, transactionID int64, origins []*prosperv1.OriginKey) error {
+	var rows []model.TransactionOrigin
+	for _, o := range origins {
+		kind, ok := common.OriginKindToModel(o.Kind)
+		if !ok {
+			return fmt.Errorf("unsupported origin kind %v", o.Kind)
+		}
+		rows = append(rows, model.TransactionOrigin{
+			InternalTransactionID: int32(transactionID),
+			OriginKind:            kind,
+			Key:                   o.Key,
+		})
+	}
+	if len(rows) == 0 {
 		return nil
 	}
-	rows := make([]model.TransactionPrototype, len(protos))
-	for i, p := range protos {
-		rows[i] = model.TransactionPrototype{
-			InternalTransactionID: int32(transactionID),
-			ExternalID:            p.ExternalId,
-			ExternalDescription:   p.ExternalDescription,
-		}
-	}
 	_, err := tx.NamedExecForUser(ctx, userID,
-		`INSERT INTO TransactionPrototype
-		        ( userId,  internalTransactionId,  externalId,  externalDescription)
-		 VALUES (:userId, :internalTransactionId, :externalId, :externalDescription)`,
+		`INSERT INTO TransactionOrigin
+		        ( userId,  internalTransactionId,  originKind,  originKey)
+		 VALUES (:userId, :internalTransactionId, :originKind, :originKey)`,
 		rows)
 	return err
 }

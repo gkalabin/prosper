@@ -1,7 +1,15 @@
+import {FetchOpenBankingTransactions} from '@/components/txform/FetchOpenBankingTransactions';
 import {Button} from '@/components/ui/button';
-import {uniqMostFrequent} from '@/lib/collections';
+import {Amount} from '@/lib/Amount';
+import {assertDefined} from '@/lib/assert';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
+import {
+  FormType,
+  SuggestResponse,
+  TransactionDraft,
+} from '@/lib/grpc/gen/prosper/v1/ledger';
+import {timestampToEpoch} from '@/lib/grpc/timestamp';
 import {useDisplayBankAccounts} from '@/lib/model/AppDataModel';
 import {
   Bank,
@@ -12,151 +20,124 @@ import {
 import {formatUnit} from '@/lib/model/Unit';
 import {
   Transaction,
-  isExpense,
-  isIncome,
   otherPartyNameOrNull,
 } from '@/lib/model/transaction/Transaction';
 import {
   incomingBankAccount,
   outgoingBankAccount,
 } from '@/lib/model/transaction/Transfer';
-import {useOpenBankingTransactions} from '@/lib/openbanking/context';
+import {useOpenBankingLastFetched} from '@/lib/openbanking/context';
 import {
-  TransactionPrototype,
-  WithdrawalOrDepositPrototype,
-} from '@/lib/txsuggestions/TransactionPrototype';
-import {combineTransfers} from '@/lib/txsuggestions/TransfersDetection';
-import {nanosToDollar} from '@/lib/util/util';
+  winnerId,
+  winnerMoneyNanos,
+  winnerString,
+  winnerTimestamp,
+} from '@/lib/txsuggestions/candidate';
+import {draftFormType, isRecorded, sameEvent} from '@/lib/txsuggestions/draft';
 import {cn} from '@/lib/utils';
-import {TransactionPrototype as PbTransactionPrototype} from '@/lib/grpc/gen/prosper/v1/ledger';
-import {FetchOpenBankingTransactions} from '@/components/txform/FetchOpenBankingTransactions';
-import assert from 'assert';
 import {format} from 'date-fns';
-import {useEffect, useState} from 'react';
+import {useMemo, useState} from 'react';
+import useSWR from 'swr';
 
-export function fillMostCommonDescriptions(input: {
-  transactions: Transaction[];
-  newPrototypes: WithdrawalOrDepositPrototype[];
-  usedPrototypes: PbTransactionPrototype[];
-}): WithdrawalOrDepositPrototype[] {
-  const externalDescriptionUsages = new Map<string, string[]>();
-  for (const p of input.usedPrototypes) {
-    const t = input.transactions.find(x => x.id == p.internalTransactionId);
-    if (!t) {
-      continue;
+// useSuggestedDrafts loads the transaction drafts the backend proposes
+// for events it knows about (e.g. open banking transactions).
+function useSuggestedDrafts() {
+  const fetcher = (url: string) =>
+    fetch(url)
+      .then(r => r.json())
+      .then(json => SuggestResponse.fromJson(json));
+  const {data, error, isLoading} = useSWR<SuggestResponse>(
+    '/api/suggest',
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
     }
-    if (t.kind === 'OpeningBalance') {
-      throw new Error(
-        `Opening balance transaction cannot be linked, but found ${t.id}`
-      );
-    }
-    const external = p.externalDescription;
-    let internal = t.note;
-    if (isIncome(t)) {
-      internal = t.payer;
-    }
-    if (isExpense(t)) {
-      internal = t.vendor;
-    }
-    if (internal == '' || internal == external) {
-      continue;
-    }
-    const usages = externalDescriptionUsages.get(external) ?? [];
-    usages.push(internal);
-    externalDescriptionUsages.set(external, usages);
-  }
-
-  const mostFrequentReplacements = new Map<string, string>();
-  for (const [external, internalDescriptions] of externalDescriptionUsages) {
-    const [mostFrequent] = uniqMostFrequent(internalDescriptions);
-    mostFrequentReplacements.set(external, mostFrequent);
-  }
-
-  return input.newPrototypes.map(p => {
-    p.description =
-      mostFrequentReplacements.get(p.description) ?? p.description;
-    return p;
-  });
+  );
+  return {
+    drafts: data?.drafts,
+    isLoading,
+    isError: !!error,
+  };
 }
 
 export const NewTransactionSuggestions = (props: {
-  activePrototype: TransactionPrototype | null;
-  onItemClick: (t: TransactionPrototype) => void;
+  activeDraft: TransactionDraft | null;
+  onItemClick: (draft: TransactionDraft) => void;
   disabled: boolean;
 }) => {
-  const {transactions, lastFetchedAt, isError, isLoading} =
-    useOpenBankingTransactions();
+  const {drafts, isError, isLoading} = useSuggestedDrafts();
   if (isError) {
     return (
-      <div className="text-red-900">
-        Error loading transactions from Open Banking
-      </div>
+      <div className="text-red-900">Error loading transaction suggestions</div>
     );
   }
   if (isLoading) {
-    return <div>Loading Open Banking transactions...</div>;
+    return <div>Loading transaction suggestions...</div>;
   }
-  if (!transactions?.length) {
+  if (!drafts?.length) {
     return <></>;
   }
-  return (
-    <NonEmptyNewTransactionSuggestions
-      {...props}
-      openBankingTransactions={transactions}
-      lastFetchedAt={lastFetchedAt}
-    />
-  );
+  return <NonEmptyNewTransactionSuggestions {...props} drafts={drafts} />;
 };
 
+function draftTimestampEpoch(draft: TransactionDraft): number {
+  const timestamp = winnerTimestamp(draft.timestamp);
+  return timestamp ? timestampToEpoch(timestamp) : 0;
+}
+
+// groupDraftsByAccountId indexes drafts by each account they belong to, so a
+// draft touching two accounts (e.g. a transfer) appears under both.
+function groupDraftsByAccountId(
+  drafts: TransactionDraft[]
+): Map<number, TransactionDraft[]> {
+  const byAccount = new Map<number, TransactionDraft[]>();
+  const append = (accountId: number, draft: TransactionDraft) => {
+    const accountDrafts = byAccount.get(accountId) ?? [];
+    byAccount.set(accountId, [...accountDrafts, draft]);
+  };
+  for (const draft of drafts) {
+    const accountFromId = winnerId(draft.accountFromId);
+    if (accountFromId) {
+      append(accountFromId, draft);
+    }
+    const accountToId = winnerId(draft.accountToId);
+    if (accountToId) {
+      append(accountToId, draft);
+    }
+  }
+  return byAccount;
+}
+
 const NonEmptyNewTransactionSuggestions = (props: {
-  openBankingTransactions: WithdrawalOrDepositPrototype[];
-  lastFetchedAt: Record<number, number>;
-  activePrototype: TransactionPrototype | null;
-  onItemClick: (t: TransactionPrototype) => void;
+  drafts: TransactionDraft[];
+  activeDraft: TransactionDraft | null;
+  onItemClick: (draft: TransactionDraft) => void;
   disabled: boolean;
 }) => {
-  const {transactions, transactionPrototypes} = useTransactionDataContext();
   const {banks} = useCoreDataContext();
+  const {lastFetchedAt} = useOpenBankingLastFetched();
   const bankAccounts = useDisplayBankAccounts();
-  const withdrawalsOrDeposits = fillMostCommonDescriptions({
-    transactions,
-    newPrototypes: props.openBankingTransactions,
-    usedPrototypes: transactionPrototypes,
-  });
-  const prototypes = combineTransfers(withdrawalsOrDeposits);
-  const protosByAccountId = new Map<number, TransactionPrototype[]>();
-  prototypes.forEach(p => {
-    const append = (accountId: number) => {
-      const ps = protosByAccountId.get(accountId) ?? [];
-      protosByAccountId.set(accountId, [...ps, p]);
-    };
-    switch (p.type) {
-      case 'withdrawal':
-      case 'deposit':
-        append(p.internalAccountId);
-        break;
-      case 'transfer':
-        append(p.withdrawal.internalAccountId);
-        append(p.deposit.internalAccountId);
-        break;
-    }
-  });
-  const accountsWithData = bankAccounts.filter(
-    a => protosByAccountId.get(a.id)?.length
+  // Derive the grouping and the account list only when the drafts or accounts
+  // change, not on every re-render driven by local state (e.g. switching the
+  // active account tab below).
+  const draftsByAccountId = useMemo(
+    () => groupDraftsByAccountId(props.drafts),
+    [props.drafts]
   );
-  const [activeAccount, setActiveAccount] = useState(
-    !accountsWithData.length ? null : accountsWithData[0]
+  const accountsWithData = useMemo(
+    () => bankAccounts.filter(a => draftsByAccountId.get(a.id)?.length),
+    [bankAccounts, draftsByAccountId]
   );
-  const activeAccountProtos =
-    protosByAccountId.get(activeAccount?.id ?? -1) ?? [];
-  useEffect(() => {
-    if (!activeAccountProtos.length && accountsWithData.length) {
-      setActiveAccount(accountsWithData[0]);
-    }
-  }, [accountsWithData, activeAccountProtos.length]);
-  if (!accountsWithData.length || !activeAccount) {
+  const [activeAccountId, setActiveAccountId] = useState<number | null>(null);
+  const activeAccount =
+    accountsWithData.find(a => a.id == activeAccountId) ??
+    accountsWithData[0] ??
+    null;
+  if (!activeAccount) {
     return <></>;
   }
+  const activeAccountDrafts = draftsByAccountId.get(activeAccount.id) ?? [];
   return (
     <div className="divide-y divide-gray-200 rounded border border-gray-200">
       <div>
@@ -170,8 +151,8 @@ const NonEmptyNewTransactionSuggestions = (props: {
               <Button
                 variant="link"
                 size="inherit"
-                onClick={() => setActiveAccount(account)}
-                disabled={props.disabled || account.id == activeAccount?.id}
+                onClick={() => setActiveAccountId(account.id)}
+                disabled={props.disabled || account.id == activeAccount.id}
               >
                 {fullAccountName(account, banks)}
               </Button>
@@ -180,11 +161,11 @@ const NonEmptyNewTransactionSuggestions = (props: {
         </div>
       </div>
       <SuggestionsList
-        items={activeAccountProtos}
-        activePrototype={props.activePrototype}
+        items={activeAccountDrafts}
+        activeDraft={props.activeDraft}
         onItemClick={props.onItemClick}
         bankAccount={activeAccount}
-        lastFetchedAt={props.lastFetchedAt[activeAccount.id] ?? null}
+        lastFetchedAt={lastFetchedAt[activeAccount.id] ?? null}
         disabled={props.disabled}
       />
     </div>
@@ -192,46 +173,25 @@ const NonEmptyNewTransactionSuggestions = (props: {
 };
 
 function SuggestionsList(props: {
-  items: TransactionPrototype[];
+  items: TransactionDraft[];
   bankAccount: BankAccount;
   lastFetchedAt: number | null;
-  activePrototype: TransactionPrototype | null;
-  onItemClick: (t: TransactionPrototype) => void;
+  activeDraft: TransactionDraft | null;
+  onItemClick: (draft: TransactionDraft) => void;
   disabled: boolean;
 }) {
-  const items = props.items.sort(
-    (a, b) =>
-      singleOperationProto(b, props.bankAccount).timestampEpoch -
-      singleOperationProto(a, props.bankAccount).timestampEpoch
+  const items = [...props.items].sort(
+    (a, b) => draftTimestampEpoch(b) - draftTimestampEpoch(a)
   );
   const [limit, setLimit] = useState(5);
   const displayItems = items.slice(0, limit);
-  const sameProto = (
-    a: TransactionPrototype | null,
-    b: TransactionPrototype | null
-  ): boolean => {
-    if (!a || !b) {
-      return false;
-    }
-    if (a.type != b.type) {
-      return false;
-    }
-    if (a.type == 'transfer') {
-      assert(b.type == 'transfer');
-      return (
-        sameProto(a.deposit, b.deposit) && sameProto(a.withdrawal, b.withdrawal)
-      );
-    }
-    assert(b.type != 'transfer');
-    return a.externalTransactionId == b.externalTransactionId;
-  };
   return (
     <div className="divide-y divide-gray-200">
-      {displayItems.map((proto, i) => (
+      {displayItems.map(draft => (
         <SuggestionItem
-          key={i}
-          proto={proto}
-          isActive={sameProto(proto, props.activePrototype)}
+          key={draft.origins.map(o => `${o.kind}:${o.key}`).join(',')}
+          draft={draft}
+          isActive={!!props.activeDraft && sameEvent(draft, props.activeDraft)}
           bankAccount={props.bankAccount}
           onClick={props.onItemClick}
           disabled={props.disabled}
@@ -301,44 +261,81 @@ function summary(
   }
 }
 
+// draftTitle is the suggestion row's headline: the name the draft
+// proposes for the field the form will show it in.
+function draftTitle(draft: TransactionDraft): string {
+  switch (draftFormType(draft)) {
+    case FormType.INCOME:
+      return winnerString(draft.payer, '');
+    case FormType.TRANSFER:
+      return winnerString(draft.description, '');
+    default:
+      return winnerString(draft.vendor, '');
+  }
+}
+
+// signedAmountForAccount returns the draft's amount relative to one of
+// its accounts: positive when money enters the account, negative when it leaves.
+function signedAmountForAccount(
+  draft: TransactionDraft,
+  accountId: number
+): Amount {
+  const formType = draftFormType(draft);
+  switch (formType) {
+    case FormType.INCOME:
+      // Income is deposited into the account.
+      return new Amount({amountNanos: winnerMoneyNanos(draft.amount, 0n)});
+    case FormType.EXPENSE:
+      // An expense is paid out of the account.
+      return new Amount({amountNanos: -winnerMoneyNanos(draft.amount, 0n)});
+    case FormType.TRANSFER: {
+      // A transfer credits the receiving account the amount received and
+      // debits the sending account the amount sent.
+      if (winnerId(draft.accountToId) == accountId) {
+        const receivedNanos = winnerMoneyNanos(draft.amountReceived);
+        assertDefined(receivedNanos);
+        return new Amount({amountNanos: receivedNanos});
+      }
+      return new Amount({amountNanos: -winnerMoneyNanos(draft.amount, 0n)});
+    }
+    default:
+      throw new Error(`Cannot compute signed amount for form type ${formType}`);
+  }
+}
+
 function SuggestionItem({
-  proto,
+  draft,
   isActive,
   bankAccount,
   onClick,
   disabled,
 }: {
-  proto: TransactionPrototype;
+  draft: TransactionDraft;
   isActive: boolean;
   bankAccount: BankAccount;
-  onClick: (t: TransactionPrototype) => void;
+  onClick: (draft: TransactionDraft) => void;
   disabled: boolean;
 }) {
-  const {transactions, transactionPrototypes} = useTransactionDataContext();
+  const {transactions} = useTransactionDataContext();
   const {banks, bankAccounts, stocks} = useCoreDataContext();
-  const singleOpProto = singleOperationProto(proto, bankAccount);
-  const usedProto = transactionPrototypes.find(p =>
-    proto.type != 'transfer'
-      ? p.externalId == proto.externalTransactionId
-      : p.externalId == proto.withdrawal.externalTransactionId ||
-        p.externalId == proto.deposit.externalTransactionId
-  );
-  const usedTransaction = transactions.find(
-    t => t.id == usedProto?.internalTransactionId
+  const recordedTransaction = transactions.find(
+    t => t.id == draft.recordedTransactionIds[0]
   );
   const handleClick = () => {
     if (disabled) {
       return;
     }
-    onClick(proto);
+    onClick(draft);
   };
-  const otherAccountId =
-    proto.type != 'transfer'
-      ? null
-      : singleOpProto.type == 'deposit'
-        ? proto.withdrawal.internalAccountId
-        : proto.deposit.internalAccountId;
+  const isTransfer = draftFormType(draft) == FormType.TRANSFER;
+  const otherAccountId = !isTransfer
+    ? null
+    : winnerId(draft.accountToId) == bankAccount.id
+      ? winnerId(draft.accountFromId, null)
+      : winnerId(draft.accountToId, null);
   const otherAccount = bankAccounts.find(a => a.id == otherAccountId);
+  const signedAmount = signedAmountForAccount(draft, bankAccount.id);
+  const timestampEpoch = draftTimestampEpoch(draft);
   const unit = accountUnit(bankAccount, stocks);
   return (
     <div className={cn({'bg-gray-100': isActive})}>
@@ -346,53 +343,39 @@ function SuggestionItem({
         <div
           className={cn('flex grow cursor-pointer', {
             'text-slate-500': isActive,
-            'opacity-25': !!usedProto,
+            'opacity-25': isRecorded(draft),
           })}
           onClick={handleClick}
         >
           <div className="grow">
-            <div>{singleOpProto.description}</div>
-            {proto.type == 'transfer' && otherAccount && (
+            <div>{draftTitle(draft)}</div>
+            {isTransfer && otherAccount && (
               <div className="text-xs italic text-gray-600">
-                Transfer {singleOpProto.type == 'deposit' ? 'from' : 'to'}{' '}
+                Transfer {signedAmount.isPositive() ? 'from' : 'to'}{' '}
                 {fullAccountName(otherAccount, banks)}
               </div>
             )}
-            <div className="text-xs text-gray-600">
-              {format(singleOpProto.timestampEpoch, 'yyyy-MM-dd HH:mm')}
-            </div>
+            {timestampEpoch > 0 && (
+              <div className="text-xs text-gray-600">
+                {format(timestampEpoch, 'yyyy-MM-dd HH:mm')}
+              </div>
+            )}
           </div>
 
           <div
             className={cn('self-center pr-2 text-lg', {
-              'text-green-900': singleOpProto.type == 'deposit',
+              'text-green-900': signedAmount.isPositive(),
             })}
           >
-            {formatUnit(unit, nanosToDollar(singleOpProto.absoluteAmountNanos))}
+            {formatUnit(unit, signedAmount.dollar())}
           </div>
         </div>
       </div>
-      {usedTransaction && (
+      {recordedTransaction && (
         <div className="ml-2 text-xs text-gray-600">
-          Recorded as <i>{summary(usedTransaction, bankAccounts, banks)}</i>
+          Recorded as <i>{summary(recordedTransaction, bankAccounts, banks)}</i>
         </div>
       )}
     </div>
   );
-}
-
-function singleOperationProto(
-  proto: TransactionPrototype,
-  bankAccount: BankAccount
-): WithdrawalOrDepositPrototype {
-  if (proto.type != 'transfer') {
-    return proto;
-  }
-  if (proto.deposit.internalAccountId == bankAccount.id) {
-    return proto.deposit;
-  }
-  if (proto.withdrawal.internalAccountId == bankAccount.id) {
-    return proto.withdrawal;
-  }
-  throw new Error('Transfer not associated with the bank account');
 }

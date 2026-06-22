@@ -9,8 +9,11 @@ import "google/protobuf/timestamp.proto";
 // lifecycle for each provider, and the mapping between internal bank
 // accounts and external provider accounts.
 service OpenBankingService {
-  rpc GetOpenBankingTransactions(GetOpenBankingTransactionsRequest)
-      returns (GetOpenBankingTransactionsResponse);
+  // GetFetchStatus returns, per mapped account, when its transactions
+  // were last successfully fetched. The fetched transactions themselves
+  // reach the UI as suggestion drafts via LedgerService.Suggest.
+  rpc GetFetchStatus(GetFetchStatusRequest)
+      returns (GetFetchStatusResponse);
 
   // FetchNow fetches fresh transactions for a single account right away,
   // bypassing the scheduler's refresh interval.
@@ -79,12 +82,18 @@ service OpenBankingService {
       returns (ListGoCardlessCountriesResponse);
 }
 
-message GetOpenBankingTransactionsRequest {
+message GetFetchStatusRequest {
   string session_id = 1;
 }
 
-message GetOpenBankingTransactionsResponse {
-  repeated AccountTransactions accounts = 1;
+message GetFetchStatusResponse {
+  repeated AccountFetchStatus statuses = 1;
+}
+
+message AccountFetchStatus {
+  int32 internal_account_id = 1;
+  // Time of the account's most recent successful fetch, unset when none.
+  google.protobuf.Timestamp last_fetched_at = 2;
 }
 
 message FetchNowRequest {

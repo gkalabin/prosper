@@ -13,22 +13,37 @@ import { reflectionMergePartial } from "@protobuf-ts/runtime";
 import { MessageType } from "@protobuf-ts/runtime";
 import { Timestamp } from "../../google/protobuf/timestamp";
 /**
- * @generated from protobuf message prosper.v1.GetOpenBankingTransactionsRequest
+ * @generated from protobuf message prosper.v1.GetFetchStatusRequest
  */
-export interface GetOpenBankingTransactionsRequest {
+export interface GetFetchStatusRequest {
     /**
      * @generated from protobuf field: string session_id = 1
      */
     sessionId: string;
 }
 /**
- * @generated from protobuf message prosper.v1.GetOpenBankingTransactionsResponse
+ * @generated from protobuf message prosper.v1.GetFetchStatusResponse
  */
-export interface GetOpenBankingTransactionsResponse {
+export interface GetFetchStatusResponse {
     /**
-     * @generated from protobuf field: repeated prosper.v1.AccountTransactions accounts = 1
+     * @generated from protobuf field: repeated prosper.v1.AccountFetchStatus statuses = 1
      */
-    accounts: AccountTransactions[];
+    statuses: AccountFetchStatus[];
+}
+/**
+ * @generated from protobuf message prosper.v1.AccountFetchStatus
+ */
+export interface AccountFetchStatus {
+    /**
+     * @generated from protobuf field: int32 internal_account_id = 1
+     */
+    internalAccountId: number;
+    /**
+     * Time of the account's most recent successful fetch, unset when none.
+     *
+     * @generated from protobuf field: google.protobuf.Timestamp last_fetched_at = 2
+     */
+    lastFetchedAt?: Timestamp;
 }
 /**
  * @generated from protobuf message prosper.v1.FetchNowRequest
@@ -536,20 +551,20 @@ export enum Provider {
     STARLING = 3
 }
 // @generated message type with reflection information, may provide speed optimized methods
-class GetOpenBankingTransactionsRequest$Type extends MessageType<GetOpenBankingTransactionsRequest> {
+class GetFetchStatusRequest$Type extends MessageType<GetFetchStatusRequest> {
     constructor() {
-        super("prosper.v1.GetOpenBankingTransactionsRequest", [
+        super("prosper.v1.GetFetchStatusRequest", [
             { no: 1, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
         ]);
     }
-    create(value?: PartialMessage<GetOpenBankingTransactionsRequest>): GetOpenBankingTransactionsRequest {
+    create(value?: PartialMessage<GetFetchStatusRequest>): GetFetchStatusRequest {
         const message = globalThis.Object.create((this.messagePrototype!));
         message.sessionId = "";
         if (value !== undefined)
-            reflectionMergePartial<GetOpenBankingTransactionsRequest>(this, message, value);
+            reflectionMergePartial<GetFetchStatusRequest>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetOpenBankingTransactionsRequest): GetOpenBankingTransactionsRequest {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetFetchStatusRequest): GetFetchStatusRequest {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
@@ -568,7 +583,7 @@ class GetOpenBankingTransactionsRequest$Type extends MessageType<GetOpenBankingT
         }
         return message;
     }
-    internalBinaryWrite(message: GetOpenBankingTransactionsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+    internalBinaryWrite(message: GetFetchStatusRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
         /* string session_id = 1; */
         if (message.sessionId !== "")
             writer.tag(1, WireType.LengthDelimited).string(message.sessionId);
@@ -579,30 +594,30 @@ class GetOpenBankingTransactionsRequest$Type extends MessageType<GetOpenBankingT
     }
 }
 /**
- * @generated MessageType for protobuf message prosper.v1.GetOpenBankingTransactionsRequest
+ * @generated MessageType for protobuf message prosper.v1.GetFetchStatusRequest
  */
-export const GetOpenBankingTransactionsRequest = new GetOpenBankingTransactionsRequest$Type();
+export const GetFetchStatusRequest = new GetFetchStatusRequest$Type();
 // @generated message type with reflection information, may provide speed optimized methods
-class GetOpenBankingTransactionsResponse$Type extends MessageType<GetOpenBankingTransactionsResponse> {
+class GetFetchStatusResponse$Type extends MessageType<GetFetchStatusResponse> {
     constructor() {
-        super("prosper.v1.GetOpenBankingTransactionsResponse", [
-            { no: 1, name: "accounts", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => AccountTransactions }
+        super("prosper.v1.GetFetchStatusResponse", [
+            { no: 1, name: "statuses", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => AccountFetchStatus }
         ]);
     }
-    create(value?: PartialMessage<GetOpenBankingTransactionsResponse>): GetOpenBankingTransactionsResponse {
+    create(value?: PartialMessage<GetFetchStatusResponse>): GetFetchStatusResponse {
         const message = globalThis.Object.create((this.messagePrototype!));
-        message.accounts = [];
+        message.statuses = [];
         if (value !== undefined)
-            reflectionMergePartial<GetOpenBankingTransactionsResponse>(this, message, value);
+            reflectionMergePartial<GetFetchStatusResponse>(this, message, value);
         return message;
     }
-    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetOpenBankingTransactionsResponse): GetOpenBankingTransactionsResponse {
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: GetFetchStatusResponse): GetFetchStatusResponse {
         let message = target ?? this.create(), end = reader.pos + length;
         while (reader.pos < end) {
             let [fieldNo, wireType] = reader.tag();
             switch (fieldNo) {
-                case /* repeated prosper.v1.AccountTransactions accounts */ 1:
-                    message.accounts.push(AccountTransactions.internalBinaryRead(reader, reader.uint32(), options));
+                case /* repeated prosper.v1.AccountFetchStatus statuses */ 1:
+                    message.statuses.push(AccountFetchStatus.internalBinaryRead(reader, reader.uint32(), options));
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -615,10 +630,10 @@ class GetOpenBankingTransactionsResponse$Type extends MessageType<GetOpenBanking
         }
         return message;
     }
-    internalBinaryWrite(message: GetOpenBankingTransactionsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
-        /* repeated prosper.v1.AccountTransactions accounts = 1; */
-        for (let i = 0; i < message.accounts.length; i++)
-            AccountTransactions.internalBinaryWrite(message.accounts[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+    internalBinaryWrite(message: GetFetchStatusResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated prosper.v1.AccountFetchStatus statuses = 1; */
+        for (let i = 0; i < message.statuses.length; i++)
+            AccountFetchStatus.internalBinaryWrite(message.statuses[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -626,9 +641,63 @@ class GetOpenBankingTransactionsResponse$Type extends MessageType<GetOpenBanking
     }
 }
 /**
- * @generated MessageType for protobuf message prosper.v1.GetOpenBankingTransactionsResponse
+ * @generated MessageType for protobuf message prosper.v1.GetFetchStatusResponse
  */
-export const GetOpenBankingTransactionsResponse = new GetOpenBankingTransactionsResponse$Type();
+export const GetFetchStatusResponse = new GetFetchStatusResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class AccountFetchStatus$Type extends MessageType<AccountFetchStatus> {
+    constructor() {
+        super("prosper.v1.AccountFetchStatus", [
+            { no: 1, name: "internal_account_id", kind: "scalar", T: 5 /*ScalarType.INT32*/ },
+            { no: 2, name: "last_fetched_at", kind: "message", T: () => Timestamp }
+        ]);
+    }
+    create(value?: PartialMessage<AccountFetchStatus>): AccountFetchStatus {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.internalAccountId = 0;
+        if (value !== undefined)
+            reflectionMergePartial<AccountFetchStatus>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: AccountFetchStatus): AccountFetchStatus {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* int32 internal_account_id */ 1:
+                    message.internalAccountId = reader.int32();
+                    break;
+                case /* google.protobuf.Timestamp last_fetched_at */ 2:
+                    message.lastFetchedAt = Timestamp.internalBinaryRead(reader, reader.uint32(), options, message.lastFetchedAt);
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: AccountFetchStatus, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* int32 internal_account_id = 1; */
+        if (message.internalAccountId !== 0)
+            writer.tag(1, WireType.Varint).int32(message.internalAccountId);
+        /* google.protobuf.Timestamp last_fetched_at = 2; */
+        if (message.lastFetchedAt)
+            Timestamp.internalBinaryWrite(message.lastFetchedAt, writer.tag(2, WireType.LengthDelimited).fork(), options).join();
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.AccountFetchStatus
+ */
+export const AccountFetchStatus = new AccountFetchStatus$Type();
 // @generated message type with reflection information, may provide speed optimized methods
 class FetchNowRequest$Type extends MessageType<FetchNowRequest> {
     constructor() {
@@ -2645,7 +2714,7 @@ export const GoCardlessCountry = new GoCardlessCountry$Type();
  * @generated ServiceType for protobuf service prosper.v1.OpenBankingService
  */
 export const OpenBankingService = new ServiceType("prosper.v1.OpenBankingService", [
-    { name: "GetOpenBankingTransactions", options: {}, I: GetOpenBankingTransactionsRequest, O: GetOpenBankingTransactionsResponse },
+    { name: "GetFetchStatus", options: {}, I: GetFetchStatusRequest, O: GetFetchStatusResponse },
     { name: "FetchNow", options: {}, I: FetchNowRequest, O: FetchNowResponse },
     { name: "GetBalances", options: {}, I: GetBalancesRequest, O: GetBalancesResponse },
     { name: "GetConnectionStatus", options: {}, I: GetConnectionStatusRequest, O: GetConnectionStatusResponse },

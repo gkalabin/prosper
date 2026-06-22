@@ -3,10 +3,9 @@ import {useSharingTypeActions} from '@/components/txform/expense/useSharingTypeA
 import {Account} from '@/components/txform/shared/Account';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {Button} from '@/components/ui/button';
-import {TransactionPrototype} from '@/lib/txsuggestions/TransactionPrototype';
 import {useFormContext} from 'react-hook-form';
 
-export function AccountFrom({proto}: {proto: TransactionPrototype | null}) {
+export function AccountFrom() {
   const {formState} = useFormContext<TransactionFormSchema>();
   const {paidSelf} = useSharingType();
   const {setPaidOther} = useSharingTypeActions();
@@ -20,7 +19,7 @@ export function AccountFrom({proto}: {proto: TransactionPrototype | null}) {
         or{' '}
         <Button
           type="button"
-          onClick={() => setPaidOther(proto)}
+          onClick={setPaidOther}
           variant="link"
           size="inherit"
           disabled={formState.isSubmitting}

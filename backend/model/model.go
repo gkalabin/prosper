@@ -248,14 +248,27 @@ type TransactionLink struct {
 	UpdatedAt           time.Time           `db:"updatedAt"`
 }
 
-type TransactionPrototype struct {
-	SyntheticID           int32     `db:"syntheticId"`
-	ExternalID            string    `db:"externalId"`
-	ExternalDescription   string    `db:"externalDescription"`
-	InternalTransactionID int32     `db:"internalTransactionId"`
-	UserID                int32     `db:"userId"`
-	CreatedAt             time.Time `db:"createdAt"`
-	UpdatedAt             time.Time `db:"updatedAt"`
+// SourceOriginKind is the typed enum stored in
+// TransactionOrigin.originKind. It names the kind of external source
+// a transaction was recorded from.
+type SourceOriginKind string
+
+const (
+	OriginOpenBanking SourceOriginKind = "OPEN_BANKING"
+)
+
+// TransactionOrigin links a recorded transaction to the external
+// source event it was recorded from. OriginKind and Key together
+// identify that event; any further detail (e.g. a bank statement line)
+// is recovered from the source by them.
+type TransactionOrigin struct {
+	SyntheticID           int32            `db:"syntheticId"`
+	OriginKind            SourceOriginKind `db:"originKind"`
+	Key                   string           `db:"originKey"`
+	InternalTransactionID int32            `db:"internalTransactionId"`
+	UserID                int32            `db:"userId"`
+	CreatedAt             time.Time        `db:"createdAt"`
+	UpdatedAt             time.Time        `db:"updatedAt"`
 }
 
 type LedgerAccount struct {

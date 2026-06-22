@@ -1,14 +1,9 @@
+import {SharingType} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {findByCode} from '@/lib/model/Currency';
 import {isValid} from 'date-fns';
 import {z} from 'zod';
 
-const SharingType = z.enum([
-  'PAID_SELF_NOT_SHARED',
-  'PAID_SELF_SHARED',
-  'PAID_OTHER_OWED',
-  'PAID_OTHER_REPAID',
-]);
-export type SharingType = z.infer<typeof SharingType>;
+export {SharingType};
 
 export const repaymentTransactionValidationSchema = z
   .object({
@@ -40,7 +35,7 @@ export const expenseFormValidationSchema = z
     companion: z.string().nullable(),
     payer: z.string().nullable(),
     currency: z.string().nullable(),
-    sharingType: SharingType,
+    sharingType: z.nativeEnum(SharingType),
     repayment: repaymentTransactionValidationSchema.nullable(),
     tagNames: z.array(z.string()),
     description: z.string().nullable(),
@@ -62,8 +57,8 @@ export const expenseFormValidationSchema = z
       });
     }
     const paidSelf =
-      data.sharingType === 'PAID_SELF_NOT_SHARED' ||
-      data.sharingType === 'PAID_SELF_SHARED';
+      data.sharingType === SharingType.PAID_SELF_NOT_SHARED ||
+      data.sharingType === SharingType.PAID_SELF_SHARED;
     if (paidSelf && data.accountId === null) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -71,7 +66,10 @@ export const expenseFormValidationSchema = z
         message: 'Account is required',
       });
     }
-    if (data.sharingType === 'PAID_SELF_SHARED' && !data.companion?.trim()) {
+    if (
+      data.sharingType === SharingType.PAID_SELF_SHARED &&
+      !data.companion?.trim()
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['companion'],
@@ -79,8 +77,8 @@ export const expenseFormValidationSchema = z
       });
     }
     const paidOther =
-      data.sharingType === 'PAID_OTHER_OWED' ||
-      data.sharingType === 'PAID_OTHER_REPAID';
+      data.sharingType === SharingType.PAID_OTHER_OWED ||
+      data.sharingType === SharingType.PAID_OTHER_REPAID;
     if (paidOther && !data.payer?.trim()) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -102,7 +100,7 @@ export const expenseFormValidationSchema = z
         message: `Unsupported currency: ${data.currency}`,
       });
     }
-    if (data.sharingType === 'PAID_OTHER_REPAID' && !data.repayment) {
+    if (data.sharingType === SharingType.PAID_OTHER_REPAID && !data.repayment) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['repayment'],
