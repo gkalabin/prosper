@@ -57,9 +57,9 @@ export const useOpenBankingTransactions = () => {
     }
   );
   const transactions = data?.accounts.flatMap(acc =>
-    acc.transactions.map(t =>
-      fromOpenBankingTransaction(t, acc.internalAccountId)
-    )
+    acc.transactions
+      .filter(t => t.signedAmountNanos !== 0n)
+      .map(t => fromOpenBankingTransaction(t, acc.internalAccountId))
   );
   // Epoch millis of each account's most recent successful fetch, keyed by
   // internal account id. Accounts that have never been fetched are absent.
