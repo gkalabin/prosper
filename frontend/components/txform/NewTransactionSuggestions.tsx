@@ -368,6 +368,7 @@ function SuggestionItem({
               'text-green-900': singleOpProto.type == 'deposit',
             })}
           >
+            {singleOpProto.type == 'deposit' ? '+' : '-'}
             {formatUnit(unit, nanosToDollar(singleOpProto.absoluteAmountNanos))}
           </div>
         </div>
