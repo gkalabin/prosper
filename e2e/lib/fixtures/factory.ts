@@ -786,6 +786,29 @@ export class TestFactory {
     );
   }
 
+  // recordTransactionPrototype links an open banking transaction, identified
+  // by its external id and the description the provider reported, to the
+  // internal transaction a user created from it. This is the history the new
+  // transaction form mines to pre-fill the vendor of future suggestions that
+  // share the same external description.
+  async recordTransactionPrototype({
+    userId,
+    externalId,
+    externalDescription,
+    internalTransactionId,
+  }: {
+    userId: number;
+    externalId: string;
+    externalDescription: string;
+    internalTransactionId: number;
+  }): Promise<void> {
+    await exec(
+      `INSERT INTO TransactionPrototype (userId, externalId, externalDescription, internalTransactionId)
+       VALUES (?, ?, ?, ?)`,
+      [userId, externalId, externalDescription, internalTransactionId]
+    );
+  }
+
   // openBankingTransactions makes the given transactions appear as open
   // banking suggestions for an account. It links the bank account to an
   // external account, records a successful fetch, and stores the
