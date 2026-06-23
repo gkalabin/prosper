@@ -65,6 +65,94 @@ test.describe('Create transactions from open banking data', () => {
     });
   });
 
+  test('expense vendor renamed from a raw suggestion description', async ({
+    page,
+    seed,
+    loginAs,
+  }) => {
+    const {user, bank, account} = await seed.createUserWithTestData({
+      bank: {name: 'HSBC'},
+      account: {name: 'Current', initialBalance: 1000},
+      category: {name: 'Coffee'},
+    });
+    await seed.openBankingTransactions({
+      user,
+      bank,
+      account,
+      transactions: [
+        {externalId: 'ob-zettle-1', description: 'Zettle *Starbu', amount: -45},
+      ],
+    });
+    await loginAs(user);
+    const addTxPage = new NewTransactionPage(page);
+    await addTxPage.goto();
+    // With no prior history the suggestion shows the provider's raw description,
+    // which pre-fills the vendor and the user cleans up before recording.
+    await addTxPage.suggestions.click('Zettle *Starbu');
+    await addTxPage.form.vendorInput.fill('Starbucks');
+    await addTxPage.form.submit();
+    const listPage = new TransactionListPage(page);
+    await listPage.goto();
+    await listPage.expectExpenseTransaction('Starbucks', {
+      amount: '$45',
+      vendor: 'Starbucks',
+      account: 'HSBC: Current',
+      category: 'Coffee',
+    });
+  });
+
+  test('expense vendor pre-filled from a prior recording', async ({
+    page,
+    seed,
+    loginAs,
+  }) => {
+    const {user, bank, account, category} = await seed.createUserWithTestData({
+      bank: {name: 'HSBC'},
+      account: {name: 'Current', initialBalance: 1000},
+      category: {name: 'Coffee'},
+    });
+    // A 'Zettle *Starbu' open banking transaction was previously recorded as a Starbucks expense.
+    const prior = await seed.expense('Starbucks', 80, {
+      user,
+      account,
+      category,
+      timestamp: '2025-01-02T09:00',
+    });
+    await seed.recordTransactionPrototype({
+      userId: user.id,
+      externalId: 'ob-zettle-old',
+      externalDescription: 'Zettle *Starbu',
+      internalTransactionId: prior.id,
+    });
+    await seed.openBankingTransactions({
+      user,
+      bank,
+      account,
+      transactions: [
+        {
+          externalId: 'ob-zettle-new',
+          description: 'Zettle *Starbu',
+          amount: -45,
+        },
+      ],
+    });
+    await loginAs(user);
+    const addTxPage = new NewTransactionPage(page);
+    await addTxPage.goto();
+    // The prior recording rewrites the suggestion to the used vendor.
+    await addTxPage.suggestions.click('Starbucks');
+    await addTxPage.form.submit();
+    const listPage = new TransactionListPage(page);
+    await listPage.goto();
+    // Both Starbucks expenses share a vendor, so the new one is found by its distinct amount.
+    await listPage.expectExpenseTransaction('$45', {
+      amount: '$45',
+      vendor: 'Starbucks',
+      account: 'HSBC: Current',
+      category: 'Coffee',
+    });
+  });
+
   test('transfer from matching withdrawal and deposit suggestions', async ({
     page,
     seed,
