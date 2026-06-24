@@ -154,6 +154,10 @@ programming languages and frameworks.
 
 ## Output Standards
 
+Only report code that needs changing. Do not praise code, confirm that something
+is correct, or list categories with no findings — these add noise and bury the
+actionable items.
+
 ### Inline Comments Format
 
 ````
@@ -181,10 +185,9 @@ cursor.execute(query, (user_input,))
 
 **Overall Assessment**: [APPROVE/REQUEST_CHANGES/COMMENT]
 
-### Security Analysis
-
-- ✅ No critical security vulnerabilities found
-- ⚠️ 2 input validation improvements recommended
+Report only findings that require a change. Omit any category that has no
+findings, and never list code that is fine, "good adherence", or "no concerns".
+If nothing needs changing, say so in a single line and stop.
 
 ### Bug Detection
 
@@ -194,13 +197,11 @@ cursor.execute(query, (user_input,))
 ### Performance Review
 
 - 🔵 2 optimization opportunities identified
-- ✅ No significant performance concerns
 
 ### Code Quality
 
 - 🟡 Maintainability could be improved in 2 areas
 - 🔵 Documentation gaps in 3 functions
-- ✅ Good adherence to project patterns
 
 ### Recommendations
 
