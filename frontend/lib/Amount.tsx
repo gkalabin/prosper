@@ -1,3 +1,5 @@
+import {dollarToNanos} from '@/lib/util/util';
+
 const NANOS_PER_UNIT = 1_000_000_000n;
 
 export class Amount {
@@ -7,6 +9,12 @@ export class Amount {
 
   public constructor(init: {amountNanos: bigint}) {
     this.amountNanos = init.amountNanos;
+  }
+
+  public static fromDollar(dollar: number): Amount {
+    return new Amount({
+      amountNanos: dollarToNanos(dollar),
+    });
   }
 
   public nanos(): bigint {

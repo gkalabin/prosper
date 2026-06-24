@@ -1,3 +1,4 @@
+import {Amount} from '@/lib/Amount';
 import {Stock as PbStock} from '@/lib/grpc/gen/prosper/v1/ledger';
 
 // StockKey identifies a stock by its (exchange, ticker) natural key.
@@ -34,9 +35,12 @@ export function stockKeysEqual(a: StockKey, b: StockKey): boolean {
 
 export function formatStock(
   stock: Stock,
-  amountDollar: number,
+  amount: Amount,
   options?: Intl.NumberFormatOptions
 ) {
-  const amount = Intl.NumberFormat([], options).format(amountDollar);
-  return `${amount} ${stock.ticker}`;
+  const formatted = Intl.NumberFormat([], {
+    maximumFractionDigits: amount.isRound() ? 0 : 2,
+    ...options,
+  }).format(amount.dollar());
+  return `${formatted} ${stock.ticker}`;
 }

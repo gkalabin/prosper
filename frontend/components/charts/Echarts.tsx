@@ -7,6 +7,7 @@ import {
   TimeseriesNumbersProps,
 } from '@/components/charts/ChartsLibrary';
 import {Echart} from '@/components/charts/Echart';
+import {Amount} from '@/lib/Amount';
 import {Currency, formatCurrency} from '@/lib/model/Currency';
 import {formatInterval, sliceInterval} from '@/lib/util/time';
 import {type EChartsOption} from 'echarts';
@@ -220,7 +221,7 @@ function mustBeNumber(v: unknown): number {
 }
 
 function currencyFormatter(c: Currency) {
-  return (v: number) => formatCurrency(c, v, {maximumFractionDigits: 0});
+  return (v: number) => formatCurrency(c, Amount.fromDollar(v).round());
 }
 
 function mustFormatCurrency(c: Currency, v: unknown): string {

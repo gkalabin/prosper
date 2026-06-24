@@ -1,7 +1,5 @@
 import {Amount} from '@/lib/Amount';
-import {formatCurrency} from '@/lib/model/Currency';
-import {formatStock} from '@/lib/model/Stock';
-import {Unit, isCurrency, isStock} from '@/lib/model/Unit';
+import {Unit, formatUnit, isCurrency, isStock} from '@/lib/model/Unit';
 
 export class AmountWithUnit {
   private readonly amount: Amount;
@@ -114,17 +112,8 @@ export class AmountWithUnit {
     return this.amount.lessThan(other.amount);
   }
 
-  public format(): string {
-    const opts = {
-      maximumFractionDigits: this.isRound() ? 0 : 2,
-    };
-    if (isStock(this.unit)) {
-      return formatStock(this.unit, this.amount.dollar(), opts);
-    }
-    if (isCurrency(this.unit)) {
-      return formatCurrency(this.unit, this.amount.dollar(), opts);
-    }
-    throw new Error(`Unknown unit type of ${this.unit}`);
+  public format(options?: Intl.NumberFormatOptions): string {
+    return formatUnit(this.unit, this.amount, options);
   }
 
   public toString() {

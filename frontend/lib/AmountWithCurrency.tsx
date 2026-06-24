@@ -87,9 +87,7 @@ export class AmountWithCurrency extends Amount {
   }
 
   public format(): string {
-    return formatCurrency(this.currency, this.dollar(), {
-      maximumFractionDigits: this.isRound() ? 0 : 2,
-    });
+    return formatCurrency(this.currency, this);
   }
 
   public toString() {

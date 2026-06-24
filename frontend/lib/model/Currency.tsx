@@ -1,3 +1,5 @@
+import {Amount} from '@/lib/Amount';
+
 export const NANOS_MULTIPLIER = 1000000000;
 
 export type Currency = {
@@ -50,7 +52,7 @@ const CURRENCY_TO_LOCALE: Map<string, string> = new Map([
 
 export function formatCurrency(
   currency: Currency,
-  amountDollar: number,
+  amount: Amount,
   options?: Intl.NumberFormatOptions
 ) {
   const code = currency.code;
@@ -58,7 +60,8 @@ export function formatCurrency(
   const formatter = new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: code,
+    maximumFractionDigits: amount.isRound() ? 0 : 2,
     ...options,
   });
-  return formatter.format(amountDollar);
+  return formatter.format(amount.dollar());
 }

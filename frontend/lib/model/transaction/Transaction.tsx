@@ -1,3 +1,4 @@
+import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {
   LedgerAccount,
   Transaction as PbTransaction,
@@ -28,8 +29,8 @@ import {
 } from '@/lib/model/transaction/ThirdPartyExpense';
 import {Transfer, transferFromDB} from '@/lib/model/transaction/Transfer';
 import {Trip} from '@/lib/model/Trip';
-import {Unit, formatUnit} from '@/lib/model/Unit';
-import {nanosToDollar, notEmpty} from '@/lib/util/util';
+import {Unit} from '@/lib/model/Unit';
+import {notEmpty} from '@/lib/util/util';
 
 export type Transaction =
   | PersonalExpense
@@ -160,7 +161,7 @@ export function formatAmount(
 ): string {
   const account = transactionBankAccount(t, bankAccounts);
   const unit = accountUnit(account, stocks);
-  return formatUnit(unit, nanosToDollar(t.amountNanos));
+  return new AmountWithUnit({amountNanos: t.amountNanos, unit}).format();
 }
 
 export function otherPartyNameOrNull(t: Transaction): string | null {

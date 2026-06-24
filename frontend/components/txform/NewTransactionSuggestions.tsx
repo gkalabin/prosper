@@ -1,6 +1,6 @@
 import {FetchOpenBankingTransactions} from '@/components/txform/FetchOpenBankingTransactions';
 import {Button} from '@/components/ui/button';
-import {Amount} from '@/lib/Amount';
+import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {assertDefined} from '@/lib/assert';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
@@ -17,7 +17,6 @@ import {
   accountUnit,
   fullAccountName,
 } from '@/lib/model/BankAccount';
-import {formatUnit} from '@/lib/model/Unit';
 import {
   Transaction,
   otherPartyNameOrNull,
@@ -274,29 +273,29 @@ function draftTitle(draft: TransactionDraft): string {
   }
 }
 
-// signedAmountForAccount returns the draft's amount relative to one of
+// signedAmountForAccountNanos returns the draft's amount relative to one of
 // its accounts: positive when money enters the account, negative when it leaves.
-function signedAmountForAccount(
+function signedAmountForAccountNanos(
   draft: TransactionDraft,
   accountId: number
-): Amount {
+): bigint {
   const formType = draftFormType(draft);
   switch (formType) {
     case FormType.INCOME:
       // Income is deposited into the account.
-      return new Amount({amountNanos: winnerMoneyNanos(draft.amount, 0n)});
+      return winnerMoneyNanos(draft.amount, 0n);
     case FormType.EXPENSE:
       // An expense is paid out of the account.
-      return new Amount({amountNanos: -winnerMoneyNanos(draft.amount, 0n)});
+      return -winnerMoneyNanos(draft.amount, 0n);
     case FormType.TRANSFER: {
       // A transfer credits the receiving account the amount received and
       // debits the sending account the amount sent.
       if (winnerId(draft.accountToId) == accountId) {
         const receivedNanos = winnerMoneyNanos(draft.amountReceived);
         assertDefined(receivedNanos);
-        return new Amount({amountNanos: receivedNanos});
+        return receivedNanos;
       }
-      return new Amount({amountNanos: -winnerMoneyNanos(draft.amount, 0n)});
+      return -winnerMoneyNanos(draft.amount, 0n);
     }
     default:
       throw new Error(`Cannot compute signed amount for form type ${formType}`);
@@ -334,9 +333,10 @@ function SuggestionItem({
       ? winnerId(draft.accountFromId, null)
       : winnerId(draft.accountToId, null);
   const otherAccount = bankAccounts.find(a => a.id == otherAccountId);
-  const signedAmount = signedAmountForAccount(draft, bankAccount.id);
-  const timestampEpoch = draftTimestampEpoch(draft);
+  const amountNanos = signedAmountForAccountNanos(draft, bankAccount.id);
   const unit = accountUnit(bankAccount, stocks);
+  const signedAmount = new AmountWithUnit({amountNanos, unit});
+  const timestampEpoch = draftTimestampEpoch(draft);
   return (
     <div className={cn({'bg-gray-100': isActive})}>
       <div className="flex px-2 py-1">
@@ -367,7 +367,7 @@ function SuggestionItem({
               'text-green-900': signedAmount.isPositive(),
             })}
           >
-            {formatUnit(unit, signedAmount.dollar())}
+            {signedAmount.format({signDisplay: 'exceptZero'})}
           </div>
         </div>
       </div>
