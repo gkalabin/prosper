@@ -14,15 +14,16 @@ import (
 const transactionsURL = apiBase + "/accounts/%s/transactions/?date_from=%s"
 
 type transactionItem struct {
-	TransactionID              string   `json:"transactionId"`
-	InternalTransactionID      string   `json:"internalTransactionId"`
-	BookingDate                string   `json:"bookingDate"`
-	BookingDateTime            string   `json:"bookingDateTime"`
-	ValueDate                  string   `json:"valueDate"`
-	ValueDateTime              string   `json:"valueDateTime"`
-	CreditorName               string   `json:"creditorName"`
-	RemittanceInfoUnstructured []string `json:"remittanceInformationUnstructuredArray"`
-	Amount                     struct {
+	TransactionID                   string   `json:"transactionId"`
+	InternalTransactionID           string   `json:"internalTransactionId"`
+	BookingDate                     string   `json:"bookingDate"`
+	BookingDateTime                 string   `json:"bookingDateTime"`
+	ValueDate                       string   `json:"valueDate"`
+	ValueDateTime                   string   `json:"valueDateTime"`
+	CreditorName                    string   `json:"creditorName"`
+	RemittanceInfoUnstructured      string   `json:"remittanceInformationUnstructured"`
+	RemittanceInfoUnstructuredArray []string `json:"remittanceInformationUnstructuredArray"`
+	Amount                          struct {
 		Amount   string `json:"amount"`
 		Currency string `json:"currency"`
 	} `json:"transactionAmount"`
@@ -94,10 +95,10 @@ func description(item transactionItem) string {
 	if item.CreditorName != "" {
 		return item.CreditorName
 	}
-	if len(item.RemittanceInfoUnstructured) > 0 {
-		return item.RemittanceInfoUnstructured[0]
+	if len(item.RemittanceInfoUnstructuredArray) > 0 {
+		return item.RemittanceInfoUnstructuredArray[0]
 	}
-	return ""
+	return item.RemittanceInfoUnstructured
 }
 
 // itemTimestamp returns the most precise timestamp GoCardless
