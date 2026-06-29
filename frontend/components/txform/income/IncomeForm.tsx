@@ -9,6 +9,7 @@ import {Companion} from '@/components/txform/shared/Companion';
 import {NewBalanceNote} from '@/components/txform/shared/NewBalanceNote';
 import {Tags} from '@/components/txform/shared/Tags';
 import {Timestamp} from '@/components/txform/shared/Timestamp';
+import {UpdateCategoryOnPayerChange} from '@/components/txform/shared/UpdateCategoryOnChange';
 import {UpdateOwnShareOnAmountChange as CommonUpdateOwnShareOnAmountChange} from '@/components/txform/shared/UpdateOwnShareOnAmountChange';
 import {SubFormValues, TransactionFormSchema} from '@/components/txform/types';
 import {assertDefined} from '@/lib/assert';
@@ -18,6 +19,7 @@ import {useFormContext, useWatch} from 'react-hook-form';
 export function IncomeForm({transaction}: {transaction: Transaction | null}) {
   const {getValues} = useFormContext<TransactionFormSchema>();
   assertDefined(getValues('income'), 'income form requires income values');
+  const isCreatingNewTransaction = !transaction;
   return (
     <>
       <Timestamp fieldName="income.timestamp" />
@@ -31,6 +33,10 @@ export function IncomeForm({transaction}: {transaction: Transaction | null}) {
       <Tags fieldName="income.tagNames" />
       <Category fieldName="income.categoryId" />
       <ExtraFields />
+      {/* When editing transactions, do not update the category automatically:
+      the user might not notice the change and unintentionally recategorise the
+      transaction when they only mean to fix a typo in payer. */}
+      {isCreatingNewTransaction && <UpdateCategoryOnPayerChange />}
       <UpdateOwnShareOnAmountChange />
     </>
   );

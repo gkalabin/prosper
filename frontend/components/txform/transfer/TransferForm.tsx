@@ -4,6 +4,7 @@ import {Description} from '@/components/txform/shared/Description';
 import {NewBalanceNote} from '@/components/txform/shared/NewBalanceNote';
 import {Tags} from '@/components/txform/shared/Tags';
 import {Timestamp} from '@/components/txform/shared/Timestamp';
+import {UpdateCategoryOnDescriptionChange} from '@/components/txform/shared/UpdateCategoryOnChange';
 import {Amount} from '@/components/txform/transfer/Amount';
 import {AmountReceived} from '@/components/txform/transfer/AmountReceived';
 import {UpdateReceivedAmountOnAmountChange} from '@/components/txform/transfer/UpdateReceivedAmountOnAmountChange';
@@ -18,6 +19,7 @@ export function TransferForm({transaction}: {transaction: Transaction | null}) {
     getValues('transfer'),
     'transfer form requires transfer values'
   );
+  const isCreatingNewTransaction = !transaction;
   return (
     <>
       <Timestamp fieldName="transfer.timestamp" />
@@ -30,6 +32,10 @@ export function TransferForm({transaction}: {transaction: Transaction | null}) {
       <Tags fieldName="transfer.tagNames" />
       <Category fieldName="transfer.categoryId" />
 
+      {/* When editing transactions, do not update the category automatically:
+      the user might not notice the change and unintentionally recategorise the
+      transaction when they only mean to change the description. */}
+      {isCreatingNewTransaction && <UpdateCategoryOnDescriptionChange />}
       <UpdateReceivedAmountOnAmountChange />
     </>
   );
