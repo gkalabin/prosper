@@ -2,7 +2,7 @@
   "private": true,
   "description": "Repo-wide prettier config",
   "devDependencies": {
-    "prettier": "3.3.3",
+    "prettier": "3.9.1",
     "prettier-plugin-tailwindcss": "0.6.6"
   }
 }
