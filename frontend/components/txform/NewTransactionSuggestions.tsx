@@ -220,7 +220,7 @@ function SuggestionsList(props: {
         </Button>{' '}
         entries.
         <div
-          className="mt-2 text-xs text-gray-500"
+          className="mt-2 break-words text-xs text-gray-500"
           data-testid="open-banking-fetch-status"
         >
           <FetchOpenBankingTransactions

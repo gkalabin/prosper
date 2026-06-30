@@ -4,12 +4,20 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"prosper/openbanking/httpx"
 )
+
+// gocardlessError is the JSON body GoCardless returns for a failed request.
+type gocardlessError struct {
+	Summary string `json:"summary"`
+	Detail  string `json:"detail"`
+}
 
 // gocardlessJSON issues an HTTP request against the GoCardless API and
 // decodes the response body into dest. When body is non-nil, the body
@@ -41,9 +49,22 @@ func (n *Provider) gocardlessJSON(ctx context.Context, method, url, access strin
 		return err
 	}
 	if !httpx.IsSuccess(resp.StatusCode) {
-		return fmt.Errorf("gocardless %s %s HTTP %d: %s", method, url, resp.StatusCode, string(respBody))
+		return apiError(method, url, resp.StatusCode, respBody)
 	}
 	return json.Unmarshal(respBody, dest)
+}
+
+// apiError turns a non-2xx GoCardless response into a human-readable error.
+func apiError(method, url string, status int, body []byte) error {
+	log.Printf("gocardless: %s %s HTTP %d: %s", method, url, status, body)
+	var env gocardlessError
+	if err := json.Unmarshal(body, &env); err == nil && env.Summary != "" {
+		if env.Detail != "" && env.Detail != env.Summary {
+			return fmt.Errorf("%s: %s", env.Summary, env.Detail)
+		}
+		return errors.New(env.Summary)
+	}
+	return fmt.Errorf("request failed with HTTP %d", status)
 }
 
 // postJSON is shorthand for an unauthenticated POST with a JSON body
