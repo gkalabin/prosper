@@ -8,11 +8,12 @@ import (
 	"time"
 
 	prosperv1 "prosper/gen/prosper/v1"
+	"prosper/model"
 )
 
 // OpenBankingStore reads the user's stored open-banking transactions, grouped by mapped account.
 type OpenBankingStore interface {
-	StoredTransactions(ctx context.Context, userID int32) ([]*prosperv1.AccountTransactions, error)
+	StoredTransactions(ctx context.Context, userID int32) ([]model.AccountTransactions, error)
 }
 
 // OpenBankingSource proposes one observed draft per stored open-banking
@@ -55,22 +56,17 @@ func (s *OpenBankingSource) Propose(ctx context.Context, userID int32) ([]*prosp
 	var legs []singleLeg
 	for _, acc := range accounts {
 		for _, t := range acc.Transactions {
-			if t.Timestamp == nil {
-				log.Printf("suggest: skipping open-banking transaction %q on account %d: missing timestamp",
-					t.ExternalTransactionId, acc.InternalAccountId)
-				continue
-			}
 			if t.SignedAmountNanos == 0 {
 				log.Printf("suggest: skipping open-banking transaction %q on account %d: zero amount",
-					t.ExternalTransactionId, acc.InternalAccountId)
+					t.ExternalTransactionID, acc.InternalAccountID)
 				continue
 			}
 			legs = append(legs, singleLeg{
-				externalTransactionID: t.ExternalTransactionId,
+				externalTransactionID: t.ExternalTransactionID,
 				description:           t.Description,
-				timestamp:             t.Timestamp.AsTime(),
+				timestamp:             t.Timestamp,
 				signedAmountNanos:     t.SignedAmountNanos,
-				internalAccountID:     acc.InternalAccountId,
+				internalAccountID:     acc.InternalAccountID,
 			})
 		}
 	}

@@ -7,6 +7,7 @@ import (
 	"log"
 	"time"
 
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"prosper/auth"
@@ -99,64 +100,76 @@ func (s *Service) providerForBank(ctx context.Context, userID, bankID int32) (Pr
 	return nil, errNoProvider
 }
 
-// GetFetchStatus reports, per mapped account, when its transactions
-// were last successfully fetched. The transactions themselves reach the
-// UI as suggestion drafts, so this carries only the fetch metadata.
-func (s *Service) GetFetchStatus(ctx context.Context, _ *prosperv1.GetFetchStatusRequest) (*prosperv1.GetFetchStatusResponse, error) {
+// GetFetchMetadata reports each mapped account's open banking sync metadata.
+// Accounts that have never been fetched are omitted.
+func (s *Service) GetFetchMetadata(ctx context.Context, _ *prosperv1.GetFetchMetadataRequest) (*prosperv1.GetFetchMetadataResponse, error) {
 	userID := auth.MustUserIDFromContext(ctx)
 	mappings, err := s.loadMappingsForUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
-	fetches, err := s.lastSuccessfulFetchByAccount(ctx, userID)
+	byAccount, err := s.fetchMetadataByAccount(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
-	resp := &prosperv1.GetFetchStatusResponse{}
+	resp := &prosperv1.GetFetchMetadataResponse{}
 	for _, m := range mappings {
-		status := &prosperv1.AccountFetchStatus{InternalAccountId: m.InternalAccountID}
-		if f, ok := fetches[m.InternalAccountID]; ok {
-			status.LastFetchedAt = timestamppb.New(f.StartedAt)
+		if meta, ok := byAccount[m.InternalAccountID]; ok {
+			resp.Accounts = append(resp.Accounts, meta)
 		}
-		resp.Statuses = append(resp.Statuses, status)
 	}
 	return resp, nil
 }
 
+// fetchMetadataByAccount assembles each account's open banking sync metadata,
+// keyed by internal account id. Accounts that have never been fetched
+// are absent.
+func (s *Service) fetchMetadataByAccount(ctx context.Context, userID int32) (map[int32]*prosperv1.AccountFetchMetadata, error) {
+	summaries, err := s.fetchSummaryByAccount(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	byAccount := make(map[int32]*prosperv1.AccountFetchMetadata, len(summaries))
+	for id, sum := range summaries {
+		meta := &prosperv1.AccountFetchMetadata{InternalAccountId: id}
+		if model.FetchStatus(sum.LatestStatus) == model.FetchStatusError && sum.LatestError.Valid {
+			meta.LastSyncError = sum.LatestError.String
+		}
+		if sum.SuccessStartedAt.Valid {
+			meta.LastSyncSuccessAt = timestamppb.New(sum.SuccessStartedAt.Time)
+		}
+		if sum.SuccessBalanceNanos.Valid {
+			meta.BalanceNanos = proto.Int64(sum.SuccessBalanceNanos.Int64)
+		}
+		byAccount[id] = meta
+	}
+	return byAccount, nil
+}
+
 // StoredTransactions returns each mapped account's stored transactions
 // from the most recent successful fetch from the DB.
-func (s *Service) StoredTransactions(ctx context.Context, userID int32) ([]*prosperv1.AccountTransactions, error) {
+func (s *Service) StoredTransactions(ctx context.Context, userID int32) ([]model.AccountTransactions, error) {
 	mappings, err := s.loadMappingsForUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
-	fetches, err := s.lastSuccessfulFetchByAccount(ctx, userID)
+	summaries, err := s.fetchSummaryByAccount(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
-	var accounts []*prosperv1.AccountTransactions
-	byAccount := map[int32]*prosperv1.AccountTransactions{}
-	for _, m := range mappings {
-		acc := &prosperv1.AccountTransactions{InternalAccountId: m.InternalAccountID}
-		if f, ok := fetches[m.InternalAccountID]; ok {
-			acc.LastFetchedAt = timestamppb.New(f.StartedAt)
-		}
-		byAccount[m.InternalAccountID] = acc
-		accounts = append(accounts, acc)
-	}
 	since := time.Now().AddDate(0, -transactionsLookbackMonths, 0)
-	for internalAccountID, f := range fetches {
-		acc, ok := byAccount[internalAccountID]
-		if !ok {
+	accounts := make([]model.AccountTransactions, len(mappings))
+	for i, m := range mappings {
+		accounts[i] = model.AccountTransactions{InternalAccountID: m.InternalAccountID}
+		sum, ok := summaries[m.InternalAccountID]
+		if !ok || !sum.SuccessFetchID.Valid {
 			continue
 		}
-		rows, err := s.transactionsForFetch(ctx, userID, f.ID, since)
+		rows, err := s.transactionsForFetch(ctx, userID, sum.SuccessFetchID.Int32, since)
 		if err != nil {
 			return nil, err
 		}
-		for _, r := range rows {
-			acc.Transactions = append(acc.Transactions, protoOpenBankingTransaction(r))
-		}
+		accounts[i].Transactions = append(accounts[i].Transactions, rows...)
 	}
 	return accounts, nil
 }
@@ -179,8 +192,8 @@ func (s *Service) transactionsForFetch(ctx context.Context, userID, fetchID int3
 	return rows, err
 }
 
-// FetchNow fetches fresh transactions for the requested account immediately,
-// bypassing the scheduler's refresh interval.
+// FetchNow fetches fresh transactions and the balance for the requested
+// account immediately, bypassing the scheduler's refresh interval.
 func (s *Service) FetchNow(ctx context.Context, req *prosperv1.FetchNowRequest) (*prosperv1.FetchNowResponse, error) {
 	userID := auth.MustUserIDFromContext(ctx)
 	if req.InternalAccountId == 0 {
@@ -190,68 +203,58 @@ func (s *Service) FetchNow(ctx context.Context, req *prosperv1.FetchNowRequest) 
 	if err != nil {
 		return nil, err
 	}
-	result := &prosperv1.AccountTransactions{InternalAccountId: m.InternalAccountID}
-	resp := &prosperv1.FetchNowResponse{Result: result}
 	p, err := s.providerForBank(ctx, userID, m.BankID)
 	if err != nil {
-		result.Error = err.Error()
-		return resp, nil
-	}
-	fetched, err := s.fetchAccount(ctx, userID, p, m, model.FetchTriggerManual)
-	if err != nil {
-		result.Error = err.Error()
-		return resp, nil
-	}
-	result.LastFetchedAt = timestamppb.New(time.Now().UTC())
-	for _, ft := range fetched {
-		result.Transactions = append(result.Transactions, protoOpenBankingTransaction(ft))
-	}
-	return resp, nil
-}
-
-func (s *Service) lastSuccessfulFetchByAccount(ctx context.Context, userID int32) (map[int32]model.OpenBankingFetch, error) {
-	var rows []model.OpenBankingFetch
-	if err := s.db.SelectForUser(ctx, &rows, userID,
-		`SELECT f.* FROM OpenBankingFetch f
-		JOIN (
-			SELECT MAX(id) AS maxId
-			FROM OpenBankingFetch
-			WHERE userId = :userId AND status = 'SUCCESS'
-			GROUP BY internalAccountId
-		) latest ON f.id = latest.maxId`); err != nil {
 		return nil, err
 	}
-	byAccount := make(map[int32]model.OpenBankingFetch)
+	if err := s.fetchAccount(ctx, userID, p, m, model.FetchTriggerManual); err != nil {
+		log.Printf("openbanking: manual fetch account=%d: %v", m.InternalAccountID, err)
+	}
+	return &prosperv1.FetchNowResponse{}, nil
+}
+
+// accountFetchSummary is one account's latest fetch state: the most recent
+// attempt of any status, plus the most recent successful fetch. The success
+// columns are absent until the account's first successful fetch.
+type accountFetchSummary struct {
+	InternalAccountID   int32          `db:"internalAccountId"`
+	LatestStatus        string         `db:"latestStatus"`
+	LatestError         sql.NullString `db:"latestError"`
+	SuccessFetchID      sql.NullInt32  `db:"successFetchId"`
+	SuccessStartedAt    sql.NullTime   `db:"successStartedAt"`
+	SuccessBalanceNanos sql.NullInt64  `db:"successBalanceNanos"`
+}
+
+// fetchSummaryByAccount returns each account's latest fetch summary, keyed by
+// internal account id. Accounts that have never been fetched are absent.
+func (s *Service) fetchSummaryByAccount(ctx context.Context, userID int32) (map[int32]accountFetchSummary, error) {
+	var rows []accountFetchSummary
+	if err := s.db.SelectForUser(ctx, &rows, userID,
+		`SELECT
+			agg.internalAccountId AS internalAccountId,
+			latest.status         AS latestStatus,
+			latest.error          AS latestError,
+			success.id            AS successFetchId,
+			success.startedAt     AS successStartedAt,
+			success.balanceNanos  AS successBalanceNanos
+		FROM (
+			SELECT
+				internalAccountId,
+				MAX(id)                                       AS maxId,
+				MAX(CASE WHEN status = 'SUCCESS' THEN id END) AS maxSuccessId
+			FROM OpenBankingFetch
+			WHERE userId = :userId
+			GROUP BY internalAccountId
+		) agg
+		JOIN      OpenBankingFetch latest  ON latest.id  = agg.maxId
+		LEFT JOIN OpenBankingFetch success ON success.id = agg.maxSuccessId`); err != nil {
+		return nil, err
+	}
+	byAccount := make(map[int32]accountFetchSummary, len(rows))
 	for _, r := range rows {
 		byAccount[r.InternalAccountID] = r
 	}
 	return byAccount, nil
-}
-
-func (s *Service) GetBalances(ctx context.Context, _ *prosperv1.GetBalancesRequest) (*prosperv1.GetBalancesResponse, error) {
-	userID := auth.MustUserIDFromContext(ctx)
-	resp := &prosperv1.GetBalancesResponse{}
-	rows, err := s.loadMappingsForUser(ctx, userID)
-	if err != nil {
-		return resp, err
-	}
-	for _, r := range rows {
-		p, err := s.providerForBank(ctx, userID, r.BankID)
-		if err != nil {
-			log.Printf("openbanking: failed to find provider for bank %d: %v", r.BankID, err)
-			continue
-		}
-		b, err := p.FetchBalance(ctx, userID, r.BankID, r.ExternalAccountID)
-		if err != nil {
-			log.Printf("openbanking: failed to fetch balance for bank %d: %v", r.BankID, err)
-			continue
-		}
-		resp.Accounts = append(resp.Accounts, &prosperv1.AccountBalanceResult{
-			InternalAccountId: r.InternalAccountID,
-			BalanceNanos:      b,
-		})
-	}
-	return resp, nil
 }
 
 func (s *Service) GetConnectionStatus(ctx context.Context, _ *prosperv1.GetConnectionStatusRequest) (*prosperv1.GetConnectionStatusResponse, error) {

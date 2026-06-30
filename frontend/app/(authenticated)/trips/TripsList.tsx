@@ -1,4 +1,5 @@
 'use client';
+import {AppDataContextProviders} from '@/lib/context/AppDataContextProviders';
 import {
   isFullyConfigured,
   NotConfiguredYet,
@@ -6,19 +7,10 @@ import {
 import {Button} from '@/components/ui/button';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {StockAndCurrencyExchange} from '@/lib/ClientSideModel';
-import {
-  CoreDataContextProvider,
-  useCoreDataContext,
-} from '@/lib/context/CoreDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
-import {
-  MarketDataContextProvider,
-  useMarketDataContext,
-} from '@/lib/context/MarketDataContext';
-import {
-  TransactionDataContextProvider,
-  useTransactionDataContext,
-} from '@/lib/context/TransactionDataContext';
+import {useMarketDataContext} from '@/lib/context/MarketDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {AppData} from '@/lib/model/AppDataModel';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Currency} from '@/lib/model/Currency';
@@ -174,12 +166,8 @@ export function TripsList({dbData}: {dbData: AppData}) {
     return <NotConfiguredYet />;
   }
   return (
-    <CoreDataContextProvider dbData={dbData}>
-      <TransactionDataContextProvider dbData={dbData}>
-        <MarketDataContextProvider dbData={dbData}>
-          <NonEmptyTripsList />
-        </MarketDataContextProvider>
-      </TransactionDataContextProvider>
-    </CoreDataContextProvider>
+    <AppDataContextProviders dbData={dbData}>
+      <NonEmptyTripsList />
+    </AppDataContextProviders>
   );
 }

@@ -1,4 +1,5 @@
 'use client';
+import {AppDataContextProviders} from '@/lib/context/AppDataContextProviders';
 import {CurrencyExchangeFailed} from '@/app/(authenticated)/stats/CurrencyExchangeFailed';
 import {useExchangedTransactions} from '@/app/(authenticated)/stats/modelHelpers';
 import {
@@ -13,12 +14,7 @@ import {
 import {Button} from '@/components/ui/button';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
-import {CoreDataContextProvider} from '@/lib/context/CoreDataContext';
-import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
-import {
-  TransactionDataContextProvider,
-  useTransactionDataContext,
-} from '@/lib/context/TransactionDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {AppData} from '@/lib/model/AppDataModel';
 import {Trip, tripModelFromDB} from '@/lib/model/Trip';
 import {hasTrip} from '@/lib/model/transaction/Transaction';
@@ -91,12 +87,8 @@ export function TripDetails({
   }
   const trip = tripModelFromDB(dbTrip);
   return (
-    <CoreDataContextProvider dbData={dbData}>
-      <TransactionDataContextProvider dbData={dbData}>
-        <MarketDataContextProvider dbData={dbData}>
-          <NonEmptyTripDetails trip={trip} />
-        </MarketDataContextProvider>
-      </TransactionDataContextProvider>
-    </CoreDataContextProvider>
+    <AppDataContextProviders dbData={dbData}>
+      <NonEmptyTripDetails trip={trip} />
+    </AppDataContextProviders>
   );
 }

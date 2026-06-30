@@ -12,32 +12,38 @@ import (
 	"prosper/userdb"
 )
 
-// fetchAccount fetches transactions for one mapped account, stores them,
-// and records a OpenBankingFetch row. The metadata row and the transactions
-// are written together in one database transaction. An error from the
-// provider is recorded as a failed fetch and returned to the caller.
-func (s *Service) fetchAccount(ctx context.Context, userID int32, p Provider, m model.OpenBankingMapping, trigger model.FetchTrigger) ([]model.OpenBankingTransaction, error) {
+// fetchAccount fetches transactions and the balance for one mapped account,
+// stores them, and records a OpenBankingFetch row. The metadata row and the
+// transactions are written together in one database transaction. An error from
+// the provider's transaction feed is recorded as a failed fetch and returned to
+// the caller; a balance the same fetch cannot read is logged and left absent.
+func (s *Service) fetchAccount(ctx context.Context, userID int32, p Provider, m model.OpenBankingMapping, trigger model.FetchTrigger) error {
 	started := time.Now().UTC()
 	since := started.AddDate(0, -transactionsLookbackMonths, 0)
 	fetched, fetchErr := p.FetchTransactions(ctx, userID, m.BankID, m.ExternalAccountID, since)
 	status, errMsg := model.FetchStatusSuccess, ""
+	var balance sql.NullInt64
 	if fetchErr != nil {
 		status, errMsg = model.FetchStatusError, fetchErr.Error()
 		log.Printf("openbanking: fetch bank=%d account=%d: %v", m.BankID, m.InternalAccountID, fetchErr)
+	} else if b, balErr := p.FetchBalance(ctx, userID, m.BankID, m.ExternalAccountID); balErr != nil {
+		log.Printf("openbanking: fetch balance bank=%d account=%d: %v", m.BankID, m.InternalAccountID, balErr)
+	} else {
+		balance = sql.NullInt64{Int64: b, Valid: true}
 	}
-	if err := s.recordFetch(ctx, userID, m.InternalAccountID, p.Kind().String(), trigger, status, errMsg, started, fetched); err != nil {
-		return nil, err
+	if err := s.recordFetch(ctx, userID, m.InternalAccountID, p.Kind().String(), trigger, status, errMsg, balance, started, fetched); err != nil {
+		return err
 	}
 	if status == model.FetchStatusError {
-		return nil, fetchErr
+		return fetchErr
 	}
 	log.Printf("openbanking: fetch succeeded bank=%d account=%d trigger=%s txCount=%d", m.BankID, m.InternalAccountID, trigger, len(fetched))
-	return fetched, nil
+	return nil
 }
 
 // recordFetch writes the OpenBankingFetch row, the fetched transactions,
 // and the links between them in one db transaction.
-func (s *Service) recordFetch(ctx context.Context, userID, internalAccountID int32, provider string, trigger model.FetchTrigger, status model.FetchStatus, errMsg string, started time.Time, fetched []model.OpenBankingTransaction) error {
+func (s *Service) recordFetch(ctx context.Context, userID, internalAccountID int32, provider string, trigger model.FetchTrigger, status model.FetchStatus, errMsg string, balance sql.NullInt64, started time.Time, fetched []model.OpenBankingTransaction) error {
 	tx, err := s.db.BeginTx(ctx)
 	if err != nil {
 		return err
@@ -49,6 +55,7 @@ func (s *Service) recordFetch(ctx context.Context, userID, internalAccountID int
 		Trigger:           string(trigger),
 		Status:            string(status),
 		TxCount:           int32(len(fetched)),
+		BalanceNanos:      balance,
 		StartedAt:         started,
 		FinishedAt:        time.Now().UTC(),
 	}
@@ -56,8 +63,8 @@ func (s *Service) recordFetch(ctx context.Context, userID, internalAccountID int
 		fetch.Error = sql.NullString{String: errMsg, Valid: true}
 	}
 	res, err := tx.NamedExecForUser(ctx, userID, `INSERT INTO OpenBankingFetch
-        ( userId,  internalAccountId,  provider,  `+"`trigger`"+`,  status,  error,  txCount,  startedAt,  finishedAt)
- VALUES (:userId, :internalAccountId, :provider,     :trigger,     :status, :error, :txCount, :startedAt, :finishedAt)`, fetch)
+        ( userId,  internalAccountId,  provider,  `+"`trigger`"+`,  status,  error,  txCount,  balanceNanos,  startedAt,  finishedAt)
+ VALUES (:userId, :internalAccountId, :provider,     :trigger,     :status, :error, :txCount, :balanceNanos, :startedAt, :finishedAt)`, fetch)
 	if err != nil {
 		return err
 	}

@@ -1,74 +1,72 @@
+'use client';
 import {
-  GetBalancesResponse,
+  AccountFetchMetadata,
+  ConnectionExpiration,
   GetConnectionStatusResponse,
-  GetFetchStatusResponse,
+  GetFetchMetadataResponse,
 } from '@/lib/grpc/gen/prosper/v1/openbanking';
-import {timestampToEpoch} from '@/lib/grpc/timestamp';
-import useSWR from 'swr';
+import {createContext, useContext} from 'react';
 
-export const useOpenBankingExpirations = () => {
-  const fetcher = (url: string) =>
-    fetch(url)
-      .then(r => r.json())
-      .then(json => GetConnectionStatusResponse.fromJson(json));
-  const {data, error, isLoading} = useSWR<GetConnectionStatusResponse>(
-    '/api/open-banking/connection-status',
-    fetcher
-  );
-  return {
-    expirations: data?.expirations,
-    isLoading,
-    isError: !!error,
-  };
-};
+// Open banking fetch metadata keyed by internal account id.
+// Accounts that have never been fetched are absent.
+type MetadataByAccount = Record<number, AccountFetchMetadata>;
 
-export const useOpenBankingBalances = () => {
-  const fetcher = (url: string) =>
-    fetch(url)
-      .then(r => r.json())
-      .then(json => GetBalancesResponse.fromJson(json));
-  const {data, error, isLoading} = useSWR<GetBalancesResponse>(
-    '/api/open-banking/balances',
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-    }
-  );
-  return {
-    balances: data?.accounts,
-    isLoading,
-    isError: !!error,
-  };
-};
+const OpenBankingFetchMetadataContext = createContext<MetadataByAccount>(
+  null as unknown as MetadataByAccount
+);
 
-export const useOpenBankingLastFetched = () => {
-  const fetcher = (url: string) =>
-    fetch(url)
-      .then(r => r.json())
-      .then(json => GetFetchStatusResponse.fromJson(json));
-  const {data, error, isLoading} = useSWR<GetFetchStatusResponse>(
-    '/api/open-banking/fetch-status',
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-    }
-  );
-  // Epoch millis of each account's most recent successful fetch, keyed by
-  // internal account id. Accounts that have never been fetched are absent.
-  const lastFetchedAt: Record<number, number> = {};
-  for (const status of data?.statuses ?? []) {
-    if (!status.lastFetchedAt) {
-      continue;
-    }
-    lastFetchedAt[status.internalAccountId] = timestampToEpoch(
-      status.lastFetchedAt
-    );
+function metadataByAccount(
+  dbData: GetFetchMetadataResponse
+): MetadataByAccount {
+  const byAccount: MetadataByAccount = {};
+  for (const account of dbData.accounts) {
+    byAccount[account.internalAccountId] = account;
   }
-  return {
-    lastFetchedAt,
-    isLoading,
-    isError: !!error,
-  };
-};
+  return byAccount;
+}
+
+export function OpenBankingFetchMetadataProvider(props: {
+  dbData: GetFetchMetadataResponse;
+  children: JSX.Element | JSX.Element[];
+}) {
+  return (
+    <OpenBankingFetchMetadataContext.Provider
+      value={metadataByAccount(props.dbData)}
+    >
+      {props.children}
+    </OpenBankingFetchMetadataContext.Provider>
+  );
+}
+
+export function useOpenBankingFetchMetadata() {
+  const ctx = useContext(OpenBankingFetchMetadataContext);
+  if (!ctx) {
+    throw new Error('OpenBankingFetchMetadataContext is not configured');
+  }
+  return {metadataByAccount: ctx};
+}
+
+const OpenBankingConnectionStatusContext = createContext<
+  ConnectionExpiration[]
+>(null as unknown as ConnectionExpiration[]);
+
+export function OpenBankingConnectionStatusContextProvider(props: {
+  dbData: GetConnectionStatusResponse;
+  children: JSX.Element | JSX.Element[];
+}) {
+  return (
+    <OpenBankingConnectionStatusContext.Provider
+      value={props.dbData.expirations}
+    >
+      {props.children}
+    </OpenBankingConnectionStatusContext.Provider>
+  );
+}
+
+export function useOpenBankingExpirations() {
+  const ctx = useContext(OpenBankingConnectionStatusContext);
+  if (!ctx) {
+    throw new Error('OpenBankingConnectionStatusContext is not configured');
+  }
+  return {expirations: ctx};
+}

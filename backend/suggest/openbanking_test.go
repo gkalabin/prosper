@@ -5,30 +5,29 @@ import (
 	"testing"
 	"time"
 
-	"google.golang.org/protobuf/types/known/timestamppb"
-
 	prosperv1 "prosper/gen/prosper/v1"
+	"prosper/model"
 )
 
 // fakeBank serves a fixed StoredTransactions response.
 type fakeBank struct {
-	accounts []*prosperv1.AccountTransactions
+	accounts []model.AccountTransactions
 }
 
-func (f *fakeBank) StoredTransactions(_ context.Context, _ int32) ([]*prosperv1.AccountTransactions, error) {
+func (f *fakeBank) StoredTransactions(_ context.Context, _ int32) ([]model.AccountTransactions, error) {
 	return f.accounts, nil
 }
 
-func bankTx(externalID string, ts time.Time, description string, signedAmountNanos int64) *prosperv1.OpenBankingTransaction {
-	return &prosperv1.OpenBankingTransaction{
-		ExternalTransactionId: externalID,
-		Timestamp:             timestamppb.New(ts),
+func bankTx(externalID string, ts time.Time, description string, signedAmountNanos int64) model.OpenBankingTransaction {
+	return model.OpenBankingTransaction{
+		ExternalTransactionID: externalID,
+		Timestamp:             ts,
 		Description:           description,
 		SignedAmountNanos:     signedAmountNanos,
 	}
 }
 
-func draftsFor(t *testing.T, accounts ...*prosperv1.AccountTransactions) []*prosperv1.TransactionDraft {
+func draftsFor(t *testing.T, accounts ...model.AccountTransactions) []*prosperv1.TransactionDraft {
 	t.Helper()
 	src := NewOpenBankingSource(&fakeBank{accounts: accounts})
 	drafts, err := src.Propose(context.Background(), 1)
@@ -40,9 +39,9 @@ func draftsFor(t *testing.T, accounts ...*prosperv1.AccountTransactions) []*pros
 
 func TestOpenBankingWithdrawalDraft(t *testing.T) {
 	ts := day(0)
-	drafts := draftsFor(t, &prosperv1.AccountTransactions{
-		InternalAccountId: bankAccountChecking,
-		Transactions:      []*prosperv1.OpenBankingTransaction{bankTx("w1", ts, "ZETTLE *STARBU", -4_500_000_000)},
+	drafts := draftsFor(t, model.AccountTransactions{
+		InternalAccountID: bankAccountChecking,
+		Transactions:      []model.OpenBankingTransaction{bankTx("w1", ts, "ZETTLE *STARBU", -4_500_000_000)},
 	})
 	if len(drafts) != 1 {
 		t.Fatalf("got %d drafts, want 1", len(drafts))
@@ -72,9 +71,9 @@ func TestOpenBankingWithdrawalDraft(t *testing.T) {
 }
 
 func TestOpenBankingDepositDraft(t *testing.T) {
-	drafts := draftsFor(t, &prosperv1.AccountTransactions{
-		InternalAccountId: bankAccountChecking,
-		Transactions:      []*prosperv1.OpenBankingTransaction{bankTx("d1", day(0), "ACME PAYROLL", 7_000_000_000)},
+	drafts := draftsFor(t, model.AccountTransactions{
+		InternalAccountID: bankAccountChecking,
+		Transactions:      []model.OpenBankingTransaction{bankTx("d1", day(0), "ACME PAYROLL", 7_000_000_000)},
 	})
 	d := drafts[0]
 	if ft, _ := top(d.FormType); ft.GetValue() != prosperv1.FormType_FORM_TYPE_INCOME {
@@ -95,11 +94,10 @@ func TestOpenBankingDepositDraft(t *testing.T) {
 }
 
 func TestOpenBankingSkipsMalformedTransactions(t *testing.T) {
-	drafts := draftsFor(t, &prosperv1.AccountTransactions{
-		InternalAccountId: bankAccountChecking,
-		Transactions: []*prosperv1.OpenBankingTransaction{
+	drafts := draftsFor(t, model.AccountTransactions{
+		InternalAccountID: bankAccountChecking,
+		Transactions: []model.OpenBankingTransaction{
 			bankTx("zero", day(0), "zero amount", 0),
-			{ExternalTransactionId: "no-ts", Description: "no timestamp", SignedAmountNanos: 100},
 			bankTx("ok", day(0), "fine", -100),
 		},
 	})
@@ -111,13 +109,13 @@ func TestOpenBankingSkipsMalformedTransactions(t *testing.T) {
 func TestOpenBankingPairsTransfer(t *testing.T) {
 	withdrawalTime := day(0)
 	drafts := draftsFor(t,
-		&prosperv1.AccountTransactions{
-			InternalAccountId: bankAccountChecking,
-			Transactions:      []*prosperv1.OpenBankingTransaction{bankTx("w1", withdrawalTime, "To savings", -100_000_000_000)},
+		model.AccountTransactions{
+			InternalAccountID: bankAccountChecking,
+			Transactions:      []model.OpenBankingTransaction{bankTx("w1", withdrawalTime, "To savings", -100_000_000_000)},
 		},
-		&prosperv1.AccountTransactions{
-			InternalAccountId: bankAccountSavings,
-			Transactions:      []*prosperv1.OpenBankingTransaction{bankTx("d1", withdrawalTime.Add(30*time.Minute), "From checking", 100_000_000_000)},
+		model.AccountTransactions{
+			InternalAccountID: bankAccountSavings,
+			Transactions:      []model.OpenBankingTransaction{bankTx("d1", withdrawalTime.Add(30*time.Minute), "From checking", 100_000_000_000)},
 		},
 	)
 	if len(drafts) != 1 {

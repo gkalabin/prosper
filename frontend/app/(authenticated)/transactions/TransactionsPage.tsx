@@ -1,4 +1,5 @@
 'use client';
+import {AppDataContextProviders} from '@/lib/context/AppDataContextProviders';
 import {
   NotConfiguredYet,
   isFullyConfigured,
@@ -16,12 +17,7 @@ import {TransactionsList} from '@/components/transactions/TransactionsList';
 import {TransactionStats} from '@/components/transactions/TransactionStats';
 import {Button} from '@/components/ui/button';
 import {Form} from '@/components/ui/form';
-import {CoreDataContextProvider} from '@/lib/context/CoreDataContext';
-import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
-import {
-  TransactionDataContextProvider,
-  useTransactionDataContext,
-} from '@/lib/context/TransactionDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {AppData} from '@/lib/model/AppDataModel';
 import {useTransactionSearch} from '@/lib/search/useTransactionSearch';
 import {ChartPieIcon, FunnelIcon} from '@heroicons/react/24/outline';
@@ -98,14 +94,10 @@ export function TransactionsPage({dbData}: {dbData: AppData}) {
   }
   return (
     <Form {...form}>
-      <CoreDataContextProvider dbData={dbData}>
-        <TransactionDataContextProvider dbData={dbData}>
-          <MarketDataContextProvider dbData={dbData}>
-            <UpdateQueryOnFormChange />
-            <NonEmptyPageContent />
-          </MarketDataContextProvider>
-        </TransactionDataContextProvider>
-      </CoreDataContextProvider>
+      <AppDataContextProviders dbData={dbData}>
+        <UpdateQueryOnFormChange />
+        <NonEmptyPageContent />
+      </AppDataContextProviders>
     </Form>
   );
 }

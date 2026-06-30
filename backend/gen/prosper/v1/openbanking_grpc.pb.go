@@ -19,9 +19,8 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	OpenBankingService_GetFetchStatus_FullMethodName               = "/prosper.v1.OpenBankingService/GetFetchStatus"
+	OpenBankingService_GetFetchMetadata_FullMethodName             = "/prosper.v1.OpenBankingService/GetFetchMetadata"
 	OpenBankingService_FetchNow_FullMethodName                     = "/prosper.v1.OpenBankingService/FetchNow"
-	OpenBankingService_GetBalances_FullMethodName                  = "/prosper.v1.OpenBankingService/GetBalances"
 	OpenBankingService_GetConnectionStatus_FullMethodName          = "/prosper.v1.OpenBankingService/GetConnectionStatus"
 	OpenBankingService_StartTrueLayerConnection_FullMethodName     = "/prosper.v1.OpenBankingService/StartTrueLayerConnection"
 	OpenBankingService_CompleteTrueLayerConnection_FullMethodName  = "/prosper.v1.OpenBankingService/CompleteTrueLayerConnection"
@@ -46,14 +45,13 @@ const (
 // lifecycle for each provider, and the mapping between internal bank
 // accounts and external provider accounts.
 type OpenBankingServiceClient interface {
-	// GetFetchStatus returns, per mapped account, when its transactions
-	// were last successfully fetched. The fetched transactions themselves
-	// reach the UI as suggestion drafts via LedgerService.Suggest.
-	GetFetchStatus(ctx context.Context, in *GetFetchStatusRequest, opts ...grpc.CallOption) (*GetFetchStatusResponse, error)
-	// FetchNow fetches fresh transactions for a single account right away,
-	// bypassing the scheduler's refresh interval.
+	// GetFetchMetadata returns, per mapped account, metadata about its open
+	// banking sync. The fetched transactions themselves reach the UI as
+	// suggestion drafts via LedgerService.Suggest.
+	GetFetchMetadata(ctx context.Context, in *GetFetchMetadataRequest, opts ...grpc.CallOption) (*GetFetchMetadataResponse, error)
+	// FetchNow fetches fresh transactions and the balance for a single
+	// account right away, bypassing the scheduler's refresh interval.
 	FetchNow(ctx context.Context, in *FetchNowRequest, opts ...grpc.CallOption) (*FetchNowResponse, error)
-	GetBalances(ctx context.Context, in *GetBalancesRequest, opts ...grpc.CallOption) (*GetBalancesResponse, error)
 	GetConnectionStatus(ctx context.Context, in *GetConnectionStatusRequest, opts ...grpc.CallOption) (*GetConnectionStatusResponse, error)
 	// StartTrueLayerConnection returns the TrueLayer authorization URL
 	// the browser should redirect to.
@@ -101,10 +99,10 @@ func NewOpenBankingServiceClient(cc grpc.ClientConnInterface) OpenBankingService
 	return &openBankingServiceClient{cc}
 }
 
-func (c *openBankingServiceClient) GetFetchStatus(ctx context.Context, in *GetFetchStatusRequest, opts ...grpc.CallOption) (*GetFetchStatusResponse, error) {
+func (c *openBankingServiceClient) GetFetchMetadata(ctx context.Context, in *GetFetchMetadataRequest, opts ...grpc.CallOption) (*GetFetchMetadataResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetFetchStatusResponse)
-	err := c.cc.Invoke(ctx, OpenBankingService_GetFetchStatus_FullMethodName, in, out, cOpts...)
+	out := new(GetFetchMetadataResponse)
+	err := c.cc.Invoke(ctx, OpenBankingService_GetFetchMetadata_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -115,16 +113,6 @@ func (c *openBankingServiceClient) FetchNow(ctx context.Context, in *FetchNowReq
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(FetchNowResponse)
 	err := c.cc.Invoke(ctx, OpenBankingService_FetchNow_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *openBankingServiceClient) GetBalances(ctx context.Context, in *GetBalancesRequest, opts ...grpc.CallOption) (*GetBalancesResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetBalancesResponse)
-	err := c.cc.Invoke(ctx, OpenBankingService_GetBalances_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -270,14 +258,13 @@ func (c *openBankingServiceClient) ListGoCardlessCountries(ctx context.Context, 
 // lifecycle for each provider, and the mapping between internal bank
 // accounts and external provider accounts.
 type OpenBankingServiceServer interface {
-	// GetFetchStatus returns, per mapped account, when its transactions
-	// were last successfully fetched. The fetched transactions themselves
-	// reach the UI as suggestion drafts via LedgerService.Suggest.
-	GetFetchStatus(context.Context, *GetFetchStatusRequest) (*GetFetchStatusResponse, error)
-	// FetchNow fetches fresh transactions for a single account right away,
-	// bypassing the scheduler's refresh interval.
+	// GetFetchMetadata returns, per mapped account, metadata about its open
+	// banking sync. The fetched transactions themselves reach the UI as
+	// suggestion drafts via LedgerService.Suggest.
+	GetFetchMetadata(context.Context, *GetFetchMetadataRequest) (*GetFetchMetadataResponse, error)
+	// FetchNow fetches fresh transactions and the balance for a single
+	// account right away, bypassing the scheduler's refresh interval.
 	FetchNow(context.Context, *FetchNowRequest) (*FetchNowResponse, error)
-	GetBalances(context.Context, *GetBalancesRequest) (*GetBalancesResponse, error)
 	GetConnectionStatus(context.Context, *GetConnectionStatusRequest) (*GetConnectionStatusResponse, error)
 	// StartTrueLayerConnection returns the TrueLayer authorization URL
 	// the browser should redirect to.
@@ -325,14 +312,11 @@ type OpenBankingServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedOpenBankingServiceServer struct{}
 
-func (UnimplementedOpenBankingServiceServer) GetFetchStatus(context.Context, *GetFetchStatusRequest) (*GetFetchStatusResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetFetchStatus not implemented")
+func (UnimplementedOpenBankingServiceServer) GetFetchMetadata(context.Context, *GetFetchMetadataRequest) (*GetFetchMetadataResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetFetchMetadata not implemented")
 }
 func (UnimplementedOpenBankingServiceServer) FetchNow(context.Context, *FetchNowRequest) (*FetchNowResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method FetchNow not implemented")
-}
-func (UnimplementedOpenBankingServiceServer) GetBalances(context.Context, *GetBalancesRequest) (*GetBalancesResponse, error) {
-	return nil, status.Error(codes.Unimplemented, "method GetBalances not implemented")
 }
 func (UnimplementedOpenBankingServiceServer) GetConnectionStatus(context.Context, *GetConnectionStatusRequest) (*GetConnectionStatusResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetConnectionStatus not implemented")
@@ -394,20 +378,20 @@ func RegisterOpenBankingServiceServer(s grpc.ServiceRegistrar, srv OpenBankingSe
 	s.RegisterService(&OpenBankingService_ServiceDesc, srv)
 }
 
-func _OpenBankingService_GetFetchStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetFetchStatusRequest)
+func _OpenBankingService_GetFetchMetadata_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFetchMetadataRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(OpenBankingServiceServer).GetFetchStatus(ctx, in)
+		return srv.(OpenBankingServiceServer).GetFetchMetadata(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: OpenBankingService_GetFetchStatus_FullMethodName,
+		FullMethod: OpenBankingService_GetFetchMetadata_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenBankingServiceServer).GetFetchStatus(ctx, req.(*GetFetchStatusRequest))
+		return srv.(OpenBankingServiceServer).GetFetchMetadata(ctx, req.(*GetFetchMetadataRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -426,24 +410,6 @@ func _OpenBankingService_FetchNow_Handler(srv interface{}, ctx context.Context, 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OpenBankingServiceServer).FetchNow(ctx, req.(*FetchNowRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _OpenBankingService_GetBalances_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetBalancesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(OpenBankingServiceServer).GetBalances(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: OpenBankingService_GetBalances_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(OpenBankingServiceServer).GetBalances(ctx, req.(*GetBalancesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -690,16 +656,12 @@ var OpenBankingService_ServiceDesc = grpc.ServiceDesc{
 	HandlerType: (*OpenBankingServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetFetchStatus",
-			Handler:    _OpenBankingService_GetFetchStatus_Handler,
+			MethodName: "GetFetchMetadata",
+			Handler:    _OpenBankingService_GetFetchMetadata_Handler,
 		},
 		{
 			MethodName: "FetchNow",
 			Handler:    _OpenBankingService_FetchNow_Handler,
-		},
-		{
-			MethodName: "GetBalances",
-			Handler:    _OpenBankingService_GetBalances_Handler,
 		},
 		{
 			MethodName: "GetConnectionStatus",

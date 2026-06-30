@@ -8,7 +8,7 @@ import {
   isTransfer,
   Transaction,
 } from '@/lib/model/transaction/Transaction';
-import {useOpenBankingBalances} from '@/lib/openbanking/context';
+import {useOpenBankingFetchMetadata} from '@/lib/openbanking/context';
 import {dollarToNanos} from '@/lib/util/util';
 import {cn} from '@/lib/utils';
 import {
@@ -56,7 +56,7 @@ export function NewBalanceNote({
 }) {
   const {stocks, bankAccounts} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
-  const {balances} = useOpenBankingBalances();
+  const {metadataByAccount} = useOpenBankingFetchMetadata();
   const {
     formState: {isSubmitting},
   } = useFormContext();
@@ -67,14 +67,15 @@ export function NewBalanceNote({
   if (!account) {
     return null;
   }
-  const obBalance = balances?.find(b => b.internalAccountId === accountId);
+  const remoteBalanceNanos = metadataByAccount[accountId]?.balanceNanos;
   const localBalance = accountBalance(account, transactions, stocks);
-  const remoteBalance = obBalance
-    ? new AmountWithUnit({
-        amountNanos: obBalance.balanceNanos,
-        unit: localBalance.getUnit(),
-      })
-    : null;
+  const remoteBalance =
+    remoteBalanceNanos != null
+      ? new AmountWithUnit({
+          amountNanos: remoteBalanceNanos,
+          unit: localBalance.getUnit(),
+        })
+      : null;
   const newAmountNanos = dollarToNanos(amount);
   const existingNanos = existingAmountNanos({accountId, transaction});
   const newLocalBalance = new AmountWithUnit({

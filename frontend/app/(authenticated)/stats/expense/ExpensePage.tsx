@@ -1,4 +1,5 @@
 'use client';
+import {AppDataContextProviders} from '@/lib/context/AppDataContextProviders';
 import {CurrencyExchangeFailed} from '@/app/(authenticated)/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from '@/app/(authenticated)/stats/ExcludedCategoriesSelector';
 import {FanoutByRootCategory} from '@/app/(authenticated)/stats/expense/FanoutByRootCategory';
@@ -13,10 +14,7 @@ import {MonthlyExpenseAverage} from '@/components/charts/timeseries/MonthlyExpen
 import {MonthlyExpenseByCategory} from '@/components/charts/timeseries/MonthlyExpenseByCategory';
 import {MonthlyExpenseByTopCategory} from '@/components/charts/timeseries/MonthlyExpenseByTopCategory';
 import {YearlyExpense} from '@/components/charts/timeseries/YearlyExpense';
-import {CoreDataContextProvider} from '@/lib/context/CoreDataContext';
 import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
-import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
-import {TransactionDataContextProvider} from '@/lib/context/TransactionDataContext';
 import {AppData} from '@/lib/model/AppDataModel';
 import {useState} from 'react';
 
@@ -54,12 +52,8 @@ export function ExpensePage({dbData}: {dbData: AppData}) {
     return <NotConfiguredYet />;
   }
   return (
-    <CoreDataContextProvider dbData={dbData}>
-      <TransactionDataContextProvider dbData={dbData}>
-        <MarketDataContextProvider dbData={dbData}>
-          <NonEmptyPageContent />
-        </MarketDataContextProvider>
-      </TransactionDataContextProvider>
-    </CoreDataContextProvider>
+    <AppDataContextProviders dbData={dbData}>
+      <NonEmptyPageContent />
+    </AppDataContextProviders>
   );
 }

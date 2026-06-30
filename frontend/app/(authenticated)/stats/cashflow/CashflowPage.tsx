@@ -1,4 +1,5 @@
 'use client';
+import {AppDataContextProviders} from '@/lib/context/AppDataContextProviders';
 import {CurrencyExchangeFailed} from '@/app/(authenticated)/stats/CurrencyExchangeFailed';
 import {ExcludedCategoriesSelector} from '@/app/(authenticated)/stats/ExcludedCategoriesSelector';
 import {useStatsPageProps} from '@/app/(authenticated)/stats/modelHelpers';
@@ -16,10 +17,7 @@ import {YearlyCashflow} from '@/components/charts/timeseries/YearlyCashflow';
 import {YearlyCashflowCumulative} from '@/components/charts/timeseries/YearlyCashflowCumulative';
 import {YearlyExpense} from '@/components/charts/timeseries/YearlyExpense';
 import {YearlyIncome} from '@/components/charts/timeseries/YearlyIncome';
-import {CoreDataContextProvider} from '@/lib/context/CoreDataContext';
 import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
-import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
-import {TransactionDataContextProvider} from '@/lib/context/TransactionDataContext';
 import {AppData} from '@/lib/model/AppDataModel';
 import {useState} from 'react';
 
@@ -58,12 +56,8 @@ export function CashflowPage({dbData}: {dbData: AppData}) {
     return <NotConfiguredYet />;
   }
   return (
-    <CoreDataContextProvider dbData={dbData}>
-      <TransactionDataContextProvider dbData={dbData}>
-        <MarketDataContextProvider dbData={dbData}>
-          <NonEmptyPageContent />
-        </MarketDataContextProvider>
-      </TransactionDataContextProvider>
-    </CoreDataContextProvider>
+    <AppDataContextProviders dbData={dbData}>
+      <NonEmptyPageContent />
+    </AppDataContextProviders>
   );
 }

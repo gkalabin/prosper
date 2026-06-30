@@ -1,21 +1,24 @@
 import {Button} from '@/components/ui/button';
-import {FetchNowResponse} from '@/lib/grpc/gen/prosper/v1/openbanking';
-import {formatDistanceToNow} from 'date-fns';
+import {AccountFetchMetadata} from '@/lib/grpc/gen/prosper/v1/openbanking';
+import {timestampToEpoch} from '@/lib/grpc/timestamp';
+import {format, formatDistanceToNow} from 'date-fns';
+import {useRouter} from 'next/navigation';
 import {useState} from 'react';
 import {mutate} from 'swr';
 
-// FetchOpenBankingTransactions shows how stale the account's stored open
-// banking data is and triggers an immediate fetch of that account,
-// refreshing the suggestion list from the fetched transactions when done.
+// FetchOpenBankingTransactions shows the account's open banking sync state
+// and triggers an immediate refresh, rebuilding the suggestion list from
+// the fetched transactions when done.
 export function FetchOpenBankingTransactions({
   internalAccountId,
-  lastFetchedAt,
+  fetchMetadata,
   disabled,
 }: {
   internalAccountId: number;
-  lastFetchedAt: number | null;
+  fetchMetadata: AccountFetchMetadata | null;
   disabled: boolean;
 }) {
+  const router = useRouter();
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const onClick = async () => {
@@ -30,16 +33,10 @@ export function FetchOpenBankingTransactions({
       if (!res.ok) {
         throw new Error(`Fetch failed with status ${res.status}`);
       }
-      const result = FetchNowResponse.fromJson(await res.json()).result;
-      if (!result || result.error) {
-        throw new Error(result?.error || 'Fetch returned no transactions');
-      }
-      // The fetch stored new bank transactions: refresh the suggestion
-      // drafts built from them and the account's last-fetched time.
-      await Promise.all([
-        mutate('/api/suggest'),
-        mutate('/api/open-banking/fetch-status'),
-      ]);
+      // Re-read the server-loaded metadata and refresh the async
+      // suggestion drafts built from the stored transactions.
+      router.refresh();
+      await mutate('/api/suggest');
     } catch (e) {
       setError(`Failed to fetch transactions: ${e}`);
     } finally {
@@ -48,19 +45,48 @@ export function FetchOpenBankingTransactions({
   };
   return (
     <>
-      {lastFetchedAt
-        ? `Transactions fetched ${formatDistanceToNow(lastFetchedAt)} ago`
-        : 'Transactions not fetched yet'}
-      {'. '}
+      <StatusSummary fetchMetadata={fetchMetadata} />{' '}
       <Button
         variant="link"
         size="inherit"
         onClick={onClick}
         disabled={disabled || fetching}
       >
-        {fetching ? 'Fetching…' : 'Fetch now'}
+        {fetching ? 'Refreshing…' : 'Refresh'}
       </Button>
       {error && <span className="text-destructive font-medium"> {error}</span>}
     </>
+  );
+}
+
+function StatusSummary({
+  fetchMetadata,
+}: {
+  fetchMetadata: AccountFetchMetadata | null;
+}) {
+  if (!fetchMetadata) {
+    return <>Transactions not fetched yet.</>;
+  }
+  const syncedAt = fetchMetadata.lastSyncSuccessAt;
+  const lastSyncedEpoch = syncedAt ? timestampToEpoch(syncedAt) : null;
+  if (fetchMetadata.lastSyncError) {
+    return (
+      <span className="text-destructive">
+        Last fetch failed with: {fetchMetadata.lastSyncError}.{' '}
+        <span className="text-muted-foreground">
+          {lastSyncedEpoch
+            ? `Showing transactions from ${format(lastSyncedEpoch, 'yyyy-MM-dd HH:mm')}.`
+            : 'No transactions fetched yet.'}
+        </span>
+      </span>
+    );
+  }
+  if (lastSyncedEpoch) {
+    return (
+      <>Transactions fetched {formatDistanceToNow(lastSyncedEpoch)} ago.</>
+    );
+  }
+  throw new Error(
+    'Impossible state: account has neither a successful sync nor a sync error.'
   );
 }

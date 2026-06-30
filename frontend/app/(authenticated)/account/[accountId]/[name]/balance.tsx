@@ -14,7 +14,7 @@ import {accountUnit, BankAccount} from '@/lib/model/BankAccount';
 import {Currency, mustFindByCode} from '@/lib/model/Currency';
 import {Stock} from '@/lib/model/Stock';
 import {Transaction} from '@/lib/model/transaction/Transaction';
-import {useOpenBankingBalances} from '@/lib/openbanking/context';
+import {useOpenBankingFetchMetadata} from '@/lib/openbanking/context';
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -163,17 +163,14 @@ export function BalanceCard({account}: {account: BankAccount}) {
 function OpenBankingBalanceDelta({account}: {account: BankAccount}) {
   const {stocks} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
-  const {balances, isLoading} = useOpenBankingBalances();
-  if (isLoading) {
-    return <div>Loading balance from the bank...</div>;
-  }
-  const obBalance = balances?.find(b => b.internalAccountId === account.id);
-  if (!obBalance) {
+  const {metadataByAccount} = useOpenBankingFetchMetadata();
+  const balanceNanos = metadataByAccount[account.id]?.balanceNanos;
+  if (balanceNanos == null) {
     return null;
   }
   const unit = accountUnit(account, stocks);
   const remoteBalance = new AmountWithUnit({
-    amountNanos: obBalance.balanceNanos,
+    amountNanos: balanceNanos,
     unit,
   });
   const balance = accountBalance(account, transactions, stocks);

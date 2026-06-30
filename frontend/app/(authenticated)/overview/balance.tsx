@@ -6,7 +6,7 @@ import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {BankAccount, accountUnit} from '@/lib/model/BankAccount';
-import {useOpenBankingBalances} from '@/lib/openbanking/context';
+import {useOpenBankingFetchMetadata} from '@/lib/openbanking/context';
 import {cn} from '@/lib/utils';
 import {
   ArrowDownIcon,
@@ -26,15 +26,15 @@ export function BankBalance({
 }
 
 export function AccountBalance({account}: {account: BankAccount}) {
-  const {balances} = useOpenBankingBalances();
+  const {metadataByAccount} = useOpenBankingFetchMetadata();
   const {stocks} = useCoreDataContext();
-  const obBalance = balances?.find(b => b.internalAccountId === account.id);
-  if (!obBalance) {
+  const remoteBalanceNanos = metadataByAccount[account.id]?.balanceNanos;
+  if (remoteBalanceNanos == null) {
     return <LocalBalance account={account} />;
   }
   const unit = accountUnit(account, stocks);
   const remoteBalance = new AmountWithUnit({
-    amountNanos: obBalance.balanceNanos,
+    amountNanos: remoteBalanceNanos,
     unit,
   });
   return <RemoteBalance account={account} remoteBalance={remoteBalance} />;

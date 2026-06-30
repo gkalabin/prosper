@@ -42,6 +42,12 @@ func NewOpenBankingTransaction(externalTransactionID string, timestamp time.Time
 	}
 }
 
+// AccountTransactions groups one internal account's stored open-banking transactions.
+type AccountTransactions struct {
+	InternalAccountID int32
+	Transactions      []OpenBankingTransaction
+}
+
 // truncateRunes caps s to max runes, so a multi-byte character is never
 // split (which the utf8mb4 column would reject).
 func truncateRunes(s string, max int) string {
@@ -78,8 +84,11 @@ type OpenBankingFetch struct {
 	Status            string         `db:"status"`
 	Error             sql.NullString `db:"error"`
 	TxCount           int32          `db:"txCount"`
-	StartedAt         time.Time      `db:"startedAt"`
-	FinishedAt        time.Time      `db:"finishedAt"`
+	// BalanceNanos is the account balance the fetch read, in the account's
+	// native currency. Valid only on a successful fetch that read a balance.
+	BalanceNanos sql.NullInt64 `db:"balanceNanos"`
+	StartedAt    time.Time     `db:"startedAt"`
+	FinishedAt   time.Time     `db:"finishedAt"`
 }
 
 // OpenBankingTransactionFetchLink links a fetch to a transaction it returned.

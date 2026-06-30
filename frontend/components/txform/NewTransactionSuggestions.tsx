@@ -25,7 +25,8 @@ import {
   incomingBankAccount,
   outgoingBankAccount,
 } from '@/lib/model/transaction/Transfer';
-import {useOpenBankingLastFetched} from '@/lib/openbanking/context';
+import {AccountFetchMetadata} from '@/lib/grpc/gen/prosper/v1/openbanking';
+import {useOpenBankingFetchMetadata} from '@/lib/openbanking/context';
 import {
   winnerId,
   winnerMoneyNanos,
@@ -115,7 +116,7 @@ const NonEmptyNewTransactionSuggestions = (props: {
   disabled: boolean;
 }) => {
   const {banks} = useCoreDataContext();
-  const {lastFetchedAt} = useOpenBankingLastFetched();
+  const {metadataByAccount} = useOpenBankingFetchMetadata();
   const bankAccounts = useDisplayBankAccounts();
   // Derive the grouping and the account list only when the drafts or accounts
   // change, not on every re-render driven by local state (e.g. switching the
@@ -164,7 +165,7 @@ const NonEmptyNewTransactionSuggestions = (props: {
         activeDraft={props.activeDraft}
         onItemClick={props.onItemClick}
         bankAccount={activeAccount}
-        lastFetchedAt={lastFetchedAt[activeAccount.id] ?? null}
+        fetchMetadata={metadataByAccount[activeAccount.id] ?? null}
         disabled={props.disabled}
       />
     </div>
@@ -174,7 +175,7 @@ const NonEmptyNewTransactionSuggestions = (props: {
 function SuggestionsList(props: {
   items: TransactionDraft[];
   bankAccount: BankAccount;
-  lastFetchedAt: number | null;
+  fetchMetadata: AccountFetchMetadata | null;
   activeDraft: TransactionDraft | null;
   onItemClick: (draft: TransactionDraft) => void;
   disabled: boolean;
@@ -221,7 +222,7 @@ function SuggestionsList(props: {
         <div className="mt-2 text-xs text-gray-500">
           <FetchOpenBankingTransactions
             internalAccountId={props.bankAccount.id}
-            lastFetchedAt={props.lastFetchedAt}
+            fetchMetadata={props.fetchMetadata}
             disabled={props.disabled}
           />
         </div>

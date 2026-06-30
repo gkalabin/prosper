@@ -59,7 +59,7 @@ func (s *Service) runScheduled(ctx context.Context) {
 			log.Printf("openbanking: provider for user=%d bank=%d: %v", a.UserID, a.BankID, err)
 			continue
 		}
-		if _, err := s.fetchAccount(ctx, a.UserID, p, a, model.FetchTriggerScheduled); err != nil {
+		if err := s.fetchAccount(ctx, a.UserID, p, a, model.FetchTriggerScheduled); err != nil {
 			log.Printf("openbanking: scheduled fetch user=%d account=%d: %v", a.UserID, a.InternalAccountID, err)
 		}
 	}

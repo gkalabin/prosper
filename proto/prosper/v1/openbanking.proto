@@ -9,18 +9,15 @@ import "google/protobuf/timestamp.proto";
 // lifecycle for each provider, and the mapping between internal bank
 // accounts and external provider accounts.
 service OpenBankingService {
-  // GetFetchStatus returns, per mapped account, when its transactions
-  // were last successfully fetched. The fetched transactions themselves
-  // reach the UI as suggestion drafts via LedgerService.Suggest.
-  rpc GetFetchStatus(GetFetchStatusRequest)
-      returns (GetFetchStatusResponse);
+  // GetFetchMetadata returns, per mapped account, metadata about its open
+  // banking sync. The fetched transactions themselves reach the UI as
+  // suggestion drafts via LedgerService.Suggest.
+  rpc GetFetchMetadata(GetFetchMetadataRequest)
+      returns (GetFetchMetadataResponse);
 
-  // FetchNow fetches fresh transactions for a single account right away,
-  // bypassing the scheduler's refresh interval.
+  // FetchNow fetches fresh transactions and the balance for a single
+  // account right away, bypassing the scheduler's refresh interval.
   rpc FetchNow(FetchNowRequest) returns (FetchNowResponse);
-
-  rpc GetBalances(GetBalancesRequest)
-      returns (GetBalancesResponse);
 
   rpc GetConnectionStatus(GetConnectionStatusRequest)
       returns (GetConnectionStatusResponse);
@@ -82,18 +79,27 @@ service OpenBankingService {
       returns (ListGoCardlessCountriesResponse);
 }
 
-message GetFetchStatusRequest {
+message GetFetchMetadataRequest {
   string session_id = 1;
 }
 
-message GetFetchStatusResponse {
-  repeated AccountFetchStatus statuses = 1;
+message GetFetchMetadataResponse {
+  repeated AccountFetchMetadata accounts = 1;
 }
 
-message AccountFetchStatus {
+// AccountFetchMetadata describes an account's open banking sync state.
+message AccountFetchMetadata {
   int32 internal_account_id = 1;
-  // Time of the account's most recent successful fetch, unset when none.
-  google.protobuf.Timestamp last_fetched_at = 2;
+
+  // When the account last synced successfully. Unset until the first success;
+  // a later failure leaves it unchanged.
+  google.protobuf.Timestamp last_sync_success_at = 2;
+
+  // Latest balance in account-currency nanos.
+  optional int64 balance_nanos = 3;
+
+  // Why the most recent sync attempt failed; empty when it succeeded.
+  string last_sync_error = 4;
 }
 
 message FetchNowRequest {
@@ -101,41 +107,7 @@ message FetchNowRequest {
   string session_id = 2;
 }
 
-message FetchNowResponse {
-  AccountTransactions result = 1;
-}
-
-// AccountTransactions carries one account's transactions alongside fetch
-// metadata.
-message AccountTransactions {
-  int32 internal_account_id = 1;
-  repeated OpenBankingTransaction transactions = 2;
-  // Time of the account's most recent successful fetch, unset when none.
-  google.protobuf.Timestamp last_fetched_at = 3;
-  // Set when a fetch attempt for this account failed; empty otherwise.
-  string error = 4;
-}
-
-message OpenBankingTransaction {
-  string external_transaction_id = 1;
-  google.protobuf.Timestamp timestamp = 2;
-  string description = 3;
-  // Signed amount in nanos: positive deposits, negative withdrawals.
-  int64 signed_amount_nanos = 4;
-}
-
-message GetBalancesRequest {
-  string session_id = 1;
-}
-
-message GetBalancesResponse {
-  repeated AccountBalanceResult accounts = 1;
-}
-
-message AccountBalanceResult {
-  int32 internal_account_id = 1;
-  int64 balance_nanos = 2;
-}
+message FetchNowResponse {}
 
 message GetConnectionStatusRequest { string session_id = 1; }
 

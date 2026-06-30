@@ -30,13 +30,11 @@ import type { StartTrueLayerConnectionResponse } from "./openbanking";
 import type { StartTrueLayerConnectionRequest } from "./openbanking";
 import type { GetConnectionStatusResponse } from "./openbanking";
 import type { GetConnectionStatusRequest } from "./openbanking";
-import type { GetBalancesResponse } from "./openbanking";
-import type { GetBalancesRequest } from "./openbanking";
 import type { FetchNowResponse } from "./openbanking";
 import type { FetchNowRequest } from "./openbanking";
 import { stackIntercept } from "@protobuf-ts/runtime-rpc";
-import type { GetFetchStatusResponse } from "./openbanking";
-import type { GetFetchStatusRequest } from "./openbanking";
+import type { GetFetchMetadataResponse } from "./openbanking";
+import type { GetFetchMetadataRequest } from "./openbanking";
 import type { UnaryCall } from "@protobuf-ts/runtime-rpc";
 import type { RpcOptions } from "@protobuf-ts/runtime-rpc";
 /**
@@ -49,24 +47,20 @@ import type { RpcOptions } from "@protobuf-ts/runtime-rpc";
  */
 export interface IOpenBankingServiceClient {
     /**
-     * GetFetchStatus returns, per mapped account, when its transactions
-     * were last successfully fetched. The fetched transactions themselves
-     * reach the UI as suggestion drafts via LedgerService.Suggest.
+     * GetFetchMetadata returns, per mapped account, metadata about its open
+     * banking sync. The fetched transactions themselves reach the UI as
+     * suggestion drafts via LedgerService.Suggest.
      *
-     * @generated from protobuf rpc: GetFetchStatus
+     * @generated from protobuf rpc: GetFetchMetadata
      */
-    getFetchStatus(input: GetFetchStatusRequest, options?: RpcOptions): UnaryCall<GetFetchStatusRequest, GetFetchStatusResponse>;
+    getFetchMetadata(input: GetFetchMetadataRequest, options?: RpcOptions): UnaryCall<GetFetchMetadataRequest, GetFetchMetadataResponse>;
     /**
-     * FetchNow fetches fresh transactions for a single account right away,
-     * bypassing the scheduler's refresh interval.
+     * FetchNow fetches fresh transactions and the balance for a single
+     * account right away, bypassing the scheduler's refresh interval.
      *
      * @generated from protobuf rpc: FetchNow
      */
     fetchNow(input: FetchNowRequest, options?: RpcOptions): UnaryCall<FetchNowRequest, FetchNowResponse>;
-    /**
-     * @generated from protobuf rpc: GetBalances
-     */
-    getBalances(input: GetBalancesRequest, options?: RpcOptions): UnaryCall<GetBalancesRequest, GetBalancesResponse>;
     /**
      * @generated from protobuf rpc: GetConnectionStatus
      */
@@ -169,19 +163,19 @@ export class OpenBankingServiceClient implements IOpenBankingServiceClient, Serv
     constructor(private readonly _transport: RpcTransport) {
     }
     /**
-     * GetFetchStatus returns, per mapped account, when its transactions
-     * were last successfully fetched. The fetched transactions themselves
-     * reach the UI as suggestion drafts via LedgerService.Suggest.
+     * GetFetchMetadata returns, per mapped account, metadata about its open
+     * banking sync. The fetched transactions themselves reach the UI as
+     * suggestion drafts via LedgerService.Suggest.
      *
-     * @generated from protobuf rpc: GetFetchStatus
+     * @generated from protobuf rpc: GetFetchMetadata
      */
-    getFetchStatus(input: GetFetchStatusRequest, options?: RpcOptions): UnaryCall<GetFetchStatusRequest, GetFetchStatusResponse> {
+    getFetchMetadata(input: GetFetchMetadataRequest, options?: RpcOptions): UnaryCall<GetFetchMetadataRequest, GetFetchMetadataResponse> {
         const method = this.methods[0], opt = this._transport.mergeOptions(options);
-        return stackIntercept<GetFetchStatusRequest, GetFetchStatusResponse>("unary", this._transport, method, opt, input);
+        return stackIntercept<GetFetchMetadataRequest, GetFetchMetadataResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * FetchNow fetches fresh transactions for a single account right away,
-     * bypassing the scheduler's refresh interval.
+     * FetchNow fetches fresh transactions and the balance for a single
+     * account right away, bypassing the scheduler's refresh interval.
      *
      * @generated from protobuf rpc: FetchNow
      */
@@ -190,17 +184,10 @@ export class OpenBankingServiceClient implements IOpenBankingServiceClient, Serv
         return stackIntercept<FetchNowRequest, FetchNowResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * @generated from protobuf rpc: GetBalances
-     */
-    getBalances(input: GetBalancesRequest, options?: RpcOptions): UnaryCall<GetBalancesRequest, GetBalancesResponse> {
-        const method = this.methods[2], opt = this._transport.mergeOptions(options);
-        return stackIntercept<GetBalancesRequest, GetBalancesResponse>("unary", this._transport, method, opt, input);
-    }
-    /**
      * @generated from protobuf rpc: GetConnectionStatus
      */
     getConnectionStatus(input: GetConnectionStatusRequest, options?: RpcOptions): UnaryCall<GetConnectionStatusRequest, GetConnectionStatusResponse> {
-        const method = this.methods[3], opt = this._transport.mergeOptions(options);
+        const method = this.methods[2], opt = this._transport.mergeOptions(options);
         return stackIntercept<GetConnectionStatusRequest, GetConnectionStatusResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -210,7 +197,7 @@ export class OpenBankingServiceClient implements IOpenBankingServiceClient, Serv
      * @generated from protobuf rpc: StartTrueLayerConnection
      */
     startTrueLayerConnection(input: StartTrueLayerConnectionRequest, options?: RpcOptions): UnaryCall<StartTrueLayerConnectionRequest, StartTrueLayerConnectionResponse> {
-        const method = this.methods[4], opt = this._transport.mergeOptions(options);
+        const method = this.methods[3], opt = this._transport.mergeOptions(options);
         return stackIntercept<StartTrueLayerConnectionRequest, StartTrueLayerConnectionResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -221,7 +208,7 @@ export class OpenBankingServiceClient implements IOpenBankingServiceClient, Serv
      * @generated from protobuf rpc: CompleteTrueLayerConnection
      */
     completeTrueLayerConnection(input: CompleteTrueLayerConnectionRequest, options?: RpcOptions): UnaryCall<CompleteTrueLayerConnectionRequest, CompleteTrueLayerConnectionResponse> {
-        const method = this.methods[5], opt = this._transport.mergeOptions(options);
+        const method = this.methods[4], opt = this._transport.mergeOptions(options);
         return stackIntercept<CompleteTrueLayerConnectionRequest, CompleteTrueLayerConnectionResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -232,7 +219,7 @@ export class OpenBankingServiceClient implements IOpenBankingServiceClient, Serv
      * @generated from protobuf rpc: StartGoCardlessConnection
      */
     startGoCardlessConnection(input: StartGoCardlessConnectionRequest, options?: RpcOptions): UnaryCall<StartGoCardlessConnectionRequest, StartGoCardlessConnectionResponse> {
-        const method = this.methods[6], opt = this._transport.mergeOptions(options);
+        const method = this.methods[5], opt = this._transport.mergeOptions(options);
         return stackIntercept<StartGoCardlessConnectionRequest, StartGoCardlessConnectionResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -242,7 +229,7 @@ export class OpenBankingServiceClient implements IOpenBankingServiceClient, Serv
      * @generated from protobuf rpc: CompleteGoCardlessConnection
      */
     completeGoCardlessConnection(input: CompleteGoCardlessConnectionRequest, options?: RpcOptions): UnaryCall<CompleteGoCardlessConnectionRequest, CompleteGoCardlessConnectionResponse> {
-        const method = this.methods[7], opt = this._transport.mergeOptions(options);
+        const method = this.methods[6], opt = this._transport.mergeOptions(options);
         return stackIntercept<CompleteGoCardlessConnectionRequest, CompleteGoCardlessConnectionResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -252,7 +239,7 @@ export class OpenBankingServiceClient implements IOpenBankingServiceClient, Serv
      * @generated from protobuf rpc: SetStarlingToken
      */
     setStarlingToken(input: SetStarlingTokenRequest, options?: RpcOptions): UnaryCall<SetStarlingTokenRequest, SetStarlingTokenResponse> {
-        const method = this.methods[8], opt = this._transport.mergeOptions(options);
+        const method = this.methods[7], opt = this._transport.mergeOptions(options);
         return stackIntercept<SetStarlingTokenRequest, SetStarlingTokenResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -262,7 +249,7 @@ export class OpenBankingServiceClient implements IOpenBankingServiceClient, Serv
      * @generated from protobuf rpc: Disconnect
      */
     disconnect(input: DisconnectRequest, options?: RpcOptions): UnaryCall<DisconnectRequest, DisconnectResponse> {
-        const method = this.methods[9], opt = this._transport.mergeOptions(options);
+        const method = this.methods[8], opt = this._transport.mergeOptions(options);
         return stackIntercept<DisconnectRequest, DisconnectResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -273,7 +260,7 @@ export class OpenBankingServiceClient implements IOpenBankingServiceClient, Serv
      * @generated from protobuf rpc: ReconnectInfo
      */
     reconnectInfo(input: ReconnectInfoRequest, options?: RpcOptions): UnaryCall<ReconnectInfoRequest, ReconnectInfoResponse> {
-        const method = this.methods[10], opt = this._transport.mergeOptions(options);
+        const method = this.methods[9], opt = this._transport.mergeOptions(options);
         return stackIntercept<ReconnectInfoRequest, ReconnectInfoResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -283,7 +270,7 @@ export class OpenBankingServiceClient implements IOpenBankingServiceClient, Serv
      * @generated from protobuf rpc: ListExternalAccounts
      */
     listExternalAccounts(input: ListExternalAccountsRequest, options?: RpcOptions): UnaryCall<ListExternalAccountsRequest, ListExternalAccountsResponse> {
-        const method = this.methods[11], opt = this._transport.mergeOptions(options);
+        const method = this.methods[10], opt = this._transport.mergeOptions(options);
         return stackIntercept<ListExternalAccountsRequest, ListExternalAccountsResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -293,7 +280,7 @@ export class OpenBankingServiceClient implements IOpenBankingServiceClient, Serv
      * @generated from protobuf rpc: ListMappings
      */
     listMappings(input: ListMappingsRequest, options?: RpcOptions): UnaryCall<ListMappingsRequest, ListMappingsResponse> {
-        const method = this.methods[12], opt = this._transport.mergeOptions(options);
+        const method = this.methods[11], opt = this._transport.mergeOptions(options);
         return stackIntercept<ListMappingsRequest, ListMappingsResponse>("unary", this._transport, method, opt, input);
     }
     /**
@@ -304,21 +291,21 @@ export class OpenBankingServiceClient implements IOpenBankingServiceClient, Serv
      * @generated from protobuf rpc: SetMappings
      */
     setMappings(input: SetMappingsRequest, options?: RpcOptions): UnaryCall<SetMappingsRequest, SetMappingsResponse> {
-        const method = this.methods[13], opt = this._transport.mergeOptions(options);
+        const method = this.methods[12], opt = this._transport.mergeOptions(options);
         return stackIntercept<SetMappingsRequest, SetMappingsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: ListGoCardlessInstitutions
      */
     listGoCardlessInstitutions(input: ListGoCardlessInstitutionsRequest, options?: RpcOptions): UnaryCall<ListGoCardlessInstitutionsRequest, ListGoCardlessInstitutionsResponse> {
-        const method = this.methods[14], opt = this._transport.mergeOptions(options);
+        const method = this.methods[13], opt = this._transport.mergeOptions(options);
         return stackIntercept<ListGoCardlessInstitutionsRequest, ListGoCardlessInstitutionsResponse>("unary", this._transport, method, opt, input);
     }
     /**
      * @generated from protobuf rpc: ListGoCardlessCountries
      */
     listGoCardlessCountries(input: ListGoCardlessCountriesRequest, options?: RpcOptions): UnaryCall<ListGoCardlessCountriesRequest, ListGoCardlessCountriesResponse> {
-        const method = this.methods[15], opt = this._transport.mergeOptions(options);
+        const method = this.methods[14], opt = this._transport.mergeOptions(options);
         return stackIntercept<ListGoCardlessCountriesRequest, ListGoCardlessCountriesResponse>("unary", this._transport, method, opt, input);
     }
 }

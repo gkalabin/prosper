@@ -1,4 +1,5 @@
 'use client';
+import {AppDataContextProviders} from '@/lib/context/AppDataContextProviders';
 import {BalanceCard} from '@/app/(authenticated)/account/[accountId]/[name]/balance';
 import {transactionBelongsToAccount} from '@/app/(authenticated)/overview/modelHelpers';
 import {
@@ -9,15 +10,8 @@ import {TransactionsList} from '@/components/transactions/TransactionsList';
 import {NewTransactionFormDialog} from '@/components/txform/TransactionForm';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
-import {
-  CoreDataContextProvider,
-  useCoreDataContext,
-} from '@/lib/context/CoreDataContext';
-import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
-import {
-  TransactionDataContextProvider,
-  useTransactionDataContext,
-} from '@/lib/context/TransactionDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {BankAccount as ProtoBankAccount} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {AppData} from '@/lib/model/AppDataModel';
 import {useTransactionSearch} from '@/lib/search/useTransactionSearch';
@@ -90,12 +84,8 @@ export function AccountPage({
     return <NotConfiguredYet />;
   }
   return (
-    <CoreDataContextProvider dbData={dbData}>
-      <TransactionDataContextProvider dbData={dbData}>
-        <MarketDataContextProvider dbData={dbData}>
-          <NonEmptyPageContent accountId={dbAccount.id} />
-        </MarketDataContextProvider>
-      </TransactionDataContextProvider>
-    </CoreDataContextProvider>
+    <AppDataContextProviders dbData={dbData}>
+      <NonEmptyPageContent accountId={dbAccount.id} />
+    </AppDataContextProviders>
   );
 }

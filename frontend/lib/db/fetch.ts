@@ -6,8 +6,12 @@ import {
   GetCoreDataResponse,
   GetTransactionsResponse,
 } from '@/lib/grpc/gen/prosper/v1/ledger';
+import {
+  GetConnectionStatusResponse,
+  GetFetchMetadataResponse,
+} from '@/lib/grpc/gen/prosper/v1/openbanking';
 import {GetMarketDataForUserResponse} from '@/lib/grpc/gen/prosper/v1/rates';
-import {ledgerClient, ratesClient} from '@/lib/grpc/client';
+import {ledgerClient, openBankingClient, ratesClient} from '@/lib/grpc/client';
 
 // CoreData refines the proto response so callers can rely on
 // displaySettings being present — fetchCoreData asserts it before
@@ -37,5 +41,23 @@ export async function fetchMarketData(
   auth: AuthContext
 ): Promise<GetMarketDataForUserResponse> {
   const {response} = await ratesClient.getMarketDataForUser(withAuth({}, auth));
+  return response;
+}
+
+export async function fetchOpenBankingMetadata(
+  auth: AuthContext
+): Promise<GetFetchMetadataResponse> {
+  const {response} = await openBankingClient.getFetchMetadata(
+    withAuth({}, auth)
+  );
+  return response;
+}
+
+export async function fetchOpenBankingConnectionStatus(
+  auth: AuthContext
+): Promise<GetConnectionStatusResponse> {
+  const {response} = await openBankingClient.getConnectionStatus(
+    withAuth({}, auth)
+  );
   return response;
 }

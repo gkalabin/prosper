@@ -1,4 +1,5 @@
 'use client';
+import {AppDataContextProviders} from '@/lib/context/AppDataContextProviders';
 import {Accounts} from '@/app/(authenticated)/bank/[bankId]/[name]/accounts';
 import {accountsSum} from '@/app/(authenticated)/overview/modelHelpers';
 import {
@@ -7,19 +8,10 @@ import {
 } from '@/components/NotConfiguredYet';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
-import {
-  CoreDataContextProvider,
-  useCoreDataContext,
-} from '@/lib/context/CoreDataContext';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
-import {
-  MarketDataContextProvider,
-  useMarketDataContext,
-} from '@/lib/context/MarketDataContext';
-import {
-  TransactionDataContextProvider,
-  useTransactionDataContext,
-} from '@/lib/context/TransactionDataContext';
+import {useMarketDataContext} from '@/lib/context/MarketDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {AppData} from '@/lib/model/AppDataModel';
 import {accountsForBank} from '@/lib/model/BankAccount';
 import {Bank as ProtoBank} from '@/lib/grpc/gen/prosper/v1/ledger';
@@ -85,12 +77,8 @@ export function BankPage({
     return <NotConfiguredYet />;
   }
   return (
-    <CoreDataContextProvider dbData={dbData}>
-      <TransactionDataContextProvider dbData={dbData}>
-        <MarketDataContextProvider dbData={dbData}>
-          <NonEmptyPageContent bankId={dbBank.id} />
-        </MarketDataContextProvider>
-      </TransactionDataContextProvider>
-    </CoreDataContextProvider>
+    <AppDataContextProviders dbData={dbData}>
+      <NonEmptyPageContent bankId={dbBank.id} />
+    </AppDataContextProviders>
   );
 }

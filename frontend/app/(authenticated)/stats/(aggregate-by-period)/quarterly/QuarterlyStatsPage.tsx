@@ -1,4 +1,5 @@
 'use client';
+import {AppDataContextProviders} from '@/lib/context/AppDataContextProviders';
 import {Navigation} from '@/app/(authenticated)/stats/(aggregate-by-period)/Navigation';
 import {PeriodSummary} from '@/app/(authenticated)/stats/(aggregate-by-period)/PeriodSummary';
 import {CurrencyExchangeFailed} from '@/app/(authenticated)/stats/CurrencyExchangeFailed';
@@ -18,13 +19,8 @@ import {
   SortingMode,
 } from '@/components/transactions/SortableTransactionsList';
 import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
-import {CoreDataContextProvider} from '@/lib/context/CoreDataContext';
 import {useDisplaySettingsContext} from '@/lib/context/DisplaySettingsContext';
-import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
-import {
-  TransactionDataContextProvider,
-  useTransactionDataContext,
-} from '@/lib/context/TransactionDataContext';
+import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {AppData} from '@/lib/model/AppDataModel';
 import {Granularity} from '@/lib/util/Granularity';
 import {type Interval, endOfQuarter, startOfQuarter} from 'date-fns';
@@ -114,12 +110,8 @@ export function QuarterlyStatsPage({dbData}: {dbData: AppData}) {
     return <NotConfiguredYet />;
   }
   return (
-    <CoreDataContextProvider dbData={dbData}>
-      <TransactionDataContextProvider dbData={dbData}>
-        <MarketDataContextProvider dbData={dbData}>
-          <NonEmptyPageContent />
-        </MarketDataContextProvider>
-      </TransactionDataContextProvider>
-    </CoreDataContextProvider>
+    <AppDataContextProviders dbData={dbData}>
+      <NonEmptyPageContent />
+    </AppDataContextProviders>
   );
 }
