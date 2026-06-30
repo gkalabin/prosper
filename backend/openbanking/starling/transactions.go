@@ -28,7 +28,11 @@ type feedItem struct {
 	Status           string `json:"status"`
 }
 
-const statusDeclined = "DECLINED"
+const (
+	statusDeclined          = "DECLINED"
+	statusUpcoming          = "UPCOMING"
+	statusUpcomingCancelled = "UPCOMING_CANCELLED"
+)
 
 func (s *Provider) FetchTransactions(ctx context.Context, userID, bankID int32, externalAccountID string, since time.Time) ([]model.OpenBankingTransaction, error) {
 	access, err := s.accessToken(ctx, userID, bankID)
@@ -50,7 +54,10 @@ func (s *Provider) FetchTransactions(ctx context.Context, userID, bankID int32, 
 			log.Printf("starling: skip unparsable feed item on account %s: %v", externalAccountID, err)
 			continue
 		}
-		if it.Status == statusDeclined {
+		switch it.Status {
+		case statusDeclined, statusUpcoming, statusUpcomingCancelled:
+			// Starling feed item statuses that must not surface as suggestions: declined
+			// transactions never happened, and upcoming ones are scheduled in the future.
 			continue
 		}
 		ts, _ := time.Parse(time.RFC3339, it.TransactionTime)
