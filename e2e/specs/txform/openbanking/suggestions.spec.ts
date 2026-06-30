@@ -1,8 +1,8 @@
-import {test} from '../../lib/fixtures/test-base';
-import {NewTransactionPage} from '../../pages/NewTransactionPage';
-import {TransactionListPage} from '../../pages/TransactionListPage';
+import {test} from '../../../lib/fixtures/test-base';
+import {NewTransactionPage} from '../../../pages/NewTransactionPage';
+import {TransactionListPage} from '../../../pages/TransactionListPage';
 
-test.describe('Create transactions from open banking data', () => {
+test.describe('Open banking suggestions', () => {
   test('expense from a withdrawal suggestion', async ({
     page,
     seed,
@@ -62,6 +62,69 @@ test.describe('Create transactions from open banking data', () => {
       payer: 'Acme Inc.',
       account: 'Barclays: Current',
       category: 'Salary',
+    });
+  });
+
+  test('transfer from matching withdrawal and deposit suggestions', async ({
+    page,
+    seed,
+    loginAs,
+  }) => {
+    const {
+      user,
+      bank,
+      account: current,
+    } = await seed.createUserWithTestData({
+      bank: {name: 'Monzo'},
+      account: {name: 'Current', initialBalance: 500, displayOrder: 0},
+      category: {name: 'Transfers'},
+    });
+    const savings = await seed.createAccount(user.id, bank.id, {
+      name: 'Savings',
+      initialBalance: 100,
+      displayOrder: 1,
+    });
+    // Both legs share the same instant so transfer detection pairs them.
+    const movedAt = new Date();
+    await seed.openBankingTransactions({
+      user,
+      bank,
+      account: current,
+      transactions: [
+        {
+          externalId: 'ob-out-1',
+          description: 'Transfer to savings',
+          amount: -200,
+          timestamp: movedAt,
+        },
+      ],
+    });
+    await seed.openBankingTransactions({
+      user,
+      bank,
+      account: savings,
+      transactions: [
+        {
+          externalId: 'ob-in-1',
+          description: 'Transfer from current',
+          amount: 200,
+          timestamp: movedAt,
+        },
+      ],
+    });
+    await loginAs(user);
+    const addTxPage = new NewTransactionPage(page);
+    await addTxPage.goto();
+    await addTxPage.suggestions.click('Transfer to savings');
+    await addTxPage.form.submit();
+    const listPage = new TransactionListPage(page);
+    await listPage.goto();
+    await listPage.expectTransferTransaction('$200', {
+      accountFrom: 'Monzo: Current',
+      accountTo: 'Monzo: Savings',
+      amountSent: '$200',
+      amountReceived: '$200',
+      category: 'Transfers',
     });
   });
 
@@ -159,69 +222,6 @@ test.describe('Create transactions from open banking data', () => {
       vendor: 'Starbucks',
       account: 'HSBC: Current',
       category: 'Coffee',
-    });
-  });
-
-  test('transfer from matching withdrawal and deposit suggestions', async ({
-    page,
-    seed,
-    loginAs,
-  }) => {
-    const {
-      user,
-      bank,
-      account: current,
-    } = await seed.createUserWithTestData({
-      bank: {name: 'Monzo'},
-      account: {name: 'Current', initialBalance: 500, displayOrder: 0},
-      category: {name: 'Transfers'},
-    });
-    const savings = await seed.createAccount(user.id, bank.id, {
-      name: 'Savings',
-      initialBalance: 100,
-      displayOrder: 1,
-    });
-    // Both legs share the same instant so transfer detection pairs them.
-    const movedAt = new Date();
-    await seed.openBankingTransactions({
-      user,
-      bank,
-      account: current,
-      transactions: [
-        {
-          externalId: 'ob-out-1',
-          description: 'Transfer to savings',
-          amount: -200,
-          timestamp: movedAt,
-        },
-      ],
-    });
-    await seed.openBankingTransactions({
-      user,
-      bank,
-      account: savings,
-      transactions: [
-        {
-          externalId: 'ob-in-1',
-          description: 'Transfer from current',
-          amount: 200,
-          timestamp: movedAt,
-        },
-      ],
-    });
-    await loginAs(user);
-    const addTxPage = new NewTransactionPage(page);
-    await addTxPage.goto();
-    await addTxPage.suggestions.click('Transfer to savings');
-    await addTxPage.form.submit();
-    const listPage = new TransactionListPage(page);
-    await listPage.goto();
-    await listPage.expectTransferTransaction('$200', {
-      accountFrom: 'Monzo: Current',
-      accountTo: 'Monzo: Savings',
-      amountSent: '$200',
-      amountReceived: '$200',
-      category: 'Transfers',
     });
   });
 });

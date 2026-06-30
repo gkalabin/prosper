@@ -219,7 +219,10 @@ function SuggestionsList(props: {
           less
         </Button>{' '}
         entries.
-        <div className="mt-2 text-xs text-gray-500">
+        <div
+          className="mt-2 text-xs text-gray-500"
+          data-testid="open-banking-fetch-status"
+        >
           <FetchOpenBankingTransactions
             internalAccountId={props.bankAccount.id}
             fetchMetadata={props.fetchMetadata}

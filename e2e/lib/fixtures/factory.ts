@@ -802,7 +802,7 @@ export class TestFactory {
     account: {id: number};
     transactions: OpenBankingTransactionSeed[];
   }): Promise<void> {
-    await this.linkExternalAccount(user, bank, account);
+    await this.maybeLinkExternalAccount(user, bank, account);
     const now = new Date();
     const fetchId = await insert(
       `INSERT INTO OpenBankingFetch
@@ -827,9 +827,49 @@ export class TestFactory {
     }
   }
 
-  // linkExternalAccount maps an internal bank account to a provider account
-  // once, so repeated fetches against the same account reuse the mapping.
-  private async linkExternalAccount(
+  // connectOpenBankingAccount links an internal bank account to a provider
+  // account without recording any fetch, modelling an account that is
+  // connected but has never been synced.
+  async connectOpenBankingAccount({
+    user,
+    bank,
+    account,
+  }: {
+    user: {id: number};
+    bank: {id: number};
+    account: {id: number};
+  }): Promise<void> {
+    await this.maybeLinkExternalAccount(user, bank, account);
+  }
+
+  // openBankingFetchError records a failed fetch for a connected account: a
+  // fetch row with ERROR status carrying the provider's error message and no
+  // transactions or balance.
+  async openBankingFetchError({
+    user,
+    bank,
+    account,
+    error,
+  }: {
+    user: {id: number};
+    bank: {id: number};
+    account: {id: number};
+    error: string;
+  }): Promise<void> {
+    await this.maybeLinkExternalAccount(user, bank, account);
+    const now = new Date();
+    await exec(
+      `INSERT INTO OpenBankingFetch
+         (userId, internalAccountId, provider, \`trigger\`, status, error, txCount, startedAt, finishedAt)
+       VALUES (?, ?, ?, 'MANUAL', 'ERROR', ?, 0, ?, ?)`,
+      [user.id, account.id, OPEN_BANKING_PROVIDER, error, now, now]
+    );
+  }
+
+  // maybeLinkExternalAccount maps an internal bank account to a provider
+  // account once, so repeated fetches against the same account reuse the
+  // mapping.
+  private async maybeLinkExternalAccount(
     user: {id: number},
     bank: {id: number},
     account: {id: number}

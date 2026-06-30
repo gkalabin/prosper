@@ -12,8 +12,14 @@ export class NewTransactionPage {
     this.suggestions = new SuggestionList(page);
   }
 
+  // goto opens the new transaction page and waits for the suggestion drafts to
+  // load, so the panel's presence (or absence) can be asserted without racing
+  // the request that populates it.
   async goto() {
-    await this.page.goto('/new');
+    await Promise.all([
+      this.page.waitForResponse(r => r.url().includes('/api/suggest')),
+      this.page.goto('/new'),
+    ]);
   }
 }
 
@@ -36,5 +42,22 @@ export class SuggestionList {
     const item = this.page.getByText(description, {exact: true});
     await expect(item).toBeVisible();
     await item.click();
+  }
+
+  async expectVisible() {
+    await expect(this.heading).toBeVisible();
+  }
+
+  // expectAbsent asserts the suggestion panel does not appear, e.g. when the
+  // connected account has no fetched transactions to propose.
+  async expectAbsent() {
+    await expect(this.heading).toBeHidden();
+  }
+
+  // expectFetchStatus asserts the open banking sync status note contains the given text.
+  async expectFetchStatus(text: string) {
+    await expect(
+      this.page.getByTestId('open-banking-fetch-status')
+    ).toContainText(text);
   }
 }
