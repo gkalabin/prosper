@@ -18,9 +18,9 @@ import {
   type Interval,
 } from 'date-fns';
 
-// utcStartOfDay returns the epoch ms of the UTC midnight that contains `d`.
-export function utcStartOfDay(d: Date | number): number {
-  const date = new Date(d);
+// utcStartOfDay returns the epoch ms of the UTC midnight that contains `epochMs`.
+export function utcStartOfDay(epochMs: number): number {
+  const date = new Date(epochMs);
   return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
 }
 

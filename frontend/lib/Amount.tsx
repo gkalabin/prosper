@@ -83,7 +83,10 @@ export class Amount {
     return this.amountNanos % NANOS_PER_UNIT == 0n;
   }
 
-  public format(): string {
-    return this.dollar().toFixed(2);
+  public format(options?: Intl.NumberFormatOptions): string {
+    return Intl.NumberFormat([], {
+      maximumFractionDigits: this.isRound() ? 0 : 2,
+      ...options,
+    }).format(this.dollar());
   }
 }

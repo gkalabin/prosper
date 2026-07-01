@@ -15,16 +15,15 @@ export function Accounts({bank}: {bank: Bank}) {
         <RectangleStackIcon className="text-muted-foreground h-4 w-4" />
       </CardHeader>
       <CardContent>
-        <div className="divide-y divide-gray-200">
-          {accounts.map((account, i) => (
+        <ul className="divide-y divide-gray-200">
+          {accounts.map(account => (
             <BankAccountListItem
               key={account.id}
               account={account}
               bank={bank}
-              colorIndex={i}
             />
           ))}
-        </div>
+        </ul>
       </CardContent>
     </Card>
   );

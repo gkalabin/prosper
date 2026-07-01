@@ -3,12 +3,16 @@ import '@/styles/global.css';
 import {Metadata} from 'next';
 import localFont from 'next/font/local';
 
-// Downloaded from https://fonts.google.com/specimen/Open+Sans.
-const openSans = localFont({
-  src: [
-    {path: './_fonts/OpenSans.ttf'},
-    {path: './_fonts/OpenSans-Italic.ttf', style: 'italic'},
-  ],
+// Downloaded from https://fonts.google.com/specimen/Hanken+Grotesk.
+const hankenGrotesk = localFont({
+  src: './_fonts/HankenGrotesk.ttf',
+  variable: '--font-sans',
+});
+
+// Downloaded from https://fonts.google.com/specimen/Spline+Sans+Mono.
+const splineSansMono = localFont({
+  src: './_fonts/SplineSansMono.ttf',
+  variable: '--font-mono',
 });
 
 export const metadata: Metadata = {
@@ -34,8 +38,9 @@ export default async function RootLayout({
       <head />
       <body
         className={cn(
-          'bg-background min-h-screen antialiased',
-          openSans.className
+          'bg-background min-h-screen font-sans antialiased',
+          hankenGrotesk.variable,
+          splineSansMono.variable
         )}
       >
         {children}

@@ -30,6 +30,12 @@ export type HorizontalBarNumbersProps = {
   data: Array<NamedNumber>;
 };
 
+export type SparklineProps = {
+  title: string;
+  currency: Currency;
+  data: Array<{timestamp: number; amount: Amount}>;
+};
+
 export type StackedBarProps = {
   title: string;
   currency: Currency;
@@ -56,6 +62,7 @@ type NamedNumber = {
 export interface ChartsLibrary {
   Line(props: TimeseriesMoneyProps | TimeseriesNumbersProps): JSX.Element;
   Bar(props: TimeseriesMoneyProps | TimeseriesNumbersProps): JSX.Element;
+  Sparkline(props: SparklineProps): JSX.Element;
   StackedBar(props: StackedBarProps): JSX.Element;
   HorizontalBar(
     props: HorizontalBarMoneyProps | HorizontalBarNumbersProps

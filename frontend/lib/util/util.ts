@@ -68,6 +68,45 @@ export function removeQuotes(s: string): string {
   return s;
 }
 
+// evenlySpacedNumbers returns `count` numbers spanning [range.start, range.end]
+// inclusive, with equal spacing between them. The endpoints are always included
+// exactly; intermediate values are rounded to integers.
+export function evenlySpacedNumbers(
+  range: {start: number; end: number},
+  count: number
+): number[] {
+  if (range.end < range.start) {
+    throw new Error(
+      `range.end (${range.end}) must not be less than range.start (${range.start})`
+    );
+  }
+  if (count <= 1 || range.end === range.start) {
+    return [range.end];
+  }
+  const step = (range.end - range.start) / (count - 1);
+  const numbers = [];
+  for (let i = 0; i < count - 1; i++) {
+    numbers.push(Math.round(range.start + step * i));
+  }
+  numbers.push(range.end);
+  return numbers;
+}
+
+// Splits a formatted amount such as "€184,393.00" into the whole part and the
+// trailing fractional part (separator + two digits).
+// The fraction is empty when the amount has no trailing cents,
+// including formats that end in a currency symbol rather than digits.
+export function splitAmount(formatted: string): {
+  whole: string;
+  fraction: string;
+} {
+  const match = formatted.match(/^(.*)([.,]\d{2})$/);
+  if (!match) {
+    return {whole: formatted, fraction: ''};
+  }
+  return {whole: match[1], fraction: match[2]};
+}
+
 type DisplayOrderAndId = {
   id: number;
   displayOrder: number;

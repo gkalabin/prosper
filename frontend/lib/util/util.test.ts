@@ -2,11 +2,13 @@ import {
   appendNewItems,
   capitalize as capitalise,
   dollarToNanos,
+  evenlySpacedNumbers,
   nanosToDollar,
   notEmpty,
   parseAmountAsNanos,
   removeQuotes,
   roundToCent,
+  splitAmount,
 } from '@/lib/util/util';
 import {expect, test} from '@jest/globals';
 
@@ -110,6 +112,42 @@ describe('dollarToNanos', () => {
     ${1.2345} | ${1_234_500_000n}
   `('converts $dollar dollars to $expected nanos', ({dollar, expected}) =>
     expect(dollarToNanos(dollar)).toEqual(expected)
+  );
+});
+
+describe('evenlySpacedNumbers', () => {
+  test.each<{start: number; end: number; count: number; expected: number[]}>`
+    start | end   | count | expected
+    ${0}  | ${0}  | ${1}  | ${[0]}
+    ${0}  | ${0}  | ${5}  | ${[0]}
+    ${0}  | ${10} | ${1}  | ${[10]}
+    ${0}  | ${10} | ${0}  | ${[10]}
+    ${0}  | ${10} | ${2}  | ${[0, 10]}
+    ${0}  | ${10} | ${3}  | ${[0, 5, 10]}
+    ${0}  | ${10} | ${5}  | ${[0, 3, 5, 8, 10]}
+  `(
+    'spans [$start, $end] in $count yields $expected',
+    ({start, end, count, expected}) =>
+      expect(evenlySpacedNumbers({start, end}, count)).toEqual(expected)
+  );
+
+  test('throws when end is before start', () => {
+    expect(() => evenlySpacedNumbers({start: 10, end: 0}, 3)).toThrow();
+  });
+});
+
+describe('splitAmount', () => {
+  test.each<{formatted: string; whole: string; fraction: string}>`
+    formatted         | whole             | fraction
+    ${'€184,393.00'}  | ${'€184,393'}     | ${'.00'}
+    ${'$1,234.56'}    | ${'$1,234'}       | ${'.56'}
+    ${'$5'}           | ${'$5'}           | ${''}
+    ${'-$5.50'}       | ${'-$5'}          | ${'.50'}
+    ${'184.393,00 €'} | ${'184.393,00 €'} | ${''}
+  `(
+    'splits $formatted into $whole and $fraction',
+    ({formatted, whole, fraction}) =>
+      expect(splitAmount(formatted)).toEqual({whole, fraction})
   );
 });
 

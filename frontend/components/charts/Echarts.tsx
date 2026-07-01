@@ -1,7 +1,9 @@
+'use client';
 import {
   ChartsLibrary,
   HorizontalBarMoneyProps,
   HorizontalBarNumbersProps,
+  SparklineProps,
   StackedBarProps,
   TimeseriesMoneyProps,
   TimeseriesNumbersProps,
@@ -13,6 +15,8 @@ import {formatInterval, sliceInterval} from '@/lib/util/time';
 import {type EChartsOption} from 'echarts';
 import {type TooltipComponentOption} from 'echarts/components';
 import {CallbackDataParams} from 'echarts/types/dist/shared';
+
+const FULL_CHART_CLASS = 'h-[300px] w-full';
 
 function Bar(props: TimeseriesMoneyProps | TimeseriesNumbersProps) {
   return <BarOrLine {...props} type={'bar'} />;
@@ -53,6 +57,7 @@ function BarOrLine(
       data-chart-values={JSON.stringify(values)}
     >
       <Echart
+        className={FULL_CHART_CLASS}
         option={{
           grid: {
             containLabel: true,
@@ -88,6 +93,65 @@ function isTimeseriesNumberProps(
   props: TimeseriesMoneyProps | TimeseriesNumbersProps
 ): props is TimeseriesNumbersProps {
   return !(props as TimeseriesMoneyProps).currency;
+}
+
+// The theme's `--foreground` colour; ECharts cannot resolve CSS variables.
+const SPARKLINE_COLOR = '#1b1a17';
+const SPARKLINE_FILL_OPACITY = 0.13;
+
+function Sparkline({title, currency, data}: SparklineProps) {
+  const values = data.map(d => d.amount.round().dollar());
+  return (
+    <div data-chart-title={title} data-chart-values={JSON.stringify(values)}>
+      <Echart
+        className="h-[132px] w-full"
+        option={{
+          grid: {left: 0, right: 0, top: 8, bottom: 0},
+          xAxis: {
+            type: 'category',
+            show: false,
+            boundaryGap: false,
+            data: data.map(d => d.timestamp),
+          },
+          yAxis: {type: 'value', show: false, scale: true},
+          tooltip: {
+            trigger: 'axis',
+            formatter: sparklineTooltipFormatter(currency),
+          },
+          color: [SPARKLINE_COLOR],
+          series: [
+            {
+              type: 'line',
+              name: title,
+              data: values,
+              showSymbol: false,
+              smooth: true,
+              lineStyle: {width: 2},
+              areaStyle: {opacity: SPARKLINE_FILL_OPACITY},
+              markPoint: {
+                symbol: 'circle',
+                symbolSize: 7,
+                data: [
+                  {name: title, coord: [values.length - 1, values.at(-1) ?? 0]},
+                ],
+                label: {show: false},
+              },
+            },
+          ],
+        }}
+      />
+    </div>
+  );
+}
+
+function sparklineTooltipFormatter(c: Currency): TooltipFormatterCallback {
+  return (params: ToolTipFormatterParams) => {
+    const first = Array.isArray(params) ? params[0] : params;
+    if (!first) {
+      return '';
+    }
+    return mustFormatCurrency(c, first.value);
+  };
 }
 
 function isHorizontalBarMoneyProps(
@@ -127,6 +191,7 @@ function HorizontalBar(
   }
   return (
     <Echart
+      className={FULL_CHART_CLASS}
       option={{
         title: {
           text: props.title,
@@ -241,6 +306,7 @@ function StackedBar({
   const slices = sliceInterval({interval, granularity});
   return (
     <Echart
+      className={FULL_CHART_CLASS}
       option={{
         ...stackedBarChartTooltip(currency),
         grid: {
@@ -268,4 +334,10 @@ function StackedBar({
   );
 }
 
-export const Echarts: ChartsLibrary = {Line, Bar, HorizontalBar, StackedBar};
+export const Echarts: ChartsLibrary = {
+  Line,
+  Bar,
+  Sparkline,
+  HorizontalBar,
+  StackedBar,
+};

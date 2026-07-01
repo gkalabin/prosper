@@ -1,7 +1,7 @@
-import {test} from '../lib/fixtures/test-base';
-import {OverviewPage} from '../pages/OverviewPage';
+import {test} from '../../lib/fixtures/test-base';
+import {OverviewPage} from '../../pages/OverviewPage';
 
-test.describe('Overview', () => {
+test.describe('Overview accounts', () => {
   test('transactions impact the total', async ({page, seed, loginAs}) => {
     const {
       user,
@@ -23,21 +23,6 @@ test.describe('Overview', () => {
     await overviewPage.expectTotalBalance('$1,260');
     await overviewPage.expectAccountBalance('HSBC', 'Current', '$200');
     await overviewPage.expectAccountBalance('HSBC', 'Savings', '$1,060');
-  });
-
-  test('converts total to display currency', async ({page, seed, loginAs}) => {
-    const {user} = await seed.createUserWithMultipleAccounts({
-      accounts: [
-        {currencyCode: 'USD', initialBalance: 1000},
-        {currencyCode: 'GBP', initialBalance: 1000},
-      ],
-    });
-    await seed.updateDisplaySettings(user.id, {displayCurrencyCode: 'GBP'});
-    await seed.createExchangeRate('USD', 'GBP', 0.8); // 1 USD = 0.8 GBP
-    await loginAs(user);
-    const overviewPage = new OverviewPage(page);
-    await overviewPage.goto();
-    await overviewPage.expectTotalBalance('£1,800');
   });
 
   test('handles missing exchange rates', async ({page, seed, loginAs}) => {

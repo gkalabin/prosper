@@ -8,7 +8,7 @@ import {Stock} from '@/lib/model/Stock';
 export function PricePerShare({stock}: {stock: Stock}) {
   const {exchange} = useMarketDataContext();
   const displayCurrency = useDisplayCurrency();
-  const now = new Date();
+  const now = Date.now();
   const stockCurrency = mustFindByCode(stock.currencyCode);
   const one = new Amount({amountNanos: 1_000_000_000n});
   const rate = exchange.exchangeStock(one, stock, stockCurrency, now);

@@ -7,7 +7,7 @@ export interface InputProps
 }
 
 export const commonInputClassNames = cn(
-  'flex rounded-md border border-input bg-background ring-offset-background',
+  'flex rounded-md border border-input bg-card ring-offset-background',
   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
   'disabled:cursor-not-allowed disabled:opacity-50'
 );

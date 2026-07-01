@@ -1,7 +1,6 @@
 'use client';
 import {AppDataContextProviders} from '@/lib/context/AppDataContextProviders';
 import {Accounts} from '@/app/(authenticated)/bank/[bankId]/[name]/accounts';
-import {accountsSum} from '@/app/(authenticated)/overview/modelHelpers';
 import {
   isFullyConfigured,
   NotConfiguredYet,
@@ -9,9 +8,9 @@ import {
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
+import {useCurrentBalances} from '@/lib/context/CurrentBalancesContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {useMarketDataContext} from '@/lib/context/MarketDataContext';
-import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {AppData} from '@/lib/model/AppDataModel';
 import {accountsForBank} from '@/lib/model/BankAccount';
 import {Bank as ProtoBank} from '@/lib/grpc/gen/prosper/v1/ledger';
@@ -20,22 +19,16 @@ import {notFound} from 'next/navigation';
 
 function NonEmptyPageContent({bankId}: {bankId: number}) {
   const displayCurrency = useDisplayCurrency();
-  const {banks, stocks, bankAccounts} = useCoreDataContext();
+  const {banks, bankAccounts} = useCoreDataContext();
   const {exchange} = useMarketDataContext();
-  const {transactions} = useTransactionDataContext();
+  const balances = useCurrentBalances();
   const bank = banks.find(bank => bank.id === bankId);
   if (!bank) {
     return notFound();
   }
 
   const accounts = accountsForBank(bank, bankAccounts);
-  const bankTotal = accountsSum(
-    accounts,
-    displayCurrency,
-    exchange,
-    transactions,
-    stocks
-  );
+  const bankTotal = balances.sum(accounts, displayCurrency, exchange);
   // TODO: move padding to the root layout to have consistent paddings across the app.
   return (
     <div className="space-y-6 p-6">

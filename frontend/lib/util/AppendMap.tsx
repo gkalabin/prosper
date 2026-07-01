@@ -8,6 +8,10 @@ export function currencyAppendMap<T>(c: Currency) {
   );
 }
 
+export function nanosAppendMap() {
+  return new AppendMap<number, bigint>((a, b) => a + b, 0n);
+}
+
 export class AppendMap<K, V> extends Map<K, V> {
   private readonly _combineFn: (x: V, y: V) => V;
   private readonly _zero: V;

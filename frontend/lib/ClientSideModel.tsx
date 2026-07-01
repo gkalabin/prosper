@@ -1,5 +1,6 @@
 import {Amount} from '@/lib/Amount';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
+import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {CoreData} from '@/lib/db/fetch';
 import {
   GetTransactionsResponse,
@@ -29,6 +30,7 @@ import {
 import {Currency, NANOS_MULTIPLIER, mustFindByCode} from '@/lib/model/Currency';
 import {Stock, stockKey, stockModelFromDB} from '@/lib/model/Stock';
 import {Tag, tagModelFromDB} from '@/lib/model/Tag';
+import {isCurrency} from '@/lib/model/Unit';
 import {
   Transaction,
   transactionModelFromDB as singleTransactionModelFromDB,
@@ -53,7 +55,7 @@ export class StockAndCurrencyExchange {
   exchangeCurrency(
     a: AmountWithCurrency,
     target: Currency,
-    when: Date | number
+    when: number
   ): AmountWithCurrency | undefined {
     return this.exchangeRates.exchange(a, target, when);
   }
@@ -62,13 +64,32 @@ export class StockAndCurrencyExchange {
     a: Amount,
     stock: Stock,
     target: Currency,
-    when: Date | number
+    when: number
   ): AmountWithCurrency | undefined {
     const exchangeCurrencyAmount = this.stockQuotes.exchange(a, stock, when);
     if (!exchangeCurrencyAmount) {
       return undefined;
     }
     return this.exchangeRates.exchange(exchangeCurrencyAmount, target, when);
+  }
+
+  // Converts an amount in any unit (currency or stock) into the target
+  // currency as of `when`. Returns undefined when a required exchange rate or
+  // stock quote is unavailable for that date.
+  exchange(
+    amount: AmountWithUnit,
+    target: Currency,
+    when: number
+  ): AmountWithCurrency | undefined {
+    const unit = amount.getUnit();
+    if (isCurrency(unit)) {
+      return this.exchangeCurrency(
+        new AmountWithCurrency({amountNanos: amount.nanos(), currency: unit}),
+        target,
+        when
+      );
+    }
+    return this.exchangeStock(amount.getAmount(), unit, target, when);
   }
 }
 
@@ -121,7 +142,7 @@ export class ExchangeRates {
   exchange(
     a: AmountWithCurrency,
     target: Currency,
-    when: Date | number
+    when: number
   ): AmountWithCurrency | undefined {
     if (a.getCurrency().code == target.code) {
       return a;
@@ -142,7 +163,7 @@ export class ExchangeRates {
   private findRate(
     from: Currency,
     to: Currency,
-    when: Date | number
+    when: number
   ): number | undefined {
     const ratesFrom = this.ratesByCurrencyCode.get(from.code);
     if (!ratesFrom) {
@@ -191,7 +212,7 @@ export class StockQuotes {
   exchange(
     a: Amount,
     stock: Stock,
-    when: Date | number
+    when: number
   ): AmountWithCurrency | undefined {
     const currency = mustFindByCode(stock.currencyCode);
     if (a.isZero()) {
@@ -208,7 +229,7 @@ export class StockQuotes {
     });
   }
 
-  private findQuote(stock: Stock, when: Date | number): number | undefined {
+  private findQuote(stock: Stock, when: number): number | undefined {
     const quotesForStock = this.quotesByStock.get(stockKey(stock));
     if (!quotesForStock) {
       return undefined;

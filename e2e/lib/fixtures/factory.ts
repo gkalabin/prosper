@@ -216,7 +216,7 @@ export class TestFactory {
     return {id, userId, bankId, name, currencyCode, stock};
   }
 
-  private async openingBalance({
+  async openingBalance({
     userId,
     bankAccountId,
     initialBalance,

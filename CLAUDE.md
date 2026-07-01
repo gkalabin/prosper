@@ -33,6 +33,10 @@ Rules distilled from review feedback. Apply to any language or module.
 - URLs, timeouts, intervals, well-known keys, provider names — named constants
   in the package they belong to. If a sibling package already defines one,
   import it.
+- No magic numbers in logic. Any number whose meaning isn't obvious from the
+  expression (window sizes, sample counts, thresholds) gets a named constant. A
+  literal that also appears in user-facing text must drive that text too, not be
+  duplicated.
 
 ## Config
 

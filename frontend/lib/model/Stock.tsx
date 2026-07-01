@@ -38,9 +38,5 @@ export function formatStock(
   amount: Amount,
   options?: Intl.NumberFormatOptions
 ) {
-  const formatted = Intl.NumberFormat([], {
-    maximumFractionDigits: amount.isRound() ? 0 : 2,
-    ...options,
-  }).format(amount.dollar());
-  return `${formatted} ${stock.ticker}`;
+  return `${amount.format(options)} ${stock.ticker}`;
 }

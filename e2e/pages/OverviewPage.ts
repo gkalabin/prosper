@@ -3,20 +3,40 @@ import {type Locator, type Page, expect} from '@playwright/test';
 export class OverviewPage {
   readonly page: Page;
   readonly totalBalance: Locator;
+  readonly rangeStartAmount: Locator;
+  readonly rangeEndAmount: Locator;
 
   constructor(page: Page) {
     this.page = page;
     this.totalBalance = page.getByRole('region', {
-      name: 'Your total balance',
+      name: 'Net worth',
     });
+    this.rangeStartAmount = page.getByTestId('net-worth-range-start');
+    this.rangeEndAmount = page.getByTestId('net-worth-range-end');
   }
 
   async goto() {
     await this.page.goto('/overview');
   }
 
+  // Picks the net worth chart time range by its accessible label,
+  // e.g. '6 months'.
+  async selectNetWorthRange(label: string) {
+    await this.page
+      .getByRole('tablist', {name: 'Net worth time range'})
+      .getByRole('tab', {name: label, exact: true})
+      .click();
+  }
+
   async expectTotalBalance(amount: string) {
     await expect(this.totalBalance).toContainText(amount);
+  }
+
+  // The net worth chart is flanked by its range endpoints:
+  // the net worth at the start of the selected range and the net worth today.
+  async expectRangeAmounts(start: string, end: string) {
+    await expect(this.rangeStartAmount).toContainText(start);
+    await expect(this.rangeEndAmount).toContainText(end);
   }
 
   private getBankCard(bankName: string) {

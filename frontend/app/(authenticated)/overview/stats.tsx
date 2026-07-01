@@ -1,104 +1,189 @@
 'use client';
 import {MaybeHiddenDiv} from '@/app/(authenticated)/overview/hide-balances';
-import {accountsSum} from '@/app/(authenticated)/overview/modelHelpers';
-import {useExchangedTransactions} from '@/app/(authenticated)/stats/modelHelpers';
-import {Card, CardContent} from '@/components/ui/card';
+import {SignedDelta} from '@/app/(authenticated)/overview/signed-delta';
+import {Charts} from '@/components/charts';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
+import {useCurrentBalances} from '@/lib/context/CurrentBalancesContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {useMarketDataContext} from '@/lib/context/MarketDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
-import {
-  isExpense,
-  isIncome,
-  Transaction,
-} from '@/lib/model/transaction/Transaction';
-import {differenceInDays} from 'date-fns';
+import {netWorthTimeline} from '@/lib/model/balances';
+import {Transaction} from '@/lib/model/transaction/Transaction';
+import {splitAmount} from '@/lib/util/util';
+import {cn} from '@/lib/utils';
+import {format, subMonths, subYears} from 'date-fns';
+import {useState} from 'react';
 
-export function StatsWidget() {
+const NET_WORTH_SAMPLE_COUNT = 192;
+
+const RANGES = ['1M', '3M', '6M', '1Y', 'ALL'] as const;
+type Range = (typeof RANGES)[number];
+
+const RANGE_LABELS: Record<Range, string> = {
+  '1M': '1 month',
+  '3M': '3 months',
+  '6M': '6 months',
+  '1Y': '1 year',
+  ALL: 'all time',
+};
+
+function rangeStart(
+  range: Range,
+  now: number,
+  transactions: Transaction[]
+): number {
+  switch (range) {
+    case '1M':
+      return subMonths(now, 1).getTime();
+    case '3M':
+      return subMonths(now, 3).getTime();
+    case '6M':
+      return subMonths(now, 6).getTime();
+    case '1Y':
+      return subYears(now, 1).getTime();
+    case 'ALL': {
+      let earliest = now;
+      for (const t of transactions) {
+        if (t.timestampEpoch < earliest) {
+          earliest = t.timestampEpoch;
+        }
+      }
+      return earliest;
+    }
+  }
+}
+
+export function NetWorthHero() {
   const displayCurrency = useDisplayCurrency();
   const {bankAccounts, stocks} = useCoreDataContext();
   const {transactions} = useTransactionDataContext();
   const {exchange} = useMarketDataContext();
-  const total = accountsSum(
+  const [range, setRange] = useState<Range>('1Y');
+  const total = useCurrentBalances().sum(
+    bankAccounts,
+    displayCurrency,
+    exchange
+  );
+  if (!total) {
+    return null;
+  }
+  const now = Date.now();
+  const timeline = netWorthTimeline(
     bankAccounts,
     displayCurrency,
     exchange,
     transactions,
-    stocks
+    stocks,
+    {start: rangeStart(range, now, transactions), end: now},
+    NET_WORTH_SAMPLE_COUNT
   );
-  if (!total) {
-    return <></>;
-  }
+  const {whole, fraction} = splitAmount(total.format());
   return (
-    <>
-      <section className="py-5" aria-labelledby="total-balance-heading">
-        <h2 id="total-balance-heading" className="text-2xl font-bold">
-          Your total balance
-        </h2>
-        <MaybeHiddenDiv className="inline-block bg-gradient-to-r from-indigo-600 via-purple-500 via-55% to-orange-400 bg-clip-text text-3xl font-bold text-transparent">
-          {total.round().format()}
-        </MaybeHiddenDiv>
-      </section>
-      <Last30DaysIncomeExpense />
-    </>
+    <section className="px-1 py-4" aria-labelledby="net-worth-heading">
+      <h2
+        id="net-worth-heading"
+        className="text-muted-foreground text-xs font-bold uppercase tracking-[0.16em]"
+      >
+        Net worth
+      </h2>
+      <MaybeHiddenDiv className="mt-2 flex items-baseline font-mono font-semibold tracking-tight">
+        <span className="text-5xl">{whole}</span>
+        {fraction && (
+          <span className="text-muted-foreground text-2xl font-medium">
+            {fraction}
+          </span>
+        )}
+      </MaybeHiddenDiv>
+      {timeline.length >= 2 && (
+        <>
+          <div className="mt-3 font-mono text-sm font-semibold">
+            <NetWorthChange range={range} timeline={timeline} />
+          </div>
+          <RangeTabs range={range} onChange={setRange} />
+          <div className="mt-4">
+            <Charts.Sparkline
+              title="Net worth"
+              currency={displayCurrency}
+              data={timeline}
+            />
+            <NetWorthEndpoints timeline={timeline} />
+          </div>
+        </>
+      )}
+    </section>
   );
 }
 
-export function Last30DaysIncomeExpense() {
-  const {transactions} = useTransactionDataContext();
-  const now = Date.now();
-  const last30days = (t: Transaction) =>
-    differenceInDays(now, t.timestampEpoch) <= 30;
-  const {input, failed} = useExchangedTransactions(
-    transactions.filter(t => isIncome(t) || isExpense(t)).filter(last30days)
-  );
-  if (failed.length > 0) {
-    return <></>;
-  }
-  let expense = AmountWithCurrency.zero(input.currency());
-  for (const {ownShare} of input.expenses()) {
-    expense = expense.add(ownShare);
-  }
-  let income = AmountWithCurrency.zero(input.currency());
-  for (const {ownShare} of input.income()) {
-    income = income.add(ownShare);
-  }
+function NetWorthChange({
+  range,
+  timeline,
+}: {
+  range: Range;
+  timeline: Array<{timestamp: number; amount: AmountWithCurrency}>;
+}) {
+  const first = timeline[0].amount;
+  const last = timeline[timeline.length - 1].amount;
+  const delta = last.subtract(first);
+  return <SignedDelta delta={delta} label={RANGE_LABELS[range]} base={first} />;
+}
+
+function NetWorthEndpoints({
+  timeline,
+}: {
+  timeline: Array<{timestamp: number; amount: AmountWithCurrency}>;
+}) {
+  const first = timeline[0];
+  const last = timeline[timeline.length - 1];
   return (
-    <Card>
-      <CardContent className="py-0">
-        <div className="flex flex-row justify-center">
-          <section
-            className="flex grow flex-col items-center gap-1 p-1"
-            aria-labelledby="expense-heading"
-          >
-            <h3
-              id="expense-heading"
-              className="text-muted-foreground text-sm font-medium"
-            >
-              Expense
-            </h3>
-            <MaybeHiddenDiv className="text-lg font-medium">
-              {expense.round().format()}
-            </MaybeHiddenDiv>
-          </section>
-          <div className="w-0 border-l">&nbsp;</div>
-          <section
-            className="flex grow flex-col items-center gap-1 p-1"
-            aria-labelledby="income-heading"
-          >
-            <h3
-              id="income-heading"
-              className="text-muted-foreground text-sm font-medium"
-            >
-              Income
-            </h3>
-            <MaybeHiddenDiv className="text-lg font-medium">
-              {income.round().format()}
-            </MaybeHiddenDiv>
-          </section>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="text-muted-foreground mt-2 flex items-center justify-between font-mono text-xs">
+      <div data-testid="net-worth-range-start">
+        {format(first.timestamp, "MMM ''yy")} ·{' '}
+        <MaybeHiddenDiv className="inline-block">
+          {first.amount.round().format()}
+        </MaybeHiddenDiv>
+      </div>
+      <div data-testid="net-worth-range-end">
+        Today ·{' '}
+        <MaybeHiddenDiv className="inline-block">
+          {last.amount.round().format()}
+        </MaybeHiddenDiv>
+      </div>
+    </div>
+  );
+}
+
+function RangeTabs({
+  range,
+  onChange,
+}: {
+  range: Range;
+  onChange: (r: Range) => void;
+}) {
+  return (
+    <div
+      role="tablist"
+      aria-label="Net worth time range"
+      className="mt-4 flex gap-1.5"
+    >
+      {RANGES.map(r => (
+        <button
+          key={r}
+          type="button"
+          role="tab"
+          aria-selected={r === range}
+          aria-label={RANGE_LABELS[r]}
+          onClick={() => onChange(r)}
+          className={cn(
+            'rounded-lg px-3 py-1 font-mono text-xs font-semibold transition-colors',
+            r === range
+              ? 'bg-secondary text-foreground'
+              : 'text-muted-foreground hover:bg-accent'
+          )}
+        >
+          {r}
+        </button>
+      ))}
+    </div>
   );
 }

@@ -5,7 +5,8 @@ import {
   HideBalancesContextProvider,
   ToggleHideBalancesButton,
 } from '@/app/(authenticated)/overview/hide-balances';
-import {StatsWidget} from '@/app/(authenticated)/overview/stats';
+import {RecentTransactions} from '@/app/(authenticated)/overview/recent';
+import {NetWorthHero} from '@/app/(authenticated)/overview/stats';
 import {
   isFullyConfigured,
   NotConfiguredYet,
@@ -21,17 +22,26 @@ function NonEmptyPageContent({hideBalances}: {hideBalances: boolean}) {
   const {banks} = useCoreDataContext();
   return (
     <HideBalancesContextProvider initialHideBalances={hideBalances}>
-      <div className="space-y-4">
-        <div className="flex justify-end gap-4">
+      <div className="space-y-5">
+        <div className="flex justify-end gap-3">
           <ToggleHideBalancesButton />
           <Button asChild>
             <Link href="/new">New Transaction</Link>
           </Button>
         </div>
-        <StatsWidget />
-        {banks.map(bank => (
-          <BanksListItem key={bank.id} bank={bank} />
-        ))}
+        <NetWorthHero />
+        <section aria-labelledby="banks-heading" className="space-y-3">
+          <h2
+            id="banks-heading"
+            className="text-muted-foreground px-1 text-xs font-bold uppercase tracking-[0.13em]"
+          >
+            Banks &amp; accounts
+          </h2>
+          {banks.map(bank => (
+            <BanksListItem key={bank.id} bank={bank} />
+          ))}
+        </section>
+        <RecentTransactions />
       </div>
     </HideBalancesContextProvider>
   );

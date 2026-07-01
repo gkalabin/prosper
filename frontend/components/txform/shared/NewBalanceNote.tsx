@@ -1,7 +1,6 @@
-import {accountBalance} from '@/app/(authenticated)/overview/modelHelpers';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
-import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
+import {useCurrentBalances} from '@/lib/context/CurrentBalancesContext';
 import {
   isIncome,
   isPersonalExpense,
@@ -54,8 +53,8 @@ export function NewBalanceNote({
   accountId: number;
   transaction: Transaction | null;
 }) {
-  const {stocks, bankAccounts} = useCoreDataContext();
-  const {transactions} = useTransactionDataContext();
+  const {bankAccounts} = useCoreDataContext();
+  const balances = useCurrentBalances();
   const {metadataByAccount} = useOpenBankingFetchMetadata();
   const {
     formState: {isSubmitting},
@@ -68,7 +67,7 @@ export function NewBalanceNote({
     return null;
   }
   const remoteBalanceNanos = metadataByAccount[accountId]?.balanceNanos;
-  const localBalance = accountBalance(account, transactions, stocks);
+  const localBalance = balances.of(account);
   const remoteBalance =
     remoteBalanceNanos != null
       ? new AmountWithUnit({

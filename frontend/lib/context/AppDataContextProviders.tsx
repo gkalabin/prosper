@@ -1,5 +1,6 @@
 'use client';
 import {CoreDataContextProvider} from '@/lib/context/CoreDataContext';
+import {CurrentBalancesProvider} from '@/lib/context/CurrentBalancesContext';
 import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
 import {TransactionDataContextProvider} from '@/lib/context/TransactionDataContext';
 import {AppData} from '@/lib/model/AppDataModel';
@@ -18,7 +19,7 @@ export function AppDataContextProviders({
       <TransactionDataContextProvider dbData={dbData}>
         <MarketDataContextProvider dbData={dbData}>
           <OpenBankingFetchMetadataProvider dbData={dbData}>
-            {children}
+            <CurrentBalancesProvider>{children}</CurrentBalancesProvider>
           </OpenBankingFetchMetadataProvider>
         </MarketDataContextProvider>
       </TransactionDataContextProvider>

@@ -3,7 +3,13 @@ import {type ECharts, type EChartsOption, init} from 'echarts';
 import {useEffect, useRef} from 'react';
 
 // Renders a single ECharts chart and keeps it in sync with the given option.
-export function Echart({option}: {option: EChartsOption}) {
+export function Echart({
+  option,
+  className,
+}: {
+  option: EChartsOption;
+  className: string;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<ECharts | null>(null);
 
@@ -27,5 +33,5 @@ export function Echart({option}: {option: EChartsOption}) {
     chartRef.current?.setOption(option, {notMerge: true});
   }, [option]);
 
-  return <div ref={containerRef} className="h-[300px] w-full" />;
+  return <div ref={containerRef} className={className} />;
 }

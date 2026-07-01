@@ -1,18 +1,13 @@
 'use client';
 import {MaybeHiddenDiv} from '@/app/(authenticated)/overview/hide-balances';
-import {accountBalance} from '@/app/(authenticated)/overview/modelHelpers';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
-import {AmountWithUnit} from '@/lib/AmountWithUnit';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
-import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
-import {BankAccount, accountUnit} from '@/lib/model/BankAccount';
-import {useOpenBankingFetchMetadata} from '@/lib/openbanking/context';
-import {cn} from '@/lib/utils';
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  CheckCircleIcon,
-} from '@heroicons/react/24/outline';
+import {useCurrentBalances} from '@/lib/context/CurrentBalancesContext';
+import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
+import {useMarketDataContext} from '@/lib/context/MarketDataContext';
+import {accountUnit, BankAccount} from '@/lib/model/BankAccount';
+import {mustFindByCode} from '@/lib/model/Currency';
+import {isStock} from '@/lib/model/Unit';
 
 export function BankBalance({
   amount,
@@ -26,58 +21,34 @@ export function BankBalance({
 }
 
 export function AccountBalance({account}: {account: BankAccount}) {
-  const {metadataByAccount} = useOpenBankingFetchMetadata();
   const {stocks} = useCoreDataContext();
-  const remoteBalanceNanos = metadataByAccount[account.id]?.balanceNanos;
-  if (remoteBalanceNanos == null) {
-    return <LocalBalance account={account} />;
-  }
+  const {exchange} = useMarketDataContext();
+  const displayCurrency = useDisplayCurrency();
   const unit = accountUnit(account, stocks);
-  const remoteBalance = new AmountWithUnit({
-    amountNanos: remoteBalanceNanos,
-    unit,
-  });
-  return <RemoteBalance account={account} remoteBalance={remoteBalance} />;
-}
-
-function LocalBalance({account}: {account: BankAccount}) {
-  const {stocks} = useCoreDataContext();
-  const {transactions} = useTransactionDataContext();
-  const appBalance = accountBalance(account, transactions, stocks);
-  return <MaybeHiddenDiv>{appBalance.format()}</MaybeHiddenDiv>;
-}
-
-function RemoteBalance({
-  account,
-  remoteBalance,
-}: {
-  account: BankAccount;
-  remoteBalance: AmountWithUnit;
-}) {
-  const {stocks} = useCoreDataContext();
-  const {transactions} = useTransactionDataContext();
-  const localBalance = accountBalance(account, transactions, stocks);
-  const delta = localBalance.subtract(remoteBalance);
+  const nativeCurrency = isStock(unit)
+    ? mustFindByCode(unit.currencyCode)
+    : unit;
+  const balance = useCurrentBalances().of(account);
+  const now = Date.now();
+  const nativeBalance = exchange.exchange(balance, nativeCurrency, now);
+  const nativeCurrencyBalance = nativeBalance ?? balance;
+  let displayCurrencyBalance: AmountWithCurrency | undefined = undefined;
+  if (
+    nativeBalance &&
+    nativeCurrency.code != displayCurrency.code &&
+    !nativeBalance.isZero()
+  ) {
+    displayCurrencyBalance = exchange.exchange(balance, displayCurrency, now);
+  }
   return (
-    <div className="flex flex-col items-end">
-      <div
-        className={cn(
-          'flex items-center gap-1',
-          delta.isZero() ? 'text-green-600' : 'text-red-600'
-        )}
-      >
-        <MaybeHiddenDiv>{localBalance.format()}</MaybeHiddenDiv>
-        {delta.isZero() && <CheckCircleIcon className="h-4 w-4" />}
-      </div>
-      {!delta.isZero() && (
-        <div className="text-muted-foreground flex items-center gap-1 text-xs font-light">
-          {delta.isNegative() ? (
-            <ArrowUpIcon className="h-2.5 w-2.5" />
-          ) : (
-            <ArrowDownIcon className="h-2.5 w-2.5" />
-          )}
-          {delta.abs().format()}
-        </div>
+    <div className="text-right font-mono">
+      <MaybeHiddenDiv className="text-sm font-medium">
+        {nativeCurrencyBalance.format()}
+      </MaybeHiddenDiv>
+      {displayCurrencyBalance && (
+        <MaybeHiddenDiv className="text-muted-foreground text-xs">
+          ≈ {displayCurrencyBalance.format()}
+        </MaybeHiddenDiv>
       )}
     </div>
   );
