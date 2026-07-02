@@ -49,7 +49,8 @@ export function NewBalanceNote({
   transaction,
 }: {
   text?: string;
-  amount: number;
+  // The amount fields are text inputs and the schema coerces them only at validation time.
+  amount: number | string;
   accountId: number;
   transaction: Transaction | null;
 }) {
@@ -59,7 +60,8 @@ export function NewBalanceNote({
   const {
     formState: {isSubmitting},
   } = useFormContext();
-  if (!Number.isFinite(amount)) {
+  const amountNumber = Number(amount);
+  if (!Number.isFinite(amountNumber)) {
     return null;
   }
   const account = bankAccounts.find(a => a.id == accountId);
@@ -75,7 +77,7 @@ export function NewBalanceNote({
           unit: localBalance.getUnit(),
         })
       : null;
-  const newAmountNanos = dollarToNanos(amount);
+  const newAmountNanos = dollarToNanos(amountNumber);
   const existingNanos = existingAmountNanos({accountId, transaction});
   const newLocalBalance = new AmountWithUnit({
     amountNanos: localBalance.nanos() + newAmountNanos + existingNanos,
