@@ -147,8 +147,8 @@ func GetOrCreateTrip(ctx context.Context, tx *userdb.Tx, userID int32, name *str
 func InsertTransactionRow(ctx context.Context, tx *userdb.Tx, row model.Transaction) (int64, error) {
 	res, err := tx.NamedExecForUser(ctx, row.UserID,
 		`INSERT INTO Transaction
-		        ( iid,  userId,  timestamp,  note,  type,  vendor,  payer,  categoryId,  tripId,  supersedesId)
-		 VALUES (:iid, :userId, :timestamp, :note, :type, :vendor, :payer, :categoryId, :tripId, :supersedesId)`,
+		        ( iid,  userId,  timestamp,  note,  type,  vendor,  payer,  categoryId,  tripId,  supersedesId,  isVoid)
+		 VALUES (:iid, :userId, :timestamp, :note, :type, :vendor, :payer, :categoryId, :tripId, :supersedesId, :isVoid)`,
 		row)
 	if err != nil {
 		return 0, err
