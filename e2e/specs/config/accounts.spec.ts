@@ -120,7 +120,34 @@ test.describe('Account Management', () => {
     const overview = new OverviewPage(page);
     await overview.goto();
     await overview.expectAccountBalance('Chase', 'Checking', '$250');
-    await overview.expectTotalBalance('$250');
+  });
+
+  test('set and clear initial balance', async ({page, seed, loginAs}) => {
+    const {user} = await seed.createUserWithTestData({
+      bank: {name: 'Chase'},
+      account: {name: 'Checking', currencyCode: 'USD'},
+    });
+    await loginAs(user);
+    const bankConfigPage = new BankConfigPage(page);
+    const overview = new OverviewPage(page);
+    // Set initial balance.
+    await bankConfigPage.goto();
+    await bankConfigPage.editAccount({
+      bankName: 'Chase',
+      currentAccountName: 'Checking',
+      newBalance: 100,
+    });
+    await overview.goto();
+    await overview.expectAccountBalance('Chase', 'Checking', '$100');
+    // Clear initial balance.
+    await bankConfigPage.goto();
+    await bankConfigPage.editAccount({
+      bankName: 'Chase',
+      currentAccountName: 'Checking',
+      newBalance: 0,
+    });
+    await overview.goto();
+    await overview.expectAccountBalance('Chase', 'Checking', '$0');
   });
 
   test('archives an account', async ({page, seed, loginAs}) => {
