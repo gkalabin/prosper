@@ -121,4 +121,50 @@ test.describe('Overview net worth', () => {
     await overviewPage.selectNetWorthRange('6 months');
     await overviewPage.expectRangeAmounts('$700', '$1,200');
   });
+
+  test('offers only the range tabs covered by the recorded history', async ({
+    page,
+    seed,
+    loginAs,
+  }) => {
+    const {user, category, account} = await seed.createUserWithTestData({});
+    const now = new Date();
+    // Two months of history: the 1 month range narrows it and the 3 months
+    // range already shows all of it, so the wider ranges earn no tabs.
+    await seed.income('Salary', 1000, {
+      user,
+      account,
+      category,
+      timestamp: subDays(now, 60),
+    });
+    await seed.income('Bonus', 500, {
+      user,
+      account,
+      category,
+      timestamp: subDays(now, 10),
+    });
+    await loginAs(user);
+    const overviewPage = new OverviewPage(page);
+    await overviewPage.goto();
+    await overviewPage.expectNetWorthRanges(['1 month', '3 months']);
+  });
+
+  test('hides the range tabs when the history is shorter than the smallest range', async ({
+    page,
+    seed,
+    loginAs,
+  }) => {
+    const {user, category, account} = await seed.createUserWithTestData({});
+    const now = new Date();
+    await seed.income('Salary', 500, {
+      user,
+      account,
+      category,
+      timestamp: subDays(now, 10),
+    });
+    await loginAs(user);
+    const overviewPage = new OverviewPage(page);
+    await overviewPage.goto();
+    await overviewPage.expectNoNetWorthRangeTabs();
+  });
 });

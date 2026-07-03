@@ -20,6 +20,8 @@ const NET_WORTH_SAMPLE_COUNT = 192;
 const RANGES = ['1M', '3M', '6M', '1Y', 'ALL'] as const;
 type Range = (typeof RANGES)[number];
 
+const DEFAULT_RANGE: Range = '1Y';
+
 const RANGE_LABELS: Record<Range, string> = {
   '1M': '1 month',
   '3M': '3 months',
@@ -28,11 +30,8 @@ const RANGE_LABELS: Record<Range, string> = {
   ALL: 'all time',
 };
 
-function rangeStart(
-  range: Range,
-  now: number,
-  transactions: Transaction[]
-): number {
+function windowStart(range: Range): number {
+  const now = Date.now();
   switch (range) {
     case '1M':
       return subMonths(now, 1).getTime();
@@ -42,24 +41,41 @@ function rangeStart(
       return subMonths(now, 6).getTime();
     case '1Y':
       return subYears(now, 1).getTime();
-    case 'ALL': {
-      let earliest = now;
-      for (const t of transactions) {
-        if (t.timestampEpoch < earliest) {
-          earliest = t.timestampEpoch;
-        }
-      }
-      return earliest;
-    }
+    case 'ALL':
+      return -Infinity;
   }
+}
+
+// Timestamp of the first recorded transaction, or null when there are none.
+function earliestTimestamp(transactions: Transaction[]): number | null {
+  if (transactions.length === 0) {
+    return null;
+  }
+  let earliest = transactions[0].timestampEpoch;
+  for (const t of transactions) {
+    earliest = Math.min(earliest, t.timestampEpoch);
+  }
+  return earliest;
+}
+
+// Ranges worth offering as tabs. A range makes the cut only when the
+// previous, shorter one does not already cover the full history.
+function availableRanges(earliest: number): Range[] {
+  const available: Range[] = [RANGES[0]];
+  for (const range of RANGES.slice(1)) {
+    const previous = available[available.length - 1];
+    if (earliest >= windowStart(previous)) {
+      break;
+    }
+    available.push(range);
+  }
+  return available;
 }
 
 export function NetWorthHero() {
   const displayCurrency = useDisplayCurrency();
-  const {bankAccounts, stocks} = useCoreDataContext();
-  const {transactions} = useTransactionDataContext();
+  const {bankAccounts} = useCoreDataContext();
   const {exchange} = useMarketDataContext();
-  const [range, setRange] = useState<Range>('1Y');
   const total = useCurrentBalances().sum(
     bankAccounts,
     displayCurrency,
@@ -68,16 +84,6 @@ export function NetWorthHero() {
   if (!total) {
     return null;
   }
-  const now = Date.now();
-  const timeline = netWorthTimeline(
-    bankAccounts,
-    displayCurrency,
-    exchange,
-    transactions,
-    stocks,
-    {start: rangeStart(range, now, transactions), end: now},
-    NET_WORTH_SAMPLE_COUNT
-  );
   const {whole, fraction} = splitAmount(total.format());
   return (
     <section className="px-1 py-4" aria-labelledby="net-worth-heading">
@@ -95,23 +101,56 @@ export function NetWorthHero() {
           </span>
         )}
       </MaybeHiddenDiv>
-      {timeline.length >= 2 && (
-        <>
-          <div className="mt-3 font-mono text-sm font-semibold">
-            <NetWorthChange range={range} timeline={timeline} />
-          </div>
-          <RangeTabs range={range} onChange={setRange} />
-          <div className="mt-4">
-            <Charts.Sparkline
-              title="Net worth"
-              currency={displayCurrency}
-              data={timeline}
-            />
-            <NetWorthEndpoints timeline={timeline} />
-          </div>
-        </>
-      )}
+      <NetWorthHistory />
     </section>
+  );
+}
+
+// Sparkline of the net worth over a selectable time range.
+// Renders nothing when there is no recorded history to chart.
+function NetWorthHistory() {
+  const displayCurrency = useDisplayCurrency();
+  const {bankAccounts, stocks} = useCoreDataContext();
+  const {transactions} = useTransactionDataContext();
+  const {exchange} = useMarketDataContext();
+  const [selectedRange, setSelectedRange] = useState<Range>(DEFAULT_RANGE);
+  const earliest = earliestTimestamp(transactions);
+  if (earliest === null) {
+    return null;
+  }
+  const ranges = availableRanges(earliest);
+  const range = ranges.includes(selectedRange)
+    ? selectedRange
+    : ranges[ranges.length - 1];
+  const timeline = netWorthTimeline(
+    bankAccounts,
+    displayCurrency,
+    exchange,
+    transactions,
+    stocks,
+    {start: windowStart(range), end: Date.now()},
+    NET_WORTH_SAMPLE_COUNT
+  );
+  if (timeline.length < 2) {
+    return null;
+  }
+  return (
+    <>
+      <div className="mt-3 font-mono text-sm font-semibold">
+        <NetWorthChange range={range} timeline={timeline} />
+      </div>
+      {ranges.length > 1 && (
+        <RangeTabs ranges={ranges} range={range} onChange={setSelectedRange} />
+      )}
+      <div className="mt-4">
+        <Charts.Sparkline
+          title="Net worth"
+          currency={displayCurrency}
+          data={timeline}
+        />
+        <NetWorthEndpoints timeline={timeline} />
+      </div>
+    </>
   );
 }
 
@@ -154,9 +193,11 @@ function NetWorthEndpoints({
 }
 
 function RangeTabs({
+  ranges,
   range,
   onChange,
 }: {
+  ranges: Range[];
   range: Range;
   onChange: (r: Range) => void;
 }) {
@@ -166,7 +207,7 @@ function RangeTabs({
       aria-label="Net worth time range"
       className="mt-4 flex gap-1.5"
     >
-      {RANGES.map(r => (
+      {ranges.map(r => (
         <button
           key={r}
           type="button"

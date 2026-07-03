@@ -19,13 +19,31 @@ export class OverviewPage {
     await this.page.goto('/overview');
   }
 
+  private get netWorthRangeTabs(): Locator {
+    return this.page.getByRole('tablist', {name: 'Net worth time range'});
+  }
+
   // Picks the net worth chart time range by its accessible label,
   // e.g. '6 months'.
   async selectNetWorthRange(label: string) {
-    await this.page
-      .getByRole('tablist', {name: 'Net worth time range'})
+    await this.netWorthRangeTabs
       .getByRole('tab', {name: label, exact: true})
       .click();
+  }
+
+  async expectNetWorthRanges(labels: string[]) {
+    await expect(this.netWorthRangeTabs.getByRole('tab')).toHaveCount(
+      labels.length
+    );
+    for (const label of labels) {
+      await expect(
+        this.netWorthRangeTabs.getByRole('tab', {name: label, exact: true})
+      ).toBeVisible();
+    }
+  }
+
+  async expectNoNetWorthRangeTabs() {
+    await expect(this.netWorthRangeTabs).not.toBeVisible();
   }
 
   async expectTotalBalance(amount: string) {
