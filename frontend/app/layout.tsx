@@ -1,3 +1,4 @@
+import {isProd} from '@/lib/util/env';
 import {cn} from '@/lib/utils';
 import '@/styles/global.css';
 import {Metadata} from 'next';
@@ -37,6 +38,7 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head />
       <body
+        data-env={isProd() ? undefined : 'staging'}
         className={cn(
           'bg-background min-h-screen font-sans antialiased',
           hankenGrotesk.variable,

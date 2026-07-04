@@ -57,6 +57,19 @@ const config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        header: {
+          DEFAULT: 'hsl(var(--header))',
+          foreground: 'hsl(var(--header-foreground))',
+          muted: 'hsl(var(--header-muted))',
+          hover: 'hsl(var(--header-hover))',
+        },
+        drawer: {
+          DEFAULT: 'hsl(var(--drawer))',
+          foreground: 'hsl(var(--drawer-foreground))',
+          muted: 'hsl(var(--drawer-muted))',
+          border: 'hsl(var(--drawer-border))',
+          active: 'hsl(var(--drawer-active))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

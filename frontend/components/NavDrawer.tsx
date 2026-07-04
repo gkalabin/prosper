@@ -1,9 +1,9 @@
 'use client';
+import {Logo} from '@/components/Logo';
 import {SIGN_IN_URL, SIGN_OUT_URL} from '@/lib/auth/const';
 import {cn} from '@/lib/utils';
 import {
   ArrowRightStartOnRectangleIcon,
-  BanknotesIcon,
   Bars3Icon,
   Cog6ToothIcon,
   XMarkIcon,
@@ -32,7 +32,7 @@ export function NavDrawer({
   const pathname = usePathname();
   return (
     <Dialog.Root>
-      <Dialog.Trigger className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+      <Dialog.Trigger className="text-header-muted hover:bg-header-hover hover:text-header-foreground focus:ring-header-foreground inline-flex items-center justify-center rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-inset">
         <span className="sr-only">Open main menu</span>
         <Bars3Icon className="block h-5 w-5" aria-hidden="true" />
       </Dialog.Trigger>
@@ -40,13 +40,16 @@ export function NavDrawer({
         <Dialog.Overlay className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-40 bg-black/50" />
         <Dialog.Content
           className={
-            'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left fixed inset-y-0 left-0 z-50 flex w-72 max-w-[80%] flex-col bg-gray-800 p-4 shadow-xl duration-200'
+            'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left bg-drawer text-drawer-foreground fixed inset-y-0 left-0 z-50 flex w-72 max-w-[80%] flex-col p-4 shadow-xl duration-200'
           }
         >
           <div className="flex items-center justify-between px-1">
-            <BanknotesIcon className="block h-8 w-auto text-green-200" />
+            <span className="flex items-center gap-1 text-xl">
+              <Logo />
+              <span className="font-extrabold">prosper</span>
+            </span>
             <Dialog.Title className="sr-only">Navigation menu</Dialog.Title>
-            <Dialog.Close className="rounded-md p-2 text-gray-400 hover:bg-gray-700 hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+            <Dialog.Close className="text-drawer-muted hover:text-drawer-foreground focus:ring-drawer-foreground rounded-md p-2 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-inset">
               <span className="sr-only">Close menu</span>
               <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
             </Dialog.Close>
@@ -61,8 +64,8 @@ export function NavDrawer({
                     href={item.href}
                     className={cn(
                       active
-                        ? 'bg-gray-900 text-white'
-                        : 'text-gray-300 hover:bg-gray-700 hover:text-white',
+                        ? 'bg-drawer-active text-drawer-foreground'
+                        : 'text-drawer-muted hover:text-drawer-foreground hover:bg-white/5',
                       'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium'
                     )}
                     aria-current={active ? 'page' : undefined}
@@ -83,17 +86,17 @@ export function NavDrawer({
 
 function AccountSection({login}: {login: string}) {
   return (
-    <div className="mt-auto border-t border-gray-700 pt-4">
+    <div className="border-drawer-border mt-auto border-t pt-4">
       {login && (
-        <p className="px-3 pb-2 text-sm text-gray-400">
-          Signed in as <span className="text-gray-200">{login}</span>
+        <p className="text-drawer-muted px-3 pb-2 text-sm">
+          Signed in as <span className="text-drawer-foreground">{login}</span>
         </p>
       )}
       <nav className="flex flex-col space-y-1">
         <Dialog.Close asChild>
           <Link
             href="/config"
-            className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
+            className="text-drawer-muted hover:text-drawer-foreground flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium hover:bg-white/5"
           >
             <Cog6ToothIcon className="h-5 w-5" aria-hidden="true" />
             Settings
@@ -102,7 +105,7 @@ function AccountSection({login}: {login: string}) {
         {login ? (
           <a
             href={SIGN_OUT_URL}
-            className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
+            className="text-drawer-muted hover:text-drawer-foreground flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium hover:bg-white/5"
           >
             <ArrowRightStartOnRectangleIcon
               className="h-5 w-5"
@@ -113,7 +116,7 @@ function AccountSection({login}: {login: string}) {
         ) : (
           <a
             href={SIGN_IN_URL}
-            className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-gray-300 hover:bg-gray-700 hover:text-white"
+            className="text-drawer-muted hover:text-drawer-foreground flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium hover:bg-white/5"
           >
             <ArrowRightStartOnRectangleIcon
               className="h-5 w-5"

@@ -31,6 +31,15 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+    --header: 45 8% 9.8%;
+    --header-foreground: 41.5 37.1% 93.1%;
+    --header-muted: 37.1 8.2% 50%;
+    --header-hover: 41.5 37.1% 93.1% / 0.1;
+    --drawer: 45 8% 9.8%;
+    --drawer-foreground: 41.5 37.1% 93.1%;
+    --drawer-muted: 39.1 13.6% 66.9%;
+    --drawer-border: 38.2 14.7% 14.7%;
+    --drawer-active: 36.9 20.6% 12.4%;
   }
 
   .dark {
@@ -60,6 +69,17 @@
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+    --header: 42.9 18.9% 7.3%;
+    --header-muted: 39.1 9.5% 47.6%;
+  }
+
+  /* Staging renders the header in a warning orange so the environment is
+     unmistakable. Declared after .dark so it wins in either theme. */
+  [data-env='staging'] {
+    --header: 25.2 60.9% 46.1%;
+    --header-foreground: 0 0% 100%;
+    --header-muted: 0 0% 100% / 0.76;
+    --header-hover: 0 0% 100% / 0.16;
   }
 }
 
