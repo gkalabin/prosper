@@ -39,6 +39,9 @@ export function NavDrawer({
       <Dialog.Portal>
         <Dialog.Overlay className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-40 bg-black/50" />
         <Dialog.Content
+          // The drawer is a self-describing list of links; explicitly opt out
+          // of a description instead of adding filler text for screen readers.
+          aria-describedby={undefined}
           className={
             'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left bg-drawer text-drawer-foreground fixed inset-y-0 left-0 z-50 flex w-72 max-w-[80%] flex-col p-4 shadow-xl duration-200'
           }
