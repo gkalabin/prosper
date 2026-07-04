@@ -43,8 +43,7 @@ RUN adduser --system --uid 1001 prosper
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 WORKDIR /app
 
-# Public assets and prerender cache.
-COPY --from=frontend-builder /app/frontend/public ./public
+# Prerender cache.
 RUN mkdir .next && chown prosper:prosper .next
 
 # Frontend (standalone Node server + static assets).
