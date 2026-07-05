@@ -3,42 +3,36 @@ package suggest
 import (
 	"slices"
 	"strings"
+	"time"
 
 	prosperv1 "prosper/gen/prosper/v1"
+	"prosper/ledger/snapshot"
 	"prosper/model"
 	"prosper/sliceutil"
 )
 
 // proposeExpenseCategories proposes the categories most frequently recorded for expenses like this draft.
 func (h *history) proposeExpenseCategories(d *prosperv1.TransactionDraft) {
-	filters := []transactionFilter{isExpense}
 	vendor, _ := top(d.Vendor)
-	if name := strings.TrimSpace(vendor.GetValue()); name != "" {
-		filters = append(filters, matchesVendor(name))
-	}
-	filters = append(filters, h.isRecent)
-	h.proposeCategories(d, filters)
+	h.proposeCategories(d, prosperv1.FormType_FORM_TYPE_EXPENSE, vendor.GetValue())
 }
 
 // proposeIncomeCategories proposes the categories most frequently recorded for incomes like this draft.
 func (h *history) proposeIncomeCategories(d *prosperv1.TransactionDraft) {
-	filters := []transactionFilter{isIncome}
 	payer, _ := top(d.Payer)
-	if name := strings.TrimSpace(payer.GetValue()); name != "" {
-		filters = append(filters, matchesPayer(name))
-	}
-	filters = append(filters, h.isRecent)
-	h.proposeCategories(d, filters)
+	h.proposeCategories(d, prosperv1.FormType_FORM_TYPE_INCOME, payer.GetValue())
 }
 
 // proposeTransferCategories proposes the categories most frequently recorded for recent transfers.
 func (h *history) proposeTransferCategories(d *prosperv1.TransactionDraft) {
-	h.proposeCategories(d, []transactionFilter{isTransfer, h.isRecent})
+	h.proposeCategories(d, prosperv1.FormType_FORM_TYPE_TRANSFER, "")
 }
 
-// proposeCategories proposes the categories the transactions matching the filters most frequently use.
-func (h *history) proposeCategories(d *prosperv1.TransactionDraft, filters []transactionFilter) {
-	for _, categoryID := range h.topCategoriesMatchMost(filters, topCategoriesWant) {
+// proposeCategories proposes the categories the user most frequently
+// records for transactions like the draft: same form type, preferring
+// those recently recorded under the same name.
+func (h *history) proposeCategories(d *prosperv1.TransactionDraft, form prosperv1.FormType, name string) {
+	for _, categoryID := range h.topCategories(form, name, topCategoriesWant) {
 		addID(&d.CategoryId, categoryID, confidenceLearned)
 	}
 }
@@ -65,38 +59,101 @@ func (h *history) proposeRepaymentCategories(d *prosperv1.TransactionDraft) {
 	}
 }
 
-type transactionFilter func(t *model.Transaction) bool
+type categoryRankingScope struct {
+	form   prosperv1.FormType
+	name   string
+	recent bool
+}
 
-// topCategoriesMatchMost ranks categories by how often the
-// transactions matching all filters use them, relaxing the filters
-// from the right until want categories are found or only the first
-// filter remains.
-func (h *history) topCategoriesMatchMost(filters []transactionFilter, want int) []int32 {
+// rankedCategoriesByScope precomputes every category ranking topCategories
+// may consult, in one pass over the ledger.
+func rankedCategoriesByScope(snap *snapshot.Ledger, now time.Time) map[categoryRankingScope][]int32 {
+	recentCutoff := now.AddDate(0, -recentWindowMonths, 0)
+	idsByScope := make(map[categoryRankingScope][]int32)
+	for i := range snap.Transactions {
+		t := &snap.Transactions[i]
+		if t.CategoryID == nil {
+			continue
+		}
+		var form prosperv1.FormType
+		var name string
+		switch {
+		case isExpense(t):
+			form = prosperv1.FormType_FORM_TYPE_EXPENSE
+			if t.Vendor != nil {
+				name = normalizeName(*t.Vendor)
+			}
+		case isIncome(t):
+			form = prosperv1.FormType_FORM_TYPE_INCOME
+			if t.Payer != nil {
+				name = normalizeName(*t.Payer)
+			}
+		case isTransfer(t):
+			form = prosperv1.FormType_FORM_TYPE_TRANSFER
+		default:
+			continue
+		}
+		recent := t.Timestamp.After(recentCutoff)
+		scopes := []categoryRankingScope{{form: form}}
+		if recent {
+			scopes = append(scopes, categoryRankingScope{form: form, recent: true})
+		}
+		if name != "" {
+			scopes = append(scopes, categoryRankingScope{form: form, name: name})
+		}
+		if name != "" && recent {
+			scopes = append(scopes, categoryRankingScope{form: form, name: name, recent: true})
+		}
+		for _, scope := range scopes {
+			idsByScope[scope] = append(idsByScope[scope], *t.CategoryID)
+		}
+	}
+	ranked := make(map[categoryRankingScope][]int32, len(idsByScope))
+	for scope, ids := range idsByScope {
+		ranked[scope] = sliceutil.UniqMostFrequent(ids)
+	}
+	return ranked
+}
+
+// topCategories returns up to want category ids for the form type, most
+// frequently used first. Transactions recorded under the given name
+// (matched ignoring case and surrounding spaces) rank ahead of the rest,
+// recent ones ahead of older ones: the narrowest ranking is consulted
+// first and relaxed until want categories are found.
+func (h *history) topCategories(form prosperv1.FormType, name string, want int) []int32 {
+	var scopes []categoryRankingScope
+	if name = normalizeName(name); name != "" {
+		scopes = []categoryRankingScope{
+			{form: form, name: name, recent: true},
+			{form: form, name: name},
+			{form: form},
+		}
+	} else {
+		scopes = []categoryRankingScope{
+			{form: form, recent: true},
+			{form: form},
+		}
+	}
 	var result []int32
-	current := slices.Clone(filters)
-	for len(result) < want && len(current) > 0 {
-		ids := collect(h.snap, func(t *model.Transaction) (int32, bool) {
-			if t.CategoryID == nil {
-				return 0, false
-			}
-			for _, f := range current {
-				if !f(t) {
-					return 0, false
-				}
-			}
-			return *t.CategoryID, true
-		})
-		for _, id := range sliceutil.UniqMostFrequent(ids) {
+	for _, scope := range scopes {
+		for _, id := range h.rankedCategories[scope] {
 			if !slices.Contains(result, id) {
 				result = append(result, id)
 			}
 		}
-		current = current[:len(current)-1]
+		if len(result) >= want {
+			break
+		}
 	}
 	if len(result) > want {
 		result = result[:want]
 	}
 	return result
+}
+
+// normalizeName canonicalizes a vendor/payer name for matching.
+func normalizeName(name string) string {
+	return strings.ToLower(strings.TrimSpace(name))
 }
 
 func isExpense(t *model.Transaction) bool {
@@ -109,30 +166,4 @@ func isIncome(t *model.Transaction) bool {
 
 func isTransfer(t *model.Transaction) bool {
 	return t.Type == model.TransactionTransfer
-}
-
-func (h *history) isRecent(t *model.Transaction) bool {
-	return t.Timestamp.After(h.now.AddDate(0, -recentWindowMonths, 0))
-}
-
-// matchesVendor matches expenses recorded under the given vendor name, ignoring case and surrounding spaces.
-func matchesVendor(vendor string) transactionFilter {
-	vendor = strings.ToLower(strings.TrimSpace(vendor))
-	return func(t *model.Transaction) bool {
-		if t.Vendor == nil {
-			return false
-		}
-		return vendor == strings.ToLower(strings.TrimSpace(*t.Vendor))
-	}
-}
-
-// matchesPayer is matchesVendor for incomes and their payer.
-func matchesPayer(payer string) transactionFilter {
-	payer = strings.ToLower(strings.TrimSpace(payer))
-	return func(t *model.Transaction) bool {
-		if t.Payer == nil {
-			return false
-		}
-		return payer == strings.ToLower(strings.TrimSpace(*t.Payer))
-	}
 }

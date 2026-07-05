@@ -39,20 +39,23 @@ func (h *HistoryEnricher) Enrich(snap *snapshot.Ledger, drafts []*prosperv1.Tran
 // enricher proposes values from.
 type history struct {
 	snap *snapshot.Ledger
-	now  time.Time
 	// nameByRawDescription maps the description text of an imported
 	// open-banking transaction to the name the user most frequently
 	// recorded it under.
 	nameByRawDescription map[string]string
+	// rankedCategories holds each form type's categories ranked by how
+	// often the user records them, keyed with and without the recorded
+	// name and the recent window.
+	rankedCategories map[categoryRankingScope][]int32
 	// jointAccountIDs marks the bank accounts shared with a companion.
 	jointAccountIDs map[int32]bool
 }
 
 func newHistory(snap *snapshot.Ledger, now time.Time) *history {
 	h := &history{
-		snap:            snap,
-		now:             now,
-		jointAccountIDs: make(map[int32]bool),
+		snap:             snap,
+		rankedCategories: rankedCategoriesByScope(snap, now),
+		jointAccountIDs:  make(map[int32]bool),
 	}
 	for _, a := range snap.BankAccounts {
 		if a.Joint {
