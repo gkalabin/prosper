@@ -2,8 +2,10 @@ package suggest
 
 import (
 	"context"
+	"log"
 	"slices"
 	"strings"
+	"time"
 
 	prosperv1 "prosper/gen/prosper/v1"
 	"prosper/ledger/common"
@@ -34,6 +36,8 @@ func NewPipeline(db *userdb.DB, openBanking OpenBankingStore) *Pipeline {
 // event and enrich. The user's ledger snapshot is loaded once and
 // shared by recall and every enricher.
 func (p *Pipeline) Suggest(ctx context.Context, userID int32) ([]*prosperv1.TransactionDraft, error) {
+	// Collect all drafts from all sources, e.g. open banking.
+	proposeStart := time.Now()
 	var drafts []*prosperv1.TransactionDraft
 	for _, src := range p.sources {
 		proposed, err := src.Propose(ctx, userID)
@@ -42,20 +46,30 @@ func (p *Pipeline) Suggest(ctx context.Context, userID int32) ([]*prosperv1.Tran
 		}
 		drafts = append(drafts, proposed...)
 	}
+	proposeDuration := time.Since(proposeStart)
 	if len(drafts) == 0 {
 		return nil, nil
 	}
+	// Load the user's ledger. Used by the later parts of the pipeline.
+	snapshotStart := time.Now()
 	snap, err := snapshot.Load(ctx, p.db, userID)
 	if err != nil {
 		return nil, err
 	}
+	snapshotDuration := time.Since(snapshotStart)
+	// Enrich the drafts with helpful suggestions, like using the same vendor name as the user usually records.
+	// For example, open banking transactions reported as "AMAZON.CO.UK" get suggestion as "Amazon" based on the user's history.
+	enrichStart := time.Now()
 	recallFromSnapshot(snap, drafts)
 	for _, e := range p.enrichers {
 		if err := e.Enrich(snap, drafts); err != nil {
 			return nil, err
 		}
 	}
+	enrichDuration := time.Since(enrichStart)
 	sortDrafts(drafts)
+	log.Printf("suggest: user %d: %d drafts (propose=%s snapshot=%s enrich=%s total=%s)",
+		userID, len(drafts), proposeDuration, snapshotDuration, enrichDuration, time.Since(proposeStart))
 	return drafts, nil
 }
 
