@@ -2,6 +2,7 @@ package suggest
 
 import (
 	prosperv1 "prosper/gen/prosper/v1"
+	"prosper/ledger/snapshot"
 	"prosper/model"
 	"prosper/moneyutil"
 	"prosper/sliceutil"
@@ -23,8 +24,8 @@ func (h *history) proposeRecordedName(d *prosperv1.TransactionDraft, field *[]*p
 // through the given joint account: split with the usual companion, half
 // the amount as the user's own share.
 func (h *history) proposeSharing(d *prosperv1.TransactionDraft, account []*prosperv1.IdCandidate) {
-	if companion := h.mostFrequentCompanion(); companion != "" {
-		d.Companion = append(d.Companion, &prosperv1.StringCandidate{Confidence: confidenceLearned, Value: companion})
+	if h.mostFrequentCompanion != "" {
+		d.Companion = append(d.Companion, &prosperv1.StringCandidate{Confidence: confidenceLearned, Value: h.mostFrequentCompanion})
 	}
 	accountID, ok := top(account)
 	if !ok || !h.jointAccountIDs[accountID.Value] {
@@ -37,9 +38,11 @@ func (h *history) proposeSharing(d *prosperv1.TransactionDraft, account []*prosp
 	}
 }
 
-func (h *history) mostFrequentCompanion() string {
-	companions := sliceutil.UniqMostFrequent(collect(h.snap, func(t *model.Transaction) (string, bool) {
-		splits := h.snap.SplitsByTransaction[t.ID]
+// findMostFrequentCompanion finds the companion the user most frequently splits
+// transactions with. Returns an empty string when there are no shared splits.
+func findMostFrequentCompanion(snap *snapshot.Ledger) string {
+	companions := sliceutil.UniqMostFrequent(collect(snap, func(t *model.Transaction) (string, bool) {
+		splits := snap.SplitsByTransaction[t.ID]
 		if len(splits) == 0 || splits[0].CompanionName == "" {
 			return "", false
 		}
@@ -54,13 +57,22 @@ func (h *history) mostFrequentCompanion() string {
 // proposeThirdPartyPayer proposes who usually pays for the user — the
 // prefill for marking an expense as paid by someone else.
 func (h *history) proposeThirdPartyPayer(d *prosperv1.TransactionDraft) {
-	payers := sliceutil.UniqMostFrequent(collect(h.snap, func(t *model.Transaction) (string, bool) {
+	if h.mostFrequentThirdPartyPayer != "" {
+		d.Payer = append(d.Payer, &prosperv1.StringCandidate{Confidence: confidenceLearned, Value: h.mostFrequentThirdPartyPayer})
+	}
+}
+
+// findMostFrequentThirdPartyPayer finds the most frequent payer on the user's
+// behalf. Returns an empty string when there are no third-party expenses.
+func findMostFrequentThirdPartyPayer(snap *snapshot.Ledger) string {
+	payers := sliceutil.UniqMostFrequent(collect(snap, func(t *model.Transaction) (string, bool) {
 		if t.Type != model.TransactionThirdPartyExpense || t.Payer == nil || *t.Payer == "" {
 			return "", false
 		}
 		return *t.Payer, true
 	}))
-	if len(payers) > 0 {
-		d.Payer = append(d.Payer, &prosperv1.StringCandidate{Confidence: confidenceLearned, Value: payers[0]})
+	if len(payers) == 0 {
+		return ""
 	}
+	return payers[0]
 }

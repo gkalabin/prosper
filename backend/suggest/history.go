@@ -49,6 +49,12 @@ type history struct {
 	rankedCategories map[categoryRankingScope][]int32
 	// jointAccountIDs marks the bank accounts shared with a companion.
 	jointAccountIDs map[int32]bool
+	// mostFrequentCompanion is the companion the user most frequently splits
+	// transactions with. Empty when there are no shared splits.
+	mostFrequentCompanion string
+	// mostFrequentThirdPartyPayer is the most frequent payer on the user's
+	// behalf. Empty when there are no third-party expenses.
+	mostFrequentThirdPartyPayer string
 }
 
 func newHistory(snap *snapshot.Ledger, now time.Time) *history {
@@ -63,6 +69,8 @@ func newHistory(snap *snapshot.Ledger, now time.Time) *history {
 		}
 	}
 	h.nameByRawDescription = recordedNamesByRawDescription(snap)
+	h.mostFrequentCompanion = findMostFrequentCompanion(snap)
+	h.mostFrequentThirdPartyPayer = findMostFrequentThirdPartyPayer(snap)
 	return h
 }
 
