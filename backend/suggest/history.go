@@ -1,6 +1,7 @@
 package suggest
 
 import (
+	"strings"
 	"time"
 
 	prosperv1 "prosper/gen/prosper/v1"
@@ -35,6 +36,15 @@ func (h *HistoryEnricher) Enrich(snap *snapshot.Ledger, drafts []*prosperv1.Tran
 	return nil
 }
 
+// historyScope groups the user's recorded transactions by form type, the
+// normalized name recorded under (empty matches every name), and whether
+// they fall within the recent window.
+type historyScope struct {
+	form   prosperv1.FormType
+	name   string // vendor, payer or description.
+	recent bool
+}
+
 // history is the precomputed view of a user's recording habits the
 // enricher proposes values from.
 type history struct {
@@ -46,7 +56,10 @@ type history struct {
 	// rankedCategories holds each form type's categories ranked by how
 	// often the user records them, keyed with and without the recorded
 	// name and the recent window.
-	rankedCategories map[categoryRankingScope][]int32
+	rankedCategories map[historyScope][]int32
+	// rankedTags holds the tags the user usually attaches to transactions
+	// recorded under each form type and name.
+	rankedTags map[historyScope][]string
 	// jointAccountIDs marks the bank accounts shared with a companion.
 	jointAccountIDs map[int32]bool
 	// mostFrequentCompanion is the companion the user most frequently splits
@@ -61,6 +74,7 @@ func newHistory(snap *snapshot.Ledger, now time.Time) *history {
 	h := &history{
 		snap:             snap,
 		rankedCategories: rankedCategoriesByScope(snap, now),
+		rankedTags:       rankedTagsByScope(snap),
 		jointAccountIDs:  make(map[int32]bool),
 	}
 	for _, a := range snap.BankAccounts {
@@ -92,6 +106,7 @@ func (h *history) enrich(d *prosperv1.TransactionDraft) {
 func (h *history) enrichExpense(d *prosperv1.TransactionDraft) {
 	h.proposeRecordedName(d, &d.Vendor)
 	h.proposeExpenseCategories(d)
+	h.proposeExpenseTags(d)
 	h.proposeSharing(d, d.AccountFromId)
 	h.proposeThirdPartyPayer(d)
 	h.proposeRepaymentCategories(d)
@@ -100,6 +115,7 @@ func (h *history) enrichExpense(d *prosperv1.TransactionDraft) {
 func (h *history) enrichIncome(d *prosperv1.TransactionDraft) {
 	h.proposeRecordedName(d, &d.Payer)
 	h.proposeIncomeCategories(d)
+	h.proposeIncomeTags(d)
 	h.proposeSharing(d, d.AccountToId)
 }
 
@@ -140,6 +156,35 @@ func recordedNamesByRawDescription(snap *snapshot.Ledger) map[string]string {
 		out[raw] = sliceutil.UniqMostFrequent(names)[0]
 	}
 	return out
+}
+
+// normalizeName canonicalizes a vendor/payer name for matching.
+func normalizeName(name string) string {
+	return strings.ToLower(strings.TrimSpace(name))
+}
+
+// formAndName returns a transaction's form type and the normalized name
+// it's recorded under: an expense's vendor, an income's payer, empty for a
+// transfer. ok is false for any other transaction type.
+func formAndName(t *model.Transaction) (prosperv1.FormType, string, bool) {
+	switch {
+	case isExpense(t):
+		return prosperv1.FormType_FORM_TYPE_EXPENSE, normalizeName(nilToEmpty(t.Vendor)), true
+	case isIncome(t):
+		return prosperv1.FormType_FORM_TYPE_INCOME, normalizeName(nilToEmpty(t.Payer)), true
+	case isTransfer(t):
+		return prosperv1.FormType_FORM_TYPE_TRANSFER, "", true
+	default:
+		return prosperv1.FormType_FORM_TYPE_UNSPECIFIED, "", false
+	}
+}
+
+// nilToEmpty returns a vendor/payer pointer as an empty string when absent.
+func nilToEmpty(name *string) string {
+	if name == nil {
+		return ""
+	}
+	return *name
 }
 
 // collect applies pick to every transaction and returns the accepted values.

@@ -35,14 +35,15 @@ func day(n int) time.Time { return dayZero.AddDate(0, 0, n) }
 
 // fixture accumulates model rows and assembles them into a snapshot.
 type fixture struct {
-	txs            []model.Transaction
-	lines          []model.EntryLine
-	splits         []model.SplitContext
-	ledgerAccounts []model.LedgerAccount
-	links          []model.TransactionLink
-	origins        []model.TransactionOrigin
-	descriptions   []snapshot.OpenBankingDescription
-	bankAccounts   []model.BankAccount
+	txs             []model.Transaction
+	lines           []model.EntryLine
+	splits          []model.SplitContext
+	ledgerAccounts  []model.LedgerAccount
+	links           []model.TransactionLink
+	origins         []model.TransactionOrigin
+	descriptions    []snapshot.OpenBankingDescription
+	bankAccounts    []model.BankAccount
+	transactionTags []snapshot.TransactionTag
 }
 
 func newFixture() *fixture {
@@ -65,8 +66,18 @@ func newFixture() *fixture {
 }
 
 func (f *fixture) snapshot() *snapshot.Ledger {
-	return snapshot.New(f.txs, f.lines, f.splits,
-		f.ledgerAccounts, f.links, f.origins, f.descriptions, f.bankAccounts)
+	return snapshot.New(f.txs, f.lines, f.splits, f.ledgerAccounts,
+		f.links, f.origins, f.descriptions, f.bankAccounts, f.transactionTags)
+}
+
+// tag attaches tag names to an already-recorded transaction.
+func (f *fixture) tag(transactionID int32, names ...string) {
+	for _, name := range names {
+		f.transactionTags = append(f.transactionTags, snapshot.TransactionTag{
+			TransactionID: transactionID,
+			Name:          name,
+		})
+	}
 }
 
 func usdLine(transactionID, ledgerAccountID int32, amountNanos int64) model.EntryLine {

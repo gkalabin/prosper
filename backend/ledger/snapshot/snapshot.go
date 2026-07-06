@@ -21,8 +21,10 @@ type Ledger struct {
 
 	LinesByTransaction  map[int32][]model.EntryLine
 	SplitsByTransaction map[int32][]model.SplitContext
-	LedgerAccountByID   map[int32]model.LedgerAccount
-	Links               []model.TransactionLink
+	// TagNamesByTransaction holds the tag names attached to each transaction.
+	TagNamesByTransaction map[int32][]string
+	LedgerAccountByID     map[int32]model.LedgerAccount
+	Links                 []model.TransactionLink
 	// Origins link recorded transactions to the source events they
 	// were recorded from.
 	Origins []model.TransactionOrigin
@@ -38,6 +40,12 @@ type Ledger struct {
 type OpenBankingDescription struct {
 	ExternalID  string `db:"externalTransactionId"`
 	Description string `db:"description"`
+}
+
+// TransactionTag is one tag name attached to a recorded transaction.
+type TransactionTag struct {
+	TransactionID int32  `db:"transactionId"`
+	Name          string `db:"name"`
 }
 
 // Load reads the user's ledger into a snapshot.
@@ -90,7 +98,17 @@ func Load(ctx context.Context, db *userdb.DB, userID int32) (*Ledger, error) {
 		return nil, err
 	}
 
-	return New(txs, lines, splits, ledgerAccounts, links, origins, descriptions, bankAccounts), nil
+	var transactionTags []TransactionTag
+	if err := db.SelectForUser(ctx, &transactionTags, userID,
+		`SELECT tt.transactionId, tag.name
+		 FROM TagTransaction tt
+		 JOIN Tag tag ON tag.id = tt.tagId
+		 JOIN Transaction t ON t.id = tt.transactionId
+		 WHERE t.userId = :userId`); err != nil {
+		return nil, err
+	}
+
+	return New(txs, lines, splits, ledgerAccounts, links, origins, descriptions, bankAccounts, transactionTags), nil
 }
 
 // New assembles a snapshot from the user's already-loaded ledger rows.
@@ -103,12 +121,14 @@ func New(
 	origins []model.TransactionOrigin,
 	openBankingDescriptions []OpenBankingDescription,
 	bankAccounts []model.BankAccount,
+	transactionTags []TransactionTag,
 ) *Ledger {
 	s := &Ledger{
 		transactionByID:                    make(map[int32]*model.Transaction),
 		supersededBy:                       make(map[int32]int32),
 		LinesByTransaction:                 make(map[int32][]model.EntryLine),
 		SplitsByTransaction:                make(map[int32][]model.SplitContext),
+		TagNamesByTransaction:              make(map[int32][]string),
 		LedgerAccountByID:                  make(map[int32]model.LedgerAccount),
 		Links:                              links,
 		Origins:                            origins,
@@ -117,6 +137,9 @@ func New(
 	}
 	for _, d := range openBankingDescriptions {
 		s.OpenBankingDescriptionByExternalID[d.ExternalID] = d.Description
+	}
+	for _, t := range transactionTags {
+		s.TagNamesByTransaction[t.TransactionID] = append(s.TagNamesByTransaction[t.TransactionID], t.Name)
 	}
 	for _, t := range txs {
 		if t.SupersedesID != nil {

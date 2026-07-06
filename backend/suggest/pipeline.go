@@ -14,8 +14,7 @@ import (
 )
 
 // Pipeline is the transaction draft pipeline. Suggest proposes drafts
-// for the events its sources report; Complete fills the unset fields
-// of a draft the user is editing.
+// for the events its sources report.
 type Pipeline struct {
 	db        *userdb.DB
 	sources   []Source

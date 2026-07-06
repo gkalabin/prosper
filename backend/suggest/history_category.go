@@ -2,7 +2,6 @@ package suggest
 
 import (
 	"slices"
-	"strings"
 	"time"
 
 	prosperv1 "prosper/gen/prosper/v1"
@@ -59,56 +58,36 @@ func (h *history) proposeRepaymentCategories(d *prosperv1.TransactionDraft) {
 	}
 }
 
-type categoryRankingScope struct {
-	form   prosperv1.FormType
-	name   string
-	recent bool
-}
-
 // rankedCategoriesByScope precomputes every category ranking topCategories
 // may consult, in one pass over the ledger.
-func rankedCategoriesByScope(snap *snapshot.Ledger, now time.Time) map[categoryRankingScope][]int32 {
+func rankedCategoriesByScope(snap *snapshot.Ledger, now time.Time) map[historyScope][]int32 {
 	recentCutoff := now.AddDate(0, -recentWindowMonths, 0)
-	idsByScope := make(map[categoryRankingScope][]int32)
+	idsByScope := make(map[historyScope][]int32)
 	for i := range snap.Transactions {
 		t := &snap.Transactions[i]
 		if t.CategoryID == nil {
 			continue
 		}
-		var form prosperv1.FormType
-		var name string
-		switch {
-		case isExpense(t):
-			form = prosperv1.FormType_FORM_TYPE_EXPENSE
-			if t.Vendor != nil {
-				name = normalizeName(*t.Vendor)
-			}
-		case isIncome(t):
-			form = prosperv1.FormType_FORM_TYPE_INCOME
-			if t.Payer != nil {
-				name = normalizeName(*t.Payer)
-			}
-		case isTransfer(t):
-			form = prosperv1.FormType_FORM_TYPE_TRANSFER
-		default:
+		form, name, ok := formAndName(t)
+		if !ok {
 			continue
 		}
 		recent := t.Timestamp.After(recentCutoff)
-		scopes := []categoryRankingScope{{form: form}}
+		scopes := []historyScope{{form: form}}
 		if recent {
-			scopes = append(scopes, categoryRankingScope{form: form, recent: true})
+			scopes = append(scopes, historyScope{form: form, recent: true})
 		}
 		if name != "" {
-			scopes = append(scopes, categoryRankingScope{form: form, name: name})
+			scopes = append(scopes, historyScope{form: form, name: name})
 		}
 		if name != "" && recent {
-			scopes = append(scopes, categoryRankingScope{form: form, name: name, recent: true})
+			scopes = append(scopes, historyScope{form: form, name: name, recent: true})
 		}
 		for _, scope := range scopes {
 			idsByScope[scope] = append(idsByScope[scope], *t.CategoryID)
 		}
 	}
-	ranked := make(map[categoryRankingScope][]int32, len(idsByScope))
+	ranked := make(map[historyScope][]int32, len(idsByScope))
 	for scope, ids := range idsByScope {
 		ranked[scope] = sliceutil.UniqMostFrequent(ids)
 	}
@@ -121,15 +100,15 @@ func rankedCategoriesByScope(snap *snapshot.Ledger, now time.Time) map[categoryR
 // recent ones ahead of older ones: the narrowest ranking is consulted
 // first and relaxed until want categories are found.
 func (h *history) topCategories(form prosperv1.FormType, name string, want int) []int32 {
-	var scopes []categoryRankingScope
+	var scopes []historyScope
 	if name = normalizeName(name); name != "" {
-		scopes = []categoryRankingScope{
+		scopes = []historyScope{
 			{form: form, name: name, recent: true},
 			{form: form, name: name},
 			{form: form},
 		}
 	} else {
-		scopes = []categoryRankingScope{
+		scopes = []historyScope{
 			{form: form, recent: true},
 			{form: form},
 		}
@@ -149,11 +128,6 @@ func (h *history) topCategories(form prosperv1.FormType, name string, want int) 
 		result = result[:want]
 	}
 	return result
-}
-
-// normalizeName canonicalizes a vendor/payer name for matching.
-func normalizeName(name string) string {
-	return strings.ToLower(strings.TrimSpace(name))
 }
 
 func isExpense(t *model.Transaction) bool {

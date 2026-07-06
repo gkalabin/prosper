@@ -57,3 +57,7 @@ func addTimestamp(field *[]*prosperv1.TimestampCandidate, value time.Time, confi
 func addFormType(field *[]*prosperv1.FormTypeCandidate, value prosperv1.FormType, confidence int32) {
 	*field = append(*field, &prosperv1.FormTypeCandidate{Confidence: confidence, Value: value})
 }
+
+func addTags(field *[]*prosperv1.TagsCandidate, names []string, confidence int32) {
+	*field = append(*field, &prosperv1.TagsCandidate{Confidence: confidence, Value: &prosperv1.TagNames{Names: names}})
+}
