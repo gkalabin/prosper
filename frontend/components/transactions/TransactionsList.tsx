@@ -153,7 +153,7 @@ export const TransactionsListItem = ({
           </div>
         </div>
         <div
-          className={cn('self-center pr-2 text-lg', {
+          className={cn('self-center whitespace-nowrap pr-2 text-lg', {
             'text-green-900': isIncome(t),
           })}
         >

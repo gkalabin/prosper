@@ -43,7 +43,7 @@ export function SignedDelta({
     <span className={cn('inline-flex items-center gap-1.5', className)}>
       <MaybeHiddenDiv className={cn('inline-flex items-center gap-1', color)}>
         <TrendTriangle up={delta.isPositive()} />
-        <span>
+        <span className="whitespace-nowrap">
           {sign}
           {delta.abs().round().format()}
         </span>
@@ -53,7 +53,9 @@ export function SignedDelta({
       {percent !== null && (
         <>
           <span className="text-muted-foreground font-medium">·</span>
-          <MaybeHiddenDiv className={cn('inline-block', color)}>
+          <MaybeHiddenDiv
+            className={cn('inline-block whitespace-nowrap', color)}
+          >
             {sign}
             {percent.toFixed(2)}%
           </MaybeHiddenDiv>
