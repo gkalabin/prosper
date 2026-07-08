@@ -34,6 +34,16 @@ service LedgerService {
   // Suggest proposes transaction drafts for events the suggestion
   // pipeline knows about (e.g. fetched bank transactions).
   rpc Suggest(SuggestRequest) returns (SuggestResponse);
+
+  // IgnoreDraftOrigins marks the given origins as ignored so their
+  // drafts appear greyed out in the suggestion list.
+  rpc IgnoreDraftOrigins(IgnoreDraftOriginsRequest)
+      returns (IgnoreDraftOriginsResponse);
+
+  // UnignoreDraftOrigins reverses a previous ignore, restoring the
+  // drafts to full visibility.
+  rpc UnignoreDraftOrigins(UnignoreDraftOriginsRequest)
+      returns (UnignoreDraftOriginsResponse);
 }
 
 // AuthService is the single source of truth for user accounts and
@@ -396,6 +406,19 @@ message WriteTransactionFormResponse { int32 transaction_id = 1; }
 message SuggestRequest { string session_id = 1; }
 message SuggestResponse { repeated TransactionDraft drafts = 1; }
 
+message IgnoreDraftOriginsRequest {
+  // Repeated field to allow ignoring a transfer (has two origins) draft with one RPC call.
+  repeated OriginKey origins = 1;
+  string session_id = 2;
+}
+message IgnoreDraftOriginsResponse {}
+
+message UnignoreDraftOriginsRequest {
+  repeated OriginKey origins = 1;
+  string session_id = 2;
+}
+message UnignoreDraftOriginsResponse {}
+
 enum OriginKind {
   ORIGIN_KIND_UNSPECIFIED = 0;
   ORIGIN_KIND_OPEN_BANKING = 1;
@@ -490,4 +513,6 @@ message TransactionDraft {
   repeated IdCandidate repayment_category_id = 19;
   // Refunded transaction for an income recorded as a refund.
   repeated IdCandidate parent_transaction_id = 20;
+  // True when the user has explicitly ignored this draft's origins.
+  bool ignored = 21;
 }

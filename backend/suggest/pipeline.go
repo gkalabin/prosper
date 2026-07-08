@@ -91,20 +91,20 @@ func sortDrafts(drafts []*prosperv1.TransactionDraft) {
 			}
 		}
 		ka, kb := firstOriginKey(a), firstOriginKey(b)
-		if c := strings.Compare(ka.key, kb.key); c != 0 {
+		if c := strings.Compare(ka.Key, kb.Key); c != 0 {
 			return c
 		}
-		return strings.Compare(string(ka.kind), string(kb.kind))
+		return strings.Compare(string(ka.Kind), string(kb.Kind))
 	})
 }
 
 // firstOriginKey is the key of the draft's first origin, or the zero
 // value when the draft has none.
-func firstOriginKey(d *prosperv1.TransactionDraft) OriginKey {
+func firstOriginKey(d *prosperv1.TransactionDraft) common.OriginKey {
 	if len(d.Origins) == 0 {
-		return OriginKey{}
+		return common.OriginKey{}
 	}
 	o := d.Origins[0]
 	kind, _ := common.OriginKindToModel(o.Kind)
-	return OriginKey{kind: kind, key: o.Key}
+	return common.OriginKey{Kind: kind, Key: o.Key}
 }

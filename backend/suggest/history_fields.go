@@ -11,7 +11,7 @@ import (
 // proposeRecordedName proposes the name the draft's raw bank text was
 // most frequently recorded under, into the given name field.
 func (h *history) proposeRecordedName(d *prosperv1.TransactionDraft, field *[]*prosperv1.StringCandidate) {
-	raw := h.snap.OpenBankingDescriptionByExternalID[firstOriginKey(d).key]
+	raw := h.snap.OpenBankingDescriptionByExternalID[firstOriginKey(d).Key]
 	if raw == "" {
 		return
 	}

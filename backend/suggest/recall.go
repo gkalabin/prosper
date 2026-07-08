@@ -7,22 +7,15 @@ import (
 	prosperv1 "prosper/gen/prosper/v1"
 	"prosper/ledger/common"
 	"prosper/ledger/snapshot"
-	"prosper/model"
 )
 
-// OriginKey identifies an external source event:
-// the kind of source it came from and its id within that source.
-type OriginKey struct {
-	kind model.SourceOriginKind
-	key  string
-}
-
 // recallFromSnapshot fills each draft's Recorded with the live
-// transactions already recorded from its origins.
+// transactions already recorded from its origins, and marks drafts
+// whose origins are ignored.
 func recallFromSnapshot(snap *snapshot.Ledger, drafts []*prosperv1.TransactionDraft) {
-	transactionsByOrigin := make(map[OriginKey][]int32)
+	transactionsByOrigin := make(map[common.OriginKey][]int32)
 	for _, o := range snap.Origins {
-		key := OriginKey{kind: o.OriginKind, key: o.Key}
+		key := common.OriginKey{Kind: o.OriginKind, Key: o.Key}
 		transactionsByOrigin[key] = append(transactionsByOrigin[key], o.InternalTransactionID)
 	}
 	for _, d := range drafts {
@@ -33,7 +26,7 @@ func recallFromSnapshot(snap *snapshot.Ledger, drafts []*prosperv1.TransactionDr
 				log.Printf("suggest: skipping draft origin with unknown kind %v (key %q)", o.Kind, o.Key)
 				continue
 			}
-			key := OriginKey{kind: kind, key: o.Key}
+			key := common.OriginKey{Kind: kind, Key: o.Key}
 			for _, recordedID := range transactionsByOrigin[key] {
 				current, ok := snap.CurrentVersion(recordedID)
 				if !ok {
@@ -43,6 +36,9 @@ func recallFromSnapshot(snap *snapshot.Ledger, drafts []*prosperv1.TransactionDr
 				if !slices.Contains(recorded, current.ID) {
 					recorded = append(recorded, current.ID)
 				}
+			}
+			if snap.IgnoredOrigins[key] {
+				d.Ignored = true
 			}
 		}
 		slices.Sort(recorded)

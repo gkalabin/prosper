@@ -28,6 +28,8 @@ const (
 	LedgerService_UpsertCategory_FullMethodName          = "/prosper.v1.LedgerService/UpsertCategory"
 	LedgerService_UpdateDisplaySettings_FullMethodName   = "/prosper.v1.LedgerService/UpdateDisplaySettings"
 	LedgerService_Suggest_FullMethodName                 = "/prosper.v1.LedgerService/Suggest"
+	LedgerService_IgnoreDraftOrigins_FullMethodName      = "/prosper.v1.LedgerService/IgnoreDraftOrigins"
+	LedgerService_UnignoreDraftOrigins_FullMethodName    = "/prosper.v1.LedgerService/UnignoreDraftOrigins"
 )
 
 // LedgerServiceClient is the client API for LedgerService service.
@@ -50,6 +52,12 @@ type LedgerServiceClient interface {
 	// Suggest proposes transaction drafts for events the suggestion
 	// pipeline knows about (e.g. fetched bank transactions).
 	Suggest(ctx context.Context, in *SuggestRequest, opts ...grpc.CallOption) (*SuggestResponse, error)
+	// IgnoreDraftOrigins marks the given origins as ignored so their
+	// drafts appear greyed out in the suggestion list.
+	IgnoreDraftOrigins(ctx context.Context, in *IgnoreDraftOriginsRequest, opts ...grpc.CallOption) (*IgnoreDraftOriginsResponse, error)
+	// UnignoreDraftOrigins reverses a previous ignore, restoring the
+	// drafts to full visibility.
+	UnignoreDraftOrigins(ctx context.Context, in *UnignoreDraftOriginsRequest, opts ...grpc.CallOption) (*UnignoreDraftOriginsResponse, error)
 }
 
 type ledgerServiceClient struct {
@@ -150,6 +158,26 @@ func (c *ledgerServiceClient) Suggest(ctx context.Context, in *SuggestRequest, o
 	return out, nil
 }
 
+func (c *ledgerServiceClient) IgnoreDraftOrigins(ctx context.Context, in *IgnoreDraftOriginsRequest, opts ...grpc.CallOption) (*IgnoreDraftOriginsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IgnoreDraftOriginsResponse)
+	err := c.cc.Invoke(ctx, LedgerService_IgnoreDraftOrigins_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ledgerServiceClient) UnignoreDraftOrigins(ctx context.Context, in *UnignoreDraftOriginsRequest, opts ...grpc.CallOption) (*UnignoreDraftOriginsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(UnignoreDraftOriginsResponse)
+	err := c.cc.Invoke(ctx, LedgerService_UnignoreDraftOrigins_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LedgerServiceServer is the server API for LedgerService service.
 // All implementations must embed UnimplementedLedgerServiceServer
 // for forward compatibility.
@@ -170,6 +198,12 @@ type LedgerServiceServer interface {
 	// Suggest proposes transaction drafts for events the suggestion
 	// pipeline knows about (e.g. fetched bank transactions).
 	Suggest(context.Context, *SuggestRequest) (*SuggestResponse, error)
+	// IgnoreDraftOrigins marks the given origins as ignored so their
+	// drafts appear greyed out in the suggestion list.
+	IgnoreDraftOrigins(context.Context, *IgnoreDraftOriginsRequest) (*IgnoreDraftOriginsResponse, error)
+	// UnignoreDraftOrigins reverses a previous ignore, restoring the
+	// drafts to full visibility.
+	UnignoreDraftOrigins(context.Context, *UnignoreDraftOriginsRequest) (*UnignoreDraftOriginsResponse, error)
 	mustEmbedUnimplementedLedgerServiceServer()
 }
 
@@ -206,6 +240,12 @@ func (UnimplementedLedgerServiceServer) UpdateDisplaySettings(context.Context, *
 }
 func (UnimplementedLedgerServiceServer) Suggest(context.Context, *SuggestRequest) (*SuggestResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method Suggest not implemented")
+}
+func (UnimplementedLedgerServiceServer) IgnoreDraftOrigins(context.Context, *IgnoreDraftOriginsRequest) (*IgnoreDraftOriginsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method IgnoreDraftOrigins not implemented")
+}
+func (UnimplementedLedgerServiceServer) UnignoreDraftOrigins(context.Context, *UnignoreDraftOriginsRequest) (*UnignoreDraftOriginsResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method UnignoreDraftOrigins not implemented")
 }
 func (UnimplementedLedgerServiceServer) mustEmbedUnimplementedLedgerServiceServer() {}
 func (UnimplementedLedgerServiceServer) testEmbeddedByValue()                       {}
@@ -390,6 +430,42 @@ func _LedgerService_Suggest_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LedgerService_IgnoreDraftOrigins_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IgnoreDraftOriginsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LedgerServiceServer).IgnoreDraftOrigins(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LedgerService_IgnoreDraftOrigins_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LedgerServiceServer).IgnoreDraftOrigins(ctx, req.(*IgnoreDraftOriginsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LedgerService_UnignoreDraftOrigins_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UnignoreDraftOriginsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LedgerServiceServer).UnignoreDraftOrigins(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: LedgerService_UnignoreDraftOrigins_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LedgerServiceServer).UnignoreDraftOrigins(ctx, req.(*UnignoreDraftOriginsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // LedgerService_ServiceDesc is the grpc.ServiceDesc for LedgerService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -432,6 +508,14 @@ var LedgerService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Suggest",
 			Handler:    _LedgerService_Suggest_Handler,
+		},
+		{
+			MethodName: "IgnoreDraftOrigins",
+			Handler:    _LedgerService_IgnoreDraftOrigins_Handler,
+		},
+		{
+			MethodName: "UnignoreDraftOrigins",
+			Handler:    _LedgerService_UnignoreDraftOrigins_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

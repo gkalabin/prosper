@@ -3515,6 +3515,183 @@ func (x *SuggestResponse) GetDrafts() []*TransactionDraft {
 	return nil
 }
 
+type IgnoreDraftOriginsRequest struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Repeated field to allow ignoring a transfer (has two origins) draft with one RPC call.
+	Origins       []*OriginKey `protobuf:"bytes,1,rep,name=origins,proto3" json:"origins,omitempty"`
+	SessionId     string       `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IgnoreDraftOriginsRequest) Reset() {
+	*x = IgnoreDraftOriginsRequest{}
+	mi := &file_prosper_v1_ledger_proto_msgTypes[49]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IgnoreDraftOriginsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IgnoreDraftOriginsRequest) ProtoMessage() {}
+
+func (x *IgnoreDraftOriginsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_prosper_v1_ledger_proto_msgTypes[49]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IgnoreDraftOriginsRequest.ProtoReflect.Descriptor instead.
+func (*IgnoreDraftOriginsRequest) Descriptor() ([]byte, []int) {
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{49}
+}
+
+func (x *IgnoreDraftOriginsRequest) GetOrigins() []*OriginKey {
+	if x != nil {
+		return x.Origins
+	}
+	return nil
+}
+
+func (x *IgnoreDraftOriginsRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+type IgnoreDraftOriginsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *IgnoreDraftOriginsResponse) Reset() {
+	*x = IgnoreDraftOriginsResponse{}
+	mi := &file_prosper_v1_ledger_proto_msgTypes[50]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *IgnoreDraftOriginsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*IgnoreDraftOriginsResponse) ProtoMessage() {}
+
+func (x *IgnoreDraftOriginsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_prosper_v1_ledger_proto_msgTypes[50]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use IgnoreDraftOriginsResponse.ProtoReflect.Descriptor instead.
+func (*IgnoreDraftOriginsResponse) Descriptor() ([]byte, []int) {
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{50}
+}
+
+type UnignoreDraftOriginsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Origins       []*OriginKey           `protobuf:"bytes,1,rep,name=origins,proto3" json:"origins,omitempty"`
+	SessionId     string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnignoreDraftOriginsRequest) Reset() {
+	*x = UnignoreDraftOriginsRequest{}
+	mi := &file_prosper_v1_ledger_proto_msgTypes[51]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnignoreDraftOriginsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnignoreDraftOriginsRequest) ProtoMessage() {}
+
+func (x *UnignoreDraftOriginsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_prosper_v1_ledger_proto_msgTypes[51]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnignoreDraftOriginsRequest.ProtoReflect.Descriptor instead.
+func (*UnignoreDraftOriginsRequest) Descriptor() ([]byte, []int) {
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{51}
+}
+
+func (x *UnignoreDraftOriginsRequest) GetOrigins() []*OriginKey {
+	if x != nil {
+		return x.Origins
+	}
+	return nil
+}
+
+func (x *UnignoreDraftOriginsRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+type UnignoreDraftOriginsResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UnignoreDraftOriginsResponse) Reset() {
+	*x = UnignoreDraftOriginsResponse{}
+	mi := &file_prosper_v1_ledger_proto_msgTypes[52]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UnignoreDraftOriginsResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UnignoreDraftOriginsResponse) ProtoMessage() {}
+
+func (x *UnignoreDraftOriginsResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_prosper_v1_ledger_proto_msgTypes[52]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UnignoreDraftOriginsResponse.ProtoReflect.Descriptor instead.
+func (*UnignoreDraftOriginsResponse) Descriptor() ([]byte, []int) {
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{52}
+}
+
 // OriginKey ties a recorded transaction back to the external event it came from.
 type OriginKey struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -3527,7 +3704,7 @@ type OriginKey struct {
 
 func (x *OriginKey) Reset() {
 	*x = OriginKey{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[49]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3539,7 +3716,7 @@ func (x *OriginKey) String() string {
 func (*OriginKey) ProtoMessage() {}
 
 func (x *OriginKey) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[49]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3552,7 +3729,7 @@ func (x *OriginKey) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OriginKey.ProtoReflect.Descriptor instead.
 func (*OriginKey) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{49}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *OriginKey) GetKind() OriginKind {
@@ -3582,7 +3759,7 @@ type StringCandidate struct {
 
 func (x *StringCandidate) Reset() {
 	*x = StringCandidate{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[50]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3594,7 +3771,7 @@ func (x *StringCandidate) String() string {
 func (*StringCandidate) ProtoMessage() {}
 
 func (x *StringCandidate) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[50]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3607,7 +3784,7 @@ func (x *StringCandidate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StringCandidate.ProtoReflect.Descriptor instead.
 func (*StringCandidate) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{50}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *StringCandidate) GetConfidence() int32 {
@@ -3634,7 +3811,7 @@ type MoneyCandidate struct {
 
 func (x *MoneyCandidate) Reset() {
 	*x = MoneyCandidate{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[51]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3646,7 +3823,7 @@ func (x *MoneyCandidate) String() string {
 func (*MoneyCandidate) ProtoMessage() {}
 
 func (x *MoneyCandidate) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[51]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3659,7 +3836,7 @@ func (x *MoneyCandidate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MoneyCandidate.ProtoReflect.Descriptor instead.
 func (*MoneyCandidate) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{51}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *MoneyCandidate) GetConfidence() int32 {
@@ -3686,7 +3863,7 @@ type IdCandidate struct {
 
 func (x *IdCandidate) Reset() {
 	*x = IdCandidate{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[52]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3698,7 +3875,7 @@ func (x *IdCandidate) String() string {
 func (*IdCandidate) ProtoMessage() {}
 
 func (x *IdCandidate) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[52]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3711,7 +3888,7 @@ func (x *IdCandidate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use IdCandidate.ProtoReflect.Descriptor instead.
 func (*IdCandidate) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{52}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *IdCandidate) GetConfidence() int32 {
@@ -3738,7 +3915,7 @@ type TimestampCandidate struct {
 
 func (x *TimestampCandidate) Reset() {
 	*x = TimestampCandidate{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[53]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3750,7 +3927,7 @@ func (x *TimestampCandidate) String() string {
 func (*TimestampCandidate) ProtoMessage() {}
 
 func (x *TimestampCandidate) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[53]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3763,7 +3940,7 @@ func (x *TimestampCandidate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TimestampCandidate.ProtoReflect.Descriptor instead.
 func (*TimestampCandidate) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{53}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *TimestampCandidate) GetConfidence() int32 {
@@ -3790,7 +3967,7 @@ type TagNames struct {
 
 func (x *TagNames) Reset() {
 	*x = TagNames{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[54]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3802,7 +3979,7 @@ func (x *TagNames) String() string {
 func (*TagNames) ProtoMessage() {}
 
 func (x *TagNames) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[54]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3815,7 +3992,7 @@ func (x *TagNames) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TagNames.ProtoReflect.Descriptor instead.
 func (*TagNames) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{54}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *TagNames) GetNames() []string {
@@ -3835,7 +4012,7 @@ type TagsCandidate struct {
 
 func (x *TagsCandidate) Reset() {
 	*x = TagsCandidate{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[55]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[59]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3847,7 +4024,7 @@ func (x *TagsCandidate) String() string {
 func (*TagsCandidate) ProtoMessage() {}
 
 func (x *TagsCandidate) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[55]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[59]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3860,7 +4037,7 @@ func (x *TagsCandidate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TagsCandidate.ProtoReflect.Descriptor instead.
 func (*TagsCandidate) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{55}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{59}
 }
 
 func (x *TagsCandidate) GetConfidence() int32 {
@@ -3887,7 +4064,7 @@ type FormTypeCandidate struct {
 
 func (x *FormTypeCandidate) Reset() {
 	*x = FormTypeCandidate{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[56]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[60]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3899,7 +4076,7 @@ func (x *FormTypeCandidate) String() string {
 func (*FormTypeCandidate) ProtoMessage() {}
 
 func (x *FormTypeCandidate) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[56]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[60]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3912,7 +4089,7 @@ func (x *FormTypeCandidate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FormTypeCandidate.ProtoReflect.Descriptor instead.
 func (*FormTypeCandidate) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{56}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{60}
 }
 
 func (x *FormTypeCandidate) GetConfidence() int32 {
@@ -3939,7 +4116,7 @@ type SharingTypeCandidate struct {
 
 func (x *SharingTypeCandidate) Reset() {
 	*x = SharingTypeCandidate{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[57]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[61]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3951,7 +4128,7 @@ func (x *SharingTypeCandidate) String() string {
 func (*SharingTypeCandidate) ProtoMessage() {}
 
 func (x *SharingTypeCandidate) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[57]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[61]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3964,7 +4141,7 @@ func (x *SharingTypeCandidate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SharingTypeCandidate.ProtoReflect.Descriptor instead.
 func (*SharingTypeCandidate) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{57}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{61}
 }
 
 func (x *SharingTypeCandidate) GetConfidence() int32 {
@@ -4015,13 +4192,15 @@ type TransactionDraft struct {
 	RepaymentCategoryId []*IdCandidate          `protobuf:"bytes,19,rep,name=repayment_category_id,json=repaymentCategoryId,proto3" json:"repayment_category_id,omitempty"`
 	// Refunded transaction for an income recorded as a refund.
 	ParentTransactionId []*IdCandidate `protobuf:"bytes,20,rep,name=parent_transaction_id,json=parentTransactionId,proto3" json:"parent_transaction_id,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	// True when the user has explicitly ignored this draft's origins.
+	Ignored       bool `protobuf:"varint,21,opt,name=ignored,proto3" json:"ignored,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TransactionDraft) Reset() {
 	*x = TransactionDraft{}
-	mi := &file_prosper_v1_ledger_proto_msgTypes[58]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[62]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -4033,7 +4212,7 @@ func (x *TransactionDraft) String() string {
 func (*TransactionDraft) ProtoMessage() {}
 
 func (x *TransactionDraft) ProtoReflect() protoreflect.Message {
-	mi := &file_prosper_v1_ledger_proto_msgTypes[58]
+	mi := &file_prosper_v1_ledger_proto_msgTypes[62]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -4046,7 +4225,7 @@ func (x *TransactionDraft) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TransactionDraft.ProtoReflect.Descriptor instead.
 func (*TransactionDraft) Descriptor() ([]byte, []int) {
-	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{58}
+	return file_prosper_v1_ledger_proto_rawDescGZIP(), []int{62}
 }
 
 func (x *TransactionDraft) GetOrigins() []*OriginKey {
@@ -4187,6 +4366,13 @@ func (x *TransactionDraft) GetParentTransactionId() []*IdCandidate {
 		return x.ParentTransactionId
 	}
 	return nil
+}
+
+func (x *TransactionDraft) GetIgnored() bool {
+	if x != nil {
+		return x.Ignored
+	}
+	return false
 }
 
 var File_prosper_v1_ledger_proto protoreflect.FileDescriptor
@@ -4475,7 +4661,17 @@ const file_prosper_v1_ledger_proto_rawDesc = "" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\"G\n" +
 	"\x0fSuggestResponse\x124\n" +
-	"\x06drafts\x18\x01 \x03(\v2\x1c.prosper.v1.TransactionDraftR\x06drafts\"I\n" +
+	"\x06drafts\x18\x01 \x03(\v2\x1c.prosper.v1.TransactionDraftR\x06drafts\"k\n" +
+	"\x19IgnoreDraftOriginsRequest\x12/\n" +
+	"\aorigins\x18\x01 \x03(\v2\x15.prosper.v1.OriginKeyR\aorigins\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x02 \x01(\tR\tsessionId\"\x1c\n" +
+	"\x1aIgnoreDraftOriginsResponse\"m\n" +
+	"\x1bUnignoreDraftOriginsRequest\x12/\n" +
+	"\aorigins\x18\x01 \x03(\v2\x15.prosper.v1.OriginKeyR\aorigins\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x02 \x01(\tR\tsessionId\"\x1e\n" +
+	"\x1cUnignoreDraftOriginsResponse\"I\n" +
 	"\tOriginKey\x12*\n" +
 	"\x04kind\x18\x01 \x01(\x0e2\x16.prosper.v1.OriginKindR\x04kind\x12\x10\n" +
 	"\x03key\x18\x02 \x01(\tR\x03key\"G\n" +
@@ -4516,7 +4712,7 @@ const file_prosper_v1_ledger_proto_rawDesc = "" +
 	"\n" +
 	"confidence\x18\x01 \x01(\x05R\n" +
 	"confidence\x12-\n" +
-	"\x05value\x18\x02 \x01(\x0e2\x17.prosper.v1.SharingTypeR\x05value\"\xd1\t\n" +
+	"\x05value\x18\x02 \x01(\x0e2\x17.prosper.v1.SharingTypeR\x05value\"\xeb\t\n" +
 	"\x10TransactionDraft\x12/\n" +
 	"\aorigins\x18\x01 \x03(\v2\x15.prosper.v1.OriginKeyR\aorigins\x128\n" +
 	"\x18recorded_transaction_ids\x18\x02 \x03(\x05R\x16recordedTransactionIds\x12:\n" +
@@ -4539,7 +4735,8 @@ const file_prosper_v1_ledger_proto_rawDesc = "" +
 	"\x04tags\x18\x11 \x03(\v2\x19.prosper.v1.TagsCandidateR\x04tags\x128\n" +
 	"\ttrip_name\x18\x12 \x03(\v2\x1b.prosper.v1.StringCandidateR\btripName\x12K\n" +
 	"\x15repayment_category_id\x18\x13 \x03(\v2\x17.prosper.v1.IdCandidateR\x13repaymentCategoryId\x12K\n" +
-	"\x15parent_transaction_id\x18\x14 \x03(\v2\x17.prosper.v1.IdCandidateR\x13parentTransactionId*\xdd\x01\n" +
+	"\x15parent_transaction_id\x18\x14 \x03(\v2\x17.prosper.v1.IdCandidateR\x13parentTransactionId\x12\x18\n" +
+	"\aignored\x18\x15 \x01(\bR\aignored*\xdd\x01\n" +
 	"\x0fTransactionType\x12 \n" +
 	"\x1cTRANSACTION_TYPE_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18TRANSACTION_TYPE_EXPENSE\x10\x01\x12\x1b\n" +
@@ -4573,7 +4770,7 @@ const file_prosper_v1_ledger_proto_rawDesc = "" +
 	"\x15FORM_TYPE_UNSPECIFIED\x10\x00\x12\x15\n" +
 	"\x11FORM_TYPE_EXPENSE\x10\x01\x12\x14\n" +
 	"\x10FORM_TYPE_INCOME\x10\x02\x12\x16\n" +
-	"\x12FORM_TYPE_TRANSFER\x10\x032\xd4\x06\n" +
+	"\x12FORM_TYPE_TRANSFER\x10\x032\xa4\b\n" +
 	"\rLedgerService\x12N\n" +
 	"\vGetCoreData\x12\x1e.prosper.v1.GetCoreDataRequest\x1a\x1f.prosper.v1.GetCoreDataResponse\x12Z\n" +
 	"\x0fGetTransactions\x12\".prosper.v1.GetTransactionsRequest\x1a#.prosper.v1.GetTransactionsResponse\x12r\n" +
@@ -4584,7 +4781,9 @@ const file_prosper_v1_ledger_proto_rawDesc = "" +
 	"UpsertBank\x12\x1d.prosper.v1.UpsertBankRequest\x1a\x1e.prosper.v1.UpsertBankResponse\x12W\n" +
 	"\x0eUpsertCategory\x12!.prosper.v1.UpsertCategoryRequest\x1a\".prosper.v1.UpsertCategoryResponse\x12l\n" +
 	"\x15UpdateDisplaySettings\x12(.prosper.v1.UpdateDisplaySettingsRequest\x1a).prosper.v1.UpdateDisplaySettingsResponse\x12B\n" +
-	"\aSuggest\x12\x1a.prosper.v1.SuggestRequest\x1a\x1b.prosper.v1.SuggestResponse2\xfc\x03\n" +
+	"\aSuggest\x12\x1a.prosper.v1.SuggestRequest\x1a\x1b.prosper.v1.SuggestResponse\x12c\n" +
+	"\x12IgnoreDraftOrigins\x12%.prosper.v1.IgnoreDraftOriginsRequest\x1a&.prosper.v1.IgnoreDraftOriginsResponse\x12i\n" +
+	"\x14UnignoreDraftOrigins\x12'.prosper.v1.UnignoreDraftOriginsRequest\x1a(.prosper.v1.UnignoreDraftOriginsResponse2\xfc\x03\n" +
 	"\vAuthService\x12Z\n" +
 	"\x0fValidateSession\x12\".prosper.v1.ValidateSessionRequest\x1a#.prosper.v1.ValidateSessionResponse\x12T\n" +
 	"\rCreateSession\x12 .prosper.v1.CreateSessionRequest\x1a!.prosper.v1.CreateSessionResponse\x12T\n" +
@@ -4607,7 +4806,7 @@ func file_prosper_v1_ledger_proto_rawDescGZIP() []byte {
 }
 
 var file_prosper_v1_ledger_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_prosper_v1_ledger_proto_msgTypes = make([]protoimpl.MessageInfo, 59)
+var file_prosper_v1_ledger_proto_msgTypes = make([]protoimpl.MessageInfo, 63)
 var file_prosper_v1_ledger_proto_goTypes = []any{
 	(TransactionType)(0),                    // 0: prosper.v1.TransactionType
 	(LedgerAccountType)(0),                  // 1: prosper.v1.LedgerAccountType
@@ -4664,24 +4863,28 @@ var file_prosper_v1_ledger_proto_goTypes = []any{
 	(*WriteTransactionFormResponse)(nil),    // 52: prosper.v1.WriteTransactionFormResponse
 	(*SuggestRequest)(nil),                  // 53: prosper.v1.SuggestRequest
 	(*SuggestResponse)(nil),                 // 54: prosper.v1.SuggestResponse
-	(*OriginKey)(nil),                       // 55: prosper.v1.OriginKey
-	(*StringCandidate)(nil),                 // 56: prosper.v1.StringCandidate
-	(*MoneyCandidate)(nil),                  // 57: prosper.v1.MoneyCandidate
-	(*IdCandidate)(nil),                     // 58: prosper.v1.IdCandidate
-	(*TimestampCandidate)(nil),              // 59: prosper.v1.TimestampCandidate
-	(*TagNames)(nil),                        // 60: prosper.v1.TagNames
-	(*TagsCandidate)(nil),                   // 61: prosper.v1.TagsCandidate
-	(*FormTypeCandidate)(nil),               // 62: prosper.v1.FormTypeCandidate
-	(*SharingTypeCandidate)(nil),            // 63: prosper.v1.SharingTypeCandidate
-	(*TransactionDraft)(nil),                // 64: prosper.v1.TransactionDraft
-	(*timestamppb.Timestamp)(nil),           // 65: google.protobuf.Timestamp
+	(*IgnoreDraftOriginsRequest)(nil),       // 55: prosper.v1.IgnoreDraftOriginsRequest
+	(*IgnoreDraftOriginsResponse)(nil),      // 56: prosper.v1.IgnoreDraftOriginsResponse
+	(*UnignoreDraftOriginsRequest)(nil),     // 57: prosper.v1.UnignoreDraftOriginsRequest
+	(*UnignoreDraftOriginsResponse)(nil),    // 58: prosper.v1.UnignoreDraftOriginsResponse
+	(*OriginKey)(nil),                       // 59: prosper.v1.OriginKey
+	(*StringCandidate)(nil),                 // 60: prosper.v1.StringCandidate
+	(*MoneyCandidate)(nil),                  // 61: prosper.v1.MoneyCandidate
+	(*IdCandidate)(nil),                     // 62: prosper.v1.IdCandidate
+	(*TimestampCandidate)(nil),              // 63: prosper.v1.TimestampCandidate
+	(*TagNames)(nil),                        // 64: prosper.v1.TagNames
+	(*TagsCandidate)(nil),                   // 65: prosper.v1.TagsCandidate
+	(*FormTypeCandidate)(nil),               // 66: prosper.v1.FormTypeCandidate
+	(*SharingTypeCandidate)(nil),            // 67: prosper.v1.SharingTypeCandidate
+	(*TransactionDraft)(nil),                // 68: prosper.v1.TransactionDraft
+	(*timestamppb.Timestamp)(nil),           // 69: google.protobuf.Timestamp
 }
 var file_prosper_v1_ledger_proto_depIdxs = []int32{
-	65, // 0: prosper.v1.ValidateSessionResponse.extended_expires_at:type_name -> google.protobuf.Timestamp
-	65, // 1: prosper.v1.CreateSessionResponse.expires_at:type_name -> google.protobuf.Timestamp
+	69, // 0: prosper.v1.ValidateSessionResponse.extended_expires_at:type_name -> google.protobuf.Timestamp
+	69, // 1: prosper.v1.CreateSessionResponse.expires_at:type_name -> google.protobuf.Timestamp
 	23, // 2: prosper.v1.BankAccount.stock:type_name -> prosper.v1.StockKey
-	65, // 3: prosper.v1.Trip.start:type_name -> google.protobuf.Timestamp
-	65, // 4: prosper.v1.Trip.end:type_name -> google.protobuf.Timestamp
+	69, // 3: prosper.v1.Trip.start:type_name -> google.protobuf.Timestamp
+	69, // 4: prosper.v1.Trip.end:type_name -> google.protobuf.Timestamp
 	18, // 5: prosper.v1.GetCoreDataResponse.banks:type_name -> prosper.v1.Bank
 	19, // 6: prosper.v1.GetCoreDataResponse.bank_accounts:type_name -> prosper.v1.BankAccount
 	20, // 7: prosper.v1.GetCoreDataResponse.categories:type_name -> prosper.v1.Category
@@ -4692,7 +4895,7 @@ var file_prosper_v1_ledger_proto_depIdxs = []int32{
 	1,  // 12: prosper.v1.LedgerAccount.type:type_name -> prosper.v1.LedgerAccountType
 	23, // 13: prosper.v1.EntryLine.stock:type_name -> prosper.v1.StockKey
 	2,  // 14: prosper.v1.TransactionLink.link_type:type_name -> prosper.v1.TransactionLinkType
-	65, // 15: prosper.v1.Transaction.timestamp:type_name -> google.protobuf.Timestamp
+	69, // 15: prosper.v1.Transaction.timestamp:type_name -> google.protobuf.Timestamp
 	0,  // 16: prosper.v1.Transaction.type:type_name -> prosper.v1.TransactionType
 	29, // 17: prosper.v1.Transaction.lines:type_name -> prosper.v1.EntryLine
 	30, // 18: prosper.v1.Transaction.splits:type_name -> prosper.v1.SplitContext
@@ -4705,76 +4908,82 @@ var file_prosper_v1_ledger_proto_depIdxs = []int32{
 	40, // 25: prosper.v1.UpsertBankAccountRequest.unit:type_name -> prosper.v1.AccountUnit
 	20, // 26: prosper.v1.UpsertCategoryRequest.category:type_name -> prosper.v1.Category
 	25, // 27: prosper.v1.UpdateDisplaySettingsRequest.settings:type_name -> prosper.v1.DisplaySettings
-	55, // 28: prosper.v1.WriteTransactionFormRequest.origins:type_name -> prosper.v1.OriginKey
+	59, // 28: prosper.v1.WriteTransactionFormRequest.origins:type_name -> prosper.v1.OriginKey
 	48, // 29: prosper.v1.WriteTransactionFormRequest.expense:type_name -> prosper.v1.ExpenseFormInput
 	50, // 30: prosper.v1.WriteTransactionFormRequest.income:type_name -> prosper.v1.IncomeFormInput
 	51, // 31: prosper.v1.WriteTransactionFormRequest.transfer:type_name -> prosper.v1.TransferFormInput
-	65, // 32: prosper.v1.ExpenseFormInput.timestamp:type_name -> google.protobuf.Timestamp
+	69, // 32: prosper.v1.ExpenseFormInput.timestamp:type_name -> google.protobuf.Timestamp
 	3,  // 33: prosper.v1.ExpenseFormInput.sharing_type:type_name -> prosper.v1.SharingType
 	49, // 34: prosper.v1.ExpenseFormInput.repayment:type_name -> prosper.v1.RepaymentInput
-	65, // 35: prosper.v1.RepaymentInput.timestamp:type_name -> google.protobuf.Timestamp
-	65, // 36: prosper.v1.IncomeFormInput.timestamp:type_name -> google.protobuf.Timestamp
-	65, // 37: prosper.v1.TransferFormInput.timestamp:type_name -> google.protobuf.Timestamp
-	64, // 38: prosper.v1.SuggestResponse.drafts:type_name -> prosper.v1.TransactionDraft
-	4,  // 39: prosper.v1.OriginKey.kind:type_name -> prosper.v1.OriginKind
-	65, // 40: prosper.v1.TimestampCandidate.value:type_name -> google.protobuf.Timestamp
-	60, // 41: prosper.v1.TagsCandidate.value:type_name -> prosper.v1.TagNames
-	5,  // 42: prosper.v1.FormTypeCandidate.value:type_name -> prosper.v1.FormType
-	3,  // 43: prosper.v1.SharingTypeCandidate.value:type_name -> prosper.v1.SharingType
-	55, // 44: prosper.v1.TransactionDraft.origins:type_name -> prosper.v1.OriginKey
-	62, // 45: prosper.v1.TransactionDraft.form_type:type_name -> prosper.v1.FormTypeCandidate
-	59, // 46: prosper.v1.TransactionDraft.timestamp:type_name -> prosper.v1.TimestampCandidate
-	57, // 47: prosper.v1.TransactionDraft.amount:type_name -> prosper.v1.MoneyCandidate
-	57, // 48: prosper.v1.TransactionDraft.own_share_amount:type_name -> prosper.v1.MoneyCandidate
-	57, // 49: prosper.v1.TransactionDraft.amount_received:type_name -> prosper.v1.MoneyCandidate
-	58, // 50: prosper.v1.TransactionDraft.account_from_id:type_name -> prosper.v1.IdCandidate
-	58, // 51: prosper.v1.TransactionDraft.account_to_id:type_name -> prosper.v1.IdCandidate
-	58, // 52: prosper.v1.TransactionDraft.category_id:type_name -> prosper.v1.IdCandidate
-	56, // 53: prosper.v1.TransactionDraft.vendor:type_name -> prosper.v1.StringCandidate
-	56, // 54: prosper.v1.TransactionDraft.payer:type_name -> prosper.v1.StringCandidate
-	56, // 55: prosper.v1.TransactionDraft.description:type_name -> prosper.v1.StringCandidate
-	56, // 56: prosper.v1.TransactionDraft.companion:type_name -> prosper.v1.StringCandidate
-	56, // 57: prosper.v1.TransactionDraft.currency:type_name -> prosper.v1.StringCandidate
-	63, // 58: prosper.v1.TransactionDraft.sharing_type:type_name -> prosper.v1.SharingTypeCandidate
-	61, // 59: prosper.v1.TransactionDraft.tags:type_name -> prosper.v1.TagsCandidate
-	56, // 60: prosper.v1.TransactionDraft.trip_name:type_name -> prosper.v1.StringCandidate
-	58, // 61: prosper.v1.TransactionDraft.repayment_category_id:type_name -> prosper.v1.IdCandidate
-	58, // 62: prosper.v1.TransactionDraft.parent_transaction_id:type_name -> prosper.v1.IdCandidate
-	26, // 63: prosper.v1.LedgerService.GetCoreData:input_type -> prosper.v1.GetCoreDataRequest
-	33, // 64: prosper.v1.LedgerService.GetTransactions:input_type -> prosper.v1.GetTransactionsRequest
-	35, // 65: prosper.v1.LedgerService.ListAvailableCurrencies:input_type -> prosper.v1.ListAvailableCurrenciesRequest
-	47, // 66: prosper.v1.LedgerService.WriteTransactionForm:input_type -> prosper.v1.WriteTransactionFormRequest
-	41, // 67: prosper.v1.LedgerService.UpsertBankAccount:input_type -> prosper.v1.UpsertBankAccountRequest
-	38, // 68: prosper.v1.LedgerService.UpsertBank:input_type -> prosper.v1.UpsertBankRequest
-	43, // 69: prosper.v1.LedgerService.UpsertCategory:input_type -> prosper.v1.UpsertCategoryRequest
-	45, // 70: prosper.v1.LedgerService.UpdateDisplaySettings:input_type -> prosper.v1.UpdateDisplaySettingsRequest
-	53, // 71: prosper.v1.LedgerService.Suggest:input_type -> prosper.v1.SuggestRequest
-	6,  // 72: prosper.v1.AuthService.ValidateSession:input_type -> prosper.v1.ValidateSessionRequest
-	8,  // 73: prosper.v1.AuthService.CreateSession:input_type -> prosper.v1.CreateSessionRequest
-	10, // 74: prosper.v1.AuthService.DeleteSession:input_type -> prosper.v1.DeleteSessionRequest
-	12, // 75: prosper.v1.AuthService.Authenticate:input_type -> prosper.v1.AuthenticateRequest
-	14, // 76: prosper.v1.AuthService.CountUsers:input_type -> prosper.v1.CountUsersRequest
-	16, // 77: prosper.v1.AuthService.Register:input_type -> prosper.v1.RegisterRequest
-	27, // 78: prosper.v1.LedgerService.GetCoreData:output_type -> prosper.v1.GetCoreDataResponse
-	34, // 79: prosper.v1.LedgerService.GetTransactions:output_type -> prosper.v1.GetTransactionsResponse
-	36, // 80: prosper.v1.LedgerService.ListAvailableCurrencies:output_type -> prosper.v1.ListAvailableCurrenciesResponse
-	52, // 81: prosper.v1.LedgerService.WriteTransactionForm:output_type -> prosper.v1.WriteTransactionFormResponse
-	42, // 82: prosper.v1.LedgerService.UpsertBankAccount:output_type -> prosper.v1.UpsertBankAccountResponse
-	39, // 83: prosper.v1.LedgerService.UpsertBank:output_type -> prosper.v1.UpsertBankResponse
-	44, // 84: prosper.v1.LedgerService.UpsertCategory:output_type -> prosper.v1.UpsertCategoryResponse
-	46, // 85: prosper.v1.LedgerService.UpdateDisplaySettings:output_type -> prosper.v1.UpdateDisplaySettingsResponse
-	54, // 86: prosper.v1.LedgerService.Suggest:output_type -> prosper.v1.SuggestResponse
-	7,  // 87: prosper.v1.AuthService.ValidateSession:output_type -> prosper.v1.ValidateSessionResponse
-	9,  // 88: prosper.v1.AuthService.CreateSession:output_type -> prosper.v1.CreateSessionResponse
-	11, // 89: prosper.v1.AuthService.DeleteSession:output_type -> prosper.v1.DeleteSessionResponse
-	13, // 90: prosper.v1.AuthService.Authenticate:output_type -> prosper.v1.AuthenticateResponse
-	15, // 91: prosper.v1.AuthService.CountUsers:output_type -> prosper.v1.CountUsersResponse
-	17, // 92: prosper.v1.AuthService.Register:output_type -> prosper.v1.RegisterResponse
-	78, // [78:93] is the sub-list for method output_type
-	63, // [63:78] is the sub-list for method input_type
-	63, // [63:63] is the sub-list for extension type_name
-	63, // [63:63] is the sub-list for extension extendee
-	0,  // [0:63] is the sub-list for field type_name
+	69, // 35: prosper.v1.RepaymentInput.timestamp:type_name -> google.protobuf.Timestamp
+	69, // 36: prosper.v1.IncomeFormInput.timestamp:type_name -> google.protobuf.Timestamp
+	69, // 37: prosper.v1.TransferFormInput.timestamp:type_name -> google.protobuf.Timestamp
+	68, // 38: prosper.v1.SuggestResponse.drafts:type_name -> prosper.v1.TransactionDraft
+	59, // 39: prosper.v1.IgnoreDraftOriginsRequest.origins:type_name -> prosper.v1.OriginKey
+	59, // 40: prosper.v1.UnignoreDraftOriginsRequest.origins:type_name -> prosper.v1.OriginKey
+	4,  // 41: prosper.v1.OriginKey.kind:type_name -> prosper.v1.OriginKind
+	69, // 42: prosper.v1.TimestampCandidate.value:type_name -> google.protobuf.Timestamp
+	64, // 43: prosper.v1.TagsCandidate.value:type_name -> prosper.v1.TagNames
+	5,  // 44: prosper.v1.FormTypeCandidate.value:type_name -> prosper.v1.FormType
+	3,  // 45: prosper.v1.SharingTypeCandidate.value:type_name -> prosper.v1.SharingType
+	59, // 46: prosper.v1.TransactionDraft.origins:type_name -> prosper.v1.OriginKey
+	66, // 47: prosper.v1.TransactionDraft.form_type:type_name -> prosper.v1.FormTypeCandidate
+	63, // 48: prosper.v1.TransactionDraft.timestamp:type_name -> prosper.v1.TimestampCandidate
+	61, // 49: prosper.v1.TransactionDraft.amount:type_name -> prosper.v1.MoneyCandidate
+	61, // 50: prosper.v1.TransactionDraft.own_share_amount:type_name -> prosper.v1.MoneyCandidate
+	61, // 51: prosper.v1.TransactionDraft.amount_received:type_name -> prosper.v1.MoneyCandidate
+	62, // 52: prosper.v1.TransactionDraft.account_from_id:type_name -> prosper.v1.IdCandidate
+	62, // 53: prosper.v1.TransactionDraft.account_to_id:type_name -> prosper.v1.IdCandidate
+	62, // 54: prosper.v1.TransactionDraft.category_id:type_name -> prosper.v1.IdCandidate
+	60, // 55: prosper.v1.TransactionDraft.vendor:type_name -> prosper.v1.StringCandidate
+	60, // 56: prosper.v1.TransactionDraft.payer:type_name -> prosper.v1.StringCandidate
+	60, // 57: prosper.v1.TransactionDraft.description:type_name -> prosper.v1.StringCandidate
+	60, // 58: prosper.v1.TransactionDraft.companion:type_name -> prosper.v1.StringCandidate
+	60, // 59: prosper.v1.TransactionDraft.currency:type_name -> prosper.v1.StringCandidate
+	67, // 60: prosper.v1.TransactionDraft.sharing_type:type_name -> prosper.v1.SharingTypeCandidate
+	65, // 61: prosper.v1.TransactionDraft.tags:type_name -> prosper.v1.TagsCandidate
+	60, // 62: prosper.v1.TransactionDraft.trip_name:type_name -> prosper.v1.StringCandidate
+	62, // 63: prosper.v1.TransactionDraft.repayment_category_id:type_name -> prosper.v1.IdCandidate
+	62, // 64: prosper.v1.TransactionDraft.parent_transaction_id:type_name -> prosper.v1.IdCandidate
+	26, // 65: prosper.v1.LedgerService.GetCoreData:input_type -> prosper.v1.GetCoreDataRequest
+	33, // 66: prosper.v1.LedgerService.GetTransactions:input_type -> prosper.v1.GetTransactionsRequest
+	35, // 67: prosper.v1.LedgerService.ListAvailableCurrencies:input_type -> prosper.v1.ListAvailableCurrenciesRequest
+	47, // 68: prosper.v1.LedgerService.WriteTransactionForm:input_type -> prosper.v1.WriteTransactionFormRequest
+	41, // 69: prosper.v1.LedgerService.UpsertBankAccount:input_type -> prosper.v1.UpsertBankAccountRequest
+	38, // 70: prosper.v1.LedgerService.UpsertBank:input_type -> prosper.v1.UpsertBankRequest
+	43, // 71: prosper.v1.LedgerService.UpsertCategory:input_type -> prosper.v1.UpsertCategoryRequest
+	45, // 72: prosper.v1.LedgerService.UpdateDisplaySettings:input_type -> prosper.v1.UpdateDisplaySettingsRequest
+	53, // 73: prosper.v1.LedgerService.Suggest:input_type -> prosper.v1.SuggestRequest
+	55, // 74: prosper.v1.LedgerService.IgnoreDraftOrigins:input_type -> prosper.v1.IgnoreDraftOriginsRequest
+	57, // 75: prosper.v1.LedgerService.UnignoreDraftOrigins:input_type -> prosper.v1.UnignoreDraftOriginsRequest
+	6,  // 76: prosper.v1.AuthService.ValidateSession:input_type -> prosper.v1.ValidateSessionRequest
+	8,  // 77: prosper.v1.AuthService.CreateSession:input_type -> prosper.v1.CreateSessionRequest
+	10, // 78: prosper.v1.AuthService.DeleteSession:input_type -> prosper.v1.DeleteSessionRequest
+	12, // 79: prosper.v1.AuthService.Authenticate:input_type -> prosper.v1.AuthenticateRequest
+	14, // 80: prosper.v1.AuthService.CountUsers:input_type -> prosper.v1.CountUsersRequest
+	16, // 81: prosper.v1.AuthService.Register:input_type -> prosper.v1.RegisterRequest
+	27, // 82: prosper.v1.LedgerService.GetCoreData:output_type -> prosper.v1.GetCoreDataResponse
+	34, // 83: prosper.v1.LedgerService.GetTransactions:output_type -> prosper.v1.GetTransactionsResponse
+	36, // 84: prosper.v1.LedgerService.ListAvailableCurrencies:output_type -> prosper.v1.ListAvailableCurrenciesResponse
+	52, // 85: prosper.v1.LedgerService.WriteTransactionForm:output_type -> prosper.v1.WriteTransactionFormResponse
+	42, // 86: prosper.v1.LedgerService.UpsertBankAccount:output_type -> prosper.v1.UpsertBankAccountResponse
+	39, // 87: prosper.v1.LedgerService.UpsertBank:output_type -> prosper.v1.UpsertBankResponse
+	44, // 88: prosper.v1.LedgerService.UpsertCategory:output_type -> prosper.v1.UpsertCategoryResponse
+	46, // 89: prosper.v1.LedgerService.UpdateDisplaySettings:output_type -> prosper.v1.UpdateDisplaySettingsResponse
+	54, // 90: prosper.v1.LedgerService.Suggest:output_type -> prosper.v1.SuggestResponse
+	56, // 91: prosper.v1.LedgerService.IgnoreDraftOrigins:output_type -> prosper.v1.IgnoreDraftOriginsResponse
+	58, // 92: prosper.v1.LedgerService.UnignoreDraftOrigins:output_type -> prosper.v1.UnignoreDraftOriginsResponse
+	7,  // 93: prosper.v1.AuthService.ValidateSession:output_type -> prosper.v1.ValidateSessionResponse
+	9,  // 94: prosper.v1.AuthService.CreateSession:output_type -> prosper.v1.CreateSessionResponse
+	11, // 95: prosper.v1.AuthService.DeleteSession:output_type -> prosper.v1.DeleteSessionResponse
+	13, // 96: prosper.v1.AuthService.Authenticate:output_type -> prosper.v1.AuthenticateResponse
+	15, // 97: prosper.v1.AuthService.CountUsers:output_type -> prosper.v1.CountUsersResponse
+	17, // 98: prosper.v1.AuthService.Register:output_type -> prosper.v1.RegisterResponse
+	82, // [82:99] is the sub-list for method output_type
+	65, // [65:82] is the sub-list for method input_type
+	65, // [65:65] is the sub-list for extension type_name
+	65, // [65:65] is the sub-list for extension extendee
+	0,  // [0:65] is the sub-list for field type_name
 }
 
 func init() { file_prosper_v1_ledger_proto_init() }
@@ -4808,7 +5017,7 @@ func file_prosper_v1_ledger_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_prosper_v1_ledger_proto_rawDesc), len(file_prosper_v1_ledger_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   59,
+			NumMessages:   63,
 			NumExtensions: 0,
 			NumServices:   2,
 		},

@@ -6,6 +6,7 @@ package snapshot
 import (
 	"context"
 
+	"prosper/ledger/common"
 	"prosper/model"
 	"prosper/userdb"
 )
@@ -28,6 +29,8 @@ type Ledger struct {
 	// Origins link recorded transactions to the source events they
 	// were recorded from.
 	Origins []model.TransactionOrigin
+	// IgnoredOrigins holds the effective set of ignored origin keys.
+	IgnoredOrigins map[common.OriginKey]bool
 	// OpenBankingDescriptionByExternalID maps a bank transaction's external id
 	// to the raw text the bank reported for it.
 	OpenBankingDescriptionByExternalID map[string]string
@@ -98,6 +101,23 @@ func Load(ctx context.Context, db *userdb.DB, userID int32) (*Ledger, error) {
 		return nil, err
 	}
 
+	// Load all ignored origin rows, then keep the effective (latest) active state per (originKind, originKey).
+	var allIgnoredOrigins []model.IgnoredDraftOrigin
+	if err := db.SelectForUser(ctx, &allIgnoredOrigins, userID,
+		// Ordering here is load bearing - later IDs take precedence over earlier ones.
+		`SELECT * FROM IgnoredDraftOrigin WHERE userId = :userId ORDER BY id ASC`); err != nil {
+		return nil, err
+	}
+	ignoredOrigins := make(map[common.OriginKey]bool)
+	for _, ig := range allIgnoredOrigins {
+		key := common.OriginKey{Kind: ig.OriginKind, Key: ig.OriginKey}
+		if ig.Active {
+			ignoredOrigins[key] = true
+		} else {
+			delete(ignoredOrigins, key)
+		}
+	}
+
 	var transactionTags []TransactionTag
 	if err := db.SelectForUser(ctx, &transactionTags, userID,
 		`SELECT tt.transactionId, tag.name
@@ -108,7 +128,7 @@ func Load(ctx context.Context, db *userdb.DB, userID int32) (*Ledger, error) {
 		return nil, err
 	}
 
-	return New(txs, lines, splits, ledgerAccounts, links, origins, descriptions, bankAccounts, transactionTags), nil
+	return New(txs, lines, splits, ledgerAccounts, links, origins, descriptions, bankAccounts, ignoredOrigins, transactionTags), nil
 }
 
 // New assembles a snapshot from the user's already-loaded ledger rows.
@@ -121,6 +141,7 @@ func New(
 	origins []model.TransactionOrigin,
 	openBankingDescriptions []OpenBankingDescription,
 	bankAccounts []model.BankAccount,
+	ignoredOrigins map[common.OriginKey]bool,
 	transactionTags []TransactionTag,
 ) *Ledger {
 	s := &Ledger{
@@ -132,6 +153,7 @@ func New(
 		LedgerAccountByID:                  make(map[int32]model.LedgerAccount),
 		Links:                              links,
 		Origins:                            origins,
+		IgnoredOrigins:                     ignoredOrigins,
 		OpenBankingDescriptionByExternalID: make(map[string]string, len(openBankingDescriptions)),
 		BankAccounts:                       bankAccounts,
 	}

@@ -17,6 +17,10 @@ import type { ValidateSessionRequest } from "./ledger";
 import type { RpcTransport } from "@protobuf-ts/runtime-rpc";
 import type { ServiceInfo } from "@protobuf-ts/runtime-rpc";
 import { LedgerService } from "./ledger";
+import type { UnignoreDraftOriginsResponse } from "./ledger";
+import type { UnignoreDraftOriginsRequest } from "./ledger";
+import type { IgnoreDraftOriginsResponse } from "./ledger";
+import type { IgnoreDraftOriginsRequest } from "./ledger";
 import type { SuggestResponse } from "./ledger";
 import type { SuggestRequest } from "./ledger";
 import type { UpdateDisplaySettingsResponse } from "./ledger";
@@ -87,6 +91,20 @@ export interface ILedgerServiceClient {
      * @generated from protobuf rpc: Suggest
      */
     suggest(input: SuggestRequest, options?: RpcOptions): UnaryCall<SuggestRequest, SuggestResponse>;
+    /**
+     * IgnoreDraftOrigins marks the given origins as ignored so their
+     * drafts appear greyed out in the suggestion list.
+     *
+     * @generated from protobuf rpc: IgnoreDraftOrigins
+     */
+    ignoreDraftOrigins(input: IgnoreDraftOriginsRequest, options?: RpcOptions): UnaryCall<IgnoreDraftOriginsRequest, IgnoreDraftOriginsResponse>;
+    /**
+     * UnignoreDraftOrigins reverses a previous ignore, restoring the
+     * drafts to full visibility.
+     *
+     * @generated from protobuf rpc: UnignoreDraftOrigins
+     */
+    unignoreDraftOrigins(input: UnignoreDraftOriginsRequest, options?: RpcOptions): UnaryCall<UnignoreDraftOriginsRequest, UnignoreDraftOriginsResponse>;
 }
 /**
  * LedgerService serves the core application data that the frontend needs
@@ -168,6 +186,26 @@ export class LedgerServiceClient implements ILedgerServiceClient, ServiceInfo {
     suggest(input: SuggestRequest, options?: RpcOptions): UnaryCall<SuggestRequest, SuggestResponse> {
         const method = this.methods[8], opt = this._transport.mergeOptions(options);
         return stackIntercept<SuggestRequest, SuggestResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * IgnoreDraftOrigins marks the given origins as ignored so their
+     * drafts appear greyed out in the suggestion list.
+     *
+     * @generated from protobuf rpc: IgnoreDraftOrigins
+     */
+    ignoreDraftOrigins(input: IgnoreDraftOriginsRequest, options?: RpcOptions): UnaryCall<IgnoreDraftOriginsRequest, IgnoreDraftOriginsResponse> {
+        const method = this.methods[9], opt = this._transport.mergeOptions(options);
+        return stackIntercept<IgnoreDraftOriginsRequest, IgnoreDraftOriginsResponse>("unary", this._transport, method, opt, input);
+    }
+    /**
+     * UnignoreDraftOrigins reverses a previous ignore, restoring the
+     * drafts to full visibility.
+     *
+     * @generated from protobuf rpc: UnignoreDraftOrigins
+     */
+    unignoreDraftOrigins(input: UnignoreDraftOriginsRequest, options?: RpcOptions): UnaryCall<UnignoreDraftOriginsRequest, UnignoreDraftOriginsResponse> {
+        const method = this.methods[10], opt = this._transport.mergeOptions(options);
+        return stackIntercept<UnignoreDraftOriginsRequest, UnignoreDraftOriginsResponse>("unary", this._transport, method, opt, input);
     }
 }
 /**

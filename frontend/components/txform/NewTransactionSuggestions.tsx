@@ -1,3 +1,7 @@
+import {
+  ignoreDraftOrigins,
+  unignoreDraftOrigins,
+} from '@/actions/txform/ignore';
 import {FetchOpenBankingTransactions} from '@/components/txform/FetchOpenBankingTransactions';
 import {Button} from '@/components/ui/button';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
@@ -37,7 +41,7 @@ import {draftFormType, isRecorded, sameEvent} from '@/lib/txsuggestions/draft';
 import {cn} from '@/lib/utils';
 import {format} from 'date-fns';
 import {useMemo, useState} from 'react';
-import useSWR from 'swr';
+import useSWR, {mutate} from 'swr';
 
 // useSuggestedDrafts loads the transaction drafts the backend proposes
 // for events it knows about (e.g. open banking transactions).
@@ -321,6 +325,7 @@ function SuggestionItem({
 }) {
   const {transactions} = useTransactionDataContext();
   const {banks, bankAccounts, stocks} = useCoreDataContext();
+  const [isIgnorePending, setIsIgnorePending] = useState(false);
   const recordedTransaction = transactions.find(
     t => t.id == draft.recordedTransactionIds[0]
   );
@@ -329,6 +334,23 @@ function SuggestionItem({
       return;
     }
     onClick(draft);
+  };
+  const handleIgnoreToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (disabled || isIgnorePending) {
+      return;
+    }
+    setIsIgnorePending(true);
+    try {
+      if (draft.ignored) {
+        await unignoreDraftOrigins(draft.origins);
+      } else {
+        await ignoreDraftOrigins(draft.origins);
+      }
+      await mutate('/api/suggest');
+    } finally {
+      setIsIgnorePending(false);
+    }
   };
   const isTransfer = draftFormType(draft) == FormType.TRANSFER;
   const otherAccountId = !isTransfer
@@ -341,13 +363,14 @@ function SuggestionItem({
   const unit = accountUnit(bankAccount, stocks);
   const signedAmount = new AmountWithUnit({amountNanos, unit});
   const timestampEpoch = draftTimestampEpoch(draft);
+  const isDimmed = isRecorded(draft) || draft.ignored;
   return (
     <div className={cn({'bg-gray-100': isActive})}>
-      <div className="flex px-2 py-1">
+      <div className="flex px-2 pt-1">
         <div
           className={cn('flex grow cursor-pointer', {
             'text-slate-500': isActive,
-            'opacity-25': isRecorded(draft),
+            'opacity-25': isDimmed,
           })}
           onClick={handleClick}
         >
@@ -376,8 +399,23 @@ function SuggestionItem({
         </div>
       </div>
       {recordedTransaction && (
-        <div className="ml-2 text-xs text-gray-600">
+        <div className="ml-2 pb-2 text-xs text-gray-600">
           Recorded as <i>{summary(recordedTransaction, bankAccounts, banks)}</i>
+        </div>
+      )}
+      {!isRecorded(draft) && (
+        <div className="ml-2 pb-2 text-xs text-gray-400">
+          {draft.ignored && <span className="italic">Ignored · </span>}
+          <button
+            type="button"
+            className={cn('underline hover:text-gray-600', {
+              'opacity-50': isIgnorePending,
+            })}
+            onClick={handleIgnoreToggle}
+            disabled={disabled || isIgnorePending}
+          >
+            {draft.ignored ? 'Restore' : 'Ignore'}
+          </button>
         </div>
       )}
     </div>

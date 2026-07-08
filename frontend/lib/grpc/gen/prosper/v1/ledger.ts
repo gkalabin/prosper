@@ -984,6 +984,44 @@ export interface SuggestResponse {
     drafts: TransactionDraft[];
 }
 /**
+ * @generated from protobuf message prosper.v1.IgnoreDraftOriginsRequest
+ */
+export interface IgnoreDraftOriginsRequest {
+    /**
+     * Repeated field to allow ignoring a transfer (has two origins) draft with one RPC call.
+     *
+     * @generated from protobuf field: repeated prosper.v1.OriginKey origins = 1
+     */
+    origins: OriginKey[];
+    /**
+     * @generated from protobuf field: string session_id = 2
+     */
+    sessionId: string;
+}
+/**
+ * @generated from protobuf message prosper.v1.IgnoreDraftOriginsResponse
+ */
+export interface IgnoreDraftOriginsResponse {
+}
+/**
+ * @generated from protobuf message prosper.v1.UnignoreDraftOriginsRequest
+ */
+export interface UnignoreDraftOriginsRequest {
+    /**
+     * @generated from protobuf field: repeated prosper.v1.OriginKey origins = 1
+     */
+    origins: OriginKey[];
+    /**
+     * @generated from protobuf field: string session_id = 2
+     */
+    sessionId: string;
+}
+/**
+ * @generated from protobuf message prosper.v1.UnignoreDraftOriginsResponse
+ */
+export interface UnignoreDraftOriginsResponse {
+}
+/**
  * OriginKey ties a recorded transaction back to the external event it came from.
  *
  * @generated from protobuf message prosper.v1.OriginKey
@@ -1211,6 +1249,12 @@ export interface TransactionDraft {
      * @generated from protobuf field: repeated prosper.v1.IdCandidate parent_transaction_id = 20
      */
     parentTransactionId: IdCandidate[];
+    /**
+     * True when the user has explicitly ignored this draft's origins.
+     *
+     * @generated from protobuf field: bool ignored = 21
+     */
+    ignored: boolean;
 }
 /**
  * @generated from protobuf enum prosper.v1.TransactionType
@@ -4562,6 +4606,192 @@ class SuggestResponse$Type extends MessageType<SuggestResponse> {
  */
 export const SuggestResponse = new SuggestResponse$Type();
 // @generated message type with reflection information, may provide speed optimized methods
+class IgnoreDraftOriginsRequest$Type extends MessageType<IgnoreDraftOriginsRequest> {
+    constructor() {
+        super("prosper.v1.IgnoreDraftOriginsRequest", [
+            { no: 1, name: "origins", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => OriginKey },
+            { no: 2, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<IgnoreDraftOriginsRequest>): IgnoreDraftOriginsRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.origins = [];
+        message.sessionId = "";
+        if (value !== undefined)
+            reflectionMergePartial<IgnoreDraftOriginsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: IgnoreDraftOriginsRequest): IgnoreDraftOriginsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated prosper.v1.OriginKey origins */ 1:
+                    message.origins.push(OriginKey.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* string session_id */ 2:
+                    message.sessionId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: IgnoreDraftOriginsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated prosper.v1.OriginKey origins = 1; */
+        for (let i = 0; i < message.origins.length; i++)
+            OriginKey.internalBinaryWrite(message.origins[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string session_id = 2; */
+        if (message.sessionId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.IgnoreDraftOriginsRequest
+ */
+export const IgnoreDraftOriginsRequest = new IgnoreDraftOriginsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class IgnoreDraftOriginsResponse$Type extends MessageType<IgnoreDraftOriginsResponse> {
+    constructor() {
+        super("prosper.v1.IgnoreDraftOriginsResponse", []);
+    }
+    create(value?: PartialMessage<IgnoreDraftOriginsResponse>): IgnoreDraftOriginsResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        if (value !== undefined)
+            reflectionMergePartial<IgnoreDraftOriginsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: IgnoreDraftOriginsResponse): IgnoreDraftOriginsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: IgnoreDraftOriginsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.IgnoreDraftOriginsResponse
+ */
+export const IgnoreDraftOriginsResponse = new IgnoreDraftOriginsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UnignoreDraftOriginsRequest$Type extends MessageType<UnignoreDraftOriginsRequest> {
+    constructor() {
+        super("prosper.v1.UnignoreDraftOriginsRequest", [
+            { no: 1, name: "origins", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => OriginKey },
+            { no: 2, name: "session_id", kind: "scalar", T: 9 /*ScalarType.STRING*/ }
+        ]);
+    }
+    create(value?: PartialMessage<UnignoreDraftOriginsRequest>): UnignoreDraftOriginsRequest {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        message.origins = [];
+        message.sessionId = "";
+        if (value !== undefined)
+            reflectionMergePartial<UnignoreDraftOriginsRequest>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UnignoreDraftOriginsRequest): UnignoreDraftOriginsRequest {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                case /* repeated prosper.v1.OriginKey origins */ 1:
+                    message.origins.push(OriginKey.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* string session_id */ 2:
+                    message.sessionId = reader.string();
+                    break;
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UnignoreDraftOriginsRequest, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        /* repeated prosper.v1.OriginKey origins = 1; */
+        for (let i = 0; i < message.origins.length; i++)
+            OriginKey.internalBinaryWrite(message.origins[i], writer.tag(1, WireType.LengthDelimited).fork(), options).join();
+        /* string session_id = 2; */
+        if (message.sessionId !== "")
+            writer.tag(2, WireType.LengthDelimited).string(message.sessionId);
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.UnignoreDraftOriginsRequest
+ */
+export const UnignoreDraftOriginsRequest = new UnignoreDraftOriginsRequest$Type();
+// @generated message type with reflection information, may provide speed optimized methods
+class UnignoreDraftOriginsResponse$Type extends MessageType<UnignoreDraftOriginsResponse> {
+    constructor() {
+        super("prosper.v1.UnignoreDraftOriginsResponse", []);
+    }
+    create(value?: PartialMessage<UnignoreDraftOriginsResponse>): UnignoreDraftOriginsResponse {
+        const message = globalThis.Object.create((this.messagePrototype!));
+        if (value !== undefined)
+            reflectionMergePartial<UnignoreDraftOriginsResponse>(this, message, value);
+        return message;
+    }
+    internalBinaryRead(reader: IBinaryReader, length: number, options: BinaryReadOptions, target?: UnignoreDraftOriginsResponse): UnignoreDraftOriginsResponse {
+        let message = target ?? this.create(), end = reader.pos + length;
+        while (reader.pos < end) {
+            let [fieldNo, wireType] = reader.tag();
+            switch (fieldNo) {
+                default:
+                    let u = options.readUnknownField;
+                    if (u === "throw")
+                        throw new globalThis.Error(`Unknown field ${fieldNo} (wire type ${wireType}) for ${this.typeName}`);
+                    let d = reader.skip(wireType);
+                    if (u !== false)
+                        (u === true ? UnknownFieldHandler.onRead : u)(this.typeName, message, fieldNo, wireType, d);
+            }
+        }
+        return message;
+    }
+    internalBinaryWrite(message: UnignoreDraftOriginsResponse, writer: IBinaryWriter, options: BinaryWriteOptions): IBinaryWriter {
+        let u = options.writeUnknownFields;
+        if (u !== false)
+            (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
+        return writer;
+    }
+}
+/**
+ * @generated MessageType for protobuf message prosper.v1.UnignoreDraftOriginsResponse
+ */
+export const UnignoreDraftOriginsResponse = new UnignoreDraftOriginsResponse$Type();
+// @generated message type with reflection information, may provide speed optimized methods
 class OriginKey$Type extends MessageType<OriginKey> {
     constructor() {
         super("prosper.v1.OriginKey", [
@@ -5069,7 +5299,8 @@ class TransactionDraft$Type extends MessageType<TransactionDraft> {
             { no: 17, name: "tags", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => TagsCandidate },
             { no: 18, name: "trip_name", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => StringCandidate },
             { no: 19, name: "repayment_category_id", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => IdCandidate },
-            { no: 20, name: "parent_transaction_id", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => IdCandidate }
+            { no: 20, name: "parent_transaction_id", kind: "message", repeat: 2 /*RepeatType.UNPACKED*/, T: () => IdCandidate },
+            { no: 21, name: "ignored", kind: "scalar", T: 8 /*ScalarType.BOOL*/ }
         ]);
     }
     create(value?: PartialMessage<TransactionDraft>): TransactionDraft {
@@ -5094,6 +5325,7 @@ class TransactionDraft$Type extends MessageType<TransactionDraft> {
         message.tripName = [];
         message.repaymentCategoryId = [];
         message.parentTransactionId = [];
+        message.ignored = false;
         if (value !== undefined)
             reflectionMergePartial<TransactionDraft>(this, message, value);
         return message;
@@ -5166,6 +5398,9 @@ class TransactionDraft$Type extends MessageType<TransactionDraft> {
                     break;
                 case /* repeated prosper.v1.IdCandidate parent_transaction_id */ 20:
                     message.parentTransactionId.push(IdCandidate.internalBinaryRead(reader, reader.uint32(), options));
+                    break;
+                case /* bool ignored */ 21:
+                    message.ignored = reader.bool();
                     break;
                 default:
                     let u = options.readUnknownField;
@@ -5243,6 +5478,9 @@ class TransactionDraft$Type extends MessageType<TransactionDraft> {
         /* repeated prosper.v1.IdCandidate parent_transaction_id = 20; */
         for (let i = 0; i < message.parentTransactionId.length; i++)
             IdCandidate.internalBinaryWrite(message.parentTransactionId[i], writer.tag(20, WireType.LengthDelimited).fork(), options).join();
+        /* bool ignored = 21; */
+        if (message.ignored !== false)
+            writer.tag(21, WireType.Varint).bool(message.ignored);
         let u = options.writeUnknownFields;
         if (u !== false)
             (u == true ? UnknownFieldHandler.onWrite : u)(this.typeName, message, writer);
@@ -5265,7 +5503,9 @@ export const LedgerService = new ServiceType("prosper.v1.LedgerService", [
     { name: "UpsertBank", options: {}, I: UpsertBankRequest, O: UpsertBankResponse },
     { name: "UpsertCategory", options: {}, I: UpsertCategoryRequest, O: UpsertCategoryResponse },
     { name: "UpdateDisplaySettings", options: {}, I: UpdateDisplaySettingsRequest, O: UpdateDisplaySettingsResponse },
-    { name: "Suggest", options: {}, I: SuggestRequest, O: SuggestResponse }
+    { name: "Suggest", options: {}, I: SuggestRequest, O: SuggestResponse },
+    { name: "IgnoreDraftOrigins", options: {}, I: IgnoreDraftOriginsRequest, O: IgnoreDraftOriginsResponse },
+    { name: "UnignoreDraftOrigins", options: {}, I: UnignoreDraftOriginsRequest, O: UnignoreDraftOriginsResponse }
 ]);
 /**
  * @generated ServiceType for protobuf service prosper.v1.AuthService

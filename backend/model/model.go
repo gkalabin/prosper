@@ -280,3 +280,17 @@ type LedgerAccount struct {
 	CreatedAt     time.Time         `db:"createdAt"`
 	UpdatedAt     time.Time         `db:"updatedAt"`
 }
+
+// IgnoredDraftOrigin is one row in the append-only ignore log.
+// active=true means the user ignored the origin; active=false cancels
+// a previous ignore. The effective state is the latest row per
+// (userId, originKind, originKey), ordered by id.
+type IgnoredDraftOrigin struct {
+	ID         int32            `db:"id"`
+	UserID     int32            `db:"userId"`
+	OriginKind SourceOriginKind `db:"originKind"`
+	OriginKey  string           `db:"originKey"`
+	Active     bool             `db:"active"`
+	CreatedAt  time.Time        `db:"createdAt"`
+	UpdatedAt  time.Time        `db:"updatedAt"`
+}

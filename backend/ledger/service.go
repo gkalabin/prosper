@@ -8,6 +8,7 @@ import (
 
 	"prosper/auth"
 	prosperv1 "prosper/gen/prosper/v1"
+	"prosper/ledger/common"
 	"prosper/ledger/txform"
 	"prosper/model"
 	"prosper/suggest"
@@ -63,6 +64,53 @@ func (s *Service) Suggest(ctx context.Context, _ *prosperv1.SuggestRequest) (*pr
 		return nil, err
 	}
 	return &prosperv1.SuggestResponse{Drafts: drafts}, nil
+}
+
+// IgnoreDraftOrigins marks origins as ignored. Inserts an active=true
+// row for each origin into the append-only IgnoredDraftOrigin table.
+func (s *Service) IgnoreDraftOrigins(ctx context.Context, req *prosperv1.IgnoreDraftOriginsRequest) (*prosperv1.IgnoreDraftOriginsResponse, error) {
+	userID := auth.MustUserIDFromContext(ctx)
+	if err := s.insertIgnoredOrigins(ctx, userID, req.Origins, true); err != nil {
+		return nil, err
+	}
+	return &prosperv1.IgnoreDraftOriginsResponse{}, nil
+}
+
+// UnignoreDraftOrigins reverses a previous ignore. Inserts an
+// active=false row for each origin.
+func (s *Service) UnignoreDraftOrigins(ctx context.Context, req *prosperv1.UnignoreDraftOriginsRequest) (*prosperv1.UnignoreDraftOriginsResponse, error) {
+	userID := auth.MustUserIDFromContext(ctx)
+	if err := s.insertIgnoredOrigins(ctx, userID, req.Origins, false); err != nil {
+		return nil, err
+	}
+	return &prosperv1.UnignoreDraftOriginsResponse{}, nil
+}
+
+func (s *Service) insertIgnoredOrigins(ctx context.Context, userID int32, origins []*prosperv1.OriginKey, active bool) error {
+	if len(origins) == 0 {
+		return errors.New("at least one origin is required")
+	}
+	for _, o := range origins {
+		kind, ok := common.OriginKindToModel(o.Kind)
+		if !ok {
+			return fmt.Errorf("unknown origin kind: %v", o.Kind)
+		}
+		if o.Key == "" {
+			return errors.New("origin key must not be empty")
+		}
+		row := model.IgnoredDraftOrigin{
+			OriginKind: kind,
+			OriginKey:  o.Key,
+			Active:     active,
+		}
+		if _, err := s.db.NamedExecForUser(ctx, userID,
+			`INSERT INTO IgnoredDraftOrigin
+			  ( userId,  originKind,  originKey,  active) VALUES
+			  (:userId, :originKind, :originKey, :active)`, row); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (s *Service) GetCoreData(ctx context.Context, _ *prosperv1.GetCoreDataRequest) (*prosperv1.GetCoreDataResponse, error) {

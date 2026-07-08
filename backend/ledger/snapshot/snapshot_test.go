@@ -19,7 +19,7 @@ func supersedes(t model.Transaction, id int32) model.Transaction {
 }
 
 func snap(txs ...model.Transaction) *Ledger {
-	return New(txs, nil, nil, nil, nil, nil, nil, nil, nil)
+	return New(txs, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 }
 
 func TestCurrentVersionReturnsTheTransactionItself(t *testing.T) {

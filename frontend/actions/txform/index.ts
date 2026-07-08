@@ -1,5 +1,8 @@
 'use server';
-import {UpsertTransactionAPIResponse} from '@/actions/txform/types';
+import {
+  originSchema,
+  UpsertTransactionAPIResponse,
+} from '@/actions/txform/types';
 import {ExpenseFormSchema} from '@/components/txform/expense/types';
 import {IncomeFormSchema} from '@/components/txform/income/types';
 import {TransferFormSchema} from '@/components/txform/transfer/types';
@@ -15,7 +18,6 @@ import {
   ExpenseFormInput,
   IncomeFormInput,
   OriginKey,
-  OriginKind,
   RepaymentInput,
   SharingType,
   TransferFormInput,
@@ -55,12 +57,7 @@ export async function upsertTransaction(
   return {status: 'SUCCESS'};
 }
 
-const originListSchema = z.array(
-  z.object({
-    kind: z.nativeEnum(OriginKind),
-    key: z.string().min(1),
-  })
-);
+const originListSchema = z.array(originSchema);
 
 function parseOrigins(unsafeOrigins: OriginKey[]): OriginKey[] {
   const validated = originListSchema.safeParse(unsafeOrigins);
