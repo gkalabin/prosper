@@ -3,7 +3,6 @@ import {useExchangedIntervalTransactions} from '@/app/(authenticated)/stats/mode
 import {ExpenseByTopCategoryChart} from '@/components/charts/aggregate/ExpenseByTopCategory';
 import {MonthlyTransactionCount} from '@/components/charts/timeseries/MonthlyTransactionCount';
 import {TimelineAmountsChart} from '@/components/charts/timeseries/TimelineAmountsChart';
-import {Button} from '@/components/ui/button';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {ExchangedIntervalTransactions} from '@/lib/ExchangedTransactions';
 import {
@@ -17,10 +16,7 @@ import {capitalize} from '@/lib/util/util';
 import {differenceInMonths} from 'date-fns';
 import {useId} from 'react';
 
-export function TransactionStats(props: {
-  onClose: () => void;
-  transactions: Transaction[];
-}) {
+export function TransactionStats(props: {transactions: Transaction[]}) {
   const transactionsByTimestamp = [...props.transactions].sort(
     (a, b) => a.timestampEpoch - b.timestampEpoch
   );
@@ -29,20 +25,15 @@ export function TransactionStats(props: {
       <div className="col-span-6 text-xl font-medium leading-7">Stats</div>
       {!props.transactions.length && <div>No transactions found</div>}
       {!!props.transactions.length && (
-        <NonEmptyTransactionStats
-          onClose={props.onClose}
-          transactions={transactionsByTimestamp}
-        />
+        <NonEmptyTransactionStats transactions={transactionsByTimestamp} />
       )}
     </div>
   );
 }
 
 function NonEmptyTransactionStats({
-  onClose,
   transactions,
 }: {
-  onClose: () => void;
   transactions: Transaction[];
 }) {
   const sorted = [...transactions].sort(
@@ -59,11 +50,6 @@ function NonEmptyTransactionStats({
         <MonthlyTransactionCount input={input} />
         <IncomeOrExenseSection kind={'expense'} input={input} />
         <IncomeOrExenseSection kind={'income'} input={input} />
-      </div>
-      <div className="col-span-6">
-        <Button variant="secondary" onClick={onClose}>
-          Close
-        </Button>
       </div>
     </>
   );
