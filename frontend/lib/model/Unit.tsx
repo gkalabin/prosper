@@ -27,3 +27,10 @@ export function isCurrency(unit: Unit): unit is Currency {
 export function isStock(unit: Unit): unit is Stock {
   return unit.kind == 'stock';
 }
+
+// Stable identity of a unit, e.g. for grouping amounts or as a render key.
+export function unitKey(unit: Unit): string {
+  return isCurrency(unit)
+    ? `currency:${unit.code}`
+    : `stock:${unit.exchange}:${unit.ticker}`;
+}

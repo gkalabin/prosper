@@ -12,7 +12,7 @@ import {
   TransactionFiltersForm,
 } from '@/components/transactions/filters/TransactionFiltersForm';
 import {UpdateQueryOnFormChange} from '@/components/transactions/filters/UpdateQueryOnFormChange';
-import {TransactionsList} from '@/components/transactions/TransactionsList';
+import {TransactionTimeline} from '@/components/transactions/TransactionTimeline';
 import {
   AllTransactionsSummary,
   MatchedTransactionsSummary,
@@ -78,7 +78,7 @@ function NonEmptyPageContent() {
       {view === 'stats' ? (
         <TransactionStats transactions={filteredTransactions} />
       ) : (
-        <TransactionsList transactions={filteredTransactions} />
+        <TransactionTimeline transactions={filteredTransactions} />
       )}
     </div>
   );
