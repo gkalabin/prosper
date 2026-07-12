@@ -1,12 +1,10 @@
 import {useSharingType} from '@/components/txform/expense/useSharingType';
-import {useSharingTypeActions} from '@/components/txform/expense/useSharingTypeActions';
+import {FieldLabel} from '@/components/txform/shared/FieldLabel';
 import {TransactionFormSchema} from '@/components/txform/types';
-import {Button} from '@/components/ui/button';
 import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
@@ -17,10 +15,9 @@ import {useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function Payer() {
-  const {control, formState} = useFormContext<TransactionFormSchema>();
+  const {control} = useFormContext<TransactionFormSchema>();
   const {paidOther} = useSharingType();
   const payers = useUniqueFrequentPayers();
-  const {setPaidSelf} = useSharingTypeActions();
   if (!paidOther) {
     return null;
   }
@@ -29,30 +26,19 @@ export function Payer() {
       control={control}
       name="expense.payer"
       render={({field}) => (
-        <FormItem className="col-span-6">
-          <FormLabel>This expense was paid by</FormLabel>
+        <FormItem className="col-span-4 space-y-1.5">
+          <FieldLabel>Paid by</FieldLabel>
           <FormControl>
             <Input
               type="text"
+              placeholder="Who paid?"
+              className="h-11 rounded-md px-3.5 text-base"
               datalist={payers}
               {...field}
               value={field.value ?? ''}
             />
           </FormControl>
           <FormMessage />
-          <div className="text-xs">
-            or{' '}
-            <Button
-              type="button"
-              onClick={setPaidSelf}
-              variant="link"
-              size="inherit"
-              disabled={formState.isSubmitting}
-            >
-              I paid for this myself
-            </Button>
-            .
-          </div>
         </FormItem>
       )}
     />

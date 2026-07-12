@@ -34,6 +34,7 @@ import {TransactionDraft} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {useDisplayBankAccounts} from '@/lib/model/AppDataModel';
 import {Transaction} from '@/lib/model/transaction/Transaction';
 import {setFormErrors} from '@/lib/util/forms';
+import {ExclamationCircleIcon} from '@heroicons/react/24/outline';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useCallback, useState} from 'react';
 import {useForm} from 'react-hook-form';
@@ -53,11 +54,12 @@ export function NewTransactionFormDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {transaction ? 'Update transaction' : 'Create new transaction'}
+            {transaction ? 'Edit transaction' : 'New transaction'}
           </DialogTitle>
           <DialogDescription>
-            Use the form below to{' '}
-            {transaction ? 'update transaction' : 'create a new transaction'}
+            {transaction
+              ? 'Update the details below'
+              : 'Log what happened to your money'}
           </DialogDescription>
         </DialogHeader>
         <TransactionForm
@@ -169,7 +171,7 @@ export function TransactionForm(props: {
       <DraftContextProvider draft={draft}>
         <Form {...form}>
           <form onSubmit={onSubmit}>
-            <div className="flex justify-center py-4">
+            <div className="py-3">
               <FormTypeSelect
                 value={formType}
                 setValue={onFormTypeChange}
@@ -177,7 +179,7 @@ export function TransactionForm(props: {
               />
             </div>
             <div
-              className="grid grid-cols-6 gap-x-6 gap-y-3"
+              className="grid grid-cols-6 gap-x-2.5 gap-y-4 pt-1"
               id={TRANSACTION_FORM_TABPANEL_ID}
               role="tabpanel"
               aria-labelledby={`tab-${formType.toLowerCase()}`}
@@ -193,34 +195,47 @@ export function TransactionForm(props: {
               )}
             </div>
 
-            <div className="mt-4 flex justify-between gap-2 border-t py-4">
-              <div className="text-destructive text-sm font-medium">
-                {form.formState.errors.root?.message}
+            {form.formState.errors.root?.message && (
+              <div
+                role="alert"
+                className="border-destructive/30 bg-destructive/10 text-destructive mt-4 flex items-center gap-2 rounded-md border px-3 py-2.5 text-sm font-medium"
+              >
+                <ExclamationCircleIcon className="h-4 w-4 flex-none" />
+                {form.formState.errors.root.message}
               </div>
-              <div className="flex-none space-x-4">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={props.onClose}
-                  disabled={form.formState.isSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={form.formState.isSubmitting}>
-                  {creatingNewTransaction &&
-                    form.formState.isSubmitting &&
-                    'Adding…'}
-                  {creatingNewTransaction &&
-                    !form.formState.isSubmitting &&
-                    'Add'}
-                  {!creatingNewTransaction &&
-                    form.formState.isSubmitting &&
-                    'Updating…'}
-                  {!creatingNewTransaction &&
-                    !form.formState.isSubmitting &&
-                    'Update'}
-                </Button>
-              </div>
+            )}
+
+            <div className="bg-background sticky bottom-0 z-20 -mx-6 -mb-6 mt-4 flex gap-2.5 border-t px-6 py-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-12 flex-none rounded-lg px-5 text-[15px] font-semibold"
+                onClick={props.onClose}
+                disabled={form.formState.isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="h-12 flex-1 gap-2 rounded-lg text-[15px] font-semibold"
+                disabled={form.formState.isSubmitting}
+              >
+                {form.formState.isSubmitting && (
+                  <span className="border-primary-foreground/30 border-t-primary-foreground h-4 w-4 animate-spin rounded-full border-2" />
+                )}
+                {creatingNewTransaction &&
+                  form.formState.isSubmitting &&
+                  'Adding…'}
+                {creatingNewTransaction &&
+                  !form.formState.isSubmitting &&
+                  'Add'}
+                {!creatingNewTransaction &&
+                  form.formState.isSubmitting &&
+                  'Updating…'}
+                {!creatingNewTransaction &&
+                  !form.formState.isSubmitting &&
+                  'Update'}
+              </Button>
             </div>
           </form>
         </Form>

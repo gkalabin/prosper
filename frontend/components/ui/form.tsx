@@ -90,9 +90,9 @@ const FormLabel = React.forwardRef<
     <Label
       ref={ref}
       className={cn(
+        className,
         error && 'text-destructive',
-        formState.isSubmitting && 'cursor-not-allowed opacity-50',
-        className
+        formState.isSubmitting && 'cursor-not-allowed opacity-50'
       )}
       htmlFor={formItemId}
       {...props}

@@ -1,9 +1,9 @@
+import {FieldLabel} from '@/components/txform/shared/FieldLabel';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
@@ -29,11 +29,13 @@ export function Vendor() {
       control={control}
       name="expense.vendor"
       render={({field}) => (
-        <FormItem className="col-span-6">
-          <FormLabel>Vendor</FormLabel>
+        <FormItem className="col-span-6 space-y-1.5">
+          <FieldLabel>Vendor</FieldLabel>
           <FormControl>
             <Input
               type="text"
+              placeholder="Where did you spend?"
+              className="h-11 rounded-md px-3.5 text-base"
               datalist={vendors}
               {...field}
               onFocus={e => e.target.select()}

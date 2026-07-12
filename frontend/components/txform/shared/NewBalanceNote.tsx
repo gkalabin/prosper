@@ -86,12 +86,12 @@ export function NewBalanceNote({
   return (
     <div
       className={cn(
-        'flex flex-row items-center gap-2 text-xs',
+        'text-muted-foreground flex flex-row items-baseline gap-2 text-[13px]',
         isSubmitting && 'opacity-50'
       )}
     >
-      <div className="whitespace-nowrap">{text ? text : 'New balance:'}</div>
-      <div className="flex flex-wrap justify-evenly gap-1.5">
+      <div className="whitespace-nowrap">{text ? text : 'New balance'}</div>
+      <div className="flex flex-wrap items-baseline justify-evenly gap-1.5">
         <AccountBalanceText
           localBalance={newLocalBalance}
           remoteBalance={remoteBalance}
@@ -109,15 +109,19 @@ function AccountBalanceText({
   remoteBalance: AmountWithUnit | null;
 }) {
   if (!remoteBalance) {
-    return <div>{localBalance.format()}</div>;
+    return (
+      <div className="text-foreground font-mono font-semibold tabular-nums">
+        {localBalance.format()}
+      </div>
+    );
   }
   const delta = localBalance.subtract(remoteBalance);
   return (
     <>
       <div
         className={cn(
-          'flex items-center gap-1 whitespace-nowrap',
-          delta.isZero() ? 'text-green-600' : 'text-red-600'
+          'flex items-center gap-1 whitespace-nowrap font-mono font-semibold tabular-nums',
+          delta.isZero() ? 'text-up-amount' : 'text-down-amount'
         )}
       >
         <div>{localBalance.format()}</div>

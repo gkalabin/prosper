@@ -1,10 +1,10 @@
 import {useSharingType} from '@/components/txform/expense/useSharingType';
+import {FieldLabel} from '@/components/txform/shared/FieldLabel';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import {Select} from '@/components/ui/html-select';
@@ -22,10 +22,14 @@ export function Currency() {
       control={control}
       name="expense.currency"
       render={({field}) => (
-        <FormItem className="col-span-6">
-          <FormLabel>Currency</FormLabel>
+        <FormItem className="col-span-2 space-y-1.5">
+          <FieldLabel>Currency</FieldLabel>
           <FormControl>
-            <Select {...field} value={field.value ?? undefined}>
+            <Select
+              className="h-11 rounded-md px-3.5 text-base"
+              {...field}
+              value={field.value ?? undefined}
+            >
               {allCurrencies().map(({code}) => (
                 <option key={code} value={code}>
                   {code}

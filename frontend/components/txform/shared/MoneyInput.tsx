@@ -13,6 +13,8 @@ const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(
       <Input
         type="text"
         inputMode="decimal"
+        placeholder="0.00"
+        className="h-11 rounded-md px-3.5 font-mono text-base tabular-nums"
         ref={ref}
         {...props}
         onChange={e => {

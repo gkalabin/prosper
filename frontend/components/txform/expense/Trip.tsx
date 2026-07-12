@@ -1,9 +1,9 @@
+import {FieldLabel} from '@/components/txform/shared/FieldLabel';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
@@ -23,11 +23,12 @@ export function Trip() {
       control={control}
       name="expense.tripName"
       render={({field}) => (
-        <FormItem className="col-span-6">
-          <FormLabel>Trip</FormLabel>
+        <FormItem className="col-span-6 space-y-1.5">
+          <FieldLabel>Trip</FieldLabel>
           <FormControl>
             <Input
               type="text"
+              className="h-11 rounded-md px-3.5 text-base"
               datalist={tripNames}
               {...field}
               value={field.value ?? ''}

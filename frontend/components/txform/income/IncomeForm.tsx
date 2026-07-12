@@ -24,14 +24,16 @@ export function IncomeForm({transaction}: {transaction: Transaction | null}) {
     <>
       <Timestamp fieldName="income.timestamp" />
       <Account fieldName="income.accountId" label="Money received to" />
-      <SplitTransactionToggle />
-      <MaybeEmptyCompanion />
       <Amount />
       <OwnShareAmount />
       <NewBalanceNoteWrapper transaction={transaction} />
+      <div className="col-span-6 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <SplitTransactionToggle />
+      </div>
+      <MaybeEmptyCompanion />
       <Payer />
-      <Tags fieldName="income.tagNames" />
       <Category fieldName="income.categoryId" />
+      <Tags fieldName="income.tagNames" />
       <ExtraFields />
       {/* When editing transactions, do not update the category automatically:
       the user might not notice the change and unintentionally recategorise the

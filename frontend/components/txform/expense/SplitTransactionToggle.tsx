@@ -18,20 +18,26 @@ export function SplitTransactionToggle() {
   } = useFormContext<TransactionFormSchema>();
   const {isShared, paidOther} = useSharingType();
   const {toggleSplitTransaction} = useSharingTypeActions();
+  if (paidOther) {
+    return null;
+  }
   return (
     <FormField
       control={control}
       name={'expense.sharingType'}
       render={() => (
-        <FormItem className="col-span-3 flex flex-row items-center">
+        <FormItem className="flex flex-row items-center">
           <FormControl className="w-11">
             <Switch
+              className="data-[state=checked]:bg-brand"
               checked={isShared}
-              disabled={isSubmitting || paidOther}
+              disabled={isSubmitting}
               onCheckedChange={toggleSplitTransaction}
             />
           </FormControl>
-          <FormLabel className="ml-4">Split transaction</FormLabel>
+          <FormLabel className="ml-2.5 text-[13px] font-semibold">
+            Split with someone
+          </FormLabel>
           <FormMessage />
         </FormItem>
       )}

@@ -20,8 +20,10 @@ export function OwnShareAmount() {
       control={control}
       name="income.ownShareAmount"
       render={({field}) => (
-        <FormItem className="col-span-3">
-          <FormLabel>My share</FormLabel>
+        <FormItem className="col-span-3 space-y-1.5">
+          <FormLabel className="text-brand-ink text-xs font-semibold">
+            My share
+          </FormLabel>
           <FormControl>
             <MoneyInput {...field} />
           </FormControl>

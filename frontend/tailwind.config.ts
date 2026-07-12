@@ -49,6 +49,11 @@ const config = {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
         },
+        brand: {
+          DEFAULT: 'hsl(var(--brand))',
+          ink: 'hsl(var(--brand-ink))',
+          soft: 'hsl(var(--brand-soft))',
+        },
         popover: {
           DEFAULT: 'hsl(var(--popover))',
           foreground: 'hsl(var(--popover-foreground))',

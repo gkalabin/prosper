@@ -1,21 +1,17 @@
 import {useSharingType} from '@/components/txform/expense/useSharingType';
+import {AccountSelect} from '@/components/txform/shared/Account';
 import {CategorySelect} from '@/components/txform/shared/CategorySelect';
-import {Timestamp} from '@/components/txform/shared/Timestamp';
+import {FieldLabel} from '@/components/txform/shared/FieldLabel';
+import {DateTimeInput} from '@/components/txform/shared/Timestamp';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {Select} from '@/components/ui/html-select';
-import {Input} from '@/components/ui/input';
 import {assertDefined} from '@/lib/assert';
-import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {SharingType} from '@/lib/grpc/gen/prosper/v1/ledger';
-import {useDisplayBankAccounts} from '@/lib/model/AppDataModel';
-import {groupAccountsByBank} from '@/lib/model/BankAccount';
 import {useFormContext, useWatch} from 'react-hook-form';
 
 export function RepaymentFields() {
@@ -24,12 +20,40 @@ export function RepaymentFields() {
     return null;
   }
   return (
-    <div className="bg-accent col-span-6 space-y-2 rounded border p-2 pl-4">
-      <Timestamp fieldName="expense.repayment.timestamp" />
-      <RepaymentAmount />
-      <RepaymentAccountFrom />
-      <RepaymentCategory />
+    <div className="col-span-6 border-t pt-4">
+      <div className="text-brand-ink text-xs font-bold uppercase tracking-wider">
+        Repayment
+      </div>
+      <div className="mt-3 grid grid-cols-6 gap-x-2.5 gap-y-4">
+        <RepaymentTimestamp />
+        <RepaymentAmount />
+        <RepaymentAccountFrom />
+        <RepaymentCategory />
+      </div>
     </div>
+  );
+}
+
+function RepaymentTimestamp() {
+  const {control, setValue} = useFormContext<TransactionFormSchema>();
+  return (
+    <FormField
+      control={control}
+      name="expense.repayment.timestamp"
+      render={({field}) => (
+        <FormItem className="col-span-4 space-y-1.5">
+          <FieldLabel>Repaid on</FieldLabel>
+          <FormControl>
+            <DateTimeInput
+              {...field}
+              className="h-11 rounded-md px-2.5 text-sm tabular-nums"
+              onChange={value => setValue('expense.repayment.timestamp', value)}
+            />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
   );
 }
 
@@ -38,49 +62,29 @@ function RepaymentAmount() {
     name: 'expense.ownShareAmount',
   });
   return (
-    <FormItem className="col-span-6">
-      <FormLabel>Amount repaid</FormLabel>
-      <FormControl>
-        <Input
-          type="text"
-          inputMode="decimal"
-          disabled={true}
-          value={ownShareAmount}
-        />
-      </FormControl>
+    <FormItem className="col-span-2 space-y-1.5">
+      <FieldLabel>Amount repaid</FieldLabel>
+      <div className="border-input flex h-11 items-center rounded-md border border-dashed px-3.5 font-mono text-base font-semibold tabular-nums">
+        {ownShareAmount}
+      </div>
     </FormItem>
   );
 }
 
 function RepaymentAccountFrom() {
-  const {getValues, control} = useFormContext<TransactionFormSchema>();
-  const accounts = useDisplayBankAccounts();
-  const {banks} = useCoreDataContext();
+  const {control} = useFormContext<TransactionFormSchema>();
   return (
     <FormField
       control={control}
       name="expense.repayment.accountId"
       render={({field}) => (
-        <FormItem>
-          <FormLabel>
-            I&apos;ve paid {getValues('expense.payer') || 'them'} from
-          </FormLabel>
+        <FormItem className="col-span-6 space-y-1.5">
+          <FieldLabel>Repaid from</FieldLabel>
           <FormControl>
-            <Select
+            <AccountSelect
               {...field}
-              value={field.value?.toString()}
-              onChange={e => field.onChange(parseInt(e.target.value, 10))}
-            >
-              {groupAccountsByBank(accounts, banks).map(group => (
-                <optgroup key={group.bank.id} label={group.bank.name}>
-                  {group.accounts.map(x => (
-                    <option key={x.id} value={x.id}>
-                      {x.name}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </Select>
+              className="h-11 rounded-md px-3.5 text-base"
+            />
           </FormControl>
           <FormMessage />
         </FormItem>
@@ -101,8 +105,8 @@ function RepaymentCategory() {
           'repayment category required for a repaid expense'
         );
         return (
-          <FormItem className="col-span-6">
-            <FormLabel>Repayment category</FormLabel>
+          <FormItem className="col-span-6 space-y-1.5">
+            <FieldLabel>Repayment category</FieldLabel>
             <FormControl>
               <CategorySelect
                 value={field.value}

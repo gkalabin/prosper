@@ -1,13 +1,15 @@
 import {Trip} from '@/components/txform/expense/Trip';
 import {Description} from '@/components/txform/shared/Description';
+import {
+  ExtraChip,
+  RemovableField,
+} from '@/components/txform/shared/OptionalFields';
 import {TransactionFormSchema} from '@/components/txform/types';
-import {Button} from '@/components/ui/button';
 import {useState} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function ExtraFields() {
-  const {setValue, getValues, formState} =
-    useFormContext<TransactionFormSchema>();
+  const {setValue, getValues} = useFormContext<TransactionFormSchema>();
   const [showNote, setShowNote] = useState(
     () => !!getValues('expense.description')
   );
@@ -16,43 +18,40 @@ export function ExtraFields() {
   );
   return (
     <>
-      <div className="col-span-6 text-xs">
-        Add a{' '}
-        <Button
-          type="button"
-          onClick={() => {
-            const shouldShowNote = !showNote;
-            setShowNote(shouldShowNote);
-            if (!shouldShowNote) {
-              setValue('expense.description', null);
-            }
+      {(!showNote || !showTrip) && (
+        <div className="col-span-6 flex flex-wrap gap-2">
+          {!showNote && (
+            <ExtraChip onClick={() => setShowNote(true)}>Note</ExtraChip>
+          )}
+          {!showTrip && (
+            <ExtraChip onClick={() => setShowTrip(true)}>Link a trip</ExtraChip>
+          )}
+        </div>
+      )}
+      {showNote && (
+        <RemovableField
+          onRemove={() => {
+            setShowNote(false);
+            setValue('expense.description', null);
           }}
-          variant="link"
-          size="inherit"
-          disabled={formState.isSubmitting}
         >
-          note
-        </Button>{' '}
-        to this transaction or link it to a{' '}
-        <Button
-          type="button"
-          onClick={() => {
-            const shouldShowTrip = !showTrip;
-            setShowTrip(shouldShowTrip);
-            if (!shouldShowTrip) {
-              setValue('expense.tripName', null);
-            }
+          <Description
+            fieldName="expense.description"
+            label="Note"
+            placeholder="Add a note…"
+          />
+        </RemovableField>
+      )}
+      {showTrip && (
+        <RemovableField
+          onRemove={() => {
+            setShowTrip(false);
+            setValue('expense.tripName', null);
           }}
-          variant="link"
-          size="inherit"
-          disabled={formState.isSubmitting}
         >
-          trip
-        </Button>
-        .
-      </div>
-      {showTrip && <Trip />}
-      {showNote && <Description fieldName="expense.description" />}
+          <Trip />
+        </RemovableField>
+      )}
     </>
   );
 }

@@ -16,15 +16,18 @@ export function SplitTransactionToggle() {
       control={control}
       name={'income.isShared'}
       render={({field, formState}) => (
-        <FormItem className="col-span-3 flex flex-row items-center">
+        <FormItem className="flex flex-row items-center">
           <FormControl className="w-11">
             <Switch
+              className="data-[state=checked]:bg-brand"
               checked={field.value}
               disabled={formState.isSubmitting}
               onCheckedChange={field.onChange}
             />
           </FormControl>
-          <FormLabel className="ml-4">Split transaction</FormLabel>
+          <FormLabel className="ml-2.5 text-[13px] font-semibold">
+            Split with someone
+          </FormLabel>
           <FormMessage />
         </FormItem>
       )}

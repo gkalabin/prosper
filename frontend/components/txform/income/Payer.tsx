@@ -1,9 +1,9 @@
+import {FieldLabel} from '@/components/txform/shared/FieldLabel';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
@@ -21,11 +21,13 @@ export function Payer() {
       control={control}
       name="income.payer"
       render={({field}) => (
-        <FormItem className="col-span-6">
-          <FormLabel>Payer</FormLabel>
+        <FormItem className="col-span-6 space-y-1.5">
+          <FieldLabel>Source</FieldLabel>
           <FormControl>
             <Input
               type="text"
+              placeholder="Who paid you?"
+              className="h-11 rounded-md px-3.5 text-base"
               datalist={payers}
               {...field}
               onFocus={e => e.target.select()}

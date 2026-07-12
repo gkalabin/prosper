@@ -1,10 +1,10 @@
+import {FieldLabel} from '@/components/txform/shared/FieldLabel';
 import {MoneyInput} from '@/components/txform/shared/MoneyInput';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import {cn} from '@/lib/utils';
@@ -18,8 +18,10 @@ export function Amount() {
       control={control}
       name="income.amount"
       render={({field}) => (
-        <FormItem className={cn(isShared ? 'col-span-3' : 'col-span-6')}>
-          <FormLabel>Amount</FormLabel>
+        <FormItem
+          className={cn('space-y-1.5', isShared ? 'col-span-3' : 'col-span-6')}
+        >
+          <FieldLabel>Amount</FieldLabel>
           <FormControl>
             <MoneyInput {...field} />
           </FormControl>

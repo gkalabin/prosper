@@ -58,7 +58,7 @@ export function TagsSelect({
           variant="outline"
           role="combobox"
           className={cn(
-            'h-auto min-h-10 w-full p-2 text-base',
+            'bg-card h-auto min-h-11 w-full rounded-md p-2 text-base font-normal',
             !value.length && 'text-muted-foreground'
           )}
           disabled={disabled}
@@ -162,13 +162,16 @@ function SelectedTags({
     return <span>Select or create tags</span>;
   }
   const Tag = ({tag}: {tag: string}) => (
-    <Badge variant="secondary" className="font-medium">
+    <Badge
+      variant="secondary"
+      className="bg-brand-soft text-brand-ink hover:bg-brand-soft gap-1.5 py-1 pl-2.5 pr-1.5 text-[13px] font-semibold"
+    >
       {tag}
       <span
         role="button"
         aria-label={`Remove ${tag}`}
         tabIndex={0}
-        className="text-secondary-foreground"
+        className="opacity-70 hover:opacity-100"
         onClick={e => {
           e.stopPropagation();
           onClick(tag);

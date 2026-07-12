@@ -1,4 +1,3 @@
-import {RepaymentToggle} from '@/components/txform/expense/RepaymentToggle';
 import {useSharingType} from '@/components/txform/expense/useSharingType';
 import {MoneyInput} from '@/components/txform/shared/MoneyInput';
 import {TransactionFormSchema} from '@/components/txform/types';
@@ -23,15 +22,14 @@ export function OwnShareAmount() {
       control={control}
       name="expense.ownShareAmount"
       render={({field}) => (
-        <FormItem className="col-span-3">
-          <FormLabel>
+        <FormItem className="col-span-3 space-y-1.5">
+          <FormLabel className="text-brand-ink text-xs font-semibold">
             <LabelText />
           </FormLabel>
           <FormControl>
             <MoneyInput {...field} />
           </FormControl>
           <FormMessage />
-          <RepaymentToggle />
         </FormItem>
       )}
     />

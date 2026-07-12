@@ -1,10 +1,10 @@
+import {FieldLabel} from '@/components/txform/shared/FieldLabel';
 import {MoneyInput} from '@/components/txform/shared/MoneyInput';
 import {SubFormValues} from '@/components/txform/types';
 import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
@@ -20,8 +20,10 @@ export function Amount() {
       control={control}
       name="transfer.amountSent"
       render={({field}) => (
-        <FormItem className={cn(sameUnit ? 'col-span-6' : 'col-span-3')}>
-          <FormLabel>{sameUnit ? 'Amount' : 'Amount Sent'}</FormLabel>
+        <FormItem
+          className={cn('space-y-1.5', sameUnit ? 'col-span-6' : 'col-span-3')}
+        >
+          <FieldLabel>{sameUnit ? 'Amount' : 'Amount sent'}</FieldLabel>
           <FormControl>
             <MoneyInput {...field} />
           </FormControl>

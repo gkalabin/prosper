@@ -1,10 +1,10 @@
 import {CategorySelect} from '@/components/txform/shared/CategorySelect';
+import {FieldLabel} from '@/components/txform/shared/FieldLabel';
 import {SubFormValues} from '@/components/txform/types';
 import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import {useFormContext} from 'react-hook-form';
@@ -20,8 +20,8 @@ export function Category({
       control={control}
       name={fieldName}
       render={({field}) => (
-        <FormItem className="col-span-6">
-          <FormLabel>Category</FormLabel>
+        <FormItem className="col-span-6 space-y-1.5">
+          <FieldLabel>Category</FieldLabel>
           <FormControl>
             <CategorySelect
               value={field.value}

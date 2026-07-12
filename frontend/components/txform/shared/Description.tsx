@@ -1,9 +1,9 @@
+import {FieldLabel} from '@/components/txform/shared/FieldLabel';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import {Input} from '@/components/ui/input';
@@ -15,11 +15,15 @@ import {useFormContext} from 'react-hook-form';
 
 export function Description({
   fieldName,
+  label,
+  placeholder,
 }: {
   fieldName:
     | 'expense.description'
     | 'income.description'
     | 'transfer.description';
+  label: string;
+  placeholder?: string;
 }) {
   const {control} = useFormContext<TransactionFormSchema>();
   const {transactions} = useTransactionDataContext();
@@ -36,11 +40,13 @@ export function Description({
       control={control}
       name={fieldName}
       render={({field}) => (
-        <FormItem className="col-span-6">
-          <FormLabel>Description</FormLabel>
+        <FormItem className="col-span-6 space-y-1.5">
+          <FieldLabel>{label}</FieldLabel>
           <FormControl>
             <Input
               type="text"
+              placeholder={placeholder}
+              className="h-11 rounded-md px-3.5 text-base"
               datalist={descriptions}
               {...field}
               value={field.value ?? ''}

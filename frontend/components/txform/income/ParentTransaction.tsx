@@ -1,3 +1,4 @@
+import {FieldLabel} from '@/components/txform/shared/FieldLabel';
 import {SubFormValues} from '@/components/txform/types';
 import {Button} from '@/components/ui/button';
 import {
@@ -10,7 +11,6 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from '@/components/ui/form';
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
@@ -43,8 +43,8 @@ export function ParentTransaction() {
       control={control}
       name="income.parentTransactionId"
       render={({field}) => (
-        <FormItem className="col-span-6">
-          <FormLabel>Parent transaction</FormLabel>
+        <FormItem className="col-span-6 space-y-1.5">
+          <FieldLabel>Refund of</FieldLabel>
           <FormControl>
             <ParentTransactionSelect
               value={field.value}
@@ -94,7 +94,7 @@ function ParentTransactionSelect({
           variant="outline"
           role="combobox"
           className={cn(
-            'w-full justify-between',
+            'bg-card h-auto min-h-11 w-full justify-between rounded-md px-3.5 py-2 text-base font-normal',
             !parentExpense && 'text-muted-foreground'
           )}
         >
