@@ -1,5 +1,5 @@
 'use client';
-import {TransactionsList} from '@/components/transactions/TransactionsList';
+import {TransactionTimeline} from '@/components/transactions/TransactionTimeline';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {ChevronRightIcon} from '@heroicons/react/24/outline';
 import {differenceInDays} from 'date-fns';
@@ -35,7 +35,7 @@ export function RecentTransactions() {
           <ChevronRightIcon className="h-4 w-4 self-center" />
         </Link>
       </div>
-      <TransactionsList transactions={recent} />
+      <TransactionTimeline transactions={recent} />
     </section>
   );
 }

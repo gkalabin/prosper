@@ -18,3 +18,11 @@ export function tripModelFromDB(init: PbTrip): Trip {
     endEpoch: init.end ? timestampToEpoch(init.end) : null,
   };
 }
+
+export function mustFindTrip(id: number, trips: Trip[]): Trip {
+  const trip = trips.find(t => t.id == id);
+  if (!trip) {
+    throw new Error(`Cannot find trip with id ${id}`);
+  }
+  return trip;
+}

@@ -6,7 +6,7 @@ import {
   isFullyConfigured,
   NotConfiguredYet,
 } from '@/components/NotConfiguredYet';
-import {TransactionsList} from '@/components/transactions/TransactionsList';
+import {TransactionTimeline} from '@/components/transactions/TransactionTimeline';
 import {NewTransactionFormDialog} from '@/components/txform/TransactionForm';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -61,7 +61,7 @@ function NonEmptyPageContent({accountId}: {accountId: number}) {
               ))}
             </div>
           )}
-          <TransactionsList transactions={results} account={account} />
+          <TransactionTimeline transactions={results} perspective={account} />
         </div>
       </main>
       <NewTransactionFormDialog

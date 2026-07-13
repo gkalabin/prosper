@@ -43,24 +43,18 @@ export class TransactionListPage {
   async expectTransactionHasCategory(text: string, category: string) {
     const listItem = this.getTransactionListItem(text);
     await this.ensureExpanded(listItem);
-    await expect(listItem.getByText(`Category: ${category}`)).toBeVisible();
+    await this.expectDetail(listItem, 'Category', category);
   }
 
   async expectTransactionHasTags(text: string, expectedTags: string[]) {
     const listItem = this.getTransactionListItem(text);
     await this.ensureExpanded(listItem);
-    const tagsSection = listItem.getByText(/^Tags:/);
-    await expect(tagsSection).toBeVisible();
-    // Parse "Tags: tag1, tag2, tag3" into ['tag1', 'tag2', 'tag3']
-    const textContent = await tagsSection.textContent();
-    const actual =
-      textContent
-        ?.replace(/^Tags:\s*/, '')
-        .split(',')
-        .map(t => t.trim())
-        .filter(Boolean)
-        .sort() || [];
-    expect(actual).toEqual([...expectedTags].sort());
+    const tags = listItem
+      .getByRole('list', {name: 'Tags'})
+      .getByRole('listitem');
+    await expect(tags).toHaveCount(expectedTags.length);
+    const actual = await tags.allTextContents();
+    expect(actual.sort()).toEqual([...expectedTags].sort());
   }
 
   async expectExpenseTransaction(
@@ -81,12 +75,12 @@ export class TransactionListPage {
   ) {
     const item = this.getTransactionListItem(text);
     await this.ensureExpanded(item);
-    await expect(item.getByText(`Full amount: ${amount}`)).toBeVisible();
-    await expect(item.getByText(`Vendor: ${vendor}`)).toBeVisible();
-    await expect(item.getByText(`Account from: ${account}`)).toBeVisible();
-    await expect(item.getByText(`Category: ${category}`)).toBeVisible();
+    await this.expectDetail(item, 'Full amount', amount);
+    await this.expectDetail(item, 'Vendor', vendor);
+    await this.expectDetail(item, 'Account', account);
+    await this.expectDetail(item, 'Category', category);
     if (refundedIn) {
-      const refunds = item.getByText(`This expense was refunded in`);
+      const refunds = item.getByText('Refunded in');
       await expect(refunds).toBeVisible();
       for (const r of refundedIn) {
         await expect(
@@ -114,13 +108,13 @@ export class TransactionListPage {
   ) {
     const item = this.getTransactionListItem(text);
     await this.ensureExpanded(item);
-    await expect(item.getByText(`Full amount: ${amount}`)).toBeVisible();
-    await expect(item.getByText(`Payer: ${payer}`)).toBeVisible();
-    await expect(item.getByText(`Account to: ${account}`)).toBeVisible();
-    await expect(item.getByText(`Category: ${category}`)).toBeVisible();
+    await this.expectDetail(item, 'Full amount', amount);
+    await this.expectDetail(item, 'Payer', payer);
+    await this.expectDetail(item, 'Account', account);
+    await this.expectDetail(item, 'Category', category);
     if (refundForVendor) {
       await expect(
-        item.getByText(`This transaction is a refund for ${refundForVendor}`)
+        item.getByText(`Refund for ${refundForVendor}`)
       ).toBeVisible();
     }
   }
@@ -143,11 +137,11 @@ export class TransactionListPage {
   ) {
     const item = this.getTransactionListItem(text);
     await this.ensureExpanded(item);
-    await expect(item.getByText(`Sent: ${amountSent}`)).toBeVisible();
-    await expect(item.getByText(`Received: ${amountReceived}`)).toBeVisible();
-    await expect(item.getByText(`Account from: ${accountFrom}`)).toBeVisible();
-    await expect(item.getByText(`Account to: ${accountTo}`)).toBeVisible();
-    await expect(item.getByText(`Category: ${category}`)).toBeVisible();
+    await this.expectDetail(item, 'Sent', amountSent);
+    await this.expectDetail(item, 'Received', amountReceived);
+    await this.expectDetail(item, 'From', accountFrom);
+    await this.expectDetail(item, 'To', accountTo);
+    await this.expectDetail(item, 'Category', category);
   }
 
   async expectThirdPartyTransaction(
@@ -168,27 +162,23 @@ export class TransactionListPage {
   ) {
     const item = this.getTransactionListItem(text);
     await this.ensureExpanded(item);
-    await expect(item.getByText(`Paid by: ${payer}`)).toBeVisible();
-    await expect(item.getByText(`Full amount: ${fullAmount}`)).toBeVisible();
-    await expect(item.getByText(`Own share: ${ownShare}`)).toBeVisible();
-    await expect(item.getByText(`Vendor: ${vendor}`)).toBeVisible();
-    await expect(item.getByText(`Category: ${category}`)).toBeVisible();
+    await this.expectDetail(item, 'Paid by', payer);
+    await this.expectDetail(item, 'Full amount', fullAmount);
+    await this.expectDetail(item, 'Own share', ownShare);
+    await this.expectDetail(item, 'Vendor', vendor);
+    await this.expectDetail(item, 'Category', category);
   }
 
   async expectExpenseTransactionNotRefunded(text: string) {
     const item = this.getTransactionListItem(text);
     await this.ensureExpanded(item);
-    await expect(
-      item.getByText(`This expense was refunded in`)
-    ).not.toBeVisible();
+    await expect(item.getByText('Refunded in')).not.toBeVisible();
   }
 
   async expectIncomeTransactionIsNotRefund(text: string) {
     const item = this.getTransactionListItem(text);
     await this.ensureExpanded(item);
-    await expect(
-      item.getByText(`This transaction is a refund`)
-    ).not.toBeVisible();
+    await expect(item.getByText('Refund for')).not.toBeVisible();
   }
 
   async openStats() {
@@ -239,14 +229,22 @@ export class TransactionListPage {
     await expect(definition('max')).toContainText(expected.max);
   }
 
+  // Asserts the expanded detail panel defines the given term with the value.
+  private async expectDetail(item: Locator, label: string, value: string) {
+    const term = item
+      .getByRole('term')
+      .filter({hasText: new RegExp(`^${label}$`)});
+    // In a description list the value is the definition following its term.
+    await expect(term.locator('+ dd')).toContainText(value);
+  }
+
   // Ensures a transaction list item is in expanded state.
   // If already expanded, does nothing. If collapsed, clicks to expand.
   private async ensureExpanded(listItem: Locator) {
-    const editButton = listItem.getByRole('button', {name: 'Edit'});
-    const isExpanded = await editButton.isVisible();
-    if (!isExpanded) {
-      await listItem.click();
-      await expect(editButton).toBeVisible();
+    const collapsedTrigger = listItem.getByRole('button', {expanded: false});
+    if (await collapsedTrigger.isVisible()) {
+      await collapsedTrigger.click();
     }
+    await expect(listItem.getByRole('button', {expanded: true})).toBeVisible();
   }
 }

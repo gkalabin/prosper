@@ -1,5 +1,5 @@
 import {CurrencyExchangeFailed} from '@/app/(authenticated)/stats/CurrencyExchangeFailed';
-import {TransactionsList} from '@/components/transactions/TransactionsList';
+import {Pager, RowsCard} from '@/components/transactions/parts';
 import {Button} from '@/components/ui/button';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {AmountWithUnit} from '@/lib/AmountWithUnit';
@@ -72,7 +72,6 @@ function amount(
 
 export const SortableTransactionsList = (props: {
   transactions: Transaction[];
-  displayLimit?: number;
   initialSorting?: SortingMode;
 }) => {
   const [sorting, setSorting] = useState(
@@ -159,7 +158,9 @@ export const SortableTransactionsList = (props: {
 
       <div>
         <CurrencyExchangeFailed failedTransactions={failedToExchange} />
-        <TransactionsList transactions={sortedTransactions} displayLimit={10} />
+        <Pager transactions={sortedTransactions}>
+          {shown => <RowsCard transactions={shown} />}
+        </Pager>
       </div>
     </>
   );

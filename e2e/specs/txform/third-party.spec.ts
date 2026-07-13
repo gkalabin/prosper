@@ -89,14 +89,16 @@ test.describe('Third-Party Expenses', () => {
     });
     const listPage = new TransactionListPage(page);
     await listPage.goto();
-    await listPage.expectThirdPartyTransaction('Subway paid by Jane', {
+    await listPage.expectThirdPartyTransaction('Subway', {
       fullAmount: '$90',
       ownShare: '$45',
       vendor: 'Subway',
       category: 'Dining',
       payer: 'Jane',
     });
-    await listPage.expectExpenseTransaction('Paid back for Subway', {
+    // The repayment row is titled with the payer's name, which the debt row
+    // above also contains, so locate it by its distinct category instead.
+    await listPage.expectExpenseTransaction('Repayments', {
       // Own share is half the full amount ($90), so the user paid back half of it.
       amount: '$45',
       vendor: 'Jane',
