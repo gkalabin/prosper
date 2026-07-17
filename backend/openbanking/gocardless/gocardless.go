@@ -60,9 +60,9 @@ func (n *Provider) redirectURI() string {
 func (*Provider) Kind() prosperv1.Provider { return prosperv1.Provider_PROVIDER_GOCARDLESS }
 
 // ReconnectURL returns the in-app path the frontend reconnect flow
-// should redirect to. The Next page at
-// /config/open-banking/gocardless/connect owns the actual flow; we just
-// hand it the institutionId from the most recent requisition.
+// should redirect to. Reconnecting reuses the institution from the most
+// recent requisition, so it skips institution selection and starts a new
+// GoCardless connection straight away.
 func (n *Provider) ReconnectURL(ctx context.Context, userID, bankID int32) (string, error) {
 	institutionID, err := n.LastInstitutionID(ctx, userID, bankID)
 	if err != nil {
@@ -72,5 +72,5 @@ func (n *Provider) ReconnectURL(ctx context.Context, userID, bankID int32) (stri
 }
 
 func reconnectPath(bankID int32, institutionID string) string {
-	return fmt.Sprintf("/config/open-banking/gocardless/connect?bankId=%d&institutionId=%s", bankID, institutionID)
+	return fmt.Sprintf("/api/open-banking/gocardless/connect?bankId=%d&institutionId=%s", bankID, institutionID)
 }
