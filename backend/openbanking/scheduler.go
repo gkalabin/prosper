@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"maps"
+	"slices"
 	"sync"
 	"time"
 
@@ -15,15 +17,22 @@ import (
 // are due. The actual cadence comes from refreshInterval
 const schedulerTick = time.Hour
 
-// StartScheduler start periodic fetch of open banking transactions every refreshInterval.
-func (s *Service) StartScheduler(ctx context.Context, wg *sync.WaitGroup) {
+// ScheduledSyncObserver is told when a scheduled run fetched a user's
+// accounts successfully. Runs synchronously on the scheduler goroutine.
+type ScheduledSyncObserver interface {
+	OnScheduledSync(ctx context.Context, userID int32)
+}
+
+// StartScheduler start periodic fetch of open banking transactions every
+// refreshInterval.
+func (s *Service) StartScheduler(ctx context.Context, wg *sync.WaitGroup, observer ScheduledSyncObserver) {
 	if s.refreshInterval == 0 {
 		log.Println("openbanking: refresh interval is 0, scheduler disabled")
 		return
 	}
 	log.Printf("openbanking: scheduler started, interval=%s", s.refreshInterval)
 	wg.Go(func() {
-		s.runScheduled(ctx)
+		s.runScheduled(ctx, observer)
 		ticker := time.NewTicker(schedulerTick)
 		defer ticker.Stop()
 		for {
@@ -32,19 +41,21 @@ func (s *Service) StartScheduler(ctx context.Context, wg *sync.WaitGroup) {
 				log.Println("openbanking: scheduler stopping")
 				return
 			case <-ticker.C:
-				s.runScheduled(ctx)
+				s.runScheduled(ctx, observer)
 			}
 		}
 	})
 }
 
-// runScheduled fetches every connected account whose last fetch is older than refreshInterval.
-func (s *Service) runScheduled(ctx context.Context) {
+// runScheduled fetches every connected account whose last fetch is older
+// than refreshInterval.
+func (s *Service) runScheduled(ctx context.Context, observer ScheduledSyncObserver) {
 	accounts, err := s.allConnectedAccounts(ctx)
 	if err != nil {
 		log.Printf("openbanking: list connected accounts: %v", err)
 		return
 	}
+	succeeded := map[int32]bool{}
 	for _, a := range accounts {
 		due, err := s.dueForFetch(ctx, a.UserID, a.InternalAccountID)
 		if err != nil {
@@ -61,6 +72,13 @@ func (s *Service) runScheduled(ctx context.Context) {
 		}
 		if err := s.fetchAccount(ctx, a.UserID, p, a, model.FetchTriggerScheduled); err != nil {
 			log.Printf("openbanking: scheduled fetch user=%d account=%d: %v", a.UserID, a.InternalAccountID, err)
+			continue
+		}
+		succeeded[a.UserID] = true
+	}
+	if observer != nil {
+		for _, userID := range slices.Sorted(maps.Keys(succeeded)) {
+			observer.OnScheduledSync(ctx, userID)
 		}
 	}
 }

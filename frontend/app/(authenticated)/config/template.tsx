@@ -21,6 +21,10 @@ export default function ConfigPageLayout({
             title: 'Categories',
             path: '/config/categories',
           },
+          {
+            title: 'Telegram',
+            path: '/config/telegram',
+          },
         ]}
       />
       <div className="flex justify-center">

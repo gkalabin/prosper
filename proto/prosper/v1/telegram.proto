@@ -1,0 +1,37 @@
+syntax = "proto3";
+package prosper.v1;
+option go_package = "prosper/gen/prosper/v1;prosperv1";
+
+// TelegramService manages the link between a Prosper user and their Telegram chat.
+service TelegramService {
+  // GetTelegramLinkStatus reports whether the bot is configured on the
+  // server and whether this user has linked a chat.
+  rpc GetTelegramLinkStatus(GetTelegramLinkStatusRequest)
+      returns (GetTelegramLinkStatusResponse);
+
+  // CreateTelegramLink mints this user's single outstanding link token
+  // and returns the t.me deep link that consumes it.
+  rpc CreateTelegramLink(CreateTelegramLinkRequest)
+      returns (CreateTelegramLinkResponse);
+
+  // DeleteTelegramLink disconnects the user's chat which stops notifications.
+  rpc DeleteTelegramLink(DeleteTelegramLinkRequest)
+      returns (DeleteTelegramLinkResponse);
+}
+
+message GetTelegramLinkStatusRequest { string session_id = 1; }
+message GetTelegramLinkStatusResponse {
+  // True when the server has a bot token configured.
+  bool configured = 1;
+  // True when this user has a linked chat.
+  bool linked = 2;
+}
+
+message CreateTelegramLinkRequest { string session_id = 1; }
+message CreateTelegramLinkResponse {
+  // https://t.me/<bot>?start=<token>
+  string deep_link = 1;
+}
+
+message DeleteTelegramLinkRequest { string session_id = 1; }
+message DeleteTelegramLinkResponse {}
