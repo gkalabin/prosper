@@ -9,6 +9,7 @@ import (
 	prosperv1 "prosper/gen/prosper/v1"
 )
 
+// TODO: the Cand suffix is ugly. Also look at every usage and find a way to make it easier to read. For example, maybe return a slice, so the caller doesn't have to construct one?
 func idCand(v int32) *prosperv1.IdCandidate {
 	return &prosperv1.IdCandidate{Confidence: confidenceObserved, Value: v}
 }

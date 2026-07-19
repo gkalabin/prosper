@@ -126,6 +126,7 @@ func incomeInputFromDraft(d *prosperv1.TransactionDraft) (*prosperv1.IncomeFormI
 	description, _ := topString(d.Description)
 	isShared := false
 	if st, ok := topSharingType(d.SharingType); ok {
+		// TODO: is it right to use PAID_SELF here inside income transaction?
 		isShared = st == prosperv1.SharingType_SHARING_TYPE_PAID_SELF_SHARED
 	}
 	income := &prosperv1.IncomeFormInput{
@@ -168,6 +169,7 @@ func transferInputFromDraft(d *prosperv1.TransactionDraft) (*prosperv1.TransferF
 	if !ok {
 		return nil, missingField("to account")
 	}
+	// TODO: use the same amounts if same unit between account and require input in app for different units.
 	amountReceived := amountSent
 	if ar, ok := topMoney(d.AmountReceived); ok {
 		amountReceived = ar
@@ -191,6 +193,7 @@ func missingField(name string) error {
 	return fmt.Errorf("draft has no %s winner", name)
 }
 
+// TODO: these topXXX methods should be replaced with just top invocation.
 func topID(field []*prosperv1.IdCandidate) (int32, bool) {
 	c, ok := top(field)
 	if !ok {

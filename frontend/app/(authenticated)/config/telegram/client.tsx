@@ -20,6 +20,7 @@ export function TelegramSettingsPage({
   if (!configured) {
     return (
       <p className="text-muted-foreground text-sm">
+        {/* TODO: I don't like the copy, speaking of server is kind of nerdy, find a nicer way to phrase it. */}
         Telegram integration is not configured on this server.
       </p>
     );
@@ -57,6 +58,7 @@ export function TelegramSettingsPage({
   return (
     <div className="flex flex-col gap-4">
       <p className="text-muted-foreground text-sm">
+        {/* TODO: copy issue - do not speak of open banking, the user probably doesn't know what it is. Something like when bank reports or smth. */}
         Get a Telegram message when open banking finds a new transaction, and
         record it with one tap. Message content is delivered to and stored by
         Telegram.

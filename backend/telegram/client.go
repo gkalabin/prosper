@@ -33,6 +33,9 @@ type Client struct {
 }
 
 // NewClient builds a client for the given bot token.
+//
+// TODO: > The HTTP timeout exceeds the long-poll hold so getUpdates can block server-side.
+// TODO: this should be where HTTP timeout is set, not at the function comment. Update CLAUDE.md with this and fix comment.
 func NewClient(token string) *Client {
 	return &Client{
 		http:    &http.Client{Timeout: longPollTimeout + 15*time.Second},
@@ -213,9 +216,11 @@ func (c *Client) roundTrip(ctx context.Context, url string, body []byte) (apiRes
 // backoffFor decides whether a non-ok response is worth retrying and how long to wait.
 func backoffFor(env apiResponse) (time.Duration, bool) {
 	if env.ErrorCode >= 500 {
+		// TODO: use exponential backoff.
 		return serverErrorBackoff, true
 	}
 	if env.ErrorCode == http.StatusTooManyRequests {
+		// TODO: use exponential backoff.
 		wait := serverErrorBackoff
 		if env.Parameters != nil && env.Parameters.RetryAfter > 0 {
 			wait = time.Duration(env.Parameters.RetryAfter) * time.Second

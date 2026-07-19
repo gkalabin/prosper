@@ -79,6 +79,7 @@ func TestRenderExpense(t *testing.T) {
 
 func TestRenderExpenseNoCategoryOmitsCategoryAndAddsHint(t *testing.T) {
 	d := completeExpense()
+	// TODO: I don't like this approach as I have to go and recompute the latest result, test case and on top of it local changes. Make it simple stupid.
 	d.CategoryId = nil
 	got := renderDraft(d, testLookups())
 	if strings.Contains(got, "Groceries") {

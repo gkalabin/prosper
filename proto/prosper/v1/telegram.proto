@@ -30,6 +30,7 @@ message GetTelegramLinkStatusResponse {
 message CreateTelegramLinkRequest { string session_id = 1; }
 message CreateTelegramLinkResponse {
   // https://t.me/<bot>?start=<token>
+  // TODO: use a consistent name for such a thing across the app.
   string deep_link = 1;
 }
 

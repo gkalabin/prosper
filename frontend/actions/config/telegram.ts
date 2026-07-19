@@ -3,6 +3,7 @@ import {getAuthContextOrRedirect} from '@/lib/auth/user';
 import {withAuth} from '@/lib/grpc/auth';
 import {telegramClient} from '@/lib/grpc/client';
 
+// TODO: remove this type and use the proto type instead.
 export type TelegramLinkStatus = {
   configured: boolean;
   linked: boolean;
@@ -16,6 +17,7 @@ export async function getTelegramLinkStatus(): Promise<TelegramLinkStatus> {
   return {configured: response.configured, linked: response.linked};
 }
 
+// TODO: just return proto to the client.
 export async function createTelegramLink(): Promise<{deepLink: string}> {
   const auth = await getAuthContextOrRedirect();
   const {response} = await telegramClient.createTelegramLink(

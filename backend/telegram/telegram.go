@@ -3,6 +3,8 @@
 // through the same suggestion and write paths the web form uses.
 package telegram
 
+// TODO: linking a chat has poor ux. You click a link in prosper, it opens tg, then two buttons open in web or open in tg, you pick one and then it suggests to call /start which responds with nothing. Create /link <PROSPER_CODE> command and use it to link the chat. the code should be shown in the settings page, so the user can manually trigger the link, but also keep the button for convenience.
+
 import "time"
 
 const (

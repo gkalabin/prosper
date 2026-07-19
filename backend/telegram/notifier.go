@@ -56,6 +56,7 @@ func (n *Notifier) OnScheduledSync(ctx context.Context, userID int32) {
 		return
 	}
 	for _, d := range drafts {
+		// TODO: change to if (a || b) continue instead of switch.
 		switch {
 		case d.Ignored:
 		case len(d.RecordedTransactionIds) > 0: // Already in the ledger.
@@ -67,6 +68,7 @@ func (n *Notifier) OnScheduledSync(ctx context.Context, userID int32) {
 }
 
 // send claims the draft, then delivers the message.
+// TODO: lu (or whatever replaces it) should roll into context as it is ideomatic golang (right?)
 func (n *Notifier) send(ctx context.Context, userID int32, chatID int64, d *prosperv1.TransactionDraft, lu lookups) {
 	origins, err := common.OriginKeysFromProto(d.Origins)
 	if err != nil {
@@ -76,6 +78,7 @@ func (n *Notifier) send(ctx context.Context, userID int32, chatID int64, d *pros
 	text := renderDraft(d, lu)
 	notificationID, err := n.store.CreateNotification(ctx, userID, chatID, text, origins)
 	if err != nil {
+		// TODO: log the error here.
 		return
 	}
 	if _, err := n.client.SendMessage(ctx, chatID, text, keyboard(notificationID, d, n.publicAppURL)); err != nil {
@@ -85,6 +88,7 @@ func (n *Notifier) send(ctx context.Context, userID int32, chatID int64, d *pros
 
 // anyOriginIn reports whether any of the draft's origins was discovered
 // after the chat was linked.
+// TODO: this function is used at negation, hard to understand what is fresh and it doesn't read obvious. Find the right name maybe refactor the logic a bit.
 func anyOriginIn(d *prosperv1.TransactionDraft, fresh map[string]bool) bool {
 	for _, o := range d.Origins {
 		if fresh[o.Key] {

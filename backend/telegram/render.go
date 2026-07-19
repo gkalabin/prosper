@@ -10,7 +10,14 @@ import (
 	"prosper/suggest"
 )
 
+// TODO: overall layout is bad:
+//  - Category makes no sense without parents (just Offline means nothing, Food > Groceries > Offline is the full name)
+//  - Account name needs a bank (GBP vs Revolut: GBP)
+//  - If you just change the above to use full names, the layout will get blown up and won't fit into line, it will be hedious, so a proper layout redesign is vouched for.
+//  - Bank text should not be shown if there is no difference in case.
+
 // Callback action verbs, the prefix of a button's callback_data.
+// TODO: collate all the such user visible tg strings in a common place.
 const (
 	actionAdd    = "add"
 	actionIgnore = "ignore"
@@ -28,6 +35,7 @@ const timestampLayout = "2 Jan, 15:04"
 const categoryPathSeparator = " > "
 
 // accountInfo is the render-relevant view of a bank account.
+// TODO: just use the model type, delete this.
 type accountInfo struct {
 	name         string
 	bankName     string // empty when the account has no bank (stock accounts)
@@ -55,15 +63,18 @@ func renderDraft(d *prosperv1.TransactionDraft, lu lookups) string {
 }
 
 func renderExpense(d *prosperv1.TransactionDraft, lu lookups) string {
+	// TODO: displayName translates empty string into Unknown but we pass empty string into winnerString. displayName adds extra complexity without any meaningful need. Delete displayName.
 	name := displayName(winnerStringOr(d.Vendor, ""))
 	lines := []string{
 		headerLine("🧾 New expense", amountText(d.Amount, accountCurrency(lu, d.AccountFromId))),
 		name,
 	}
+	// TODO: here an below, change from appendBla to just lines = append(lines, bla(...))
 	lines = appendCategoryLine(lines, d, lu)
 	lines = appendAccountLine(lines, lu, d.AccountFromId)
 	lines = appendTagsLine(lines, d)
 	lines = appendSharingLine(lines, d, lu, d.AccountFromId)
+	// TODO: this should go second line.
 	lines = appendTimestampLine(lines, d)
 	lines = appendMaybeBankTextLine(lines, weakestStringOr(d.Vendor, ""), name)
 	if _, hasCategory := winnerID(d.CategoryId); !hasCategory {
@@ -116,6 +127,7 @@ func renderTransfer(d *prosperv1.TransactionDraft, lu lookups) string {
 
 // headerLine renders a message's first line, "🧾 New expense · £24.99",
 // dropping the amount when the draft has none.
+// TODO: this method is not improving the code, but making it more complex by adding more nesting level. Remove this function.
 func headerLine(prefix, amount string) string {
 	if amount == "" {
 		return prefix
@@ -148,6 +160,7 @@ func appendTagsLine(lines []string, d *prosperv1.TransactionDraft) []string {
 	}
 	tags := make([]string, len(names))
 	for i, n := range names {
+		// TODO: do not use hashtag sign, we never use it in the app, this will confuse the users.
 		tags[i] = "#" + n
 	}
 	return append(lines, strings.Join(tags, " "))
@@ -185,6 +198,7 @@ func appendMaybeBankTextLine(lines []string, raw, shownName string) []string {
 }
 
 // joinAmountAccount renders "£100.00 Monzo" for one leg of a transfer.
+// TODO: this is just string concatenaton. There should be no empty amount and no empty accounts. Remove.
 func joinAmountAccount(amount, account string) string {
 	switch {
 	case amount == "":
@@ -220,8 +234,8 @@ func keyboard(notificationID int32, d *prosperv1.TransactionDraft, publicAppURL 
 	var actions []InlineButton
 	if _, err := suggest.WriteRequestFromDraft(d); err == nil {
 		actions = append(actions, InlineButton{
-			Text:         "✅ Add",
-			Text:         "✅ Add",
+			Text: "✅ Add",
+			// TODO: move this logic close to parsing the callback data.
 			CallbackData: fmt.Sprintf("%s:%d", actionAdd, notificationID),
 		})
 	}
@@ -230,6 +244,7 @@ func keyboard(notificationID int32, d *prosperv1.TransactionDraft, publicAppURL 
 		CallbackData: fmt.Sprintf("%s:%d", actionIgnore, notificationID),
 	})
 	rows := [][]InlineButton{actions}
+	// TODO: this should never be empty, validate at tg initialiser and remove the check.
 	if publicAppURL != "" {
 		rows = append(rows, []InlineButton{{Text: "✏️ Edit in app", URL: publicAppURL + "/new"}})
 	}
@@ -243,6 +258,7 @@ func accountLabel(lu lookups, field []*prosperv1.IdCandidate) string {
 		return ""
 	}
 	a := lu.accounts[id]
+	// TODO: this should not happen.
 	if a.bankName == "" {
 		return a.name
 	}
@@ -264,6 +280,7 @@ func amountText(field []*prosperv1.MoneyCandidate, currencyCode string) string {
 	return formatMoney(nanos, currencyCode)
 }
 
+// TODO: this function is useless.
 func displayName(name string) string {
 	if name == "" {
 		return "Unknown"
@@ -282,9 +299,11 @@ var currencySymbols = map[string]string{
 }
 
 // formatMoney renders a nanos amount with its currency, e.g. "£24.99" or "24.99 PLN".
+// TODO: this doesn't belong here. Move to an appropriate place (create a new helper or a module)
 func formatMoney(nanos int64, currencyCode string) string {
 	amount := formatAmount(nanos)
 	if symbol, ok := currencySymbols[currencyCode]; ok {
+		// TODO: is there some standard golang currency formatting? Can you use it instead of rolling your own?
 		return symbol + amount
 	}
 	if currencyCode != "" {
@@ -321,6 +340,7 @@ func weakestStringOr(field []*prosperv1.StringCandidate, fallback string) string
 type confidenced interface{ GetConfidence() int32 }
 
 // winnerOf returns the highest-confidence candidate, earliest on ties.
+// TODO: why do we have these here, there is already such a function which does almost like this (I think it is called top).
 func winnerOf[C confidenced](field []C) (C, bool) {
 	var winner C
 	ok := false

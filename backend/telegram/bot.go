@@ -86,6 +86,7 @@ func (b *Bot) route(ctx context.Context, u Update) {
 // startToken extracts the token from a "/start <token>" command, or
 // returns "" when none was supplied.
 func startToken(text string) string {
+	// TODO: check the prefix and then remove it if it is present.
 	fields := strings.Fields(text)
 	if len(fields) < 2 {
 		return ""
@@ -108,6 +109,7 @@ func (b *Bot) handleStart(ctx context.Context, chatID int64, token string) {
 	}
 	if err := b.store.LinkChat(ctx, userID, chatID); err != nil {
 		if errors.Is(err, errChatLinkedElsewhere) {
+			// TODO: do not leak information.
 			b.send(ctx, chatID, msgChatLinkedElsewhere)
 			return
 		}
@@ -120,6 +122,7 @@ func (b *Bot) handleStart(ctx context.Context, chatID int64, token string) {
 
 func (b *Bot) handleCallback(ctx context.Context, cb *CallbackQuery) {
 	if cb.Message == nil {
+		// TODO: add a short comment what does this empty string answer mean.
 		b.answer(ctx, cb.ID, "")
 		return
 	}
@@ -146,6 +149,7 @@ func (b *Bot) handleCallback(ctx context.Context, cb *CallbackQuery) {
 		return
 	}
 	if !ok {
+		// TODO: there is a leap of faith assuming not okay means this, this is fragile code.
 		b.answer(ctx, cb.ID, msgNoLongerSuggested)
 		return
 	}
@@ -196,6 +200,7 @@ func (b *Bot) handleAdd(ctx context.Context, cb *CallbackQuery, userID, notifica
 		b.answer(ctx, cb.ID, "")
 		return
 	}
+	// TODO: do not create custom types, use ledger, less optimal, but less error prone and simpler.
 	lu, err := b.store.Lookups(ctx, userID)
 	if err != nil {
 		log.Printf("telegram: add lookups user=%d: %v", userID, err)
@@ -204,6 +209,7 @@ func (b *Bot) handleAdd(ctx context.Context, cb *CallbackQuery, userID, notifica
 	}
 	text := renderDraft(d, lu)
 	if text != messageText {
+		// TODO: add a comment why we are handling this. Focus on the meaningful thing it checks.
 		if err := b.store.UpdateNotificationText(ctx, userID, notificationID, text); err != nil {
 			log.Printf("telegram: add update text user=%d id=%d: %v", userID, notificationID, err)
 		}
@@ -228,7 +234,8 @@ func (b *Bot) handleAdd(ctx context.Context, cb *CallbackQuery, userID, notifica
 
 // findDraftByOrigins returns the draft that shares at least one origin
 // with the notification, or nil when the draft has aged out of the
-// suggestion window
+// suggestion window.
+// TODO: this doesn't belong here.
 func findDraftByOrigins(drafts []*prosperv1.TransactionDraft, origins []common.OriginKey) *prosperv1.TransactionDraft {
 	want := make(map[common.OriginKey]bool, len(origins))
 	for _, o := range origins {
@@ -250,6 +257,7 @@ func findDraftByOrigins(drafts []*prosperv1.TransactionDraft, origins []common.O
 
 // parseCallback splits "add:42" / "ignore:42" into its action and notification id.
 func parseCallback(data string) (string, int32, bool) {
+	// TODO: validate the string and return a string enum for action, not any random one.
 	action, idText, found := strings.Cut(data, ":")
 	if !found {
 		return "", 0, false

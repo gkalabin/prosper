@@ -14,9 +14,12 @@ import (
 
 // errChatLinkedElsewhere reports that a /start attempt named a chat
 // already linked to a different user; the chat is never reassigned.
+// TODO: return generic error, do not leak this information.
+// TODO: move to the common place with other tg errors/strings.
 var errChatLinkedElsewhere = errors.New("telegram: chat already linked to another user")
 
 // errTokenInvalid reports that a link token is unknown or expired.
+// TODO: move to the common place with other tg errors/strings.
 var errTokenInvalid = errors.New("telegram: link token invalid or expired")
 
 // store is the unexported data-access layer over the four Telegram tables.
@@ -27,6 +30,7 @@ type store struct {
 func newStore(db *userdb.DB) *store { return &store{db: db} }
 
 // notificationOriginRow is a TelegramNotificationOrigin row.
+// TODO: move to the model file.
 type notificationOriginRow struct {
 	UserID         int32  `db:"userId"`
 	OriginKind     string `db:"originKind"`
@@ -66,7 +70,7 @@ func (s *store) ConsumeLinkToken(ctx context.Context, token string) (int32, erro
 	defer tx.Rollback()
 	var row model.TelegramLinkToken
 	err = tx.Raw().GetContext(ctx, &row,
-
+		// TODO: add a short comment why FOR UPDATE is necessary here.
 		`SELECT * FROM TelegramLinkToken WHERE token = ? FOR UPDATE`, token)
 	if errors.Is(err, sql.ErrNoRows) {
 		return 0, errTokenInvalid
@@ -102,7 +106,7 @@ func (s *store) LinkChat(ctx context.Context, userID int32, chatID int64) error 
 		return err
 	}
 	if err == nil && owner != userID {
-
+		// TODO: log a warning here, this is security sensitive.
 		return errChatLinkedElsewhere
 	}
 	if _, err := tx.ExecForUser(ctx, userID,
@@ -147,7 +151,7 @@ func (s *store) UserForChat(ctx context.Context, chatID int64) (int32, bool, err
 
 // DeleteLink disconnects the user's chat, stopping notifications.
 func (s *store) DeleteLink(ctx context.Context, userID int32) error {
-
+	// TODO: delete chat here too?
 	_, err := s.db.ExecForUser(ctx, userID,
 		`DELETE FROM TelegramLink WHERE userId = :userId`)
 	return err
@@ -155,6 +159,7 @@ func (s *store) DeleteLink(ctx context.Context, userID int32) error {
 
 // OriginsDiscoveredAfter returns the set of open-banking origin keys
 // (external transaction ids) the user's feed stored after the cutoff.
+// TODO: this should not be here, this file has telegram DB logic, this is openbanking.
 func (s *store) OriginsDiscoveredAfter(ctx context.Context, userID int32, after time.Time) (map[string]bool, error) {
 	var ids []string
 	if err := s.db.SelectForUser(ctx, &ids, userID,
@@ -247,6 +252,7 @@ func (s *store) UpdateNotificationText(ctx context.Context, userID, notification
 
 // Lookups loads the id → name (and account currency) maps the renderer
 // needs so a message never shows a raw id.
+// TODO: use ledger type here. It should be somehow available in this codepath, so plumb it instead of doing a separate lookup.
 func (s *store) Lookups(ctx context.Context, userID int32) (lookups, error) {
 	var accounts []model.BankAccount
 	if err := s.db.SelectForUser(ctx, &accounts, userID,
@@ -292,6 +298,8 @@ func (s *store) Lookups(ctx context.Context, userID int32) (lookups, error) {
 // shows, since a leaf name alone ("Offline") carries no meaning. A broken
 // parent chain (missing link or cycle) stops the walk at the deepest
 // resolvable ancestor rather than looping.
+// TODO: this should live inside model package.
+// TODO: make one function to build category tree and another one to format category name.
 func categoryPath(c model.Category, byID map[int32]model.Category) string {
 	names := []string{c.Name}
 	seen := map[int32]bool{c.ID: true}
