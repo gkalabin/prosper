@@ -1,11 +1,10 @@
 import {Amount} from '@/components/txform/income/Amount';
 import {ExtraFields} from '@/components/txform/income/ExtraFields';
-import {OwnShareAmount} from '@/components/txform/income/OwnShareAmount';
+import {IncomeSplitBlock} from '@/components/txform/income/SplitBlock';
+import {IncomeSplitControl} from '@/components/txform/income/SplitControl';
 import {Payer} from '@/components/txform/income/Payer';
-import {SplitTransactionToggle} from '@/components/txform/income/SplitTransactionToggle';
 import {Account} from '@/components/txform/shared/Account';
 import {Category} from '@/components/txform/shared/Category';
-import {Companion} from '@/components/txform/shared/Companion';
 import {NewBalanceNote} from '@/components/txform/shared/NewBalanceNote';
 import {Tags} from '@/components/txform/shared/Tags';
 import {Timestamp} from '@/components/txform/shared/Timestamp';
@@ -21,15 +20,16 @@ export function IncomeForm({transaction}: {transaction: Transaction | null}) {
   assertDefined(getValues('income'), 'income form requires income values');
   const isCreatingNewTransaction = !transaction;
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <Timestamp fieldName="income.timestamp" />
+      <div className="space-y-2">
+        <Amount />
+        <IncomeNewBalanceNote transaction={transaction} />
+      </div>
       <Account fieldName="income.accountId" label="Money received to" />
-      <SplitTransactionToggle />
-      <MaybeEmptyCompanion />
-      <Amount />
-      <OwnShareAmount />
-      <NewBalanceNoteWrapper transaction={transaction} />
       <Payer />
+      <IncomeSplitControl />
+      <IncomeSplitBlock />
       <Tags fieldName="income.tagNames" />
       <Category fieldName="income.categoryId" />
       <ExtraFields />
@@ -38,17 +38,8 @@ export function IncomeForm({transaction}: {transaction: Transaction | null}) {
       transaction when they only mean to fix a typo in payer. */}
       {isCreatingNewTransaction && <UpdateCategoryOnPayerChange />}
       <UpdateOwnShareOnAmountChange />
-    </>
+    </div>
   );
-}
-
-function MaybeEmptyCompanion() {
-  const {watch} = useFormContext<SubFormValues>();
-  const isShared = watch('income.isShared');
-  if (!isShared) {
-    return null;
-  }
-  return <Companion fieldName="income.companion" />;
 }
 
 function UpdateOwnShareOnAmountChange() {
@@ -62,7 +53,7 @@ function UpdateOwnShareOnAmountChange() {
   );
 }
 
-function NewBalanceNoteWrapper({
+function IncomeNewBalanceNote({
   transaction,
 }: {
   transaction: Transaction | null;
@@ -70,12 +61,10 @@ function NewBalanceNoteWrapper({
   const amount = useWatch({name: 'income.amount', exact: true});
   const accountId = useWatch({name: 'income.accountId', exact: true});
   return (
-    <div className="col-span-6">
-      <NewBalanceNote
-        amount={amount}
-        accountId={accountId}
-        transaction={transaction}
-      />
-    </div>
+    <NewBalanceNote
+      amount={amount}
+      accountId={accountId}
+      transaction={transaction}
+    />
   );
 }

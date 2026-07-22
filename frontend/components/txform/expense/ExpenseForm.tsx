@@ -1,15 +1,12 @@
 import {AccountFrom} from '@/components/txform/expense/AccountFrom';
 import {Amount} from '@/components/txform/expense/Amount';
-import {Currency} from '@/components/txform/expense/Currency';
 import {ExtraFields} from '@/components/txform/expense/ExtraFields';
-import {OwnShareAmount} from '@/components/txform/expense/OwnShareAmount';
-import {Payer} from '@/components/txform/expense/Payer';
-import {RepaymentFields} from '@/components/txform/expense/RepaymentFields';
-import {SplitTransactionToggle} from '@/components/txform/expense/SplitTransactionToggle';
-import {Vendor} from '@/components/txform/expense/Vendor';
+import {PaidOtherBlock} from '@/components/txform/expense/PaidOtherBlock';
+import {SharingControls} from '@/components/txform/expense/SharingControls';
+import {SplitBlock} from '@/components/txform/expense/SplitBlock';
 import {useSharingType} from '@/components/txform/expense/useSharingType';
+import {Vendor} from '@/components/txform/expense/Vendor';
 import {Category} from '@/components/txform/shared/Category';
-import {Companion} from '@/components/txform/shared/Companion';
 import {NewBalanceNote} from '@/components/txform/shared/NewBalanceNote';
 import {Tags} from '@/components/txform/shared/Tags';
 import {Timestamp} from '@/components/txform/shared/Timestamp';
@@ -20,22 +17,24 @@ import {assertDefined} from '@/lib/assert';
 import {Transaction} from '@/lib/model/transaction/Transaction';
 import {useFormContext, useWatch} from 'react-hook-form';
 
+// The expense form tells the story of a purchase top to bottom: when it
+// happened, how much, who paid and out of which pocket (sharing is a quiet
+// modifier revealed on demand), where the money went, then how it's filed.
 export function ExpenseForm({transaction}: {transaction: Transaction | null}) {
   const {getValues} = useFormContext<TransactionFormSchema>();
   assertDefined(getValues('expense'), 'expense form requires expense values');
   const isCreatingNewTransaction = !transaction;
   return (
-    <>
+    <div className="flex flex-col gap-4">
       <Timestamp fieldName="expense.timestamp" />
+      <div className="space-y-2">
+        <Amount />
+        <PaidSelfNewBalanceNote transaction={transaction} />
+      </div>
       <AccountFrom />
-      <Payer />
-      <SplitTransactionToggle />
-      <MaybeEmptyCompanion />
-      <Currency />
-      <Amount />
-      <OwnShareAmount />
-      <PaidSelfNewBalanceNote transaction={transaction} />
-      <RepaymentFields />
+      <SharingControls />
+      <SplitBlock />
+      <PaidOtherBlock transaction={transaction} />
       <Vendor />
       <Tags fieldName="expense.tagNames" />
       <Category fieldName="expense.categoryId" />
@@ -45,16 +44,8 @@ export function ExpenseForm({transaction}: {transaction: Transaction | null}) {
       transaction when they only mean to fix a typo in vendor. */}
       {isCreatingNewTransaction && <UpdateCategoryOnVendorChange />}
       <UpdateOwnShareOnAmountChange />
-    </>
+    </div>
   );
-}
-
-function MaybeEmptyCompanion() {
-  const {isShared, paidSelf} = useSharingType();
-  if (!isShared || !paidSelf) {
-    return null;
-  }
-  return <Companion fieldName="expense.companion" />;
 }
 
 function UpdateOwnShareOnAmountChange() {
@@ -79,12 +70,10 @@ function PaidSelfNewBalanceNote({
     return null;
   }
   return (
-    <div className="col-span-6">
-      <NewBalanceNote
-        transaction={transaction}
-        amount={-amount}
-        accountId={accountId}
-      />
-    </div>
+    <NewBalanceNote
+      transaction={transaction}
+      amount={-amount}
+      accountId={accountId}
+    />
   );
 }

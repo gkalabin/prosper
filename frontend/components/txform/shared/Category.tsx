@@ -20,7 +20,7 @@ export function Category({
       control={control}
       name={fieldName}
       render={({field}) => (
-        <FormItem className="col-span-6">
+        <FormItem>
           <FormLabel>Category</FormLabel>
           <FormControl>
             <CategorySelect

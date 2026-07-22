@@ -1,7 +1,4 @@
-import {useSharingType} from '@/components/txform/expense/useSharingType';
-import {useSharingTypeActions} from '@/components/txform/expense/useSharingTypeActions';
 import {TransactionFormSchema} from '@/components/txform/types';
-import {Button} from '@/components/ui/button';
 import {
   FormControl,
   FormField,
@@ -16,43 +13,27 @@ import {Transaction} from '@/lib/model/transaction/Transaction';
 import {useMemo} from 'react';
 import {useFormContext} from 'react-hook-form';
 
+// Payer is the "who paid" field shown inside the someone-else-paid reveal.
 export function Payer() {
-  const {control, formState} = useFormContext<TransactionFormSchema>();
-  const {paidOther} = useSharingType();
+  const {control} = useFormContext<TransactionFormSchema>();
   const payers = useUniqueFrequentPayers();
-  const {setPaidSelf} = useSharingTypeActions();
-  if (!paidOther) {
-    return null;
-  }
   return (
     <FormField
       control={control}
       name="expense.payer"
       render={({field}) => (
-        <FormItem className="col-span-6">
-          <FormLabel>This expense was paid by</FormLabel>
+        <FormItem>
+          <FormLabel>Who paid</FormLabel>
           <FormControl>
             <Input
               type="text"
               datalist={payers}
+              placeholder="Name"
               {...field}
               value={field.value ?? ''}
             />
           </FormControl>
           <FormMessage />
-          <div className="text-xs">
-            or{' '}
-            <Button
-              type="button"
-              onClick={setPaidSelf}
-              variant="link"
-              size="inherit"
-              disabled={formState.isSubmitting}
-            >
-              I paid for this myself
-            </Button>
-            .
-          </div>
         </FormItem>
       )}
     />

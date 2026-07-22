@@ -36,7 +36,7 @@ export function Description({
       control={control}
       name={fieldName}
       render={({field}) => (
-        <FormItem className="col-span-6">
+        <FormItem>
           <FormLabel>Description</FormLabel>
           <FormControl>
             <Input

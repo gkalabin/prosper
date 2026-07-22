@@ -52,6 +52,7 @@ export interface CreateTelegramLinkRequest {
 export interface CreateTelegramLinkResponse {
     /**
      * https://t.me/<bot>?start=<token>
+     * TODO: use a consistent name for such a thing across the app.
      *
      * @generated from protobuf field: string deep_link = 1
      */

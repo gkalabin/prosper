@@ -35,7 +35,10 @@ export class SuggestionList {
 
   // selectAccount switches the panel to the account whose suggestions should be shown;
   async selectAccount(accountName: string) {
-    await this.page.getByRole('button', {name: accountName}).click();
+    await this.page
+      .getByRole('tablist', {name: 'Accounts with suggestions'})
+      .getByRole('tab', {name: accountName})
+      .click();
   }
 
   async click(description: string) {

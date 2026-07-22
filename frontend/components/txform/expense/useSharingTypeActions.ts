@@ -64,6 +64,21 @@ export function useSharingTypeActions() {
     setValue('expense.companion', null);
   };
 
+  // Opens the "split with someone" shape: I paid the full amount but only my
+  // share is my expense. Seeds the companion from the draft when available.
+  const openSplit = () => {
+    setValue('expense.sharingType', SharingType.PAID_SELF_SHARED);
+    setValue(
+      'expense.companion',
+      (draft ? winnerString(draft.companion) : undefined) ?? ''
+    );
+  };
+
+  // Returns from any shared shape to the resting "I paid, just me" state.
+  const removeShare = () => {
+    setPaidSelf();
+  };
+
   const setAlreadyRepaid = () => {
     setValue('expense.sharingType', SharingType.PAID_OTHER_REPAID);
     setValue(
@@ -101,6 +116,8 @@ export function useSharingTypeActions() {
     setAlreadyRepaid,
     setOweMoney,
     toggleSplitTransaction,
+    openSplit,
+    removeShare,
   };
 }
 

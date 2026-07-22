@@ -21,8 +21,8 @@ export function Payer() {
       control={control}
       name="income.payer"
       render={({field}) => (
-        <FormItem className="col-span-6">
-          <FormLabel>Payer</FormLabel>
+        <FormItem>
+          <FormLabel>Source / payer</FormLabel>
           <FormControl>
             <Input
               type="text"

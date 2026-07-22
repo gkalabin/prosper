@@ -3,29 +3,13 @@ import {cn} from '@/lib/utils';
 
 export const TRANSACTION_FORM_TABPANEL_ID = 'transaction-form-tabpanel';
 
-const Button = (props: React.ButtonHTMLAttributes<HTMLButtonElement>) => {
-  const {className, ...rest} = props;
-  return (
-    <button
-      type="button"
-      className={cn(
-        className,
-        props.disabled
-          ? 'opacity-30'
-          : 'hover:bg-gray-100 focus:bg-gray-100 dark:hover:bg-gray-600 dark:focus:bg-gray-600',
-        props['aria-selected']
-          ? 'text-indigo-700 dark:text-indigo-200'
-          : 'text-gray-900 dark:text-white',
-        'border border-gray-200 bg-white px-2 py-1 text-sm font-medium focus:z-10 dark:border-gray-600 dark:bg-gray-700'
-      )}
-      {...rest}
-    >
-      {props.children}
-    </button>
-  );
-};
+const TABS: {value: FormType; id: string; label: string}[] = [
+  {value: 'EXPENSE', id: 'tab-expense', label: 'Expense'},
+  {value: 'TRANSFER', id: 'tab-transfer', label: 'Transfer'},
+  {value: 'INCOME', id: 'tab-income', label: 'Income'},
+];
 
-export const FormTypeSelect = ({
+export function FormTypeSelect({
   value,
   setValue,
   disabled,
@@ -33,42 +17,38 @@ export const FormTypeSelect = ({
   value: FormType;
   setValue: (newValue: FormType) => void;
   disabled: boolean;
-}) => {
+}) {
   return (
-    <div role="tablist" className="rounded-md shadow-sm">
-      <Button
-        id="tab-expense"
-        role="tab"
-        aria-selected={value == 'EXPENSE'}
-        aria-controls={TRANSACTION_FORM_TABPANEL_ID}
-        className={cn('rounded-l-lg border')}
-        onClick={() => setValue('EXPENSE')}
-        disabled={disabled}
-      >
-        Expense
-      </Button>
-      <Button
-        id="tab-transfer"
-        role="tab"
-        aria-selected={value == 'TRANSFER'}
-        aria-controls={TRANSACTION_FORM_TABPANEL_ID}
-        className={cn('border-b border-r border-t')}
-        onClick={() => setValue('TRANSFER')}
-        disabled={disabled}
-      >
-        Transfer
-      </Button>
-      <Button
-        id="tab-income"
-        role="tab"
-        aria-selected={value == 'INCOME'}
-        aria-controls={TRANSACTION_FORM_TABPANEL_ID}
-        className={cn('rounded-r-md border')}
-        onClick={() => setValue('INCOME')}
-        disabled={disabled}
-      >
-        Income
-      </Button>
+    <div
+      role="tablist"
+      aria-label="Transaction type"
+      className="bg-muted grid w-full grid-cols-3 gap-1 rounded-xl p-1"
+    >
+      {TABS.map(tab => {
+        const selected = value === tab.value;
+        return (
+          <button
+            key={tab.value}
+            id={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            aria-controls={TRANSACTION_FORM_TABPANEL_ID}
+            onClick={() => setValue(tab.value)}
+            disabled={disabled}
+            className={cn(
+              'h-10 rounded-lg text-sm font-semibold transition-colors',
+              'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2',
+              'disabled:cursor-not-allowed disabled:opacity-50',
+              selected
+                ? 'bg-card text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
     </div>
   );
-};
+}

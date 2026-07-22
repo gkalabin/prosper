@@ -25,12 +25,13 @@ export function Companion({
       control={control}
       name={fieldName}
       render={({field}) => (
-        <FormItem className="col-span-3">
-          <FormLabel>Shared with</FormLabel>
+        <FormItem>
+          <FormLabel>With</FormLabel>
           <FormControl>
             <Input
               type="text"
               datalist={companions}
+              placeholder="Name"
               {...field}
               value={field.value ?? ''}
             />

@@ -1,5 +1,7 @@
 import {useSharingType} from '@/components/txform/expense/useSharingType';
+import {useSharingTypeActions} from '@/components/txform/expense/useSharingTypeActions';
 import {CategorySelect} from '@/components/txform/shared/CategorySelect';
+import {NewBalanceNote} from '@/components/txform/shared/NewBalanceNote';
 import {Timestamp} from '@/components/txform/shared/Timestamp';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {
@@ -16,46 +18,83 @@ import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {SharingType} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {useDisplayBankAccounts} from '@/lib/model/AppDataModel';
 import {groupAccountsByBank} from '@/lib/model/BankAccount';
+import {Transaction} from '@/lib/model/transaction/Transaction';
 import {useFormContext, useWatch} from 'react-hook-form';
 
-export function RepaymentFields() {
+function firstName(name: string): string {
+  return name.trim().split(' ')[0] || 'them';
+}
+
+// RepaymentFields is the deepest reveal: shown only once the user says they've
+// already paid the original payer back. It records when, from which account
+// (with a balance preview), how much (their share, read-only), and under which
+// category.
+export function RepaymentFields({
+  transaction,
+}: {
+  transaction: Transaction | null;
+}) {
   const {sharingType} = useSharingType();
+  const {setOweMoney} = useSharingTypeActions();
+  const {getValues, formState} = useFormContext<TransactionFormSchema>();
   if (sharingType != SharingType.PAID_OTHER_REPAID) {
     return null;
   }
+  const payer = firstName(getValues('expense.payer') ?? '');
   return (
-    <div className="bg-accent col-span-6 space-y-2 rounded border p-2 pl-4">
-      <Timestamp fieldName="expense.repayment.timestamp" />
-      <RepaymentAmount />
-      <RepaymentAccountFrom />
-      <RepaymentCategory />
+    <div className="border-tint-foreground/25 animate-in fade-in mt-3 space-y-3 border-t pt-3 duration-200">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-tint-foreground text-[11px] font-bold uppercase tracking-wider">
+          Repaid {payer}
+        </span>
+        <button
+          type="button"
+          onClick={setOweMoney}
+          disabled={formState.isSubmitting}
+          className="text-muted-foreground hover:text-foreground text-xs font-semibold disabled:opacity-50"
+        >
+          Not yet
+        </button>
+      </div>
+      <Timestamp fieldName="expense.repayment.timestamp" label="Repaid on" />
+      <RepaymentAccountFrom transaction={transaction} />
+      <div className="grid grid-cols-2 gap-3">
+        <RepaymentAmount />
+        <RepaymentCategory />
+      </div>
     </div>
   );
 }
 
 function RepaymentAmount() {
-  const ownShareAmount = useWatch({
-    name: 'expense.ownShareAmount',
-  });
+  const ownShareAmount = useWatch({name: 'expense.ownShareAmount'});
   return (
-    <FormItem className="col-span-6">
+    <FormItem>
       <FormLabel>Amount repaid</FormLabel>
       <FormControl>
         <Input
           type="text"
           inputMode="decimal"
           disabled={true}
+          className="font-mono tabular-nums"
           value={ownShareAmount}
         />
       </FormControl>
+      <p className="text-muted-foreground mt-1 text-xs">= your share</p>
     </FormItem>
   );
 }
 
-function RepaymentAccountFrom() {
+function RepaymentAccountFrom({
+  transaction,
+}: {
+  transaction: Transaction | null;
+}) {
   const {getValues, control} = useFormContext<TransactionFormSchema>();
   const accounts = useDisplayBankAccounts();
   const {banks} = useCoreDataContext();
+  const accountId = useWatch({name: 'expense.repayment.accountId'});
+  const ownShare = useWatch({name: 'expense.ownShareAmount'});
   return (
     <FormField
       control={control}
@@ -63,7 +102,7 @@ function RepaymentAccountFrom() {
       render={({field}) => (
         <FormItem>
           <FormLabel>
-            I&apos;ve paid {getValues('expense.payer') || 'them'} from
+            Paid {getValues('expense.payer') || 'them'} from
           </FormLabel>
           <FormControl>
             <Select
@@ -83,6 +122,15 @@ function RepaymentAccountFrom() {
             </Select>
           </FormControl>
           <FormMessage />
+          {accountId && (
+            <div className="mt-1.5">
+              <NewBalanceNote
+                amount={-ownShare}
+                accountId={accountId}
+                transaction={transaction}
+              />
+            </div>
+          )}
         </FormItem>
       )}
     />
@@ -101,7 +149,7 @@ function RepaymentCategory() {
           'repayment category required for a repaid expense'
         );
         return (
-          <FormItem className="col-span-6">
+          <FormItem>
             <FormLabel>Repayment category</FormLabel>
             <FormControl>
               <CategorySelect

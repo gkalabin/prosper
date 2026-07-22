@@ -1,4 +1,4 @@
-import {MoneyInput} from '@/components/txform/shared/MoneyInput';
+import {MoneyField} from '@/components/txform/shared/MoneyField';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {
   FormControl,
@@ -7,25 +7,37 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {cn} from '@/lib/utils';
-import {useFormContext} from 'react-hook-form';
+import {useCoreDataContext} from '@/lib/context/CoreDataContext';
+import {useFormContext, useWatch} from 'react-hook-form';
 
 export function Amount() {
-  const {control, watch} = useFormContext<TransactionFormSchema>();
-  const isShared = watch('income.isShared');
+  const {control} = useFormContext<TransactionFormSchema>();
+  const currencyCode = useIncomeCurrencyCode();
   return (
     <FormField
       control={control}
       name="income.amount"
       render={({field}) => (
-        <FormItem className={cn(isShared ? 'col-span-3' : 'col-span-6')}>
+        <FormItem>
           <FormLabel>Amount</FormLabel>
           <FormControl>
-            <MoneyInput {...field} />
+            <MoneyField
+              currencyCode={currencyCode}
+              placeholder="0.00"
+              {...field}
+            />
           </FormControl>
           <FormMessage />
         </FormItem>
       )}
     />
   );
+}
+
+// useIncomeCurrencyCode returns the currency of the account the income was
+// received into.
+export function useIncomeCurrencyCode(): string | undefined {
+  const {bankAccounts} = useCoreDataContext();
+  const accountId = useWatch({name: 'income.accountId', exact: true});
+  return bankAccounts.find(a => a.id === accountId)?.currencyCode ?? undefined;
 }

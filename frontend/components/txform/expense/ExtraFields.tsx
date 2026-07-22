@@ -1,7 +1,7 @@
 import {Trip} from '@/components/txform/expense/Trip';
 import {Description} from '@/components/txform/shared/Description';
+import {ExtraChip, RevealedExtra} from '@/components/txform/shared/extras';
 import {TransactionFormSchema} from '@/components/txform/types';
-import {Button} from '@/components/ui/button';
 import {useState} from 'react';
 import {useFormContext} from 'react-hook-form';
 
@@ -14,45 +14,48 @@ export function ExtraFields() {
   const [showTrip, setShowTrip] = useState(
     () => !!getValues('expense.tripName')
   );
+  const disabled = formState.isSubmitting;
+  const anyHidden = !showNote || !showTrip;
   return (
-    <>
-      <div className="col-span-6 text-xs">
-        Add a{' '}
-        <Button
-          type="button"
-          onClick={() => {
-            const shouldShowNote = !showNote;
-            setShowNote(shouldShowNote);
-            if (!shouldShowNote) {
-              setValue('expense.description', null);
-            }
+    <div className="space-y-3 border-t pt-4">
+      {anyHidden && (
+        <div className="flex flex-wrap gap-2">
+          {!showNote && (
+            <ExtraChip onClick={() => setShowNote(true)} disabled={disabled}>
+              Note
+            </ExtraChip>
+          )}
+          {!showTrip && (
+            <ExtraChip onClick={() => setShowTrip(true)} disabled={disabled}>
+              Trip
+            </ExtraChip>
+          )}
+        </div>
+      )}
+      {showNote && (
+        <RevealedExtra
+          name="note"
+          disabled={disabled}
+          onRemove={() => {
+            setShowNote(false);
+            setValue('expense.description', null);
           }}
-          variant="link"
-          size="inherit"
-          disabled={formState.isSubmitting}
         >
-          note
-        </Button>{' '}
-        to this transaction or link it to a{' '}
-        <Button
-          type="button"
-          onClick={() => {
-            const shouldShowTrip = !showTrip;
-            setShowTrip(shouldShowTrip);
-            if (!shouldShowTrip) {
-              setValue('expense.tripName', null);
-            }
+          <Description fieldName="expense.description" />
+        </RevealedExtra>
+      )}
+      {showTrip && (
+        <RevealedExtra
+          name="trip"
+          disabled={disabled}
+          onRemove={() => {
+            setShowTrip(false);
+            setValue('expense.tripName', null);
           }}
-          variant="link"
-          size="inherit"
-          disabled={formState.isSubmitting}
         >
-          trip
-        </Button>
-        .
-      </div>
-      {showTrip && <Trip />}
-      {showNote && <Description fieldName="expense.description" />}
-    </>
+          <Trip />
+        </RevealedExtra>
+      )}
+    </div>
   );
 }

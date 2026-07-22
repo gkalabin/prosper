@@ -1,7 +1,7 @@
 import {ParentTransaction} from '@/components/txform/income/ParentTransaction';
 import {Description} from '@/components/txform/shared/Description';
+import {ExtraChip, RevealedExtra} from '@/components/txform/shared/extras';
 import {TransactionFormSchema} from '@/components/txform/types';
-import {Button} from '@/components/ui/button';
 import {useState} from 'react';
 import {useFormContext} from 'react-hook-form';
 
@@ -14,45 +14,48 @@ export function ExtraFields() {
   const [showParent, setShowParent] = useState(
     () => !!getValues('income.parentTransactionId')
   );
+  const disabled = formState.isSubmitting;
+  const anyHidden = !showNote || !showParent;
   return (
-    <>
-      <div className="col-span-6 text-xs">
-        Add a{' '}
-        <Button
-          type="button"
-          onClick={() => {
-            const shouldShowNote = !showNote;
-            setShowNote(shouldShowNote);
-            if (!shouldShowNote) {
-              setValue('income.description', null);
-            }
+    <div className="space-y-3 border-t pt-4">
+      {anyHidden && (
+        <div className="flex flex-wrap gap-2">
+          {!showNote && (
+            <ExtraChip onClick={() => setShowNote(true)} disabled={disabled}>
+              Note
+            </ExtraChip>
+          )}
+          {!showParent && (
+            <ExtraChip onClick={() => setShowParent(true)} disabled={disabled}>
+              Link refund
+            </ExtraChip>
+          )}
+        </div>
+      )}
+      {showNote && (
+        <RevealedExtra
+          name="note"
+          disabled={disabled}
+          onRemove={() => {
+            setShowNote(false);
+            setValue('income.description', null);
           }}
-          variant="link"
-          size="inherit"
-          disabled={formState.isSubmitting}
         >
-          note
-        </Button>{' '}
-        to this transaction or{' '}
-        <Button
-          type="button"
-          onClick={() => {
-            const shouldShowParent = !showParent;
-            setShowParent(shouldShowParent);
-            if (!shouldShowParent) {
-              setValue('income.parentTransactionId', null);
-            }
+          <Description fieldName="income.description" />
+        </RevealedExtra>
+      )}
+      {showParent && (
+        <RevealedExtra
+          name="refund"
+          disabled={disabled}
+          onRemove={() => {
+            setShowParent(false);
+            setValue('income.parentTransactionId', null);
           }}
-          variant="link"
-          size="inherit"
-          disabled={formState.isSubmitting}
         >
-          link the transaction this is the refund for
-        </Button>
-        .
-      </div>
-      {showNote && <Description fieldName="income.description" />}
-      {showParent && <ParentTransaction />}
-    </>
+          <ParentTransaction />
+        </RevealedExtra>
+      )}
+    </div>
   );
 }

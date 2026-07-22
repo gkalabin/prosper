@@ -29,7 +29,7 @@ export function Vendor() {
       control={control}
       name="expense.vendor"
       render={({field}) => (
-        <FormItem className="col-span-6">
+        <FormItem>
           <FormLabel>Vendor</FormLabel>
           <FormControl>
             <Input

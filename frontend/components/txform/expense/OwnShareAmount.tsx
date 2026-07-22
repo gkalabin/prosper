@@ -1,6 +1,6 @@
-import {RepaymentToggle} from '@/components/txform/expense/RepaymentToggle';
+import {useExpenseCurrencyCode} from '@/components/txform/expense/useExpenseCurrency';
 import {useSharingType} from '@/components/txform/expense/useSharingType';
-import {MoneyInput} from '@/components/txform/shared/MoneyInput';
+import {MoneyField} from '@/components/txform/shared/MoneyField';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {
   FormControl,
@@ -12,26 +12,25 @@ import {
 import {SharingType} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {useFormContext} from 'react-hook-form';
 
+// OwnShareAmount is the part of a shared expense that is actually mine. Its
+// label states the current claim: my share (I paid), what I owe, or what I've
+// repaid.
 export function OwnShareAmount() {
   const {control} = useFormContext<TransactionFormSchema>();
-  const {isShared} = useSharingType();
-  if (!isShared) {
-    return null;
-  }
+  const currencyCode = useExpenseCurrencyCode();
   return (
     <FormField
       control={control}
       name="expense.ownShareAmount"
       render={({field}) => (
-        <FormItem className="col-span-3">
+        <FormItem>
           <FormLabel>
             <LabelText />
           </FormLabel>
           <FormControl>
-            <MoneyInput {...field} />
+            <MoneyField currencyCode={currencyCode} {...field} />
           </FormControl>
           <FormMessage />
-          <RepaymentToggle />
         </FormItem>
       )}
     />

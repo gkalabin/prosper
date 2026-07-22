@@ -20,7 +20,7 @@ export function Tags({
       control={control}
       name={fieldName}
       render={({field}) => (
-        <FormItem className="col-span-6">
+        <FormItem>
           <FormLabel>Tags</FormLabel>
           <FormControl>
             <TagsSelect

@@ -43,8 +43,8 @@ export function ParentTransaction() {
       control={control}
       name="income.parentTransactionId"
       render={({field}) => (
-        <FormItem className="col-span-6">
-          <FormLabel>Parent transaction</FormLabel>
+        <FormItem>
+          <FormLabel>Refund of</FormLabel>
           <FormControl>
             <ParentTransactionSelect
               value={field.value}

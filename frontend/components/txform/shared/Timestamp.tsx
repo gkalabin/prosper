@@ -28,12 +28,14 @@ function toDateTimeLocal(d: Date | string | undefined) {
 
 export function Timestamp({
   fieldName,
+  label = 'When',
 }: {
   fieldName:
     | 'expense.timestamp'
     | 'expense.repayment.timestamp'
     | 'income.timestamp'
     | 'transfer.timestamp';
+  label?: string;
 }) {
   const {control, setValue} = useFormContext<TransactionFormSchema>();
   return (
@@ -41,8 +43,8 @@ export function Timestamp({
       control={control}
       name={fieldName}
       render={({field}) => (
-        <FormItem className="col-span-6">
-          <FormLabel>Time</FormLabel>
+        <FormItem>
+          <FormLabel>{label}</FormLabel>
           <FormControl>
             <Input
               type="datetime-local"

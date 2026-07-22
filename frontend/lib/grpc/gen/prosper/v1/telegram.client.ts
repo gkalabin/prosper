@@ -14,11 +14,7 @@ import type { GetTelegramLinkStatusRequest } from "./telegram";
 import type { UnaryCall } from "@protobuf-ts/runtime-rpc";
 import type { RpcOptions } from "@protobuf-ts/runtime-rpc";
 /**
- * TelegramService manages the link between a Prosper user and their
- * Telegram chat: reporting link status, minting the deep link that
- * connects a chat, and disconnecting it. The bot's message delivery and
- * callback handling live entirely on the backend and are not exposed
- * here.
+ * TelegramService manages the link between a Prosper user and their Telegram chat.
  *
  * @generated from protobuf service prosper.v1.TelegramService
  */
@@ -38,18 +34,14 @@ export interface ITelegramServiceClient {
      */
     createTelegramLink(input: CreateTelegramLinkRequest, options?: RpcOptions): UnaryCall<CreateTelegramLinkRequest, CreateTelegramLinkResponse>;
     /**
-     * DeleteTelegramLink disconnects the user's chat. Notifications stop.
+     * DeleteTelegramLink disconnects the user's chat which stops notifications.
      *
      * @generated from protobuf rpc: DeleteTelegramLink
      */
     deleteTelegramLink(input: DeleteTelegramLinkRequest, options?: RpcOptions): UnaryCall<DeleteTelegramLinkRequest, DeleteTelegramLinkResponse>;
 }
 /**
- * TelegramService manages the link between a Prosper user and their
- * Telegram chat: reporting link status, minting the deep link that
- * connects a chat, and disconnecting it. The bot's message delivery and
- * callback handling live entirely on the backend and are not exposed
- * here.
+ * TelegramService manages the link between a Prosper user and their Telegram chat.
  *
  * @generated from protobuf service prosper.v1.TelegramService
  */
@@ -80,7 +72,7 @@ export class TelegramServiceClient implements ITelegramServiceClient, ServiceInf
         return stackIntercept<CreateTelegramLinkRequest, CreateTelegramLinkResponse>("unary", this._transport, method, opt, input);
     }
     /**
-     * DeleteTelegramLink disconnects the user's chat. Notifications stop.
+     * DeleteTelegramLink disconnects the user's chat which stops notifications.
      *
      * @generated from protobuf rpc: DeleteTelegramLink
      */

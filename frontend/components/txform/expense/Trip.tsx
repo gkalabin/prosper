@@ -23,7 +23,7 @@ export function Trip() {
       control={control}
       name="expense.tripName"
       render={({field}) => (
-        <FormItem className="col-span-6">
+        <FormItem>
           <FormLabel>Trip</FormLabel>
           <FormControl>
             <Input
