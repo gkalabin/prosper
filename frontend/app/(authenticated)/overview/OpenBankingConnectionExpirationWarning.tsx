@@ -4,7 +4,6 @@ import {timestampToEpoch} from '@/lib/grpc/timestamp';
 import {Bank} from '@/lib/model/BankAccount';
 import {useOpenBankingExpirations} from '@/lib/openbanking/context';
 import {differenceInDays} from 'date-fns';
-import Link from 'next/link';
 
 export function OpenBankingConnectionExpirationWarning({bank}: {bank: Bank}) {
   const {expirations} = useOpenBankingExpirations();
@@ -34,12 +33,7 @@ export function OpenBankingConnectionExpirationWarning({bank}: {bank: Bank}) {
     <div className="text-sm font-light text-gray-700">
       {text}{' '}
       <Button variant="link" size="inherit" asChild>
-        <Link
-          href={`/api/open-banking/reconnect?bankId=${bank.id}`}
-          prefetch={false}
-        >
-          Reconnect
-        </Link>
+        <a href={`/api/open-banking/reconnect?bankId=${bank.id}`}>Reconnect</a>
       </Button>
     </div>
   );
