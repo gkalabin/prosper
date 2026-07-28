@@ -3,6 +3,7 @@ package gocardless
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"time"
 
 	"prosper/model"
@@ -52,7 +53,13 @@ func (n *Provider) accessToken(ctx context.Context, userID, bankID int32) (strin
 	if time.Now().After(tok.RefreshValidUntil) {
 		return n.replaceAccessToken(ctx, userID, bankID)
 	}
-	return n.refreshAccessToken(ctx, userID, bankID, tok.Refresh)
+	access, err := n.refreshAccessToken(ctx, userID, bankID, tok.Refresh)
+	if err != nil {
+		// Fall back to a fresh token from the app credentials.
+		log.Printf("gocardless: refreshing token for bank %d failed, requesting a new one: %v", bankID, err)
+		return n.replaceAccessToken(ctx, userID, bankID)
+	}
+	return access, nil
 }
 
 // refreshAccessToken exchanges a refresh token for a new access token
