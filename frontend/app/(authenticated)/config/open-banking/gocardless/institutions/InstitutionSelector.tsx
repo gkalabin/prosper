@@ -18,7 +18,7 @@ export function InstitutionSelector({
         Showing banks for {countryCode}.{' '}
         <Button variant="link" size="inherit" asChild>
           <Link
-            href={`/config/open-banking/gocardless/connect?bankId=${bank.id}`}
+            href={`/config/open-banking/gocardless/institutions?bankId=${bank.id}`}
           >
             Change country
           </Link>
@@ -30,7 +30,7 @@ export function InstitutionSelector({
           <div key={institution.id} className="rounded-md bg-slate-50 p-2">
             <Button variant="link" size="inherit" asChild>
               <a
-                href={`/api/open-banking/gocardless/connect?bankId=${bank.id}&institutionId=${institution.id}`}
+                href={`/config/open-banking/gocardless/connect?bankId=${bank.id}&institutionId=${institution.id}`}
                 className="flex flex-row items-center gap-4"
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}

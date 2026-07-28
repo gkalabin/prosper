@@ -182,7 +182,7 @@ const BankConnections = ({
         or{' '}
         <Button variant="link" size="inherit" asChild>
           <Link
-            href={`/config/open-banking/gocardless/connect?bankId=${bank.id}`}
+            href={`/config/open-banking/gocardless/institutions?bankId=${bank.id}`}
             prefetch={false}
           >
             GoCardless (EU+UK)

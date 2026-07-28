@@ -72,5 +72,5 @@ func (n *Provider) ReconnectURL(ctx context.Context, userID, bankID int32) (stri
 }
 
 func reconnectPath(bankID int32, institutionID string) string {
-	return fmt.Sprintf("/api/open-banking/gocardless/connect?bankId=%d&institutionId=%s", bankID, institutionID)
+	return fmt.Sprintf("/config/open-banking/gocardless/connect?bankId=%d&institutionId=%s", bankID, institutionID)
 }

@@ -19,7 +19,7 @@ export function CountriesSelector({
           <div key={code}>
             <Button variant="link" size="inherit" asChild>
               <Link
-                href={`/config/open-banking/gocardless/connect?bankId=${bank.id}&country=${code}`}
+                href={`/config/open-banking/gocardless/institutions?bankId=${bank.id}&country=${code}`}
               >
                 {name}
               </Link>
