@@ -14,8 +14,14 @@ export async function GET(request: NextRequest): Promise<Response> {
   }
   const auth = await getAuthContextOrRedirect();
   logApi('GET', '/api/open-banking/reconnect', {userId: auth.userId, bankId});
-  const {response} = await openBankingClient.reconnectInfo(
-    withAuth({bankId}, auth)
-  );
-  redirect(response.redirectUrl);
+  const result = await openBankingClient
+    .reconnectInfo(withAuth({bankId}, auth))
+    .then(
+      ({response}) => ({ok: true, redirectUrl: response.redirectUrl}) as const
+    )
+    .catch(err => ({ok: false, err}) as const);
+  if (!result.ok) {
+    return new Response(`Open banking api error: ${result.err}`, {status: 500});
+  }
+  return redirect(result.redirectUrl);
 }

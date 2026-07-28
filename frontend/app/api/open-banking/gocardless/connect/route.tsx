@@ -22,8 +22,12 @@ export async function GET(request: NextRequest): Promise<Response> {
     bankId,
     institutionId,
   });
-  const {response} = await openBankingClient.startGoCardlessConnection(
-    withAuth({bankId, institutionId}, auth)
-  );
-  return redirect(response.authUrl);
+  const result = await openBankingClient
+    .startGoCardlessConnection(withAuth({bankId, institutionId}, auth))
+    .then(({response}) => ({ok: true, authUrl: response.authUrl}) as const)
+    .catch(err => ({ok: false, err}) as const);
+  if (!result.ok) {
+    return new Response(`Open banking api error: ${result.err}`, {status: 500});
+  }
+  return redirect(result.authUrl);
 }
