@@ -30,7 +30,7 @@ const RANGE_LABELS: Record<Range, string> = {
   ALL: 'all time',
 };
 
-function windowStart(range: Range): number {
+function rangeStart(range: Range, earliest: number): number {
   const now = Date.now();
   switch (range) {
     case '1M':
@@ -42,7 +42,7 @@ function windowStart(range: Range): number {
     case '1Y':
       return subYears(now, 1).getTime();
     case 'ALL':
-      return -Infinity;
+      return earliest;
   }
 }
 
@@ -64,7 +64,7 @@ function availableRanges(earliest: number): Range[] {
   const available: Range[] = [RANGES[0]];
   for (const range of RANGES.slice(1)) {
     const previous = available[available.length - 1];
-    if (earliest >= windowStart(previous)) {
+    if (earliest >= rangeStart(previous, earliest)) {
       break;
     }
     available.push(range);
@@ -128,7 +128,7 @@ function NetWorthHistory() {
     exchange,
     transactions,
     stocks,
-    {start: windowStart(range), end: Date.now()},
+    {start: rangeStart(range, earliest), end: Date.now()},
     NET_WORTH_SAMPLE_COUNT
   );
   if (timeline.length < 2) {

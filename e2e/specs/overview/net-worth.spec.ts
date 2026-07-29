@@ -122,6 +122,33 @@ test.describe('Overview net worth', () => {
     await overviewPage.expectRangeAmounts('$700', '$1,200');
   });
 
+  test('all time range charts net worth from the earliest transaction', async ({
+    page,
+    seed,
+    loginAs,
+  }) => {
+    const {user, category, account} = await seed.createUserWithTestData({});
+    const now = new Date();
+    // History longer than a year unlocks the "all time" tab.
+    await seed.income('Salary', 3000, {
+      user,
+      account,
+      category,
+      timestamp: subDays(now, 500),
+    });
+    await seed.income('Bonus', 1000, {
+      user,
+      account,
+      category,
+      timestamp: subDays(now, 30),
+    });
+    await loginAs(user);
+    const overviewPage = new OverviewPage(page);
+    await overviewPage.goto();
+    await overviewPage.selectNetWorthRange('all time');
+    await overviewPage.expectRangeAmounts('$3,000', '$4,000');
+  });
+
   test('offers only the range tabs covered by the recorded history', async ({
     page,
     seed,
