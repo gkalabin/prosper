@@ -1,4 +1,4 @@
-import {useSharingType} from '@/components/txform/expense/useSharingType';
+import {useExpenseCurrency} from '@/components/txform/expense/useExpenseCurrency';
 import {MoneyInput} from '@/components/txform/shared/MoneyInput';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {
@@ -8,21 +8,20 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {cn} from '@/lib/utils';
 import {useFormContext} from 'react-hook-form';
 
 export function Amount() {
   const {control} = useFormContext<TransactionFormSchema>();
-  const {isShared} = useSharingType();
+  const currency = useExpenseCurrency();
   return (
     <FormField
       control={control}
       name="expense.amount"
       render={({field}) => (
-        <FormItem className={cn(isShared ? 'col-span-3' : 'col-span-6')}>
+        <FormItem>
           <FormLabel>Amount</FormLabel>
           <FormControl>
-            <MoneyInput {...field} />
+            <MoneyInput currency={currency} {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>

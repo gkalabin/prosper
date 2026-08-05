@@ -1,58 +1,31 @@
 import {ParentTransaction} from '@/components/txform/income/ParentTransaction';
 import {Description} from '@/components/txform/shared/Description';
+import {ExtraFields as SharedExtraFields} from '@/components/txform/shared/ExtraFields';
 import {TransactionFormSchema} from '@/components/txform/types';
-import {Button} from '@/components/ui/button';
-import {useState} from 'react';
 import {useFormContext} from 'react-hook-form';
 
 export function ExtraFields() {
-  const {setValue, getValues, formState} =
-    useFormContext<TransactionFormSchema>();
-  const [showNote, setShowNote] = useState(
-    () => !!getValues('income.description')
-  );
-  const [showParent, setShowParent] = useState(
-    () => !!getValues('income.parentTransactionId')
-  );
+  const {getValues, setValue} = useFormContext<TransactionFormSchema>();
   return (
-    <>
-      <div className="col-span-6 text-xs">
-        Add a{' '}
-        <Button
-          type="button"
-          onClick={() => {
-            const shouldShowNote = !showNote;
-            setShowNote(shouldShowNote);
-            if (!shouldShowNote) {
-              setValue('income.description', null);
-            }
-          }}
-          variant="link"
-          size="inherit"
-          disabled={formState.isSubmitting}
-        >
-          note
-        </Button>{' '}
-        to this transaction or{' '}
-        <Button
-          type="button"
-          onClick={() => {
-            const shouldShowParent = !showParent;
-            setShowParent(shouldShowParent);
-            if (!shouldShowParent) {
-              setValue('income.parentTransactionId', null);
-            }
-          }}
-          variant="link"
-          size="inherit"
-          disabled={formState.isSubmitting}
-        >
-          link the transaction this is the refund for
-        </Button>
-        .
-      </div>
-      {showNote && <Description fieldName="income.description" />}
-      {showParent && <ParentTransaction />}
-    </>
+    <SharedExtraFields
+      fields={[
+        {
+          key: 'note',
+          revealLabel: 'Note',
+          removeLabel: 'Remove note',
+          initiallyShown: !!getValues('income.description'),
+          onRemove: () => setValue('income.description', null),
+          children: <Description fieldName="income.description" />,
+        },
+        {
+          key: 'refund',
+          revealLabel: 'Link refund',
+          removeLabel: 'Remove refund',
+          initiallyShown: !!getValues('income.parentTransactionId'),
+          onRemove: () => setValue('income.parentTransactionId', null),
+          children: <ParentTransaction />,
+        },
+      ]}
+    />
   );
 }

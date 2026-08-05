@@ -58,22 +58,29 @@ export class TransactionForm {
     this.expenseTab = form.getByRole('tab', {name: 'Expense'});
     this.incomeTab = form.getByRole('tab', {name: 'Income'});
     this.transferTab = form.getByRole('tab', {name: 'Transfer'});
-    this.amountInput = form.getByLabel('Amount');
-    this.amountSentInput = form.getByLabel('Amount sent');
-    this.amountReceivedInput = form.getByLabel('Amount received');
-    this.dateInput = form.getByLabel('Time');
-    this.vendorInput = form.getByLabel('Vendor');
-    this.payerInput = form.getByLabel('Payer');
-    this.categoryField = form.getByRole('combobox', {name: 'Category'});
+    this.amountInput = form.getByLabel('Amount', {exact: true});
+    this.amountSentInput = form.getByLabel('Sent', {exact: true});
+    this.amountReceivedInput = form.getByLabel('Received', {exact: true});
+    this.dateInput = form.getByLabel('When', {exact: true});
+    this.vendorInput = form.getByLabel('Vendor', {exact: true});
+    this.payerInput = form.getByLabel('Payer', {exact: true});
+    this.categoryField = form.getByRole('combobox', {
+      name: 'Category',
+      exact: true,
+    });
     this.repaymentCategoryField = form.getByRole('combobox', {
       name: 'Repayment category',
     });
     this.tagsField = form.getByRole('combobox', {name: 'Tags'});
-    this.splitTransactionToggle = form.getByLabel('Split transaction');
-    this.ownShareAmountInput = form.getByLabel('My share');
-    this.companionInput = form.getByLabel('Shared with');
+    this.splitTransactionToggle = form.getByRole('button', {
+      name: 'Split',
+      exact: true,
+    });
+    this.ownShareAmountInput = form.getByLabel('My share', {exact: true});
+    this.companionInput = form.getByLabel('With', {exact: true});
     this.paidByOtherButton = form.getByRole('button', {
-      name: 'someone else paid for this expense',
+      name: 'Paid by other',
+      exact: true,
     });
     this.submitButton = form.locator('button[type="submit"]');
   }
@@ -101,8 +108,8 @@ export class TransactionForm {
       }
     }
     if (trip) {
-      await this.form.getByRole('button', {name: 'trip'}).click();
-      await this.form.getByLabel('Trip').fill(trip);
+      await this.form.getByRole('button', {name: 'Trip', exact: true}).click();
+      await this.form.getByLabel('Trip', {exact: true}).fill(trip);
     }
     await this.submit();
   }
@@ -153,11 +160,9 @@ export class TransactionForm {
     await this.expenseTab.click();
     await this.paidByOtherButton.click();
     await this.fillThirdPartyExpenseForm(data);
-    await this.form
-      .getByRole('button', {name: "I've already paid them back"})
-      .click();
-    // The label includes the companion name like "I've paid Jane from".
-    await this.selectAccount(/I've paid \w+ from/, repaymentAccount);
+    await this.form.getByRole('button', {name: /already paid .* back/}).click();
+    // The label includes the payer's name like "Paid Jane from".
+    await this.selectAccount(/Paid \w+ from/, repaymentAccount);
     await this.selectRepaymentCategory(repaymentCategory);
     await this.submit();
   }
@@ -180,7 +185,7 @@ export class TransactionForm {
       await this.vendorInput.fill(vendor);
     }
     if (account !== undefined) {
-      await this.selectAccount('I paid from', account);
+      await this.selectAccount('Paid from', account);
     }
     if (category !== undefined) {
       await this.selectCategory(category);
@@ -223,11 +228,8 @@ export class TransactionForm {
     await this.amountInput.fill(String(amount));
     await this.payerInput.fill(payer);
     await this.selectCategory(category);
-    const refundToggle = this.form.getByRole('button', {
-      name: 'link the transaction this is the refund for',
-    });
     if (refundForVendor) {
-      await refundToggle.click();
+      await this.form.getByRole('button', {name: 'Link refund'}).click();
       // FIXME: button has no accessible name but contains the text
       await this.form.getByText('Select a transaction').click();
       await this.form
@@ -237,8 +239,8 @@ export class TransactionForm {
         .getByRole('option')
         .filter({hasText: refundForVendor})
         .click();
-    } else if (refundForVendor == null) {
-      await refundToggle.click();
+    } else if (refundForVendor === null) {
+      await this.form.getByRole('button', {name: 'Remove refund'}).click();
     }
   }
 
@@ -251,8 +253,8 @@ export class TransactionForm {
     category,
   }: TransferFormData) {
     await this.maybeFillDateTime(datetime);
-    await this.selectAccount('Money sent from', accountFrom);
-    await this.selectAccount('Money received to', accountTo);
+    await this.selectAccount('From', accountFrom);
+    await this.selectAccount('To', accountTo);
     // When sent != received fill in 2 different input fields,
     // otherwise it's just the regular "Amount" input.
     if (amountReceived !== undefined) {
@@ -277,9 +279,9 @@ export class TransactionForm {
   }: ThirdPartyExpenseFormData) {
     await this.amountInput.fill(String(amountFull));
     await this.form.getByLabel('I owe').fill(String(amountOwn));
-    this.maybeFillDateTime(datetime);
+    await this.maybeFillDateTime(datetime);
     await this.selectCategory(category);
-    await this.form.getByLabel('This expense was paid by').fill(payer);
+    await this.form.getByLabel('Who paid').fill(payer);
     await this.vendorInput.fill(vendor);
   }
 
@@ -292,7 +294,7 @@ export class TransactionForm {
   }
 
   private async selectAccount(label: string | RegExp, account: AccountRef) {
-    const selectField = this.form.getByLabel(label);
+    const selectField = this.form.getByLabel(label, {exact: true});
     const value = await selectField
       .locator(`optgroup[label="${account.bank}"]`)
       .getByText(account.name, {exact: true})

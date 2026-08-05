@@ -43,12 +43,10 @@ function existingAmountNanos({
 }
 
 export function NewBalanceNote({
-  text,
   amount,
   accountId,
   transaction,
 }: {
-  text?: string;
   // The amount fields are text inputs and the schema coerces them only at validation time.
   amount: number | string;
   accountId: number;
@@ -86,17 +84,15 @@ export function NewBalanceNote({
   return (
     <div
       className={cn(
-        'flex flex-row items-center gap-2 text-xs',
+        'text-muted-foreground flex flex-row flex-wrap items-center gap-x-2 gap-y-1 text-xs',
         isSubmitting && 'opacity-50'
       )}
     >
-      <div className="whitespace-nowrap">{text ? text : 'New balance:'}</div>
-      <div className="flex flex-wrap justify-evenly gap-1.5">
-        <AccountBalanceText
-          localBalance={newLocalBalance}
-          remoteBalance={remoteBalance}
-        />
-      </div>
+      <span className="whitespace-nowrap">New balance</span>
+      <AccountBalanceText
+        localBalance={newLocalBalance}
+        remoteBalance={remoteBalance}
+      />
     </div>
   );
 }
@@ -109,30 +105,34 @@ function AccountBalanceText({
   remoteBalance: AmountWithUnit | null;
 }) {
   if (!remoteBalance) {
-    return <div>{localBalance.format()}</div>;
+    return (
+      <span className="font-mono font-medium tabular-nums">
+        {localBalance.format()}
+      </span>
+    );
   }
   const delta = localBalance.subtract(remoteBalance);
+  if (delta.isZero()) {
+    return (
+      <span className="flex items-center gap-1 whitespace-nowrap font-mono font-medium tabular-nums">
+        {localBalance.format()}
+        <CheckCircleIcon className="h-4 w-4" />
+      </span>
+    );
+  }
   return (
-    <>
-      <div
-        className={cn(
-          'flex items-center gap-1 whitespace-nowrap',
-          delta.isZero() ? 'text-green-600' : 'text-red-600'
+    <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+      <span className="font-mono font-medium tabular-nums">
+        {localBalance.format()}
+      </span>
+      <span className="flex items-center gap-0.5 whitespace-nowrap font-light">
+        {delta.isNegative() ? (
+          <ArrowUpIcon className="h-2.5 w-2.5" />
+        ) : (
+          <ArrowDownIcon className="h-2.5 w-2.5" />
         )}
-      >
-        <div>{localBalance.format()}</div>
-        {delta.isZero() && <CheckCircleIcon className="h-4 w-4" />}
-      </div>
-      {!delta.isZero() && (
-        <div className="text-muted-foreground flex items-center gap-0.5 whitespace-nowrap text-xs font-light">
-          {delta.isNegative() ? (
-            <ArrowUpIcon className="h-2.5 w-2.5" />
-          ) : (
-            <ArrowDownIcon className="h-2.5 w-2.5" />
-          )}
-          {delta.abs().format()}
-        </div>
-      )}
-    </>
+        <span className="font-mono tabular-nums">{delta.abs().format()}</span>
+      </span>
+    </span>
   );
 }

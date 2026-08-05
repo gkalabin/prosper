@@ -10,10 +10,11 @@ import {expenseFormEmpty} from '@/components/txform/expense/defaults';
 import {ExpenseForm} from '@/components/txform/expense/ExpenseForm';
 import {
   FormTypeSelect,
+  formTypeTabId,
   TRANSACTION_FORM_TABPANEL_ID,
 } from '@/components/txform/FormTypeSelect';
 import {IncomeForm} from '@/components/txform/income/IncomeForm';
-import {NewTransactionSuggestions} from '@/components/txform/NewTransactionSuggestions';
+import {SuggestionsPanel} from '@/components/txform/suggestions/SuggestionsPanel';
 import {TransferForm} from '@/components/txform/transfer/TransferForm';
 import {
   type FormType,
@@ -34,6 +35,7 @@ import {TransactionDraft} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {useDisplayBankAccounts} from '@/lib/model/AppDataModel';
 import {Transaction} from '@/lib/model/transaction/Transaction';
 import {setFormErrors} from '@/lib/util/forms';
+import {ExclamationCircleIcon} from '@heroicons/react/24/outline';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {useCallback, useState} from 'react';
 import {useForm} from 'react-hook-form';
@@ -53,11 +55,12 @@ export function NewTransactionFormDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {transaction ? 'Update transaction' : 'Create new transaction'}
+            {transaction ? 'Edit transaction' : 'New transaction'}
           </DialogTitle>
           <DialogDescription>
-            Use the form below to{' '}
-            {transaction ? 'update transaction' : 'create a new transaction'}
+            {transaction
+              ? 'Update the details below.'
+              : 'Record what happened to your money.'}
           </DialogDescription>
         </DialogHeader>
         <TransactionForm
@@ -80,6 +83,9 @@ export function TransactionForm(props: {
   const {categories} = useCoreDataContext();
   const bankAccounts = useDisplayBankAccounts();
   const [draft, setDraft] = useState<TransactionDraft | null>(null);
+  // Suggestions collapse to a summary once one is picked, reclaiming the
+  // viewport for the form; the post-submit loop re-expands them.
+  const [suggestionsCollapsed, setSuggestionsCollapsed] = useState(false);
   const creatingNewTransaction = !props.transaction;
   // Form values update strategy:
   //  - Existing transaction is either set all the time or not defined. If it's set, there could be no draft.
@@ -96,12 +102,14 @@ export function TransactionForm(props: {
     defaultValues: useFormDefaults(props.transaction),
   });
   const formType = form.watch('formType');
+  const {isSubmitting} = form.formState;
   const onFormTypeChange = (newFormType: FormType): void => {
     form.reset(valuesForNewType(form.getValues(), newFormType, bankAccounts));
   };
   const onDraftChange = useCallback(
     (draft: TransactionDraft): void => {
       setDraft(draft);
+      setSuggestionsCollapsed(true);
       form.reset(valuesForDraft({draft, bankAccounts, categories}));
     },
     [bankAccounts, categories, form]
@@ -119,7 +127,7 @@ export function TransactionForm(props: {
           // Close the form after updating the transaction.
           props.onClose();
         } else {
-          // Reset the form after successful submission.
+          // Reset the form state after successful submission.
           const newFormValues: TransactionFormSchema = {
             formType: 'EXPENSE',
             expense: expenseFormEmpty({bankAccounts, categories}),
@@ -131,6 +139,7 @@ export function TransactionForm(props: {
             data.transfer?.toAccountId ||
             null;
           setDraft(null);
+          setSuggestionsCollapsed(false);
           form.reset(newFormValues);
         }
         return;
@@ -144,17 +153,16 @@ export function TransactionForm(props: {
   });
   return (
     <>
-      {/* Transaction suggestions only make sense when creating new transaction,
-          they are hidden when updating an existing transaction.
-       */}
+      {/* Transaction suggestions only make sense when creating a new
+          transaction; they are hidden when updating an existing one. */}
       {creatingNewTransaction && (
-        <div className="mb-2">
-          <NewTransactionSuggestions
-            activeDraft={draft}
-            onItemClick={onDraftChange}
-            disabled={form.formState.isSubmitting}
-          />
-        </div>
+        <SuggestionsPanel
+          activeDraft={draft}
+          setActiveDraft={onDraftChange}
+          collapsed={suggestionsCollapsed}
+          setCollapsed={setSuggestionsCollapsed}
+          disabled={isSubmitting}
+        />
       )}
 
       {/**The form provider is at a very high level and includes the forms for all
@@ -169,18 +177,18 @@ export function TransactionForm(props: {
       <DraftContextProvider draft={draft}>
         <Form {...form}>
           <form onSubmit={onSubmit}>
-            <div className="flex justify-center py-4">
+            <div className="mb-5">
               <FormTypeSelect
                 value={formType}
                 setValue={onFormTypeChange}
-                disabled={form.formState.isSubmitting}
+                disabled={isSubmitting}
               />
             </div>
             <div
-              className="grid grid-cols-6 gap-x-6 gap-y-3"
               id={TRANSACTION_FORM_TABPANEL_ID}
               role="tabpanel"
-              aria-labelledby={`tab-${formType.toLowerCase()}`}
+              aria-labelledby={formTypeTabId(formType)}
+              className="flex flex-col gap-4"
             >
               {formType == 'EXPENSE' && (
                 <ExpenseForm transaction={props.transaction} />
@@ -193,38 +201,45 @@ export function TransactionForm(props: {
               )}
             </div>
 
-            <div className="mt-4 flex justify-between gap-2 border-t py-4">
-              <div className="text-destructive text-sm font-medium">
-                {form.formState.errors.root?.message}
-              </div>
-              <div className="flex-none space-x-4">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={props.onClose}
-                  disabled={form.formState.isSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={form.formState.isSubmitting}>
-                  {creatingNewTransaction &&
-                    form.formState.isSubmitting &&
-                    'Adding…'}
-                  {creatingNewTransaction &&
-                    !form.formState.isSubmitting &&
-                    'Add'}
-                  {!creatingNewTransaction &&
-                    form.formState.isSubmitting &&
-                    'Updating…'}
-                  {!creatingNewTransaction &&
-                    !form.formState.isSubmitting &&
-                    'Update'}
-                </Button>
-              </div>
+            {form.formState.errors.root?.message && (
+              <FormLevelError message={form.formState.errors.root.message} />
+            )}
+
+            <div className="mt-6 flex gap-3">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={props.onClose}
+                disabled={isSubmitting}
+                className="flex-none"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting} className="flex-1">
+                {creatingNewTransaction
+                  ? isSubmitting
+                    ? 'Adding…'
+                    : 'Add'
+                  : isSubmitting
+                    ? 'Updating…'
+                    : 'Update'}
+              </Button>
             </div>
           </form>
         </Form>
       </DraftContextProvider>
     </>
+  );
+}
+
+function FormLevelError({message}: {message: string}) {
+  return (
+    <div
+      role="alert"
+      className="border-destructive/40 bg-destructive/10 text-destructive mt-6 flex items-center gap-2 rounded-xl border p-3 text-sm font-medium"
+    >
+      <ExclamationCircleIcon className="h-5 w-5 flex-none" />
+      {message}
+    </div>
   );
 }

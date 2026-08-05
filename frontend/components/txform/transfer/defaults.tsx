@@ -10,11 +10,11 @@ import {Transfer} from '@/lib/model/transaction/Transfer';
 import {TransactionDraft} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {winnerId, winnerMoneyDollar} from '@/lib/txsuggestions/candidate';
 import {
-  draftAmountDollar,
+  draftAmount,
   draftDescription,
   draftTagNames,
   draftTimestamp,
-} from '@/lib/txsuggestions/draft';
+} from '@/lib/model/transaction/TransactionDraft';
 import {nanosToDollar} from '@/lib/util/util';
 
 export function expenseToTransfer({
@@ -67,7 +67,7 @@ export function transferFromDraft({
 }): TransferFormSchema {
   assert(categories.length > 0);
   assert(bankAccounts.length > 0);
-  const amountSent = draftAmountDollar(draft);
+  const amountSent = draftAmount(draft).dollar();
   const values: TransferFormSchema = {
     timestamp: draftTimestamp(draft),
     amountSent,

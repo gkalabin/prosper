@@ -32,7 +32,7 @@ export function Account({
       name={fieldName}
       render={({field}) => {
         return (
-          <FormItem className="col-span-6">
+          <FormItem>
             <FormLabel>{label}</FormLabel>
             <FormControl>
               <Select

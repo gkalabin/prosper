@@ -44,6 +44,8 @@ const DialogContent = React.forwardRef<
         // Animations.
         'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] duration-200',
         'bg-background z-50 grid content-start gap-4 overflow-y-auto border p-6',
+        // Avoid horizontal scroll on mobile.
+        'grid-cols-1',
         className
       )}
       {...props}

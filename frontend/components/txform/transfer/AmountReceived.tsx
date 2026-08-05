@@ -1,5 +1,5 @@
 import {MoneyInput} from '@/components/txform/shared/MoneyInput';
-import {useAccountUnitsEqual} from '@/components/txform/transfer/Amount';
+import {useAccountCurrency} from '@/components/txform/shared/useAccountCurrency';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {
   FormControl,
@@ -8,23 +8,21 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {useFormContext} from 'react-hook-form';
+import {useFormContext, useWatch} from 'react-hook-form';
 
 export function AmountReceived() {
   const {control} = useFormContext<TransactionFormSchema>();
-  const sameUnit = useAccountUnitsEqual();
-  if (sameUnit) {
-    return null;
-  }
+  const accountId = useWatch({name: 'transfer.toAccountId', exact: true});
+  const currency = useAccountCurrency(accountId);
   return (
     <FormField
       control={control}
       name="transfer.amountReceived"
       render={({field}) => (
-        <FormItem className="col-span-3">
-          <FormLabel>Amount Received</FormLabel>
+        <FormItem>
+          <FormLabel>Received</FormLabel>
           <FormControl>
-            <MoneyInput {...field} />
+            <MoneyInput currency={currency} {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>

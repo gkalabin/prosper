@@ -1,4 +1,5 @@
 import {MoneyInput} from '@/components/txform/shared/MoneyInput';
+import {useAccountCurrency} from '@/components/txform/shared/useAccountCurrency';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {
   FormControl,
@@ -7,23 +8,21 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {useFormContext} from 'react-hook-form';
+import {useFormContext, useWatch} from 'react-hook-form';
 
 export function OwnShareAmount() {
-  const {control, watch} = useFormContext<TransactionFormSchema>();
-  const isShared = watch('income.isShared');
-  if (!isShared) {
-    return null;
-  }
+  const {control} = useFormContext<TransactionFormSchema>();
+  const accountId = useWatch({name: 'income.accountId', exact: true});
+  const currency = useAccountCurrency(accountId);
   return (
     <FormField
       control={control}
       name="income.ownShareAmount"
       render={({field}) => (
-        <FormItem className="col-span-3">
+        <FormItem>
           <FormLabel>My share</FormLabel>
           <FormControl>
-            <MoneyInput {...field} />
+            <MoneyInput currency={currency} {...field} />
           </FormControl>
           <FormMessage />
         </FormItem>

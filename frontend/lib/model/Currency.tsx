@@ -50,6 +50,20 @@ const CURRENCY_TO_LOCALE: Map<string, string> = new Map([
   ['HKD', 'zh-HK'],
 ]);
 
+// currencySymbol returns the symbol the currency renders with (e.g. "$", "€").
+export function currencySymbol(currency: Currency): string {
+  const parts = new Intl.NumberFormat(CURRENCY_TO_LOCALE.get(currency.code), {
+    style: 'currency',
+    currency: currency.code,
+    maximumFractionDigits: 0,
+  }).formatToParts(0);
+  const symbol = parts.find(p => p.type === 'currency');
+  if (!symbol) {
+    throw new Error(`Cannot find symbol for currency '${currency.code}'`);
+  }
+  return symbol.value;
+}
+
 export function formatCurrency(
   currency: Currency,
   amount: Amount,

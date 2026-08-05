@@ -1,5 +1,6 @@
-import {RepaymentToggle} from '@/components/txform/expense/RepaymentToggle';
+import {useExpenseCurrency} from '@/components/txform/expense/useExpenseCurrency';
 import {useSharingType} from '@/components/txform/expense/useSharingType';
+import {usePayerName} from '@/components/txform/expense/usePayerName';
 import {MoneyInput} from '@/components/txform/shared/MoneyInput';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {
@@ -14,24 +15,20 @@ import {useFormContext} from 'react-hook-form';
 
 export function OwnShareAmount() {
   const {control} = useFormContext<TransactionFormSchema>();
-  const {isShared} = useSharingType();
-  if (!isShared) {
-    return null;
-  }
+  const currency = useExpenseCurrency();
   return (
     <FormField
       control={control}
       name="expense.ownShareAmount"
       render={({field}) => (
-        <FormItem className="col-span-3">
+        <FormItem>
           <FormLabel>
             <LabelText />
           </FormLabel>
           <FormControl>
-            <MoneyInput {...field} />
+            <MoneyInput currency={currency} {...field} />
           </FormControl>
           <FormMessage />
-          <RepaymentToggle />
         </FormItem>
       )}
     />
@@ -39,8 +36,7 @@ export function OwnShareAmount() {
 }
 
 function LabelText() {
-  const {getValues} = useFormContext<TransactionFormSchema>();
-  const payer = getValues('expense.payer') || 'them';
+  const payer = usePayerName() ?? 'them';
   const {sharingType} = useSharingType();
   if (sharingType == SharingType.PAID_SELF_SHARED) {
     return <>My share</>;

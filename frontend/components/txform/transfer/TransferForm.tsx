@@ -5,7 +5,10 @@ import {NewBalanceNote} from '@/components/txform/shared/NewBalanceNote';
 import {Tags} from '@/components/txform/shared/Tags';
 import {Timestamp} from '@/components/txform/shared/Timestamp';
 import {UpdateCategoryOnDescriptionChange} from '@/components/txform/shared/UpdateCategoryOnChange';
-import {Amount} from '@/components/txform/transfer/Amount';
+import {
+  Amount,
+  useAccountUnitsEqual,
+} from '@/components/txform/transfer/Amount';
 import {AmountReceived} from '@/components/txform/transfer/AmountReceived';
 import {UpdateReceivedAmountOnAmountChange} from '@/components/txform/transfer/UpdateReceivedAmountOnAmountChange';
 import {TransactionFormSchema} from '@/components/txform/types';
@@ -20,14 +23,40 @@ export function TransferForm({transaction}: {transaction: Transaction | null}) {
     'transfer form requires transfer values'
   );
   const isCreatingNewTransaction = !transaction;
+  const sameUnit = useAccountUnitsEqual();
   return (
     <>
-      <Timestamp fieldName="transfer.timestamp" />
-      <Account fieldName="transfer.fromAccountId" label="Money sent from" />
-      <Account fieldName="transfer.toAccountId" label="Money received to" />
-      <Amount />
-      <AmountReceived />
-      <NewBalancesNote transaction={transaction} />
+      <Timestamp fieldName="transfer.timestamp" label="When" />
+
+      <div className="space-y-2">
+        <div className="text-foreground text-sm font-medium">Move money</div>
+        <div className="grid grid-cols-2 gap-x-3">
+          <Account fieldName="transfer.fromAccountId" label="From" />
+          <Account fieldName="transfer.toAccountId" label="To" />
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        {sameUnit ? (
+          <Amount />
+        ) : (
+          <div className="grid grid-cols-2 gap-x-3">
+            <Amount />
+            <AmountReceived />
+          </div>
+        )}
+        {/* Wrap balances in a div each to avoid skipping a grid entry when one of the balances is null, e.g. when amount is NaN. */}
+        <div className="grid grid-cols-2 gap-x-3">
+          <div>
+            <NewBalanceFrom transaction={transaction} />
+          </div>
+          <div>
+            <NewBalanceTo transaction={transaction} />
+          </div>
+        </div>
+        {!sameUnit && <ImpliedRate />}
+      </div>
+
       <Description fieldName="transfer.description" />
       <Tags fieldName="transfer.tagNames" />
       <Category fieldName="transfer.categoryId" />
@@ -41,26 +70,11 @@ export function TransferForm({transaction}: {transaction: Transaction | null}) {
   );
 }
 
-function NewBalancesNote({transaction}: {transaction: Transaction | null}) {
-  return (
-    <>
-      <div className="col-span-6 -my-1 text-xs font-medium">New Balances</div>
-      <div className="col-span-3">
-        <NewBalanceFrom transaction={transaction} />
-      </div>
-      <div className="col-span-3">
-        <NewBalanceTo transaction={transaction} />
-      </div>
-    </>
-  );
-}
-
 function NewBalanceFrom({transaction}: {transaction: Transaction | null}) {
   const amount = useWatch({name: 'transfer.amountSent', exact: true});
   const accountId = useWatch({name: 'transfer.fromAccountId', exact: true});
   return (
     <NewBalanceNote
-      text="From:"
       amount={-amount}
       accountId={accountId}
       transaction={transaction}
@@ -73,10 +87,27 @@ function NewBalanceTo({transaction}: {transaction: Transaction | null}) {
   const accountId = useWatch({name: 'transfer.toAccountId', exact: true});
   return (
     <NewBalanceNote
-      text="To:"
       amount={amount}
       accountId={accountId}
       transaction={transaction}
     />
+  );
+}
+
+function ImpliedRate() {
+  const sent = Number(useWatch({name: 'transfer.amountSent', exact: true}));
+  const received = Number(
+    useWatch({name: 'transfer.amountReceived', exact: true})
+  );
+  if (!(sent > 0) || !(received > 0)) {
+    return null;
+  }
+  return (
+    <div className="text-muted-foreground text-xs italic">
+      Implied rate{' '}
+      <span className="font-mono tabular-nums">
+        {(received / sent).toFixed(4)}
+      </span>
+    </div>
   );
 }

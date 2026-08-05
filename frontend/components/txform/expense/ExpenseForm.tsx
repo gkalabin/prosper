@@ -1,15 +1,12 @@
-import {AccountFrom} from '@/components/txform/expense/AccountFrom';
 import {Amount} from '@/components/txform/expense/Amount';
-import {Currency} from '@/components/txform/expense/Currency';
 import {ExtraFields} from '@/components/txform/expense/ExtraFields';
-import {OwnShareAmount} from '@/components/txform/expense/OwnShareAmount';
-import {Payer} from '@/components/txform/expense/Payer';
-import {RepaymentFields} from '@/components/txform/expense/RepaymentFields';
-import {SplitTransactionToggle} from '@/components/txform/expense/SplitTransactionToggle';
-import {Vendor} from '@/components/txform/expense/Vendor';
+import {PaidOtherBlock} from '@/components/txform/expense/PaidOtherBlock';
+import {SharingControls} from '@/components/txform/expense/SharingControls';
+import {SplitBlock} from '@/components/txform/expense/SplitBlock';
 import {useSharingType} from '@/components/txform/expense/useSharingType';
+import {Vendor} from '@/components/txform/expense/Vendor';
+import {Account} from '@/components/txform/shared/Account';
 import {Category} from '@/components/txform/shared/Category';
-import {Companion} from '@/components/txform/shared/Companion';
 import {NewBalanceNote} from '@/components/txform/shared/NewBalanceNote';
 import {Tags} from '@/components/txform/shared/Tags';
 import {Timestamp} from '@/components/txform/shared/Timestamp';
@@ -17,25 +14,26 @@ import {UpdateCategoryOnVendorChange} from '@/components/txform/shared/UpdateCat
 import {UpdateOwnShareOnAmountChange as CommonUpdateOwnShareOnAmountChange} from '@/components/txform/shared/UpdateOwnShareOnAmountChange';
 import {TransactionFormSchema} from '@/components/txform/types';
 import {assertDefined} from '@/lib/assert';
+import {SharingType} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {Transaction} from '@/lib/model/transaction/Transaction';
 import {useFormContext, useWatch} from 'react-hook-form';
 
 export function ExpenseForm({transaction}: {transaction: Transaction | null}) {
   const {getValues} = useFormContext<TransactionFormSchema>();
   assertDefined(getValues('expense'), 'expense form requires expense values');
+  const {sharingType, paidSelf, paidOther} = useSharingType();
   const isCreatingNewTransaction = !transaction;
   return (
     <>
-      <Timestamp fieldName="expense.timestamp" />
-      <AccountFrom />
-      <Payer />
-      <SplitTransactionToggle />
-      <MaybeEmptyCompanion />
-      <Currency />
-      <Amount />
-      <OwnShareAmount />
-      <PaidSelfNewBalanceNote transaction={transaction} />
-      <RepaymentFields />
+      <Timestamp fieldName="expense.timestamp" label="When" />
+      <div className="space-y-2">
+        <Amount />
+        {paidSelf && <PaidSelfNewBalanceNote transaction={transaction} />}
+      </div>
+      {paidSelf && <Account fieldName="expense.accountId" label="Paid from" />}
+      {sharingType == SharingType.PAID_SELF_NOT_SHARED && <SharingControls />}
+      {sharingType == SharingType.PAID_SELF_SHARED && <SplitBlock />}
+      {paidOther && <PaidOtherBlock transaction={transaction} />}
       <Vendor />
       <Tags fieldName="expense.tagNames" />
       <Category fieldName="expense.categoryId" />
@@ -47,14 +45,6 @@ export function ExpenseForm({transaction}: {transaction: Transaction | null}) {
       <UpdateOwnShareOnAmountChange />
     </>
   );
-}
-
-function MaybeEmptyCompanion() {
-  const {isShared, paidSelf} = useSharingType();
-  if (!isShared || !paidSelf) {
-    return null;
-  }
-  return <Companion fieldName="expense.companion" />;
 }
 
 function UpdateOwnShareOnAmountChange() {
@@ -72,19 +62,13 @@ function PaidSelfNewBalanceNote({
 }: {
   transaction: Transaction | null;
 }) {
-  const {paidSelf} = useSharingType();
   const amount = useWatch({name: 'expense.amount', exact: true});
   const accountId = useWatch({name: 'expense.accountId', exact: true});
-  if (!paidSelf) {
-    return null;
-  }
   return (
-    <div className="col-span-6">
-      <NewBalanceNote
-        transaction={transaction}
-        amount={-amount}
-        accountId={accountId}
-      />
-    </div>
+    <NewBalanceNote
+      transaction={transaction}
+      amount={-amount}
+      accountId={accountId}
+    />
   );
 }

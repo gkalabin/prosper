@@ -26,11 +26,11 @@ import {
   winnerString,
 } from '@/lib/txsuggestions/candidate';
 import {
-  draftAmountDollar,
+  draftAmount,
   draftDescription,
   draftTagNames,
   draftTimestamp,
-} from '@/lib/txsuggestions/draft';
+} from '@/lib/model/transaction/TransactionDraft';
 import {nanosToDollar} from '@/lib/util/util';
 import {startOfDay} from 'date-fns';
 
@@ -76,7 +76,7 @@ export function expenseFromDraft({
   assert(categories.length > 0);
   assert(bankAccounts.length > 0);
   const timestamp = draftTimestamp(draft);
-  const amount = draftAmountDollar(draft);
+  const amount = draftAmount(draft).dollar();
   const proposedSharingType = winnerSharingType(draft.sharingType);
   const sharingType = proposedSharingType
     ? proposedSharingType

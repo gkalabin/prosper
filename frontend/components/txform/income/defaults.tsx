@@ -20,11 +20,11 @@ import {
   winnerString,
 } from '@/lib/txsuggestions/candidate';
 import {
-  draftAmountDollar,
+  draftAmount,
   draftDescription,
   draftTagNames,
   draftTimestamp,
-} from '@/lib/txsuggestions/draft';
+} from '@/lib/model/transaction/TransactionDraft';
 import {nanosToDollar} from '@/lib/util/util';
 
 export function expenseToIncome({
@@ -114,7 +114,7 @@ export function incomeFromDraft({
 }): IncomeFormSchema {
   assert(categories.length > 0);
   assert(bankAccounts.length > 0);
-  const amount = draftAmountDollar(draft);
+  const amount = draftAmount(draft).dollar();
   const isShared =
     winnerSharingType(draft.sharingType) === PbSharingType.PAID_SELF_SHARED;
   const values: IncomeFormSchema = {

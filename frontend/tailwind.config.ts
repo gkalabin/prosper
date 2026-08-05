@@ -70,6 +70,10 @@ const config = {
           border: 'hsl(var(--drawer-border))',
           active: 'hsl(var(--drawer-active))',
         },
+        tint: {
+          DEFAULT: 'hsl(var(--tint))',
+          foreground: 'hsl(var(--tint-foreground))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

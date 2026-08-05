@@ -36,7 +36,7 @@ import {
   FormType as PbFormType,
   TransactionDraft,
 } from '@/lib/grpc/gen/prosper/v1/ledger';
-import {draftFormType} from '@/lib/txsuggestions/draft';
+import {draftFormType} from '@/lib/model/transaction/TransactionDraft';
 
 // Excluding OpeningBalance from Transaction type as these cannot be edited in the regular form and instead should be edited on the bank account page.
 export function useFormDefaults(
