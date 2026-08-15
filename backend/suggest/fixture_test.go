@@ -67,7 +67,7 @@ func newFixture() *fixture {
 
 func (f *fixture) snapshot() *snapshot.Ledger {
 	return snapshot.New(f.txs, f.lines, f.splits, f.ledgerAccounts,
-		f.links, f.origins, f.descriptions, f.bankAccounts, nil, f.transactionTags)
+		f.links, f.origins, f.descriptions, f.bankAccounts, nil, nil, nil, f.transactionTags)
 }
 
 // tag attaches tag names to an already-recorded transaction.

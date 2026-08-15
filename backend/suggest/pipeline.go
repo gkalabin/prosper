@@ -10,21 +10,18 @@ import (
 	prosperv1 "prosper/gen/prosper/v1"
 	"prosper/ledger/common"
 	"prosper/ledger/snapshot"
-	"prosper/userdb"
 )
 
 // Pipeline is the transaction draft pipeline. Suggest proposes drafts
 // for the events its sources report.
 type Pipeline struct {
-	db        *userdb.DB
 	sources   []Source
 	enrichers []Enricher
 }
 
 // NewPipeline wires the production pipeline.
-func NewPipeline(db *userdb.DB, openBanking OpenBankingStore) *Pipeline {
+func NewPipeline(openBanking OpenBankingStore) *Pipeline {
 	return &Pipeline{
-		db:        db,
 		sources:   []Source{NewOpenBankingSource(openBanking)},
 		enrichers: []Enricher{NewHistoryEnricher()},
 	}
@@ -32,9 +29,9 @@ func NewPipeline(db *userdb.DB, openBanking OpenBankingStore) *Pipeline {
 
 // Suggest proposes one draft per event the sources know about: collect
 // the sources' proposals, recall what is already recorded from each
-// event and enrich. The user's ledger snapshot is loaded once and
-// shared by recall and every enricher.
-func (p *Pipeline) Suggest(ctx context.Context, userID int32) ([]*prosperv1.TransactionDraft, error) {
+// event and enrich. The caller-owned ledger is shared by recall and
+// every enricher.
+func (p *Pipeline) Suggest(ctx context.Context, userID int32, snap *snapshot.Ledger) ([]*prosperv1.TransactionDraft, error) {
 	// Collect all drafts from all sources, e.g. open banking.
 	proposeStart := time.Now()
 	var drafts []*prosperv1.TransactionDraft
@@ -49,13 +46,6 @@ func (p *Pipeline) Suggest(ctx context.Context, userID int32) ([]*prosperv1.Tran
 	if len(drafts) == 0 {
 		return nil, nil
 	}
-	// Load the user's ledger. Used by the later parts of the pipeline.
-	snapshotStart := time.Now()
-	snap, err := snapshot.Load(ctx, p.db, userID)
-	if err != nil {
-		return nil, err
-	}
-	snapshotDuration := time.Since(snapshotStart)
 	// Enrich the drafts with helpful suggestions, like using the same vendor name as the user usually records.
 	// For example, open banking transactions reported as "AMAZON.CO.UK" get suggestion as "Amazon" based on the user's history.
 	enrichStart := time.Now()
@@ -67,8 +57,8 @@ func (p *Pipeline) Suggest(ctx context.Context, userID int32) ([]*prosperv1.Tran
 	}
 	enrichDuration := time.Since(enrichStart)
 	sortDrafts(drafts)
-	log.Printf("suggest: user %d: %d drafts (propose=%s snapshot=%s enrich=%s total=%s)",
-		userID, len(drafts), proposeDuration, snapshotDuration, enrichDuration, time.Since(proposeStart))
+	log.Printf("suggest: user %d: %d drafts (propose=%s enrich=%s total=%s)",
+		userID, len(drafts), proposeDuration, enrichDuration, time.Since(proposeStart))
 	return drafts, nil
 }
 
@@ -107,4 +97,24 @@ func firstOriginKey(d *prosperv1.TransactionDraft) common.OriginKey {
 	o := d.Origins[0]
 	kind, _ := common.OriginKindToModel(o.Kind)
 	return common.OriginKey{Kind: kind, Key: o.Key}
+}
+
+// DraftByOrigins returns the draft that shares at least one origin.
+func DraftByOrigins(drafts []*prosperv1.TransactionDraft, origins []common.OriginKey) *prosperv1.TransactionDraft {
+	want := make(map[common.OriginKey]bool, len(origins))
+	for _, o := range origins {
+		want[o] = true
+	}
+	for _, d := range drafts {
+		for _, o := range d.Origins {
+			kind, ok := common.OriginKindToModel(o.Kind)
+			if !ok {
+				continue
+			}
+			if want[common.OriginKey{Kind: kind, Key: o.Key}] {
+				return d
+			}
+		}
+	}
+	return nil
 }

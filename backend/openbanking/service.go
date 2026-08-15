@@ -174,6 +174,24 @@ func (s *Service) StoredTransactions(ctx context.Context, userID int32) ([]model
 	return accounts, nil
 }
 
+// ExternalTransactionIDsCreatedAfter returns the external ids of the
+// transactions this user's feed stored after the cutoff, so a caller can
+// tell which transactions are newly discovered.
+func (s *Service) ExternalTransactionIDsCreatedAfter(ctx context.Context, userID int32, after time.Time) (map[string]bool, error) {
+	var ids []string
+	if err := s.db.SelectForUser(ctx, &ids, userID,
+		`SELECT externalTransactionId FROM OpenBankingTransaction
+		  WHERE userId = :userId AND createdAt > :after`,
+		map[string]any{"after": after}); err != nil {
+		return nil, err
+	}
+	discovered := make(map[string]bool, len(ids))
+	for _, id := range ids {
+		discovered[id] = true
+	}
+	return discovered, nil
+}
+
 // transactionsForFetch returns the transactions a fetch returned, newest
 // first, limited to those at or after since.
 func (s *Service) transactionsForFetch(ctx context.Context, userID, fetchID int32, since time.Time) ([]model.OpenBankingTransaction, error) {

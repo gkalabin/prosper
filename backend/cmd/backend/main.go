@@ -22,6 +22,7 @@ import (
 	"prosper/openbanking/truelayer"
 	"prosper/rates"
 	"prosper/suggest"
+	"prosper/telegram"
 	"prosper/userdb"
 )
 
@@ -96,14 +97,27 @@ func main() {
 	log.Println("openbanking: starling provider registered")
 	prosperv1.RegisterOpenBankingServiceServer(grpcSrv, obSrv)
 
-	suggestPipeline := suggest.NewPipeline(udb, obSrv)
+	suggestPipeline := suggest.NewPipeline(obSrv)
 	ledgerSrv := ledger.NewService(udb, ratesSrv, stockResolver, suggestPipeline)
 	prosperv1.RegisterLedgerServiceServer(grpcSrv, ledgerSrv)
+
+	var tgObserver openbanking.ScheduledSyncObserver
+	var tgClient *telegram.Client
+	if cfg.TelegramBotToken != "" {
+		tgClient = telegram.NewClient(cfg.TelegramBotToken)
+		bot := telegram.NewBot(udb, tgClient, suggestPipeline, cfg.PublicAppURL)
+		bot.Start(ctx, &bg)
+		tgObserver = telegram.NewNotifier(udb, tgClient, suggestPipeline, obSrv, cfg.PublicAppURL)
+		log.Println("telegram: bot enabled")
+	} else {
+		log.Println("telegram: disabled (token not configured)")
+	}
+	prosperv1.RegisterTelegramServiceServer(grpcSrv, telegram.NewService(udb, tgClient))
 
 	// Start background services.
 	authSrv.StartExpiredSessionSweeper(ctx, &bg)
 	ratesSrv.StartScheduler(ctx, &bg)
-	obSrv.StartScheduler(ctx, &bg)
+	obSrv.StartScheduler(ctx, &bg, tgObserver)
 
 	go func() {
 		<-ctx.Done()

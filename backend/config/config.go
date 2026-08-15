@@ -34,6 +34,8 @@ type Config struct {
 	GoCardlessSecretID    string
 	GoCardlessSecretKey   string
 
+	TelegramBotToken string
+
 	PublicAppURL string
 }
 
@@ -62,6 +64,7 @@ var recognizedEnvKeys = map[string]bool{
 	"PROSPER_TRUE_LAYER_CLIENT_SECRET":      true,
 	"PROSPER_GOCARDLESS_SECRET_ID":          true,
 	"PROSPER_GOCARDLESS_SECRET_KEY":         true,
+	"PROSPER_TELEGRAM_BOT_TOKEN":            true,
 }
 
 // MustLoad parses configuration from environment variables.
@@ -79,7 +82,8 @@ func MustLoad() *Config {
 		TrueLayerClientSecret:      os.Getenv("PROSPER_TRUE_LAYER_CLIENT_SECRET"),
 		GoCardlessSecretID:         os.Getenv("PROSPER_GOCARDLESS_SECRET_ID"),
 		GoCardlessSecretKey:        os.Getenv("PROSPER_GOCARDLESS_SECRET_KEY"),
-		PublicAppURL:               os.Getenv("PROSPER_PUBLIC_APP_URL"),
+		TelegramBotToken:           os.Getenv("PROSPER_TELEGRAM_BOT_TOKEN"),
+		PublicAppURL:               mustEnv("PROSPER_PUBLIC_APP_URL"),
 	}
 }
 

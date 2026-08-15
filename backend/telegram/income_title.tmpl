@@ -1,0 +1,7 @@
+<b>+{{ esc .Amount }}</b>
+
+{{- with .Payer }}
+  {{- " " }}{{ esc . }}
+{{- end }}
+
+{{- " · " }}<i>{{ esc .Timestamp }}</i>

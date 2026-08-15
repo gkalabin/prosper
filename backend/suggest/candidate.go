@@ -38,6 +38,67 @@ func top[C candidate](field []C) (C, bool) {
 	return winner, ok
 }
 
+// TopID, TopMoney, TopString, TopTimestamp, TopFormType, TopSharingType
+// and TopTags read the winning value of a draft field: the value the
+// user is most likely to record. ok is false when the field is empty.
+// They are the shared way to read a resolved draft, used by the write
+// path and by the notification renderer.
+func TopID(field []*prosperv1.IdCandidate) (int32, bool) {
+	c, ok := top(field)
+	if !ok {
+		return 0, false
+	}
+	return c.Value, true
+}
+
+func TopMoney(field []*prosperv1.MoneyCandidate) (int64, bool) {
+	c, ok := top(field)
+	if !ok {
+		return 0, false
+	}
+	return c.ValueNanos, true
+}
+
+func TopString(field []*prosperv1.StringCandidate) (string, bool) {
+	c, ok := top(field)
+	if !ok {
+		return "", false
+	}
+	return c.Value, true
+}
+
+func TopTimestamp(field []*prosperv1.TimestampCandidate) (*timestamppb.Timestamp, bool) {
+	c, ok := top(field)
+	if !ok {
+		return nil, false
+	}
+	return c.Value, true
+}
+
+func TopFormType(field []*prosperv1.FormTypeCandidate) (prosperv1.FormType, bool) {
+	c, ok := top(field)
+	if !ok {
+		return prosperv1.FormType_FORM_TYPE_UNSPECIFIED, false
+	}
+	return c.Value, true
+}
+
+func TopSharingType(field []*prosperv1.SharingTypeCandidate) (prosperv1.SharingType, bool) {
+	c, ok := top(field)
+	if !ok {
+		return prosperv1.SharingType_SHARING_TYPE_UNSPECIFIED, false
+	}
+	return c.Value, true
+}
+
+func TopTags(field []*prosperv1.TagsCandidate) ([]string, bool) {
+	c, ok := top(field)
+	if !ok || c.Value == nil {
+		return nil, false
+	}
+	return c.Value.Names, true
+}
+
 func addString(field *[]*prosperv1.StringCandidate, value string, confidence int32) {
 	*field = append(*field, &prosperv1.StringCandidate{Confidence: confidence, Value: value})
 }

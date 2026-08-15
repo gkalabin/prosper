@@ -257,6 +257,17 @@ const (
 	OriginOpenBanking SourceOriginKind = "OPEN_BANKING"
 )
 
+var sourceOriginKindByValue = map[string]SourceOriginKind{
+	string(OriginOpenBanking): OriginOpenBanking,
+}
+
+// ParseSourceOriginKind converts a stored originKind column value to its
+// enum. ok is false for values that name no known source.
+func ParseSourceOriginKind(v string) (kind SourceOriginKind, ok bool) {
+	kind, ok = sourceOriginKindByValue[v]
+	return kind, ok
+}
+
 // TransactionOrigin links a recorded transaction to the external
 // source event it was recorded from. OriginKind and Key together
 // identify that event; any further detail (e.g. a bank statement line)

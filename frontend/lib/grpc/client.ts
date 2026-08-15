@@ -4,6 +4,7 @@ import {
 } from '@/lib/grpc/gen/prosper/v1/ledger.client';
 import {OpenBankingServiceClient} from '@/lib/grpc/gen/prosper/v1/openbanking.client';
 import {RatesServiceClient} from '@/lib/grpc/gen/prosper/v1/rates.client';
+import {TelegramServiceClient} from '@/lib/grpc/gen/prosper/v1/telegram.client';
 import {ChannelCredentials} from '@grpc/grpc-js';
 import {GrpcTransport} from '@protobuf-ts/grpc-transport';
 
@@ -19,3 +20,4 @@ export const ratesClient = new RatesServiceClient(transport);
 export const openBankingClient = new OpenBankingServiceClient(transport);
 export const ledgerClient = new LedgerServiceClient(transport);
 export const authClient = new AuthServiceClient(transport);
+export const telegramClient = new TelegramServiceClient(transport);

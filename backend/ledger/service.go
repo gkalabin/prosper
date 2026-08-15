@@ -9,6 +9,7 @@ import (
 	"prosper/auth"
 	prosperv1 "prosper/gen/prosper/v1"
 	"prosper/ledger/common"
+	"prosper/ledger/snapshot"
 	"prosper/ledger/txform"
 	"prosper/model"
 	"prosper/suggest"
@@ -59,7 +60,11 @@ func NewService(db *userdb.DB, rt RateTrigger, sr StockResolver, sp *suggest.Pip
 // pipeline knows about.
 func (s *Service) Suggest(ctx context.Context, _ *prosperv1.SuggestRequest) (*prosperv1.SuggestResponse, error) {
 	userID := auth.MustUserIDFromContext(ctx)
-	drafts, err := s.suggester.Suggest(ctx, userID)
+	snap, err := snapshot.Load(ctx, s.db, userID)
+	if err != nil {
+		return nil, err
+	}
+	drafts, err := s.suggester.Suggest(ctx, userID, snap)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +75,11 @@ func (s *Service) Suggest(ctx context.Context, _ *prosperv1.SuggestRequest) (*pr
 // row for each origin into the append-only IgnoredDraftOrigin table.
 func (s *Service) IgnoreDraftOrigins(ctx context.Context, req *prosperv1.IgnoreDraftOriginsRequest) (*prosperv1.IgnoreDraftOriginsResponse, error) {
 	userID := auth.MustUserIDFromContext(ctx)
-	if err := s.insertIgnoredOrigins(ctx, userID, req.Origins, true); err != nil {
+	origins, err := common.OriginKeysFromProto(req.Origins)
+	if err != nil {
+		return nil, err
+	}
+	if err := InsertIgnoredOrigins(ctx, s.db, userID, origins, true); err != nil {
 		return nil, err
 	}
 	return &prosperv1.IgnoreDraftOriginsResponse{}, nil
@@ -80,37 +89,14 @@ func (s *Service) IgnoreDraftOrigins(ctx context.Context, req *prosperv1.IgnoreD
 // active=false row for each origin.
 func (s *Service) UnignoreDraftOrigins(ctx context.Context, req *prosperv1.UnignoreDraftOriginsRequest) (*prosperv1.UnignoreDraftOriginsResponse, error) {
 	userID := auth.MustUserIDFromContext(ctx)
-	if err := s.insertIgnoredOrigins(ctx, userID, req.Origins, false); err != nil {
+	origins, err := common.OriginKeysFromProto(req.Origins)
+	if err != nil {
+		return nil, err
+	}
+	if err := InsertIgnoredOrigins(ctx, s.db, userID, origins, false); err != nil {
 		return nil, err
 	}
 	return &prosperv1.UnignoreDraftOriginsResponse{}, nil
-}
-
-func (s *Service) insertIgnoredOrigins(ctx context.Context, userID int32, origins []*prosperv1.OriginKey, active bool) error {
-	if len(origins) == 0 {
-		return errors.New("at least one origin is required")
-	}
-	for _, o := range origins {
-		kind, ok := common.OriginKindToModel(o.Kind)
-		if !ok {
-			return fmt.Errorf("unknown origin kind: %v", o.Kind)
-		}
-		if o.Key == "" {
-			return errors.New("origin key must not be empty")
-		}
-		row := model.IgnoredDraftOrigin{
-			OriginKind: kind,
-			OriginKey:  o.Key,
-			Active:     active,
-		}
-		if _, err := s.db.NamedExecForUser(ctx, userID,
-			`INSERT INTO IgnoredDraftOrigin
-			  ( userId,  originKind,  originKey,  active) VALUES
-			  (:userId, :originKind, :originKey, :active)`, row); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func (s *Service) GetCoreData(ctx context.Context, _ *prosperv1.GetCoreDataRequest) (*prosperv1.GetCoreDataResponse, error) {

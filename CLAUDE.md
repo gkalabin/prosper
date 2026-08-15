@@ -71,6 +71,8 @@ Rules distilled from review feedback. Apply to any language or module.
 - If complexity is unavoidable, comment **why** — never _what_. Names carry the
   _what_.
 - Comments cover the function behaviour, why it exists.
+- A comment explaining a specific value or statement belongs on that line, not
+  hoisted into the enclosing function or type doc comment.
 - Comments must not mention internal implementation details.
 - Comments must not mention chain of thought.
 - Comments must not enumerate consumers or downstream usages, e.g. "Used by

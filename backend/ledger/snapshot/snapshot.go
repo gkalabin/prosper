@@ -35,6 +35,12 @@ type Ledger struct {
 	// to the raw text the bank reported for it.
 	OpenBankingDescriptionByExternalID map[string]string
 	BankAccounts                       []model.BankAccount
+	// BankByID indexes banks by id.
+	BankByID map[int32]model.Bank
+	// BankAccountByID indexes bank accounts by id.
+	BankAccountByID map[int32]model.BankAccount
+	// CategoryByID indexes categories by id.
+	CategoryByID map[int32]model.Category
 }
 
 // OpenBankingDescription is the raw text reported for one open banking
@@ -101,6 +107,18 @@ func Load(ctx context.Context, db *userdb.DB, userID int32) (*Ledger, error) {
 		return nil, err
 	}
 
+	var banks []model.Bank
+	if err := db.SelectForUser(ctx, &banks, userID,
+		`SELECT * FROM Bank WHERE userId = :userId`); err != nil {
+		return nil, err
+	}
+
+	var categories []model.Category
+	if err := db.SelectForUser(ctx, &categories, userID,
+		`SELECT * FROM Category WHERE userId = :userId`); err != nil {
+		return nil, err
+	}
+
 	// Load all ignored origin rows, then keep the effective (latest) active state per (originKind, originKey).
 	var allIgnoredOrigins []model.IgnoredDraftOrigin
 	if err := db.SelectForUser(ctx, &allIgnoredOrigins, userID,
@@ -128,7 +146,7 @@ func Load(ctx context.Context, db *userdb.DB, userID int32) (*Ledger, error) {
 		return nil, err
 	}
 
-	return New(txs, lines, splits, ledgerAccounts, links, origins, descriptions, bankAccounts, ignoredOrigins, transactionTags), nil
+	return New(txs, lines, splits, ledgerAccounts, links, origins, descriptions, bankAccounts, banks, categories, ignoredOrigins, transactionTags), nil
 }
 
 // New assembles a snapshot from the user's already-loaded ledger rows.
@@ -141,6 +159,8 @@ func New(
 	origins []model.TransactionOrigin,
 	openBankingDescriptions []OpenBankingDescription,
 	bankAccounts []model.BankAccount,
+	banks []model.Bank,
+	categories []model.Category,
 	ignoredOrigins map[common.OriginKey]bool,
 	transactionTags []TransactionTag,
 ) *Ledger {
@@ -156,6 +176,9 @@ func New(
 		IgnoredOrigins:                     ignoredOrigins,
 		OpenBankingDescriptionByExternalID: make(map[string]string, len(openBankingDescriptions)),
 		BankAccounts:                       bankAccounts,
+		BankByID:                           make(map[int32]model.Bank, len(banks)),
+		BankAccountByID:                    make(map[int32]model.BankAccount, len(bankAccounts)),
+		CategoryByID:                       make(map[int32]model.Category, len(categories)),
 	}
 	for _, d := range openBankingDescriptions {
 		s.OpenBankingDescriptionByExternalID[d.ExternalID] = d.Description
@@ -188,6 +211,15 @@ func New(
 	}
 	for _, a := range ledgerAccounts {
 		s.LedgerAccountByID[a.ID] = a
+	}
+	for _, b := range banks {
+		s.BankByID[b.ID] = b
+	}
+	for _, a := range bankAccounts {
+		s.BankAccountByID[a.ID] = a
+	}
+	for _, c := range categories {
+		s.CategoryByID[c.ID] = c
 	}
 	return s
 }

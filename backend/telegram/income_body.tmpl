@@ -1,0 +1,19 @@
+{{- if .CategoryPath }}
+🗂️ {{ esc .CategoryPath }}
+{{- else }}
+🗂️ <i>No category — pick one in the app</i>
+{{- end }}
+🏦 {{ esc .AccountWithBank }}
+
+{{- with .Tags }}
+🏷️ {{ chips . }}
+{{- end }}
+
+{{- with .Companion }}
+👥 Shared with {{ esc . }} · your share {{ esc $.OwnShare }}
+{{- end }}
+
+{{- if and .BankText (not (equalFold .BankText .Payer)) }}
+
+<i>Bank text: {{ esc .BankText }}</i>
+{{- end }}

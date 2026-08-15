@@ -19,6 +19,39 @@ const NanosPerCent int64 = NanosPerUnit / 100
 // CentsToNanos converts an integer-cents amount into nanos.
 func CentsToNanos(cents int32) int64 { return int64(cents) * NanosPerCent }
 
+// currencySymbols prefixes an amount for the currencies offered at account
+// creation; any other currency falls back to its ISO code as a suffix.
+var currencySymbols = map[string]string{
+	"USD": "$",
+	"EUR": "€",
+	"GBP": "£",
+	"JPY": "¥",
+	"RUB": "₽",
+}
+
+// FormatMoney renders a nanos amount with its currency, e.g. "£24.99" or
+// "24.99 PLN". An empty currency code renders just the amount.
+func FormatMoney(nanos int64, currencyCode string) string {
+	amount := formatAmount(nanos)
+	if symbol, ok := currencySymbols[currencyCode]; ok {
+		return symbol + amount
+	}
+	if currencyCode != "" {
+		return amount + " " + currencyCode
+	}
+	return amount
+}
+
+// formatAmount renders a nanos amount rounded to two decimal places.
+func formatAmount(nanos int64) string {
+	sign := ""
+	if nanos < 0 {
+		sign, nanos = "-", -nanos
+	}
+	cents := (nanos + NanosPerCent/2) / NanosPerCent
+	return fmt.Sprintf("%s%d.%02d", sign, cents/100, cents%100)
+}
+
 // RoundNanosToCent rounds a nanos amount to the nearest whole cent and
 // returns it in nanos, so a value derived by arithmetic (e.g. a halved
 // shared amount) stays a sum the user can actually pay.

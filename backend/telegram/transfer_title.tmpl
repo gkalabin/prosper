@@ -1,0 +1,8 @@
+<b>
+  {{- esc .Amount }}
+  {{- with .TransferAmountReceived }}
+    {{- if ne . $.Amount }}{{ " → " }}{{ esc . }}{{ end }}
+  {{- end -}}
+</b>
+
+{{- " · " }}<i>{{ esc .Timestamp }}</i>
