@@ -73,10 +73,9 @@ function OwnSharePresetButton({
     <Button
       type="button"
       variant="outline"
-      size="inherit"
+      size="sm"
       onClick={onClick}
       disabled={disabled}
-      className="border-input bg-card text-muted-foreground hover:text-foreground hover:bg-card rounded-lg px-3 py-1.5 text-xs font-semibold"
     >
       {children}
     </Button>

@@ -1,4 +1,6 @@
 import {Button} from '@/components/ui/button';
+import {TextButton} from '@/components/ui/text-button';
+import {PlusIcon} from '@heroicons/react/24/outline';
 import {useState} from 'react';
 import {useFormContext} from 'react-hook-form';
 
@@ -65,7 +67,7 @@ export function ExtraFields({fields}: {fields: ExtraField[]}) {
   );
 }
 
-// ExtraChip is the dashed affordance that reveals an optional field.
+// ExtraChip is the affordance that reveals an optional field.
 function ExtraChip({
   onClick,
   disabled,
@@ -79,14 +81,11 @@ function ExtraChip({
     <Button
       type="button"
       variant="outline"
-      size="inherit"
+      size="sm"
       onClick={onClick}
       disabled={disabled}
-      className="border-input bg-card text-foreground hover:border-tint-foreground hover:bg-card hover:text-foreground inline-flex h-9 items-center gap-1.5 rounded-xl border-dashed px-3.5 text-xs font-semibold"
     >
-      <span aria-hidden="true" className="text-tint-foreground font-bold">
-        +
-      </span>
+      <PlusIcon />
       {children}
     </Button>
   );
@@ -107,17 +106,16 @@ function RemovableField({
   return (
     <div className="animate-in fade-in slide-in-from-top-1 relative duration-200">
       {children}
-      <Button
+      <TextButton
         type="button"
-        variant="link"
-        size="inherit"
+        tone="muted"
+        className="absolute right-0 top-0 text-xs leading-none"
+        aria-label={removeLabel}
         onClick={onRemove}
         disabled={disabled}
-        aria-label={removeLabel}
-        className="text-muted-foreground hover:text-foreground absolute right-0 top-0 text-xs font-semibold leading-none"
       >
         Remove
-      </Button>
+      </TextButton>
     </div>
   );
 }

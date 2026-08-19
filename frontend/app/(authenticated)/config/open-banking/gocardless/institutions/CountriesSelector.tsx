@@ -1,4 +1,4 @@
-import {Button} from '@/components/ui/button';
+import {TextButton} from '@/components/ui/text-button';
 import {Bank} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {GoCardlessCountry} from '@/lib/grpc/gen/prosper/v1/openbanking';
 import Link from 'next/link';
@@ -17,13 +17,13 @@ export function CountriesSelector({
         .sort((a, b) => a.name.localeCompare(b.name))
         .map(({code, name}) => (
           <div key={code}>
-            <Button variant="link" size="inherit" asChild>
+            <TextButton asChild>
               <Link
                 href={`/config/open-banking/gocardless/institutions?bankId=${bank.id}&country=${code}`}
               >
                 {name}
               </Link>
-            </Button>
+            </TextButton>
           </div>
         ))}
     </>

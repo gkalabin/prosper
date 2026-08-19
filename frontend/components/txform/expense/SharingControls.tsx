@@ -15,22 +15,22 @@ export function SharingControls() {
         type="button"
         variant="outline"
         size="sm"
+        className="flex-1"
         onClick={toggleSplitTransaction}
         disabled={isSubmitting}
-        className="flex-1 gap-2"
       >
-        <UsersIcon className="h-4 w-4" />
+        <UsersIcon />
         Split
       </Button>
       <Button
         type="button"
         variant="outline"
         size="sm"
+        className="flex-1"
         onClick={setPaidOther}
         disabled={isSubmitting}
-        className="flex-1 gap-2"
       >
-        <UserIcon className="h-4 w-4" />
+        <UserIcon />
         Paid by other
       </Button>
     </div>

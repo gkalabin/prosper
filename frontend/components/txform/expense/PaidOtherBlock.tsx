@@ -7,8 +7,9 @@ import {useSharingTypeActions} from '@/components/txform/expense/useSharingTypeA
 import {usePayerName} from '@/components/txform/expense/usePayerName';
 import {RevealBlock} from '@/components/txform/shared/RevealBlock';
 import {TransactionFormSchema} from '@/components/txform/types';
-import {Button} from '@/components/ui/button';
+import {TextButton} from '@/components/ui/text-button';
 import {SharingType} from '@/lib/grpc/gen/prosper/v1/ledger';
+import {PlusIcon} from '@heroicons/react/24/outline';
 import {Transaction} from '@/lib/model/transaction/Transaction';
 import {useFormContext} from 'react-hook-form';
 
@@ -35,17 +36,16 @@ export function PaidOtherBlock({
         <OwnShareAmount />
       </div>
       {sharingType === SharingType.PAID_OTHER_OWED && (
-        <Button
+        <TextButton
           type="button"
-          variant="link"
-          size="inherit"
+          tone="accent"
+          className="mt-3 text-sm"
           onClick={setAlreadyRepaid}
           disabled={formState.isSubmitting}
-          className="text-tint-foreground mt-3 text-sm font-semibold"
         >
-          <span className="font-bold">+</span> I&apos;ve already paid{' '}
-          {payerName || 'them'} back
-        </Button>
+          <PlusIcon />
+          I&apos;ve already paid {payerName || 'them'} back
+        </TextButton>
       )}
       <RepaymentFields transaction={transaction} />
     </RevealBlock>

@@ -9,12 +9,11 @@ export function SharingControls() {
     <Button
       type="button"
       variant="outline"
-      size="sm"
+      size="md"
       onClick={() => setValue('income.isShared', true)}
       disabled={formState.isSubmitting}
-      className="shrink-0 gap-2"
     >
-      <UsersIcon className="h-4 w-4" />
+      <UsersIcon />
       Split
     </Button>
   );

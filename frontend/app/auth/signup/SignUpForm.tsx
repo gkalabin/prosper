@@ -100,10 +100,11 @@ export function SignUpForm() {
         <div>
           <Button
             type="submit"
-            className="mt-6 block w-full"
-            disabled={isSubmitting}
+            size="lg"
+            className="mt-6 w-full"
+            pending={isSubmitting}
           >
-            {isSubmitting ? 'Creating account...' : 'Create account'}
+            Create account
           </Button>
         </div>
       </form>

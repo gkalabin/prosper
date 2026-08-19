@@ -1,5 +1,4 @@
 import {SubFormValues} from '@/components/txform/types';
-import {Button} from '@/components/ui/button';
 import {
   Command,
   CommandInput,
@@ -13,7 +12,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
+import {Popover, PopoverContent, SelectTrigger} from '@/components/ui/popover';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {BankAccount} from '@/lib/model/BankAccount';
@@ -88,43 +87,33 @@ function ParentTransactionSelect({
         }
       }}
     >
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          role="combobox"
-          className={cn(
-            'w-full justify-between',
-            !parentExpense && 'text-muted-foreground'
-          )}
-        >
-          {parentExpense
-            ? makeOption({t: parentExpense, bankAccounts, stocks}).label
-            : 'Select a transaction'}
-          {value && (
-            <span
-              role="button"
-              tabIndex={0}
-              className="text-secondary-foreground"
-              onClick={e => {
-                e.stopPropagation();
+      <SelectTrigger empty={!parentExpense}>
+        {parentExpense
+          ? makeOption({t: parentExpense, bankAccounts, stocks}).label
+          : 'Select a transaction'}
+        {value && (
+          <span
+            role="button"
+            tabIndex={0}
+            className="text-secondary-foreground"
+            onClick={e => {
+              e.stopPropagation();
+              onChange(null);
+            }}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
                 onChange(null);
-              }}
-              onKeyDown={e => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  onChange(null);
-                }
-              }}
-            >
-              <XMarkIcon className="h-4 w-4" />
-            </span>
-          )}
-          {!value && (
-            <ChevronUpDownIcon className="ml-2 h-5 w-5 shrink-0 opacity-50" />
-          )}
-        </Button>
-      </PopoverTrigger>
+              }
+            }}
+          >
+            <XMarkIcon className="h-4 w-4" />
+          </span>
+        )}
+        {!value && (
+          <ChevronUpDownIcon className="ml-2 h-5 w-5 shrink-0 opacity-50" />
+        )}
+      </SelectTrigger>
       <PopoverContent
         className="max-h-[--radix-popover-content-available-height] w-[--radix-popover-trigger-width] p-0"
         side="bottom"

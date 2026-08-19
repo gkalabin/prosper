@@ -122,7 +122,7 @@ export function BankAccountListItem({
   return (
     <li>
       <Link href={accountPageURL(account, bank)}>
-        <div className="hover:bg-accent/50 flex items-center gap-3 rounded-xl px-2 py-2.5">
+        <div className="hover:bg-muted/50 flex items-center gap-3 rounded-xl px-2 py-2.5">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="truncate text-sm font-medium">

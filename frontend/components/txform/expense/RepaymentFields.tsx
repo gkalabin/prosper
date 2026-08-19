@@ -7,7 +7,7 @@ import {MoneyInput} from '@/components/txform/shared/MoneyInput';
 import {NewBalanceNote} from '@/components/txform/shared/NewBalanceNote';
 import {Timestamp} from '@/components/txform/shared/Timestamp';
 import {TransactionFormSchema} from '@/components/txform/types';
-import {Button} from '@/components/ui/button';
+import {TextButton} from '@/components/ui/text-button';
 import {
   FormControl,
   FormField,
@@ -38,21 +38,19 @@ export function RepaymentFields({
     return null;
   }
   return (
-    <div className="border-tint-foreground/25 animate-in fade-in mt-3 space-y-3 border-t pt-3 duration-200">
+    <div className="border-accent/25 animate-in fade-in mt-3 space-y-3 border-t pt-3 duration-200">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-tint-foreground text-xs font-bold uppercase tracking-wider">
+        <span className="text-accent text-xs font-bold uppercase tracking-wider">
           Repaid {payer ?? 'them'}
         </span>
-        <Button
+        <TextButton
           type="button"
-          variant="link"
-          size="inherit"
+          tone="muted"
           onClick={setOweMoney}
           disabled={formState.isSubmitting}
-          className="text-muted-foreground hover:text-foreground text-xs font-semibold"
         >
           Not yet
-        </Button>
+        </TextButton>
       </div>
       <Timestamp fieldName="expense.repayment.timestamp" label="Repaid on" />
       <RepaymentAccountFrom transaction={transaction} />

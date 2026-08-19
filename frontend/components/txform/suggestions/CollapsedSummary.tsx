@@ -26,7 +26,7 @@ export function CollapsedSummary({
   const amount = signedAmountForAccount(draft, account, stocks);
   return (
     <div className="border-input bg-card flex items-center gap-3 rounded-2xl border p-3 shadow-sm">
-      <span className="bg-tint text-tint-foreground grid h-8 w-8 flex-none place-items-center rounded-lg">
+      <span className="bg-tint text-accent grid h-8 w-8 flex-none place-items-center rounded-lg">
         <CheckIcon className="h-4 w-4" />
       </span>
       <div className="min-w-0 flex-1">
@@ -45,7 +45,6 @@ export function CollapsedSummary({
         size="sm"
         onClick={onChange}
         disabled={disabled}
-        className="flex-none"
       >
         Change
       </Button>

@@ -57,10 +57,10 @@ export function TransactionDetail({transaction}: {transaction: Transaction}) {
         <Button
           variant="outline"
           size="sm"
-          className="mt-4 gap-2 rounded-full"
+          className="mt-4"
           onClick={() => setEditDialogOpen(true)}
         >
-          <PencilSquareIcon className="h-4 w-4" />
+          <PencilSquareIcon />
           Edit transaction
         </Button>
         <NewTransactionFormDialog

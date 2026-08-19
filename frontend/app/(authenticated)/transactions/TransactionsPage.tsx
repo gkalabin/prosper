@@ -47,7 +47,7 @@ function NonEmptyPageContent() {
     <div className="space-y-4">
       <div className="flex justify-end gap-4">
         <Button onClick={() => setShowFiltersForm(!showFiltersForm)}>
-          <FunnelIcon className="mr-2 inline h-4 w-4" />
+          <FunnelIcon />
           Filters
         </Button>
       </div>

@@ -219,7 +219,7 @@ function RangeTabs({
             'rounded-lg px-3 py-1 font-mono text-xs font-semibold transition-colors',
             r === range
               ? 'bg-secondary text-foreground'
-              : 'text-muted-foreground hover:bg-accent'
+              : 'text-muted-foreground hover:bg-muted'
           )}
         >
           {r}

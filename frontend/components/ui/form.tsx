@@ -104,7 +104,7 @@ FormLabel.displayName = 'FormLabel';
 const FormControl = React.forwardRef<
   React.ElementRef<typeof Slot>,
   React.ComponentPropsWithoutRef<typeof Slot> & {disabled?: boolean}
->(({className, disabled, ...props}, ref) => {
+>(({disabled, ...props}, ref) => {
   const {error, formItemId, formDescriptionId, formMessageId} = useFormField();
   const {formState} = useFormContext();
   return (
@@ -117,7 +117,6 @@ const FormControl = React.forwardRef<
           : `${formDescriptionId} ${formMessageId}`
       }
       aria-invalid={!!error}
-      className={cn('block w-full', className)}
       {...props}
       // Slot doesn't have disabled prop.
       // This is an ugly hack to force it down and set it to true when the form is submitting.

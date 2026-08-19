@@ -1,5 +1,5 @@
 'use client';
-import {Button} from '@/components/ui/button';
+import {TextButton} from '@/components/ui/text-button';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useDisplayCurrency} from '@/lib/context/DisplaySettingsContext';
 import {fullAccountName} from '@/lib/model/BankAccount';
@@ -99,13 +99,7 @@ export function CurrencyExchangeFailed({
       {failedTransactions.length > visibleTransactions.length && (
         <div>
           And {failedTransactions.length - visibleTransactions.length} more.{' '}
-          <Button
-            variant="link"
-            size="inherit"
-            onClick={() => setShowAll(true)}
-          >
-            Show all
-          </Button>
+          <TextButton onClick={() => setShowAll(true)}>Show all</TextButton>
         </div>
       )}
     </div>

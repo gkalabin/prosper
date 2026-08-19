@@ -3,6 +3,8 @@ import {AccountTabs} from '@/components/txform/suggestions/AccountTabs';
 import {CollapsedSummary} from '@/components/txform/suggestions/CollapsedSummary';
 import {SuggestionRow} from '@/components/txform/suggestions/SuggestionRow';
 import {Button} from '@/components/ui/button';
+import {TextButton} from '@/components/ui/text-button';
+import {ChevronUpIcon} from '@heroicons/react/24/outline';
 import {
   SuggestResponse,
   TransactionDraft,
@@ -157,16 +159,16 @@ function ExpandedPanel({
           </p>
         </div>
         {activeDraft && (
-          <Button
+          <TextButton
+            className="flex-none text-sm"
             type="button"
-            variant="link"
-            size="inherit"
+            tone="accent"
             onClick={onCollapse}
             disabled={disabled}
-            className="text-tint-foreground flex-none text-sm font-semibold"
           >
-            Collapse ▲
-          </Button>
+            Collapse
+            <ChevronUpIcon />
+          </TextButton>
         )}
       </div>
       <AccountTabs
@@ -273,34 +275,30 @@ function ShowMoreFooter({
   disabled: boolean;
 }) {
   return (
-    <div className="bg-muted/40 flex items-center justify-between gap-2 px-3.5 py-2.5">
-      <span className="text-muted-foreground text-xs tabular-nums">
+    <div className="bg-muted/40 flex items-center justify-between gap-2 px-3.5 py-2.5 text-xs">
+      <span className="text-muted-foreground tabular-nums">
         Showing {shownCount} of {totalCount}
       </span>
       <span className="flex gap-3.5">
         {shownCount < totalCount && (
-          <Button
+          <TextButton
             type="button"
-            variant="link"
-            size="inherit"
+            tone="accent"
             onClick={onMore}
             disabled={disabled}
-            className="text-tint-foreground text-xs font-semibold"
           >
             Show more
-          </Button>
+          </TextButton>
         )}
         {shownCount > SUGGESTIONS_PAGE_SIZE && (
-          <Button
+          <TextButton
             type="button"
-            variant="link"
-            size="inherit"
+            tone="muted"
             onClick={onLess}
             disabled={disabled}
-            className="text-muted-foreground text-xs font-semibold"
           >
             Show less
-          </Button>
+          </TextButton>
         )}
       </span>
     </div>
@@ -364,9 +362,8 @@ function ErrorState() {
       <Button
         type="button"
         variant="outline"
-        size="inherit"
+        size="sm"
         onClick={() => mutate('/api/suggest')}
-        className="border-tint-foreground text-tint-foreground hover:bg-card rounded-lg px-4 py-1.5 text-sm font-semibold"
       >
         Retry
       </Button>

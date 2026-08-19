@@ -77,10 +77,11 @@ export function SignInForm({nextPage}: {nextPage: string}) {
         </div>
         <Button
           type="submit"
+          size="lg"
           className="mt-2 w-full"
-          disabled={form.formState.isSubmitting}
+          pending={form.formState.isSubmitting}
         >
-          {form.formState.isSubmitting ? 'Signing in...' : 'Sign in'}
+          Sign in
         </Button>
       </form>
     </Form>

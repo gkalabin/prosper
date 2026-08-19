@@ -1,5 +1,5 @@
 'use client';
-import {Button} from '@/components/ui/button';
+import {TextButton} from '@/components/ui/text-button';
 import {ExchangeRate, StockQuote} from '@/lib/grpc/gen/prosper/v1/rates';
 import {timestampToEpoch} from '@/lib/grpc/timestamp';
 import {differenceInDays} from 'date-fns';
@@ -39,13 +39,9 @@ export function StaleExchangeRatesWarning({
     >
       <p className="font-medium">
         Exchange rates are outdated. Currency conversions may be inaccurate.{' '}
-        <Button
-          variant="link"
-          size="inherit"
-          onClick={() => setShowDetails(prev => !prev)}
-        >
+        <TextButton onClick={() => setShowDetails(prev => !prev)}>
           {showDetails ? 'Hide details' : 'Show details'}
-        </Button>
+        </TextButton>
       </p>
       {showDetails && (
         <ul className="mt-2 list-inside list-disc space-y-0.5">

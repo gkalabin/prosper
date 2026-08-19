@@ -113,8 +113,8 @@ export function DisplaySettingsPage({
             {form.formState.errors.root?.message}
           </div>
           <div className="flex-none space-x-4">
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              {form.formState.isSubmitting ? 'Saving…' : 'Save'}
+            <Button type="submit" pending={form.formState.isSubmitting}>
+              Save
             </Button>
           </div>
         </div>

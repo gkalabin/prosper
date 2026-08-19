@@ -1,5 +1,6 @@
 import {TransactionRow} from '@/components/transactions/TransactionRow';
 import {Button} from '@/components/ui/button';
+import {TextButton} from '@/components/ui/text-button';
 import {BankAccount} from '@/lib/model/BankAccount';
 import {Transaction} from '@/lib/model/transaction/Transaction';
 import {ReactNode, useState} from 'react';
@@ -77,23 +78,14 @@ function ShowMoreFooter({
         Displaying <b className="text-foreground font-bold">{shownCount}</b> of{' '}
         {totalCount}
       </div>
-      <div className="flex gap-2">
-        <Button
-          size="sm"
-          className="rounded-full"
-          onClick={() => onShowMore(LOAD_MORE_STEP)}
-        >
+      <div className="flex items-center gap-3">
+        <Button variant="outline" onClick={() => onShowMore(LOAD_MORE_STEP)}>
           Load {Math.min(LOAD_MORE_STEP, remaining)} more
         </Button>
         {remaining > LOAD_MORE_STEP && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-full"
-            onClick={() => onShowMore(LOAD_MANY_STEP)}
-          >
+          <TextButton tone="muted" onClick={() => onShowMore(LOAD_MANY_STEP)}>
             Load {Math.min(LOAD_MANY_STEP, remaining)} more
-          </Button>
+          </TextButton>
         )}
       </div>
     </div>

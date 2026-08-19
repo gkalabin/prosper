@@ -1,11 +1,10 @@
-import {Button} from '@/components/ui/button';
 import {
   Command,
   CommandInput,
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
+import {Popover, PopoverContent, SelectTrigger} from '@/components/ui/popover';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {UnitSchema} from '@/lib/form-types/AccountFormSchema';
 import {allCurrencies, findByCode, mustFindByCode} from '@/lib/model/Currency';
@@ -74,19 +73,10 @@ export function UnitSelect({
 
   return (
     <Popover modal={true} open={optionsOpen} onOpenChange={setOptionsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          {...props}
-          type="button"
-          variant="outline"
-          role="combobox"
-          className="h-auto min-h-10 w-full justify-between p-2 text-base font-normal"
-          disabled={disabled}
-        >
-          {labelFor(value)}
-          <ChevronUpDownIcon className="ml-2 h-5 w-5 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
+      <SelectTrigger {...props} disabled={disabled}>
+        {labelFor(value)}
+        <ChevronUpDownIcon className="h-5 w-5 shrink-0 opacity-50" />
+      </SelectTrigger>
       <PopoverContent
         className="max-h-[--radix-popover-content-available-height] w-[--radix-popover-trigger-width] p-0"
         side="bottom"

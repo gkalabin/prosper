@@ -14,7 +14,6 @@ import {
   CategoryFormSchema,
   categoryFormValidationSchema,
 } from '@/lib/form-types/CategoryFormSchema';
-import {AddOrUpdateButtonText} from '@/lib/i18n';
 import {
   Category,
   getNameWithAncestors,
@@ -126,14 +125,14 @@ export const CategoryForm = ({
           </div>
           <div className="flex-none space-x-4">
             <Button
-              onClick={onClose}
               variant="secondary"
+              onClick={onClose}
               disabled={form.formState.isSubmitting}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              <AddOrUpdateButtonText add={!category} />
+            <Button type="submit" pending={form.formState.isSubmitting}>
+              {category ? 'Update' : 'Add'}
             </Button>
           </div>
         </div>

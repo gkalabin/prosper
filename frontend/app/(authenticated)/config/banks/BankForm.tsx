@@ -13,7 +13,6 @@ import {
   BankFormSchema,
   bankFormValidationSchema,
 } from '@/lib/form-types/BankFormSchema';
-import {AddOrUpdateButtonText} from '@/lib/i18n';
 import {Bank as ProtoBank} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {Bank} from '@/lib/model/BankAccount';
 import {setFormErrors} from '@/lib/util/forms';
@@ -90,14 +89,14 @@ export function BankForm({
           </div>
           <div className="flex-none space-x-4">
             <Button
-              onClick={onClose}
               variant="secondary"
+              onClick={onClose}
               disabled={form.formState.isSubmitting}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              <AddOrUpdateButtonText add={!bank} />
+            <Button type="submit" pending={form.formState.isSubmitting}>
+              {bank ? 'Update' : 'Add'}
             </Button>
           </div>
         </div>

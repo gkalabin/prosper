@@ -16,13 +16,15 @@
     --secondary-foreground: 45 8% 9.8%;
     --muted: 40 33.3% 92.9%;
     --muted-foreground: 40 8.2% 56.9%;
-    --accent: 38.2 40.7% 94.7%;
-    --accent-foreground: 45 8% 9.8%;
-    --destructive: 10.9 59.8% 46.9%;
+    --accent: 16 58% 44%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 3.7 62% 41%;
     --destructive-foreground: 0 0% 100%;
+    --disabled: 39 22% 82%;
+    --disabled-foreground: 37 7.3% 51.4%;
     --border: 37.5 33.3% 90.6%;
     --input: 37.5 33.3% 90.6%;
-    --ring: 45 8% 9.8%;
+    --ring: 16 58% 44%;
     --radius: 0.875rem;
     --up-amount: 153.6 59.5% 30%;
     --down-amount: 10.9 59.8% 46.9%;
@@ -42,7 +44,6 @@
     --drawer-active: 36.9 20.6% 12.4%;
     /* Tinted, accent-ruled containers used e.g. for the form's anchored reveals. */
     --tint: 31 44% 86%;
-    --tint-foreground: 16 58% 44%;
   }
 
   .dark {
@@ -58,13 +59,15 @@
     --secondary-foreground: 41.5 37.1% 93.1%;
     --muted: 36 13.5% 14.5%;
     --muted-foreground: 39.1 9.5% 47.6%;
-    --accent: 38.6 21.9% 12.5%;
-    --accent-foreground: 41.5 37.1% 93.1%;
-    --destructive: 14.4 66.8% 63.3%;
+    --accent: 17 60% 55%;
+    --accent-foreground: 40 13% 4.5%;
+    --destructive: 4 62% 62%;
     --destructive-foreground: 40 13% 4.5%;
+    --disabled: 36 13.5% 14.5%;
+    --disabled-foreground: 39.1 9.5% 47.6%;
     --border: 38.2 14.7% 14.7%;
     --input: 38.2 14.7% 14.7%;
-    --ring: 41.5 37.1% 93.1%;
+    --ring: 17 60% 55%;
     --up-amount: 150.6 42.5% 52.9%;
     --down-amount: 14.4 66.8% 63.3%;
     --chart-1: 220 70% 50%;
@@ -75,7 +78,6 @@
     --header: 42.9 18.9% 7.3%;
     --header-muted: 39.1 9.5% 47.6%;
     --tint: 32 20% 16%;
-    --tint-foreground: 17 60% 55%;
   }
 
   /* Staging renders the header in a warning orange so the environment is

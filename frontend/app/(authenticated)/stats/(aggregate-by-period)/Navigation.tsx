@@ -1,5 +1,5 @@
 'use client';
-import {Button} from '@/components/ui/button';
+import {TextButton} from '@/components/ui/text-button';
 import {Granularity} from '@/lib/util/Granularity';
 import {formatInterval, intervalsEqual, sliceInterval} from '@/lib/util/time';
 import {type Interval} from 'date-fns';
@@ -21,17 +21,19 @@ export function Navigation({
   });
   return (
     <div className="space-x-2">
-      {slices.map(i => (
-        <Button
-          variant="link"
-          size="inherit"
-          key={i.start.toString()}
-          onClick={() => setSelected(i)}
-          disabled={intervalsEqual(selected, i)}
-        >
-          {formatInterval(i)}
-        </Button>
-      ))}
+      {slices.map(i => {
+        const current = intervalsEqual(selected, i);
+        return (
+          <TextButton
+            key={i.start.toString()}
+            tone={current ? 'accent' : 'default'}
+            onClick={() => setSelected(i)}
+            disabled={current}
+          >
+            {formatInterval(i)}
+          </TextButton>
+        );
+      })}
     </div>
   );
 }

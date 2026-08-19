@@ -25,4 +25,30 @@ const PopoverContent = React.forwardRef<
 ));
 PopoverContent.displayName = PopoverPrimitive.Content.displayName;
 
-export {Popover, PopoverContent, PopoverTrigger};
+export type SelectTriggerProps = Omit<
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  'type'
+> & {
+  // Nothing is selected yet, so the content is a placeholder rather than a value.
+  empty?: boolean;
+};
+
+const SelectTrigger = React.forwardRef<HTMLButtonElement, SelectTriggerProps>(
+  ({className, empty, children, ...props}, ref) => (
+    <PopoverPrimitive.Trigger
+      role="combobox"
+      className={cn(
+        'border-input bg-card ring-offset-background focus-visible:ring-ring disabled:bg-disabled disabled:text-disabled-foreground flex min-h-10 w-full items-center justify-between gap-2 rounded-md border p-2 text-left text-base transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed',
+        empty && 'text-muted-foreground',
+        className
+      )}
+      ref={ref}
+      {...props}
+    >
+      {children}
+    </PopoverPrimitive.Trigger>
+  )
+);
+SelectTrigger.displayName = 'SelectTrigger';
+
+export {Popover, PopoverContent, PopoverTrigger, SelectTrigger};

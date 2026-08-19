@@ -6,7 +6,7 @@ import {
   draftSummary,
   recordedSummary,
 } from '@/components/txform/suggestions/summary';
-import {Button} from '@/components/ui/button';
+import {TextButton} from '@/components/ui/text-button';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {FormType, TransactionDraft} from '@/lib/grpc/gen/prosper/v1/ledger';
@@ -76,9 +76,7 @@ export function SuggestionRow({
         isDimmed && 'opacity-60'
       )}
     >
-      {isActive && (
-        <span className="bg-tint-foreground absolute inset-y-0 left-0 w-1" />
-      )}
+      {isActive && <span className="bg-accent absolute inset-y-0 left-0 w-1" />}
       <button
         type="button"
         onClick={() => onClick(draft)}
@@ -96,7 +94,7 @@ export function SuggestionRow({
               {draftSummary(draft)}
             </span>
             {isActive && (
-              <span className="text-tint-foreground bg-tint-foreground/15 flex-none rounded px-1.5 py-0.5 text-xs font-bold uppercase tracking-wide">
+              <span className="text-accent bg-accent/15 flex-none rounded px-1.5 py-0.5 text-xs font-bold uppercase tracking-wide">
                 Selected
               </span>
             )}
@@ -135,16 +133,14 @@ export function SuggestionRow({
           {draft.ignored && (
             <span className="text-muted-foreground italic">Ignored · </span>
           )}
-          <Button
+          <TextButton
             type="button"
-            variant="link"
-            size="inherit"
+            tone="accent"
             onClick={handleIgnoreToggle}
             disabled={disabled || isIgnorePending}
-            className="text-tint-foreground text-xs font-semibold underline underline-offset-2"
           >
             {draft.ignored ? 'Restore' : 'Ignore'}
-          </Button>
+          </TextButton>
         </div>
       )}
     </div>

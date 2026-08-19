@@ -4,7 +4,7 @@ import {
   isFullyConfigured,
   NotConfiguredYet,
 } from '@/components/NotConfiguredYet';
-import {Button} from '@/components/ui/button';
+import {TextButton} from '@/components/ui/text-button';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {StockAndCurrencyExchange} from '@/lib/ClientSideModel';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
@@ -150,11 +150,11 @@ function NonEmptyTripsList() {
             'text-sm leading-7': p25Trips.includes(t.id),
           })}
         >
-          <Button variant="link" size="inherit" asChild>
+          <TextButton asChild>
             <Link href={`/trips/${t.name}`}>
               {t.name} <TripTotal trip={t} />
             </Link>
-          </Button>
+          </TextButton>
         </div>
       ))}
     </>

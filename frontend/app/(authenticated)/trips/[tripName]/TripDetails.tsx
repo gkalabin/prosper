@@ -11,7 +11,7 @@ import {
   SortableTransactionsList,
   SortingMode,
 } from '@/components/transactions/SortableTransactionsList';
-import {Button} from '@/components/ui/button';
+import {TextButton} from '@/components/ui/text-button';
 import {AmountWithCurrency} from '@/lib/AmountWithCurrency';
 import {ExchangedTransactions} from '@/lib/ExchangedTransactions';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
@@ -57,9 +57,9 @@ function NonEmptyTripDetails(props: {trip: Trip}) {
   const {input, failed} = useExchangedTransactions(tripTransactions);
   return (
     <div>
-      <Button variant="link" size="inherit" asChild>
+      <TextButton asChild>
         <Link href="/trips">Back to all trips</Link>
-      </Button>
+      </TextButton>
       <h1 className="text-xl leading-7">{props.trip.name}</h1>
       <CurrencyExchangeFailed failedTransactions={failed} />
       <TripTextSummary input={input} />

@@ -111,8 +111,8 @@ export function OpenBankingMappingConfigPage({
         </div>
       ))}
       {apiError && <span className="text-red-500">{apiError}</span>}
-      <Button onClick={handleSubmit} disabled={requestInFlight} type="submit">
-        {requestInFlight ? 'Saving…' : 'Save'}
+      <Button type="submit" onClick={handleSubmit} pending={requestInFlight}>
+        Save
       </Button>
     </>
   );

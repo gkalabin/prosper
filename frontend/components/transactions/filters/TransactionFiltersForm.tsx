@@ -195,7 +195,7 @@ export function TransactionFiltersForm(props: {onClose: () => void}) {
       />
 
       <div className="col-span-6">
-        <Button onClick={props.onClose} variant="secondary">
+        <Button variant="secondary" onClick={props.onClose}>
           Close
         </Button>
       </div>

@@ -1,11 +1,11 @@
-import {Button} from '@/components/ui/button';
+import {TextButton} from '@/components/ui/text-button';
 import {Bank} from '@/lib/model/BankAccount';
 import {useState} from 'react';
 
 export function DisconnectOpenBankingLink({bank}: {bank: Bank}) {
   const [disconnecting, setDisconnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const onClick = async () => {
+  const disconnect = async () => {
     if (!confirm(`Are you sure you want to disconnect ${bank.name}?`)) {
       return;
     }
@@ -27,16 +27,10 @@ export function DisconnectOpenBankingLink({bank}: {bank: Bank}) {
 
   return (
     <>
-      <Button
-        variant="link"
-        size="inherit"
-        className="text-destructive"
-        onClick={onClick}
-        disabled={disconnecting}
-      >
-        {disconnecting ? 'Disconnecting...' : 'Disconnect'}
-      </Button>
-      {error && <div className="text-red-600">{error}</div>}
+      <TextButton tone="muted" onClick={disconnect} pending={disconnecting}>
+        Disconnect
+      </TextButton>
+      {error && <div className="text-destructive">{error}</div>}
     </>
   );
 }

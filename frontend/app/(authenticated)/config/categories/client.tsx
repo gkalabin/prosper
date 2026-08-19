@@ -1,6 +1,7 @@
 'use client';
 import {CategoryForm} from '@/app/(authenticated)/config/categories/CategoryForm';
 import {Button} from '@/components/ui/button';
+import {TextButton} from '@/components/ui/text-button';
 import {
   Category,
   categoryModelFromDB,
@@ -80,13 +81,7 @@ const EditableCategoryListItem = ({
             </span>
           </div>
           {!showEditForm && (
-            <Button
-              variant="link"
-              size="inherit"
-              onClick={() => setShowEditForm(true)}
-            >
-              Edit
-            </Button>
+            <TextButton onClick={() => setShowEditForm(true)}>Edit</TextButton>
           )}
         </div>
         {showEditForm && (
@@ -131,7 +126,9 @@ export function Actions({
       {!showAddForm && (
         <div className="space-x-2">
           <Button onClick={() => setShowAddForm(true)}>Add new category</Button>
-          <Button onClick={() => onExpandToggle()}>Collapse/expand all</Button>
+          <TextButton tone="muted" onClick={() => onExpandToggle()}>
+            Collapse/expand all
+          </TextButton>
         </div>
       )}
       {showAddForm && (

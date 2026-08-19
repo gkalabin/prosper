@@ -1,11 +1,11 @@
 'use client';
-import {Button} from '@/components/ui/button';
+import {TextButton} from '@/components/ui/text-button';
 import {Bank} from '@/lib/model/BankAccount';
 
 export function ReconnectOpenBankingLink({bank}: {bank: Bank}) {
   return (
-    <Button variant="link" size="inherit" asChild>
+    <TextButton tone="accent" asChild>
       <a href={`/config/open-banking/reconnect?bankId=${bank.id}`}>Reconnect</a>
-    </Button>
+    </TextButton>
   );
 }

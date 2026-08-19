@@ -1,6 +1,6 @@
 'use client';
-import {Button} from '@/components/ui/button';
 import {Spoiler} from '@/components/Spoiler';
+import {Button} from '@/components/ui/button';
 import {
   HIDE_BALANCES_COOKIE_MAX_AGE,
   HIDE_BALANCES_COOKIE_NAME,
@@ -56,19 +56,9 @@ function useHideBalances() {
 export function ToggleHideBalancesButton() {
   const {hideBalances, setHideBalances} = useHideBalancesContext();
   return (
-    <Button onClick={() => setHideBalances(!hideBalances)}>
-      {!hideBalances && (
-        <>
-          <EyeSlashIcon className="mr-2 h-4 w-4" />
-          Hide balances
-        </>
-      )}
-      {hideBalances && (
-        <>
-          <EyeIcon className="mr-2 h-4 w-4" />
-          Show balances
-        </>
-      )}
+    <Button variant="secondary" onClick={() => setHideBalances(!hideBalances)}>
+      {hideBalances ? <EyeIcon /> : <EyeSlashIcon />}
+      {hideBalances ? 'Show balances' : 'Hide balances'}
     </Button>
   );
 }

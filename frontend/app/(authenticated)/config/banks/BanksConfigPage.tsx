@@ -5,6 +5,7 @@ import {ConfigureOpenBankingConnectionLink} from '@/app/(authenticated)/config/b
 import {DisconnectOpenBankingLink} from '@/app/(authenticated)/config/banks/DisconnectOpenBankingLink';
 import {ReconnectOpenBankingLink} from '@/app/(authenticated)/config/banks/ReconnectOpenBankingLink';
 import {Button} from '@/components/ui/button';
+import {TextButton} from '@/components/ui/text-button';
 import {banksModelFromDatabaseData} from '@/lib/ClientSideModel';
 import {DisplaySettingsContextProvider} from '@/lib/context/DisplaySettingsContext';
 import {
@@ -81,13 +82,9 @@ function BanksListItem({
               {editBankFormDisplayed ? `Editing ${bank.name}` : bank.name}
             </h1>
             {!editBankFormDisplayed && (
-              <Button
-                variant="link"
-                size="inherit"
-                onClick={() => setEditBankFormDisplayed(true)}
-              >
+              <TextButton onClick={() => setEditBankFormDisplayed(true)}>
                 Edit
-              </Button>
+              </TextButton>
             )}
           </div>
           {!editBankFormDisplayed && (
@@ -122,13 +119,9 @@ function BanksListItem({
           onAccountUpdated={onAccountAddedOrUpdated}
         />
         {!newAccountFormDisplayed && (
-          <Button
-            variant="link"
-            size="inherit"
-            onClick={() => setNewAccountFormDisplayed(true)}
-          >
+          <TextButton onClick={() => setNewAccountFormDisplayed(true)}>
             Add New Account
-          </Button>
+          </TextButton>
         )}
         {newAccountFormDisplayed && (
           <AccountForm
@@ -162,32 +155,32 @@ const BankConnections = ({
     return (
       <div>
         Connect with{' '}
-        <Button variant="link" size="inherit" asChild>
+        <TextButton asChild>
           <Link
             href={`/config/open-banking/starling/connect?bankId=${bank.id}`}
             prefetch={false}
           >
             Starling (UK)
           </Link>
-        </Button>
+        </TextButton>
         ,{' '}
-        <Button variant="link" size="inherit" asChild>
+        <TextButton asChild>
           <Link
             href={`/api/open-banking/truelayer/connect?bankId=${bank.id}`}
             prefetch={false}
           >
             TrueLayer (UK)
           </Link>
-        </Button>
+        </TextButton>
         or{' '}
-        <Button variant="link" size="inherit" asChild>
+        <TextButton asChild>
           <Link
             href={`/config/open-banking/gocardless/institutions?bankId=${bank.id}`}
             prefetch={false}
           >
             GoCardless (EU+UK)
           </Link>
-        </Button>
+        </TextButton>
       </div>
     );
   }
@@ -271,15 +264,13 @@ const AccountListItem = (props: {
       <div>
         <span className="text-lg">{props.account.name}</span>
         {!formDisplayed && (
-          <Button
-            variant="link"
-            size="inherit"
+          <TextButton
             className="ml-2"
             onClick={() => setFormDisplayed(true)}
             aria-label={`Edit ${props.account.name}`}
           >
             Edit
-          </Button>
+          </TextButton>
         )}
       </div>
       {formDisplayed && (

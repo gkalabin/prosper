@@ -1,4 +1,3 @@
-import {Button} from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -7,7 +6,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
+import {Popover, PopoverContent, SelectTrigger} from '@/components/ui/popover';
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {
   Category as CategoryModel,
@@ -31,30 +30,24 @@ export function CategorySelect({
   value: number;
   onChange: (id: number) => void;
   disabled: boolean;
-} & React.ComponentProps<typeof Button>) {
+} & React.ComponentProps<typeof SelectTrigger>) {
   const [optionsOpen, setOptionsOpen] = useState(false);
   const {categories} = useCoreDataContext();
   const tree = useMemo(() => makeCategoryTree(categories), [categories]);
   const groups = useOptions({tree});
   return (
     <Popover open={optionsOpen} onOpenChange={setOptionsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          // Props here brings attributes passed down to the form input. Specifically, aria attributes and the id.
-          // The id is used in turn by the label (in label-for) - clicking the label enables the input, i.e. opens the combobox.
-          // This also enables e2e tests to use locators like `form.getByRole('combobox', {name: 'Category'})`
-          // because the label identified the input when the id is set.
-          {...props}
-          type="button"
-          variant="outline"
-          role="combobox"
-          className="h-auto min-h-10 w-full justify-between p-2 text-base font-normal"
-          disabled={disabled}
-        >
-          {getNameWithAncestors(mustFindCategory(value, categories), tree)}
-          <ChevronUpDownIcon className="ml-2 h-5 w-5 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
+      <SelectTrigger
+        // Props here brings attributes passed down to the form input. Specifically, aria attributes and the id.
+        // The id is used in turn by the label (in label-for) - clicking the label enables the input, i.e. opens the combobox.
+        // This also enables e2e tests to use locators like `form.getByRole('combobox', {name: 'Category'})`
+        // because the label identified the input when the id is set.
+        {...props}
+        disabled={disabled}
+      >
+        {getNameWithAncestors(mustFindCategory(value, categories), tree)}
+        <ChevronUpDownIcon className="h-5 w-5 shrink-0 opacity-50" />
+      </SelectTrigger>
       <PopoverContent
         className="max-h-[--radix-popover-content-available-height] w-[--radix-popover-trigger-width] p-0"
         side="bottom"

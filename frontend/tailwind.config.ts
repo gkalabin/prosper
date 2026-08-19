@@ -41,6 +41,10 @@ const config = {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
         },
+        disabled: {
+          DEFAULT: 'hsl(var(--disabled))',
+          foreground: 'hsl(var(--disabled-foreground))',
+        },
         muted: {
           DEFAULT: 'hsl(var(--muted))',
           foreground: 'hsl(var(--muted-foreground))',
@@ -70,10 +74,7 @@ const config = {
           border: 'hsl(var(--drawer-border))',
           active: 'hsl(var(--drawer-active))',
         },
-        tint: {
-          DEFAULT: 'hsl(var(--tint))',
-          foreground: 'hsl(var(--tint-foreground))',
-        },
+        tint: 'hsl(var(--tint))',
       },
       borderRadius: {
         lg: 'var(--radius)',

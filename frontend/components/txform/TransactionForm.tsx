@@ -211,18 +211,11 @@ export function TransactionForm(props: {
                 variant="secondary"
                 onClick={props.onClose}
                 disabled={isSubmitting}
-                className="flex-none"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="flex-1">
-                {creatingNewTransaction
-                  ? isSubmitting
-                    ? 'Adding…'
-                    : 'Add'
-                  : isSubmitting
-                    ? 'Updating…'
-                    : 'Update'}
+              <Button type="submit" className="flex-1" pending={isSubmitting}>
+                {creatingNewTransaction ? 'Add' : 'Update'}
               </Button>
             </div>
           </form>

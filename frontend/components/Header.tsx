@@ -86,9 +86,11 @@ export default function Header({login}: {login: string}) {
 function ProfileMenu({login}: {login: string}) {
   return (
     <Menu as="div" className="relative ml-3">
-      <MenuButton className="focus:ring-header-foreground focus:ring-offset-header flex rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-offset-2">
-        <span className="sr-only">Open user menu</span>
-        <UserCircleIcon className="text-header-foreground h-8 w-8 rounded-full" />
+      <MenuButton
+        className="text-header-muted hover:bg-header-hover hover:text-header-foreground focus-visible:ring-accent inline-grid h-10 w-10 place-items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2"
+        aria-label="Open user menu"
+      >
+        <UserCircleIcon className="h-5 w-5" />
       </MenuButton>
       <Transition
         as={Fragment}

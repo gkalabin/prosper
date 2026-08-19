@@ -1,4 +1,4 @@
-import {Button} from '@/components/ui/button';
+import {TextButton} from '@/components/ui/text-button';
 import {AccountFetchMetadata} from '@/lib/grpc/gen/prosper/v1/openbanking';
 import {timestampToEpoch} from '@/lib/grpc/timestamp';
 import {format, formatDistanceToNow} from 'date-fns';
@@ -46,14 +46,14 @@ export function FetchOpenBankingTransactions({
   return (
     <>
       <StatusSummary fetchMetadata={fetchMetadata} />{' '}
-      <Button
-        variant="link"
-        size="inherit"
+      <TextButton
+        tone="accent"
         onClick={onClick}
-        disabled={disabled || fetching}
+        disabled={disabled}
+        pending={fetching}
       >
-        {fetching ? 'Refreshing…' : 'Refresh'}
-      </Button>
+        Refresh
+      </TextButton>
       {error && <span className="text-destructive font-medium"> {error}</span>}
     </>
   );

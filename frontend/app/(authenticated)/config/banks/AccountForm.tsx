@@ -17,7 +17,6 @@ import {
   accountFormValidationSchema,
   UnitSchema,
 } from '@/lib/form-types/AccountFormSchema';
-import {AddOrUpdateButtonText} from '@/lib/i18n';
 import {BankAccount as ProtoBankAccount} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {Bank, BankAccount} from '@/lib/model/BankAccount';
 import {mustFindByCode} from '@/lib/model/Currency';
@@ -173,8 +172,8 @@ export function AccountForm({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={form.formState.isSubmitting}>
-              <AddOrUpdateButtonText add={!bankAccount} />
+            <Button type="submit" pending={form.formState.isSubmitting}>
+              {bankAccount ? 'Update' : 'Add'}
             </Button>
           </div>
         </div>

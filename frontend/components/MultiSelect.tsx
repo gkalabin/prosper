@@ -1,5 +1,4 @@
 import {Badge} from '@/components/ui/badge';
-import {Button} from '@/components/ui/button';
 import {
   Command,
   CommandEmpty,
@@ -7,7 +6,7 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
+import {Popover, PopoverContent, SelectTrigger} from '@/components/ui/popover';
 import {cn} from '@/lib/utils';
 import {
   CheckIcon,
@@ -33,7 +32,7 @@ export function MultiSelect<T>({
   options: Array<Option<T>>;
   disabled?: boolean;
   // Omit 'value' and 'onChange' because they are redefined by the component.
-} & Omit<React.ComponentProps<typeof Button>, 'value' | 'onChange'>) {
+} & Omit<React.ComponentProps<typeof SelectTrigger>, 'value' | 'onChange'>) {
   const [optionsOpen, setOptionsOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const addItem = (x: T) => onChange([...value, x]);
@@ -44,30 +43,20 @@ export function MultiSelect<T>({
   }));
   return (
     <Popover modal={true} open={optionsOpen} onOpenChange={setOptionsOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          // Props here brings attributes passed down to the form input. Specifically, aria attributes and the id.
-          // The id is used in turn by the label (in label-for) - clicking the label enables the input, i.e. opens the combobox.
-          // This also enables e2e tests to use locators like `form.getByRole('combobox', {name: 'Whatever'})`
-          // because the label identified the input when the id is set.
-          {...props}
-          type="button"
-          variant="outline"
-          role="combobox"
-          className={cn(
-            'h-auto min-h-10 w-full p-2 text-base',
-            !value.length && 'text-muted-foreground'
-          )}
-          disabled={disabled}
-        >
-          <div className="flex w-full flex-row justify-between gap-2">
-            <div className="flex grow flex-wrap gap-2">
-              <SelectedItems<T> value={selectedOptions} onClick={removeItem} />
-            </div>
-            <ChevronUpDownIcon className="h-5 w-5 shrink-0 self-center opacity-50" />
-          </div>
-        </Button>
-      </PopoverTrigger>
+      <SelectTrigger
+        // Props here brings attributes passed down to the form input. Specifically, aria attributes and the id.
+        // The id is used in turn by the label (in label-for) - clicking the label enables the input, i.e. opens the combobox.
+        // This also enables e2e tests to use locators like `form.getByRole('combobox', {name: 'Whatever'})`
+        // because the label identified the input when the id is set.
+        {...props}
+        empty={!value.length}
+        disabled={disabled}
+      >
+        <div className="flex grow flex-wrap gap-2">
+          <SelectedItems<T> value={selectedOptions} onClick={removeItem} />
+        </div>
+        <ChevronUpDownIcon className="h-5 w-5 shrink-0 self-center opacity-50" />
+      </SelectTrigger>
       <PopoverContent
         className="max-h-[--radix-popover-content-available-height] w-[--radix-popover-trigger-width] p-0"
         side="bottom"

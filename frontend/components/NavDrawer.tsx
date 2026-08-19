@@ -32,9 +32,13 @@ export function NavDrawer({
   const pathname = usePathname();
   return (
     <Dialog.Root>
-      <Dialog.Trigger className="text-header-muted hover:bg-header-hover hover:text-header-foreground focus:ring-header-foreground inline-flex items-center justify-center rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-inset">
-        <span className="sr-only">Open main menu</span>
-        <Bars3Icon className="block h-5 w-5" aria-hidden="true" />
+      <Dialog.Trigger asChild>
+        <button
+          className="text-header-muted hover:bg-header-hover hover:text-header-foreground focus-visible:ring-accent inline-grid h-10 w-10 place-items-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2"
+          aria-label="Open main menu"
+        >
+          <Bars3Icon className="h-5 w-5" aria-hidden="true" />
+        </button>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-40 bg-black/50" />
@@ -52,9 +56,13 @@ export function NavDrawer({
               <span className="font-extrabold">prosper</span>
             </span>
             <Dialog.Title className="sr-only">Navigation menu</Dialog.Title>
-            <Dialog.Close className="text-drawer-muted hover:text-drawer-foreground focus:ring-drawer-foreground rounded-md p-2 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-inset">
-              <span className="sr-only">Close menu</span>
-              <XMarkIcon className="block h-6 w-6" aria-hidden="true" />
+            <Dialog.Close asChild>
+              <button
+                className="text-drawer-muted hover:text-drawer-foreground focus-visible:ring-accent inline-grid h-10 w-10 place-items-center rounded-md transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2"
+                aria-label="Close menu"
+              >
+                <XMarkIcon className="h-5 w-5" aria-hidden="true" />
+              </button>
             </Dialog.Close>
           </div>
           <nav className="mt-4 flex flex-col space-y-1">
