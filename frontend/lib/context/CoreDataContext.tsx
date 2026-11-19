@@ -3,7 +3,7 @@ import {CoreDataModel, coreModelFromDB} from '@/lib/ClientSideModel';
 import {DisplaySettingsContextProvider} from '@/lib/context/DisplaySettingsContext';
 import {CoreData} from '@/lib/db/fetch';
 import {CategoryTree, makeCategoryTree} from '@/lib/model/Category';
-import {createContext, useContext} from 'react';
+import {createContext, useContext, type JSX} from 'react';
 
 const CoreDataContext = createContext<CoreDataModel>(
   null as unknown as CoreDataModel

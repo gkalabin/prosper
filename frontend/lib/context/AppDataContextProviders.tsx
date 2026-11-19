@@ -5,6 +5,7 @@ import {MarketDataContextProvider} from '@/lib/context/MarketDataContext';
 import {TransactionDataContextProvider} from '@/lib/context/TransactionDataContext';
 import {AppData} from '@/lib/model/AppDataModel';
 import {OpenBankingFetchMetadataProvider} from '@/lib/openbanking/context';
+import {type JSX} from 'react';
 
 // AppDataContextProviders wires the per-user app data slices into their React contexts.
 export function AppDataContextProviders({

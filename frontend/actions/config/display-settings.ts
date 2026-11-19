@@ -9,7 +9,7 @@ import {withAuth} from '@/lib/grpc/auth';
 import {ledgerClient} from '@/lib/grpc/client';
 import {DisplaySettings} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {findByCode} from '@/lib/model/Currency';
-import {type typeToFlattenedError} from 'zod';
+import {z} from 'zod';
 
 export type UpdateDisplaySettingsResult =
   | {
@@ -18,7 +18,7 @@ export type UpdateDisplaySettingsResult =
     }
   | {
       status: 'CLIENT_ERROR';
-      errors: typeToFlattenedError<DisplaySettingsFormSchema>;
+      errors: z.core.$ZodFlattenedError<DisplaySettingsFormSchema>;
     };
 
 export async function updateDisplaySettings(
@@ -30,7 +30,7 @@ export async function updateDisplaySettings(
   if (!validatedData.success) {
     return {
       status: 'CLIENT_ERROR',
-      errors: validatedData.error.flatten(),
+      errors: z.flattenError(validatedData.error),
     };
   }
   const {displayCurrencyCode, excludeCategoryIdsInStats} = validatedData.data;

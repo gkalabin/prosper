@@ -1,6 +1,6 @@
 import {TransactionFormSchema} from '@/components/txform/types';
 import {OriginKind} from '@/lib/grpc/gen/prosper/v1/ledger';
-import {z, type typeToFlattenedError} from 'zod';
+import {z} from 'zod';
 
 export const originSchema = z.object({
   kind: z.nativeEnum(OriginKind),
@@ -9,7 +9,7 @@ export const originSchema = z.object({
 
 export type UpsertTransactionClientError = {
   status: 'CLIENT_ERROR';
-  errors: typeToFlattenedError<TransactionFormSchema>;
+  errors: z.core.$ZodFlattenedError<TransactionFormSchema>;
 };
 
 export type UpsertTransactionSuccess = {

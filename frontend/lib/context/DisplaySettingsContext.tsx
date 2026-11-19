@@ -1,7 +1,7 @@
 import {DisplaySettings} from '@/lib/displaySettings';
 import {DisplaySettings as PbDisplaySettings} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {Currency} from '@/lib/model/Currency';
-import {createContext, useContext} from 'react';
+import {createContext, useContext, type JSX} from 'react';
 
 type SettableDisplaySettings = {
   displaySettings: DisplaySettings;

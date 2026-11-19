@@ -17,7 +17,7 @@ function toDateTimeLocal(d: Date | string | undefined) {
   try {
     // 2022-12-19T18:05:59
     return format(d, "yyyy-MM-dd'T'HH:mm");
-  } catch (e) {
+  } catch {
     // When using keyboard, one might type 20222 year which leads to an invalid date.
     // This is still set as value to avoid messing with the process of the user input,
     // and will be caught by refine method.

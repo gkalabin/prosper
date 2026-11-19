@@ -5,7 +5,7 @@ import {
   GetConnectionStatusResponse,
   GetFetchMetadataResponse,
 } from '@/lib/grpc/gen/prosper/v1/openbanking';
-import {createContext, useContext} from 'react';
+import {createContext, useContext, type JSX} from 'react';
 
 // Open banking fetch metadata keyed by internal account id.
 // Accounts that have never been fetched are absent.

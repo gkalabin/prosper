@@ -2,7 +2,7 @@
 import {useCoreDataContext} from '@/lib/context/CoreDataContext';
 import {useTransactionDataContext} from '@/lib/context/TransactionDataContext';
 import {AccountBalancesSnapshot, balancesAsOf} from '@/lib/model/balances';
-import {createContext, useContext, useMemo} from 'react';
+import {createContext, useContext, useMemo, type JSX} from 'react';
 
 const CurrentBalancesContext = createContext<AccountBalancesSnapshot | null>(
   null

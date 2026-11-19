@@ -2,7 +2,7 @@
 import {StaleExchangeRatesWarning} from '@/components/StaleExchangeRatesWarning';
 import {MarketDataModel, marketModelFromDB} from '@/lib/ClientSideModel';
 import {GetMarketDataForUserResponse} from '@/lib/grpc/gen/prosper/v1/rates';
-import {createContext, useContext} from 'react';
+import {createContext, useContext, type JSX} from 'react';
 
 const MarketDataContext = createContext<MarketDataModel>(
   null as unknown as MarketDataModel

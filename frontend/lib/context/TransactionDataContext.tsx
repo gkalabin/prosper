@@ -4,7 +4,7 @@ import {
   transactionModelFromDB,
 } from '@/lib/ClientSideModel';
 import {GetTransactionsResponse} from '@/lib/grpc/gen/prosper/v1/ledger';
-import {createContext, useContext} from 'react';
+import {createContext, useContext, type JSX} from 'react';
 
 const TransactionDataContext = createContext<TransactionDataModel>(
   null as unknown as TransactionDataModel

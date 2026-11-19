@@ -38,7 +38,7 @@ export async function upsertTransaction(
   if (!validatedData.success) {
     return {
       status: 'CLIENT_ERROR',
-      errors: validatedData.error.flatten(),
+      errors: z.flattenError(validatedData.error),
     };
   }
   const data = validatedData.data;
