@@ -9,29 +9,29 @@ jobs:
   lefthook:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: '20'
+          node-version: '26'
           cache: 'npm'
           cache-dependency-path: |
             package-lock.json
             frontend/package-lock.json
             e2e/package-lock.json
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
-        with: {go-version: '1.25'}
-      - uses: bufbuild/buf-action@fd21066df7214747548607aaa45548ba2b9bc1ff # v1.4.0
+      - uses: actions/setup-go@d8cbb8045d7f43706b9177cceb36c1f91a6644d5 # v7.1.0
+        with: {go-version: '1.27'}
+      - uses: bufbuild/buf-action@37ac33d8960807670a6e9719080e885197b09cc6 # v1.7.0
         with:
           input: proto
           setup_only: true
-      - run: cargo install typos-cli --version 1.46.2 --locked
-      - uses: golangci/golangci-lint-action@82606bf257cbaff209d206a39f5134f0cfbfd2ee # v9.2.1
+      - run: cargo install typos-cli --version 1.52.2 --locked
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
         with:
-          version: v2.12.2
+          version: v2.15.0
           install-mode: binary
           install-only: true
       - run: go install github.com/zricethezav/gitleaks/v8@v8.30.1
-      - run: npm install -g lefthook@2.1.8
+      - run: npm install -g lefthook@2.2.2
       - run: npm ci # Install prettier
       - run: npm ci --prefix frontend
       - run: npm ci --prefix e2e
