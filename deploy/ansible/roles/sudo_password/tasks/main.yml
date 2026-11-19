@@ -1,0 +1,37 @@
+---
+# Make sudo require the admin user's password, so a stolen SSH key or a shell
+# as that user does not grant root on its own. The password comes from the
+# vault, which keeps it in sync with what ansible sends when it becomes root.
+- name: Require a sudo password in the vault
+  assert:
+    that: ansible_become_password | default('') | length > 0
+    fail_msg: >-
+      Set ansible_become_password in the vault. It becomes the password of
+      {{ ansible_user }}, and sudo asks for it once passwordless sudo is
+      removed.
+
+# A salt derived from the host keeps the hash stable across runs, so the task
+# reports a change only when the password itself changes.
+- name: Set the admin user's password
+  user:
+    name: '{{ ansible_user }}'
+    password: >-
+      {{ ansible_become_password | password_hash('sha512',
+      (ansible_host | hash('sha1'))[:16]) }}
+  no_log: true
+
+- name: Find passwordless sudo rules for the admin user
+  find:
+    paths: /etc/sudoers.d
+    contains: '^\s*{{ ansible_user }}\s.*NOPASSWD'
+  register: nopasswd_rules
+
+- name: Remove passwordless sudo rules for the admin user
+  lineinfile:
+    path: '{{ item.path }}'
+    regexp: '^\s*{{ ansible_user }}\s.*NOPASSWD'
+    state: absent
+    validate: 'visudo -cf %s'
+  loop: '{{ nopasswd_rules.files }}'
+  loop_control:
+    label: '{{ item.path }}'

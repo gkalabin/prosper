@@ -86,9 +86,9 @@ vault select which env to deploy:
         -i private/$ENVIRONMENT/inventory.yml \
         --vault-password-file private/$ENVIRONMENT/vault-password.txt
 
-If the play fails with "Missing sudo password", sudo on the host prompts for a
-password (the Raspberry Pi OS default). Set `ansible_become_password` in the
-vault, or append `--ask-become-pass` to the command to be prompted each run.
+The play fails early if `ansible_become_password` is unset in the vault. It
+becomes `ansible_user`'s password, and the play removes that user's passwordless
+sudo, so sudo on the host asks for it from then on.
 
 ## 6. Verify
 

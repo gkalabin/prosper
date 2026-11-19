@@ -9,11 +9,10 @@
 
 # === Remote access ========================================================
 
-# Sudo password for ansible_user on the target host. Required when sudo prompts
-# for a password (the default on Raspberry Pi OS); cloud VMs typically grant
-# passwordless sudo — leave unset there. If you'd rather not store it, pass
-# --ask-become-pass to ansible-playbook instead.
-# ansible_become_password: ''
+# Sudo password for ansible_user on the target host. Required: the playbook
+# sets it as that user's password and removes passwordless sudo, so a stolen
+# SSH key alone does not grant root. Generate with: openssl rand -base64 32
+ansible_become_password: ''
 
 # === Domain & TLS =========================================================
 
