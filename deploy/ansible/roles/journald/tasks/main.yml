@@ -1,0 +1,16 @@
+---
+# Keep the journal on disk so logs survive a reboot.
+- name: Create journald drop-in directory
+  file:
+    path: /etc/systemd/journald.conf.d
+    state: directory
+    mode: '0755'
+
+- name: Deploy persistent journal config
+  copy:
+    dest: /etc/systemd/journald.conf.d/90-persistent-logs.conf
+    mode: '0644'
+    content: |
+      [Journal]
+      Storage=persistent
+  notify: restart journald

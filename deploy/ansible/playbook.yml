@@ -11,6 +11,7 @@
     - nginx
     - ssh_hardening
     - sudo_password
+    - journald
     - fail2ban
     - role: ddclient # dynamic-IP hosts only; runs before certbot so the A record is current on first cert issue
       when: ddclient_password | default('') | length > 0
