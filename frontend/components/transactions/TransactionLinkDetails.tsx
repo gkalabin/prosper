@@ -22,7 +22,7 @@ export function DebtRepaymentDetails({
   const {id: linkId, expense, repayment} = debts[0];
   if (id == expense.id) {
     return (
-      <div className="text-muted-foreground mt-3 text-sm">
+      <div className="mt-3 text-sm text-muted-foreground">
         Repaid in {repayment.vendor} on{' '}
         {format(repayment.timestampEpoch, 'yyyy-MM-dd')}
       </div>
@@ -30,7 +30,7 @@ export function DebtRepaymentDetails({
   }
   if (id == repayment.id) {
     return (
-      <div className="text-muted-foreground mt-3 text-sm">
+      <div className="mt-3 text-sm text-muted-foreground">
         Repayment for {expense.vendor} paid by {expense.payer} on{' '}
         {format(expense.timestampEpoch, 'yyyy-MM-dd')}
       </div>
@@ -55,7 +55,7 @@ export function RefundDetails({transaction: {id}}: {transaction: Transaction}) {
   const {id: linkId, expense, refunds} = links[0];
   if (id == expense.id) {
     return (
-      <div className="text-muted-foreground mt-3 text-sm">
+      <div className="mt-3 text-sm text-muted-foreground">
         Refunded in
         <ul className="ml-4 list-disc">
           {refunds.map(r => (
@@ -69,7 +69,7 @@ export function RefundDetails({transaction: {id}}: {transaction: Transaction}) {
   }
   if (refunds.some(r => r.id == id)) {
     return (
-      <div className="text-muted-foreground mt-3 text-sm">
+      <div className="mt-3 text-sm text-muted-foreground">
         Refund for {expense.vendor} on{' '}
         {format(expense.timestampEpoch, 'yyyy-MM-dd')}
       </div>

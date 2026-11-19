@@ -72,7 +72,7 @@ function DayHeader({
 }) {
   return (
     <div className="flex items-baseline justify-between px-1 pb-2">
-      <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest">
+      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
         {dayHeading(group.epoch)}
       </span>
       <DayNet transactions={group.transactions} perspective={perspective} />
@@ -105,10 +105,10 @@ function DayNet({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="hover:bg-secondary -mx-1.5 -my-1 flex cursor-pointer items-center gap-1 rounded-full px-1.5 py-1 transition-colors"
+          className="-mx-1.5 -my-1 flex cursor-pointer items-center gap-1 rounded-full px-1.5 py-1 transition-colors hover:bg-secondary"
         >
           <Totals amounts={netAmounts} signed />
-          <ExclamationTriangleIcon className="text-muted-foreground h-4 w-4 flex-none" />
+          <ExclamationTriangleIcon className="h-4 w-4 flex-none text-muted-foreground" />
           <span className="sr-only">What this net counts</span>
         </button>
       </PopoverTrigger>
@@ -117,7 +117,7 @@ function DayNet({
           Money in minus money out of{' '}
           {perspective ? 'this account' : 'your accounts'}.
         </p>
-        <p className="text-muted-foreground mt-2">Not counted:</p>
+        <p className="mt-2 text-muted-foreground">Not counted:</p>
         <ul className="ml-4 mt-1 space-y-1">
           {exclusions.map(({kind, tallies}) => (
             <li

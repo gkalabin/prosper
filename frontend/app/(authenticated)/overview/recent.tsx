@@ -19,17 +19,17 @@ export function RecentTransactions() {
         <div>
           <h2
             id="recent-heading"
-            className="text-muted-foreground text-xs font-bold uppercase tracking-[0.13em]"
+            className="text-xs font-bold uppercase tracking-[0.13em] text-muted-foreground"
           >
             Recent
           </h2>
-          <div className="text-muted-foreground text-xs">
+          <div className="text-xs text-muted-foreground">
             Last {RECENT_WINDOW_DAYS} days
           </div>
         </div>
         <Link
           href="/transactions"
-          className="text-muted-foreground hover:text-foreground inline-flex items-baseline gap-0.5 text-sm font-semibold"
+          className="inline-flex items-baseline gap-0.5 text-sm font-semibold text-muted-foreground hover:text-foreground"
         >
           All transactions
           <ChevronRightIcon className="h-4 w-4 self-center" />

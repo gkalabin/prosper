@@ -54,7 +54,7 @@ export function FetchOpenBankingTransactions({
       >
         Refresh
       </TextButton>
-      {error && <span className="text-destructive font-medium"> {error}</span>}
+      {error && <span className="font-medium text-destructive"> {error}</span>}
     </>
   );
 }

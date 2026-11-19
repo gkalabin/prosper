@@ -17,5 +17,4 @@ export type UpsertTransactionSuccess = {
 };
 
 export type UpsertTransactionAPIResponse =
-  | UpsertTransactionClientError
-  | UpsertTransactionSuccess;
+  UpsertTransactionClientError | UpsertTransactionSuccess;

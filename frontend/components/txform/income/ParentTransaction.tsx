@@ -182,7 +182,7 @@ function FilteredTransactions({
               <div className="grow">
                 {amount} {vendor}
               </div>
-              <div className="text-muted-foreground text-sm">{date}</div>
+              <div className="text-sm text-muted-foreground">{date}</div>
             </div>
           </CommandItem>
         );

@@ -72,7 +72,7 @@ export function SignInForm({nextPage}: {nextPage: string}) {
           )}
         />
 
-        <div role="alert" className="text-destructive text-sm font-medium">
+        <div role="alert" className="text-sm font-medium text-destructive">
           {form.formState.errors.root?.message}
         </div>
         <Button

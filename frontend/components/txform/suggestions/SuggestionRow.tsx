@@ -76,12 +76,12 @@ export function SuggestionRow({
         isDimmed && 'opacity-60'
       )}
     >
-      {isActive && <span className="bg-accent absolute inset-y-0 left-0 w-1" />}
+      {isActive && <span className="absolute inset-y-0 left-0 w-1 bg-accent" />}
       <button
         type="button"
         onClick={() => onClick(draft)}
         disabled={disabled}
-        className="focus-visible:ring-ring flex w-full cursor-pointer flex-col rounded text-left focus-visible:outline-none focus-visible:ring-2 disabled:cursor-default"
+        className="flex w-full cursor-pointer flex-col rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default"
       >
         <span className="flex w-full items-start justify-between gap-3">
           <span className="flex min-w-0 flex-1 items-center gap-2">
@@ -94,7 +94,7 @@ export function SuggestionRow({
               {draftSummary(draft)}
             </span>
             {isActive && (
-              <span className="text-accent bg-accent/15 flex-none rounded px-1.5 py-0.5 text-xs font-bold uppercase tracking-wide">
+              <span className="flex-none rounded bg-accent/15 px-1.5 py-0.5 text-xs font-bold uppercase tracking-wide text-accent">
                 Selected
               </span>
             )}
@@ -113,16 +113,16 @@ export function SuggestionRow({
           </span>
         </span>
         {isTransfer && otherAccount && (
-          <span className="text-muted-foreground mt-0.5 block text-xs italic">
+          <span className="mt-0.5 block text-xs italic text-muted-foreground">
             Transfer {signedAmount.isPositive() ? 'from' : 'to'}{' '}
             {fullAccountName(otherAccount, banks)}
           </span>
         )}
-        <span className="text-muted-foreground mt-0.5 block font-mono text-xs tabular-nums">
+        <span className="mt-0.5 block font-mono text-xs tabular-nums text-muted-foreground">
           {format(draftTimestamp(draft), 'yyyy-MM-dd HH:mm')}
         </span>
         {recordedTransaction && (
-          <span className="text-muted-foreground mt-1 block text-xs">
+          <span className="mt-1 block text-xs text-muted-foreground">
             Recorded as{' '}
             <i>{recordedSummary(recordedTransaction, bankAccounts, banks)}</i>
           </span>
@@ -131,7 +131,7 @@ export function SuggestionRow({
       {!recorded && (
         <div className="mt-1.5 text-xs">
           {draft.ignored && (
-            <span className="text-muted-foreground italic">Ignored · </span>
+            <span className="italic text-muted-foreground">Ignored · </span>
           )}
           <TextButton
             type="button"

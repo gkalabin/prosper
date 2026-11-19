@@ -33,11 +33,7 @@ import {Unit} from '@/lib/model/Unit';
 import {notEmpty} from '@/lib/util/util';
 
 export type Transaction =
-  | PersonalExpense
-  | ThirdPartyExpense
-  | Transfer
-  | Income
-  | OpeningBalance;
+  PersonalExpense | ThirdPartyExpense | Transfer | Income | OpeningBalance;
 
 export type Expense = PersonalExpense | ThirdPartyExpense;
 

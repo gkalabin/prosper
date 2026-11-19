@@ -26,7 +26,7 @@ export function FormTypeSelect({
     <div
       role="tablist"
       aria-label="Transaction type"
-      className="bg-muted grid w-full grid-cols-3 gap-1 rounded-xl p-1"
+      className="grid w-full grid-cols-3 gap-1 rounded-xl bg-muted p-1"
     >
       {TABS.map(tab => {
         const selected = value === tab.value;
@@ -42,7 +42,7 @@ export function FormTypeSelect({
             disabled={disabled}
             className={cn(
               'h-10 rounded-lg text-sm font-semibold transition-colors',
-              'focus-visible:ring-ring focus-visible:outline-none focus-visible:ring-2',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
               'disabled:cursor-not-allowed disabled:opacity-50',
               selected
                 ? 'bg-card text-foreground shadow-sm'

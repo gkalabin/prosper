@@ -25,12 +25,12 @@ export function CollapsedSummary({
   const account = mustFindBankAccount(bankAccounts, accountId);
   const amount = signedAmountForAccount(draft, account, stocks);
   return (
-    <div className="border-input bg-card flex items-center gap-3 rounded-2xl border p-3 shadow-sm">
-      <span className="bg-tint text-accent grid h-8 w-8 flex-none place-items-center rounded-lg">
+    <div className="flex items-center gap-3 rounded-2xl border border-input bg-card p-3 shadow-sm">
+      <span className="grid h-8 w-8 flex-none place-items-center rounded-lg bg-tint text-accent">
         <CheckIcon className="h-4 w-4" />
       </span>
       <div className="min-w-0 flex-1">
-        <div className="text-muted-foreground text-xs font-bold uppercase tracking-wide">
+        <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
           Prefilled from suggestion
         </div>
         <div className="mt-0.5 truncate text-sm font-semibold">

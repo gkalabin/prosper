@@ -229,7 +229,7 @@ function FormLevelError({message}: {message: string}) {
   return (
     <div
       role="alert"
-      className="border-destructive/40 bg-destructive/10 text-destructive mt-6 flex items-center gap-2 rounded-xl border p-3 text-sm font-medium"
+      className="mt-6 flex items-center gap-2 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm font-medium text-destructive"
     >
       <ExclamationCircleIcon className="h-5 w-5 flex-none" />
       {message}

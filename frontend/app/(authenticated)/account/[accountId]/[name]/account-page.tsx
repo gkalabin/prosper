@@ -52,7 +52,7 @@ function NonEmptyPageContent({accountId}: {accountId: number}) {
             onChange={e => setQuery(e.target.value)}
           />
           {error && (
-            <div className="text-destructive text-sm font-medium">
+            <div className="text-sm font-medium text-destructive">
               {error.message}:
               {error.getErrors().map(e => (
                 <div key={e} className="ml-2">

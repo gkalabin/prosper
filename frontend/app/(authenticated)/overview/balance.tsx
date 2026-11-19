@@ -46,7 +46,7 @@ export function AccountBalance({account}: {account: BankAccount}) {
         {nativeCurrencyBalance.format()}
       </MaybeHiddenDiv>
       {displayCurrencyBalance && (
-        <MaybeHiddenDiv className="text-muted-foreground text-xs">
+        <MaybeHiddenDiv className="text-xs text-muted-foreground">
           ≈ {displayCurrencyBalance.format()}
         </MaybeHiddenDiv>
       )}

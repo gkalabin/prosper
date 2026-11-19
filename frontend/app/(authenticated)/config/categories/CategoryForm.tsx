@@ -120,7 +120,7 @@ export const CategoryForm = ({
           )}
         />
         <div className="flex justify-between gap-2">
-          <div className="text-destructive text-sm font-medium">
+          <div className="text-sm font-medium text-destructive">
             {form.formState.errors.root?.message}
           </div>
           <div className="flex-none space-x-4">

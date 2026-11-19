@@ -14,10 +14,10 @@ export function RevealBlock({
   children: React.ReactNode;
 }) {
   return (
-    <div className="animate-in fade-in slide-in-from-top-1 bg-tint relative rounded-2xl py-3.5 pl-5 pr-4 duration-200">
-      <span className="bg-accent absolute inset-y-3 left-0 w-1 rounded-full" />
+    <div className="relative rounded-2xl bg-tint py-3.5 pl-5 pr-4 duration-200 animate-in fade-in slide-in-from-top-1">
+      <span className="absolute inset-y-3 left-0 w-1 rounded-full bg-accent" />
       <div className="mb-3 flex items-center justify-between gap-2">
-        <span className="text-accent text-xs font-bold uppercase tracking-wider">
+        <span className="text-xs font-bold uppercase tracking-wider text-accent">
           {heading}
         </span>
         <TextButton

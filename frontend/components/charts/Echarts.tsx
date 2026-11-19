@@ -238,8 +238,7 @@ type SingleTooltipFormatterParams = CallbackDataParams & {
 };
 
 type ToolTipFormatterParams =
-  | SingleTooltipFormatterParams
-  | Array<SingleTooltipFormatterParams>;
+  SingleTooltipFormatterParams | Array<SingleTooltipFormatterParams>;
 
 function stackedBarChartTooltipFormatter(
   c: Currency

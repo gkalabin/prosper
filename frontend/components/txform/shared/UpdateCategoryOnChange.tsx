@@ -15,10 +15,7 @@ import {useEffect, useMemo} from 'react';
 import {useFormContext, useWatch} from 'react-hook-form';
 
 type TransactionWithCategory =
-  | PersonalExpense
-  | ThirdPartyExpense
-  | Income
-  | Transfer;
+  PersonalExpense | ThirdPartyExpense | Income | Transfer;
 type CategorisedFilter = (t: Transaction) => t is TransactionWithCategory;
 
 function matchesVendor(vendor: string): CategorisedFilter {

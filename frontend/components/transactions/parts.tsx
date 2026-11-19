@@ -20,7 +20,7 @@ export function Pager({
   const [displayLimit, setDisplayLimit] = useState(DEFAULT_DISPLAY_LIMIT);
   if (!transactions?.length) {
     return (
-      <div className="text-muted-foreground text-sm">No transactions.</div>
+      <div className="text-sm text-muted-foreground">No transactions.</div>
     );
   }
   const shown = transactions.slice(0, displayLimit);
@@ -45,7 +45,7 @@ export function RowsCard({
   perspective?: BankAccount;
 }) {
   return (
-    <ul className="bg-card border-border divide-border divide-y overflow-hidden rounded-2xl border shadow-sm">
+    <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
       {transactions.map(t => (
         <li key={t.id}>
           <TransactionRow transaction={t} perspective={perspective} />
@@ -66,7 +66,7 @@ function ShowMoreFooter({
 }) {
   if (shownCount >= totalCount) {
     return (
-      <div className="text-muted-foreground mt-6 text-center text-xs">
+      <div className="mt-6 text-center text-xs text-muted-foreground">
         All {totalCount} shown
       </div>
     );
@@ -74,8 +74,8 @@ function ShowMoreFooter({
   const remaining = totalCount - shownCount;
   return (
     <div className="mt-6 flex flex-col items-center gap-3">
-      <div className="text-muted-foreground text-xs tabular-nums">
-        Displaying <b className="text-foreground font-bold">{shownCount}</b> of{' '}
+      <div className="text-xs tabular-nums text-muted-foreground">
+        Displaying <b className="font-bold text-foreground">{shownCount}</b> of{' '}
         {totalCount}
       </div>
       <div className="flex items-center gap-3">

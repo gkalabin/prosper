@@ -48,14 +48,14 @@ export function BanksListItem({bank}: {bank: Bank}) {
     <Card role="region" aria-labelledby={cardHeaderId}>
       <CardHeader className="p-4">
         <div className="flex items-center gap-3">
-          <div className="bg-secondary text-foreground flex h-10 w-10 flex-none items-center justify-center rounded-xl text-base font-bold">
+          <div className="flex h-10 w-10 flex-none items-center justify-center rounded-xl bg-secondary text-base font-bold text-foreground">
             {bank.name.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
             <h2 id={cardHeaderId} className="truncate font-semibold">
               <Link href={bankPageURL(bank)}>{bank.name}</Link>
             </h2>
-            <div className="text-muted-foreground text-xs">
+            <div className="text-xs text-muted-foreground">
               {accountCountLabel(activeAccounts.length)}
             </div>
           </div>
@@ -69,7 +69,7 @@ export function BanksListItem({bank}: {bank: Bank}) {
         <OpenBankingConnectionExpirationWarning bank={bank} />
       </CardHeader>
       <CardContent className="px-4 pb-4 pt-0">
-        <ul className="border-border border-t border-dashed pt-1">
+        <ul className="border-t border-dashed border-border pt-1">
           {activeAccounts.map(account => (
             <BankAccountListItem
               key={account.id}
@@ -122,25 +122,25 @@ export function BankAccountListItem({
   return (
     <li>
       <Link href={accountPageURL(account, bank)}>
-        <div className="hover:bg-muted/50 flex items-center gap-3 rounded-xl px-2 py-2.5">
+        <div className="flex items-center gap-3 rounded-xl px-2 py-2.5 hover:bg-muted/50">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="truncate text-sm font-medium">
                 {account.name}
               </span>
               {account.joint && (
-                <span className="text-muted-foreground flex flex-none items-center gap-1 text-xs">
+                <span className="flex flex-none items-center gap-1 text-xs text-muted-foreground">
                   <UsersIcon className="h-3.5 w-3.5" />
                   Joint
                 </span>
               )}
             </div>
-            <div className="text-muted-foreground mt-0.5 flex items-center gap-1.5 text-xs">
+            <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
               <AccountSubtitle account={account} />
             </div>
           </div>
           <AccountBalance account={account} />
-          <ChevronRightIcon className="text-muted-foreground h-4 w-4 flex-none" />
+          <ChevronRightIcon className="h-4 w-4 flex-none text-muted-foreground" />
         </div>
       </Link>
     </li>
