@@ -2,7 +2,11 @@ import {defineConfig, devices} from '@playwright/test';
 import dotenv from 'dotenv';
 import path from 'path';
 
-dotenv.config({path: path.resolve(__dirname, 'e2e.env'), override: true});
+dotenv.config({
+  path: path.resolve(__dirname, 'e2e.env'),
+  override: true,
+  quiet: true,
+});
 const env = {...process.env} as {[key: string]: string};
 
 // See https://playwright.dev/docs/test-configuration.

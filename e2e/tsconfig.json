@@ -2,8 +2,7 @@
   "compilerOptions": {
     "target": "es2020",
     "lib": ["dom", "esnext"],
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "nodenext",
     "strict": true,
     "esModuleInterop": true,
     "resolveJsonModule": true,
