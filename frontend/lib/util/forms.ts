@@ -3,10 +3,10 @@ import {
   type Path,
   type UseFormSetError,
 } from 'react-hook-form';
-import {type typeToFlattenedError} from 'zod';
+import {type z} from 'zod';
 
 export function setFormErrors<T extends FieldValues>(
-  errors: typeToFlattenedError<T>,
+  errors: z.core.$ZodFlattenedError<T>,
   setError: UseFormSetError<T>
 ) {
   // Global (root) errors.

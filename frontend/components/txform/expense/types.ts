@@ -27,8 +27,8 @@ export const expenseFormValidationSchema = z
     // form's onChange with a string value which gets coerced here. The alternative is to parse valid numbers in the onChange,
     // but it is difficult because of edge cases.
     // For example, while the user types 4.06 the value is 4.0 at some point which gets converted to 4.
-    amount: z.coerce.number().nonnegative(),
-    ownShareAmount: z.coerce.number().nonnegative(),
+    amount: z.coerce.number<number>().nonnegative(),
+    ownShareAmount: z.coerce.number<number>().nonnegative(),
     accountId: z.number().int().positive().nullable(),
     categoryId: z.number().int().positive(),
     vendor: z.string().trim().min(1, 'Vendor is required'),
@@ -44,14 +44,14 @@ export const expenseFormValidationSchema = z
   .superRefine((data, ctx) => {
     if (!isValid(data.timestamp)) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['timestamp'],
         message: 'Invalid date',
       });
     }
     if (data.ownShareAmount > data.amount) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['ownShareAmount'],
         message: "Own share amount can't be greater than the total amount",
       });
@@ -61,7 +61,7 @@ export const expenseFormValidationSchema = z
       data.sharingType === SharingType.PAID_SELF_SHARED;
     if (paidSelf && data.accountId === null) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['accountId'],
         message: 'Account is required',
       });
@@ -71,7 +71,7 @@ export const expenseFormValidationSchema = z
       !data.companion?.trim()
     ) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['companion'],
         message: 'Companion is required for a shared expense',
       });
@@ -81,28 +81,28 @@ export const expenseFormValidationSchema = z
       data.sharingType === SharingType.PAID_OTHER_REPAID;
     if (paidOther && !data.payer?.trim()) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['payer'],
         message: 'Payer is required when someone else paid',
       });
     }
     if (paidOther && !data.currency?.trim()) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['currency'],
         message: 'Currency is required when someone else paid',
       });
     }
     if (paidOther && data.currency && !findByCode(data.currency)) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['currency'],
         message: `Unsupported currency: ${data.currency}`,
       });
     }
     if (data.sharingType === SharingType.PAID_OTHER_REPAID && !data.repayment) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['repayment'],
         message: 'Repayment details are required',
       });

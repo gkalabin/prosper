@@ -8,7 +8,7 @@ import {withAuth} from '@/lib/grpc/auth';
 import {ledgerClient} from '@/lib/grpc/client';
 import {AccountUnit, BankAccount} from '@/lib/grpc/gen/prosper/v1/ledger';
 import {dollarToNanos} from '@/lib/util/util';
-import {type typeToFlattenedError} from 'zod';
+import {z} from 'zod';
 
 export type UpsertBankAccountResult =
   | {
@@ -17,7 +17,7 @@ export type UpsertBankAccountResult =
     }
   | {
       status: 'CLIENT_ERROR';
-      errors: typeToFlattenedError<AccountFormSchema>;
+      errors: z.core.$ZodFlattenedError<AccountFormSchema>;
     };
 
 export async function upsertBankAccount(
@@ -29,7 +29,7 @@ export async function upsertBankAccount(
   if (!validatedData.success) {
     return {
       status: 'CLIENT_ERROR',
-      errors: validatedData.error.flatten(),
+      errors: z.flattenError(validatedData.error),
     };
   }
   const data = validatedData.data;

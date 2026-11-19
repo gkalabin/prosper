@@ -7,7 +7,7 @@ import {
 import {withAuth} from '@/lib/grpc/auth';
 import {ledgerClient} from '@/lib/grpc/client';
 import {Category} from '@/lib/grpc/gen/prosper/v1/ledger';
-import {type typeToFlattenedError} from 'zod';
+import {z} from 'zod';
 
 export type UpsertCategoryResult =
   | {
@@ -16,7 +16,7 @@ export type UpsertCategoryResult =
     }
   | {
       status: 'CLIENT_ERROR';
-      errors: typeToFlattenedError<CategoryFormSchema>;
+      errors: z.core.$ZodFlattenedError<CategoryFormSchema>;
     };
 
 export async function upsertCategory(
@@ -28,7 +28,7 @@ export async function upsertCategory(
   if (!validatedData.success) {
     return {
       status: 'CLIENT_ERROR',
-      errors: validatedData.error.flatten(),
+      errors: z.flattenError(validatedData.error),
     };
   }
   const {response} = await ledgerClient.upsertCategory(

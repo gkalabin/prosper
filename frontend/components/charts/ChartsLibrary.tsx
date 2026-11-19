@@ -3,6 +3,7 @@ import {Currency} from '@/lib/model/Currency';
 import {Granularity} from '@/lib/util/Granularity';
 import {MoneyTimeseries, NumberTimeseries} from '@/lib/util/Timeseries';
 import {type Interval} from 'date-fns';
+import {type JSX} from 'react';
 
 export type TimeseriesMoneyProps = {
   title: string;

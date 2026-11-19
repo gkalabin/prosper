@@ -41,12 +41,8 @@ pre-commit:
   jobs:
     - name: eslint
       glob: 'frontend/**/*.{js,jsx,ts,tsx}'
-      # Switch to --no-warn-ignored when using eslint v10
-      exclude:
-        - 'frontend/lib/grpc/gen/**'
-        - 'frontend/lib/search/generated/**'
       root: frontend/
-      run: npx eslint --max-warnings=0 {staged_files}
+      run: npx eslint --max-warnings=0 --no-warn-ignored {staged_files}
 
     - name: prettier
       glob: '*.{js,jsx,ts,tsx,json,css,md,yml,yaml}'
