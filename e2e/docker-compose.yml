@@ -1,6 +1,6 @@
 services:
   e2e-test-db:
-    image: mysql:8.0
+    image: mysql:8.4
     container_name: prosper-e2e-test-db
     environment:
       MYSQL_ROOT_PASSWORD: root

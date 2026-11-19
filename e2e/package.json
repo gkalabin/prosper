@@ -10,17 +10,16 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@playwright/test": "^1.57.0",
+    "@playwright/test": "^1.65.1",
     "bcrypt": "^6.0.0",
     "date-fns": "^4.4.0",
-    "dotenv": "^16.4.7",
-    "mysql2": "^3.22.3",
-    "uuid": "^14.0.0"
+    "dotenv": "^18.0.10",
+    "mysql2": "^3.24.6",
+    "uuid": "^14.0.3"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
-    "@types/node": "^22.19.3",
-    "@types/uuid": "^10.0.0",
-    "typescript": "^5.9.3"
+    "@types/node": "^26.6.6",
+    "typescript": "^7.0.2"
   }
 }
