@@ -17,9 +17,7 @@ export function Description({
   fieldName,
 }: {
   fieldName:
-    | 'expense.description'
-    | 'income.description'
-    | 'transfer.description';
+    'expense.description' | 'income.description' | 'transfer.description';
 }) {
   const {control} = useFormContext<TransactionFormSchema>();
   const {transactions} = useTransactionDataContext();

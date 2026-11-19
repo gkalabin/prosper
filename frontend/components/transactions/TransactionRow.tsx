@@ -65,7 +65,7 @@ export function TransactionRow({
         <Summary transaction={transaction} perspective={perspective} />
         <ChevronRightIcon
           className={cn(
-            'text-muted-foreground -ml-1 h-4 w-4 flex-none transition-transform',
+            '-ml-1 h-4 w-4 flex-none text-muted-foreground transition-transform',
             expanded && 'rotate-90'
           )}
         />
@@ -225,11 +225,11 @@ function OpeningBalanceSummary({t}: {t: OpeningBalance}) {
     <>
       <RowIcon
         Icon={ScaleIcon}
-        className="border-border text-muted-foreground border border-dashed"
+        className="border border-dashed border-border text-muted-foreground"
       />
       <RowText
         title={
-          <span className="text-muted-foreground italic">Opening balance</span>
+          <span className="italic text-muted-foreground">Opening balance</span>
         }
         subtitle={fullAccountName(account, banks)}
       />
@@ -255,7 +255,7 @@ function ownShareLabel(
 
 function SuffixNote({children}: {children: React.ReactNode}) {
   return (
-    <span className="text-muted-foreground font-normal"> — {children}</span>
+    <span className="font-normal text-muted-foreground"> — {children}</span>
   );
 }
 
@@ -289,10 +289,10 @@ function RowText({
 }) {
   return (
     <span className="min-w-0 flex-1">
-      <span className="text-foreground block truncate text-sm font-semibold leading-tight">
+      <span className="block truncate text-sm font-semibold leading-tight text-foreground">
         {title}
       </span>
-      <span className="text-muted-foreground mt-0.5 block truncate text-xs">
+      <span className="mt-0.5 block truncate text-xs text-muted-foreground">
         {subtitle}
       </span>
     </span>
@@ -322,13 +322,13 @@ function RowAmount({
         {sign}
         {whole}
         {fraction && (
-          <span className="text-muted-foreground text-xs font-normal">
+          <span className="text-xs font-normal text-muted-foreground">
             {fraction}
           </span>
         )}
       </span>
       {note && (
-        <span className="text-muted-foreground mt-0.5 block text-xs tabular-nums">
+        <span className="mt-0.5 block text-xs tabular-nums text-muted-foreground">
           {note}
         </span>
       )}

@@ -20,9 +20,9 @@ export function TransactionsViewToggle({
   onChange: (view: TransactionsView) => void;
 }) {
   return (
-    <div className="border-border bg-secondary relative flex rounded-xl border p-1 shadow-inner">
+    <div className="relative flex rounded-xl border border-border bg-secondary p-1 shadow-inner">
       <div
-        className="bg-primary absolute inset-y-1 left-1 w-20 rounded-lg shadow transition-transform duration-300 ease-out"
+        className="absolute inset-y-1 left-1 w-20 rounded-lg bg-primary shadow transition-transform duration-300 ease-out"
         style={{
           transform: view === 'stats' ? 'translateX(100%)' : 'translateX(0)',
         }}

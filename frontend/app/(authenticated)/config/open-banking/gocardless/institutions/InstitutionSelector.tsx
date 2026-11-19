@@ -30,7 +30,7 @@ export function InstitutionSelector({
           <a
             key={institution.id}
             href={`/config/open-banking/gocardless/connect?bankId=${bank.id}&institutionId=${institution.id}`}
-            className="bg-card hover:bg-secondary flex flex-row items-center gap-4 rounded-md p-2 font-semibold transition-colors"
+            className="flex flex-row items-center gap-4 rounded-md bg-card p-2 font-semibold transition-colors hover:bg-secondary"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

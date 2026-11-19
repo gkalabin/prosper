@@ -33,12 +33,12 @@ export function BalanceCard({account}: {account: BankAccount}) {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">Balance</CardTitle>
-        <CurrencyDollarIcon className="text-muted-foreground h-4 w-4" />
+        <CurrencyDollarIcon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
         <div>
           <span className="text-3xl font-bold">{balance.format()}</span>
-          <span className="text-muted-foreground ml-2">
+          <span className="ml-2 text-muted-foreground">
             {inDisplayCurrency ? ' / ' + inDisplayCurrency.format() : ''}
             {showInStockCurrency ? ' / ' + inStockCurrency.format() : ''}
           </span>

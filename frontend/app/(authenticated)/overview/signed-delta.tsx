@@ -48,11 +48,11 @@ export function SignedDelta({
           {delta.abs().round().format()}
         </span>
       </MaybeHiddenDiv>
-      <span className="text-muted-foreground font-medium">·</span>
-      <span className="text-muted-foreground font-medium">{label}</span>
+      <span className="font-medium text-muted-foreground">·</span>
+      <span className="font-medium text-muted-foreground">{label}</span>
       {percent !== null && (
         <>
-          <span className="text-muted-foreground font-medium">·</span>
+          <span className="font-medium text-muted-foreground">·</span>
           <MaybeHiddenDiv
             className={cn('inline-block whitespace-nowrap', color)}
           >

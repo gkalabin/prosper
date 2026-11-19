@@ -29,7 +29,7 @@ export function TransferForm({transaction}: {transaction: Transaction | null}) {
       <Timestamp fieldName="transfer.timestamp" label="When" />
 
       <div className="space-y-2">
-        <div className="text-foreground text-sm font-medium">Move money</div>
+        <div className="text-sm font-medium text-foreground">Move money</div>
         <div className="grid grid-cols-2 gap-x-3">
           <Account fieldName="transfer.fromAccountId" label="From" />
           <Account fieldName="transfer.toAccountId" label="To" />
@@ -103,7 +103,7 @@ function ImpliedRate() {
     return null;
   }
   return (
-    <div className="text-muted-foreground text-xs italic">
+    <div className="text-xs italic text-muted-foreground">
       Implied rate{' '}
       <span className="font-mono tabular-nums">
         {(received / sent).toFixed(4)}

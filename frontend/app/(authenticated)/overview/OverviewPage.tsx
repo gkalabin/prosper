@@ -33,7 +33,7 @@ function NonEmptyPageContent({hideBalances}: {hideBalances: boolean}) {
         <section aria-labelledby="banks-heading" className="space-y-3">
           <h2
             id="banks-heading"
-            className="text-muted-foreground px-1 text-xs font-bold uppercase tracking-[0.13em]"
+            className="px-1 text-xs font-bold uppercase tracking-[0.13em] text-muted-foreground"
           >
             Banks &amp; accounts
           </h2>

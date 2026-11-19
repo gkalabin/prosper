@@ -36,8 +36,8 @@ export function AccountTabs({
             className={cn(
               'flex-none rounded-xl border px-3 py-2 text-left transition-colors disabled:opacity-50',
               active
-                ? 'bg-primary text-primary-foreground border-transparent'
-                : 'bg-card border-input text-foreground'
+                ? 'border-transparent bg-primary text-primary-foreground'
+                : 'border-input bg-card text-foreground'
             )}
           >
             <span className="block text-xs font-bold uppercase leading-none tracking-wide opacity-70">

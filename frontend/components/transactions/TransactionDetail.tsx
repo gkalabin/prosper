@@ -39,11 +39,11 @@ import {useState} from 'react';
 export function TransactionDetail({transaction}: {transaction: Transaction}) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   return (
-    <div className="bg-secondary/50 flex gap-3 px-3.5 pb-4">
+    <div className="flex gap-3 bg-secondary/50 px-3.5 pb-4">
       {/* Mirrors the row's icon column so the details line up with the row text. */}
       <div className="w-10 flex-none" />
       <div className="min-w-0 flex-1">
-        <div className="border-border mb-3 border-t" />
+        <div className="mb-3 border-t border-border" />
         <dl>
           <DetailRow label="When">
             {format(transaction.timestampEpoch, 'EEE, d MMM yyyy · HH:mm')}
@@ -82,10 +82,10 @@ function DetailRow({
 }) {
   return (
     <div className="flex gap-3 py-1">
-      <dt className="text-muted-foreground w-24 flex-none text-xs font-bold uppercase tracking-wide">
+      <dt className="w-24 flex-none text-xs font-bold uppercase tracking-wide text-muted-foreground">
         {label}
       </dt>
-      <dd className="text-foreground flex-1 text-sm leading-snug">
+      <dd className="flex-1 text-sm leading-snug text-foreground">
         {children}
       </dd>
     </div>
@@ -233,7 +233,7 @@ function TagChips({transaction: t}: {transaction: Transaction}) {
       {t.tagsIds.map(tagId => (
         <li
           key={tagId}
-          className="bg-foreground/5 text-muted-foreground rounded-md px-2.5 py-1 text-xs font-semibold"
+          className="rounded-md bg-foreground/5 px-2.5 py-1 text-xs font-semibold text-muted-foreground"
         >
           {mustFindTag(tagId, tags).name}
         </li>

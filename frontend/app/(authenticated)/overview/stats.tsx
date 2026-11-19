@@ -89,14 +89,14 @@ export function NetWorthHero() {
     <section className="px-1 py-4" aria-labelledby="net-worth-heading">
       <h2
         id="net-worth-heading"
-        className="text-muted-foreground text-xs font-bold uppercase tracking-[0.16em]"
+        className="text-xs font-bold uppercase tracking-[0.16em] text-muted-foreground"
       >
         Net worth
       </h2>
       <MaybeHiddenDiv className="mt-2 flex items-baseline font-mono font-semibold tracking-tight">
         <span className="text-5xl">{whole}</span>
         {fraction && (
-          <span className="text-muted-foreground text-2xl font-medium">
+          <span className="text-2xl font-medium text-muted-foreground">
             {fraction}
           </span>
         )}
@@ -175,7 +175,7 @@ function NetWorthEndpoints({
   const first = timeline[0];
   const last = timeline[timeline.length - 1];
   return (
-    <div className="text-muted-foreground mt-2 flex items-center justify-between font-mono text-xs">
+    <div className="mt-2 flex items-center justify-between font-mono text-xs text-muted-foreground">
       <div data-testid="net-worth-range-start">
         {format(first.timestamp, "MMM ''yy")} ·{' '}
         <MaybeHiddenDiv className="inline-block">

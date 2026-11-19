@@ -60,15 +60,13 @@ export function UnitSelect({
     kind: 'currency' as const,
     currencyCode: x.code,
   }));
-  const initialStocks = stocks.map(
-    (s): UnitSchema => ({
-      kind: 'stock',
-      ticker: s.ticker,
-      exchange: s.exchange,
-      name: s.name,
-      currencyCode: s.currencyCode,
-    })
-  );
+  const initialStocks = stocks.map((s): UnitSchema => ({
+    kind: 'stock',
+    ticker: s.ticker,
+    exchange: s.exchange,
+    name: s.name,
+    currencyCode: s.currencyCode,
+  }));
   const initialOptions = [...currencies, ...initialStocks];
 
   return (

@@ -38,9 +38,9 @@ export function RepaymentFields({
     return null;
   }
   return (
-    <div className="border-accent/25 animate-in fade-in mt-3 space-y-3 border-t pt-3 duration-200">
+    <div className="mt-3 space-y-3 border-t border-accent/25 pt-3 duration-200 animate-in fade-in">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-accent text-xs font-bold uppercase tracking-wider">
+        <span className="text-xs font-bold uppercase tracking-wider text-accent">
           Repaid {payer ?? 'them'}
         </span>
         <TextButton

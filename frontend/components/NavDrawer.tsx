@@ -34,20 +34,20 @@ export function NavDrawer({
     <Dialog.Root>
       <Dialog.Trigger asChild>
         <button
-          className="text-header-muted hover:bg-header-hover hover:text-header-foreground focus-visible:ring-accent inline-grid h-10 w-10 place-items-center rounded-md transition-colors focus-visible:outline-none focus-visible:ring-2"
+          className="inline-grid h-10 w-10 place-items-center rounded-md text-header-muted transition-colors hover:bg-header-hover hover:text-header-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           aria-label="Open main menu"
         >
           <Bars3Icon className="h-5 w-5" aria-hidden="true" />
         </button>
       </Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-40 bg-black/50" />
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <Dialog.Content
           // The drawer is a self-describing list of links; explicitly opt out
           // of a description instead of adding filler text for screen readers.
           aria-describedby={undefined}
           className={
-            'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left bg-drawer text-drawer-foreground fixed inset-y-0 left-0 z-50 flex w-72 max-w-[80%] flex-col p-4 shadow-xl duration-200'
+            'fixed inset-y-0 left-0 z-50 flex w-72 max-w-[80%] flex-col bg-drawer p-4 text-drawer-foreground shadow-xl duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left'
           }
         >
           <div className="flex items-center justify-between px-1">
@@ -58,7 +58,7 @@ export function NavDrawer({
             <Dialog.Title className="sr-only">Navigation menu</Dialog.Title>
             <Dialog.Close asChild>
               <button
-                className="text-drawer-muted hover:text-drawer-foreground focus-visible:ring-accent inline-grid h-10 w-10 place-items-center rounded-md transition-colors hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2"
+                className="inline-grid h-10 w-10 place-items-center rounded-md text-drawer-muted transition-colors hover:bg-white/5 hover:text-drawer-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 aria-label="Close menu"
               >
                 <XMarkIcon className="h-5 w-5" aria-hidden="true" />
@@ -76,7 +76,7 @@ export function NavDrawer({
                     className={cn(
                       active
                         ? 'bg-drawer-active text-drawer-foreground'
-                        : 'text-drawer-muted hover:text-drawer-foreground hover:bg-white/5',
+                        : 'text-drawer-muted hover:bg-white/5 hover:text-drawer-foreground',
                       'flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium'
                     )}
                     aria-current={active ? 'page' : undefined}
@@ -97,9 +97,9 @@ export function NavDrawer({
 
 function AccountSection({login}: {login: string}) {
   return (
-    <div className="border-drawer-border mt-auto border-t pt-4">
+    <div className="mt-auto border-t border-drawer-border pt-4">
       {login && (
-        <p className="text-drawer-muted px-3 pb-2 text-sm">
+        <p className="px-3 pb-2 text-sm text-drawer-muted">
           Signed in as <span className="text-drawer-foreground">{login}</span>
         </p>
       )}
@@ -107,7 +107,7 @@ function AccountSection({login}: {login: string}) {
         <Dialog.Close asChild>
           <Link
             href="/config"
-            className="text-drawer-muted hover:text-drawer-foreground flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium hover:bg-white/5"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-drawer-muted hover:bg-white/5 hover:text-drawer-foreground"
           >
             <Cog6ToothIcon className="h-5 w-5" aria-hidden="true" />
             Settings
@@ -116,7 +116,7 @@ function AccountSection({login}: {login: string}) {
         {login ? (
           <a
             href={SIGN_OUT_URL}
-            className="text-drawer-muted hover:text-drawer-foreground flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium hover:bg-white/5"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-drawer-muted hover:bg-white/5 hover:text-drawer-foreground"
           >
             <ArrowRightStartOnRectangleIcon
               className="h-5 w-5"
@@ -127,7 +127,7 @@ function AccountSection({login}: {login: string}) {
         ) : (
           <a
             href={SIGN_IN_URL}
-            className="text-drawer-muted hover:text-drawer-foreground flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium hover:bg-white/5"
+            className="flex items-center gap-3 rounded-md px-3 py-2 text-base font-medium text-drawer-muted hover:bg-white/5 hover:text-drawer-foreground"
           >
             <ArrowRightStartOnRectangleIcon
               className="h-5 w-5"

@@ -14,7 +14,7 @@ export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(
     return (
       <div className="relative">
         {symbol && (
-          <span className="text-muted-foreground pointer-events-none absolute inset-y-0 left-3 flex items-center font-mono text-sm">
+          <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center font-mono text-sm text-muted-foreground">
             {symbol}
           </span>
         )}

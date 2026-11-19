@@ -84,7 +84,7 @@ export function NewBalanceNote({
   return (
     <div
       className={cn(
-        'text-muted-foreground flex flex-row flex-wrap items-center gap-x-2 gap-y-1 text-xs',
+        'flex flex-row flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground',
         isSubmitting && 'opacity-50'
       )}
     >

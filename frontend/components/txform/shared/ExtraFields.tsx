@@ -104,7 +104,7 @@ function RemovableField({
   children: React.ReactNode;
 }) {
   return (
-    <div className="animate-in fade-in slide-in-from-top-1 relative duration-200">
+    <div className="relative duration-200 animate-in fade-in slide-in-from-top-1">
       {children}
       <TextButton
         type="button"

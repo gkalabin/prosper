@@ -40,11 +40,11 @@ function span(
 function SummaryLayout({main, meta}: {main: string; meta: string | null}) {
   return (
     <div className="min-w-0 flex-1">
-      <div className="text-foreground truncate text-base font-bold tracking-tight">
+      <div className="truncate text-base font-bold tracking-tight text-foreground">
         {main}
       </div>
       {meta && (
-        <div className="text-muted-foreground mt-0.5 truncate text-sm">
+        <div className="mt-0.5 truncate text-sm text-muted-foreground">
           {meta}
         </div>
       )}
