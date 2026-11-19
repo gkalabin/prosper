@@ -1,7 +1,7 @@
-# syntax=docker/dockerfile:1.6
+# syntax=docker/dockerfile:1
 
 # ── Go backend build ──
-FROM golang:1.25-alpine AS backend-builder
+FROM golang:1.27-alpine AS backend-builder
 RUN apk add --no-cache git
 WORKDIR /build
 COPY backend/go.mod backend/go.sum ./backend/
@@ -10,7 +10,7 @@ COPY backend/ ./backend/
 RUN cd backend && CGO_ENABLED=0 go build -o /out/backend ./cmd/backend
 
 # ── Node base ──
-FROM node:24.16.0-alpine3.23 AS node-base
+FROM node:26.13.1-alpine3.24 AS node-base
 # Patch OS packages to pick up security fixes published after the base image.
 RUN apk upgrade --no-cache
 
