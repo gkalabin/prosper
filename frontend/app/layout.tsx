@@ -30,8 +30,10 @@ export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
 
 export default async function RootLayout({
+  modal,
   children,
 }: {
+  modal: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -46,6 +48,7 @@ export default async function RootLayout({
         )}
       >
         {children}
+        {modal}
       </body>
     </html>
   );

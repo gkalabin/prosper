@@ -1,4 +1,4 @@
-import {NewTransactionModal} from '@/app/(authenticated)/@modal/modal';
+import {NewTransactionModal} from '@/app/@modal/modal';
 import {getAuthContextOrRedirect} from '@/lib/auth/user';
 import {fetchAppData} from '@/lib/db';
 import {logRequest} from '@/lib/util/log';
